@@ -13,9 +13,11 @@ export function PartnersUpgradeCTA({
   title?: string;
   description?: string;
 }) {
-  const { slug, plan } = useWorkspace();
+  const { slug, plan, partnersEnabled } = useWorkspace();
 
   const { canManageProgram } = getPlanCapabilities(plan);
+
+  const canUpgrade = !canManageProgram && partnersEnabled;
 
   return (
     <div className="flex min-h-[calc(100vh-60px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
@@ -48,16 +50,16 @@ export function PartnersUpgradeCTA({
       <div className="flex items-center gap-2">
         <Link
           href={
-            canManageProgram
-              ? "https://dub.co/help/article/dub-partners"
-              : `/${slug}/upgrade`
+            canUpgrade
+              ? `/${slug}/upgrade`
+              : "https://dub.co/help/article/dub-partners"
           }
           className={cn(
             buttonVariants({ variant: "primary" }),
             "flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-3 text-sm",
           )}
         >
-          {canManageProgram ? "Join the waitlist" : "Upgrade plan"}
+          {canUpgrade ? "Upgrade plan" : "Join the waitlist"}
         </Link>
       </div>
     </div>
