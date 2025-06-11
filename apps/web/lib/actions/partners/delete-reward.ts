@@ -37,13 +37,21 @@ export const deleteRewardAction = authActionClient
 
     const columnName = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
+    const defaultReward = await prisma.reward.findFirst({
+      where: {
+        programId,
+        event: reward.event,
+        default: true,
+      },
+    });
+
     await prisma.programEnrollment.updateMany({
       where: {
         programId,
         [columnName]: rewardId,
       },
       data: {
-        [columnName]: null,
+        [columnName]: defaultReward ? defaultReward.id : null,
       },
     });
   });
