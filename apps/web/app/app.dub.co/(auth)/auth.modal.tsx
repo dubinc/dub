@@ -4,6 +4,7 @@ import { LoginContent } from "@/ui/auth/login/login-content";
 import { ERegistrationStep } from "@/ui/auth/register/constants";
 import { SignUpContent } from "@/ui/auth/register/signup-content";
 import * as Dialog from "@radix-ui/react-dialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, X, XCircle } from "lucide-react";
 import {
@@ -89,8 +90,16 @@ export function AuthModal({
           onEscapeKeyDown={(e) => {
             e.preventDefault();
           }}
-          className="border-border-500 fixed left-[50%] top-[50%] z-50 w-[90%] max-w-[480px] -translate-x-[50%] -translate-y-[50%] rounded-xl border bg-neutral-50 p-0 shadow-xl focus:outline-none"
+          className="border-border-500 fixed left-[50%] top-[50%] z-50 flex w-[90%] max-w-[480px] -translate-x-[50%] -translate-y-[50%] flex-col rounded-xl border bg-neutral-50 p-0 shadow-xl focus:outline-none"
         >
+          <VisuallyHidden.Root>
+            <Dialog.Title>
+              {authType === "login"
+                ? "Log in to your GetQR account"
+                : "Create an account"}
+            </Dialog.Title>
+          </VisuallyHidden.Root>
+
           <div className="flex items-center justify-end px-6 pb-0 pt-4">
             <Dialog.Close asChild>
               <button
