@@ -22,11 +22,10 @@ export function EarningsCalculatorBlock({
   const id = useId();
   const [value, setValue] = useState(10);
 
-  const saleReward = program?.rewards?.find(
-    (r) => r.default && r.event === "sale",
-  );
+  // Find the default sale reward
+  const reward = program?.rewards?.find((r) => r.default && r.event === "sale");
 
-  if (!saleReward) {
+  if (!reward) {
     return null;
   }
 
@@ -70,7 +69,7 @@ export function EarningsCalculatorBlock({
           <div className="mt-2 flex items-center gap-1">
             <InvoiceDollar className="size-3.5 text-neutral-400" />
             <p className="text-xs text-neutral-500">
-              {formatRewardDescription({ reward: saleReward })}
+              {formatRewardDescription({ reward: reward })}
             </p>
           </div>
         </div>
@@ -83,9 +82,9 @@ export function EarningsCalculatorBlock({
             <span>You can earn</span>
             <NumberFlow
               value={Math.floor(
-                saleReward.type === "flat"
-                  ? saleReward.amount / 100
-                  : revenue * (saleReward.amount / 100),
+                reward.type === "flat"
+                  ? reward.amount / 100
+                  : revenue * (reward.amount / 100),
               )}
               className="text-4xl font-medium text-neutral-800"
               prefix="$"
