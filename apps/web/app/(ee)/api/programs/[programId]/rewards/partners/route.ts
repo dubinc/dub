@@ -35,7 +35,9 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       },
     },
     orderBy: {
-      partnerId: "asc",
+      partner: {
+        name: "asc",
+      },
     },
   });
 
