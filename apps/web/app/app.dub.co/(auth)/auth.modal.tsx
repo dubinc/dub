@@ -3,7 +3,7 @@
 import { LoginContent } from "@/ui/auth/login/login-content";
 import { ERegistrationStep } from "@/ui/auth/register/constants";
 import { SignUpContent } from "@/ui/auth/register/signup-content";
-import { Modal } from "@dub/ui";
+import { Dialog } from "@radix-ui/themes";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, X, XCircle } from "lucide-react";
 import {
@@ -68,22 +68,38 @@ export function AuthModal({
     [setAuthType],
   );
 
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        return;
+      }
+      setShowAuthModal(open);
+    },
+    [setShowAuthModal],
+  );
+
   return (
-    <Modal
-      showModal={showAuthModal}
-      setShowModal={setShowAuthModal}
-      preventDefaultClose
-      className="border-border-500 bg-neutral-50"
-    >
-      <div className="relative flex flex-col">
+    <Dialog.Root open={showAuthModal} onOpenChange={handleOpenChange}>
+      <Dialog.Content
+        onPointerDownOutside={(e) => {
+          e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+        }}
+        className="!after:pointer-events-none !max-w-[480px] !rounded-xl !bg-neutral-50 !p-0 shadow-xl focus:outline-none"
+        size="2"
+      >
         <div className="flex items-center justify-end px-6 pb-0 pt-4">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="group relative -right-2 rounded-full p-2 pb-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:right-0 md:block"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <Dialog.Close>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="group relative -right-2 rounded-full p-2 pb-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:right-0 md:block"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </Dialog.Close>
         </div>
 
         <AnimatePresence>
@@ -154,8 +170,8 @@ export function AuthModal({
               <ConsentNotice key="consent-notice" />
             )}
         </AnimatePresence>
-      </div>
-    </Modal>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 }
 
