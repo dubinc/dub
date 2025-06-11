@@ -378,7 +378,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   className={cn(
                     "bg-background relative flex h-auto shrink-0 basis-2/5 items-start justify-center rounded-lg px-6 pb-0 pt-3 md:p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
                     {
-                      "items-start": customizationStep,
+                      "items-start pb-3": customizationStep,
                     },
                   )}
                 >
