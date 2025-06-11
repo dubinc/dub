@@ -11,7 +11,7 @@ const partnersToBackfill: {
 }[] = [];
 
 const FRAMER_PROGRAM_ID = "prog_";
-const MONTH_TO_BACKFILL = new Date("2025-04-01");
+const MONTH_TO_BACKFILL = new Date("2025-04-15");
 
 async function main() {
   // First read the sales data
@@ -39,18 +39,13 @@ async function main() {
         },
       });
 
-      const processedData = partnersToBackfill
-        .map((p) => {
-          const partner = partners.find((_p) => _p.email === p.partnerEmail);
-          if (!partner) {
-            return null;
-          }
-          return {
-            partnerId: partner.id,
-            ...p,
-          };
-        })
-        .filter((f) => f !== null);
+      const processedData = partnersToBackfill.map((p) => {
+        const partner = partners.find((_p) => _p.email === p.partnerEmail)!;
+        return {
+          partnerId: partner.id,
+          ...p,
+        };
+      });
 
       console.table(processedData);
 
@@ -71,10 +66,10 @@ async function main() {
       console.table(manualCommissions);
 
       // Add manual commissions to the database
-      // await prisma.commission.createMany({
-      //   data: manualCommissions,
-      //   skipDuplicates: true,
-      // });
+      await prisma.commission.createMany({
+        data: manualCommissions,
+        skipDuplicates: true,
+      });
     },
   });
 }
