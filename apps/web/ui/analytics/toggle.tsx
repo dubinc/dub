@@ -950,6 +950,8 @@ export default function Toggle({
     />
   );
 
+  const isAppPage = !dashboardProps && !adminPage && !partnerPage;
+
   return (
     <>
       <div
@@ -962,6 +964,7 @@ export default function Toggle({
         <div
           className={cn(
             "mx-auto flex w-full max-w-screen-xl flex-col gap-2 px-3 lg:px-10",
+            isAppPage && "lg:px-6",
             {
               "md:h-10": key,
             },
@@ -1062,7 +1065,12 @@ export default function Toggle({
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-screen-xl px-3 lg:px-10">
+      <div
+        className={cn(
+          "mx-auto w-full max-w-screen-xl px-3 lg:px-10",
+          isAppPage && "lg:px-6",
+        )}
+      >
         <Filter.List
           filters={filters}
           activeFilters={[

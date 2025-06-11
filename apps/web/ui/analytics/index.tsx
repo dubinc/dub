@@ -36,7 +36,7 @@ export default function Analytics({
               className={cn("pb-10", dashboardProps && "bg-neutral-50 pt-10")}
             >
               <Toggle />
-              <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">
+              <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-6">
                 <Main />
                 <StatsGrid />
               </div>
