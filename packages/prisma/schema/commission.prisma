@@ -8,7 +8,7 @@ enum CommissionStatus {
   canceled
 }
 
-enum CommissionType {
+enum EventType {
   click
   lead
   sale
@@ -25,7 +25,7 @@ model Commission {
   customerId String? // only for leads and sales
   eventId    String? @unique // only for leads and sales
 
-  type     CommissionType
+  type     EventType
   amount   Int // only for sales (amount of the sale event)
   quantity Int // only for clicks/leads (quantity of the event)
   earnings Int              @default(0) // amount earned by the partner
