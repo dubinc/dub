@@ -93,9 +93,9 @@ export const GET = withSession(async ({ session, params }) => {
 
   if (invoice.workspace.stripeId) {
     try {
-      customer = (await stripe.customers.retrieve(
-        invoice.workspace.stripeId!,
-      )) as Stripe.Customer;
+      customer = (await stripe.customers.retrieve(invoice.workspace.stripeId!, {
+        expand: ["tax_ids"],
+      })) as Stripe.Customer;
     } catch (error) {
       console.error(error);
     }
@@ -127,6 +127,12 @@ export const GET = withSession(async ({ session, params }) => {
     },
   ];
 
+  const EU_CUSTOMER =
+    customer?.address?.country &&
+    EU_COUNTRY_CODES.includes(customer.address.country);
+  const AU_CUSTOMER =
+    customer?.address?.country && customer.address.country === "AU";
+
   const invoiceSummaryDetails = [
     {
       label: "Invoice amount",
@@ -149,18 +155,19 @@ export const GET = withSession(async ({ session, params }) => {
         maximumFractionDigits: 2,
       }),
     },
-    // if customer is in EU, add VAT reverse charge note:
-    // Reverse charge: VAT to be accounted for by the recipient under Article 196 of Directive 2006/112/EC.
-    ...(customer?.address?.country &&
-    EU_COUNTRY_CODES.includes(customer.address.country)
+    // if customer is in EU or AU, add VAT/GST reverse charge note
+    ...(EU_CUSTOMER || AU_CUSTOMER
       ? [
           {
-            label: "VAT reverse charge",
+            label: `${AU_CUSTOMER ? "GST" : "VAT"} reverse charge`,
             value: "Tax to be paid on reverse charge basis.",
           },
         ]
       : []),
   ];
+
+  // Get the first tax ID if available
+  const primaryTaxId = customer?.tax_ids?.data?.[0];
 
   const addresses = [
     {
@@ -185,6 +192,7 @@ export const GET = withSession(async ({ session, params }) => {
         state: customer?.shipping?.address?.state,
         postalCode: customer?.shipping?.address?.postal_code,
         email: customer?.email,
+        taxId: primaryTaxId ? `Tax ID: ${primaryTaxId.value}` : undefined,
       },
     },
   ];
@@ -227,6 +235,7 @@ export const GET = withSession(async ({ session, params }) => {
               address.line1,
               address.line2,
               cityStatePostal,
+              address.taxId,
               address.email,
             ].filter((record) => record && record.length > 0);
 
