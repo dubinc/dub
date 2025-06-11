@@ -1,11 +1,6 @@
+import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-
-const EVENT_TYPE_TO_COLUMN = {
-  click: "clickRewardId",
-  lead: "leadRewardId",
-  sale: "saleRewardId",
-};
 
 async function main() {
   // Migrate program-wide rewards
@@ -52,7 +47,7 @@ async function main() {
         programId: reward.programId,
       },
       data: {
-        [EVENT_TYPE_TO_COLUMN[rewardEvent]]: reward.rewardId,
+        [REWARD_EVENT_COLUMN_MAPPING[rewardEvent]]: reward.rewardId,
       },
     });
   }
@@ -82,7 +77,7 @@ async function main() {
         id: reward.programEnrollmentId,
       },
       data: {
-        [EVENT_TYPE_TO_COLUMN[rewardEvent]]: reward.rewardId,
+        [REWARD_EVENT_COLUMN_MAPPING[rewardEvent]]: reward.rewardId,
       },
     });
   }

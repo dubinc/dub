@@ -1,6 +1,6 @@
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
-import { reorderTopProgramRewards } from "@/lib/partners/reorder-top-program-rewards";
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
 import { notFound } from "next/navigation";
@@ -70,7 +70,7 @@ export const getReferralsEmbedData = async (token: string) => {
   return {
     program,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: reorderTopProgramRewards(rewards),
+    rewards: sortRewardsByEventOrder(rewards, "desc"),
     discount,
     earnings: {
       upcoming: commissions.reduce((acc, c) => {

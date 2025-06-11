@@ -45,6 +45,6 @@ export default function usePartnersCount<T>({
   return {
     partnersCount: partnersCount as T,
     error,
-    loading: !error && partnersCount === undefined,
+    loading: enabled !== false && !error && partnersCount === undefined,
   };
 }

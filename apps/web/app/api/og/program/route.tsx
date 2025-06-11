@@ -1,5 +1,5 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { sortRewardsByEvent } from "@/lib/partners/reorder-top-program-rewards";
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { getProgramViaEdge } from "@/lib/planetscale/get-program-via-edge";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
   const logo = program.wordmark || program.logo;
   const brandColor = program.brandColor || "#000000";
 
-  const rewards = sortRewardsByEvent(program.rewards);
+  const rewards = sortRewardsByEventOrder(program.rewards);
   const reward = rewards?.length > 0 ? rewards[0] : null;
 
   return new ImageResponse(

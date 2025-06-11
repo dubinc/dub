@@ -59,14 +59,18 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   let rewards: Reward[] = [];
 
   if (searchParams.includeRewardsDiscounts) {
-    const partnerRewardIds = programEnrollments
-      .map(({ clickRewardId, leadRewardId, saleRewardId }) => [
-        clickRewardId,
-        leadRewardId,
-        saleRewardId,
-      ])
-      .flat()
-      .filter((id): id is string => id !== null);
+    const partnerRewardIds = [
+      ...new Set(
+        programEnrollments
+          .map(({ clickRewardId, leadRewardId, saleRewardId }) => [
+            clickRewardId,
+            leadRewardId,
+            saleRewardId,
+          ])
+          .flat()
+          .filter((id): id is string => id !== null),
+      ),
+    ];
 
     rewards = await prisma.reward.findMany({
       where: {

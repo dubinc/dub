@@ -1,4 +1,4 @@
-import { sortRewardsByEvent } from "@/lib/partners/reorder-top-program-rewards";
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { DiscountProps, ProgramProps } from "@/lib/types";
 import {
   ProgramSchema,
@@ -56,7 +56,7 @@ export const getProgramOrThrow = async (
   ).parse({
     ...program,
     ...(includeDefaultRewards && program.rewards?.length
-      ? { rewards: sortRewardsByEvent(program.rewards as any) }
+      ? { rewards: sortRewardsByEventOrder(program.rewards as any) }
       : {}),
     ...(includeDefaultDiscount && program.defaultDiscount
       ? { discounts: [program.defaultDiscount] }

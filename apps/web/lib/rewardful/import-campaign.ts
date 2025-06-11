@@ -6,18 +6,19 @@ import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 
 export async function importCampaign({ programId }: { programId: string }) {
-  const { workspaceId, rewards } = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: programId,
-    },
-    include: {
-      rewards: {
-        where: {
-          default: true,
+  const { workspaceId, rewards: defaultRewards } =
+    await prisma.program.findUniqueOrThrow({
+      where: {
+        id: programId,
+      },
+      include: {
+        rewards: {
+          where: {
+            default: true,
+          },
         },
       },
-    },
-  });
+    });
 
   const { token, campaignId } =
     await rewardfulImporter.getCredentials(workspaceId);
@@ -54,7 +55,7 @@ export async function importCampaign({ programId }: { programId: string }) {
   });
 
   if (!rewardFound) {
-    const defaultSaleReward = rewards.find(
+    const defaultSaleReward = defaultRewards.find(
       (reward) => reward.event === EventType.sale,
     );
 
@@ -67,7 +68,7 @@ export async function importCampaign({ programId }: { programId: string }) {
     });
 
     // if there's no default reward, means that this is a newly imported program
-    if (!rewards.length) {
+    if (!defaultRewards.length) {
       await prisma.program.update({
         where: {
           id: programId,

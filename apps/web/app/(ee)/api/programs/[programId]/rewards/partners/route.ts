@@ -21,6 +21,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const partners = await prisma.programEnrollment.findMany({
     where: {
+      programId,
       [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: rewardId,
     },
     select: {
