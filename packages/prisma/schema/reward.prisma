@@ -1,3 +1,10 @@
+
+enum EventType {
+  click
+  lead
+  sale
+}
+
 model Reward {
   id        String @id @default(cuid())
   programId String
