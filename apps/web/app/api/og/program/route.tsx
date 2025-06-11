@@ -14,7 +14,6 @@ const DARK_CELLS = [
   [53, 1],
 ];
 
-// GET - /api/og/program?slug=
 export async function GET(req: NextRequest) {
   const [interMedium, interSemibold] = await Promise.all([
     fetch(new URL("@/styles/Inter-Medium.ttf", import.meta.url)).then((res) =>
