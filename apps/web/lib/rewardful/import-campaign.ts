@@ -6,12 +6,18 @@ import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 
 export async function importCampaign({ programId }: { programId: string }) {
-  const { defaultRewardId, workspaceId } =
-    await prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
+  const { workspaceId, rewards } = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    include: {
+      rewards: {
+        where: {
+          default: true,
+        },
       },
-    });
+    },
+  });
 
   const { token, campaignId } =
     await rewardfulImporter.getCredentials(workspaceId);
@@ -48,22 +54,25 @@ export async function importCampaign({ programId }: { programId: string }) {
   });
 
   if (!rewardFound) {
+    const defaultSaleReward = rewards.find(
+      (reward) => reward.event === EventType.sale,
+    );
+
     const reward = await prisma.reward.create({
       data: {
-        id: createId({ prefix: "rw_" }),
         ...newReward,
+        id: createId({ prefix: "rw_" }),
+        default: !defaultSaleReward,
       },
     });
 
-    // if there's no default reward, set this as the default reward
-    // it also means that this is a newly imported program
-    if (!defaultRewardId) {
+    // if there's no default reward, means that this is a newly imported program
+    if (!rewards.length) {
       await prisma.program.update({
         where: {
           id: programId,
         },
         data: {
-          defaultRewardId: reward.id,
           // minimum payout amount is the max of the Rewardful campaign minimum payout and Dub's minimum payout ($100)
           minPayoutAmount: Math.max(
             minimum_payout_cents,
@@ -81,9 +90,7 @@ export async function importCampaign({ programId }: { programId: string }) {
 
   return await rewardfulImporter.queue({
     programId,
-    // we will only need to assign rewardId to affiliates
-    // if it's not the defaultRewardId of the program (there's already a defaultRewardId)
-    ...(defaultRewardId && { rewardId }),
+    ...(rewardId && { rewardId }),
     action: "import-affiliates",
   });
 }

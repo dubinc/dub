@@ -12,9 +12,11 @@ model Reward {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  program                Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
-  clickRewardEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
-  partners               PartnerReward[]
+  program          Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partners         PartnerReward[]
+  clickEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
+  leadEnrollments  ProgramEnrollment[] @relation("LeadRewardEnrollments")
+  saleEnrollments  ProgramEnrollment[] @relation("SaleRewardEnrollments")
 
   @@index([programId, event])
 }

@@ -96,6 +96,8 @@ model ProgramEnrollment {
   discount    Discount?           @relation(fields: [discountId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
   clickReward Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward  Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward  Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
