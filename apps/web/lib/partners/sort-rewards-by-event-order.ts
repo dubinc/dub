@@ -18,7 +18,5 @@ export function sortRewardsByEventOrder<T extends Pick<Reward, "event">>(
     return aIndex - bIndex;
   });
 
-  console.log({ sortedRewards: sortedRewards.map((r) => r.event) });
-
   return sortedRewards;
 }
