@@ -89,7 +89,7 @@ export function AuthModal({
           onEscapeKeyDown={(e) => {
             e.preventDefault();
           }}
-          className="border-border-500 max-w-[480px] rounded-xl border bg-neutral-50 p-0 shadow-xl focus:outline-none"
+          className="border-border-500 fixed left-[50%] top-[50%] z-50 w-[90%] max-w-[480px] -translate-x-[50%] -translate-y-[50%] rounded-xl border bg-neutral-50 p-0 shadow-xl focus:outline-none"
         >
           <div className="flex items-center justify-end px-6 pb-0 pt-4">
             <Dialog.Close asChild>
