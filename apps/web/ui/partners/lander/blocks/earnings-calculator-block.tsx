@@ -69,7 +69,7 @@ export function EarningsCalculatorBlock({
           <div className="mt-2 flex items-center gap-1">
             <InvoiceDollar className="size-3.5 text-neutral-400" />
             <p className="text-xs text-neutral-500">
-              {formatRewardDescription({ reward: reward })}
+              {formatRewardDescription({ reward })}
             </p>
           </div>
         </div>
