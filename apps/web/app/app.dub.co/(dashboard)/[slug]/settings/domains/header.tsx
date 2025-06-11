@@ -7,7 +7,6 @@ import { useSelectedLayoutSegment } from "next/navigation";
 export function DomainsHeader({
   baseUrl = "/settings/domains",
 }: {
-  /** Must start with “/”. */
   baseUrl?: `/${string}`;
 }) {
   const { slug } = useWorkspace();
