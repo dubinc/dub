@@ -35,7 +35,7 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key, fullKey } = parse(req);
 
-  console.log('here');
+  console.log("here");
   console.log(domain, path, key, fullKey);
   console.log(APP_HOSTNAMES.has(domain));
   console.log(process.env.NEXT_PUBLIC_VERCEL_ENV);
@@ -43,20 +43,20 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   AxiomMiddleware(req, ev);
 
-  // Special handling for public routes
+  // Temporarily special handling for public routes, needs to be fixed
   if (path === "/qr-complete-setup" || path === "/qr-disabled") {
     return AppMiddleware(req);
   }
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
-    console.log('middleware here1');
+    console.log("middleware here1");
     return AppMiddleware(req);
   }
 
   // for API
   if (API_HOSTNAMES.has(domain)) {
-    console.log('middleware here2');
+    console.log("middleware here2");
     return ApiMiddleware(req);
   }
 
@@ -72,16 +72,16 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
-    console.log('middleware here3');
+    console.log("middleware here3");
     return AdminMiddleware(req);
   }
 
   if (PARTNERS_HOSTNAMES.has(domain)) {
-    console.log('middleware here4');
+    console.log("middleware here4");
     return PartnersMiddleware(req);
   }
 
-  console.log('middleware here5');
+  console.log("middleware here5");
 
   if (isValidUrl(fullKey)) {
     return CreateLinkMiddleware(req);
