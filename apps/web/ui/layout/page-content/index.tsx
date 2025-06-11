@@ -1,3 +1,4 @@
+import { InfoTooltip, TooltipContent } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -17,13 +18,33 @@ export function PageContent({
   children,
 }: PropsWithChildren<{
   title?: ReactNode;
-  titleInfo?: ReactNode;
+  titleInfo?: ReactNode | { title: string; href: string };
   titleBackHref?: string;
   controls?: ReactNode;
   className?: string;
   contentWrapperClassName?: string;
 }>) {
   const hasTitle = title !== undefined;
+
+  // Generate titleInfo from object if provided
+  const finalTitleInfo =
+    titleInfo &&
+    typeof titleInfo === "object" &&
+    "title" in titleInfo &&
+    "href" in titleInfo ? (
+      <InfoTooltip
+        content={
+          <TooltipContent
+            title={titleInfo.title}
+            href={titleInfo.href}
+            target="_blank"
+            cta="Learn more"
+          />
+        }
+      />
+    ) : (
+      titleInfo
+    );
 
   return (
     <div
@@ -50,7 +71,7 @@ export function PageContent({
                   <h1 className="text-content-emphasis text-lg font-semibold leading-7">
                     {title}
                   </h1>
-                  {titleInfo}
+                  {finalTitleInfo}
                 </div>
               )}
             </div>

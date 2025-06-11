@@ -88,8 +88,9 @@ export function TagCard({
   const entry = useIntersectionObserver(ref);
   const isInView = entry?.isIntersecting;
 
+  const linkPageUrl = `/${slug}/links?tagIds=${tag.id}`;
   useEffect(() => {
-    if (isInView) router.prefetch(`/${slug}/links?tagIds=${tag.id}`);
+    if (isInView) router.prefetch(linkPageUrl);
   }, [isInView]);
 
   return (
@@ -98,7 +99,11 @@ export function TagCard({
 
       <CardList.Card
         key={tag.id}
-        onClick={() => router.push(`/${slug}/links?tagIds=${tag.id}`)}
+        onClick={(e) => {
+          if (e.metaKey || e.ctrlKey) window.open(linkPageUrl, "_blank");
+          else router.push(linkPageUrl);
+        }}
+        onAuxClick={() => window.open(linkPageUrl, "_blank")}
         innerClassName={cn(
           "flex items-center justify-between gap-5 sm:gap-8 md:gap-12 cursor-pointer text-sm transition-opacity",
           processing && "opacity-50",
