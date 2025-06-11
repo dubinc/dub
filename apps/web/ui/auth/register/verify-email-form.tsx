@@ -24,6 +24,7 @@ import { useRegisterContext } from "./context";
 import { ResendOtp } from "./resend-otp";
 
 type TProcessedQRData = {
+  title: string;
   styles: Options;
   frameOptions: {
     id: string;
