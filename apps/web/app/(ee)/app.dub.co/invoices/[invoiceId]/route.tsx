@@ -192,7 +192,7 @@ export const GET = withSession(async ({ session, params }) => {
         state: customer?.shipping?.address?.state,
         postalCode: customer?.shipping?.address?.postal_code,
         email: customer?.email,
-        taxId: primaryTaxId ? `Tax ID: ${primaryTaxId}` : undefined,
+        taxId: primaryTaxId ? `Tax ID: ${primaryTaxId.value}` : undefined,
       },
     },
   ];
