@@ -13,6 +13,7 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   COMMISSION_TYPES,
   createRewardSchema,
+  REWARD_EVENT_COLUMN_MAPPING,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
@@ -152,7 +153,10 @@ function RewardSheetContent({
         setIsOpen(false);
         toast.success("Reward updated!");
         await mutateProgram();
-        await mutatePrefix(`/api/programs/${program?.id}/rewards`);
+        await mutatePrefix([
+          `/api/programs/${program?.id}/rewards`,
+          `/api/partners/count?groupBy=${REWARD_EVENT_COLUMN_MAPPING[event]}&workspaceId=${workspaceId}`,
+        ]);
       },
       onError({ error }) {
         toast.error(error.serverError);
