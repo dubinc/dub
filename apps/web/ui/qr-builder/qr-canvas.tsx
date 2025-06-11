@@ -24,9 +24,9 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
       svgContainerRef.current.replaceChildren();
 
       if (!isAuthenticated) {
-        // const baseUrl =
-        //   process.env.NEXT_PUBLIC_APP_DOMAIN;
-        const baseUrl = process.env.NEXT_PUBLIC_NGROK_URL;
+        const baseUrl =
+          process.env.NEXT_PUBLIC_APP_DOMAIN || window.location.origin;
+        // const baseUrl = process.env.NEXT_PUBLIC_NGROK_URL; // for mobile local testing
 
         const tempQrCode = new QRCodeStyling({
           ...qrCode._options,
