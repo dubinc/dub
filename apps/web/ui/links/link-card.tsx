@@ -58,9 +58,6 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
   const { slug, defaultFolderId } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
-  const entry = useIntersectionObserver(ref);
-  const isInView = entry?.isIntersecting;
-
   const showFolderIcon = useMemo(() => {
     return Boolean(
       !loading &&
@@ -79,9 +76,12 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
     [slug, link.domain, link.key],
   );
 
+  const entry = useIntersectionObserver(ref);
+  const isInView = entry?.isIntersecting;
+
   useEffect(() => {
     if (isInView) router.prefetch(editUrl);
-  }, [isInView, editUrl]);
+  }, [isInView]);
 
   return (
     <>
