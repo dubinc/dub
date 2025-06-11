@@ -68,6 +68,7 @@ async function main() {
 
   await prisma.commission.createMany({
     data: manualCommissions,
+    skipDuplicates: true,
   });
 }
 
