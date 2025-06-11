@@ -82,6 +82,7 @@ export const updateProgramAction = authActionClient
         wordmark: wordmarkUrl ?? undefined,
         brandColor,
         landerData: landerData === null ? Prisma.JsonNull : landerData,
+        landerPublishedAt: landerData ? new Date() : undefined,
         domain,
         url,
         linkStructure,

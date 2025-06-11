@@ -113,8 +113,8 @@ importers:
         specifier: ^8.17.3
         version: 8.17.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@team-plain/typescript-sdk':
-        specifier: ^5.8.0
-        version: 5.8.0
+        specifier: ^5.9.0
+        version: 5.9.0
       '@types/base-x':
         specifier: ^3.0.10
         version: 3.0.10
@@ -5050,8 +5050,8 @@ packages:
     resolution: {integrity: sha512-mPBodDGVL+fl6d90wUREepHa/7lhsghg2A3vFpakEhrhtbIlgNAZiMr7ccTgak5qbHqF14Fwy+W1yFWQt+WmYQ==}
     engines: {node: '>=12'}
 
-  '@team-plain/typescript-sdk@5.8.0':
-    resolution: {integrity: sha512-qgDGX96yDsdTo5+Yh8R+rhtInmAm90w17607B2Ugik8Ij0H1wocjjp8xtMxHruSmms5ani43Y5xRxVFPSxYVeg==}
+  '@team-plain/typescript-sdk@5.9.0':
+    resolution: {integrity: sha512-AHSXyt1kDt74m9YKZBCRCd6cQjB8QjUNr9cehtR2QHzZ/8yXJPzawPJDqOQ3ms5KvwuYrBx2qT3e6C/zrQ5UtA==}
 
   '@tediousjs/connection-string@0.5.0':
     resolution: {integrity: sha512-7qSgZbincDDDFyRweCIEvZULFAw5iz/DeunhvuxpL31nfntX3P4Yd4HkHBRg9H8CdqY1e5WFN1PZIz/REL9MVQ==}
@@ -17332,7 +17332,7 @@ snapshots:
 
   '@tanstack/table-core@8.17.3': {}
 
-  '@team-plain/typescript-sdk@5.8.0':
+  '@team-plain/typescript-sdk@5.9.0':
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
       ajv: 8.12.0
