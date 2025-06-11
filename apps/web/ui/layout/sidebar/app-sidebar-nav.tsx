@@ -3,7 +3,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
-  Books2,
   Brush,
   CircleInfo,
   ConnectedDots,
@@ -140,17 +139,17 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Folders",
             icon: Folder,
-            href: `/${slug}/library/folders`,
+            href: `/${slug}/links/folders`,
           },
           {
             name: "Tags",
             icon: Tag,
-            href: `/${slug}/library/tags`,
+            href: `/${slug}/links/tags`,
           },
           {
             name: "UTM Templates",
             icon: DiamondTurnRight,
-            href: `/${slug}/library/utm`,
+            href: `/${slug}/links/utm`,
           },
         ],
       },
@@ -261,11 +260,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Domains",
             icon: Globe,
             href: `/${slug}/settings/domains`,
-          },
-          {
-            name: "Library",
-            icon: Books2,
-            href: `/${slug}/settings/library/folders`,
           },
           {
             name: "People",

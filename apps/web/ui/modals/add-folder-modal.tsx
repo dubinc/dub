@@ -50,7 +50,7 @@ function AddFolderButton({
       text="Create folder"
       shortcut="C"
       onClick={() => setShowAddFolderModal(true)}
-      className="h-9 w-fit rounded-lg"
+      className="w-fit"
       disabledTooltip={
         plan === "free" && (
           <TooltipContent

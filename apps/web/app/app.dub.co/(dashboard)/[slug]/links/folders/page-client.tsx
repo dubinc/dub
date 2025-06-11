@@ -23,8 +23,6 @@ export const FoldersPageClient = () => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
 
-  const { AddFolderButton, AddFolderModal } = useAddFolderModal();
-
   const { folders, loading, isValidating } = useFolders({
     includeParams: ["search", "page"],
   });
@@ -39,8 +37,7 @@ export const FoldersPageClient = () => {
   const { pagination, setPagination } = usePagination(FOLDERS_MAX_PAGE_SIZE);
 
   return (
-    <>
-      <AddFolderModal />
+    <div className="grid grid-cols-1 gap-4">
       <div className="grid gap-5">
         <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto">
           <div className="w-full md:w-56 lg:w-64">
@@ -55,7 +52,6 @@ export const FoldersPageClient = () => {
               }}
             />
           </div>
-          <AddFolderButton />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -81,6 +77,17 @@ export const FoldersPageClient = () => {
           unit={(p) => `folder${p ? "s" : ""}`}
         />
       </div>
-    </>
+    </div>
   );
 };
+
+export function FoldersPageControls() {
+  const { AddFolderButton, AddFolderModal } = useAddFolderModal();
+
+  return (
+    <>
+      <AddFolderModal />
+      <AddFolderButton />
+    </>
+  );
+}
