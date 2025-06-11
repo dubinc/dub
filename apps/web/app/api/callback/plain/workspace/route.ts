@@ -2,6 +2,7 @@ import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { plain } from "@/lib/plain";
 import { prisma } from "@dub/prisma";
 import { capitalize, formatDate } from "@dub/utils";
+import { uiComponent } from "@team-plain/typescript-sdk";
 import { NextRequest, NextResponse } from "next/server";
 import {
   plainCopySection,
@@ -9,7 +10,7 @@ import {
   plainEmptyContainer,
   plainSpacer,
   plainUsageSection,
-} from "./utils";
+} from "../utils";
 
 export async function POST(req: NextRequest) {
   // authenticate webhook X-Plain-Webhook-Secret
@@ -45,15 +46,15 @@ export async function POST(req: NextRequest) {
 
     customer.externalId = user.id;
 
-    const userName = user.name || customer.email.split("@")[0];
+    const customerName = user.name || customer.email.split("@")[0];
 
     await plain.upsertCustomer({
       identifier: {
         emailAddress: customer.email,
       },
       onCreate: {
-        fullName: userName,
-        shortName: userName.split(" ")[0],
+        fullName: customerName,
+        shortName: customerName.split(" ")[0],
         email: {
           email: customer.email,
           isVerified: true,
@@ -68,7 +69,10 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const [topWorkspace, plainCustomer] = await Promise.all([
+  const [plainCustomer, topWorkspace] = await Promise.all([
+    plain.getCustomerByEmail({
+      email: customer.email,
+    }),
     prisma.project.findFirst({
       where: {
         users: {
@@ -90,9 +94,6 @@ export async function POST(req: NextRequest) {
       },
       take: 1,
     }),
-    plain.getCustomerByEmail({
-      email: customer.email,
-    }),
   ]);
 
   if (!topWorkspace) {
@@ -113,6 +114,7 @@ export async function POST(req: NextRequest) {
     name,
     slug,
     plan,
+    stripeId,
     usage,
     usageLimit,
     totalClicks,
@@ -120,20 +122,35 @@ export async function POST(req: NextRequest) {
     linksLimit,
     totalLinks,
     domainsLimit,
-    tagsLimit,
     usersLimit,
     _count: { domains, users },
   } = topWorkspace;
 
+  const companyDomainName = customer.email && customer.email.split("@")[1];
+
   if (plainCustomer.data) {
-    await plain.addCustomerToCustomerGroups({
-      customerId: plainCustomer.data.id,
-      customerGroupIdentifiers: [
-        {
-          customerGroupKey: plan.split(" ")[0],
-        },
-      ],
-    });
+    await Promise.allSettled([
+      plain.addCustomerToCustomerGroups({
+        customerId: plainCustomer.data.id,
+        customerGroupIdentifiers: [
+          {
+            customerGroupKey: topWorkspace.plan.split(" ")[0],
+          },
+        ],
+      }),
+      ...(topWorkspace && companyDomainName
+        ? [
+            plain.updateCompanyTier({
+              companyIdentifier: {
+                companyDomainName,
+              },
+              tierIdentifier: {
+                externalId: topWorkspace.plan.split(" ")[0],
+              },
+            }),
+          ]
+        : []),
+    ]);
   }
 
   return NextResponse.json({
@@ -145,6 +162,7 @@ export async function POST(req: NextRequest) {
             label: "Workspace ID",
             value: prefixWorkspaceId(id),
           }),
+          plainSpacer,
           ...plainCopySection({
             label: "Workspace Name",
             value: name,
@@ -154,7 +172,7 @@ export async function POST(req: NextRequest) {
             label: "Workspace Slug",
             value: slug,
           }),
-          plainDivider,
+          plainSpacer,
           {
             componentRow: {
               rowMainContent: [
@@ -183,7 +201,36 @@ export async function POST(req: NextRequest) {
               ],
             },
           },
-          plainSpacer,
+          ...(stripeId
+            ? [
+                uiComponent.spacer({
+                  size: "M",
+                }),
+                uiComponent.row({
+                  mainContent: [
+                    uiComponent.text({
+                      text: "Stripe Customer",
+                      size: "M",
+                      color: "NORMAL",
+                    }),
+                    uiComponent.text({
+                      text: stripeId,
+                      size: "S",
+                      color: "MUTED",
+                    }),
+                  ],
+                  asideContent: [
+                    uiComponent.linkButton({
+                      url: `https://dashboard.stripe.com/customers/${stripeId}`,
+                      label: "View in Stripe",
+                    }),
+                  ],
+                }),
+              ]
+            : []),
+          uiComponent.spacer({
+            size: "M",
+          }),
           {
             componentRow: {
               rowMainContent: [
@@ -210,11 +257,9 @@ export async function POST(req: NextRequest) {
             sublabel: "This billing period",
             color: "GREEN",
           }),
-          {
-            componentSpacer: {
-              spacerSize: "M",
-            },
-          },
+          uiComponent.spacer({
+            size: "M",
+          }),
           plainUsageSection({
             usage: linksUsage,
             usageLimit: linksLimit,
@@ -222,42 +267,34 @@ export async function POST(req: NextRequest) {
             sublabel: "This billing period",
             color: "YELLOW",
           }),
-          {
-            componentSpacer: {
-              spacerSize: "M",
-            },
-          },
+          uiComponent.spacer({
+            size: "M",
+          }),
           plainUsageSection({
             usage: totalClicks,
             label: "Total Clicks",
             color: "GREEN",
           }),
-          {
-            componentSpacer: {
-              spacerSize: "M",
-            },
-          },
+          uiComponent.spacer({
+            size: "M",
+          }),
           plainUsageSection({
             usage: totalLinks,
             label: "Total Links",
             color: "YELLOW",
           }),
-          {
-            componentSpacer: {
-              spacerSize: "M",
-            },
-          },
+          uiComponent.spacer({
+            size: "M",
+          }),
           plainUsageSection({
             usage: domains,
             usageLimit: domainsLimit,
             label: "Total Domains",
             color: "BLUE",
           }),
-          {
-            componentSpacer: {
-              spacerSize: "M",
-            },
-          },
+          uiComponent.spacer({
+            size: "M",
+          }),
           plainUsageSection({
             usage: users,
             usageLimit: usersLimit,
