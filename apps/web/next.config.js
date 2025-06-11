@@ -242,12 +242,12 @@ module.exports = withSentryConfig(nextConfig, {
   silent: !process.env.CI,
 
   // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
+  widenClientFileUpload: false,
 
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,
 
-  debug: true,
+  debug: false,
 
   sourcemaps: {
     disable: true,
