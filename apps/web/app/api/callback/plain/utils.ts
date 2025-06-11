@@ -11,16 +11,12 @@ export const plainSpacer = uiComponent.spacer({
 export const plainEmptyContainer = (text: string) =>
   uiComponent.container({
     content: [
-      uiComponent.spacer({
-        size: "M",
-      }),
+      plainSpacer,
       uiComponent.plainText({
         text,
         size: "S",
       }),
-      uiComponent.spacer({
-        size: "M",
-      }),
+      plainSpacer,
     ],
   });
 

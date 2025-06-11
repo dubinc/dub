@@ -106,7 +106,14 @@ export async function POST(req: NextRequest) {
   ]);
 
   if (!partnerProfile) {
-    return NextResponse.json({});
+    return NextResponse.json({
+      cards: [
+        {
+          key: "partner",
+          components: [plainEmptyContainer("No partner profile found.")],
+        },
+      ],
+    });
   }
 
   const {
