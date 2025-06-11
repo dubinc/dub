@@ -211,12 +211,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Rewards",
             icon: Gift,
-            href: `/${slug}/program/settings/rewards`,
+            href: `/${slug}/program/rewards`,
           },
           {
             name: "Discounts",
             icon: Discount,
-            href: `/${slug}/program/settings/discounts`,
+            href: `/${slug}/program/discounts`,
           },
           {
             name: "Branding",
@@ -226,12 +226,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Link Settings",
             icon: Sliders,
-            href: `/${slug}/program/settings/links`,
+            href: `/${slug}/program/links`,
           },
           {
             name: "Communication",
             icon: PaperPlane,
-            href: `/${slug}/program/settings/communication`,
+            href: `/${slug}/program/communication`,
           },
         ],
       },

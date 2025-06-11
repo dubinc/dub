@@ -24,7 +24,6 @@ export function PageContent({
   contentWrapperClassName?: string;
 }>) {
   const hasTitle = title !== undefined;
-  const hasControls = controls !== undefined;
 
   return (
     <div
@@ -33,7 +32,7 @@ export function PageContent({
         className,
       )}
     >
-      <div className="border-border-muted border-b">
+      <div className="border-border-subtle border-b">
         <PageWidthWrapper>
           <div className="flex h-12 items-center justify-between gap-4 sm:h-16">
             <div className="flex min-w-0 items-center gap-4">
