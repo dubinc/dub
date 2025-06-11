@@ -1,10 +1,10 @@
 import Analytics from "@/ui/analytics";
-import { PageContent } from "@/ui/layout/page-content";
+import { PageContentOld } from "@/ui/layout/page-content";
 
 export default function PartnerAnalytics() {
   return (
-    <PageContent title="Analytics" showControls>
+    <PageContentOld title="Analytics" showControls>
       <Analytics />
-    </PageContent>
+    </PageContentOld>
   );
 }

@@ -1,17 +1,17 @@
 import Analytics from "@/ui/analytics";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import { PageContent } from "@/ui/layout/page-content";
+import { PageContentOld } from "@/ui/layout/page-content";
 import { Suspense } from "react";
 import AnalyticsClient from "./client";
 
 export default function WorkspaceAnalytics() {
   return (
     <Suspense fallback={<LayoutLoader />}>
-      <PageContent title="Analytics">
+      <PageContentOld title="Analytics">
         <AnalyticsClient>
           <Analytics />
         </AnalyticsClient>
-      </PageContent>
+      </PageContentOld>
     </Suspense>
   );
 }

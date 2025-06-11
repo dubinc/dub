@@ -7,9 +7,10 @@ import { HelpButtonRSC } from "../sidebar/help-button-rsc";
 import UserDropdownOld from "../sidebar/user-dropdown-old";
 import { NavButton } from "./nav-button";
 
-export * from "./page-content-old";
-
-export function PageContent({
+/**
+ * @deprecated Use PageContent instead
+ */
+export function PageContentOld({
   title,
   titleBackButtonLink,
   titleControls,

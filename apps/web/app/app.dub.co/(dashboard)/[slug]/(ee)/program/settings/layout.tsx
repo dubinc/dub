@@ -1,4 +1,4 @@
-import { PageContent } from "@/ui/layout/page-content";
+import { PageContentOld } from "@/ui/layout/page-content";
 import { MaxWidthWrapper } from "@dub/ui";
 import { PropsWithChildren } from "react";
 import { ProgramSettingsHeader } from "./program-settings-header";
@@ -8,11 +8,11 @@ export default function ProgramSettingsLayout({
   params,
 }: PropsWithChildren<{ params: { slug: string; programId: string } }>) {
   return (
-    <PageContent title="Program Configuration">
+    <PageContentOld title="Program Configuration">
       <MaxWidthWrapper>
         <ProgramSettingsHeader />
         <div className="mb-10 mt-8 grid grid-cols-1 gap-8">{children}</div>
       </MaxWidthWrapper>
-    </PageContent>
+    </PageContentOld>
   );
 }

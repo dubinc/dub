@@ -1,13 +1,13 @@
-import { PageContent } from "@/ui/layout/page-content";
+import { PageContentOld } from "@/ui/layout/page-content";
 import { MaxWidthWrapper } from "@dub/ui";
 import { CustomersPageClient } from "./page-client";
 
 export default function CustomersPage() {
   return (
-    <PageContent title="Customers">
+    <PageContentOld title="Customers">
       <MaxWidthWrapper>
         <CustomersPageClient />
       </MaxWidthWrapper>
-    </PageContent>
+    </PageContentOld>
   );
 }

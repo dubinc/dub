@@ -3,7 +3,7 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import { PageContent } from "@/ui/layout/page-content";
+import { PageContentOld } from "@/ui/layout/page-content";
 import { redirect, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { PartnersUpgradeCTA } from "./partners-ugrade-cta";
@@ -36,9 +36,9 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
 
   if (!getPlanCapabilities(plan).canManageProgram) {
     return (
-      <PageContent>
+      <PageContentOld>
         <PartnersUpgradeCTA />
-      </PageContent>
+      </PageContentOld>
     );
   }
 

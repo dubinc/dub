@@ -1,10 +1,10 @@
-import { PageContent } from "@/ui/layout/page-content";
+import { PageContentOld } from "@/ui/layout/page-content";
 import { ResourcesPageClient } from "./page-client";
 
 export default function ResourcesPage() {
   return (
-    <PageContent title="Resources" showControls>
+    <PageContentOld title="Resources" showControls>
       <ResourcesPageClient />
-    </PageContent>
+    </PageContentOld>
   );
 }

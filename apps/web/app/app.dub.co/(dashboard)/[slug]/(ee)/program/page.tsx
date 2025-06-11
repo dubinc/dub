@@ -1,13 +1,13 @@
-import { PageContent } from "@/ui/layout/page-content";
+import { PageContentOld } from "@/ui/layout/page-content";
 import { MaxWidthWrapper } from "@dub/ui";
 import ProgramOverviewPageClient from "./page-client";
 
 export default async function ProgramOverviewPage() {
   return (
-    <PageContent title="Overview">
+    <PageContentOld title="Overview">
       <MaxWidthWrapper>
         <ProgramOverviewPageClient />
       </MaxWidthWrapper>
-    </PageContent>
+    </PageContentOld>
   );
 }

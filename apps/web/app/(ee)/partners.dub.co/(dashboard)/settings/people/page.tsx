@@ -1,11 +1,11 @@
-import { PageContent } from "@/ui/layout/page-content";
+import { PageContentOld } from "@/ui/layout/page-content";
 
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { MaxWidthWrapper, UserCheck } from "@dub/ui";
 
 export default function PeopleSettings() {
   return (
-    <PageContent title="People" showControls>
+    <PageContentOld title="People" showControls>
       <MaxWidthWrapper>
         <AnimatedEmptyState
           title="People"
@@ -19,6 +19,6 @@ export default function PeopleSettings() {
           pillContent="Coming soon"
         />
       </MaxWidthWrapper>
-    </PageContent>
+    </PageContentOld>
   );
 }
