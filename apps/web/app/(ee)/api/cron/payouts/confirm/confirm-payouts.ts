@@ -172,7 +172,7 @@ export async function confirmPayouts({
       100,
     );
     for (const payoutChunk of payoutChunks) {
-      await resend!.batch.send(
+      await resend.batch.send(
         payoutChunk.map((payout) => ({
           from: VARIANT_TO_FROM_MAP.notifications,
           to: payout.partner.email!,
