@@ -56,7 +56,7 @@ export const getProgramOrThrow = async (
   ).parse({
     ...program,
     ...(includeDefaultRewards && program.rewards?.length
-      ? { rewards: sortRewardsByEventOrder(program.rewards as any) }
+      ? { rewards: sortRewardsByEventOrder(program.rewards) }
       : {}),
     ...(includeDefaultDiscount && program.defaultDiscount
       ? { discounts: [program.defaultDiscount] }

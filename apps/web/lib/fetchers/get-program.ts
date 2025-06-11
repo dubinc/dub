@@ -28,7 +28,11 @@ export const getProgram = cache(
       },
     });
 
-    if (program && include?.includes("defaultRewards")) {
+    if (!program) {
+      return null;
+    }
+
+    if (include?.includes("defaultRewards")) {
       program.rewards = sortRewardsByEventOrder(program.rewards);
     }
 

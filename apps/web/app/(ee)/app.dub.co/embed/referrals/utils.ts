@@ -70,7 +70,7 @@ export const getReferralsEmbedData = async (token: string) => {
   return {
     program,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: sortRewardsByEventOrder(rewards, "desc"),
+    rewards: sortRewardsByEventOrder(rewards),
     discount,
     earnings: {
       upcoming: commissions.reduce((acc, c) => {

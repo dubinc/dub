@@ -1,10 +1,9 @@
 import { Reward } from "@prisma/client";
 
-const REWARD_EVENT_ORDER = ["sale", "lead", "click"] as const;
+const REWARD_EVENT_ORDER = ["click", "lead", "sale"] as const;
 
 export function sortRewardsByEventOrder<T extends Pick<Reward, "event">>(
   rewards: T[],
-  direction: "asc" | "desc" = "asc",
 ): T[] {
   const sortedRewards = [...rewards];
 
@@ -16,7 +15,7 @@ export function sortRewardsByEventOrder<T extends Pick<Reward, "event">>(
     const aIndex = eventOrderMap.get(a.event) ?? Number.MAX_SAFE_INTEGER;
     const bIndex = eventOrderMap.get(b.event) ?? Number.MAX_SAFE_INTEGER;
 
-    return direction === "asc" ? aIndex - bIndex : bIndex - aIndex;
+    return aIndex - bIndex;
   });
 
   console.log({ sortedRewards: sortedRewards.map((r) => r.event) });
