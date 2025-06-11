@@ -136,7 +136,7 @@ function WorkspaceLinks() {
       <DotLinkOfferModal />
       <LinkBuilder />
       <AddEditTagModal />
-      <div className="flex w-full items-center pt-2">
+      <div className="flex w-full items-center">
         <PageWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex w-full grow gap-2 md:w-auto">

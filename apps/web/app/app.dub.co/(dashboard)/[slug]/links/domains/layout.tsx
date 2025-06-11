@@ -2,7 +2,7 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { InfoTooltip, TooltipContent } from "@dub/ui";
 import { ReactNode } from "react";
-import { DomainsHeader } from "./header";
+import { DomainsHeader } from "../../settings/domains/header";
 
 export default function DomainsLayout({ children }: { children: ReactNode }) {
   return (
@@ -23,7 +23,7 @@ export default function DomainsLayout({ children }: { children: ReactNode }) {
     >
       <PageWidthWrapper>
         <div className="grid gap-4">
-          <DomainsHeader />
+          <DomainsHeader baseUrl="/links/domains" />
           {children}
         </div>
       </PageWidthWrapper>

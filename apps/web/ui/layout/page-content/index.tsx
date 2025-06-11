@@ -9,14 +9,16 @@ export * from "./page-content-old";
 
 export function PageContent({
   title,
-  titleBackButtonLink,
+  titleInfo,
+  titleBackHref,
   controls,
   className,
   contentWrapperClassName,
   children,
 }: PropsWithChildren<{
   title?: ReactNode;
-  titleBackButtonLink?: string;
+  titleInfo?: ReactNode;
+  titleBackHref?: string;
   controls?: ReactNode;
   className?: string;
   contentWrapperClassName?: string;
@@ -38,9 +40,9 @@ export function PageContent({
               <NavButton />
               {hasTitle && (
                 <div className="flex items-center gap-2">
-                  {titleBackButtonLink && (
+                  {titleBackHref && (
                     <Link
-                      href={titleBackButtonLink}
+                      href={titleBackHref}
                       className="rounded-lg p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
                     >
                       <ChevronLeft className="size-5" />
@@ -49,6 +51,7 @@ export function PageContent({
                   <h1 className="text-content-emphasis text-lg font-semibold leading-7">
                     {title}
                   </h1>
+                  {titleInfo}
                 </div>
               )}
             </div>
@@ -60,7 +63,7 @@ export function PageContent({
       </div>
       <div
         className={cn(
-          "bg-white pt-3 max-md:rounded-t-[16px]",
+          "bg-white pt-3 max-md:rounded-t-[16px] lg:pt-6",
           contentWrapperClassName,
         )}
       >
