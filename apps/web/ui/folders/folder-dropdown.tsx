@@ -245,7 +245,7 @@ export const FolderDropdown = ({
             buttonClassName,
           ),
           textWrapperClassName: cn(
-            "min-w-0 truncate text-left text-xl font-semibold leading-7 text-neutral-900 md:text-2xl",
+            "min-w-0 truncate text-left text-lg font-semibold leading-7 text-content-emphasis",
             buttonTextClassName,
           ),
         }}

@@ -1,11 +1,16 @@
 import { FolderSwitcher } from "@/ui/folders/folder-switcher";
-import { PageContentOld } from "@/ui/layout/page-content";
-import WorkspaceLinksClient from "./page-client";
+import { PageContent } from "@/ui/layout/page-content";
+import WorkspaceLinksClient, {
+  WorkspaceLinksPageControls,
+} from "./page-client";
 
 export default function WorkspaceLinks() {
   return (
-    <PageContentOld title={<FolderSwitcher />}>
+    <PageContent
+      title={<FolderSwitcher />}
+      controls={<WorkspaceLinksPageControls />}
+    >
       <WorkspaceLinksClient />
-    </PageContentOld>
+    </PageContent>
   );
 }
