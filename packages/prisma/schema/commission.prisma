@@ -13,23 +13,24 @@ enum CommissionStatus {
   canceled
 }
 
-enum EventType {
+enum CommissionType {
   click
   lead
   sale
+  custom
 }
 
 model Commission {
   id         String  @id @default(cuid())
   programId  String
   partnerId  String
-  linkId     String
+  linkId     String?
   payoutId   String?
   invoiceId  String? // only for sales (idempotency key, each sale event is associated with a unique invoice)
   customerId String? // only for leads and sales
   eventId    String? @unique // only for leads and sales
 
-  type     EventType
+  type     CommissionType
   amount   Int // only for sales (amount of the sale event)
   quantity Int // only for clicks/leads (quantity of the event)
   earnings Int              @default(0) // amount earned by the partner
@@ -47,7 +48,7 @@ model Commission {
   program  Program   @relation(fields: [programId], references: [id])
   partner  Partner   @relation(fields: [partnerId], references: [id])
   payout   Payout?   @relation(fields: [payoutId], references: [id])
-  link     Link      @relation(fields: [linkId], references: [id])
+  link     Link?     @relation(fields: [linkId], references: [id])
   customer Customer? @relation(fields: [customerId], references: [id])
 
   @@unique([programId, invoiceId])

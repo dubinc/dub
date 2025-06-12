@@ -1,14 +1,14 @@
-import { PageContent } from "@/ui/layout/page-content";
+import { PageContentOld } from "@/ui/layout/page-content";
 
 import { MaxWidthWrapper } from "@dub/ui";
 import { ProgramLinksPageClient } from "./page-client";
 
 export default function ProgramLinks() {
   return (
-    <PageContent title="Links" hideReferButton>
+    <PageContentOld title="Links" showControls>
       <MaxWidthWrapper className="pb-10">
         <ProgramLinksPageClient />
       </MaxWidthWrapper>
-    </PageContent>
+    </PageContentOld>
   );
 }

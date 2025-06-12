@@ -110,9 +110,12 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         maxSize: 240,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            {row.original.type === "click" ? (
+            {["click", "custom"].includes(row.original.type) ? (
               <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100">
-                <CommissionTypeIcon type="click" className="size-4" />
+                <CommissionTypeIcon
+                  type={row.original.type}
+                  className="size-4"
+                />
               </div>
             ) : (
               <img
@@ -129,7 +132,9 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
               <span className="w-44 truncate text-sm text-neutral-700">
                 {row.original.type === "click"
                   ? `${row.original.quantity} ${pluralize("click", row.original.quantity)}`
-                  : row.original.customer.email || row.original.customer.name}
+                  : row.original.customer
+                    ? row.original.customer.email || row.original.customer.name
+                    : "Custom commission"}
               </span>
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}

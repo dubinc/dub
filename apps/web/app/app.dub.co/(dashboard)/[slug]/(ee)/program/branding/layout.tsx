@@ -1,5 +1,5 @@
 import { PageContent } from "@/ui/layout/page-content";
-import { MaxWidthWrapper } from "@dub/ui";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { PropsWithChildren } from "react";
 import { ProgramBrandingTabs } from "./program-branding-tabs";
 
@@ -10,13 +10,13 @@ export default function ProgramSettingsLayout({
   return (
     <PageContent
       title="Branding"
-      titleControls={
+      controls={
         <ProgramBrandingTabs slug={params.slug} programId={params.programId} />
       }
     >
-      <MaxWidthWrapper>
-        <div className="mb-4 grid grid-cols-1 gap-8 pt-3">{children}</div>
-      </MaxWidthWrapper>
+      <PageWidthWrapper>
+        <div className="mb-4 grid grid-cols-1 gap-8">{children}</div>
+      </PageWidthWrapper>
     </PageContent>
   );
 }
