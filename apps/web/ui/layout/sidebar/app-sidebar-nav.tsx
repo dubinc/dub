@@ -76,7 +76,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   {
     name: "Partner Program",
     description:
-      "Manage your partner program, performance, partners, and payouts.",
+      "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
     learnMoreHref: "https://dub.co/partners",
     icon: ConnectedDots4,
     href: slug ? `/${slug}/program` : "/program",
