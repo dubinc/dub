@@ -25,7 +25,6 @@ export const RewardSchema = z.object({
   maxDuration: z.number().nullish(),
   maxAmount: z.number().nullish(),
   default: z.boolean(),
-  partnersCount: z.number().nullish(),
 });
 
 export const createOrUpdateRewardSchema = z.object({
