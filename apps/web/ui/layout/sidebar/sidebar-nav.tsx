@@ -25,6 +25,7 @@ export type NavItemCommon = {
   name: string;
   href: `/${string}`;
   exact?: boolean;
+  isActive?: (pathname: string, href: string) => boolean;
 };
 
 export type NavSubItemType = NavItemCommon;
@@ -293,7 +294,7 @@ function NavGroupItem({
 }
 
 function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
-  const { name, href, exact } = item;
+  const { name, href, exact, isActive: customIsActive } = item;
 
   const Icon = "icon" in item ? item.icon : undefined;
   const items = "items" in item ? item.items : undefined;
@@ -303,11 +304,15 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
   const pathname = usePathname();
 
   const isActive = useMemo(() => {
+    if (customIsActive) {
+      return customIsActive(pathname, href);
+    }
+
     const hrefWithoutQuery = href.split("?")[0];
     return exact
       ? pathname === hrefWithoutQuery
       : pathname.startsWith(hrefWithoutQuery);
-  }, [pathname, href, exact]);
+  }, [pathname, href, exact, customIsActive]);
 
   return (
     <div>
