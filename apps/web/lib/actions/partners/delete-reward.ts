@@ -41,8 +41,6 @@ export const deleteRewardAction = authActionClient
       const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
       // 1. Update current associations
-      // - If the reward is the default, update the default reward
-      // - If the reward is not the default, update the reward to null
       await tx.programEnrollment.updateMany({
         where: {
           programId,
