@@ -67,6 +67,7 @@ export const createCommissionAction = authActionClient
       return;
     }
 
+    // Create a lead or sale commission
     const link = links.find((l) => l.id === linkId);
 
     if (!link) {
