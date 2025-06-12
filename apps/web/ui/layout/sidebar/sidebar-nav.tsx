@@ -54,8 +54,8 @@ export type SidebarNavAreas<T extends Record<any, any>> = Record<
   (args: T) => {
     title?: string;
     backHref?: string;
-    showSwitcher?: boolean;
-    showNews?: boolean;
+    showNews?: boolean; // show news segment – TODO: enable this for Partner Program too
+    hideSwitcherIcons?: boolean; // hide workspace switcher + product icons for this area
     direction?: "left" | "right";
     content: {
       name?: string;
@@ -96,14 +96,14 @@ export function SidebarNav<T extends Record<any, any>>({
                 <NavWordmark className="h-5" isInApp />
               </Link>
             </div>
-            <div className="flex flex-col gap-3">
-              {areas[currentArea](data).showSwitcher && switcher && (
-                <div>{switcher}</div>
-              )}
-              {groups(data).map((group) => (
-                <NavGroupItem key={group.name} group={group} />
-              ))}
-            </div>
+            {!areas[currentArea](data).hideSwitcherIcons && (
+              <div className="flex flex-col gap-3">
+                {switcher}
+                {groups(data).map((group) => (
+                  <NavGroupItem key={group.name} group={group} />
+                ))}
+              </div>
+            )}
           </div>
           <div className="flex flex-col items-center gap-3 py-3">
             <Suspense fallback={null}>{toolContent}</Suspense>

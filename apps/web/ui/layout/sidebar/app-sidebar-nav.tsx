@@ -94,7 +94,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
   default: ({ slug, pathname, queryString, showNews }) => ({
     title: "Short Links",
-    showSwitcher: true,
     showNews,
     direction: "left",
     content: [
@@ -158,7 +157,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Program
   program: ({ slug, showNews }) => ({
     title: "Partner Program",
-    showSwitcher: true,
     showNews,
     direction: "left",
     content: [
@@ -319,6 +317,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   userSettings: ({ slug }) => ({
     title: "Settings",
     backHref: `/${slug}`,
+    hideSwitcherIcons: true,
     content: [
       {
         name: "Account",

@@ -103,6 +103,7 @@ export function WorkspaceDropdown() {
             height={28}
             alt={selected.id || selected.name}
             className="size-7 flex-none shrink-0 overflow-hidden rounded-full"
+            draggable={false}
           />
         </button>
       </Popover>
@@ -173,6 +174,7 @@ function WorkspaceList({
               height={28}
               alt={selected.name}
               className="size-8 shrink-0 overflow-hidden rounded-full"
+              draggable={false}
             />
             <div className="min-w-0">
               <div className="truncate text-sm font-medium leading-5 text-neutral-900">
@@ -237,6 +239,7 @@ function WorkspaceList({
                     height={28}
                     alt={id}
                     className="size-6 shrink-0 overflow-hidden rounded-full"
+                    draggable={false}
                   />
                   <span className="block truncate text-sm leading-5 text-neutral-900 sm:max-w-[140px]">
                     {name}
