@@ -198,6 +198,14 @@ const updateNonDefaultRewardPartners = async ({
 
   // Exclude partners from the reward
   if (excludedPartnerIds.length > 0) {
+    const defaultReward = await prisma.reward.findFirst({
+      where: {
+        programId: reward.programId,
+        event: reward.event,
+        default: true,
+      },
+    });
+
     await prisma.programEnrollment.updateMany({
       where: {
         programId: reward.programId,
@@ -207,7 +215,8 @@ const updateNonDefaultRewardPartners = async ({
         },
       },
       data: {
-        [rewardIdColumn]: null,
+        // Replace the reward with the default reward if it exists
+        [rewardIdColumn]: defaultReward ? defaultReward.id : null,
       },
     });
   }
