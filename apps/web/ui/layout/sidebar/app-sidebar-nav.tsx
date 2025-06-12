@@ -103,6 +103,22 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Links",
             icon: Hyperlink,
             href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
+            isActive: (pathname: string, href: string) => {
+              const basePath = href.split("?")[0];
+
+              // Exact match for the base links page
+              if (pathname === basePath) return true;
+
+              // Check if it's a link detail page (path segment after base contains a dot for domain)
+              if (pathname.startsWith(basePath + "/")) {
+                const nextSegment = pathname
+                  .slice(basePath.length + 1)
+                  .split("/")[0];
+                return nextSegment.includes(".");
+              }
+
+              return false;
+            },
           },
           {
             name: "Domains",
