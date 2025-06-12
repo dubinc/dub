@@ -10,7 +10,7 @@ interface Revenue {
 }
 
 export default function useProgramRevenue(
-  params?: PartnerAnalyticsFilters & { enabled: boolean },
+  params?: PartnerAnalyticsFilters & { enabled?: boolean },
 ) {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
@@ -28,7 +28,7 @@ export default function useProgramRevenue(
   });
 
   const { data, error } = useSWR<Revenue[]>(
-    params?.enabled && workspaceId && defaultProgramId
+    params?.enabled !== false && workspaceId && defaultProgramId
       ? `/api/programs/${defaultProgramId}/revenue?${searchParams.toString()}`
       : null,
     fetcher,
