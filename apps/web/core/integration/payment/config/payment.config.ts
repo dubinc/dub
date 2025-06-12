@@ -3,12 +3,13 @@ import { ICustomerBody, IPaymentPlanPrice } from "./payment-config.interface";
 const ONE_MONTH_IN_DAYS = 28;
 
 // price config
-const priceConfig = {
+export const priceConfig = {
   QUARTERLY_PLAN_CHARGE_PERIOD_DAYS: ONE_MONTH_IN_DAYS * 3,
   HALF_YEARLY_PLAN_CHARGE_PERIOD_DAYS: ONE_MONTH_IN_DAYS * 6,
   YEARLY_PLAN_CHARGE_PERIOD_DAYS: ONE_MONTH_IN_DAYS * 12,
   paymentPlan: {
     DEFAULT: {
+      MIN_PRICE: 50,
       PRICE_QUARTER_PLAN: 3999 * 3,
       PRICE_HALF_YEAR_PLAN: 2999 * 6,
       PRICE_HALF_YEAR_PLAN_PREV: 3999 * 6,

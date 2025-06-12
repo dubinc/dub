@@ -1,12 +1,12 @@
 import { cookies, headers } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import { v4 as uuidV4 } from "uuid";
 
-import { withSession } from "@/lib/auth";
-import { ICreateSessionBody } from "core/api/user/payment/payment.interface.ts";
+import { Session, withSession } from "@/lib/auth";
 import {
   getPaymentPlanPrice,
+  ICustomerBody,
   TPaymentPlan,
 } from "core/integration/payment/config";
 import {
@@ -25,10 +25,47 @@ import { subHours } from "date-fns/subHours";
 
 const paymentService = new PaymentService();
 
+const getMetadata = ({
+  session,
+  user,
+  paymentPlan,
+}: {
+  session: Session;
+  user: ICustomerBody;
+  paymentPlan: TPaymentPlan;
+}) => {
+  const headerStore = headers();
+  const cookieStore = cookies();
+
+  const metadata: { [key: string]: string | number | null } = {
+    //**** antifraud sessions ****//
+    ...user.sessions,
+
+    //**** for analytics ****//
+    email: session.user.email,
+    flow_type: "internal",
+    locale: "en",
+    mixpanel_user_id:
+      session.user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
+    plan_name: paymentPlan,
+    //**** for analytics ****//
+
+    //**** fields for subscription system ****//
+    sub_user_id_primer: user?.paymentInfo?.customerId || null,
+    sub_order_country: user.currency?.countryCode || null,
+    ipAddress: getUserIp(headerStore)!,
+    subscriptionType: `APP_SUBSCRIPTION`,
+    application: `${process.env.NEXT_PUBLIC_PAYMENT_ENV}`,
+  };
+
+  return metadata;
+};
+
 // set user session
-export const POST = withSession(async (request) => {
-  const { session: authSession } = request;
+export const POST = withSession(async ({ req, session: authSession }) => {
   const { user } = await getUserCookieService();
+
+  const initialSubPaymentPlan: TPaymentPlan = "PRICE_YEAR_PLAN";
 
   if (!user?.paymentInfo?.customerId && !user?.id) {
     return NextResponse.json(
@@ -47,6 +84,7 @@ export const POST = withSession(async (request) => {
       const { clientToken, clientTokenExpirationDate } =
         await paymentService.updateClientPaymentSession({
           clientToken: user.paymentInfo.clientToken,
+          paymentPlan: initialSubPaymentPlan,
         });
 
       await updateUserCookieService({
@@ -72,36 +110,27 @@ export const POST = withSession(async (request) => {
   }
 
   try {
-    const initialSubPlanName: TPaymentPlan = "PRICE_YEAR_PLAN";
+    const body = await req.json();
+
     const { priceForPay } = getPaymentPlanPrice({
-      paymentPlan: initialSubPlanName,
+      paymentPlan: initialSubPaymentPlan,
       user,
     });
 
-    const headerStore = headers();
     const cookieStore = cookies();
 
-    const metadata: { [key: string]: string | number | null } = {
-      ...(request as ICreateSessionBody).metadata,
-      ...user.sessions,
-      app_version: "v1",
-      user_id:
-        authSession.user.id ||
-        cookieStore.get(ECookieArg.SESSION_ID)?.value ||
-        null,
-      ipAddress: getUserIp(headerStore)!,
-      email: request.session.user.email,
-      mixpanel_user_id:
-        request.session.user.id ||
-        cookieStore.get(ECookieArg.SESSION_ID)?.value ||
-        null,
-      sub_user_id_primer: user?.paymentInfo?.customerId || null,
-      sub_order_country: user.currency?.countryCode || null,
-      subscriptionType: `APP_SUBSCRIPTION`,
-      application: `${process.env.NEXT_PUBLIC_PAYMENT_ENV}`,
-
-      plan_name: initialSubPlanName,
+    const metadata = {
+      ...body.metadata,
+      ...getMetadata({
+        session: authSession,
+        user,
+        paymentPlan: initialSubPaymentPlan,
+      }),
     };
+
+    const filteredMetadata = Object.fromEntries(
+      Object.entries(metadata).filter(([_, value]) => value !== undefined),
+    ) as { [key: string]: string | number | boolean | null };
 
     const { clientToken, clientTokenExpirationDate } =
       await paymentService.createClientPaymentSession({
@@ -139,7 +168,7 @@ export const POST = withSession(async (request) => {
           billingAddress: { countryCode: user.currency?.countryCode || "" },
           shippingAddress: { countryCode: user.currency?.countryCode || "" },
         },
-        metadata: { ...metadata },
+        metadata: { ...filteredMetadata },
       });
 
     await updateUserCookieService({
@@ -159,32 +188,41 @@ export const POST = withSession(async (request) => {
 });
 
 // update client session
-export async function PATCH(
-  request: NextRequest,
-): Promise<NextResponse<IDataRes>> {
-  const { user } = await getUserCookieService();
+export const PATCH = withSession(
+  async ({ req, session: authSession }): Promise<NextResponse<IDataRes>> => {
+    const { user } = await getUserCookieService();
 
-  if (!user?.id) {
-    return NextResponse.json(
-      { success: false, error: "User not found" },
-      { status: 400 },
-    );
-  }
+    if (!user?.id) {
+      return NextResponse.json(
+        { success: false, error: "User not found" },
+        { status: 400 },
+      );
+    }
 
-  try {
-    const body: IUpdatePrimerClientSessionBody = await request.json();
+    try {
+      const body: IUpdatePrimerClientSessionBody = await req.json();
 
-    const { clientToken, clientTokenExpirationDate } =
-      await paymentService.updateClientPaymentSession(body);
+      const metadata = {
+        ...body.metadata,
+        ...getMetadata({
+          session: authSession,
+          user,
+          paymentPlan: body.paymentPlan,
+        }),
+      };
 
-    return NextResponse.json({
-      success: true,
-      data: { clientToken, clientTokenExpirationDate },
-    });
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error?.message },
-      { status: 500 },
-    );
-  }
-}
+      const { clientToken, clientTokenExpirationDate } =
+        await paymentService.updateClientPaymentSession({ ...body, metadata });
+
+      return NextResponse.json({
+        success: true,
+        data: { clientToken, clientTokenExpirationDate },
+      });
+    } catch (error: any) {
+      return NextResponse.json(
+        { success: false, error: error?.message },
+        { status: 500 },
+      );
+    }
+  },
+);

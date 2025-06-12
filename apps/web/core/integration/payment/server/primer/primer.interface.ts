@@ -1,3 +1,5 @@
+import { TPaymentPlan } from "../../config";
+
 export interface ICreatePrimerClientSessionBody {
   orderId: string;
   customerId: string;
@@ -69,8 +71,10 @@ export interface ICreatePrimerClientSessionRes {
 export interface IUpdatePrimerClientSessionBody
   extends Partial<ICreatePrimerClientSessionBody> {
   clientToken: string;
+  paymentPlan: TPaymentPlan;
 }
-export interface IUpdatePrimerClientSessionRes extends ICreatePrimerClientSessionRes {}
+export interface IUpdatePrimerClientSessionRes
+  extends ICreatePrimerClientSessionRes {}
 
 export interface IGetPrimerPaymentMethodTokenBody {
   customerId: string;
@@ -126,14 +130,14 @@ export interface ICreatePrimerClientPaymentRes {
   date: string;
   dateUpdated: string;
   status:
-    | 'PENDING'
-    | 'FAILED'
-    | 'AUTHORIZED'
-    | 'SETTLING'
-    | 'PARTIALLY_SETTLED'
-    | 'SETTLED'
-    | 'DECLINED'
-    | 'CANCELLED';
+    | "PENDING"
+    | "FAILED"
+    | "AUTHORIZED"
+    | "SETTLING"
+    | "PARTIALLY_SETTLED"
+    | "SETTLED"
+    | "DECLINED"
+    | "CANCELLED";
   cardTokenType: string;
   orderId: string;
   currencyCode: string;
@@ -232,14 +236,14 @@ export interface IGetPrimerClientPaymentInfoRes {
   metadata: { [key: string]: string | number | boolean | undefined };
   orderId: string;
   status:
-    | 'PENDING'
-    | 'FAILED'
-    | 'AUTHORIZED'
-    | 'SETTLING'
-    | 'PARTIALLY_SETTLED'
-    | 'SETTLED'
-    | 'DECLINED'
-    | 'CANCELLED';
+    | "PENDING"
+    | "FAILED"
+    | "AUTHORIZED"
+    | "SETTLING"
+    | "PARTIALLY_SETTLED"
+    | "SETTLED"
+    | "DECLINED"
+    | "CANCELLED";
   cardTokenType: string;
   order: {
     countryCode: string;
@@ -263,7 +267,7 @@ export interface IGetPrimerClientPaymentInfoRes {
       expirationMonth: string;
       expirationYear: string;
       cardholderName: string;
-      network: 'MASTERCARD' | 'VISA';
+      network: "MASTERCARD" | "VISA";
       isNetworkTokenized: boolean;
       binData: {
         network: string;

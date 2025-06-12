@@ -24,12 +24,12 @@ export interface ICreateSubscriptionBody {
   };
   nationalDocumentId?: string;
   first6Digits?: string;
+  paymentPlan: TPaymentPlan;
   metadata?: { [key: string]: string | number | boolean | undefined };
 }
 export interface ICreateSubscriptionRes extends IDataRes {
   data?: {
     subscriptionId: string;
-    toxic: boolean;
   } | null;
 }
 
