@@ -31,22 +31,25 @@ import { z } from "zod";
 
 interface CreateCommissionSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  partnerId?: string;
 }
 
 type FormData = z.infer<typeof createCommissionSchema>;
 
 type CommissionType = "one-time" | "sale" | "lead";
 
-function CreateCommissionSheetContent({
-  setIsOpen,
-}: CreateCommissionSheetProps) {
+function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
+  const { setIsOpen, partnerId: initialPartnerId } = props;
+
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const { rewards, loading: rewardsLoading } = useRewards();
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
+
   const [commissionType, setCommissionType] =
     useState<CommissionType>("one-time");
+
   const [openAccordions, setOpenAccordions] = useState<string[]>([
     "partner-and-type",
   ]);
@@ -57,7 +60,11 @@ function CreateCommissionSheetContent({
     watch,
     setValue,
     formState: { errors },
-  } = useForm<FormData>();
+  } = useForm<FormData>({
+    defaultValues: {
+      partnerId: initialPartnerId,
+    },
+  });
 
   const [
     partnerId,
@@ -110,6 +117,7 @@ function CreateCommissionSheetContent({
       await mutatePrefix(`/api/commissions?workspaceId=${workspaceId}`);
     },
     onError({ error }) {
+      console.log(error);
       toast.error(error.serverError);
     },
   });
@@ -369,7 +377,7 @@ function CreateCommissionSheetContent({
                       </label>
                       <div className="mt-2">
                         <CustomerSelector
-                          selectedCustomerId={customerId}
+                          selectedCustomerId={customerId ?? ""}
                           setSelectedCustomerId={(id) => {
                             setValue("customerId", id, { shouldDirty: true });
                           }}
@@ -613,23 +621,27 @@ function CreateCommissionSheetContent({
 
 export function CreateCommissionSheet({
   isOpen,
+  nested,
   ...rest
 }: CreateCommissionSheetProps & {
   isOpen: boolean;
+  nested?: boolean;
 }) {
   return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
+    <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
       <CreateCommissionSheetContent {...rest} />
     </Sheet>
   );
 }
 
-export function useCreateCommissionSheet() {
+export function useCreateCommissionSheet(
+  props: { nested?: boolean } & Omit<CreateCommissionSheetProps, "setIsOpen">,
+) {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
     createCommissionSheet: (
-      <CreateCommissionSheet setIsOpen={setIsOpen} isOpen={isOpen} />
+      <CreateCommissionSheet setIsOpen={setIsOpen} isOpen={isOpen} {...props} />
     ),
     setIsOpen,
   };
