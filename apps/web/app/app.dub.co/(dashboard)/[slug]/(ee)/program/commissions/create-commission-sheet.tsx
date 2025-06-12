@@ -7,6 +7,12 @@ import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSelector } from "@/ui/customers/customer-selector";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
 import { PartnerSelector } from "@/ui/partners/partner-selector";
+import {
+  ProgramSheetAccordion,
+  ProgramSheetAccordionContent,
+  ProgramSheetAccordionItem,
+  ProgramSheetAccordionTrigger,
+} from "@/ui/partners/program-sheet-accordion";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -14,6 +20,7 @@ import {
   Sheet,
   SmartDateTimePicker,
   Switch,
+  ToggleGroup,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -28,6 +35,8 @@ interface CreateCommissionSheetProps {
 
 type FormData = z.infer<typeof createCommissionSchema>;
 
+type CommissionType = "one-time" | "sale" | "lead";
+
 function CreateCommissionSheetContent({
   setIsOpen,
 }: CreateCommissionSheetProps) {
@@ -36,6 +45,8 @@ function CreateCommissionSheetContent({
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
+  const [commissionType, setCommissionType] =
+    useState<CommissionType>("one-time");
 
   const {
     register,
@@ -52,6 +63,12 @@ function CreateCommissionSheetContent({
     "saleEventDate",
     "leadEventDate",
   ]);
+
+  useEffect(() => {
+    if (commissionType === "one-time") {
+      setValue("linkId", null);
+    }
+  }, [commissionType, setValue]);
 
   useEffect(() => {
     if (!hasCustomLeadEventDate) {
@@ -112,41 +129,103 @@ function CreateCommissionSheetContent({
 
       <div className="flex-1 overflow-y-auto">
         <div className="space-y-6 p-6">
-          <div className="grid grid-cols-1 gap-6 rounded-xl border border-neutral-200 px-4 py-5">
-            <div>
-              <label htmlFor="name" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-neutral-900">
-                  Partner
-                </h2>
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <PartnerSelector
-                  selectedPartnerId={partnerId}
-                  setSelectedPartnerId={(id) => {
-                    setValue("partnerId", id);
-                  }}
-                />
-              </div>
-            </div>
+          <ProgramSheetAccordion
+            type="multiple"
+            defaultValue={["partner-and-type"]}
+          >
+            <ProgramSheetAccordionItem value="partner-and-type">
+              <ProgramSheetAccordionTrigger>
+                Partner and type
+              </ProgramSheetAccordionTrigger>
+              <ProgramSheetAccordionContent>
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label
+                      htmlFor="partnerId"
+                      className="flex items-center space-x-2"
+                    >
+                      <h2 className="text-sm font-medium text-neutral-900">
+                        Partner
+                      </h2>
+                    </label>
+                    <div className="relative mt-2 rounded-md shadow-sm">
+                      <PartnerSelector
+                        selectedPartnerId={partnerId}
+                        setSelectedPartnerId={(id) => setValue("partnerId", id)}
+                      />
+                    </div>
+                  </div>
 
-            <div>
-              <label htmlFor="name" className="flex items-center space-x-2">
-                <h2 className="text-sm font-medium text-neutral-900">
-                  Referral link
-                </h2>
-              </label>
-              <div className="mt-2">
-                <PartnerLinkSelector
-                  selectedLinkId={linkId ?? null}
-                  showDestinationUrl={false}
-                  partnerId={partnerId}
-                  setSelectedLinkId={(id) => {
-                    setValue("linkId", id, { shouldDirty: true });
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+                  <div className="flex w-full items-center">
+                    <ToggleGroup
+                      className="flex w-full items-center gap-1.5 rounded-md border border-neutral-200 bg-neutral-50 p-1"
+                      optionClassName="h-8 flex items-center justify-center rounded-md flex-1  text-sm"
+                      indicatorClassName="bg-white"
+                      options={[
+                        { value: "one-time", label: "One-time" },
+                        { value: "sale", label: "Sale" },
+                        { value: "lead", label: "Lead" },
+                      ]}
+                      selected={commissionType}
+                      selectAction={(id: CommissionType) =>
+                        setCommissionType(id)
+                      }
+                    />
+                  </div>
+
+                  {commissionType === "one-time" && (
+                    <AnimatedSizeContainer
+                      height
+                      transition={{ ease: "easeInOut", duration: 0.2 }}
+                      style={{
+                        height: "auto",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div className="py-1 text-center text-base font-medium leading-6 text-neutral-500">
+                        Send a one-time commission
+                      </div>
+                    </AnimatedSizeContainer>
+                  )}
+
+                  {commissionType !== "one-time" && (
+                    <AnimatedSizeContainer
+                      height
+                      transition={{ ease: "easeInOut", duration: 0.2 }}
+                      style={{
+                        height:
+                          commissionType === "lead" || commissionType === "sale"
+                            ? "auto"
+                            : "0px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div>
+                        <label
+                          htmlFor="linkId"
+                          className="flex items-center space-x-2"
+                        >
+                          <h2 className="text-sm font-medium text-neutral-900">
+                            Referral link
+                          </h2>
+                        </label>
+                        <div className="mt-2">
+                          <PartnerLinkSelector
+                            selectedLinkId={linkId ?? null}
+                            showDestinationUrl={false}
+                            partnerId={partnerId}
+                            setSelectedLinkId={(id) =>
+                              setValue("linkId", id, { shouldDirty: true })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </AnimatedSizeContainer>
+                  )}
+                </div>
+              </ProgramSheetAccordionContent>
+            </ProgramSheetAccordionItem>
+          </ProgramSheetAccordion>
 
           <div className="grid grid-cols-1 gap-6 rounded-xl border border-neutral-200 px-4 py-5">
             <div>
