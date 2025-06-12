@@ -108,7 +108,7 @@ function DubPartnersPopupInner({
         <div className="animate-slide-up-fade relative flex w-[260px] flex-col rounded-lg border border-neutral-900 bg-neutral-800 p-3 text-left">
           <div className="relative">
             <Link
-              href="https://d.to/partners"
+              href="https://dub.co/partners"
               target="_blank"
               className="group relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-md border border-neutral-900 bg-neutral-800"
             >
@@ -134,7 +134,8 @@ function DubPartnersPopupInner({
             Dub Partners unlocked
           </h2>
           <p className="mt-1.5 text-xs text-neutral-300">
-            Create your Partner Program and put revenue on autopilot.
+            Kickstart viral product-led growth with powerful, branded partner
+            programs.
           </p>
           <div className="mt-4 grid w-full grid-cols-2 gap-2">
             <Link
