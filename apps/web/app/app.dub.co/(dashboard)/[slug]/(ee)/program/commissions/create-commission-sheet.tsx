@@ -131,7 +131,7 @@ function CreateCommissionSheetContent({
         <div className="space-y-6 p-6">
           <ProgramSheetAccordion
             type="multiple"
-            defaultValue={["partner-and-type", "customer", "sale", "commission"]}
+            defaultValue={["partner-and-type"]}
           >
             <ProgramSheetAccordionItem value="partner-and-type">
               <ProgramSheetAccordionTrigger>
@@ -226,223 +226,227 @@ function CreateCommissionSheetContent({
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
 
-            <ProgramSheetAccordionItem value="customer">
-              <ProgramSheetAccordionTrigger>
-                Customer
-              </ProgramSheetAccordionTrigger>
-              <ProgramSheetAccordionContent>
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label htmlFor="name" className="flex items-center space-x-2">
-                      <h2 className="text-sm font-medium text-neutral-900">
-                        Customer
-                      </h2>
-                    </label>
-                    <div className="mt-2">
-                      <CustomerSelector
-                        selectedCustomerId={customerId}
-                        setSelectedCustomerId={(id) => {
-                          setValue("customerId", id, { shouldDirty: true });
+            {(commissionType === "sale" || commissionType === "lead") && (
+              <ProgramSheetAccordionItem value="customer">
+                <ProgramSheetAccordionTrigger>
+                  Customer
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <div className="grid grid-cols-1 gap-6">
+                    <div>
+                      <label htmlFor="name" className="flex items-center space-x-2">
+                        <h2 className="text-sm font-medium text-neutral-900">
+                          Customer
+                        </h2>
+                      </label>
+                      <div className="mt-2">
+                        <CustomerSelector
+                          selectedCustomerId={customerId}
+                          setSelectedCustomerId={(id) => {
+                            setValue("customerId", id, { shouldDirty: true });
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {customerId && (
+                      <AnimatedSizeContainer
+                        height
+                        transition={{ ease: "easeInOut", duration: 0.2 }}
+                        style={{
+                          height: hasCustomLeadEventDate ? "auto" : "0px",
+                          overflow: "hidden",
                         }}
+                      >
+                        <div className="flex flex-col gap-6">
+                          <div className="flex items-center gap-4">
+                            <Switch
+                              fn={setHasCustomLeadEventDate}
+                              checked={hasCustomLeadEventDate}
+                              trackDimensions="w-8 h-4"
+                              thumbDimensions="w-3 h-3"
+                              thumbTranslate="translate-x-4"
+                            />
+                            <div className="flex flex-col gap-1">
+                              <h3 className="text-sm font-medium text-neutral-700">
+                                Set a custom lead event date
+                              </h3>
+                            </div>
+                          </div>
+
+                          {hasCustomLeadEventDate && (
+                            <div className="p-px">
+                              <SmartDateTimePicker
+                                value={leadEventDate}
+                                onChange={(date) => {
+                                  setValue("leadEventDate", date, {
+                                    shouldDirty: true,
+                                  });
+                                }}
+                                label="Lead event date"
+                                placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </AnimatedSizeContainer>
+                    )}
+
+                    {customerId && (
+                      <AnimatedSizeContainer
+                        height
+                        transition={{ ease: "easeInOut", duration: 0.2 }}
+                        style={{
+                          height: hasCustomLeadEventName ? "auto" : "0px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div className="flex flex-col gap-6">
+                          <div className="flex items-center gap-4">
+                            <Switch
+                              fn={setHasCustomLeadEventName}
+                              checked={hasCustomLeadEventName}
+                              trackDimensions="w-8 h-4"
+                              thumbDimensions="w-3 h-3"
+                              thumbTranslate="translate-x-4"
+                            />
+                            <div className="flex flex-col gap-1">
+                              <h3 className="text-sm font-medium text-neutral-700">
+                                Set a custom lead event name
+                              </h3>
+                            </div>
+                          </div>
+
+                          {hasCustomLeadEventName && (
+                            <div className="p-px">
+                              <input
+                                type="text"
+                                className={cn(
+                                  "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                                  errors.leadEventName &&
+                                    "border-red-600 focus:border-red-500 focus:ring-red-600",
+                                )}
+                                {...register("leadEventName", {
+                                  setValueAs: (value) => (value === "" ? null : value),
+                                })}
+                                placeholder="Enter lead event name"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </AnimatedSizeContainer>
+                    )}
+                  </div>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+            )}
+
+            {commissionType === "sale" && (
+              <ProgramSheetAccordionItem value="sale">
+                <ProgramSheetAccordionTrigger>
+                  Sale
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <div className="grid grid-cols-1 gap-6">
+                    <div>
+                      <SmartDateTimePicker
+                        value={saleEventDate}
+                        onChange={(date) => {
+                          setValue("saleEventDate", date, { shouldDirty: true });
+                        }}
+                        label="Sale date"
+                        placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
                       />
                     </div>
-                  </div>
 
-                  {customerId && (
-                    <AnimatedSizeContainer
-                      height
-                      transition={{ ease: "easeInOut", duration: 0.2 }}
-                      style={{
-                        height: hasCustomLeadEventDate ? "auto" : "0px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div className="flex flex-col gap-6">
-                        <div className="flex items-center gap-4">
-                          <Switch
-                            fn={setHasCustomLeadEventDate}
-                            checked={hasCustomLeadEventDate}
-                            trackDimensions="w-8 h-4"
-                            thumbDimensions="w-3 h-3"
-                            thumbTranslate="translate-x-4"
-                          />
-                          <div className="flex flex-col gap-1">
-                            <h3 className="text-sm font-medium text-neutral-700">
-                              Set a custom lead event date
-                            </h3>
-                          </div>
-                        </div>
-
-                        {hasCustomLeadEventDate && (
-                          <div className="p-px">
-                            <SmartDateTimePicker
-                              value={leadEventDate}
-                              onChange={(date) => {
-                                setValue("leadEventDate", date, {
-                                  shouldDirty: true,
-                                });
-                              }}
-                              label="Lead event date"
-                              placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </AnimatedSizeContainer>
-                  )}
-
-                  {customerId && (
-                    <AnimatedSizeContainer
-                      height
-                      transition={{ ease: "easeInOut", duration: 0.2 }}
-                      style={{
-                        height: hasCustomLeadEventName ? "auto" : "0px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div className="flex flex-col gap-6">
-                        <div className="flex items-center gap-4">
-                          <Switch
-                            fn={setHasCustomLeadEventName}
-                            checked={hasCustomLeadEventName}
-                            trackDimensions="w-8 h-4"
-                            thumbDimensions="w-3 h-3"
-                            thumbTranslate="translate-x-4"
-                          />
-                          <div className="flex flex-col gap-1">
-                            <h3 className="text-sm font-medium text-neutral-700">
-                              Set a custom lead event name
-                            </h3>
-                          </div>
-                        </div>
-
-                        {hasCustomLeadEventName && (
-                          <div className="p-px">
-                            <input
-                              type="text"
-                              className={cn(
-                                "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                                errors.leadEventName &&
-                                  "border-red-600 focus:border-red-500 focus:ring-red-600",
-                              )}
-                              {...register("leadEventName", {
-                                setValueAs: (value) => (value === "" ? null : value),
-                              })}
-                              placeholder="Enter lead event name"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </AnimatedSizeContainer>
-                  )}
-                </div>
-              </ProgramSheetAccordionContent>
-            </ProgramSheetAccordionItem>
-
-            <ProgramSheetAccordionItem value="sale">
-              <ProgramSheetAccordionTrigger>
-                Sale
-              </ProgramSheetAccordionTrigger>
-              <ProgramSheetAccordionContent>
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <SmartDateTimePicker
-                      value={saleEventDate}
-                      onChange={(date) => {
-                        setValue("saleEventDate", date, { shouldDirty: true });
-                      }}
-                      label="Sale date"
-                      placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="saleAmount"
-                      className="flex items-center space-x-2"
-                    >
-                      <h2 className="text-sm font-medium text-neutral-900">
-                        Sale amount
-                      </h2>
-                    </label>
-                    <div className="relative mt-2 rounded-md shadow-sm">
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                        $
-                      </span>
-                      <input
-                        className={cn(
-                          "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                          errors.saleAmount &&
-                            "border-red-600 focus:border-red-500 focus:ring-red-600",
-                        )}
-                        {...register("saleAmount", {
-                          valueAsNumber: true,
-                          min: 0,
-                          onChange: handleMoneyInputChange,
-                          setValueAs: (value) => (value === "" ? null : value),
-                        })}
-                        placeholder="0.00"
-                      />
-                      <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                        USD
-                      </span>
-                    </div>
-                  </div>
-
-                  <AnimatedSizeContainer
-                    height
-                    transition={{ ease: "easeInOut", duration: 0.2 }}
-                    className={!hasInvoiceId ? "hidden" : ""}
-                    style={{ display: !hasInvoiceId ? "none" : "block" }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Switch
-                        fn={setHasInvoiceId}
-                        checked={hasInvoiceId}
-                        trackDimensions="w-8 h-4"
-                        thumbDimensions="w-3 h-3"
-                        thumbTranslate="translate-x-4"
-                      />
-                      <div className="flex gap-1">
-                        <h3 className="text-sm font-medium text-neutral-700">Add </h3>
-                        <span className="rounded-md border border-neutral-200 bg-neutral-100 px-1 py-0.5 text-xs">
-                          invoiceID
+                    <div>
+                      <label
+                        htmlFor="saleAmount"
+                        className="flex items-center space-x-2"
+                      >
+                        <h2 className="text-sm font-medium text-neutral-900">
+                          Sale amount
+                        </h2>
+                      </label>
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                          $
+                        </span>
+                        <input
+                          className={cn(
+                            "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            errors.saleAmount &&
+                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                          )}
+                          {...register("saleAmount", {
+                            valueAsNumber: true,
+                            min: 0,
+                            onChange: handleMoneyInputChange,
+                            setValueAs: (value) => (value === "" ? null : value),
+                          })}
+                          placeholder="0.00"
+                        />
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                          USD
                         </span>
                       </div>
                     </div>
 
-                    {hasInvoiceId && (
-                      <div className="mt-4">
-                        <label
-                          htmlFor="invoiceId"
-                          className="flex items-center space-x-2"
-                        >
-                          <h2 className="text-sm font-medium text-neutral-900">
-                            Invoice ID
-                          </h2>
-                        </label>
-                        <div className="mt-2 p-px">
-                          <input
-                            type="text"
-                            id="invoiceId"
-                            className={cn(
-                              "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                              errors.invoiceId &&
-                                "border-red-600 focus:border-red-500 focus:ring-red-600",
-                            )}
-                            {...register("invoiceId", {
-                              required: hasInvoiceId,
-                              setValueAs: (value) => (value === "" ? null : value),
-                            })}
-                            placeholder="Enter invoice ID"
-                          />
+                    <AnimatedSizeContainer
+                      height
+                      transition={{ ease: "easeInOut", duration: 0.2 }}
+                      className={!hasInvoiceId ? "hidden" : ""}
+                      style={{ display: !hasInvoiceId ? "none" : "block" }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <Switch
+                          fn={setHasInvoiceId}
+                          checked={hasInvoiceId}
+                          trackDimensions="w-8 h-4"
+                          thumbDimensions="w-3 h-3"
+                          thumbTranslate="translate-x-4"
+                        />
+                        <div className="flex gap-1">
+                          <h3 className="text-sm font-medium text-neutral-700">Add </h3>
+                          <span className="rounded-md border border-neutral-200 bg-neutral-100 px-1 py-0.5 text-xs">
+                            invoiceID
+                          </span>
                         </div>
                       </div>
-                    )}
-                  </AnimatedSizeContainer>
-                </div>
-              </ProgramSheetAccordionContent>
-            </ProgramSheetAccordionItem>
+
+                      {hasInvoiceId && (
+                        <div className="mt-4">
+                          <label
+                            htmlFor="invoiceId"
+                            className="flex items-center space-x-2"
+                          >
+                            <h2 className="text-sm font-medium text-neutral-900">
+                              Invoice ID
+                            </h2>
+                          </label>
+                          <div className="mt-2 p-px">
+                            <input
+                              type="text"
+                              id="invoiceId"
+                              className={cn(
+                                "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                                errors.invoiceId &&
+                                  "border-red-600 focus:border-red-500 focus:ring-red-600",
+                              )}
+                              {...register("invoiceId", {
+                                required: hasInvoiceId,
+                                setValueAs: (value) => (value === "" ? null : value),
+                              })}
+                              placeholder="Enter invoice ID"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </AnimatedSizeContainer>
+                  </div>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+            )}
 
             {commissionType === "one-time" && (
               <ProgramSheetAccordionItem value="commission">
