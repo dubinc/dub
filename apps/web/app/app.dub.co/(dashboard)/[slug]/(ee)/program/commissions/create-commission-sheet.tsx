@@ -24,7 +24,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -47,6 +47,7 @@ function CreateCommissionSheetContent({
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
   const [commissionType, setCommissionType] =
     useState<CommissionType>("one-time");
+  const [openAccordions, setOpenAccordions] = useState<string[]>(["partner-and-type"]);
 
   const {
     register,
@@ -75,6 +76,18 @@ function CreateCommissionSheetContent({
       setValue("leadEventDate", null);
     }
   }, [hasCustomLeadEventDate, setValue]);
+
+  useEffect(() => {
+    const baseValues = ["partner-and-type"];
+
+    if (commissionType === "one-time") {
+      setOpenAccordions([...baseValues, "commission"]);
+    } else if (commissionType === "sale") {
+      setOpenAccordions([...baseValues, "customer", "sale"]);
+    } else if (commissionType === "lead") {
+      setOpenAccordions([...baseValues, "customer"]);
+    }
+  }, [commissionType]);
 
   const { executeAsync, isPending } = useAction(createCommissionAction, {
     onSuccess: async () => {
@@ -131,7 +144,8 @@ function CreateCommissionSheetContent({
         <div className="space-y-6 p-6">
           <ProgramSheetAccordion
             type="multiple"
-            defaultValue={["partner-and-type"]}
+            value={openAccordions}
+            onValueChange={setOpenAccordions}
           >
             <ProgramSheetAccordionItem value="partner-and-type">
               <ProgramSheetAccordionTrigger>
