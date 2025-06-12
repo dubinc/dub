@@ -2,7 +2,6 @@ import { getProgram } from "@/lib/fetchers/get-program";
 import { getReward } from "@/lib/fetchers/get-reward";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { Wordmark } from "@dub/ui";
 import { APP_DOMAIN } from "@dub/utils";
 import { constructMetadata } from "@dub/utils/src/functions";
@@ -34,11 +33,6 @@ export async function generateMetadata({
 
 export async function generateStaticParams() {
   const programs = await prisma.program.findMany({
-    where: {
-      landerData: {
-        not: Prisma.JsonNull,
-      },
-    },
     select: {
       slug: true,
     },

@@ -69,6 +69,10 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
+  const EU_PARTNER =
+    partner.country && EU_COUNTRY_CODES.includes(partner.country);
+  const AU_PARTNER = partner.country && partner.country === "AU";
+
   const invoiceMetadata = [
     {
       label: "Program",
@@ -120,11 +124,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       label: "Payout reference number",
       value: <Text style={tw("text-neutral-800 w-2/3")}>{payout.id}</Text>,
     },
-    // if partner is in EU, add VAT reverse charge note:
-    ...(partner.country && EU_COUNTRY_CODES.includes(partner.country)
+    // if partner is in EU or AU, add VAT/GST reverse charge note
+    ...(EU_PARTNER || AU_PARTNER
       ? [
           {
-            label: "VAT",
+            label: `${AU_PARTNER ? "GST" : "VAT"} reverse charge`,
             value: (
               <Text style={tw("text-neutral-800 w-2/3")}>
                 Tax to be paid on reverse charge basis.

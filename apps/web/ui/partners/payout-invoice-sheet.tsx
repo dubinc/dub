@@ -237,6 +237,12 @@ function PayoutInvoiceSheetContent() {
           "Cutoff period in UTC. If set, only commissions accrued up to the cutoff period will be included in the payout invoice.",
       },
       {
+        key: "Partners",
+        value: eligiblePayouts?.length ?? (
+          <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+        ),
+      },
+      {
         key: "Amount",
         value:
           amount === undefined ? (

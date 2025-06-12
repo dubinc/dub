@@ -137,7 +137,7 @@ function CreateCommissionSheetContent({
               </label>
               <div className="mt-2">
                 <PartnerLinkSelector
-                  selectedLinkId={linkId}
+                  selectedLinkId={linkId ?? null}
                   showDestinationUrl={false}
                   partnerId={partnerId}
                   setSelectedLinkId={(id) => {

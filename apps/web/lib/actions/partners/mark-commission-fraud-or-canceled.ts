@@ -32,6 +32,12 @@ export const markCommissionFraudOrCanceledAction = authActionClient
       throw new Error("Commission not found.");
     }
 
+    if (commission.type === "custom") {
+      throw new Error(
+        "You cannot mark a custom commission as fraud or canceled.",
+      );
+    }
+
     const { partnerId, customerId } = commission;
 
     // Find all historical commissions for this customer

@@ -240,12 +240,12 @@ export const FolderDropdown = ({
         buttonProps={{
           className: cn(
             "group flex items-center gap-2 rounded-lg px-2 py-1 w-fit",
-            variant === "inline" && "border-none !ring-0",
+            variant === "inline" && "border-none !ring-0 bg-transparent",
             "transition-all hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100",
             buttonClassName,
           ),
           textWrapperClassName: cn(
-            "min-w-0 truncate text-left text-xl font-semibold leading-7 text-neutral-900 md:text-2xl",
+            "min-w-0 truncate text-left text-lg font-semibold leading-7 text-content-emphasis",
             buttonTextClassName,
           ),
         }}
