@@ -123,7 +123,7 @@ function RewardSheetContent({
   useEffect(() => {
     if (rewardPartners && rewardPartners.length > 0) {
       setValue(
-        "includedPartnerIds",
+        isDefault ? "excludedPartnerIds" : "includedPartnerIds",
         rewardPartners.map((partner) => partner.id),
       );
     }
@@ -226,14 +226,17 @@ function RewardSheetContent({
     // 1. No existing reward (new creation), OR
     // 2. Existing reward with specific partners selected
     const shouldOpenPartnerEligibility =
-      !reward || (reward && (includedPartnerIds?.length ?? 0) > 0);
+      !reward ||
+      (reward &&
+        ((isDefault ? excludedPartnerIds : includedPartnerIds)?.length ?? 0) >
+          0);
 
     if (!isDefault && shouldOpenPartnerEligibility) {
       baseValues.push("partner-eligibility");
     }
 
     return baseValues;
-  }, [reward, isDefault, includedPartnerIds]);
+  }, [reward, isDefault, includedPartnerIds, excludedPartnerIds]);
 
   const canDeleteReward = reward && !reward.default;
 

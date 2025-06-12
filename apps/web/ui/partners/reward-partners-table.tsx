@@ -189,7 +189,7 @@ export function RewardPartnersTable({
     tdClassName: () => cn("border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
+    resourceName: (p) => `partner${p ? "s" : ""}`,
     getRowId: (row: EnrolledPartnerProps) => row.id,
     loading,
     rowCount: selectedPartners?.length || 0,
