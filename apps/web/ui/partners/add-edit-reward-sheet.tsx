@@ -68,9 +68,9 @@ function RewardSheetContent({
   reward,
   isDefault,
 }: RewardSheetProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
-  const { program, mutate: mutateProgram } = useProgram();
+  const { mutate: mutateProgram } = useProgram();
 
   const [commissionStructure, setCommissionStructure] = useState<
     "one-off" | "recurring"
@@ -117,7 +117,7 @@ function RewardSheetContent({
       query: {
         rewardId: reward?.id,
       },
-      enabled: Boolean(reward?.id && program?.id),
+      enabled: Boolean(reward?.id && defaultProgramId),
     });
 
   useEffect(() => {
@@ -136,7 +136,7 @@ function RewardSheetContent({
         setIsOpen(false);
         toast.success("Reward created!");
         await mutateProgram();
-        await mutatePrefix(`/api/programs/${program?.id}/rewards`);
+        await mutatePrefix(`/api/programs/${defaultProgramId}/rewards`);
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -152,7 +152,7 @@ function RewardSheetContent({
         toast.success("Reward updated!");
         await mutateProgram();
         await mutatePrefix([
-          `/api/programs/${program?.id}/rewards`,
+          `/api/programs/${defaultProgramId}/rewards`,
           `/api/partners/count?groupBy=${REWARD_EVENT_COLUMN_MAPPING[event]}&workspaceId=${workspaceId}`,
         ]);
       },
@@ -168,8 +168,8 @@ function RewardSheetContent({
       onSuccess: async () => {
         setIsOpen(false);
         toast.success("Reward deleted!");
-        await mutate(`/api/programs/${program?.id}`);
-        await mutatePrefix(`/api/programs/${program?.id}/rewards`);
+        await mutate(`/api/programs/${defaultProgramId}`);
+        await mutatePrefix(`/api/programs/${defaultProgramId}/rewards`);
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -178,7 +178,7 @@ function RewardSheetContent({
   );
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !program) {
+    if (!workspaceId || !defaultProgramId) {
       return;
     }
 
@@ -204,7 +204,7 @@ function RewardSheetContent({
   };
 
   const onDelete = async () => {
-    if (!workspaceId || !program || !reward) {
+    if (!workspaceId || !defaultProgramId || !reward) {
       return;
     }
 
