@@ -224,7 +224,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Link Settings",
             icon: Sliders,
-            href: `/${slug}/program/links`,
+            href: `/${slug}/program/link-settings`,
           },
           {
             name: "Communication",

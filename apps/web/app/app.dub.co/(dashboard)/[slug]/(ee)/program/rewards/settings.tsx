@@ -13,7 +13,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { SettingsRow } from "../settings/settings-row";
+import { SettingsRow } from "../program-settings-row";
 
 type FormData = Pick<ProgramProps, "holdingPeriodDays" | "minPayoutAmount">;
 

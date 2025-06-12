@@ -1,5 +1,5 @@
 import { RESERVED_SLUGS } from "@dub/utils";
-import { getDubProductFromCookie } from "./get-dub-product-from-cookie";
+import { cookies } from "next/headers";
 
 const APP_REDIRECTS = {
   "/account": "/account/settings",
@@ -17,8 +17,14 @@ export const appRedirect = (path: string) => {
   const rootRegex = /^\/([^\/]+)$/;
   if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1])) {
     // Determine product from cookie (default to links)
-    const workspace = path.split("/")[1];
-    const product = getDubProductFromCookie(workspace);
+    let product = "links";
+
+    const productCookie = cookies().get(
+      `dub_product:${path.split("/")[1]}`,
+    )?.value;
+
+    if (productCookie && ["links", "program"].includes(productCookie))
+      product = productCookie;
 
     return path.replace(rootRegex, `/$1/${product}`);
   }
@@ -47,10 +53,15 @@ export const appRedirect = (path: string) => {
         `/${slug}/program${subPath ? `/${subPath}` : ""}`,
     );
 
-  // Redirect "/[slug]/program/settings" to "/[slug]/program/rewards" (original first tab of settings)
-  const programSettingsRegex = /\/program\/settings$/;
-  if (programSettingsRegex.test(path))
-    return path.replace(programSettingsRegex, "/program/rewards");
+  // Redirect "/[slug]/program/settings" to "/[slug]/program"
+  const programSettingsRootRegex = /\/program\/settings$/;
+  if (programSettingsRootRegex.test(path))
+    return path.replace(programSettingsRootRegex, "/program");
+
+  // Redirect "/[slug]/program/settings/links" to "/[slug]/program/link-settings"
+  const programSettingsLinksRegex = /\/program\/settings\/links$/;
+  if (programSettingsLinksRegex.test(path))
+    return path.replace(programSettingsLinksRegex, "/program/link-settings");
 
   // Redirect "/[slug]/program/settings/:path" to "/[slug]/program/:path"
   const programSettingsPathRegex = /^\/([^\/]+)\/program\/settings\/(.*)$/;
