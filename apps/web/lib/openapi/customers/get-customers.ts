@@ -9,6 +9,24 @@ import {
 export const getCustomers: ZodOpenApiOperationObject = {
   operationId: "getCustomers",
   "x-speakeasy-name-override": "list",
+  "x-speakeasy-pagination": {
+    type: "offsetLimit",
+    inputs: [
+      {
+        name: "page",
+        in: "parameters",
+        type: "page",
+      },
+      {
+        name: "pageSize",
+        in: "parameters",
+        type: "limit",
+      },
+    ],
+    outputs: {
+      results: "$",
+    },
+  },
   summary: "Retrieve a list of customers",
   description: "Retrieve a list of customers for the authenticated workspace.",
   requestParams: {
