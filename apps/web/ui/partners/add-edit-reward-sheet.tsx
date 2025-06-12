@@ -27,14 +27,7 @@ import {
 } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import {
   FieldErrors,
   useForm,
@@ -61,6 +54,13 @@ interface RewardSheetProps {
 }
 
 type FormData = z.infer<typeof createRewardSchema>;
+
+const defaultAccordionValues: string[] = [
+  "reward-type",
+  "commission-structure",
+  "payout-amount",
+  "partner-eligibility",
+];
 
 function RewardSheetContent({
   setIsOpen,
@@ -217,26 +217,6 @@ function RewardSheetContent({
       rewardId: reward.id,
     });
   };
-
-  // Determine which accordions should be open by default
-  const defaultAccordionValues = useMemo(() => {
-    const baseValues = ["reward-type", "commission-structure", "payout-amount"];
-
-    // Only include partner-eligibility if:
-    // 1. No existing reward (new creation), OR
-    // 2. Existing reward with specific partners selected
-    const shouldOpenPartnerEligibility =
-      !reward ||
-      (reward &&
-        ((isDefault ? excludedPartnerIds : includedPartnerIds)?.length ?? 0) >
-          0);
-
-    if (!isDefault && shouldOpenPartnerEligibility) {
-      baseValues.push("partner-eligibility");
-    }
-
-    return baseValues;
-  }, [reward, isDefault, includedPartnerIds, excludedPartnerIds]);
 
   const canDeleteReward = reward && !reward.default;
 
