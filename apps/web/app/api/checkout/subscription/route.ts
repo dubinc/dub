@@ -97,10 +97,12 @@ export const POST = withSession(
       plan_name: body.paymentPlan,
       //**** for analytics ****//
 
+      //**** fields for subscription system ****//
       sub_user_id_primer: user?.paymentInfo?.customerId || null,
       sub_order_country: user.currency?.countryCode || null,
       ipAddress: getUserIp(headerStore)!,
       subscriptionType: `APP_SUBSCRIPTION`,
+      //**** fields for subscription system ****//
     };
 
     try {
@@ -166,6 +168,32 @@ export const POST = withSession(
         //   ],
         //   { onConflict: "email" },
         // ),
+        // sendEmail(emailTemplates.SUBSCRIPTION_CREATE, user.email as string, [
+        //   {
+        //     name: 'trial_period',
+        //     content: `${TRIAL_PERIOD_DAYS}`,
+        //   },
+        //   {
+        //     name: 'trial_price',
+        //     content: (trialPrice / 100).toFixed(2),
+        //   },
+        //   {
+        //     name: 'price',
+        //     content: (price / 100).toFixed(2),
+        //   },
+        //   {
+        //     name: 'currency_symbol',
+        //     content: user.currency?.currencyForPay as string,
+        //   },
+        //   {
+        //     name: 'period',
+        //     content: `${chargePeriodDays}`,
+        //   },
+        //   {
+        //     name: 'trial_end_date',
+        //     content: getTrialEndDate(),
+        //   },
+        // ]),
       ]);
 
       return NextResponse.json({

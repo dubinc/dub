@@ -1,19 +1,11 @@
 import { TPaymentPlan } from "core/integration/payment/config";
 import { IDataRes } from "core/interfaces/common.interface.ts";
 
-export interface IUserRegistrationData {
-  name?: string;
-  birthday?: string;
-  birthTime?: string;
-  gender?: string;
-}
-
 export interface ICheckSubscriptionStatusRes extends IDataRes {
   data?: { isSubscribed: boolean } | null;
 }
 
 export interface ICreateSubscriptionBody {
-  userRegistrationData: IUserRegistrationData;
   payment: {
     orderId: string;
     id: string;

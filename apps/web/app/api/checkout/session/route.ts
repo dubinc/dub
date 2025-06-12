@@ -56,6 +56,7 @@ const getMetadata = ({
     ipAddress: getUserIp(headerStore)!,
     subscriptionType: `APP_SUBSCRIPTION`,
     application: `${process.env.NEXT_PUBLIC_PAYMENT_ENV}`,
+    //**** fields for subscription system ****//
   };
 
   return metadata;

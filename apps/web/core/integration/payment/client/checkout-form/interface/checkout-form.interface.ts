@@ -1,4 +1,5 @@
-import { Payment } from '@primer-io/checkout-web';
+import { Payment } from "@primer-io/checkout-web";
+import { TPaymentPlan } from "../../../config";
 
 export interface ICheckoutFormSuccess {
   payment: Payment;
@@ -9,6 +10,7 @@ export interface ICheckoutFormSuccess {
   nationalDocumentId?: string;
   first6Digits?: string;
   metadata?: { [key: string]: any };
+  paymentPlan: TPaymentPlan;
 }
 
 export interface ICheckoutFormError {
@@ -23,9 +25,9 @@ export interface IPrimerClientError {
 }
 
 export type DeclineReasonKeys =
-  | 'INVALID_NATIONAL_ID'
-  | 'INSUFFICIENT_FUNDS'
-  | 'DO_NOT_HONOR'
-  | 'SUSPECTED_FRAUD'
-  | 'ERROR'
-  | 'UNKNOWN';
+  | "INVALID_NATIONAL_ID"
+  | "INSUFFICIENT_FUNDS"
+  | "DO_NOT_HONOR"
+  | "SUSPECTED_FRAUD"
+  | "ERROR"
+  | "UNKNOWN";
