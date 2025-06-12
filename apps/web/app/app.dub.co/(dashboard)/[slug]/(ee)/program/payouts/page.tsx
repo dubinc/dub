@@ -1,21 +1,14 @@
 import { PageContent } from "@/ui/layout/page-content";
-import { MaxWidthWrapper } from "@dub/ui";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CreatePayoutButton } from "./create-payout-button";
 import { ProgramPayoutsPageClient } from "./page-client";
 
 export default function ProgramPayoutsPage() {
   return (
-    <PageContent
-      title="Payouts"
-      titleControls={
-        <div className="flex items-center gap-2">
-          <CreatePayoutButton />
-        </div>
-      }
-    >
-      <MaxWidthWrapper>
+    <PageContent title="Payouts" controls={<CreatePayoutButton />}>
+      <PageWidthWrapper>
         <ProgramPayoutsPageClient />
-      </MaxWidthWrapper>
+      </PageWidthWrapper>
     </PageContent>
   );
 }
