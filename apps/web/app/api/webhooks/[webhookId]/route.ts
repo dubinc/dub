@@ -40,6 +40,7 @@ export const GET = withWorkspace(
     requiredPermissions: ["webhooks.read"],
     requiredPlan: [
       "business",
+      "business legacy",
       "business plus",
       "business extra",
       "business max",
@@ -249,6 +250,7 @@ export const PATCH = withWorkspace(
     requiredPermissions: ["webhooks.write"],
     requiredPlan: [
       "business",
+      "business legacy",
       "business plus",
       "business extra",
       "business max",
@@ -318,6 +320,7 @@ export const DELETE = withWorkspace(
     requiredPermissions: ["webhooks.write"],
     requiredPlan: [
       "business",
+      "business legacy",
       "business plus",
       "business extra",
       "business max",

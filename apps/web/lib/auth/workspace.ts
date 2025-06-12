@@ -44,6 +44,7 @@ export const withWorkspace = (
       "free",
       "pro",
       "business",
+      "business legacy",
       "business plus",
       "business max",
       "business extra",
