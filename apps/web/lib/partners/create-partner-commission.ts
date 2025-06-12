@@ -1,5 +1,9 @@
 import { prisma } from "@dub/prisma";
-import { CommissionStatus, EventType } from "@dub/prisma/client";
+import {
+  CommissionStatus,
+  CommissionType,
+  EventType,
+} from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
@@ -26,10 +30,10 @@ export const createPartnerCommission = async ({
   // we optionally let the caller pass in a reward to avoid a db call
   // (e.g. in aggregate-clicks route)
   reward?: RewardProps | null;
-  event: EventType;
+  event: CommissionType;
   partnerId: string;
   programId: string;
-  linkId: string;
+  linkId?: string;
   customerId?: string;
   eventId?: string;
   invoiceId?: string | null;
@@ -38,9 +42,9 @@ export const createPartnerCommission = async ({
   currency?: string;
   createdAt?: Date;
 }) => {
-  if (!reward) {
+  if (!reward && event !== "custom") {
     reward = await determinePartnerReward({
-      event,
+      event: event as EventType,
       partnerId,
       programId,
     });
@@ -70,9 +74,9 @@ export const createPartnerCommission = async ({
     if (firstCommission) {
       // for reward types with a max duration, we need to check if the first commission is within the max duration
       // if its beyond the max duration, we should not create a new commission
-      if (typeof reward.maxDuration === "number") {
+      if (typeof reward?.maxDuration === "number") {
         // One-time sale reward
-        if (reward.maxDuration === 0) {
+        if (reward?.maxDuration === 0) {
           console.log(
             `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
           );
@@ -105,19 +109,22 @@ export const createPartnerCommission = async ({
     }
   }
 
-  let earnings =
-    event === "sale"
-      ? calculateSaleEarnings({
-          reward,
-          sale: {
-            quantity,
-            amount,
-          },
-        })
-      : reward.amount * quantity;
+  // calculate earnings
+  let earnings = 0;
+
+  if (event === "click" || event === "lead") {
+    earnings = reward!.amount * quantity;
+  } else if (event === "sale") {
+    earnings = calculateSaleEarnings({
+      reward: reward!,
+      sale: { quantity, amount },
+    });
+  } else if (event === "custom") {
+    earnings = amount;
+  }
 
   // handle rewards with max reward amount limit
-  if (reward.maxAmount) {
+  if (reward?.maxAmount) {
     const totalRewards = await prisma.commission.aggregate({
       where: {
         earnings: {

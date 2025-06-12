@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Badge, buttonVariants } from "@dub/ui";
 import { capitalize, cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
+import { useMemo } from "react";
 
 export function PartnersUpgradeCTA({
   title,
@@ -13,11 +14,30 @@ export function PartnersUpgradeCTA({
   title?: string;
   description?: string;
 }) {
-  const { slug, plan, partnersEnabled } = useWorkspace();
+  const { slug, plan, partnersEnabled, store } = useWorkspace();
 
   const { canManageProgram } = getPlanCapabilities(plan);
 
-  const canUpgrade = !canManageProgram && partnersEnabled;
+  const { cta, href } = useMemo(() => {
+    if (partnersEnabled) {
+      if (!canManageProgram) {
+        return {
+          cta: "Upgrade plan",
+          href: `/${slug}/upgrade`,
+        };
+      } else {
+        return {
+          cta: store?.programOnboarding ? "Finish creating" : "Create program",
+          href: `/${slug}/program/new`,
+        };
+      }
+    } else {
+      return {
+        cta: "Join the waitlist",
+        href: "https://dub.co/partners",
+      };
+    }
+  }, [canManageProgram, partnersEnabled, slug]);
 
   return (
     <div className="flex min-h-[calc(100vh-60px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
@@ -49,17 +69,13 @@ export function PartnersUpgradeCTA({
       </div>
       <div className="flex items-center gap-2">
         <Link
-          href={
-            canUpgrade
-              ? `/${slug}/upgrade`
-              : "https://dub.co/help/article/dub-partners"
-          }
+          href={href}
           className={cn(
             buttonVariants({ variant: "primary" }),
             "flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-3 text-sm",
           )}
         >
-          {canUpgrade ? "Upgrade plan" : "Join the waitlist"}
+          {cta}
         </Link>
       </div>
     </div>

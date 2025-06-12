@@ -89,7 +89,7 @@ export function PageContent({
       </div>
       <div
         className={cn(
-          "bg-white pt-3 max-md:rounded-t-[16px] lg:pt-6",
+          "rounded-t-[inherit] bg-white pt-3 lg:pt-6",
           contentWrapperClassName,
         )}
       >
