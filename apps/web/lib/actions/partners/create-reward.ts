@@ -92,14 +92,14 @@ export const createRewardAction = authActionClient
       },
     });
 
-    const rewardEventColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
     await prisma.programEnrollment.updateMany({
       where: {
         programId,
         ...(reward.default
           ? {
-              [rewardEventColumn]: null,
+              [rewardIdColumn]: null,
               ...(partnerIdsExcluded.length > 0 && {
                 partnerId: {
                   notIn: partnerIdsExcluded,
@@ -113,7 +113,7 @@ export const createRewardAction = authActionClient
             }),
       },
       data: {
-        [rewardEventColumn]: reward.id,
+        [rewardIdColumn]: reward.id,
       },
     });
   });
