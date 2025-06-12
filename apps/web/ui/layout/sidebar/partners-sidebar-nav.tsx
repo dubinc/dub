@@ -22,7 +22,7 @@ import { LinesY } from "./icons/lines-y";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { PayoutStats } from "./payout-stats";
 import { ProgramHelpSupport } from "./program-help-support";
-import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
+import { SidebarNavAreas, SidebarNavOld } from "./sidebar-nav-old";
 
 const NAV_AREAS: SidebarNavAreas<{
   programSlug?: string;
@@ -178,7 +178,7 @@ export function PartnersSidebarNav({
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
   return (
-    <SidebarNav
+    <SidebarNavOld
       areas={NAV_AREAS}
       currentArea={currentArea}
       data={{
