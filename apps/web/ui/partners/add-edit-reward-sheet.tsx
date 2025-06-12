@@ -263,45 +263,31 @@ function RewardSheetContent({
             type="multiple"
             defaultValue={defaultAccordionValues}
           >
-            {!isDefault ? (
-              <ProgramSheetAccordionItem value="partner-eligibility">
-                <ProgramSheetAccordionTrigger>
-                  Partner Eligibility
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="space-y-4">
-                    <RewardPartnersTable
-                      partnerIds={includedPartnerIds || []}
-                      setPartnerIds={(value: string[]) => {
-                        setValue("includedPartnerIds", value);
-                      }}
-                      rewardPartners={rewardPartners || []}
-                      loading={isLoadingRewardPartners}
-                      mode="include"
-                    />
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
-            ) : (
-              <ProgramSheetAccordionItem value="partner-eligibility">
-                <ProgramSheetAccordionTrigger>
-                  Partner Eligibility
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="space-y-4">
-                    <RewardPartnersTable
-                      partnerIds={excludedPartnerIds || []}
-                      setPartnerIds={(value: string[]) => {
+            <ProgramSheetAccordionItem value="partner-eligibility">
+              <ProgramSheetAccordionTrigger>
+                Partner Eligibility
+              </ProgramSheetAccordionTrigger>
+              <ProgramSheetAccordionContent>
+                <div className="space-y-4">
+                  <RewardPartnersTable
+                    partnerIds={
+                      (isDefault ? excludedPartnerIds : includedPartnerIds) ||
+                      []
+                    }
+                    setPartnerIds={(value: string[]) => {
+                      if (isDefault) {
                         setValue("excludedPartnerIds", value);
-                      }}
-                      rewardPartners={rewardPartners || []}
-                      loading={isLoadingRewardPartners}
-                      mode="exclude"
-                    />
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
-            )}
+                      } else {
+                        setValue("includedPartnerIds", value);
+                      }
+                    }}
+                    rewardPartners={rewardPartners || []}
+                    loading={isLoadingRewardPartners}
+                    mode={isDefault ? "exclude" : "include"}
+                  />
+                </div>
+              </ProgramSheetAccordionContent>
+            </ProgramSheetAccordionItem>
 
             {selectedEvent === "sale" && (
               <ProgramSheetAccordionItem value="commission-structure">
