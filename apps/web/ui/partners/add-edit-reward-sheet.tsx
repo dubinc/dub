@@ -227,14 +227,14 @@ function RewardSheetContent({
     // 1. No existing reward (new creation), OR
     // 2. Existing reward with specific partners selected
     const shouldOpenPartnerEligibility =
-      !reward || (reward && (reward.partnersCount ?? 0) > 0);
+      !reward || (reward && (partnerIds?.length ?? 0) > 0);
 
     if (!isDefault && shouldOpenPartnerEligibility) {
       baseValues.push("partner-eligibility");
     }
 
     return baseValues;
-  }, [reward, isDefault]);
+  }, [reward, isDefault, partnerIds]);
 
   const canDeleteReward = reward && !reward.default;
 
@@ -260,10 +260,7 @@ function RewardSheetContent({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <ProgramSheetAccordion
-            type="multiple"
-            defaultValue={defaultAccordionValues}
-          >
+          <ProgramSheetAccordion type="multiple" value={defaultAccordionValues}>
             {!isDefault && (
               <ProgramSheetAccordionItem value="partner-eligibility">
                 <ProgramSheetAccordionTrigger>
