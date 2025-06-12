@@ -92,7 +92,7 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
       paymentPlan: data.paymentPlan,
     });
 
-    if (!res.success) {
+    if (!res?.success) {
       setIsSubscriptionCreation(false);
     }
 
