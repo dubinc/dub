@@ -35,6 +35,11 @@ model Commission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Reward
+  rewardType        RewardStructure?
+  rewardAmount      Int?
+  rewardMaxDuration Int?
+
   program  Program   @relation(fields: [programId], references: [id])
   partner  Partner   @relation(fields: [partnerId], references: [id])
   payout   Payout?   @relation(fields: [payoutId], references: [id])
