@@ -44,7 +44,7 @@ export function DubPartnersPopup({
     loadingWorkspace ||
     loadingDismissed ||
     // Program/partners status/capabilities
-    defaultProgramId ||
+    // defaultProgramId ||
     !partnersEnabled ||
     !canManageProgram ||
     // Device
@@ -86,7 +86,6 @@ function DubPartnersPopupInner({
     middleware: [
       offset({
         mainAxis: 12,
-        crossAxis: -10,
       }),
       shift({
         padding: 32,
