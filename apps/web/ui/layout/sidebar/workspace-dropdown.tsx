@@ -11,7 +11,6 @@ import {
 } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
-import { ChevronsUpDown } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -113,11 +112,7 @@ export function WorkspaceDropdown() {
 
 function WorkspaceDropdownPlaceholder() {
   return (
-    <div className="flex w-full animate-pulse items-center gap-x-1.5 rounded-lg p-1.5">
-      <div className="size-7 animate-pulse rounded-full bg-neutral-200" />
-      <div className="mb-px mt-0.5 h-8 w-28 grow animate-pulse rounded-md bg-neutral-200" />
-      <ChevronsUpDown className="h-4 w-4 text-neutral-400" aria-hidden="true" />
-    </div>
+    <div className="flex size-11 animate-pulse items-center gap-x-1.5 rounded-lg bg-neutral-300" />
   );
 }
 
