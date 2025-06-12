@@ -191,10 +191,13 @@ export async function POST(req: NextRequest) {
               ]
             : []),
           ...(paypalEmail
-            ? plainCopySection({
-                label: "Paypal Email",
-                value: paypalEmail,
-              })
+            ? [
+                plainSpacer,
+                ...plainCopySection({
+                  label: "Paypal Email",
+                  value: paypalEmail,
+                }),
+              ]
             : []),
           plainSpacer,
           uiComponent.row({
