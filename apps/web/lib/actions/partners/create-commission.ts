@@ -23,6 +23,8 @@ export const createCommissionAction = authActionClient
 
     const {
       partnerId,
+      date,
+      amount,
       linkId,
       invoiceId,
       customerId,
@@ -32,14 +34,9 @@ export const createCommissionAction = authActionClient
       leadEventName,
     } = parsedInput;
 
-    if (!linkId) {
-      // TODO: Remove this once when we support creating custom commissions via dashboard
-      throw new Error("Link ID is required.");
-    }
-
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [programEnrollment, customer] = await Promise.all([
+    const [{ partner, links }, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
         programId,
         partnerId,
@@ -52,10 +49,23 @@ export const createCommissionAction = authActionClient
       }),
     ]);
 
-    const { partner, links } = programEnrollment;
-
     if (customer.projectId !== workspace.id) {
       throw new Error(`Customer ${customerId} not found.`);
+    }
+
+    // Create a custom commission
+    if (!linkId) {
+      await createPartnerCommission({
+        event: "custom",
+        partnerId,
+        programId,
+        linkId: "",
+        amount: amount ?? 0,
+        quantity: 1,
+        createdAt: date ?? new Date(),
+      });
+
+      return;
     }
 
     const link = links.find((l) => l.id === linkId);

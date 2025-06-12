@@ -1,7 +1,6 @@
 import { createCommissionAction } from "@/lib/actions/partners/create-commission";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
@@ -41,8 +40,7 @@ type CommissionType = "one-time" | "sale" | "lead";
 function CreateCommissionSheetContent({
   setIsOpen,
 }: CreateCommissionSheetProps) {
-  const { program } = useProgram();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const { rewards, loading: rewardsLoading } = useRewards();
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
@@ -61,11 +59,23 @@ function CreateCommissionSheetContent({
     formState: { errors },
   } = useForm<FormData>();
 
-  const [partnerId, linkId, customerId, saleEventDate, leadEventDate] = watch([
+  const [
+    partnerId,
+    date,
+    amount,
+    linkId,
+    customerId,
+    saleEventDate,
+    saleAmount,
+    leadEventDate,
+  ] = watch([
     "partnerId",
+    "date",
+    "amount",
     "linkId",
     "customerId",
     "saleEventDate",
+    "saleAmount",
     "leadEventDate",
   ]);
 
@@ -105,10 +115,12 @@ function CreateCommissionSheetContent({
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !program) {
+    if (!workspaceId || !defaultProgramId) {
       toast.error("Please fill all required fields.");
       return;
     }
+
+    const date = data.date ? new Date(data.date).toISOString() : null;
 
     const saleEventDate = data.saleEventDate
       ? new Date(data.saleEventDate).toISOString()
@@ -121,6 +133,8 @@ function CreateCommissionSheetContent({
     await executeAsync({
       ...data,
       workspaceId,
+      date,
+      amount: data.amount ? data.amount * 100 : null,
       saleAmount: data.saleAmount ? data.saleAmount * 100 : null,
       saleEventDate,
       leadEventDate,
@@ -130,6 +144,26 @@ function CreateCommissionSheetContent({
   const rewardEventTypes = useMemo(() => {
     return rewards?.map((reward) => reward.event);
   }, [rewards]);
+
+  const shouldDisableSubmit = useMemo(() => {
+    if (!partnerId) {
+      return true;
+    }
+
+    if (commissionType === "one-time") {
+      return !amount;
+    }
+
+    if (commissionType === "sale") {
+      return !linkId || !saleAmount;
+    }
+
+    if (commissionType === "lead") {
+      return !linkId;
+    }
+
+    return false;
+  }, [commissionType, partnerId, linkId, saleAmount, amount]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -259,6 +293,63 @@ function CreateCommissionSheetContent({
                 </div>
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
+
+            {commissionType === "one-time" && (
+              <ProgramSheetAccordionItem value="commission">
+                <ProgramSheetAccordionTrigger>
+                  Commission
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <div className="grid grid-cols-1 gap-6">
+                    <div>
+                      <SmartDateTimePicker
+                        value={date}
+                        onChange={(date) => {
+                          setValue("date", date, {
+                            shouldDirty: true,
+                          });
+                        }}
+                        label="Date"
+                        placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="amount"
+                        className="text-sm font-medium text-neutral-800"
+                      >
+                        Amount
+                      </label>
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                          $
+                        </span>
+                        <input
+                          className={cn(
+                            "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            errors.amount &&
+                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                          )}
+                          {...register("amount", {
+                            required: true,
+                            valueAsNumber: true,
+                            min: 0,
+                            max: 1000,
+                            onChange: handleMoneyInputChange,
+                          })}
+                          onKeyDown={handleMoneyKeyDown}
+                          placeholder="0.00"
+                        />
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                          USD
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+            )}
 
             {(commissionType === "sale" || commissionType === "lead") && (
               <ProgramSheetAccordionItem value="customer">
@@ -491,63 +582,6 @@ function CreateCommissionSheetContent({
                 </ProgramSheetAccordionContent>
               </ProgramSheetAccordionItem>
             )}
-
-            {commissionType === "one-time" && (
-              <ProgramSheetAccordionItem value="commission">
-                <ProgramSheetAccordionTrigger>
-                  Commission
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="grid grid-cols-1 gap-6">
-                    <div>
-                      <SmartDateTimePicker
-                        value={saleEventDate}
-                        onChange={(date) => {
-                          setValue("saleEventDate", date, {
-                            shouldDirty: true,
-                          });
-                        }}
-                        label="Date"
-                        placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="amount"
-                        className="text-sm font-medium text-neutral-800"
-                      >
-                        Amount
-                      </label>
-                      <div className="relative mt-2 rounded-md shadow-sm">
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                          $
-                        </span>
-                        <input
-                          className={cn(
-                            "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            errors.saleAmount &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600",
-                          )}
-                          {...register("saleAmount", {
-                            required: true,
-                            valueAsNumber: true,
-                            min: 0,
-                            max: 1000,
-                            onChange: handleMoneyInputChange,
-                          })}
-                          onKeyDown={handleMoneyKeyDown}
-                          placeholder="0.00"
-                        />
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                          USD
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
-            )}
           </ProgramSheetAccordion>
         </div>
       </div>
@@ -569,7 +603,7 @@ function CreateCommissionSheetContent({
             text="Create commission"
             className="w-fit"
             loading={isPending}
-            disabled={!partnerId || !linkId || !customerId}
+            disabled={shouldDisableSubmit}
           />
         </div>
       </div>
