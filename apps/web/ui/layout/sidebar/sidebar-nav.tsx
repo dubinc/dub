@@ -12,6 +12,7 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ComponentType,
   PropsWithChildren,
   ReactNode,
   Suspense,
@@ -41,6 +42,9 @@ export type NavGroupType = {
   href: string;
   active: boolean;
   onClick?: () => void;
+  popup?: ComponentType<{
+    referenceElement: HTMLElement | null;
+  }>;
 
   description: string;
   learnMoreHref?: string;
@@ -257,39 +261,45 @@ function NavGroupItem({
     href,
     active,
     onClick,
+    popup: Popup,
   },
 }: {
   group: NavGroupType;
 }) {
+  const [element, setElement] = useState<HTMLAnchorElement | null>(null);
   const [hovered, setHovered] = useState(false);
 
   return (
-    <NavGroupTooltip
-      name={name}
-      description={description}
-      learnMoreHref={learnMoreHref}
-    >
-      <div>
-        <Link
-          href={href}
-          onPointerEnter={() => setHovered(true)}
-          onPointerLeave={() => setHovered(false)}
-          onClick={onClick}
-          className={cn(
-            "flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
-            "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-            active
-              ? "bg-white"
-              : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
-          )}
-        >
-          <Icon
-            className="text-content-default size-5"
-            data-hovered={hovered}
-          />
-        </Link>
-      </div>
-    </NavGroupTooltip>
+    <>
+      <NavGroupTooltip
+        name={name}
+        description={description}
+        learnMoreHref={learnMoreHref}
+      >
+        <div>
+          <Link
+            ref={Popup ? setElement : undefined}
+            href={href}
+            onPointerEnter={() => setHovered(true)}
+            onPointerLeave={() => setHovered(false)}
+            onClick={onClick}
+            className={cn(
+              "flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
+              "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+              active
+                ? "bg-white"
+                : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
+            )}
+          >
+            <Icon
+              className="text-content-default size-5"
+              data-hovered={hovered}
+            />
+          </Link>
+        </div>
+      </NavGroupTooltip>
+      {Popup && element && <Popup referenceElement={element} />}
+    </>
   );
 }
 
