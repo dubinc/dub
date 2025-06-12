@@ -80,7 +80,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         selectedQRType,
         setSelectedQRType,
         initialInputValues,
-      } = useQrCustomization(props);
+      } = useQrCustomization(props, homepageDemo);
       console.log("selectedQRType", selectedQRType);
       console.log(
         "[useQrCustomization] initialInputValues",

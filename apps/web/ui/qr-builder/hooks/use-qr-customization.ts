@@ -16,7 +16,10 @@ import { DotType } from "qr-code-styling/lib/types";
 import { useEffect, useState } from "react";
 import { convertSvgUrlToBase64 } from "../helpers/convert-svg-url-to-base64.ts";
 
-export function useQrCustomization(initialData?: ResponseQrCode) {
+export function useQrCustomization(
+  initialData?: ResponseQrCode,
+  homepageDemo?: boolean,
+) {
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
   const [selectedSuggestedLogo, setSelectedSuggestedLogo] = useState("none");
@@ -171,8 +174,11 @@ export function useQrCustomization(initialData?: ResponseQrCode) {
   useEffect(() => {
     if (!qrCode || isQrDisabled) return;
 
-    qrCode.update(options);
-  }, [qrCode, options, isQrDisabled]);
+    qrCode.update({
+      ...options,
+      data: homepageDemo ? `${window.location.origin}/qr-complete-setup` : data,
+    });
+  }, [qrCode, options, isQrDisabled, homepageDemo]);
 
   useEffect(() => {
     if (initialData && qrCode) {
@@ -256,7 +262,12 @@ export function useQrCustomization(initialData?: ResponseQrCode) {
 
       if (!qrCode) return;
 
-      qrCode.update({ ...options, data });
+      qrCode.update({
+        ...options,
+        data: homepageDemo
+          ? `${window.location.origin}/qr-complete-setup`
+          : data,
+      });
 
       const selected = FRAMES.find((f) => f.type === frameId);
 
