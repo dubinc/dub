@@ -59,7 +59,6 @@ export const createCommissionAction = authActionClient
         event: "custom",
         partnerId,
         programId,
-        linkId: "",
         amount: amount ?? 0,
         quantity: 1,
         createdAt: date ?? new Date(),
