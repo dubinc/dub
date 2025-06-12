@@ -29,6 +29,8 @@ model User {
   defaultPartnerId String? // the user's default partner ID
   dubPartnerId     String? // this user's dub partner ID
 
+  paymentData     Json?
+
   // relational data
   accounts              Account[]
   sessions              Session[]
