@@ -43,13 +43,15 @@ export function DubPartnersPopup({
     // Loading
     loadingWorkspace ||
     loadingDismissed ||
-    // Program/partners status/capabilities
-    // defaultProgramId ||
+    // hide if partners is not enabled
     !partnersEnabled ||
+    // hide if workspace can't create a program
     !canManageProgram ||
-    // Device
+    // hide if there's already a default program
+    defaultProgramId ||
+    // don't show on mobile
     isMobile ||
-    // Dismissed
+    // hide if already dismissed
     dismissed
   )
     return null;
