@@ -16,6 +16,7 @@ import {
   Globe,
   InvoiceDollar,
   Key,
+  LinesY as LinesYStatic,
   MoneyBills2,
   PaperPlane,
   Receipt2,
@@ -210,6 +211,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
       {
         name: "Insights",
         items: [
+          {
+            name: "Analytics",
+            icon: LinesYStatic,
+            href: `/${slug}/program/analytics`,
+          },
           {
             name: "Commissions",
             icon: InvoiceDollar,
