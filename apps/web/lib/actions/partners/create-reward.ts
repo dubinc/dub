@@ -13,7 +13,7 @@ export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const {
+    let {
       event,
       amount,
       type,
@@ -23,6 +23,9 @@ export const createRewardAction = authActionClient
       partnerIds,
       partnerIdsExcluded,
     } = parsedInput;
+
+    partnerIds = partnerIds || [];
+    partnerIdsExcluded = partnerIdsExcluded || [];
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -49,7 +52,7 @@ export const createRewardAction = authActionClient
       }
     }
 
-    const finalPartnerIds = isDefault ? partnerIdsExcluded : partnerIds;
+    const finalPartnerIds = [...partnerIds, ...partnerIdsExcluded];
 
     if (finalPartnerIds && finalPartnerIds.length > 0) {
       const programEnrollments = await prisma.programEnrollment.findMany({
@@ -91,40 +94,26 @@ export const createRewardAction = authActionClient
 
     const rewardEventColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-    // Update all partners for default rewards
-    if (reward.default) {
-      await prisma.programEnrollment.updateMany({
-        where: {
-          programId,
-
-          // don't overwrite existing partner-specific rewards if exists
-          [rewardEventColumn]: null,
-
-          // exclude partners that are excluded from the default reward
-          ...(partnerIdsExcluded && {
-            partnerId: {
-              notIn: partnerIdsExcluded,
-            },
-          }),
-        },
-        data: {
-          [rewardEventColumn]: reward.id,
-        },
-      });
-    }
-
-    // For non-default rewards, update only the partners that are being added
-    else if (partnerIds && partnerIds.length > 0) {
-      await prisma.programEnrollment.updateMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIds,
-          },
-        },
-        data: {
-          [rewardEventColumn]: reward.id,
-        },
-      });
-    }
+    await prisma.programEnrollment.updateMany({
+      where: {
+        programId,
+        ...(reward.default
+          ? {
+              [rewardEventColumn]: null,
+              ...(partnerIdsExcluded.length > 0 && {
+                partnerId: {
+                  notIn: partnerIdsExcluded,
+                },
+              }),
+            }
+          : {
+              partnerId: {
+                in: partnerIds,
+              },
+            }),
+      },
+      data: {
+        [rewardEventColumn]: reward.id,
+      },
+    });
   });
