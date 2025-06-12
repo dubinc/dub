@@ -95,6 +95,7 @@ function RewardSheetContent({
       maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
       isDefault: isDefault || false,
       partnerIds: null,
+      excludedPartnerIds: null,
     },
   });
 
@@ -106,10 +107,11 @@ function RewardSheetContent({
     }
   }, [reward]);
 
-  const [amount, type, partnerIds = []] = watch([
+  const [amount, type, partnerIds = [], excludedPartnerIds = []] = watch([
     "amount",
     "type",
     "partnerIds",
+    "excludedPartnerIds",
   ]);
 
   const selectedEvent = watch("event");
@@ -187,7 +189,8 @@ function RewardSheetContent({
     const payload = {
       ...data,
       workspaceId,
-      partnerIds,
+      partnerIds: isDefault ? null : partnerIds,
+      excludedPartnerIds: isDefault ? excludedPartnerIds : null,
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
@@ -260,24 +263,45 @@ function RewardSheetContent({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <ProgramSheetAccordion type="multiple" value={defaultAccordionValues}>
-            {!isDefault && (
+          <ProgramSheetAccordion
+            type="multiple"
+            defaultValue={defaultAccordionValues}
+          >
+            {!isDefault ? (
               <ProgramSheetAccordionItem value="partner-eligibility">
                 <ProgramSheetAccordionTrigger>
                   Partner Eligibility
                 </ProgramSheetAccordionTrigger>
                 <ProgramSheetAccordionContent>
                   <div className="space-y-4">
-                    {!isDefault && (
-                      <RewardPartnersTable
-                        partnerIds={partnerIds || []}
-                        setPartnerIds={(value: string[]) => {
-                          setValue("partnerIds", value);
-                        }}
-                        rewardPartners={rewardPartners || []}
-                        loading={isLoadingRewardPartners}
-                      />
-                    )}
+                    <RewardPartnersTable
+                      partnerIds={partnerIds || []}
+                      setPartnerIds={(value: string[]) => {
+                        setValue("partnerIds", value);
+                      }}
+                      rewardPartners={rewardPartners || []}
+                      loading={isLoadingRewardPartners}
+                      mode="include"
+                    />
+                  </div>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+            ) : (
+              <ProgramSheetAccordionItem value="partner-eligibility">
+                <ProgramSheetAccordionTrigger>
+                  Partner Eligibility
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <div className="space-y-4">
+                    <RewardPartnersTable
+                      partnerIds={excludedPartnerIds || []}
+                      setPartnerIds={(value: string[]) => {
+                        setValue("excludedPartnerIds", value);
+                      }}
+                      rewardPartners={rewardPartners || []}
+                      loading={isLoadingRewardPartners}
+                      mode="exclude"
+                    />
                   </div>
                 </ProgramSheetAccordionContent>
               </ProgramSheetAccordionItem>

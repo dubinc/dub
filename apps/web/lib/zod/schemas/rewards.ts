@@ -36,6 +36,7 @@ export const createOrUpdateRewardSchema = z.object({
   maxAmount: z.number().nullish(),
   isDefault: z.boolean(),
   partnerIds: z.array(z.string()).nullish(),
+  excludedPartnerIds: z.array(z.string()).nullish(),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
