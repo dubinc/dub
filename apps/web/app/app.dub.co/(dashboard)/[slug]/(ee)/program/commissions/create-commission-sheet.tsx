@@ -2,6 +2,7 @@ import { createCommissionAction } from "@/lib/actions/partners/create-commission
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
+import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSelector } from "@/ui/customers/customer-selector";
@@ -24,7 +25,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -43,6 +44,7 @@ function CreateCommissionSheetContent({
   const { program } = useProgram();
   const { id: workspaceId } = useWorkspace();
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
+  const { rewards, loading: rewardsLoading } = useRewards();
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
   const [commissionType, setCommissionType] =
@@ -125,6 +127,10 @@ function CreateCommissionSheetContent({
     });
   };
 
+  const rewardEventTypes = useMemo(() => {
+    return rewards?.map((reward) => reward.event);
+  }, [rewards]);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
@@ -174,20 +180,31 @@ function CreateCommissionSheetContent({
                   </div>
 
                   <div className="flex w-full items-center">
-                    <ToggleGroup
-                      className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
-                      optionClassName="h-8 flex items-center justify-center rounded-md flex-1  text-sm"
-                      indicatorClassName="bg-white"
-                      options={[
-                        { value: "one-time", label: "One-time" },
-                        { value: "sale", label: "Sale" },
-                        { value: "lead", label: "Lead" },
-                      ]}
-                      selected={commissionType}
-                      selectAction={(id: CommissionType) =>
-                        setCommissionType(id)
-                      }
-                    />
+                    {!rewardsLoading ? (
+                      <ToggleGroup
+                        className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
+                        optionClassName="h-8 flex items-center justify-center rounded-md flex-1  text-sm"
+                        indicatorClassName="bg-white"
+                        options={[
+                          { value: "one-time", label: "One-time" },
+                          ...(rewardEventTypes?.includes("sale")
+                            ? [{ value: "sale", label: "Sale" }]
+                            : []),
+                          ...(rewardEventTypes?.includes("lead")
+                            ? [{ value: "lead", label: "Lead" }]
+                            : []),
+                        ]}
+                        selected={commissionType}
+                        selectAction={(id: CommissionType) =>
+                          setCommissionType(id)
+                        }
+                      />
+                    ) : (
+                      <div className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1">
+                        <div className="h-8 flex-1 animate-pulse rounded-md bg-neutral-200" />
+                        <div className="h-8 flex-1 animate-pulse rounded-md bg-neutral-200" />
+                      </div>
+                    )}
                   </div>
 
                   {commissionType === "one-time" && (
