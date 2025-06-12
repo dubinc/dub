@@ -1,10 +1,10 @@
 import Events from "@/ui/analytics/events";
-import { PageContent } from "@/ui/layout/page-content";
+import { PageContentOld } from "@/ui/layout/page-content";
 
 export default function ProgramEvents() {
   return (
-    <PageContent title="Events" hideReferButton>
+    <PageContentOld title="Events" showControls>
       <Events />
-    </PageContent>
+    </PageContentOld>
   );
 }

@@ -45,7 +45,7 @@ export const FolderSwitcher = () => {
   }, [folder, folderId]);
 
   return (
-    <div className="-ml-2 -mt-1 flex w-full items-center gap-1">
+    <div className="-ml-2 flex w-full items-center gap-1">
       <FolderDropdown hideFolderIcon={true} />
 
       {selectedFolder && (

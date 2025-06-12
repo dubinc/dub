@@ -60,7 +60,7 @@ export const GET = withSession(async ({ session, params }) => {
           },
         },
         orderBy: {
-          periodStart: "desc",
+          amount: "desc",
         },
       },
       workspace: {
@@ -100,6 +100,23 @@ export const GET = withSession(async ({ session, params }) => {
       console.error(error);
     }
   }
+  const earliestPeriodStart = invoice.payouts.reduce(
+    (acc, payout) => {
+      if (!acc) return payout.periodStart;
+      if (!payout.periodStart) return acc;
+      return payout.periodStart < (acc as Date) ? payout.periodStart : acc;
+    },
+    null as Date | null,
+  );
+
+  const latestPeriodEnd = invoice.payouts.reduce(
+    (acc, payout) => {
+      if (!acc) return payout.periodEnd;
+      if (!payout.periodEnd) return acc;
+      return payout.periodEnd > (acc as Date) ? payout.periodEnd : acc;
+    },
+    null as Date | null,
+  );
 
   const invoiceMetadata = [
     {
@@ -117,10 +134,13 @@ export const GET = withSession(async ({ session, params }) => {
     },
     {
       label: "Payout period",
-      value: `${formatDate(startOfMonth(invoice.createdAt), {
-        month: "short",
-        year: "numeric",
-      })} - ${formatDate(endOfMonth(invoice.createdAt), {
+      value: `${formatDate(
+        startOfMonth(earliestPeriodStart || invoice.createdAt),
+        {
+          month: "short",
+          year: "numeric",
+        },
+      )} - ${formatDate(endOfMonth(latestPeriodEnd || invoice.createdAt), {
         month: "short",
         year: "numeric",
       })}`,

@@ -23,6 +23,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
             </>
           }
           newsContent={<NewsRSC />}
+          sidebarWidth={304} // TODO: Move into MainNav once app. and partners. are unified
         >
           {children}
         </MainNav>
