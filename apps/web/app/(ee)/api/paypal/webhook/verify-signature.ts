@@ -34,7 +34,9 @@ export async function verifySignature({
   const certUrl = headers.get("paypal-cert-url");
 
   if (!transmissionId || !transmissionSig || !timeStamp || !certUrl) {
-    console.error("[PayPal] Missing required headers for signature verification");
+    console.error(
+      "[PayPal] Missing required headers for signature verification",
+    );
     return false;
   }
 
