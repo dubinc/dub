@@ -75,87 +75,31 @@ export const updateRewardAction = authActionClient
       },
     });
 
+    // Update partners associated with the reward
     if (updatedReward.default) {
-      await updateDefaultReward({
+      await updateDefaultRewardPartners({
         reward: updatedReward,
-        partnerIdsExcluded,
+        partnerIds: partnerIdsExcluded,
+      });
+    } else {
+      await updateNonDefaultRewardPartners({
+        reward: updatedReward,
+        partnerIds,
       });
     }
-
-    // const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
-
-    // // Get current partner associations for this reward
-    // const currentAssociations = await prisma.programEnrollment.findMany({
-    //   where: {
-    //     programId,
-    //     [rewardIdColumn]: reward.id,
-    //   },
-    //   select: {
-    //     partnerId: true,
-    //   },
-    // });
-
-    // const currentPartnerIds = currentAssociations.map((a) => a.partnerId);
-    // const newPartnerIds = partnerIds || [];
-
-    // // Determine which partners to add and remove
-    // const partnersToAdd = newPartnerIds.filter(
-    //   (id) => !currentPartnerIds.includes(id),
-    // );
-
-    // const partnersToRemove = currentPartnerIds.filter(
-    //   (id) => !newPartnerIds.includes(id),
-    // );
-
-    // await prisma.$transaction(async (tx) => {
-    //   // 1. Update reward details
-
-    //   // 2. Remove partners that are no longer associated
-    //   if (partnersToRemove.length > 0) {
-    //     // TODO:
-    //     // Should we instead update it with default reward id?
-
-    //     await tx.programEnrollment.updateMany({
-    //       where: {
-    //         programId,
-    //         partnerId: {
-    //           in: partnersToRemove,
-    //         },
-    //       },
-    //       data: {
-    //         [rewardIdColumn]: null,
-    //       },
-    //     });
-    //   }
-
-    //   // 3. Add new partner associations
-    //   if (partnersToAdd.length > 0) {
-    //     await tx.programEnrollment.updateMany({
-    //       where: {
-    //         programId,
-    //         partnerId: {
-    //           in: partnersToAdd,
-    //         },
-    //       },
-    //       data: {
-    //         [rewardIdColumn]: reward.id,
-    //       },
-    //     });
-    //   }
-    // });
   });
 
 // Update default reward
-const updateDefaultReward = async ({
+const updateDefaultRewardPartners = async ({
   reward,
-  partnerIdsExcluded,
+  partnerIds,
 }: {
   reward: Reward;
-  partnerIdsExcluded: string[];
+  partnerIds: string[]; // Excluded partners
 }) => {
   const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-  const existingExcludedPartners = await prisma.programEnrollment.findMany({
+  const existingPartners = await prisma.programEnrollment.findMany({
     where: {
       programId: reward.programId,
       [rewardIdColumn]: null,
@@ -165,25 +109,23 @@ const updateDefaultReward = async ({
     },
   });
 
-  const existingExcludedIds = existingExcludedPartners.map(
-    ({ partnerId }) => partnerId,
+  const existingPartnerIds = existingPartners.map(({ partnerId }) => partnerId);
+
+  const excludedPartnerIds = partnerIds.filter(
+    (id) => !existingPartnerIds.includes(id),
   );
 
-  const newlyExcludedIds = partnerIdsExcluded.filter(
-    (id) => !existingExcludedIds.includes(id),
-  );
-
-  const newlyIncludedIds = existingExcludedIds.filter(
-    (id) => !partnerIdsExcluded.includes(id),
+  const includedPartnerIds = existingPartnerIds.filter(
+    (id) => !partnerIds.includes(id),
   );
 
   // Exclude partners from the default reward
-  if (newlyExcludedIds.length > 0) {
+  if (excludedPartnerIds.length > 0) {
     await prisma.programEnrollment.updateMany({
       where: {
         programId: reward.programId,
         partnerId: {
-          in: newlyExcludedIds,
+          in: excludedPartnerIds,
         },
       },
       data: {
@@ -193,16 +135,79 @@ const updateDefaultReward = async ({
   }
 
   // Include partners in the default reward
-  if (newlyIncludedIds.length > 0) {
+  if (includedPartnerIds.length > 0) {
     await prisma.programEnrollment.updateMany({
       where: {
         programId: reward.programId,
+        [rewardIdColumn]: null,
         partnerId: {
-          in: newlyIncludedIds,
+          in: includedPartnerIds,
         },
       },
       data: {
         [rewardIdColumn]: reward.id,
+      },
+    });
+  }
+};
+
+// Update non-default rewards
+const updateNonDefaultRewardPartners = async ({
+  reward,
+  partnerIds,
+}: {
+  reward: Reward;
+  partnerIds: string[]; // Included partners
+}) => {
+  const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+
+  const existingPartners = await prisma.programEnrollment.findMany({
+    where: {
+      programId: reward.programId,
+      [rewardIdColumn]: reward.id,
+    },
+    select: {
+      partnerId: true,
+    },
+  });
+
+  const existingPartnerIds = existingPartners.map(({ partnerId }) => partnerId);
+
+  const includedPartnerIds = partnerIds.filter(
+    (id) => !existingPartnerIds.includes(id),
+  );
+
+  const excludedPartnerIds = existingPartnerIds.filter(
+    (id) => !partnerIds.includes(id),
+  );
+
+  // Include partners in the reward
+  if (includedPartnerIds.length > 0) {
+    await prisma.programEnrollment.updateMany({
+      where: {
+        programId: reward.programId,
+        partnerId: {
+          in: includedPartnerIds,
+        },
+      },
+      data: {
+        [rewardIdColumn]: reward.id,
+      },
+    });
+  }
+
+  // Exclude partners from the reward
+  if (excludedPartnerIds.length > 0) {
+    await prisma.programEnrollment.updateMany({
+      where: {
+        programId: reward.programId,
+        [rewardIdColumn]: reward.id,
+        partnerId: {
+          in: excludedPartnerIds,
+        },
+      },
+      data: {
+        [rewardIdColumn]: null,
       },
     });
   }
