@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         cards: [
           {
-            key: "workspace",
+            key: "partner",
             components: [plainEmptyContainer("No user found.")],
           },
         ],
@@ -191,10 +191,13 @@ export async function POST(req: NextRequest) {
               ]
             : []),
           ...(paypalEmail
-            ? plainCopySection({
-                label: "Paypal Email",
-                value: paypalEmail,
-              })
+            ? [
+                plainSpacer,
+                ...plainCopySection({
+                  label: "Paypal Email",
+                  value: paypalEmail,
+                }),
+              ]
             : []),
           plainSpacer,
           uiComponent.row({

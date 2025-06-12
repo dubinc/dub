@@ -5,7 +5,9 @@ import "dotenv-flow/config";
 async function main() {
   const payouts = await prisma.payout.findMany({
     where: {
-      status: "pending",
+      status: {
+        in: ["pending", "processing"],
+      },
       amount: {
         gte: 10000,
       },
