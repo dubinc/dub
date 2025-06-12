@@ -35,7 +35,7 @@ export const createOrUpdateRewardSchema = z.object({
   maxDuration: maxDurationSchema,
   maxAmount: z.number().nullish(),
   isDefault: z.boolean(),
-  partnerIds: z
+  includedPartnerIds: z
     .array(z.string())
     .nullish()
     .default([])

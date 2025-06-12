@@ -94,7 +94,7 @@ function RewardSheetContent({
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
       isDefault: isDefault || false,
-      partnerIds: null,
+      includedPartnerIds: null,
       excludedPartnerIds: null,
     },
   });
@@ -107,12 +107,8 @@ function RewardSheetContent({
     }
   }, [reward]);
 
-  const [amount, type, partnerIds = [], excludedPartnerIds = []] = watch([
-    "amount",
-    "type",
-    "partnerIds",
-    "excludedPartnerIds",
-  ]);
+  const [amount, type, includedPartnerIds = [], excludedPartnerIds = []] =
+    watch(["amount", "type", "includedPartnerIds", "excludedPartnerIds"]);
 
   const selectedEvent = watch("event");
 
@@ -127,7 +123,7 @@ function RewardSheetContent({
   useEffect(() => {
     if (rewardPartners && rewardPartners.length > 0) {
       setValue(
-        "partnerIds",
+        "includedPartnerIds",
         rewardPartners.map((partner) => partner.id),
       );
     }
@@ -189,7 +185,7 @@ function RewardSheetContent({
     const payload = {
       ...data,
       workspaceId,
-      partnerIds: isDefault ? null : partnerIds,
+      includedPartnerIds: isDefault ? null : includedPartnerIds,
       excludedPartnerIds: isDefault ? excludedPartnerIds : null,
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
@@ -230,14 +226,14 @@ function RewardSheetContent({
     // 1. No existing reward (new creation), OR
     // 2. Existing reward with specific partners selected
     const shouldOpenPartnerEligibility =
-      !reward || (reward && (partnerIds?.length ?? 0) > 0);
+      !reward || (reward && (includedPartnerIds?.length ?? 0) > 0);
 
     if (!isDefault && shouldOpenPartnerEligibility) {
       baseValues.push("partner-eligibility");
     }
 
     return baseValues;
-  }, [reward, isDefault, partnerIds]);
+  }, [reward, isDefault, includedPartnerIds]);
 
   const canDeleteReward = reward && !reward.default;
 
@@ -275,9 +271,9 @@ function RewardSheetContent({
                 <ProgramSheetAccordionContent>
                   <div className="space-y-4">
                     <RewardPartnersTable
-                      partnerIds={partnerIds || []}
+                      partnerIds={includedPartnerIds || []}
                       setPartnerIds={(value: string[]) => {
-                        setValue("partnerIds", value);
+                        setValue("includedPartnerIds", value);
                       }}
                       rewardPartners={rewardPartners || []}
                       loading={isLoadingRewardPartners}

@@ -20,11 +20,11 @@ export const createRewardAction = authActionClient
       maxDuration,
       maxAmount,
       isDefault,
-      partnerIds,
+      includedPartnerIds,
       excludedPartnerIds,
     } = parsedInput;
 
-    partnerIds = partnerIds || [];
+    includedPartnerIds = includedPartnerIds || [];
     excludedPartnerIds = excludedPartnerIds || [];
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -52,7 +52,7 @@ export const createRewardAction = authActionClient
       }
     }
 
-    const finalPartnerIds = [...partnerIds, ...excludedPartnerIds];
+    const finalPartnerIds = [...includedPartnerIds, ...excludedPartnerIds];
 
     if (finalPartnerIds && finalPartnerIds.length > 0) {
       const programEnrollments = await prisma.programEnrollment.findMany({
@@ -108,7 +108,7 @@ export const createRewardAction = authActionClient
             }
           : {
               partnerId: {
-                in: partnerIds,
+                in: includedPartnerIds,
               },
             }),
       },
