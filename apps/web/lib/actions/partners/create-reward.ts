@@ -14,13 +14,14 @@ export const createRewardAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const {
-      partnerIds,
       event,
       amount,
       type,
       maxDuration,
       maxAmount,
       isDefault,
+      partnerIds,
+      partnerIdsExcluded,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -48,12 +49,14 @@ export const createRewardAction = authActionClient
       }
     }
 
-    if (partnerIds && partnerIds.length > 0) {
+    const finalPartnerIds = isDefault ? partnerIdsExcluded : partnerIds;
+
+    if (finalPartnerIds && finalPartnerIds.length > 0) {
       const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId,
           partnerId: {
-            in: partnerIds,
+            in: finalPartnerIds,
           },
         },
         select: {
@@ -61,7 +64,7 @@ export const createRewardAction = authActionClient
         },
       });
 
-      const invalidPartnerIds = partnerIds.filter(
+      const invalidPartnerIds = finalPartnerIds.filter(
         (id) =>
           !programEnrollments.some((enrollment) => enrollment.partnerId === id),
       );
@@ -93,7 +96,16 @@ export const createRewardAction = authActionClient
       await prisma.programEnrollment.updateMany({
         where: {
           programId,
+
+          // don't overwrite existing partner-specific rewards if exists
           [rewardEventColumn]: null,
+
+          // exclude partners that are excluded from the default reward
+          ...(partnerIdsExcluded && {
+            partnerId: {
+              notIn: partnerIdsExcluded,
+            },
+          }),
         },
         data: {
           [rewardEventColumn]: reward.id,

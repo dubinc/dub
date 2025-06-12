@@ -95,7 +95,7 @@ function RewardSheetContent({
       maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
       isDefault: isDefault || false,
       partnerIds: null,
-      excludedPartnerIds: null,
+      partnerIdsExcluded: null,
     },
   });
 
@@ -107,11 +107,11 @@ function RewardSheetContent({
     }
   }, [reward]);
 
-  const [amount, type, partnerIds = [], excludedPartnerIds = []] = watch([
+  const [amount, type, partnerIds = [], partnerIdsExcluded = []] = watch([
     "amount",
     "type",
     "partnerIds",
-    "excludedPartnerIds",
+    "partnerIdsExcluded",
   ]);
 
   const selectedEvent = watch("event");
@@ -190,7 +190,7 @@ function RewardSheetContent({
       ...data,
       workspaceId,
       partnerIds: isDefault ? null : partnerIds,
-      excludedPartnerIds: isDefault ? excludedPartnerIds : null,
+      partnerIdsExcluded: isDefault ? partnerIdsExcluded : null,
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
@@ -294,9 +294,9 @@ function RewardSheetContent({
                 <ProgramSheetAccordionContent>
                   <div className="space-y-4">
                     <RewardPartnersTable
-                      partnerIds={excludedPartnerIds || []}
+                      partnerIds={partnerIdsExcluded || []}
                       setPartnerIds={(value: string[]) => {
-                        setValue("excludedPartnerIds", value);
+                        setValue("partnerIdsExcluded", value);
                       }}
                       rewardPartners={rewardPartners || []}
                       loading={isLoadingRewardPartners}
