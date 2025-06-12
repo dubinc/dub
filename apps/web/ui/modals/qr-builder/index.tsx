@@ -83,7 +83,7 @@ export function QRBuilderModal({
     <Modal
       showModal={showQRBuilderModal}
       setShowModal={setShowQRBuilderModal}
-      className="border-border-500 h-fit max-w-screen-lg transition-[height] duration-[300ms]"
+      className="border-border-500 h-full max-w-screen-lg transition-[height] duration-[300ms] md:h-fit"
     >
       <div className="flex flex-col gap-2">
         {/* header */}

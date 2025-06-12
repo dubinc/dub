@@ -452,20 +452,23 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             </Flex>
           </div>
 
-          {isMobile && !navigationButtonsInViewport && !typeStep && (
-            <div className="border-border-500 sticky bottom-0 left-0 z-50 w-full border-t bg-white px-6 py-3 shadow-md">
-              <QrBuilderButtons
-                step={step}
-                onStepChange={setStep}
-                onSaveClick={onSaveClick}
-                onBackClick={onBackClick}
-                validateFields={handleValidationAndContentSubmit}
-                isEdit={isEdit}
-                isProcessing={isProcessing}
-                homePageDemo={homepageDemo}
-              />
-            </div>
-          )}
+          {homepageDemo &&
+            isMobile &&
+            !navigationButtonsInViewport &&
+            !typeStep && (
+              <div className="border-border-500 sticky bottom-0 left-0 z-50 w-full border-t bg-white px-6 py-3 shadow-md">
+                <QrBuilderButtons
+                  step={step}
+                  onStepChange={setStep}
+                  onSaveClick={onSaveClick}
+                  onBackClick={onBackClick}
+                  validateFields={handleValidationAndContentSubmit}
+                  isEdit={isEdit}
+                  isProcessing={isProcessing}
+                  homePageDemo={homepageDemo}
+                />
+              </div>
+            )}
         </div>
       );
     },
