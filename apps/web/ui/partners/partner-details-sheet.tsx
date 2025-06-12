@@ -18,12 +18,12 @@ import {
 import { GreekTemple, User, UserDelete } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { useCreateCommissionSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/commissions/create-commission-sheet";
 import { LockOpen } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { useBanPartnerModal } from "./ban-partner-modal";
-import { useCreatePayoutSheet } from "./create-payout-sheet";
 import { usePartnerApplicationSheet } from "./partner-application-sheet";
 import { PartnerInfoSection } from "./partner-info-section";
 import { usePartnerProfileSheet } from "./partner-profile-sheet";
@@ -41,8 +41,11 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
   const { slug, defaultProgramId } = useWorkspace();
   const [tab, setTab] = useState<Tab>("links");
 
-  const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
-    useCreatePayoutSheet({ nested: true, partnerId: partner.id });
+  const { createCommissionSheet, setIsOpen: setCreateCommissionSheetOpen } =
+    useCreateCommissionSheet({
+      nested: true,
+      partnerId: partner.id,
+    });
 
   const showPartnerDetails =
     partner.status === "approved" ||
@@ -197,13 +200,13 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
 
       {showPartnerDetails && (
         <>
-          {createPayoutSheet}
+          {createCommissionSheet}
           <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
             <div className="p-5">
               <Button
                 variant="primary"
-                text="Create payout"
-                onClick={() => setCreatePayoutSheetOpen(true)}
+                text="Create commission"
+                onClick={() => setCreateCommissionSheetOpen(true)}
               />
             </div>
           </div>
