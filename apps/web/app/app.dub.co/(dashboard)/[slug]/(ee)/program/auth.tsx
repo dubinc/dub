@@ -31,15 +31,15 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
     return <LayoutLoader />;
   }
 
-  if (!defaultProgramId && partnersEnabled) redirect(`/${slug}/program/new`);
-
-  if (!getPlanCapabilities(plan).canManageProgram) {
+  if (!partnersEnabled || !getPlanCapabilities(plan).canManageProgram) {
     return (
       <PageContent>
         <PartnersUpgradeCTA />
       </PageContent>
     );
   }
+
+  if (!defaultProgramId) redirect(`/${slug}/program/new`);
 
   return children;
 }
