@@ -35,10 +35,11 @@ export const createOrUpdateRewardSchema = z.object({
   maxDuration: maxDurationSchema,
   maxAmount: z.number().nullish(),
   isDefault: z.boolean(),
-  partnerIds: z.array(z.string()).nullish(),
+  partnerIds: z.array(z.string()).nullish().default([]),
   partnerIdsExcluded: z
     .array(z.string())
     .nullish()
+    .default([])
     .describe("Only applicable for default rewards"),
 });
 
