@@ -1,5 +1,5 @@
 import { createCommissionAction } from "@/lib/actions/partners/create-commission";
-import { handleMoneyInputChange } from "@/lib/form-utils";
+import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -131,7 +131,7 @@ function CreateCommissionSheetContent({
         <div className="space-y-6 p-6">
           <ProgramSheetAccordion
             type="multiple"
-            defaultValue={["partner-and-type", "customer", "sale"]}
+            defaultValue={["partner-and-type", "customer", "sale", "commission"]}
           >
             <ProgramSheetAccordionItem value="partner-and-type">
               <ProgramSheetAccordionTrigger>
@@ -443,6 +443,61 @@ function CreateCommissionSheetContent({
                 </div>
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
+
+            {commissionType === "one-time" && (
+              <ProgramSheetAccordionItem value="commission">
+                <ProgramSheetAccordionTrigger>
+                  Commission
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <div className="grid grid-cols-1 gap-6">
+                    <div>
+                      <SmartDateTimePicker
+                        value={saleEventDate}
+                        onChange={(date) => {
+                          setValue("saleEventDate", date, { shouldDirty: true });
+                        }}
+                        label="Date"
+                        placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="amount"
+                        className="text-sm font-medium text-neutral-800"
+                      >
+                        Amount
+                      </label>
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                          $
+                        </span>
+                        <input
+                          className={cn(
+                            "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            errors.saleAmount &&
+                              "border-red-600 focus:border-red-500 focus:ring-red-600"
+                          )}
+                          {...register("saleAmount", {
+                            required: true,
+                            valueAsNumber: true,
+                            min: 0,
+                            max: 1000,
+                            onChange: handleMoneyInputChange,
+                          })}
+                          onKeyDown={handleMoneyKeyDown}
+                          placeholder="0.00"
+                        />
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                          USD
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+            )}
           </ProgramSheetAccordion>
         </div>
       </div>
