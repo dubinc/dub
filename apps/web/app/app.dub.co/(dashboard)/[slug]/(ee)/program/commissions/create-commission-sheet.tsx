@@ -24,7 +24,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useState, useMemo } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -47,7 +47,9 @@ function CreateCommissionSheetContent({
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
   const [commissionType, setCommissionType] =
     useState<CommissionType>("one-time");
-  const [openAccordions, setOpenAccordions] = useState<string[]>(["partner-and-type"]);
+  const [openAccordions, setOpenAccordions] = useState<string[]>([
+    "partner-and-type",
+  ]);
 
   const {
     register,
@@ -141,11 +143,12 @@ function CreateCommissionSheetContent({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="space-y-6 p-6">
+        <div className="p-6">
           <ProgramSheetAccordion
             type="multiple"
             value={openAccordions}
             onValueChange={setOpenAccordions}
+            className="space-y-6"
           >
             <ProgramSheetAccordionItem value="partner-and-type">
               <ProgramSheetAccordionTrigger>
@@ -172,7 +175,7 @@ function CreateCommissionSheetContent({
 
                   <div className="flex w-full items-center">
                     <ToggleGroup
-                      className="flex w-full items-center gap-1.5 rounded-md border border-neutral-200 bg-neutral-50 p-1"
+                      className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
                       optionClassName="h-8 flex items-center justify-center rounded-md flex-1  text-sm"
                       indicatorClassName="bg-white"
                       options={[
@@ -248,7 +251,10 @@ function CreateCommissionSheetContent({
                 <ProgramSheetAccordionContent>
                   <div className="grid grid-cols-1 gap-6">
                     <div>
-                      <label htmlFor="name" className="flex items-center space-x-2">
+                      <label
+                        htmlFor="name"
+                        className="flex items-center space-x-2"
+                      >
                         <h2 className="text-sm font-medium text-neutral-900">
                           Customer
                         </h2>
@@ -341,7 +347,8 @@ function CreateCommissionSheetContent({
                                     "border-red-600 focus:border-red-500 focus:ring-red-600",
                                 )}
                                 {...register("leadEventName", {
-                                  setValueAs: (value) => (value === "" ? null : value),
+                                  setValueAs: (value) =>
+                                    value === "" ? null : value,
                                 })}
                                 placeholder="Enter lead event name"
                               />
@@ -366,7 +373,9 @@ function CreateCommissionSheetContent({
                       <SmartDateTimePicker
                         value={saleEventDate}
                         onChange={(date) => {
-                          setValue("saleEventDate", date, { shouldDirty: true });
+                          setValue("saleEventDate", date, {
+                            shouldDirty: true,
+                          });
                         }}
                         label="Sale date"
                         placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
@@ -396,7 +405,8 @@ function CreateCommissionSheetContent({
                             valueAsNumber: true,
                             min: 0,
                             onChange: handleMoneyInputChange,
-                            setValueAs: (value) => (value === "" ? null : value),
+                            setValueAs: (value) =>
+                              value === "" ? null : value,
                           })}
                           placeholder="0.00"
                         />
@@ -421,7 +431,9 @@ function CreateCommissionSheetContent({
                           thumbTranslate="translate-x-4"
                         />
                         <div className="flex gap-1">
-                          <h3 className="text-sm font-medium text-neutral-700">Add </h3>
+                          <h3 className="text-sm font-medium text-neutral-700">
+                            Add{" "}
+                          </h3>
                           <span className="rounded-md border border-neutral-200 bg-neutral-100 px-1 py-0.5 text-xs">
                             invoiceID
                           </span>
@@ -449,7 +461,8 @@ function CreateCommissionSheetContent({
                               )}
                               {...register("invoiceId", {
                                 required: hasInvoiceId,
-                                setValueAs: (value) => (value === "" ? null : value),
+                                setValueAs: (value) =>
+                                  value === "" ? null : value,
                               })}
                               placeholder="Enter invoice ID"
                             />
@@ -473,7 +486,9 @@ function CreateCommissionSheetContent({
                       <SmartDateTimePicker
                         value={saleEventDate}
                         onChange={(date) => {
-                          setValue("saleEventDate", date, { shouldDirty: true });
+                          setValue("saleEventDate", date, {
+                            shouldDirty: true,
+                          });
                         }}
                         label="Date"
                         placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
@@ -495,7 +510,7 @@ function CreateCommissionSheetContent({
                           className={cn(
                             "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                             errors.saleAmount &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600"
+                              "border-red-600 focus:border-red-500 focus:ring-red-600",
                           )}
                           {...register("saleAmount", {
                             required: true,
