@@ -92,6 +92,7 @@ export const createCommissionSchema = z.object({
   // Custom
   date: parseDateSchema.nullish(),
   amount: z.number().min(0).nullish(),
+  description: z.string().max(190).nullish(),
 
   // Lead
   customerId: z.string().nullish(),

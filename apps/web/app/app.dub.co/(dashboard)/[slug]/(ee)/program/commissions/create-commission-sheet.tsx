@@ -1,5 +1,5 @@
 import { createCommissionAction } from "@/lib/actions/partners/create-commission";
-import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -23,9 +23,10 @@ import {
   ToggleGroup,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -35,8 +36,6 @@ interface CreateCommissionSheetProps {
 }
 
 type FormData = z.infer<typeof createCommissionSchema>;
-
-type CommissionType = "one-time" | "sale" | "lead";
 
 function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
   const { setIsOpen, partnerId: initialPartnerId } = props;
@@ -48,7 +47,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
 
   const [commissionType, setCommissionType] =
-    useState<CommissionType>("one-time");
+    useState<CommissionType>("custom");
 
   const [openAccordions, setOpenAccordions] = useState<string[]>([
     "partner-and-type",
@@ -60,6 +59,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
     watch,
     setValue,
     formState: { errors },
+    control,
   } = useForm<FormData>({
     defaultValues: {
       partnerId: initialPartnerId,
@@ -87,7 +87,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
   ]);
 
   useEffect(() => {
-    if (commissionType === "one-time") {
+    if (commissionType === "custom") {
       setValue("linkId", null);
     }
   }, [commissionType, setValue]);
@@ -101,7 +101,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
   useEffect(() => {
     const baseValues = ["partner-and-type"];
 
-    if (commissionType === "one-time") {
+    if (commissionType === "custom") {
       setOpenAccordions([...baseValues, "commission"]);
     } else if (commissionType === "sale") {
       setOpenAccordions([...baseValues, "customer", "sale"]);
@@ -158,7 +158,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
       return true;
     }
 
-    if (commissionType === "one-time") {
+    if (commissionType === "custom") {
       return !amount;
     }
 
@@ -200,7 +200,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
           >
             <ProgramSheetAccordionItem value="partner-and-type">
               <ProgramSheetAccordionTrigger>
-                Partner and type
+                Partner and commission type
               </ProgramSheetAccordionTrigger>
               <ProgramSheetAccordionContent>
                 <div className="grid grid-cols-1 gap-6">
@@ -221,14 +221,19 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
                     </div>
                   </div>
 
-                  <div className="flex w-full items-center">
+                  <div>
+                    <label htmlFor="commissionType">
+                      <h2 className="text-sm font-medium text-neutral-900">
+                        Commission type
+                      </h2>
+                    </label>
                     {!rewardsLoading ? (
                       <ToggleGroup
-                        className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
+                        className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
                         optionClassName="h-8 flex items-center justify-center rounded-md flex-1  text-sm"
                         indicatorClassName="bg-white"
                         options={[
-                          { value: "one-time", label: "One-time" },
+                          { value: "custom", label: "One-time" },
                           ...(rewardEventTypes?.includes("sale")
                             ? [{ value: "sale", label: "Sale" }]
                             : []),
@@ -249,22 +254,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
                     )}
                   </div>
 
-                  {commissionType === "one-time" && (
-                    <AnimatedSizeContainer
-                      height
-                      transition={{ ease: "easeInOut", duration: 0.2 }}
-                      style={{
-                        height: "auto",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div className="py-1 text-center text-base font-medium leading-6 text-neutral-500">
-                        Send a one-time commission
-                      </div>
-                    </AnimatedSizeContainer>
-                  )}
-
-                  {commissionType !== "one-time" && (
+                  {commissionType !== "custom" && (
                     <AnimatedSizeContainer
                       height
                       transition={{ ease: "easeInOut", duration: 0.2 }}
@@ -285,7 +275,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
                             Referral link
                           </h2>
                         </label>
-                        <div className="mt-2">
+                        <div className="mt-2 p-px">
                           <PartnerLinkSelector
                             selectedLinkId={linkId ?? null}
                             showDestinationUrl={false}
@@ -302,7 +292,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
 
-            {commissionType === "one-time" && (
+            {commissionType === "custom" && (
               <ProgramSheetAccordionItem value="commission">
                 <ProgramSheetAccordionTrigger>
                   Commission
@@ -333,21 +323,38 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
                           $
                         </span>
-                        <input
-                          className={cn(
-                            "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            errors.amount &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600",
-                          )}
-                          {...register("amount", {
+                        <Controller
+                          name="amount"
+                          control={control}
+                          rules={{
                             required: true,
-                            valueAsNumber: true,
                             min: 0,
                             max: 1000,
-                            onChange: handleMoneyInputChange,
-                          })}
-                          onKeyDown={handleMoneyKeyDown}
-                          placeholder="0.00"
+                          }}
+                          render={({ field }) => (
+                            <input
+                              {...field}
+                              type="number"
+                              className={cn(
+                                "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                                errors.amount &&
+                                  "border-red-600 focus:border-red-500 focus:ring-red-600",
+                              )}
+                              value={
+                                field.value == null || isNaN(field.value)
+                                  ? ""
+                                  : field.value
+                              }
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                field.onChange(
+                                  val === "" ? null : parseFloat(val),
+                                );
+                              }}
+                              onKeyDown={handleMoneyKeyDown}
+                              placeholder="0.00"
+                            />
+                          )}
                         />
                         <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                           USD
@@ -511,20 +518,35 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
                           $
                         </span>
-                        <input
-                          className={cn(
-                            "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            errors.saleAmount &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600",
-                          )}
-                          {...register("saleAmount", {
-                            valueAsNumber: true,
+                        <Controller
+                          name="saleAmount"
+                          control={control}
+                          rules={{
                             min: 0,
-                            onChange: handleMoneyInputChange,
-                            setValueAs: (value) =>
-                              value === "" ? null : value,
-                          })}
-                          placeholder="0.00"
+                          }}
+                          render={({ field }) => (
+                            <input
+                              {...field}
+                              type="number"
+                              className={cn(
+                                "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                                errors.saleAmount &&
+                                  "border-red-600 focus:border-red-500 focus:ring-red-600",
+                              )}
+                              value={
+                                field.value == null || isNaN(field.value)
+                                  ? ""
+                                  : field.value
+                              }
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                field.onChange(
+                                  val === "" ? null : parseFloat(val),
+                                );
+                              }}
+                              placeholder="0.00"
+                            />
+                          )}
                         />
                         <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                           USD
