@@ -1,5 +1,6 @@
 import { log } from "@dub/utils";
-import { payoutStatusChanged } from "./payout-status-changed";
+import { payoutsItemFailed } from "./payouts-item-failed";
+import { payoutsItemSucceeded } from "./payouts-item-succeeded";
 import { verifySignature } from "./verify-signature";
 
 const relevantEvents = new Set([
@@ -41,6 +42,8 @@ export const POST = async (req: Request) => {
 
     switch (body.event_type) {
       case "PAYMENT.PAYOUTS-ITEM.SUCCEEDED":
+        await payoutsItemSucceeded(body);
+        break;
       case "PAYMENT.PAYOUTS-ITEM.BLOCKED":
       case "PAYMENT.PAYOUTS-ITEM.CANCELED":
       case "PAYMENT.PAYOUTS-ITEM.DENIED":
@@ -49,7 +52,7 @@ export const POST = async (req: Request) => {
       case "PAYMENT.PAYOUTS-ITEM.REFUNDED":
       case "PAYMENT.PAYOUTS-ITEM.RETURNED":
       case "PAYMENT.PAYOUTS-ITEM.UNCLAIMED":
-        await payoutStatusChanged(body);
+        await payoutsItemFailed(body);
         break;
     }
   } catch (error) {
