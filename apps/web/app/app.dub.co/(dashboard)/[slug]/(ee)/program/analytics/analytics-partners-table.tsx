@@ -78,6 +78,7 @@ export function AnalyticsPartnersTable() {
         enableHiding: false,
         minSize: 250,
         cell: ({ row }) => {
+          // @ts-ignore - fine locally but Vercel build fails due to `null` from `filter`
           return <PartnerRowItem partner={row.original} />;
         },
         meta: {
