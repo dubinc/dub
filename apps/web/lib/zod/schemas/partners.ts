@@ -286,10 +286,7 @@ export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
   image: z.string(),
-  clicks: z.number().default(0),
-  leads: z.number().default(0),
-  sales: z.number().default(0),
-  saleAmount: z.number().default(0),
+  totalCommissions: z.number().default(0),
 });
 
 export const PARTNER_CUSTOMERS_MAX_PAGE_SIZE = 100;
