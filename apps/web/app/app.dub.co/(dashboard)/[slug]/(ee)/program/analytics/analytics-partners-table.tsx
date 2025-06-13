@@ -66,7 +66,7 @@ export function AnalyticsPartnersTable() {
             }
           : null;
       })
-      .filter((p) => p !== null);
+      .filter(isNotNull);
   }, [topPartnersPage, partners]);
 
   const { table, ...tableProps } = useTable({
@@ -78,7 +78,6 @@ export function AnalyticsPartnersTable() {
         enableHiding: false,
         minSize: 250,
         cell: ({ row }) => {
-          // @ts-ignore - fine locally but Vercel build fails due to `null` from `filter`
           return <PartnerRowItem partner={row.original} />;
         },
         meta: {
@@ -157,3 +156,7 @@ export function AnalyticsPartnersTable() {
     </div>
   );
 }
+
+// Don't seem to need this locally but the Vercel build fails without a type predicate
+const isNotNull = <T extends unknown>(item: T | null): item is T =>
+  item !== null;
