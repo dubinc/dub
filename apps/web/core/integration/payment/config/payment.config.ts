@@ -14,9 +14,9 @@ export const priceConfig = {
   paymentPlan: {
     DEFAULT: {
       MIN_PRICE: 50,
-      PRICE_MONTH_PLAN: 3999 * 3,
-      PRICE_QUARTER_PLAN: 2999 * 6,
-      PRICE_QUARTER_PLAN_PREV: 3999 * 6,
+      PRICE_MONTH_PLAN: 3999,
+      PRICE_QUARTER_PLAN: 2999 * 3,
+      PRICE_QUARTER_PLAN_PREV: 3999 * 3,
       PRICE_YEAR_PLAN: 1999 * 12,
       PRICE_YEAR_PLAN_PREV: 3999 * 12,
     },

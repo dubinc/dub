@@ -51,7 +51,7 @@ export const PRICING_PLANS: IPricingPlan[] = [
   },
   {
     id: "quarterly",
-    name: "month",
+    name: "1 month",
     price: 39.99,
     currency: "USD",
     interval: "month",
