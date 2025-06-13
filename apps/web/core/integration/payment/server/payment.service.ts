@@ -1,3 +1,4 @@
+import ky from "ky";
 import {
   createPrimerClientPayment,
   createPrimerClientSession,
@@ -6,7 +7,7 @@ import {
   ICreatePrimerClientSessionBody,
   IUpdatePrimerClientSessionBody,
   updatePrimerClientSession,
-} from './primer';
+} from "./primer";
 import {
   checkSystemSubscriptionStatus,
   createSystemTokenOnboarding,
@@ -22,59 +23,51 @@ import {
   updateSystemSubscriptionPaymentMethod,
   updateSystemSubscriptionStatus,
   updateUserSystemData,
-} from './system';
-import ky from 'ky';
+} from "./system";
 
 // payment service
 export class PaymentService {
   constructor() {}
 
   // create client payment session
-  public async createClientPaymentSession(body: ICreatePrimerClientSessionBody) {
+  public async createClientPaymentSession(
+    body: ICreatePrimerClientSessionBody,
+  ) {
     return await createPrimerClientSession(body);
   }
 
   // update client payment session
-  public async updateClientPaymentSession(body: IUpdatePrimerClientSessionBody) {
+  public async updateClientPaymentSession(
+    body: IUpdatePrimerClientSessionBody,
+  ) {
     return await updatePrimerClientSession(body);
   }
 
   // create client subscription
-  public async createClientSubscription(body: ICreateSystemTokenOnboardingBody) {
-    console.log("🔍 [PaymentService] createClientSubscription input:", {
-      userExternalId: body.user.externalId,
-      userEmail: body.user.email,
-    });
-
+  public async createClientSubscription(
+    body: ICreateSystemTokenOnboardingBody,
+  ) {
     const paymentMethodToken = await getPrimerPaymentMethodToken({
-      customerId: body.user.externalId || '',
+      customerId: body.user.externalId || "",
     });
-
-    console.log("🔍 [PaymentService] paymentMethodToken received:", paymentMethodToken);
 
     const systemTokenOnboardingBody: ICreateSystemTokenOnboardingBody = {
       ...body,
-      paymentMethodToken: paymentMethodToken || '',
+      paymentMethodToken: paymentMethodToken || "",
     };
-
-    console.log("🔍 [PaymentService] calling createSystemTokenOnboarding with body keys:", Object.keys(systemTokenOnboardingBody));
 
     const tokenOnboardingData = await createSystemTokenOnboarding(
       systemTokenOnboardingBody,
     );
 
-    console.log("🔍 [PaymentService] createSystemTokenOnboarding response:", {
-      tokenOnboardingData,
-      hasSubscription: !!tokenOnboardingData?.subscription,
-      subscriptionId: tokenOnboardingData?.subscription?.id,
-      dataKeys: tokenOnboardingData ? Object.keys(tokenOnboardingData) : 'undefined',
-    });
-
     return { tokenOnboardingData, paymentMethodToken };
   }
 
   // update client subscription
-  public async updateClientSubscription(id: string, body: IUpdateSystemSubscriptionBody) {
+  public async updateClientSubscription(
+    id: string,
+    body: IUpdateSystemSubscriptionBody,
+  ) {
     return await updateSystemSubscriptionStatus(id, body);
   }
 
@@ -89,12 +82,16 @@ export class PaymentService {
   }
 
   // check client subscription status
-  public async checkClientSubscriptionStatus(body: ICheckSystemSubscriptionStatusBody) {
+  public async checkClientSubscriptionStatus(
+    body: ICheckSystemSubscriptionStatusBody,
+  ) {
     return await checkSystemSubscriptionStatus(body);
   }
 
   // create client one time payment
-  public async createClientOneTimePayment(body: ICreatePrimerClientPaymentBody) {
+  public async createClientOneTimePayment(
+    body: ICreatePrimerClientPaymentBody,
+  ) {
     return await createPrimerClientPayment(body);
   }
 
@@ -111,9 +108,9 @@ export class PaymentService {
   // check client card risk
   public async checkClientCardRisk(
     bin: string,
-  ): Promise<{ type?: 'toxic'; error?: string }> {
+  ): Promise<{ type?: "toxic"; error?: string }> {
     try {
-      const res = await ky.get<{ type?: 'toxic' }>(
+      const res = await ky.get<{ type?: "toxic" }>(
         `https://risk-engine-all.artem-035.workers.dev/?service_name=toxic_bins&product=hint&txn_th=150&dispute_rt_th=2&txn_val_th=500000&fraud_rt_th=9&bin=${bin}`,
       );
       return await res.json();
