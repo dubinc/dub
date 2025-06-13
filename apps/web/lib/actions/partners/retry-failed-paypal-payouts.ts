@@ -34,9 +34,6 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient.action(
       where: {
         partnerId: partner.id,
         status: "failed",
-        paypalTransferId: {
-          not: null,
-        },
       },
       select: {
         id: true,
