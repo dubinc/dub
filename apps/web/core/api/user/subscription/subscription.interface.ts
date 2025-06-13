@@ -29,9 +29,7 @@ export interface IUpdateSubscriptionBody {
   paymentPlan: TPaymentPlan;
 }
 
-export interface IUpdateSubscriptionRes extends IDataRes {
-  data?: { paymentId: string } | null;
-}
+export interface IUpdateSubscriptionRes extends IDataRes {}
 
 export interface IUpdateSubscriptionPaymentMethodBody {
   email: string;

@@ -58,7 +58,7 @@ export const updateSystemSubscriptionStatus = async (
 ) => {
   try {
     const res = await ky.post<IUpdateSystemSubscriptionRes>(
-      `${systemUrl}/subscriptions/${id}/upgrade`,
+      `${systemUrl}/subscriptions/${id}/plan/update`,
       {
         headers: systemHeaders,
         json: body,

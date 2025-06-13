@@ -1,4 +1,8 @@
-import { ICustomerBody, IPaymentPlanPrice } from "./payment-config.interface";
+import {
+  ICustomerBody,
+  IPaymentPlanPrice,
+  TPaymentPlan,
+} from "./payment-config.interface";
 
 const ONE_MONTH_IN_DAYS = 28;
 
@@ -110,4 +114,27 @@ export const getCalculatePriceForPay = (
     (price.split(".")?.at(1)?.slice(0, 2) || "00");
 
   return `${generatePrice} ${user?.currency?.currencyForPay}`;
+};
+
+// get charge period days by plan
+export const getChargePeriodDaysIdByPlan = ({
+  user,
+  paymentPlan,
+}: {
+  user: ICustomerBody;
+  paymentPlan: TPaymentPlan;
+}) => {
+  const {
+    QUARTERLY_PLAN_CHARGE_PERIOD_DAYS,
+    HALF_YEARLY_PLAN_CHARGE_PERIOD_DAYS,
+    YEARLY_PLAN_CHARGE_PERIOD_DAYS,
+  } = getPaymentPlanPrice({ paymentPlan: "MIN_PRICE", user }); //MIN_PRICE is plug
+
+  const periodIdsByPlan = {
+    PRICE_QUARTER_PLAN: QUARTERLY_PLAN_CHARGE_PERIOD_DAYS,
+    PRICE_HALF_YEAR_PLAN: HALF_YEARLY_PLAN_CHARGE_PERIOD_DAYS,
+    PRICE_YEAR_PLAN: YEARLY_PLAN_CHARGE_PERIOD_DAYS,
+  };
+
+  return periodIdsByPlan[paymentPlan];
 };

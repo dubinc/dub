@@ -2,6 +2,7 @@
 
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import useQrs from "@/lib/swr/use-qrs.ts";
+import { UserProps } from "@/lib/types";
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { PlansHeading } from "@/ui/plans/components/plans-heading.tsx";
@@ -34,11 +35,13 @@ import { v4 as uuidV4 } from "uuid";
 interface IPlansContentProps {
   cookieUser: ICustomerBody;
   reloadUserCookie: () => void;
+  authUser: UserProps;
 }
 
 const PlansContent: FC<Readonly<IPlansContentProps>> = ({
   cookieUser,
   reloadUserCookie,
+  authUser,
 }) => {
   const { qrs } = useQrs();
   const { isTrialOver } = useTrialStatus();
@@ -72,7 +75,11 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
   }, [mostScannedQR, qrCodeDemo]);
 
   const [selectedPlan, setSelectedPlan] = useState<IPricingPlan>(
-    PRICING_PLANS[0],
+    PRICING_PLANS.find(
+      (item) =>
+        item.paymentPlan ===
+        authUser?.paymentData?.paymentInfo?.subscriptionPlanCode,
+    ) || PRICING_PLANS[0],
   );
 
   const handlePaymentSuccess = async (data: ICheckoutFormSuccess) => {
@@ -94,8 +101,10 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
     });
 
     if (!res?.success) {
-      setIsSubscriptionCreation(false);
+      console.log("ERROR!!!");
     }
+
+    setIsSubscriptionCreation(false);
 
     toast.success("Subscription created successfully!");
   };
@@ -266,13 +275,17 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
         <FAQSection />
       </div>
 
-      <Modal showModal={isSubscriptionCreation} preventDefaultClose>
+      <Modal
+        showModal={isSubscriptionCreation}
+        preventDefaultClose
+        setShowModal={() => setIsSubscriptionCreation(false)} // If the setShowModal is not passed, the modal is always open.
+      >
         <div className="flex flex-col items-center gap-2 p-4">
           <span className="text-lg font-semibold">
             Your Order Is Being Processed
           </span>
           <LoadingSpinner />
-          <span>
+          <span className="text-center">
             Please wait while we finalize your payment and create your digital
             product. Closing this tab may interrupt the process.
           </span>

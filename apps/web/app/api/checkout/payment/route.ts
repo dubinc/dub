@@ -14,10 +14,15 @@ import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
 import { v4 as uuidV4 } from "uuid";
+import { getUserCookieService } from "../../../../core/services/cookie/user-session.service.ts";
 
 const paymentService = new PaymentService();
 
-const allowedPaymentPlans: Partial<TPaymentPlan>[] = [];
+const allowedPaymentPlans: Partial<TPaymentPlan>[] = [
+  "PRICE_QUARTER_PLAN",
+  "PRICE_HALF_YEAR_PLAN",
+  "PRICE_YEAR_PLAN",
+];
 
 // create one time payment
 export const POST = withSession(
@@ -50,8 +55,8 @@ export const POST = withSession(
       );
     }
 
-    const headerStore = await headers();
-    const cookieStore = await cookies();
+    const headerStore = headers();
+    const cookieStore = cookies();
 
     const subProcessorData = await paymentService.getProcessorByCustomerId(
       user!.id! || cookieStore.get(ECookieArg.SESSION_ID)!.value!,
@@ -78,15 +83,15 @@ export const POST = withSession(
       ipAddress: getUserIp(headerStore)!,
       subscriptionType: "APP_SUBSCRIPTION",
       entity_id: body.paymentPlan,
-      // one_time_payment_type: body.paymentPlan,
       application: `${process.env.NEXT_PUBLIC_PAYMENT_ENV}`,
       ...subProcessorData,
       //**** fields for subscription system ****//
     };
 
+    const { user: cookieUser } = await getUserCookieService();
     const { priceForPay } = getPaymentPlanPrice({
       paymentPlan: body.paymentPlan,
-      user,
+      user: cookieUser,
     });
 
     try {

@@ -171,6 +171,7 @@ export interface UserProps {
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;
+  paymentData?: any;
 }
 
 export interface WorkspaceUserProps extends UserProps {

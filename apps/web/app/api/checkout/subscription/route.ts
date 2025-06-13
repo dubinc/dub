@@ -8,9 +8,8 @@ import {
   ICreateSubscriptionRes,
 } from "core/api/user/subscription/subscription.interface.ts";
 import {
+  getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
-  ICustomerBody,
-  TPaymentPlan,
 } from "core/integration/payment/config";
 import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
@@ -18,28 +17,6 @@ import { updateUserCookieService } from "core/services/cookie/user-session.servi
 import { getUserIp } from "core/util/user-ip.util.ts";
 
 const paymentService = new PaymentService();
-
-const getChargePeriodDaysIdByPlan = ({
-  user,
-  paymentPlan,
-}: {
-  user: ICustomerBody;
-  paymentPlan: TPaymentPlan;
-}) => {
-  const {
-    QUARTERLY_PLAN_CHARGE_PERIOD_DAYS,
-    HALF_YEARLY_PLAN_CHARGE_PERIOD_DAYS,
-    YEARLY_PLAN_CHARGE_PERIOD_DAYS,
-  } = getPaymentPlanPrice({ paymentPlan: "MIN_PRICE", user }); //MIN_PRICE is plug
-
-  const periodIdsByPlan = {
-    PRICE_QUARTER_PLAN: QUARTERLY_PLAN_CHARGE_PERIOD_DAYS,
-    PRICE_HALF_YEAR_PLAN: HALF_YEARLY_PLAN_CHARGE_PERIOD_DAYS,
-    PRICE_YEAR_PLAN: YEARLY_PLAN_CHARGE_PERIOD_DAYS,
-  };
-
-  return periodIdsByPlan[paymentPlan];
-};
 
 // create user subscription
 export const POST = withSession(
@@ -111,7 +88,7 @@ export const POST = withSession(
       const { tokenOnboardingData, paymentMethodToken } =
         await paymentService.createClientSubscription({
           user: {
-            email: user.email || "",
+            email: user.email || authSession.user.email || "",
             country: user.currency?.countryCode || "",
             externalId: user.paymentInfo?.customerId || "",
             nationalDocumentId: body?.nationalDocumentId,
@@ -137,6 +114,21 @@ export const POST = withSession(
           orderPaymentID: body.payment.id,
           orderExternalID: body.payment.orderId,
         });
+
+      if (
+        !tokenOnboardingData ||
+        !tokenOnboardingData.subscription ||
+        !tokenOnboardingData.subscription.id
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "Failed to create subscription: invalid response from payment system",
+          },
+          { status: 500 },
+        );
+      }
 
       const updatedUser = await updateUserCookieService({
         paymentInfo: {

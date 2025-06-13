@@ -41,18 +41,34 @@ export class PaymentService {
 
   // create client subscription
   public async createClientSubscription(body: ICreateSystemTokenOnboardingBody) {
+    console.log("🔍 [PaymentService] createClientSubscription input:", {
+      userExternalId: body.user.externalId,
+      userEmail: body.user.email,
+    });
+
     const paymentMethodToken = await getPrimerPaymentMethodToken({
       customerId: body.user.externalId || '',
     });
+
+    console.log("🔍 [PaymentService] paymentMethodToken received:", paymentMethodToken);
 
     const systemTokenOnboardingBody: ICreateSystemTokenOnboardingBody = {
       ...body,
       paymentMethodToken: paymentMethodToken || '',
     };
 
+    console.log("🔍 [PaymentService] calling createSystemTokenOnboarding with body keys:", Object.keys(systemTokenOnboardingBody));
+
     const tokenOnboardingData = await createSystemTokenOnboarding(
       systemTokenOnboardingBody,
     );
+
+    console.log("🔍 [PaymentService] createSystemTokenOnboarding response:", {
+      tokenOnboardingData,
+      hasSubscription: !!tokenOnboardingData?.subscription,
+      subscriptionId: tokenOnboardingData?.subscription?.id,
+      dataKeys: tokenOnboardingData ? Object.keys(tokenOnboardingData) : 'undefined',
+    });
 
     return { tokenOnboardingData, paymentMethodToken };
   }
