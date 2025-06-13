@@ -134,3 +134,52 @@ export const updateCommissionSchema = z.object({
       "Useful for marking a commission as refunded, duplicate, canceled, or fraudulent. Takes precedence over `amount` and `modifyAmount`. When a commission is marked as refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
     ),
 });
+
+export const CLAWBACK_REASONS = [
+  {
+    value: "order_canceled",
+    label: "Order Canceled",
+    description: "Order was canceled or refunded.",
+  },
+  {
+    value: "fraud",
+    label: "Fraud",
+    description: "Fraudulent or invalid transaction.",
+  },
+  {
+    value: "terms_violation",
+    label: "Terms Violation",
+    description: "Partner broke program rules.",
+  },
+  {
+    value: "tracking_error",
+    label: "Tracking Error",
+    description: "Commission was assigned by mistake.",
+  },
+  {
+    value: "payment_failed",
+    label: "Payment Failed",
+    description: "Customer payment failed or was reversed.",
+  },
+  {
+    value: "ineligible_partner",
+    label: "Ineligible Partner",
+    description: "Partner was not eligible for this reward.",
+  },
+  {
+    value: "duplicate_commission",
+    label: "Duplicate Commission",
+    description: "Commission was a duplicate entry.",
+  },
+  {
+    value: "other",
+    label: "Other",
+    description: "Other issue not listed.",
+  },
+];
+
+export const createClawbackSchema = z.object({
+  partnerId: z.string(),
+  amount: z.number().min(0, "Amount must be positive."),
+  reason: z.string(),
+});
