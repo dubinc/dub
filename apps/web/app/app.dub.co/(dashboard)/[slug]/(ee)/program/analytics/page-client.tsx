@@ -11,6 +11,7 @@ import { Filter, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { createContext } from "react";
 import { AnalyticsChart } from "./analytics-chart";
+import { AnalyticsPartnersTable } from "./analytics-partners-table";
 
 type ProgramAnalyticsContextType = {
   start?: string;
@@ -96,15 +97,18 @@ export function ProgramAnalyticsPageClient() {
           />
         </div>
       </div>
-      <div className="border-border-subtle rounded-2xl border">
-        <div className="p-6">
-          <ProgramAnalyticsContext.Provider
-            value={{ start, end, interval, event, queryString }}
-          >
+      <ProgramAnalyticsContext.Provider
+        value={{ start, end, interval, event, queryString }}
+      >
+        <div className="border-border-subtle divide-border-subtle divide-y overflow-hidden rounded-2xl border">
+          <div className="p-6">
             <AnalyticsChart />
-          </ProgramAnalyticsContext.Provider>
+          </div>
+          <div>
+            <AnalyticsPartnersTable />
+          </div>
         </div>
-      </div>
+      </ProgramAnalyticsContext.Provider>
     </div>
   );
 }
