@@ -12,15 +12,15 @@ import {
 } from "core/integration/payment/config";
 import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
+import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
 import { v4 as uuidV4 } from "uuid";
-import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 
 const paymentService = new PaymentService();
 
 const allowedPaymentPlans: Partial<TPaymentPlan>[] = [
+  "PRICE_MONTH_PLAN",
   "PRICE_QUARTER_PLAN",
-  "PRICE_HALF_YEAR_PLAN",
   "PRICE_YEAR_PLAN",
 ];
 

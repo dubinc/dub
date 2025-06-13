@@ -19,8 +19,8 @@ import { NextResponse } from "next/server";
 const paymentService = new PaymentService();
 
 const allowedPaymentPlans: Partial<TPaymentPlan>[] = [
+  "PRICE_MONTH_PLAN",
   "PRICE_QUARTER_PLAN",
-  "PRICE_HALF_YEAR_PLAN",
   "PRICE_YEAR_PLAN",
 ];
 
