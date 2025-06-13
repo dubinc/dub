@@ -36,6 +36,7 @@ export function ProgramAnalyticsPageClient() {
 
   const queryString = editQueryString(
     useAnalyticsQuery({
+      defaultEvent: "sales",
       defaultInterval: DUB_PARTNERS_ANALYTICS_INTERVAL,
     }).queryString,
     {
