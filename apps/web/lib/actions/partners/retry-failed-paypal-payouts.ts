@@ -1,6 +1,7 @@
 "use server";
 
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
+import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -17,6 +18,16 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient.action(
 
     if (!partner.paypalEmail) {
       throw new Error("Connect your PayPal account to enable payouts.");
+    }
+
+    const { success } = await ratelimit(5, "24 h").limit(
+      `retry-failed-paypal-payouts:${partner.id}`,
+    );
+
+    if (!success) {
+      throw new Error(
+        "You've reached the maximum number of retry attempts for the past 24 hours. Please wait and try again later.",
+      );
     }
 
     const failedPayouts = await prisma.payout.findMany({
