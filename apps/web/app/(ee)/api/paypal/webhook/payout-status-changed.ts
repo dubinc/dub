@@ -1,8 +1,8 @@
 import { sendEmail } from "@dub/email";
 import PartnerPayoutSent from "@dub/email/templates/partner-payout-sent";
+import PartnerPaypalPayoutFailed from "@dub/email/templates/partner-paypal-payout-failed";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 
 const schema = z.object({
@@ -18,8 +18,25 @@ const schema = z.object({
       receiver: z.string(),
       sender_item_id: z.string(), // Dub payout id
     }),
+    errors: z
+      .object({
+        name: z.string(),
+        message: z.string(),
+      })
+      .nullable()
+      .optional(),
   }),
 });
+
+const PAYPAL_TO_DUB_STATUS = {
+  "PAYMENT.PAYOUTS-ITEM.BLOCKED": "failed",
+  "PAYMENT.PAYOUTS-ITEM.CANCELED": "canceled",
+  "PAYMENT.PAYOUTS-ITEM.DENIED": "failed",
+  "PAYMENT.PAYOUTS-ITEM.FAILED": "failed",
+  "PAYMENT.PAYOUTS-ITEM.HELD": "processing",
+  "PAYMENT.PAYOUTS-ITEM.REFUNDED": "failed",
+  "PAYMENT.PAYOUTS-ITEM.RETURNED": "failed",
+};
 
 export async function payoutStatusChanged(event: any) {
   const body = schema.parse(event);
@@ -97,33 +114,44 @@ export async function payoutStatusChanged(event: any) {
   }
 
   // For all other status, we need to update the payout status
+  const failureReason = body.resource.errors?.message;
 
-  // TODO:
-  // We may want to add additional status to our Payout model to handle these events
-  const statusMap = {
-    "PAYMENT.PAYOUTS-ITEM.BLOCKED": "failed",
-    "PAYMENT.PAYOUTS-ITEM.CANCELED": "canceled",
-    "PAYMENT.PAYOUTS-ITEM.DENIED": "failed",
-    "PAYMENT.PAYOUTS-ITEM.FAILED": "failed",
-    "PAYMENT.PAYOUTS-ITEM.HELD": "processing",
-    "PAYMENT.PAYOUTS-ITEM.REFUNDED": "failed",
-    "PAYMENT.PAYOUTS-ITEM.RETURNED": "failed",
-  };
+  await Promise.all([
+    // Update the payout status
+    prisma.payout.update({
+      where: {
+        id: payout.id,
+      },
+      data: {
+        paypalTransferId: payoutItemId,
+        status: PAYPAL_TO_DUB_STATUS[body.event_type],
+        failureReason,
+      },
+    }),
 
-  await prisma.payout.update({
-    where: {
-      id: payout.id,
-    },
-    data: {
-      paypalTransferId: payoutItemId,
-      status: statusMap[body.event_type],
-    },
-  });
+    // Send an email to the partner about the payout status change
+    payout.partner.email &&
+      sendEmail({
+        subject: `Your recent partner payout from ${payout.program.name} failed`,
+        email: payout.partner.email,
+        react: PartnerPaypalPayoutFailed({
+          email: payout.partner.email,
+          program: payout.program,
+          payout: {
+            amount: payout.amount,
+            failureReason,
+          },
+          partner: {
+            paypalEmail: payout.partner.paypalEmail!,
+          },
+        }),
+        variant: "notifications",
+      }),
 
-  waitUntil(
+    // Send an alert to Slack
     log({
       message: `Paypal payout status changed to ${body.event_type} for invoice ${invoiceId} and partner ${paypalEmail}`,
       type: "errors",
     }),
-  );
+  ]);
 }
