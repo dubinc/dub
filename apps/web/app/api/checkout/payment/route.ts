@@ -14,7 +14,7 @@ import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
 import { v4 as uuidV4 } from "uuid";
-import { getUserCookieService } from "../../../../core/services/cookie/user-session.service.ts";
+import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 
 const paymentService = new PaymentService();
 
@@ -34,7 +34,7 @@ export const POST = withSession(
 
     const user = authSession?.user;
     const paymentData = user?.paymentData;
-
+    console.log(user);
     if (!user || !paymentData?.paymentInfo?.customerId) {
       return NextResponse.json(
         { success: false, error: "User not found" },
@@ -74,7 +74,8 @@ export const POST = withSession(
       locale: "en",
       mixpanel_user_id:
         user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
-      plan_name: paymentData?.paymentInfo?.subscriptionPlanCode as string,
+      // plan_name: paymentData?.paymentInfo?.subscriptionPlanCode as string,
+      plan_name: body.paymentPlan,
       //**** for analytics ****//
 
       //**** fields for subscription system ****//
