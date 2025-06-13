@@ -3,12 +3,20 @@
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { nanoid } from "@dub/utils";
+import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
-// Retry failed PayPal payouts for a partner
-export const retryFailedPaypalPayoutsAction = authPartnerActionClient.action(
-  async ({ ctx }) => {
+const retryFailedPaypalPayoutSchema = z.object({
+  payoutId: z.string().min(1, "Payout ID is required"),
+});
+
+// Retry a failed PayPal payout for a partner
+export const retryFailedPaypalPayoutsAction = authPartnerActionClient
+  .schema(retryFailedPaypalPayoutSchema)
+  .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
+    const { payoutId } = parsedInput;
 
     if (!partner.payoutsEnabledAt) {
       throw new Error(
@@ -30,14 +38,15 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient.action(
       );
     }
 
-    const failedPayouts = await prisma.payout.findMany({
+    const payout = await prisma.payout.findUniqueOrThrow({
       where: {
-        partnerId: partner.id,
-        status: "failed",
+        id: payoutId,
       },
       select: {
         id: true,
         invoiceId: true,
+        partnerId: true,
+        status: true,
         amount: true,
         program: {
           select: {
@@ -47,63 +56,29 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient.action(
       },
     });
 
-    if (failedPayouts.length === 0) {
-      throw new Error("No failed payouts found.");
+    if (payout.partnerId !== partner.id) {
+      throw new Error("You are not authorized to retry this payout.");
     }
 
-    const payoutsByInvoiceId = Object.entries(
-      failedPayouts.reduce<
-        Record<
-          string,
-          {
-            id: string;
-            amount: number;
-            program: { name: string };
-            partner: { paypalEmail: string };
-          }[]
-        >
-      >((acc, payout) => {
-        if (payout.invoiceId) {
-          acc[payout.invoiceId] = acc[payout.invoiceId] || [];
-          acc[payout.invoiceId].push({
-            id: payout.id,
-            amount: payout.amount,
-            program: payout.program,
-            partner: { paypalEmail: partner.paypalEmail! },
-          });
-        }
+    if (payout.status !== "failed") {
+      throw new Error("This payout cannot be retried.");
+    }
 
-        return acc;
-      }, {}),
-    ).map(([invoiceId, payouts]) => ({
-      invoiceId,
-      payouts,
-    }));
+    if (!payout.invoiceId) {
+      throw new Error("This payout has no invoice ID.");
+    }
 
-    const results = await Promise.allSettled(
-      payoutsByInvoiceId.map(({ invoiceId, payouts }) =>
-        createPayPalBatchPayout({
-          payouts,
-          invoiceId,
-        }),
-      ),
-    );
-
-    await Promise.all(
-      results.map((res, idx) => {
-        const { invoiceId } = payoutsByInvoiceId[idx];
-
-        if (res.status === "fulfilled") {
-          console.log(
-            `[PayPal] Retry of payout invoice ${invoiceId} succeeded`,
-          );
-        } else {
-          console.error(
-            `[PayPal] Retry of payout invoice ${invoiceId} failed:`,
-            res.status,
-          );
-        }
-      }),
-    );
-  },
-);
+    await createPayPalBatchPayout({
+      invoiceId: `${payout.invoiceId}-${nanoid(10)}`,
+      payouts: [
+        {
+          id: payout.id,
+          amount: payout.amount,
+          program: payout.program,
+          partner: {
+            paypalEmail: partner.paypalEmail,
+          },
+        },
+      ],
+    });
+  });

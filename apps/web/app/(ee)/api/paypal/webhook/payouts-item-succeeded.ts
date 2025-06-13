@@ -6,10 +6,14 @@ import { payoutsItemSchema } from "./utils";
 export async function payoutsItemSucceeded(event: any) {
   const body = payoutsItemSchema.parse(event);
 
-  const invoiceId = body.resource.sender_batch_id;
+  let invoiceId = body.resource.sender_batch_id;
   const paypalEmail = body.resource.payout_item.receiver;
   const payoutItemId = body.resource.payout_item_id;
   const payoutId = body.resource.payout_item.sender_item_id;
+
+  if (invoiceId.includes("-")) {
+    invoiceId = invoiceId.split("-")[0];
+  }
 
   const payout = await prisma.payout.findUnique({
     where: {
