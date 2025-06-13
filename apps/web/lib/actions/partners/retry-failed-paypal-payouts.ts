@@ -80,7 +80,7 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient.action(
       payouts,
     }));
 
-    await Promise.allSettled(
+    const results = await Promise.allSettled(
       payoutsByInvoiceId.map(({ invoiceId, payouts }) =>
         createPayPalBatchPayout({
           program: payouts[0].program,
@@ -88,6 +88,23 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient.action(
           invoiceId,
         }),
       ),
+    );
+
+    await Promise.all(
+      results.map((res, idx) => {
+        const { invoiceId } = payoutsByInvoiceId[idx];
+
+        if (res.status === "fulfilled") {
+          console.log(
+            `[PayPal] Retry of payout invoice ${invoiceId} succeeded`,
+          );
+        } else {
+          console.error(
+            `[PayPal] Retry of payout invoice ${invoiceId} failed:`,
+            res.status,
+          );
+        }
+      }),
     );
   },
 );
