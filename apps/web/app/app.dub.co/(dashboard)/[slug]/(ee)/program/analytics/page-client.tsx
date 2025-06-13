@@ -62,7 +62,7 @@ export function ProgramAnalyticsPageClient() {
       queryString,
       selectedTab: event,
     },
-    hideUTM: true,
+    programPage: true,
   });
 
   return (

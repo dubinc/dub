@@ -86,7 +86,7 @@ export function useAnalyticsFilters({
   partnerPage,
   dashboardProps,
   context,
-  hideUTM = false,
+  programPage = false,
 }: {
   partnerPage?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
@@ -94,7 +94,7 @@ export function useAnalyticsFilters({
     ContextType<typeof AnalyticsContext>,
     "baseApiPath" | "queryString" | "selectedTab" | "requiresUpgrade"
   >;
-  hideUTM?: boolean;
+  programPage?: boolean;
 } = {}) {
   const { slug, programSlug } = useParams();
   const { plan } = useWorkspace();
@@ -439,7 +439,7 @@ export function useAnalyticsFilters({
             icon,
           })) ?? null,
       },
-      ...(dashboardProps
+      ...(dashboardProps || programPage
         ? []
         : partnerPage
           ? [LinkFilterItem, CustomerFilterItem]
@@ -686,19 +686,23 @@ export function useAnalyticsFilters({
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
-      {
-        key: "trigger",
-        icon: CursorRays,
-        label: "Trigger",
-        options:
-          triggers?.map(({ trigger, count }) => ({
-            value: trigger,
-            label: TRIGGER_DISPLAY[trigger],
-            icon: trigger === "qr" ? QRCode : CursorRays,
-            right: nFormatter(count, { full: true }),
-          })) ?? null,
-        separatorAfter: true,
-      },
+      ...(programPage
+        ? []
+        : [
+            {
+              key: "trigger",
+              icon: CursorRays,
+              label: "Trigger",
+              options:
+                triggers?.map(({ trigger, count }) => ({
+                  value: trigger,
+                  label: TRIGGER_DISPLAY[trigger],
+                  icon: trigger === "qr" ? QRCode : CursorRays,
+                  right: nFormatter(count, { full: true }),
+                })) ?? null,
+              separatorAfter: true,
+            },
+          ]),
       {
         key: "referer",
         icon: ReferredVia,
@@ -713,55 +717,57 @@ export function useAnalyticsFilters({
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
-      {
-        key: "refererUrl",
-        icon: ReferredVia,
-        label: "Referrer URL",
-        getOptionIcon: (value, props) => (
-          <RefererIcon display={value} className="h-4 w-4" />
-        ),
-        options:
-          refererUrls?.map(({ refererUrl, count }) => ({
-            value: refererUrl,
-            label: refererUrl,
-            right: nFormatter(count, { full: true }),
-          })) ?? null,
-      },
-      {
-        key: "url",
-        icon: LinkBroken,
-        label: "Destination URL",
-        getOptionIcon: (_, props) => (
-          <LinkLogo
-            apexDomain={getApexDomain(props.option?.value)}
-            className="size-4 sm:size-4"
-          />
-        ),
-        options:
-          urls?.map(({ url, count }) => ({
-            value: url,
-            label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
-            right: nFormatter(count, { full: true }),
-          })) ?? null,
-      },
-      ...(hideUTM
+      ...(programPage
         ? []
-        : UTM_PARAMETERS.filter(({ key }) => key !== "ref").map(
-            ({ key, label, icon: Icon }) => ({
-              key,
-              icon: Icon,
-              label: `UTM ${label}`,
-              getOptionIcon: (value) => (
-                <Icon display={value} className="h-4 w-4" />
+        : [
+            {
+              key: "refererUrl",
+              icon: ReferredVia,
+              label: "Referrer URL",
+              getOptionIcon: (value, props) => (
+                <RefererIcon display={value} className="h-4 w-4" />
               ),
               options:
-                utmData[key]?.map((dt) => ({
-                  value: dt[key],
-                  label: dt[key],
-                  right: nFormatter(dt.count, { full: true }),
+                refererUrls?.map(({ refererUrl, count }) => ({
+                  value: refererUrl,
+                  label: refererUrl,
+                  right: nFormatter(count, { full: true }),
                 })) ?? null,
-            }),
-          )),
+            },
+            {
+              key: "url",
+              icon: LinkBroken,
+              label: "Destination URL",
+              getOptionIcon: (_, props) => (
+                <LinkLogo
+                  apexDomain={getApexDomain(props.option?.value)}
+                  className="size-4 sm:size-4"
+                />
+              ),
+              options:
+                urls?.map(({ url, count }) => ({
+                  value: url,
+                  label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
+                  right: nFormatter(count, { full: true }),
+                })) ?? null,
+            },
+            ...UTM_PARAMETERS.filter(({ key }) => key !== "ref").map(
+              ({ key, label, icon: Icon }) => ({
+                key,
+                icon: Icon,
+                label: `UTM ${label}`,
+                getOptionIcon: (value) => (
+                  <Icon display={value} className="h-4 w-4" />
+                ),
+                options:
+                  utmData[key]?.map((dt) => ({
+                    value: dt[key],
+                    label: dt[key],
+                    right: nFormatter(dt.count, { full: true }),
+                  })) ?? null,
+              }),
+            ),
+          ]),
     ],
     [
       dashboardProps,
