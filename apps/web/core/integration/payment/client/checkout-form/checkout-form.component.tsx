@@ -127,6 +127,7 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
       currencyCode: data.currencyCode,
       nationalDocumentId: nationIdRef.current || undefined,
       first6Digits: data.first6Digits?.toString() || "",
+      paymentPlan,
     });
     setIsLoading(false);
   };
