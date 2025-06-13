@@ -1,7 +1,5 @@
 "use server";
 
-import { exec } from "child_process";
-import { promisify } from "util";
 import { systemHeaders, systemUrl } from "./system.constant";
 import {
   ICheckSystemSubscriptionStatusBody,
@@ -23,110 +21,9 @@ import { debugUtil } from "core/util";
 import { compareDesc } from "date-fns/compareDesc";
 import { parseISO } from "date-fns/parseISO";
 import { IDataRes } from "../../../../interfaces/common.interface.ts";
-
-const execAsync = promisify(exec);
+import { secureHttpClient } from "../secure-http-client";
 
 const activeStatuses = ["active", "trial", "scheduled_for_cancellation"];
-
-/**
- * SecureHttpClient - HTTP client using curl to bypass TLS fingerprinting
- *
- * Problem: System API uses TLS fingerprinting to detect and block Node.js requests.
- * Solution: Use system curl which has different TLS signature that System accepts.
- */
-class SecureHttpClient {
-  private sanitizeHeaders(
-    headers: Record<string, string | undefined>,
-  ): Record<string, string> {
-    const sanitized: Record<string, string> = {};
-    for (const [key, value] of Object.entries(headers)) {
-      if (value !== undefined) {
-        sanitized[key] = value;
-      }
-    }
-    return sanitized;
-  }
-
-  private buildCurlCommand(
-    url: string,
-    method: string,
-    headers: Record<string, string | undefined>,
-    body?: any,
-  ): string {
-    const sanitizedHeaders = this.sanitizeHeaders(headers);
-    const headerArgs = Object.entries(sanitizedHeaders)
-      .map(([key, value]) => `-H "${key}: ${value}"`)
-      .join(" ");
-
-    let command = `curl -s -X ${method} ${headerArgs}`;
-
-    if (body) {
-      const jsonBody = JSON.stringify(body).replace(/"/g, '\\"');
-      command += ` -d "${jsonBody}"`;
-    }
-
-    command += ` "${url}"`;
-    return command;
-  }
-
-  private async executeRequest<T>(command: string): Promise<T> {
-    try {
-      console.log("🔍 [SecureHttpClient] Executing curl command:", command);
-
-      const { stdout, stderr } = await execAsync(command);
-
-      if (stderr) {
-        console.log("🔍 [SecureHttpClient] Curl stderr:", stderr);
-        throw new Error(`Curl error: ${stderr}`);
-      }
-
-      console.log("🔍 [SecureHttpClient] Curl stdout:", stdout);
-
-      const parsedData = JSON.parse(stdout);
-      console.log("🔍 [SecureHttpClient] Parsed response:", parsedData);
-
-      return parsedData;
-    } catch (error: any) {
-      console.log("🔍 [SecureHttpClient] Execute request error:", {
-        error: error.message,
-        isJsonError: error.message?.includes("JSON"),
-      });
-
-      if (error.message?.includes("JSON")) {
-        throw new Error("Invalid JSON response from API");
-      }
-      throw error;
-    }
-  }
-
-  async get<T>(
-    url: string,
-    headers: Record<string, string | undefined>,
-  ): Promise<T> {
-    const command = this.buildCurlCommand(url, "GET", headers);
-    return this.executeRequest<T>(command);
-  }
-
-  async post<T>(
-    url: string,
-    headers: Record<string, string | undefined>,
-    body: any,
-  ): Promise<T> {
-    const command = this.buildCurlCommand(url, "POST", headers, body);
-    return this.executeRequest<T>(command);
-  }
-
-  async put<T>(
-    url: string,
-    headers: Record<string, string | undefined>,
-    body: any,
-  ): Promise<T> {
-    const command = this.buildCurlCommand(url, "PUT", headers, body);
-    return this.executeRequest<T>(command);
-  }
-}
-
-const secureHttp = new SecureHttpClient();
 
 // create system token onboarding (secure version)
 export const createSystemTokenOnboarding = async (
@@ -142,10 +39,11 @@ export const createSystemTokenOnboarding = async (
         : "no subscription",
     });
 
-    const data = await secureHttp.post<ICreateSystemTokenOnboardingRes>(
+    const data = await secureHttpClient.post<ICreateSystemTokenOnboardingRes>(
       `${systemUrl}/tokens/onboarding/successful`,
       systemHeaders,
       body,
+      true, // Enable logging for system API
     );
 
     console.log("🔍 [SystemSecure] createSystemTokenOnboarding response:", {
@@ -186,7 +84,7 @@ export const updateSystemSubscriptionStatus = async (
   body: IUpdateSystemSubscriptionBody,
 ) => {
   try {
-    const data = await secureHttp.post<IUpdateSystemSubscriptionRes>(
+    const data = await secureHttpClient.post<IUpdateSystemSubscriptionRes>(
       `${systemUrl}/subscriptions/${id}/plan/update`,
       systemHeaders,
       body,
@@ -211,7 +109,7 @@ export const getSystemUserDataByEmail = async (
   body: IGetSystemUserDataBody,
 ) => {
   try {
-    const data = await secureHttp.get<IGetSystemUserDataRes>(
+    const data = await secureHttpClient.get<IGetSystemUserDataRes>(
       `${systemUrl}/subscriptions?email=${body.email}`,
       systemHeaders,
     );
@@ -279,7 +177,7 @@ export const getSystemPaymentError = async (
   body: IGetSystemPaymentErrorBody,
 ) => {
   try {
-    const data = await secureHttp.get<IGetSystemPaymentErrorRes>(
+    const data = await secureHttpClient.get<IGetSystemPaymentErrorRes>(
       `${systemUrl}/payments/${body.id}/error`,
       systemHeaders,
     );
@@ -300,7 +198,7 @@ export const getSystemSubscriptionUpgradePaymentId = async (
   upgradeId: string,
 ) => {
   try {
-    const data = await secureHttp.get<IGetSystemUpgradePaymentIdRes>(
+    const data = await secureHttpClient.get<IGetSystemUpgradePaymentIdRes>(
       `${systemUrl}/subscriptions/plan-change/${upgradeId}/payment-id`,
       systemHeaders,
     );
@@ -327,7 +225,7 @@ export const updateSystemSubscriptionPaymentMethod = async (
   body: IUpdateSystemPaymentMethodBody,
 ) => {
   try {
-    const data = await secureHttp.post<IDataRes>(
+    const data = await secureHttpClient.post<IDataRes>(
       `${systemUrl}/tokens/card-update/successful`,
       systemHeaders,
       body,
@@ -356,7 +254,7 @@ export const updateUserSystemData = async (
   body: IUpdateUserSystemDataBody,
 ) => {
   try {
-    const data = await secureHttp.put<IDataRes>(
+    const data = await secureHttpClient.put<IDataRes>(
       `${systemUrl}/users/${id}`,
       systemHeaders,
       body,
@@ -380,7 +278,7 @@ export const getSystemUserProcessor = async (
   }
 
   try {
-    const data = await secureHttp.get<IGetSystemUserProcessorRes>(
+    const data = await secureHttpClient.get<IGetSystemUserProcessorRes>(
       `${systemUrl}/users/${customerId}/metadata`,
       systemHeaders,
     );

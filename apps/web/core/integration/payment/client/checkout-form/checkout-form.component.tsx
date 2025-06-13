@@ -477,6 +477,7 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
 
           <Button
             id="primer-checkout-credit-card-button"
+            isDisabled={isLoading && !error?.isActive}
             onClick={handleSubmit}
             className="min-h-[48px] w-full text-white"
             startContent={submitBtn?.icon}

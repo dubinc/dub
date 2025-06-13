@@ -22,10 +22,10 @@ import {
   ICustomerBody,
 } from "core/integration/payment/config";
 import { apiInstance } from "core/lib/rest-api";
+import { useSession } from "next-auth/react";
 import { FC, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidV4 } from "uuid";
-import { useSession } from "next-auth/react";
 import { useCreateUserPaymentMutation } from "../../../core/api/user/payment/payment.hook.tsx";
 import { pollPaymentStatus } from "../../../core/integration/payment/client/services/payment-status.service.ts";
 import { IGetPrimerClientPaymentInfoRes } from "../../../core/integration/payment/server";
@@ -103,7 +103,6 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
       return;
     }
 
-    setIsSubscriptionCreation(false);
     toast.success("Subscription created successfully!");
 
     await updateSession();
@@ -191,10 +190,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
           toast.error(
             `The plan updating failed: ${error?.code ?? error?.message}`,
           ),
-        )
-        .finally(() => {
-          setIsUpdateProcessing(false);
-        });
+        );
     };
 
     const onError = (paymentInfo?: IGetPrimerClientPaymentInfoRes) => {
@@ -282,9 +278,12 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
               <Button
                 className="block"
                 loading={isUpdateProcessing}
-                disabled={currentSubscriptionPlan === selectedPlan.paymentPlan}
+                disabled={
+                  currentSubscriptionPlan === selectedPlan.paymentPlan ||
+                  isUpdateProcessing
+                }
                 onClick={handleUpdatePlan}
-                text="Upgrade Plan"
+                text={isUpdateProcessing ? null : "Upgrade Plan"}
               />
             )}
           </div>

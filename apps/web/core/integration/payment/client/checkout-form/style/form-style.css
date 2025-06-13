@@ -5,7 +5,8 @@
 #primer-checkout-credit-card-button {
   height: 48px !important;
   color: rgb(255 255 255 / 0.8);
-  background: rgb(6, 111, 222);
+  background: #0066CC;
+  border-radius: 6px;
 }
 
 #primer-checkout-payment-method-scene-header {
@@ -21,7 +22,7 @@
 #primer-checkout-submit-button {
   position: relative !important;
   max-height: 40px !important;
-  background: rgb(6, 111, 222) !important;
+  background: #0066CC !important;
   font-size: 18px !important;
 }
 
@@ -34,7 +35,7 @@
 }
 
 #primer-checkout-submit-button[loading='true'] {
-  color: #0d766e !important;
+  color: #006666 !important;
 }
 
 #primer-checkout-submit-button[loading='true'] #primer-checkout-submit-button-loading {
@@ -79,5 +80,9 @@
 }
 
 #nation-id:focus {
-  border: 1px solid rgb(6, 111, 222) !important;
+  border: 1px solid #0066CC !important;
+}
+
+.PrimerCheckout__apmButton {
+  border: none !important;
 }
