@@ -47,14 +47,14 @@ export function AnalyticsPartnersTable() {
   } = usePartners({
     enabled: Boolean(topPartners?.length),
     query: {
-      ids: topPartnersPage?.map((d) => d.partnerId),
+      ids: topPartners?.map((d) => d.partnerId),
     },
   });
 
   const error = topPartnersError || partnersError;
   const loading = topPartnersLoading || partnersLoading;
 
-  let data = useMemo(() => {
+  const data = useMemo(() => {
     if (!topPartnersPage?.length || !partners?.length) return [];
     return topPartnersPage
       .map((d) => {
