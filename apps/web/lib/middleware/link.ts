@@ -91,7 +91,7 @@ export default async function LinkMiddleware(
         Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
       if (totalUserClicks > 30 || daysSinceRegistration > 10) {
-        return NextResponse.redirect(new URL(`/restricted-access`, req.url), {
+        return NextResponse.redirect(new URL(`https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`, req.url), {
           headers: {
             ...DUB_HEADERS,
             "X-Robots-Tag": "googlebot: noindex",
@@ -113,7 +113,7 @@ export default async function LinkMiddleware(
         Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
       
       if (linkData.totalUserClicks > 30 || daysSinceRegistration > 10) {
-        return NextResponse.redirect(new URL(`/restricted-access`, req.url), {
+        return NextResponse.redirect(new URL(`https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`, req.url), {
           headers: {
             ...DUB_HEADERS,
             "X-Robots-Tag": "googlebot: noindex",
