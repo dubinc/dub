@@ -14,10 +14,8 @@ export async function sendPaypalPayouts({
   }
 
   const { invoiceId } = payload;
-  const program = payouts[0].program;
 
   await createPayPalBatchPayout({
-    program,
     payouts,
     invoiceId,
   });

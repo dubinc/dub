@@ -3,16 +3,15 @@ import { paypalEnv } from "@/lib/paypal/env";
 import { Partner, Payout, Program } from "@dub/prisma/client";
 
 interface CreatePayPalBatchPayout {
-  program: Pick<Program, "name">;
   payouts: (Pick<Payout, "id" | "amount"> & {
     partner: Pick<Partner, "paypalEmail">;
+    program: Pick<Program, "name">;
   })[];
   invoiceId: string;
 }
 
 // Create a batch payout for an array of payouts for a program
 export async function createPayPalBatchPayout({
-  program,
   payouts,
   invoiceId,
 }: CreatePayPalBatchPayout) {
@@ -26,7 +25,7 @@ export async function createPayPalBatchPayout({
       recipient_type: "EMAIL",
       receiver: payout.partner.paypalEmail,
       sender_item_id: payout.id,
-      note: `Dub Partners payout (${program.name})`,
+      note: `Dub Partners payout (${payout.program.name})`,
       amount: {
         value: (payout.amount / 100).toString(),
         currency: "USD",

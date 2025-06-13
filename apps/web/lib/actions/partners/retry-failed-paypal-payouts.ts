@@ -83,7 +83,6 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient.action(
     const results = await Promise.allSettled(
       payoutsByInvoiceId.map(({ invoiceId, payouts }) =>
         createPayPalBatchPayout({
-          program: payouts[0].program,
           payouts,
           invoiceId,
         }),
