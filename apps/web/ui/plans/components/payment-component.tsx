@@ -260,9 +260,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
                 handleCheckoutSuccess={handlePaymentSuccess}
                 handleCheckoutError={handleCheckoutError}
                 submitBtn={{
-                  text: isTrialOver
-                    ? `Subscribe to ${selectedPlan.name}`
-                    : "Update plan",
+                  text: `Subscribe to ${selectedPlan.name}`,
                 }}
               />
             )}

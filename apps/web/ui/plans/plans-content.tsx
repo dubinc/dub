@@ -66,6 +66,7 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
 
       <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
         <PopularQrInfo
+          authUser={authUser}
           qrCodeDemo={qrCodeDemo}
           demoProps={demoProps}
           mostScannedQR={mostScannedQR}
@@ -87,7 +88,7 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
           <PlansFeatures />
         </div>
       </div>
-      
+
       <FAQSection />
     </div>
   );
