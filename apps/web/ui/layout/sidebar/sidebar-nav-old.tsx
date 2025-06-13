@@ -11,7 +11,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { CreateProgramCard } from "./create-program-card";
 import UserDropdownOld from "./user-dropdown-old";
 
 export type NavItemCommon = {
@@ -127,8 +126,6 @@ export function SidebarNavOld<T extends Record<any, any>>({
                     </div>
                   ))}
                 </div>
-
-                {currentArea === "default" && <CreateProgramCard />}
 
                 <AnimatePresence>
                   {showNews && (

@@ -1,3 +1,5 @@
+"use client";
+
 import { unsortedLinks } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useFolder from "@/lib/swr/use-folder";
@@ -176,7 +178,7 @@ export const FolderDropdown = ({
 
   if (folderId && folderId !== "unsorted" && !selectedFolderData) {
     // if (true) {
-    return loadingPlaceholder ?? <FolderSwitcherPlaceholder />;
+    return loadingPlaceholder ?? <FolderDropdownPlaceholder />;
   }
 
   return (
@@ -286,6 +288,6 @@ export const FolderDropdown = ({
   );
 };
 
-const FolderSwitcherPlaceholder = () => {
+const FolderDropdownPlaceholder = () => {
   return <div className="h-10 w-40 animate-pulse rounded-lg bg-neutral-200" />;
 };

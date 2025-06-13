@@ -32,6 +32,7 @@ import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
+import { DubPartnersPopup } from "./dub-partners-popup";
 import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
 import { CursorRays } from "./icons/cursor-rays";
@@ -82,6 +83,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     icon: ConnectedDots4,
     href: slug ? `/${slug}/program` : "/program",
     active: pathname.startsWith(`/${slug}/program`),
+    popup: DubPartnersPopup,
 
     onClick: defaultProgramId
       ? () => {

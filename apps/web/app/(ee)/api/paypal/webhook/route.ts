@@ -20,24 +20,25 @@ export const POST = async (req: Request) => {
   const rawBody = await req.text();
   const headers = req.headers;
 
-  const isSignatureValid = await verifySignature({
-    event: rawBody,
-    headers,
-  });
-
-  if (!isSignatureValid) {
-    return new Response("Invalid signature", { status: 400 });
-  }
-
-  const body = JSON.parse(rawBody);
-
-  if (!relevantEvents.has(body.event_type)) {
-    return new Response("Unsupported event, skipping...");
-  }
-
-  console.info(`[Paypal] Webhook received: ${body.event_type}`, body);
-
   try {
+    const isSignatureValid = await verifySignature({
+      event: rawBody,
+      headers,
+    });
+
+    if (!isSignatureValid) {
+      throw new Error("Invalid signature");
+    }
+
+    const body = JSON.parse(rawBody);
+
+    if (!relevantEvents.has(body.event_type)) {
+      console.info(`[Paypal] Unsupported event: ${body.event_type}`);
+      return new Response("Unsupported event, skipping...");
+    }
+
+    console.info(`[Paypal] Webhook received: ${body.event_type}`, body);
+
     switch (body.event_type) {
       case "PAYMENT.PAYOUTS-ITEM.SUCCEEDED":
       case "PAYMENT.PAYOUTS-ITEM.BLOCKED":
@@ -52,6 +53,8 @@ export const POST = async (req: Request) => {
         break;
     }
   } catch (error) {
+    console.error(`[Paypal] ${error.message}`);
+
     await log({
       message: `Paypal webhook failed. Error: ${error.message}`,
       type: "errors",
