@@ -267,9 +267,15 @@ importers:
       json-2-csv:
         specifier: ^5.5.0
         version: 5.5.0
+      jsonwebtoken:
+        specifier: ^9.0.2
+        version: 9.0.2
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
+      ky:
+        specifier: ^1.8.1
+        version: 1.8.1
       lucide-react:
         specifier: ^0.462.0
         version: 0.462.0(react@18.2.0)
@@ -430,6 +436,9 @@ importers:
       '@types/js-cookie':
         specifier: ^3.0.6
         version: 3.0.6
+      '@types/jsonwebtoken':
+        specifier: ^9.0.9
+        version: 9.0.9
       '@types/ms':
         specifier: ^0.7.31
         version: 0.7.31
@@ -11963,6 +11972,13 @@ packages:
       '@types/node': 18.11.9
     dev: true
 
+  /@types/jsonwebtoken@9.0.9:
+    resolution: {integrity: sha512-uoe+GxEuHbvy12OUQct2X9JenKM3qAscquYymuQN4fMWG9DBQtykrQEFcAbVACF7qaLw9BePSodUL0kquqBJpQ==}
+    dependencies:
+      '@types/ms': 0.7.31
+      '@types/node': 18.11.9
+    dev: true
+
   /@types/lodash@4.17.15:
     resolution: {integrity: sha512-w/P33JFeySuhN6JLkysYUK2gEmy9kHHFN7E8ro0tkfmlDOgxBDzWEZ/J8cWA+fHqFevpswDTFZnDx+R9lbL6xw==}
     dev: false
@@ -17981,6 +17997,11 @@ packages:
 
   /konva@9.3.18:
     resolution: {integrity: sha512-ad5h0Y9phUrinBrKXyIISbURRHQO7Rx5cz7mAEEfdVCs45gDqRD8Y0I0nJRk8S6iqEbiRE87CEZu5GVSnU8oow==}
+    dev: false
+
+  /ky@1.8.1:
+    resolution: {integrity: sha512-7Bp3TpsE+L+TARSnnDpk3xg8Idi8RwSLdj6CMbNWoOARIrGrbuLGusV0dYwbZOm4bB3jHNxSw8Wk/ByDqJEnDw==}
+    engines: {node: '>=18'}
     dev: false
 
   /leac@0.6.0:

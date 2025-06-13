@@ -1,5 +1,6 @@
 import { parse } from "@/lib/middleware/utils";
 import { getUserCountry } from "@/lib/middleware/utils/get-user-country.ts";
+import { userSessionIdInit } from "core/services/cookie/user-session-id-init.service.ts";
 import { NextRequest, NextResponse } from "next/server";
 import EmbedMiddleware from "./embed";
 import NewLinkMiddleware from "./new-link";
@@ -23,6 +24,16 @@ export default async function AppMiddleware(req: NextRequest) {
   const isWorkspaceInvite =
     req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
+  // Initialize session ID for authenticated users
+  let sessionCookie = "";
+  if (user) {
+    console.log("user via token", user);
+    const sessionInit = userSessionIdInit(req, user.id);
+    if (sessionInit.needsUpdate) {
+      sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict;`;
+    }
+  }
+
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (
     !user &&
@@ -42,16 +53,17 @@ export default async function AppMiddleware(req: NextRequest) {
     !path.startsWith("/auth/reset-password/") &&
     !path.startsWith("/share/")
   ) {
+    const cookies = [`country=${country}; Path=/; Secure; SameSite=Strict;`];
+    if (sessionCookie) {
+      cookies.push(sessionCookie);
+    }
+    
     return NextResponse.rewrite(
       new URL(
         `/landing${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
         req.url,
       ),
-      {
-        headers: {
-          "Set-Cookie": `country=${country}; Path=/; Secure; SameSite=Strict;`,
-        },
-      },
+      { headers: { "Set-Cookie": cookies.join(", ") } },
     );
 
     // if there's a user
@@ -118,9 +130,12 @@ export default async function AppMiddleware(req: NextRequest) {
   }
 
   // otherwise, rewrite the path to /app
+  const finalCookies = [`country=${country}; Path=/; Secure; SameSite=Strict;`];
+  if (sessionCookie) {
+    finalCookies.push(sessionCookie);
+  }
+  
   return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
-    headers: {
-      "Set-Cookie": `country=${country}; Path=/; Secure; SameSite=Strict;`,
-    },
+    headers: { "Set-Cookie": finalCookies.join(", ") },
   });
 }

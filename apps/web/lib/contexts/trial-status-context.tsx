@@ -1,14 +1,10 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import {
-  createContext,
-  ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { useGetUserProfileQuery } from "core/api/user/user.hook.tsx";
+import { createContext, ReactNode, useContext, useState,
+    useCallback,
+    useEffect, } from "react";
 
 interface TrialStatusContextType {
   isTrialOver: boolean;
@@ -28,6 +24,8 @@ export function TrialStatusProvider({ children }: { children: ReactNode }) {
     | { data: null; status: "loading" };
 
   const [isTrialOver, setIsTrialOver] = useState<boolean>(false);
+
+  useGetUserProfileQuery();
 
   const checkTrialStatus = useCallback(async () => {
     if (!session?.user?.id) return;

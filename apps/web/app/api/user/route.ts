@@ -38,8 +38,9 @@ export const GET = withSession(async ({ session }) => {
         defaultPartnerId: true,
         dubPartnerId: true,
         passwordHash: true,
+        paymentData: true,
         createdAt: true,
-      },
+      } as any,
     }),
 
     prisma.account.findFirst({

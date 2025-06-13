@@ -1,3 +1,4 @@
+import { UserProps } from "@/lib/types.ts";
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { capitalizeFirstLetter } from "@/ui/plans/utils.ts";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
@@ -12,6 +13,7 @@ interface IPopularQrInfo {
   mostScannedQR: ResponseQrCode | null;
   isTrialOver: boolean;
   handleScroll: () => void;
+  authUser: UserProps;
 }
 
 export const PopularQrInfo: FC<IPopularQrInfo> = ({
@@ -20,7 +22,10 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
   mostScannedQR,
   isTrialOver,
   handleScroll,
+  authUser,
 }) => {
+  const hasSubscription = !!authUser?.paymentData?.paymentInfo?.subscriptionId;
+
   return (
     <Flex
       direction="column"
@@ -145,7 +150,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
 
       <Button
         className="block lg:hidden"
-        text={isTrialOver ? "Restore QR Code" : "Upgrade Plan"}
+        text={hasSubscription ? "Upgrade Plan" : "Restore QR Code"}
         onClick={handleScroll}
       />
     </Flex>

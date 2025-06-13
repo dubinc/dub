@@ -57,6 +57,7 @@ export const withSession = (handler: WithSessionHandler) =>
               name: true,
               email: true,
               isMachine: true,
+              paymentData: true,
             },
           });
           if (!user) {
@@ -100,6 +101,7 @@ export const withSession = (handler: WithSessionHandler) =>
               name: user.name || "",
               email: user.email || "",
               isMachine: user.isMachine,
+              paymentData: user?.paymentData || null,
             },
           };
         } else {
@@ -113,6 +115,9 @@ export const withSession = (handler: WithSessionHandler) =>
         }
 
         const searchParams = getSearchParams(req.url);
+
+        console.log("withSession session:", session);
+
         return await handler({ req, params, searchParams, session });
       } catch (error) {
         req.log.error(error);
