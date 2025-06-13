@@ -1,6 +1,5 @@
 "use client";
 
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useExportPartnersModal } from "@/ui/modals/export-partners-modal";
 import { useImportRewardfulModal } from "@/ui/modals/import-rewardful-modal";
@@ -11,8 +10,7 @@ import { ReactNode, useState } from "react";
 
 export function ImportExportButtons() {
   const router = useRouter();
-  const { program } = useProgram();
-  const { slug, flags } = useWorkspace();
+  const { slug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
 
   const { ImportRewardfulModal } = useImportRewardfulModal();
