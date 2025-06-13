@@ -179,7 +179,8 @@ export const CLAWBACK_REASONS = [
 ];
 
 export const createClawbackSchema = z.object({
+  workspaceId: z.string(),
   partnerId: z.string(),
   amount: z.number().min(0, "Amount must be positive."),
-  reason: z.string(),
+  description: z.enum(CLAWBACK_REASONS.map((r) => r.value) as [string, ...string[]]),
 });

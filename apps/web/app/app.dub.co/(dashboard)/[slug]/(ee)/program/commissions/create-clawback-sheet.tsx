@@ -1,3 +1,5 @@
+import { createClawbackAction } from "@/lib/actions/partners/create-clawback";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CLAWBACK_REASONS,
@@ -6,8 +8,10 @@ import {
 import { PartnerSelector } from "@/ui/partners/partner-selector";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
+import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 interface CreateClawbackSheetProps {
@@ -22,25 +26,52 @@ function CreateClawbackSheetContent(
   props: Omit<CreateClawbackSheetProps, "nested">,
 ) {
   const { setIsOpen } = props;
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const {
     control,
     handleSubmit,
-    formState: { errors },
-    setValue,
+    reset,
+    watch,
+    getValues,
+    formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<FormData>({
     defaultValues: {
-      partnerId: "",
-      amount: undefined,
-      reason: "",
+      description: "",
     },
   });
 
-  // TODO: Implement submit logic
-  const onSubmit = (data: FormData) => {
-    // TODO: Handle submit action
+  const [partnerId, amount, description] = watch([
+    "partnerId",
+    "amount",
+    "description",
+  ]);
+
+  const { executeAsync, isPending } = useAction(createClawbackAction, {
+    onSuccess: () => {
+      toast.success("A clawback has been created for the partner!");
+      setIsOpen(false);
+      mutatePrefix(`/api/commissions?workspaceId=${workspaceId}`);
+      const currentValues = getValues();
+      reset(currentValues);
+    },
+    onError({ error }) {
+      toast.error(error.serverError || "Failed to create clawback.");
+    },
+  });
+
+  const onSubmit = async (data: FormData) => {
+    if (!workspaceId || !defaultProgramId) {
+      return;
+    }
+
+    await executeAsync({
+      ...data,
+      workspaceId,
+    });
   };
+
+  const disableSubmitButton = !partnerId || !amount || !description;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -134,19 +165,19 @@ function CreateClawbackSheetContent(
 
           <div>
             <label
-              htmlFor="reason"
+              htmlFor="description"
               className="text-sm font-medium text-neutral-900"
             >
               Reason
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
               <Controller
-                name="reason"
+                name="description"
                 control={control}
                 rules={{ required: true }}
                 render={({ field }) => (
                   <select
-                    id="reason"
+                    id="description"
                     className="block w-full rounded-md border-neutral-300 pr-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                     value={field.value}
                     onChange={field.onChange}
@@ -162,9 +193,9 @@ function CreateClawbackSheetContent(
                   </select>
                 )}
               />
-              {errors.reason && (
+              {errors.description && (
                 <span className="text-xs text-red-600">
-                  {errors.reason.message}
+                  {errors.description.message}
                 </span>
               )}
             </div>
@@ -179,13 +210,15 @@ function CreateClawbackSheetContent(
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
+            disabled={isPending || isSubmitting || isSubmitSuccessful}
           />
           <Button
             type="submit"
             variant="primary"
             text="Create clawback"
             className="w-fit"
-            // disabled={...} // Optionally disable if fields are empty
+            loading={isPending || isSubmitting || isSubmitSuccessful}
+            disabled={disableSubmitButton}
           />
         </div>
       </div>
