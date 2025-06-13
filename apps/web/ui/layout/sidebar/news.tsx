@@ -38,7 +38,7 @@ export function News({ articles }: { articles: NewsArticle[] }) {
 
   return cards.length || showCompleted ? (
     <div
-      className="group overflow-hidden px-3 pb-3 pt-8"
+      className="group overflow-hidden px-3 pt-8"
       data-active={cardCount !== 0}
     >
       <div className="relative size-full">

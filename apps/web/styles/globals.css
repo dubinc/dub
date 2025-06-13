@@ -22,6 +22,15 @@ code .line::before {
   color: rgba(115, 138, 148, 0.4);
 }
 
+/* Hide the default number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
 /* Implement a custom scrollbar to preventing ugly looking scroll-overflows */
 .dub-scrollbar {
   scrollbar-width: auto;

@@ -15,7 +15,7 @@ export default async function ApplicationPage({
     include: ["rewards", "defaultDiscount"],
   });
 
-  if (!program || !program.defaultRewardId) {
+  if (!program) {
     notFound();
   }
 

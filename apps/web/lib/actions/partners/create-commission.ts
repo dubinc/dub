@@ -23,6 +23,8 @@ export const createCommissionAction = authActionClient
 
     const {
       partnerId,
+      date,
+      amount,
       linkId,
       invoiceId,
       customerId,
@@ -34,20 +36,39 @@ export const createCommissionAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [programEnrollment, customer] = await Promise.all([
+    const [{ partner, links }, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
         programId,
         partnerId,
       }),
 
-      prisma.customer.findUniqueOrThrow({
-        where: {
-          id: customerId,
-        },
-      }),
+      customerId
+        ? prisma.customer.findUniqueOrThrow({
+            where: {
+              id: customerId,
+            },
+          })
+        : Promise.resolve(null),
     ]);
 
-    const { partner, links } = programEnrollment;
+    // Create a custom commission
+    if (!linkId) {
+      await createPartnerCommission({
+        event: "custom",
+        partnerId,
+        programId,
+        amount: amount ?? 0,
+        quantity: 1,
+        createdAt: date ?? new Date(),
+      });
+
+      return;
+    }
+
+    // Create a lead or sale commission
+    if (!customerId || !customer) {
+      throw new Error("Customer not found.");
+    }
 
     if (customer.projectId !== workspace.id) {
       throw new Error(`Customer ${customerId} not found.`);

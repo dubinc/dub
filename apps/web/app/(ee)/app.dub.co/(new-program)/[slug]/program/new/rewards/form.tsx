@@ -77,11 +77,10 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [programType, rewardful, amount, maxDuration] = watch([
+  const [programType, rewardful, amount] = watch([
     "programType",
     "rewardful",
     "amount",
-    "maxDuration",
   ]);
 
   useEffect(() => {
