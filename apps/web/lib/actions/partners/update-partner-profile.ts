@@ -72,7 +72,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
       if (completedPayoutsCount > 0) {
         throw new Error(
-          "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support.",
+          "Since you've already received payouts on Dub, you cannot change your country or profile type. Please contact support to update those fields.",
         );
       }
 
