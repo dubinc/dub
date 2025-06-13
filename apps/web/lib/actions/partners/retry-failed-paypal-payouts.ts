@@ -68,17 +68,23 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
       throw new Error("This payout has no invoice ID.");
     }
 
-    await createPayPalBatchPayout({
-      invoiceId: `${payout.invoiceId}-${nanoid(10)}`,
-      payouts: [
-        {
-          id: payout.id,
-          amount: payout.amount,
-          program: payout.program,
-          partner: {
-            paypalEmail: partner.paypalEmail,
+    try {
+      await createPayPalBatchPayout({
+        invoiceId: `${payout.invoiceId}-${nanoid(10)}`,
+        payouts: [
+          {
+            id: payout.id,
+            amount: payout.amount,
+            program: payout.program,
+            partner: {
+              paypalEmail: partner.paypalEmail,
+            },
           },
-        },
-      ],
-    });
+        ],
+      });
+    } catch (error) {
+      throw new Error(
+        "Failed to retry payout. Please try again or contact support.",
+      );
+    }
   });

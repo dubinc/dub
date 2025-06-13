@@ -49,7 +49,6 @@ export async function createPayPalBatchPayout({
 
   if (!response.ok) {
     console.error("[PayPal] Batch payout creation failed", data);
-
     throw new Error(
       `[PayPal] Batch payout creation failed. Invoice ID: ${invoiceId}. Error: ${JSON.stringify(data)}`,
     );
