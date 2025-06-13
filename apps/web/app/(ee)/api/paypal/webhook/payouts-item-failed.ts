@@ -53,25 +53,26 @@ export async function payoutsItemFailed(event: any) {
       },
     }),
 
-    payout.partner.email &&
-      sendEmail({
-        subject: `Your recent partner payout from ${payout.program.name} failed`,
-        email: payout.partner.email,
-        react: PartnerPaypalPayoutFailed({
+    payout.partner.email
+      ? sendEmail({
+          subject: `Your recent partner payout from ${payout.program.name} failed`,
           email: payout.partner.email,
-          program: {
-            name: payout.program.name,
-          },
-          payout: {
-            amount: payout.amount,
-            failureReason,
-          },
-          partner: {
-            paypalEmail: payout.partner.paypalEmail!,
-          },
-        }),
-        variant: "notifications",
-      }),
+          react: PartnerPaypalPayoutFailed({
+            email: payout.partner.email,
+            program: {
+              name: payout.program.name,
+            },
+            payout: {
+              amount: payout.amount,
+              failureReason,
+            },
+            partner: {
+              paypalEmail: payout.partner.paypalEmail!,
+            },
+          }),
+          variant: "notifications",
+        })
+      : Promise.resolve(),
 
     log({
       message: `Paypal payout status changed to ${body.event_type} for invoice ${invoiceId} and partner ${paypalEmail}`,
