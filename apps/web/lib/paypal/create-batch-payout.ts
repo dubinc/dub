@@ -10,7 +10,7 @@ interface CreatePayPalBatchPayout {
   invoiceId: string;
 }
 
-// Create a batch payout for a partner
+// Create a batch payout for an array of payouts for a program
 export async function createPayPalBatchPayout({
   program,
   payouts,
