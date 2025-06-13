@@ -61,6 +61,7 @@ export const PayoutSchema = z.object({
   periodEnd: z.date().nullable(),
   createdAt: z.date(),
   paidAt: z.date().nullable(),
+  failureReason: z.string().nullish(),
 });
 
 export const PayoutResponseSchema = PayoutSchema.merge(
