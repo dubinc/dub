@@ -86,6 +86,7 @@ export function useAnalyticsFilters({
   partnerPage,
   dashboardProps,
   context,
+  hideUTM = false,
 }: {
   partnerPage?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
@@ -93,6 +94,7 @@ export function useAnalyticsFilters({
     ContextType<typeof AnalyticsContext>,
     "baseApiPath" | "queryString" | "selectedTab" | "requiresUpgrade"
   >;
+  hideUTM?: boolean;
 } = {}) {
   const { slug, programSlug } = useParams();
   const { plan } = useWorkspace();
@@ -315,6 +317,7 @@ export function useAnalyticsFilters({
     cacheOnly: !isRequested("utm_content"),
     context,
   });
+
   const utmData = {
     utm_source: utmSources,
     utm_medium: utmMediums,
@@ -741,22 +744,24 @@ export function useAnalyticsFilters({
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
-      ...UTM_PARAMETERS.filter(({ key }) => key !== "ref").map(
-        ({ key, label, icon: Icon }) => ({
-          key,
-          icon: Icon,
-          label: `UTM ${label}`,
-          getOptionIcon: (value) => (
-            <Icon display={value} className="h-4 w-4" />
-          ),
-          options:
-            utmData[key]?.map((dt) => ({
-              value: dt[key],
-              label: dt[key],
-              right: nFormatter(dt.count, { full: true }),
-            })) ?? null,
-        }),
-      ),
+      ...(hideUTM
+        ? []
+        : UTM_PARAMETERS.filter(({ key }) => key !== "ref").map(
+            ({ key, label, icon: Icon }) => ({
+              key,
+              icon: Icon,
+              label: `UTM ${label}`,
+              getOptionIcon: (value) => (
+                <Icon display={value} className="h-4 w-4" />
+              ),
+              options:
+                utmData[key]?.map((dt) => ({
+                  value: dt[key],
+                  label: dt[key],
+                  right: nFormatter(dt.count, { full: true }),
+                })) ?? null,
+            }),
+          )),
     ],
     [
       dashboardProps,
