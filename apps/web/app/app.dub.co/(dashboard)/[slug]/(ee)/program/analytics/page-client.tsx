@@ -2,8 +2,13 @@
 
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { IntervalOptions } from "@/lib/analytics/types";
+import { editQueryString } from "@/lib/analytics/utils";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { useAnalyticsFilters } from "@/ui/analytics/use-analytics-filters";
+import { useAnalyticsQuery } from "@/ui/analytics/use-analytics-query";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { useRouterStuff } from "@dub/ui";
+import { Filter, useRouterStuff } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { createContext } from "react";
 import { AnalyticsChart } from "./analytics-chart";
 
@@ -12,12 +17,14 @@ type ProgramAnalyticsContextType = {
   end?: string;
   interval?: IntervalOptions;
   event: "sales" | "leads" | "clicks";
+  queryString?: string;
 };
 
 export const ProgramAnalyticsContext =
   createContext<ProgramAnalyticsContextType>({ event: "sales" });
 
 export function ProgramAnalyticsPageClient() {
+  const { defaultProgramId } = useWorkspace();
   const { searchParamsObj } = useRouterStuff();
 
   const {
@@ -27,15 +34,70 @@ export function ProgramAnalyticsPageClient() {
     event = "sales",
   } = searchParamsObj as Partial<ProgramAnalyticsContextType>;
 
+  const queryString = editQueryString(
+    useAnalyticsQuery({
+      defaultInterval: DUB_PARTNERS_ANALYTICS_INTERVAL,
+    }).queryString,
+    {
+      programId: defaultProgramId!,
+    },
+  );
+
+  const {
+    filters,
+    activeFilters,
+    setSearch,
+    setSelectedFilter,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    onOpenFilter,
+    streaming,
+    activeFiltersWithStreaming,
+  } = useAnalyticsFilters({
+    context: {
+      baseApiPath: "/api/analytics",
+      queryString,
+      selectedTab: event,
+    },
+  });
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-2">
-        <SimpleDateRangePicker align="start" className="w-fit" />
+      <div>
+        <div className="flex items-center gap-2">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onOpenFilter={onOpenFilter}
+            askAI
+          />
+          <SimpleDateRangePicker align="start" className="w-fit" />
+        </div>
+        <div>
+          <div
+            className={cn(
+              "transition-[height] duration-[300ms]",
+              streaming || activeFilters.length ? "h-3" : "h-0",
+            )}
+          />
+          <Filter.List
+            filters={filters}
+            activeFilters={activeFiltersWithStreaming}
+            onRemove={onRemove}
+            onRemoveAll={onRemoveAll}
+          />
+        </div>
       </div>
       <div className="border-border-subtle rounded-2xl border">
         <div className="p-6">
           <ProgramAnalyticsContext.Provider
-            value={{ start, end, interval, event }}
+            value={{ start, end, interval, event, queryString }}
           >
             <AnalyticsChart />
           </ProgramAnalyticsContext.Provider>

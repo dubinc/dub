@@ -1,6 +1,5 @@
-import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
-import useWorkspace from "@/lib/swr/use-workspace";
+import { editQueryString } from "@/lib/analytics/utils";
 import { Combobox, useRouterStuff } from "@dub/ui";
 import {
   Areas,
@@ -24,12 +23,13 @@ const chartOptions = [
 ];
 
 export function AnalyticsChart() {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const id = useId();
 
   const { queryParams } = useRouterStuff();
 
-  const { start, end, interval, event } = useContext(ProgramAnalyticsContext);
+  const { start, end, interval, event, queryString } = useContext(
+    ProgramAnalyticsContext,
+  );
 
   const { data, error } = useSWR<
     {
@@ -40,17 +40,9 @@ export function AnalyticsChart() {
       saleAmount: number;
     }[]
   >(
-    `/api/analytics?${new URLSearchParams({
-      workspaceId: workspaceId!,
-      programId: defaultProgramId!,
+    `/api/analytics?${editQueryString(queryString ?? "", {
       event: "composite",
       groupBy: "timeseries",
-      ...(start && end
-        ? {
-            start: new Date(start).toISOString(),
-            end: new Date(end).toISOString(),
-          }
-        : { interval: interval ?? DUB_PARTNERS_ANALYTICS_INTERVAL }),
     })}`,
     fetcher,
   );
