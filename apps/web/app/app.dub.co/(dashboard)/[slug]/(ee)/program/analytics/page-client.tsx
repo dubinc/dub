@@ -66,7 +66,7 @@ export function ProgramAnalyticsPageClient() {
   });
 
   return (
-    <div className="flex flex-col gap-6 pb-12">
+    <div className="flex flex-col gap-3 pb-12">
       <div>
         <div className="flex items-center gap-2">
           <Filter.Select
