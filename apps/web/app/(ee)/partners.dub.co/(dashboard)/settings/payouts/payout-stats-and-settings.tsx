@@ -1,6 +1,5 @@
 "use client";
 
-import { retryFailedPaypalPayoutsAction } from "@/lib/actions/partners/retry-failed-paypal-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
@@ -10,16 +9,12 @@ import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import { Tooltip } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
-import { useAction } from "next-safe-action/hooks";
 
 export function PayoutStatsAndSettings() {
   const { partner } = usePartnerProfile();
   const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
   });
-
-  const { executeAsync: retryFailedPaypalPayouts, isPending: isRetrying } =
-    useAction(retryFailedPaypalPayoutsAction);
 
   return (
     <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
@@ -31,8 +26,6 @@ export function PayoutStatsAndSettings() {
           {partner && !partner.payoutsEnabledAt && (
             <ConnectPayoutButton className="h-8 w-fit px-3" />
           )}
-
-          <button onClick={() => retryFailedPaypalPayouts()}>Retry</button>
         </div>
         <div className="flex items-end justify-between gap-5">
           <div className="mt-2 flex items-center gap-2">
