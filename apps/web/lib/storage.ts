@@ -21,6 +21,7 @@ class StorageClient {
 
   async upload(key: string, body: Blob | Buffer | string, opts?: imageOptions) {
     let uploadBody;
+
     if (typeof body === "string") {
       if (this.isBase64(body)) {
         uploadBody = this.base64ToArrayBuffer(body, opts);

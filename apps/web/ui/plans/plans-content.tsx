@@ -2,6 +2,7 @@
 
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import useQrs from "@/lib/swr/use-qrs.ts";
+import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { PlansHeading } from "@/ui/plans/components/plans-heading.tsx";
 import { PopularQrInfo } from "@/ui/plans/components/popular-qr-info.tsx";
@@ -199,7 +200,7 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
               size="4"
               className="text-neutral"
             >
-              Choose your plan
+                {isTrialOver ? "Choose your plan" : "Update your plan"}
             </Heading>
 
             <div className="border-border-500 hidden h-px w-full border-t lg:block" />
@@ -237,7 +238,9 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
                     handleCheckoutSuccess={handlePaymentSuccess}
                     handleCheckoutError={handleCheckoutError}
                     submitBtn={{
-                      text: `Subscribe to ${selectedPlan.name}`,
+                        text: isTrialOver
+                            ? `Subscribe to ${selectedPlan.name}`
+                            : "Update plan",
                     }}
                   />
                 )}
@@ -250,17 +253,18 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
                 )}
               </div>
 
-              <Text as="p" size="1" className="text-center text-neutral-800">
-                🔒 Secure payment • Cancel anytime • No hidden fees
-              </Text>
-            </div>
-          </Flex>
-
-          <div className="block pb-6 lg:hidden">
-            <PlansFeatures />
+            <Text as="p" size="1" className="text-center text-neutral-800">
+              🔒 Secure payment • Cancel anytime • No hidden fees
+            </Text>
           </div>
+        </Flex>
+
+        <div className="block pb-6 lg:hidden">
+          <PlansFeatures />
         </div>
       </div>
+      <FAQSection />
+    </div>
 
       <Modal showModal={isSubscriptionCreation} preventDefaultClose>
         <div className="flex flex-col items-center gap-2 p-4">

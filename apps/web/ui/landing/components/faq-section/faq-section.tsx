@@ -15,7 +15,7 @@ export const FAQSection = () => {
   const { isMobile } = useMediaQuery();
 
   return (
-    <section className="mx-auto flex max-w-[1172px] flex-col justify-between gap-2 px-3 pt-3 lg:flex-row lg:gap-6 lg:pt-8">
+    <section className="mx-auto flex w-full max-w-[1172px] flex-col justify-between gap-2 px-3 pt-3 lg:flex-row lg:gap-6 lg:pt-8">
       <Heading
         as="h2"
         weight="bold"

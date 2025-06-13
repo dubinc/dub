@@ -1,5 +1,6 @@
 "use client";
 
+import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { QRCardAnalyticsBadge } from "@/ui/qr-code/qr-code-card-analytics-badge.tsx";
@@ -20,6 +21,7 @@ interface QrCodeTitleColumnProps {
   builtQrCodeObject: QRCodeStyling | null;
   currentQrTypeInfo: QRType;
   isTrialOver?: boolean;
+  setShowTrialExpiredModal?: (show: boolean) => void;
 }
 
 export function QrCodeTitleColumn({
@@ -28,68 +30,91 @@ export function QrCodeTitleColumn({
   builtQrCodeObject,
   currentQrTypeInfo,
   isTrialOver,
+  setShowTrialExpiredModal,
 }: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, archived, title } =
     qrCode?.link ?? {};
-  const { width } = useMediaQuery();
+  const { isMobile, width } = useMediaQuery();
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const { QRPreviewModal, setShowQRPreviewModal } = useQRPreviewModal({
+    canvasRef,
+    qrCode: builtQrCodeObject,
+    width: isMobile ? 300 : 200,
+    height: isMobile ? 300 : 200,
+  });
 
   return (
-    <div
-      ref={containerRef}
-      className="flex h-full min-w-0 flex-row items-start gap-4"
-    >
-      <div className="flex flex-col gap-2">
-        <QRCanvas
-          ref={canvasRef}
-          qrCode={builtQrCodeObject}
-          width={width! < 1024 ? 90 : 64}
-          height={width! < 1024 ? 90 : 64}
-        />
-        {archived || isTrialOver ? (
-          <QRCardStatus className="lg:hidden" archived />
-        ) : (
-          <QRCardAnalyticsBadge className="lg:hidden" qrCode={qrCode} />
-        )}
-      </div>
-
-      <div className="flex h-full w-full min-w-0 flex-col gap-1.5 lg:flex-row lg:justify-start lg:gap-8 xl:gap-12">
-        <QrCardType
-          className="flex lg:hidden"
-          currentQrTypeInfo={currentQrTypeInfo}
-        />
-
-        <div className="flex min-w-0 flex-col justify-center gap-1 whitespace-nowrap lg:w-[120px] lg:shrink-0">
-          <Text
-            as="span"
-            size="2"
-            weight="bold"
-            className="hidden whitespace-nowrap lg:block"
+    <>
+      <QRPreviewModal />
+      <div
+        ref={containerRef}
+        className="flex h-full min-w-0 flex-row items-start gap-4"
+      >
+        <div className="flex flex-col gap-2">
+          <div
+            className="cursor-pointer"
+            onClick={() => setShowQRPreviewModal(true)}
           >
-            QR Name
-          </Text>
-          <QRCardTitle qrCode={qrCode} />
-        </div>
-
-        <div className="order-last flex min-w-0 flex-col justify-center gap-1 lg:order-none lg:flex-1 lg:shrink-0">
-          <Text
-            as="span"
-            size="2"
-            weight="bold"
-            className="hidden whitespace-nowrap lg:block"
-          >
-            {currentQrTypeInfo.yourContentColumnTitle}
-          </Text>
-          <QRCardDetails qrCode={qrCode} />
-        </div>
-
-        <div
-          className={cn(
-            "flex min-w-0 flex-col items-start justify-center gap-1 lg:flex-1 lg:shrink-0",
+            <QRCanvas
+              ref={canvasRef}
+              qrCode={builtQrCodeObject}
+              width={width! < 1024 ? 90 : 64}
+              height={width! < 1024 ? 90 : 64}
+            />
+          </div>
+          {archived || isTrialOver ? (
+            <QRCardStatus className="lg:hidden" archived />
+          ) : (
+            <QRCardAnalyticsBadge className="lg:hidden" qrCode={qrCode} />
           )}
-        >
-          {!isTrialOver && (
+        </div>
+
+        <div className="flex h-full w-full min-w-0 flex-col gap-1.5 lg:flex-row lg:justify-start lg:gap-8 xl:gap-12">
+          <QrCardType
+            className="flex lg:hidden"
+            currentQrTypeInfo={currentQrTypeInfo}
+          />
+
+          <div className="flex min-w-0 flex-col justify-center gap-1 whitespace-nowrap lg:w-[120px] lg:shrink-0">
+            <Text
+              as="span"
+              size="2"
+              weight="bold"
+              className="hidden whitespace-nowrap lg:block"
+            >
+              QR Name
+            </Text>
+            <QRCardTitle
+              qrCode={qrCode}
+              isTrialOver={isTrialOver}
+              setShowTrialExpiredModal={setShowTrialExpiredModal}
+            />
+          </div>
+
+          <div className="order-last flex min-w-0 flex-col justify-center gap-1 lg:order-none lg:flex-1 lg:shrink-0">
+            <Text
+              as="span"
+              size="2"
+              weight="bold"
+              className="hidden whitespace-nowrap lg:block"
+            >
+              {currentQrTypeInfo.yourContentColumnTitle}
+            </Text>
+            <QRCardDetails
+              qrCode={qrCode}
+              isTrialOver={isTrialOver}
+              setShowTrialExpiredModal={setShowTrialExpiredModal}
+            />
+          </div>
+
+          <div
+            className={cn(
+              "flex min-w-0 flex-col items-start justify-center gap-1",
+              "lg:hidden",
+              "xl:flex xl:flex-1 xl:shrink-0",
+            )}
+          >
             <>
               <Text
                 as="span"
@@ -103,9 +128,9 @@ export function QrCodeTitleColumn({
                 <span className="text-neutral-500">{timeAgo(createdAt)}</span>
               </Tooltip>
             </>
-          )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

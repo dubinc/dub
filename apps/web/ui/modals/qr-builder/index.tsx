@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 
 export type QRBuilderData = {
+  title: string;
   styles: Options;
   frameOptions: {
     id: string;
@@ -82,7 +83,7 @@ export function QRBuilderModal({
     <Modal
       showModal={showQRBuilderModal}
       setShowModal={setShowQRBuilderModal}
-      className="border-border-500 h-fit max-w-screen-lg transition-[height] duration-[300ms]"
+      className="border-border-500 h-full max-w-screen-lg transition-[height] duration-[300ms] md:h-fit"
     >
       <div className="flex flex-col gap-2">
         {/* header */}
@@ -134,7 +135,10 @@ export function CreateQRButton(props: CreateQRButtonProps) {
   );
 }
 
-export function useQRBuilder(data?: { props?: ResponseQrCode; initialStep?: number }) {
+export function useQRBuilder(data?: {
+  props?: ResponseQrCode;
+  initialStep?: number;
+}) {
   const { props, initialStep } = data ?? {};
 
   const [isProcessing, setIsProcessing] = useState(false);

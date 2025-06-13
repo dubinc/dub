@@ -54,9 +54,9 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
               <Flex
                 align="center"
                 justify="center"
-                className="border-secondary rounded-[60px] border bg-[rgba(0,122,255,0.04)] px-2 py-1"
+                className="border-primary rounded-[60px] border bg-[rgba(0,122,255,0.04)] px-2 py-1"
               >
-                <Text as="span" size="1" className="text-secondary font-medium">
+                <Text as="span" size="1" className="text-primary font-medium">
                   {plan.savings}
                 </Text>
               </Flex>
@@ -107,8 +107,8 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
 
           <div className="flex w-[100px] justify-center">
             {plan.savings && (
-              <div className="border-secondary flex flex-shrink-0 items-center justify-center rounded-[60px] border bg-[rgba(0,122,255,0.04)] px-3 py-1">
-                <span className="text-secondary whitespace-nowrap text-sm font-medium leading-5">
+              <div className="border-primary flex flex-shrink-0 items-center justify-center rounded-[60px] border bg-[rgba(0,122,255,0.04)] px-3 py-1">
+                <span className="text-primary whitespace-nowrap text-sm font-medium leading-5">
                   {plan.savings}
                 </span>
               </div>

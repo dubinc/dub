@@ -1,11 +1,14 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useGetUserProfileQuery } from "core/api/user/user.hook.tsx";
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useState,
+    useCallback,
+    useEffect, } from "react";
 
 interface TrialStatusContextType {
   isTrialOver: boolean;
-  setIsTrialOver: (value: boolean) => void;
+  setIsTrialOver: (value: boolean) => void; // TODO: remove it, still used for testing
 }
 
 const TrialStatusContext = createContext<TrialStatusContextType | undefined>(
@@ -13,9 +16,37 @@ const TrialStatusContext = createContext<TrialStatusContextType | undefined>(
 );
 
 export function TrialStatusProvider({ children }: { children: ReactNode }) {
-  const [isTrialOver, setIsTrialOver] = useState<boolean>(true);
+  const { data: session, status } = useSession() as
+    | {
+        data: { user: { id: string } };
+        status: "authenticated";
+      }
+    | { data: null; status: "loading" };
+
+  const [isTrialOver, setIsTrialOver] = useState<boolean>(false);
 
   useGetUserProfileQuery();
+
+  const checkTrialStatus = useCallback(async () => {
+    if (!session?.user?.id) return;
+
+    try {
+      const response = await fetch("/api/user/trial-status");
+      const data = await response.json();
+
+      if (data.isTrialOver) {
+        setIsTrialOver(true);
+      }
+    } catch (error) {
+      console.error("Error checking trial status:", error);
+    }
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (status === "loading") return;
+
+    checkTrialStatus();
+  }, [status, checkTrialStatus]);
 
   return (
     <TrialStatusContext.Provider value={{ isTrialOver, setIsTrialOver }}>

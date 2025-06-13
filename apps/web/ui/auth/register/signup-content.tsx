@@ -1,7 +1,7 @@
 "use client";
 
 import { cn, truncate } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect } from "react";
 import {
@@ -20,21 +20,13 @@ type SignUpContentProps = {
   switchAuthType?: (type: AuthType) => void;
 };
 
-const contentVariants = {
-  hidden: { opacity: 0, x: 20 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: "easeOut" } },
-  exit: { opacity: 0, x: -20, transition: { duration: 0.2 } },
-};
-
 function SignUpStep({ authModal = false }) {
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      variants={contentVariants}
-    >
-      <div
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
         className={cn(
           "border-border-500 border-b bg-white pb-6 pt-8 text-center",
           {
@@ -51,15 +43,18 @@ function SignUpStep({ authModal = false }) {
             Create your free account to download your QR code instantly.
           </p>
         )}
-      </div>
-      <div
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
         className={cn("bg-neutral-50 px-4 py-8 sm:px-16", {
           "px-0 py-0 sm:px-0": authModal,
         })}
       >
         <SignUpForm authModal={authModal} />
-      </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 }
 
@@ -67,13 +62,11 @@ function VerifyStep({ authModal = false, setAuthModalMessage }) {
   const { email } = useRegisterContext();
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      variants={contentVariants}
-    >
-      <div
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
         className={cn(
           "border-border-500 flex flex-col items-center justify-center gap-3 border-b bg-white px-4 pb-6 pt-8 text-center sm:px-16",
           {
@@ -88,8 +81,11 @@ function VerifyStep({ authModal = false, setAuthModalMessage }) {
             {truncate(email, 30)}
           </strong>
         </p>
-      </div>
-      <div
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
         className={cn("bg-neutral-50 px-4 py-8 sm:px-16", {
           "px-0 py-0 sm:px-0": authModal,
         })}
@@ -98,8 +94,8 @@ function VerifyStep({ authModal = false, setAuthModalMessage }) {
           authModal={authModal}
           setAuthModalMessage={setAuthModalMessage}
         />
-      </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 }
 
@@ -128,22 +124,19 @@ function RegisterContent({
             !authModal,
         })}
       >
-        <AnimatePresence mode="wait">
-          {step === ERegistrationStep.SIGNUP ? (
-            <SignUpStep key="signup" authModal={authModal} />
-          ) : (
-            <VerifyStep
-              key="verify"
-              authModal={authModal}
-              setAuthModalMessage={setAuthModalMessage}
-            />
-          )}
-        </AnimatePresence>
+        {step === ERegistrationStep.SIGNUP ? (
+          <SignUpStep authModal={authModal} />
+        ) : (
+          <VerifyStep
+            authModal={authModal}
+            setAuthModalMessage={setAuthModalMessage}
+          />
+        )}
       </motion.div>
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
+        transition={{ duration: 0.3, delay: 0.3 }}
         className={cn("mt-4 text-center text-sm text-neutral-500", {
           "text-xs": authModal && step === ERegistrationStep.VERIFY,
         })}

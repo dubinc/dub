@@ -3,7 +3,7 @@ import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
-import { sendEmail } from "@dub/email";
+import { sendEmail, MAILCHIMP_TEMPLATES } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
 import { LoginLink } from "@dub/email/templates/login-link";
 import { WelcomeEmail } from "@dub/email/templates/welcome-email";
@@ -56,8 +56,10 @@ export const authOptions: NextAuthOptions = {
           sendEmail({
             email: identifier,
             subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-            // react: LoginLink({ url, email: identifier }),
-            text: url,
+            template: MAILCHIMP_TEMPLATES.MAGIC_LINK,
+            vars: [
+              { name: "url", content: url },
+            ],
           }).then((data) => {
             console.log('login email sent');
             console.log(data);

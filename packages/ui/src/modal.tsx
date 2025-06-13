@@ -75,7 +75,7 @@ export function Modal({
               className,
             )}
           >
-            <div className="scrollbar-hide flex-1 overflow-y-auto rounded-t-[10px] bg-inherit">
+            <div className="scrollbar-hide flex-1 basis-auto overflow-y-auto rounded-t-[10px] bg-inherit">
               <VisuallyHidden.Root>
                 <Drawer.Title>Modal</Drawer.Title>
                 <Drawer.Description>This is a modal</Drawer.Description>
