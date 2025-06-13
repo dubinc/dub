@@ -200,7 +200,7 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
               size="4"
               className="text-neutral"
             >
-                {isTrialOver ? "Choose your plan" : "Update your plan"}
+              {isTrialOver ? "Choose your plan" : "Update your plan"}
             </Heading>
 
             <div className="border-border-500 hidden h-px w-full border-t lg:block" />
@@ -238,9 +238,9 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
                     handleCheckoutSuccess={handlePaymentSuccess}
                     handleCheckoutError={handleCheckoutError}
                     submitBtn={{
-                        text: isTrialOver
-                            ? `Subscribe to ${selectedPlan.name}`
-                            : "Update plan",
+                      text: isTrialOver
+                        ? `Subscribe to ${selectedPlan.name}`
+                        : "Update plan",
                     }}
                   />
                 )}
@@ -253,18 +253,18 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
                 )}
               </div>
 
-            <Text as="p" size="1" className="text-center text-neutral-800">
-              🔒 Secure payment • Cancel anytime • No hidden fees
-            </Text>
-          </div>
-        </Flex>
+              <Text as="p" size="1" className="text-center text-neutral-800">
+                🔒 Secure payment • Cancel anytime • No hidden fees
+              </Text>
+            </div>
+          </Flex>
 
-        <div className="block pb-6 lg:hidden">
-          <PlansFeatures />
+          <div className="block pb-6 lg:hidden">
+            <PlansFeatures />
+          </div>
         </div>
+        <FAQSection />
       </div>
-      <FAQSection />
-    </div>
 
       <Modal showModal={isSubscriptionCreation} preventDefaultClose>
         <div className="flex flex-col items-center gap-2 p-4">
