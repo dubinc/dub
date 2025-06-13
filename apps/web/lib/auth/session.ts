@@ -57,6 +57,7 @@ export const withSession = (handler: WithSessionHandler) =>
               name: true,
               email: true,
               isMachine: true,
+              paymentData: true,
             },
           });
           if (!user) {
@@ -100,6 +101,7 @@ export const withSession = (handler: WithSessionHandler) =>
               name: user.name || "",
               email: user.email || "",
               isMachine: user.isMachine,
+              paymentData: user?.paymentData || null,
             },
           };
         } else {

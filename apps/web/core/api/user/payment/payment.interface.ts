@@ -1,4 +1,4 @@
-import { IPaymentPlanPrice } from "core/integration/payment/config";
+import { TPaymentPlan } from "core/integration/payment/config";
 import { ICreatePrimerClientPaymentRes } from "core/integration/payment/server";
 import { IDataRes } from "core/interfaces/common.interface.ts";
 
@@ -14,8 +14,7 @@ export interface ICreateSessionRes extends IDataRes {
 }
 
 export interface ICreatePaymentBody extends Partial<ICreateSessionBody> {
-  paymentPlan: IPaymentPlanPrice["paymentPlan"];
-  isFromApp?: boolean;
+  paymentPlan: TPaymentPlan;
 }
 
 export interface ICreatePaymentRes extends IDataRes {

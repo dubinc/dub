@@ -1,7 +1,14 @@
+import { ICustomerBody, TPaymentPlan } from "core/integration/payment/config";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
 import { DubApiError } from "../api/errors";
 import { authOptions } from "./options";
+
+export type TPaymentInfo = {
+  paymentPlan: TPaymentPlan;
+  paymentInfo?: ICustomerBody["paymentInfo"];
+  currency: ICustomerBody["currency"];
+};
 
 export interface Session {
   user: {
@@ -13,6 +20,7 @@ export interface Session {
     defaultWorkspace?: string;
     defaultPartnerId?: string;
     dubPartnerId?: string;
+    paymentData?: any;
   };
 }
 

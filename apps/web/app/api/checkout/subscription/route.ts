@@ -2,6 +2,7 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { withSession } from "@/lib/auth";
+import { prisma } from "@dub/prisma";
 import {
   ICreateSubscriptionBody,
   ICreateSubscriptionRes,
@@ -102,6 +103,7 @@ export const POST = withSession(
       sub_order_country: user.currency?.countryCode || null,
       ipAddress: getUserIp(headerStore)!,
       subscriptionType: `APP_SUBSCRIPTION`,
+      application: `${process.env.NEXT_PUBLIC_PAYMENT_ENV}`,
       //**** fields for subscription system ****//
     };
 
@@ -149,25 +151,22 @@ export const POST = withSession(
         },
         sessions: {
           ...user.sessions,
-          ...body.metadata,
         },
       });
 
       await Promise.all([
-        // supabase.from("users").upsert(
-        //   [
-        //     {
-        //       id: user.id,
-        //       email: (user.email as string).toLowerCase(),
-        //       external_subscription_id: tokenOnboardingData.subscription.id,
-        //       payment_info: {
-        //         paymentInfo: updatedUser.paymentInfo,
-        //         currency: updatedUser.currency,
-        //       },
-        //     },
-        //   ],
-        //   { onConflict: "email" },
-        // ),
+        prisma.user.update({
+          where: {
+            id: authSession.user.id,
+          },
+          data: {
+            paymentData: {
+              paymentInfo: updatedUser.paymentInfo,
+              currency: updatedUser.currency,
+              sessions: updatedUser.sessions,
+            },
+          },
+        }),
         // sendEmail(emailTemplates.SUBSCRIPTION_CREATE, user.email as string, [
         //   {
         //     name: 'trial_period',
