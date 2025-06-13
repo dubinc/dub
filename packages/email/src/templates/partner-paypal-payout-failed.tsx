@@ -33,7 +33,7 @@ export default function PartnerPaypalPayoutFailed({
   };
   payout: {
     amount: number; // in cents
-    failureReason: string;
+    failureReason?: string;
   };
   partner: {
     paypalEmail: string;
@@ -49,7 +49,7 @@ export default function PartnerPaypalPayoutFailed({
     <Html>
       <Head />
       <Preview>
-        Action Required - Your recent partner payout from {program.name} failed
+        Action Required - Your recent payout from {program.name} failed
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -59,11 +59,11 @@ export default function PartnerPaypalPayoutFailed({
             </Section>
 
             <Heading className="mx-0 my-8 p-0 text-lg font-medium text-black">
-              Your recent partner payout from {program.name} failed
+              Your recent payout from {program.name} failed
             </Heading>
 
             <Text>
-              We attempted to send your recent affiliate payout of{" "}
+              We attempted to send your recent payout of{" "}
               <span className="font-semibold text-purple-600">
                 {amountFormatted}
               </span>{" "}
@@ -71,17 +71,26 @@ export default function PartnerPaypalPayoutFailed({
               <span className="font-semibold text-purple-600">
                 {partner.paypalEmail}
               </span>
-              , but the transaction failed due to the following reason:
+              , but the transaction failed.
             </Text>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              {payout.failureReason}
-            </Text>
+            {payout.failureReason && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                Reason:{" "}
+                <span className="font-semibold italic text-neutral-800">
+                  {payout.failureReason}
+                </span>
+              </Text>
+            )}
 
             <Text>
-              To resolve this issue, please update your PayPal account details
-              and retry the payout from your Payout Settings at your earliest
-              convenience.
+              To resolve this, please verify that your PayPal account is active
+              and able to receive payments. Please update your account details
+              at your earliest convenience and retry the payout from your{" "}
+              <Link href="https://partners.dub.co/settings/payouts">
+                Payout settings
+              </Link>
+              .
             </Text>
 
             <Section className="my-8">
@@ -89,7 +98,7 @@ export default function PartnerPaypalPayoutFailed({
                 className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
                 href="https://partners.dub.co/settings/payouts"
               >
-                Payout Settings
+                Payout settings
               </Link>
             </Section>
 
