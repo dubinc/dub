@@ -11,6 +11,7 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
+  DynamicTooltipWrapper,
   Filter,
   StatusBadge,
   Table,
@@ -120,7 +121,18 @@ const PayoutTableInner = memo(
 
             return badge ? (
               <StatusBadge icon={badge.icon} variant={badge.variant}>
-                {badge.label}
+                <DynamicTooltipWrapper
+                  tooltipProps={
+                    row.original.status === "failed" &&
+                    row.original.failureReason
+                      ? {
+                          content: row.original.failureReason,
+                        }
+                      : undefined
+                  }
+                >
+                  {badge.label}
+                </DynamicTooltipWrapper>
               </StatusBadge>
             ) : (
               "-"
