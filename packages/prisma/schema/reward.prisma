@@ -30,6 +30,7 @@ model Reward {
   saleEnrollments  ProgramEnrollment[] @relation("SaleRewardEnrollments")
 
   @@index([programId, event])
+  @@index(event) // used in aggregate-clicks cron job
 }
 
 // TODO: Remove this table after https://github.com/dubinc/dub/pull/2504 merges
