@@ -225,11 +225,8 @@ function RewardSheetContent({
 
     // Only include partner-eligibility if:
     // 1. No existing reward (new creation), OR
-    // 2. Existing reward with specific partners selected
-    const shouldOpenPartnerEligibility =
-      !reward || (reward && (reward.partnersCount ?? 0) > 0);
-
-    if (!isDefault && shouldOpenPartnerEligibility) {
+    // 2. Existing, non-default reward
+    if (!reward || !isDefault) {
       baseValues.push("partner-eligibility");
     }
 

@@ -32,7 +32,7 @@ model Reward {
   @@index([programId, event])
 }
 
-// TODO: Remove this table
+// TODO: Remove this table after https://github.com/dubinc/dub/pull/2504 merges
 model PartnerReward {
   id                  String @id @default(cuid())
   programEnrollmentId String
