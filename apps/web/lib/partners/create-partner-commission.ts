@@ -42,116 +42,120 @@ export const createPartnerCommission = async ({
   currency?: string;
   createdAt?: Date;
 }) => {
-  if (!reward && event !== "custom") {
-    reward = await determinePartnerReward({
-      event: event as EventType,
-      partnerId,
-      programId,
-    });
-  }
-
-  if (!reward) {
-    console.log(
-      `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
-    );
-    return;
-  }
-
+  let earnings = 0;
   let status: CommissionStatus = "pending";
 
-  if (event === "sale") {
-    const firstCommission = await prisma.commission.findFirst({
-      where: {
-        partnerId,
-        customerId,
-        type: "sale",
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
-
-    if (firstCommission) {
-      // for reward types with a max duration, we need to check if the first commission is within the max duration
-      // if its beyond the max duration, we should not create a new commission
-      if (typeof reward?.maxDuration === "number") {
-        // One-time sale reward
-        if (reward?.maxDuration === 0) {
-          console.log(
-            `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
-          );
-          return;
-        }
-
-        // Recurring sale reward
-        else {
-          const monthsDifference = differenceInMonths(
-            new Date(),
-            firstCommission.createdAt,
-          );
-
-          if (monthsDifference >= reward.maxDuration) {
-            console.log(
-              `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
-            );
-            return;
-          }
-        }
-      }
-
-      // if first commission is fraud or canceled, the commission will be set to fraud or canceled as well
-      if (
-        firstCommission.status === "fraud" ||
-        firstCommission.status === "canceled"
-      ) {
-        status = firstCommission.status;
-      }
-    }
-  }
-
-  // calculate earnings
-  let earnings = 0;
-
-  if (event === "click" || event === "lead") {
-    earnings = reward.amount * quantity;
-  } else if (event === "sale") {
-    earnings = calculateSaleEarnings({
-      reward,
-      sale: { quantity, amount },
-    });
-  } else if (event === "custom") {
+  if (event === "custom") {
     earnings = amount;
-  }
-
-  // handle rewards with max reward amount limit
-  if (reward.maxAmount) {
-    const totalRewards = await prisma.commission.aggregate({
-      where: {
-        earnings: {
-          gt: 0,
-        },
-        programId,
+  } else {
+    if (!reward) {
+      reward = await determinePartnerReward({
+        event: event as EventType,
         partnerId,
-        status: {
-          in: ["pending", "processed", "paid"],
-        },
-        type: event,
-      },
-      _sum: {
-        earnings: true,
-      },
-    });
+        programId,
+      });
+    }
 
-    const totalEarnings = totalRewards._sum.earnings || 0;
-    if (totalEarnings >= reward.maxAmount) {
+    // if there's still no reward, skip commission creation
+    if (!reward) {
       console.log(
-        `Partner ${partnerId} has reached max reward amount for ${event} event, skipping commission creation...`,
+        `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
       );
       return;
     }
 
-    const remainingRewardAmount = reward.maxAmount - totalEarnings;
-    earnings = Math.max(0, Math.min(earnings, remainingRewardAmount));
+    // for click/lead events, it's super simple – just multiply the reward amount by the quantity
+    if (event === "click" || event === "lead") {
+      earnings = reward.amount * quantity;
+
+      // for sale events, we need to check:
+      // 1. if the partner has reached the max duration for the reward (if applicable)
+      // 2. if the previous commission were marked as fraud or canceled
+    } else if (event === "sale") {
+      const firstCommission = await prisma.commission.findFirst({
+        where: {
+          partnerId,
+          customerId,
+          type: "sale",
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+
+      if (firstCommission) {
+        // for reward types with a max duration, we need to check if the first commission is within the max duration
+        // if its beyond the max duration, we should not create a new commission
+        if (typeof reward?.maxDuration === "number") {
+          // One-time sale reward
+          if (reward?.maxDuration === 0) {
+            console.log(
+              `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
+            );
+            return;
+          }
+
+          // Recurring sale reward
+          else {
+            const monthsDifference = differenceInMonths(
+              new Date(),
+              firstCommission.createdAt,
+            );
+
+            if (monthsDifference >= reward.maxDuration) {
+              console.log(
+                `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
+              );
+              return;
+            }
+          }
+        }
+
+        // if first commission is fraud or canceled, the commission will be set to fraud or canceled as well
+        if (
+          firstCommission.status === "fraud" ||
+          firstCommission.status === "canceled"
+        ) {
+          status = firstCommission.status;
+        }
+      }
+
+      earnings = calculateSaleEarnings({
+        reward,
+        sale: { quantity, amount },
+      });
+    }
+
+    // handle rewards with max reward amount limit
+    if (reward.maxAmount) {
+      const totalRewards = await prisma.commission.aggregate({
+        where: {
+          earnings: {
+            gt: 0,
+          },
+          programId,
+          partnerId,
+          status: {
+            in: ["pending", "processed", "paid"],
+          },
+          type: event,
+        },
+        _sum: {
+          earnings: true,
+        },
+      });
+
+      const totalEarnings = totalRewards._sum.earnings || 0;
+      if (totalEarnings >= reward.maxAmount) {
+        console.log(
+          `Partner ${partnerId} has reached max reward amount for ${event} event, skipping commission creation...`,
+        );
+        return;
+      }
+
+      const remainingRewardAmount = reward.maxAmount - totalEarnings;
+      earnings = Math.max(0, Math.min(earnings, remainingRewardAmount));
+    }
   }
 
   try {
