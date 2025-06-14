@@ -1,3 +1,4 @@
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { prisma } from "@dub/prisma";
 import { Prisma, Reward } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
@@ -18,6 +19,11 @@ export async function getProgramEnrollmentOrThrow({
         createdAt: "asc",
       },
     },
+    ...(includeRewards && {
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
+    }),
   };
 
   const programEnrollment = programId.startsWith("prog_")
@@ -58,28 +64,17 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  // Find the rewards for the program enrollment
-  let rewards: Reward[] = [];
-
-  if (includeRewards) {
-    const partnerRewardIds = [
-      programEnrollment.clickRewardId,
-      programEnrollment.leadRewardId,
-      programEnrollment.saleRewardId,
-    ].filter((id): id is string => id !== null);
-
-    rewards = await prisma.reward.findMany({
-      where: {
-        id: {
-          in: partnerRewardIds,
-        },
-      },
-    });
-  }
-
   return {
     ...programEnrollment,
-    ...(includeRewards && { rewards }),
+    ...(includeRewards && {
+      rewards: sortRewardsByEventOrder(
+        [
+          programEnrollment.clickReward,
+          programEnrollment.leadReward,
+          programEnrollment.saleReward,
+        ].filter((r): r is Reward => r !== null),
+      ),
+    }),
     links,
   };
 }

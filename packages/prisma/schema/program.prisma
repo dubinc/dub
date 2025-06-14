@@ -37,7 +37,7 @@ model Program {
   cookieLength      Int           @default(90)
   holdingPeriodDays Int           @default(0) // number of days to wait before earnings are added to a payout
   minPayoutAmount   Int           @default(10000) // Default minimum payout amount of $100
-  defaultRewardId   String?       @unique // TODO: Remove this
+  defaultRewardId   String?       @unique // TODO: Remove this after https://github.com/dubinc/dub/pull/2504 merges
   defaultDiscountId String?       @unique // default discount for the program
   embedData         Json?         @db.Json
   landerData        Json?         @db.Json

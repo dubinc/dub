@@ -230,19 +230,21 @@ const RewardItem = ({
     isDefault,
   });
 
-  const { partnersCount, loading: partnersCountLoading } = usePartnersCount<
-    | (RewardProps & {
-        partnersCount: number;
-      })[]
-    | undefined
-  >({
-    groupBy: REWARD_EVENT_COLUMN_MAPPING[event],
-    enabled: !isDefault,
-  });
+  const { partnersCount: rewardPartnersCount, loading: partnersCountLoading } =
+    usePartnersCount<
+      | (RewardProps & {
+          partnersCount: number;
+        })[]
+      | undefined
+    >({
+      groupBy: REWARD_EVENT_COLUMN_MAPPING[event],
+      enabled: !isDefault,
+    });
 
   const partnerCount =
     !isDefault && reward
-      ? (partnersCount || []).find((r) => r.id === reward.id)?.partnersCount
+      ? (rewardPartnersCount || []).find((r) => r.id === reward.id)
+          ?.partnersCount
       : undefined;
 
   const Icon = REWARD_EVENTS[event].icon;
@@ -267,7 +269,7 @@ const RewardItem = ({
                 />
               ) : (
                 <span className="text-sm font-normal text-neutral-600">
-                  No {event} reward configured
+                  No default {event} reward configured
                 </span>
               )}
             </span>
@@ -280,7 +282,7 @@ const RewardItem = ({
               <Button
                 text="Create"
                 variant="primary"
-                className="h-9 w-fit"
+                className="h-8 w-fit"
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsOpen(true);

@@ -1,6 +1,6 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
-import { getProgramViaEdge } from "@/lib/planetscale/get-program-via-edge";
+import { prismaEdge } from "@dub/prisma/edge";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { SVGProps } from "react";
@@ -32,7 +32,18 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const program = await getProgramViaEdge({ slug });
+  const program = await prismaEdge.program.findUnique({
+    where: {
+      slug,
+    },
+    include: {
+      rewards: {
+        where: {
+          default: true,
+        },
+      },
+    },
+  });
 
   if (!program) {
     return new Response(`Program not found`, {

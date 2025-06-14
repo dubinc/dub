@@ -13,9 +13,17 @@ export const GET = withWorkspace(async ({ workspace }) => {
     where: {
       programId,
     },
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: [
+      {
+        default: "desc",
+      },
+      {
+        event: "desc",
+      },
+      {
+        createdAt: "desc",
+      },
+    ],
   });
 
   return NextResponse.json(z.array(RewardSchema).parse(rewards));

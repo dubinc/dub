@@ -1,4 +1,5 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
+import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardProps } from "@/lib/types";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
@@ -38,6 +39,16 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     groupBy: "status",
   });
 
+  const { rewards } = useRewards();
+
+  const { hasClickRewards, hasLeadRewards, hasSaleRewards } = useMemo(() => {
+    return {
+      hasClickRewards: rewards?.some((r) => r.event === "click") ?? false,
+      hasLeadRewards: rewards?.some((r) => r.event === "lead") ?? false,
+      hasSaleRewards: rewards?.some((r) => r.event === "sale") ?? false,
+    };
+  }, [rewards]);
+
   const { partnersCount: clickRewardsCount } = usePartnersCount<
     | (RewardProps & {
         partnersCount: number;
@@ -45,6 +56,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     | undefined
   >({
     groupBy: "clickRewardId",
+    enabled: hasClickRewards,
   });
 
   const { partnersCount: leadRewardsCount } = usePartnersCount<
@@ -54,6 +66,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     | undefined
   >({
     groupBy: "leadRewardId",
+    enabled: hasLeadRewards,
   });
 
   const { partnersCount: saleRewardsCount } = usePartnersCount<
@@ -63,6 +76,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     | undefined
   >({
     groupBy: "saleRewardId",
+    enabled: hasSaleRewards,
   });
 
   const filters = useMemo(

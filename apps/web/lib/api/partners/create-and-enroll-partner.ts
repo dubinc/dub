@@ -85,6 +85,28 @@ export const createAndEnrollPartner = async ({
     }
   }
 
+  const defaultRewards = await prisma.reward.findMany({
+    where: {
+      programId: program.id,
+      // if a specific reward is provided, exclude it from the default rewards because it'll be added below
+      ...(reward && {
+        event: {
+          not: reward.event,
+        },
+      }),
+      default: true,
+    },
+  });
+
+  const finalAssignedRewards = {
+    ...Object.fromEntries(
+      defaultRewards.map((r) => [REWARD_EVENT_COLUMN_MAPPING[r.event], r.id]),
+    ),
+    ...(reward && {
+      [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
+    }),
+  };
+
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
       create: {
@@ -96,9 +118,7 @@ export const createAndEnrollPartner = async ({
             id: link.id,
           },
         },
-        ...(reward && {
-          [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
-        }),
+        ...finalAssignedRewards,
         ...(discountId &&
           discountId !== program.defaultDiscountId && {
             discountId,
