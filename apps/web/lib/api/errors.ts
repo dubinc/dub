@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { capitalize } from "@dub/utils";
+import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
@@ -122,7 +123,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
 }
 
 export function handleApiError(error: any): ErrorResponse & { status: number } {
-  console.error("API error occurred", error.message);
+  console.error(error.message);
 
   // Zod errors
   if (error instanceof ZodError) {
@@ -158,6 +159,8 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
       status: 404,
     };
   }
+
+  Sentry.captureException(error);
 
   // Fallback
   // Unhandled errors are not user-facing, so we don't expose the actual error
