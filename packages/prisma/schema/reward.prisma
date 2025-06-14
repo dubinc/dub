@@ -10,9 +10,8 @@ enum RewardStructure {
 }
 
 model Reward {
-  id        String @id @default(cuid())
-  programId String
-
+  id          String         @id @default(cuid())
+  programId   String
   name        String?
   description String?
   event       EventType
@@ -20,18 +19,21 @@ model Reward {
   amount      Int            @default(0)
   maxDuration Int? // in months (0 -> not recurring, null -> infinite)
   maxAmount   Int? // how much a partner can receive payouts (in cents)
+  default     Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  program          Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partners         PartnerReward[]
+  clickEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
+  leadEnrollments  ProgramEnrollment[] @relation("LeadRewardEnrollments")
+  saleEnrollments  ProgramEnrollment[] @relation("SaleRewardEnrollments")
 
-  defaultForProgram Program?        @relation("ProgramDefaultReward")
-  program           Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partners          PartnerReward[]
-
-  @@index(programId)
-  @@index(event) // used in /api/cron/aggregate-clicks
+  @@index([programId, event])
+  @@index(event) // used in aggregate-clicks cron job
 }
 
+// TODO: Remove this table after https://github.com/dubinc/dub/pull/2504 merges
 model PartnerReward {
   id                  String @id @default(cuid())
   programEnrollmentId String
@@ -40,8 +42,7 @@ model PartnerReward {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  programEnrollment ProgramEnrollment @relation(fields: [programEnrollmentId], references: [id], onDelete: Cascade)
-  reward            Reward            @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
 
   @@unique([programEnrollmentId, rewardId])
   @@index(rewardId)

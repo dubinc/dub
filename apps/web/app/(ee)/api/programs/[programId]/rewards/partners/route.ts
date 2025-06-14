@@ -1,7 +1,10 @@
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { rewardPartnersQuerySchema } from "@/lib/zod/schemas/rewards";
+import {
+  REWARD_EVENT_COLUMN_MAPPING,
+  rewardPartnersQuerySchema,
+} from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -11,41 +14,32 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const { rewardId } = rewardPartnersQuerySchema.parse(searchParams);
 
-  await getRewardOrThrow({
+  const reward = await getRewardOrThrow({
     rewardId,
     programId,
   });
 
-  const partners = await prisma.partnerReward.findMany({
+  const partners = await prisma.programEnrollment.findMany({
     where: {
-      rewardId,
+      programId,
+      [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: rewardId,
     },
     select: {
-      programEnrollment: {
+      partner: {
         select: {
-          partner: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-              email: true,
-            },
-          },
+          id: true,
+          name: true,
+          image: true,
+          email: true,
         },
       },
     },
     orderBy: {
-      programEnrollment: {
-        partner: {
-          name: "asc",
-        },
+      partner: {
+        name: "asc",
       },
     },
   });
 
-  const flatPartners = partners.map(
-    ({ programEnrollment: { partner } }) => partner,
-  );
-
-  return NextResponse.json(flatPartners);
+  return NextResponse.json(partners.map(({ partner }) => partner));
 });

@@ -24,6 +24,7 @@ export const RewardSchema = z.object({
   amount: z.number(),
   maxDuration: z.number().nullish(),
   maxAmount: z.number().nullish(),
+  default: z.boolean(),
   partnersCount: z.number().nullish(),
 });
 
@@ -34,6 +35,7 @@ export const createOrUpdateRewardSchema = z.object({
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
   maxAmount: z.number().nullish(),
+  isDefault: z.boolean(),
   partnerIds: z.array(z.string()).nullish(),
 });
 
@@ -49,6 +51,7 @@ export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({
     event: true,
+    isDefault: true,
   })
   .merge(
     z.object({
@@ -65,3 +68,9 @@ export const rewardPartnersQuerySchema = z
       pageSize: 25,
     }),
   );
+
+export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
+  click: "clickRewardId",
+  lead: "leadRewardId",
+  sale: "saleRewardId",
+});

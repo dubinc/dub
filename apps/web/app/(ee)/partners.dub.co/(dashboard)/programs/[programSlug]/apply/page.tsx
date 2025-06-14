@@ -15,10 +15,12 @@ export default async function ProgramDetailsPage({
 }) {
   const program = await getProgram({
     slug: programSlug,
-    include: ["rewards", "defaultDiscount"],
+    include: ["defaultRewards", "defaultDiscount"],
   });
 
-  if (!program) notFound();
+  if (!program) {
+    notFound();
+  }
 
   return (
     <PageContentOld>

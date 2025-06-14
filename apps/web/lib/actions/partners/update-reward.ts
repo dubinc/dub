@@ -1,9 +1,11 @@
 "use server";
 
-import { DubApiError } from "@/lib/api/errors";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
+import {
+  REWARD_EVENT_COLUMN_MAPPING,
+  updateRewardSchema,
+} from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 
@@ -22,73 +24,107 @@ export const updateRewardAction = authActionClient
       );
     }
 
-    const reward = await getRewardOrThrow(
-      {
-        rewardId,
-        programId,
-      },
-      {
-        includePartnersCount: true,
-      },
-    );
-
-    let programEnrollments: { id: string }[] = [];
+    const reward = await getRewardOrThrow({
+      rewardId,
+      programId,
+    });
 
     if (partnerIds && partnerIds.length > 0) {
-      if (reward.partnersCount === 0) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Cannot add partners to a program-wide reward.",
-        });
-      }
-
-      programEnrollments = await prisma.programEnrollment.findMany({
+      const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId,
           partnerId: {
             in: partnerIds,
           },
         },
-        select: {
-          id: true,
-        },
       });
 
-      if (programEnrollments.length !== partnerIds.length) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Invalid partner IDs provided.",
-        });
-      }
-    } else {
-      if (reward.partnersCount && reward.partnersCount > 0) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "At least one partner must be selected for a partner-specific reward.",
-        });
+      const invalidPartnerIds = partnerIds.filter(
+        (id) => !programEnrollments.some(({ partnerId }) => partnerId === id),
+      );
+
+      if (invalidPartnerIds.length > 0) {
+        throw new Error(
+          `Invalid partner IDs provided: ${invalidPartnerIds.join(", ")}`,
+        );
       }
     }
 
-    await prisma.reward.update({
+    const rewardColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+
+    // Get current partner associations for this reward
+    const currentAssociations = await prisma.programEnrollment.findMany({
       where: {
-        id: rewardId,
+        programId,
+        [rewardColumn]: reward.id,
       },
-      data: {
-        type,
-        amount,
-        maxDuration,
-        maxAmount,
-        ...(programEnrollments && {
-          partners: {
-            deleteMany: {},
-            createMany: {
-              data: programEnrollments.map(({ id }) => ({
-                programEnrollmentId: id,
-              })),
+      select: {
+        partnerId: true,
+      },
+    });
+
+    const currentPartnerIds = currentAssociations.map((a) => a.partnerId);
+    const newPartnerIds = partnerIds || [];
+
+    // Determine which partners to add and remove
+    const partnersToAdd = newPartnerIds.filter(
+      (id) => !currentPartnerIds.includes(id),
+    );
+
+    const partnersToRemove = currentPartnerIds.filter(
+      (id) => !newPartnerIds.includes(id),
+    );
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Update reward details
+      await tx.reward.update({
+        where: {
+          id: rewardId,
+        },
+        data: {
+          type,
+          amount,
+          maxDuration,
+          maxAmount,
+        },
+      });
+
+      // 2. Remove partners that are no longer associated
+      if (partnersToRemove.length > 0) {
+        const defaultReward = await tx.reward.findFirst({
+          where: {
+            programId,
+            event: reward.event,
+            default: true,
+          },
+        });
+
+        await tx.programEnrollment.updateMany({
+          where: {
+            programId,
+            partnerId: {
+              in: partnersToRemove,
             },
           },
-        }),
-      },
+          data: {
+            [rewardColumn]: defaultReward ? defaultReward.id : null,
+          },
+        });
+      }
+
+      // 3. Add new partner associations
+      if (partnersToAdd.length > 0) {
+        await tx.programEnrollment.updateMany({
+          where: {
+            programId,
+            partnerId: {
+              in: partnersToAdd,
+            },
+          },
+          data: {
+            [rewardColumn]: reward.id,
+          },
+        });
+      }
     });
   });
