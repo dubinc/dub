@@ -128,7 +128,6 @@ export function PayoutTable() {
             <AmountRowItem
               amount={row.original.amount}
               status={row.original.status}
-              payoutsEnabled={Boolean(partner?.payoutsEnabledAt)}
               minPayoutAmount={row.original.program.minPayoutAmount}
             />
 
@@ -245,12 +244,10 @@ export function PayoutTable() {
 function AmountRowItem({
   amount,
   status,
-  payoutsEnabled,
   minPayoutAmount,
 }: {
   amount: number;
   status: PayoutStatus;
-  payoutsEnabled: boolean;
   minPayoutAmount: number;
 }) {
   const display = currencyFormatter(amount / 100, {
