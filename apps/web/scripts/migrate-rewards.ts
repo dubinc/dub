@@ -28,7 +28,7 @@ async function main() {
   console.table(finalProgramRewards);
 
   // Update the default column in the Reward table
-  await prisma.reward.updateMany({
+  const res1 = await prisma.reward.updateMany({
     where: {
       id: {
         in: finalProgramRewards.map((reward) => reward.rewardId),
@@ -39,10 +39,12 @@ async function main() {
     },
   });
 
+  console.log({ res1 });
+
   for (const reward of finalProgramRewards) {
     const rewardEvent = reward.rewardEvent;
 
-    await prisma.programEnrollment.updateMany({
+    const res2 = await prisma.programEnrollment.updateMany({
       where: {
         programId: reward.programId,
       },
@@ -50,6 +52,8 @@ async function main() {
         [REWARD_EVENT_COLUMN_MAPPING[rewardEvent]]: reward.rewardId,
       },
     });
+
+    console.log({ res2 });
   }
 
   // Migrate partner-specific rewards
@@ -72,7 +76,7 @@ async function main() {
   for (const reward of finalPartnerRewards) {
     const rewardEvent = reward.rewardEvent;
 
-    await prisma.programEnrollment.update({
+    const res3 = await prisma.programEnrollment.update({
       where: {
         id: reward.programEnrollmentId,
       },
@@ -80,6 +84,8 @@ async function main() {
         [REWARD_EVENT_COLUMN_MAPPING[rewardEvent]]: reward.rewardId,
       },
     });
+
+    console.log({ res3 });
   }
 }
 

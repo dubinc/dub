@@ -107,7 +107,7 @@ export const GET = withWorkspace(
       groupBy &&
       ["clickRewardId", "leadRewardId", "saleRewardId"].includes(groupBy)
     ) {
-      const [customRewardsPartners, customRewards] = await Promise.all([
+      const [rewardPartners, rewards] = await Promise.all([
         prisma.programEnrollment.groupBy({
           by: [groupBy],
           where: {
@@ -121,12 +121,16 @@ export const GET = withWorkspace(
             },
           },
           _count: true,
+          orderBy: {
+            _count: {
+              [groupBy]: "desc",
+            },
+          },
         }),
 
         prisma.reward.findMany({
           where: {
             programId,
-            default: false,
             ...(groupBy === "clickRewardId" && {
               event: EventType.click,
             }),
@@ -140,13 +144,15 @@ export const GET = withWorkspace(
         }),
       ]);
 
-      const partnersWithReward = customRewards.map((r) => {
-        return {
-          ...r,
-          partnersCount:
-            customRewardsPartners.find((p) => p[groupBy] === r.id)?._count ?? 0,
-        };
-      });
+      const partnersWithReward = rewards
+        .map((r) => {
+          return {
+            ...r,
+            partnersCount:
+              rewardPartners.find((p) => p[groupBy] === r.id)?._count ?? 0,
+          };
+        })
+        .sort((a, b) => (b.partnersCount ?? 0) - (a.partnersCount ?? 0));
 
       return NextResponse.json(partnersWithReward);
     }
