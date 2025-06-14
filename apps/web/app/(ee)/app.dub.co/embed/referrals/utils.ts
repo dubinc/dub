@@ -3,6 +3,7 @@ import { determinePartnerDiscount } from "@/lib/partners/determine-partner-disco
 import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
+import { Reward } from "@prisma/client";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
@@ -23,6 +24,9 @@ export const getReferralsEmbedData = async (token: string) => {
     include: {
       links: true,
       program: true,
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
     },
   });
 
@@ -30,21 +34,7 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const partnerRewardIds = [
-    programEnrollment.clickRewardId,
-    programEnrollment.leadRewardId,
-    programEnrollment.saleRewardId,
-  ].filter((id): id is string => id !== null);
-
-  const [rewards, discount, commissions] = await Promise.all([
-    prisma.reward.findMany({
-      where: {
-        id: {
-          in: partnerRewardIds,
-        },
-      },
-    }),
-
+  const [discount, commissions] = await Promise.all([
     determinePartnerDiscount({
       programId,
       partnerId,
@@ -70,7 +60,13 @@ export const getReferralsEmbedData = async (token: string) => {
   return {
     program,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: sortRewardsByEventOrder(rewards),
+    rewards: sortRewardsByEventOrder(
+      [
+        programEnrollment.clickReward,
+        programEnrollment.leadReward,
+        programEnrollment.saleReward,
+      ].filter((r): r is Reward => r !== null),
+    ),
     discount,
     earnings: {
       upcoming: commissions.reduce((acc, c) => {

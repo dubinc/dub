@@ -1,4 +1,5 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { Reward } from "@prisma/client";
@@ -7,6 +8,8 @@ import { z } from "zod";
 
 // GET /api/partner-profile/programs - get all enrolled programs for a given partnerId
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
+  const { includeRewardsDiscounts } = searchParams;
+
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: partner.id,
@@ -18,7 +21,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           createdAt: "asc",
         },
       },
-      program: searchParams.includeRewardsDiscounts
+      program: includeRewardsDiscounts
         ? {
             include: {
               discounts: {
@@ -45,6 +48,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             },
           }
         : true,
+      ...(includeRewardsDiscounts && {
+        clickReward: true,
+        leadReward: true,
+        saleReward: true,
+      }),
     },
     orderBy: [
       {
@@ -56,46 +64,18 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     ],
   });
 
-  let rewards: Reward[] = [];
-
-  if (searchParams.includeRewardsDiscounts) {
-    const partnerRewardIds = [
-      ...new Set(
-        programEnrollments
-          .map(({ clickRewardId, leadRewardId, saleRewardId }) => [
-            clickRewardId,
-            leadRewardId,
-            saleRewardId,
-          ])
-          .flat()
-          .filter((id): id is string => id !== null),
-      ),
-    ];
-
-    rewards = await prisma.reward.findMany({
-      where: {
-        id: {
-          in: partnerRewardIds,
-        },
-      },
-      orderBy: {
-        event: "desc",
-      },
-    });
-  }
-
-  const programRewardsMap = rewards.reduce(
-    (acc, reward) => {
-      acc[reward.programId] = [...(acc[reward.programId] || []), reward];
-      return acc;
-    },
-    {} as Record<string, Reward[]>,
-  );
-
   const response = programEnrollments.map((enrollment) => {
     return {
       ...enrollment,
-      rewards: programRewardsMap[enrollment.programId] || [],
+      rewards: includeRewardsDiscounts
+        ? sortRewardsByEventOrder(
+            [
+              enrollment.clickReward,
+              enrollment.leadReward,
+              enrollment.saleReward,
+            ].filter((r): r is Reward => r !== null),
+          )
+        : [],
     };
   });
 
