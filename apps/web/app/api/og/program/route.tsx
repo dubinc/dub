@@ -37,7 +37,11 @@ export async function GET(req: NextRequest) {
       slug,
     },
     include: {
-      rewards: true,
+      rewards: {
+        where: {
+          default: true,
+        },
+      },
     },
   });
 
