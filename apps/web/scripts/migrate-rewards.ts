@@ -2,6 +2,14 @@ import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
+/* 
+One time script to migrate the rewards table to the new schema.
+
+1. Migrate program-wide rewards
+2. Migrate partner-specific rewards
+
+*/
+
 async function main() {
   // Migrate program-wide rewards
   const programRewards = await prisma.reward.findMany({
