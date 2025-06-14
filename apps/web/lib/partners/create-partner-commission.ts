@@ -48,13 +48,13 @@ export const createPartnerCommission = async ({
       partnerId,
       programId,
     });
+  }
 
-    if (!reward) {
-      console.log(
-        `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
-      );
-      return;
-    }
+  if (!reward) {
+    console.log(
+      `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
+    );
+    return;
   }
 
   let status: CommissionStatus = "pending";
@@ -113,10 +113,10 @@ export const createPartnerCommission = async ({
   let earnings = 0;
 
   if (event === "click" || event === "lead") {
-    earnings = reward!.amount * quantity;
+    earnings = reward.amount * quantity;
   } else if (event === "sale") {
     earnings = calculateSaleEarnings({
-      reward: reward!,
+      reward,
       sale: { quantity, amount },
     });
   } else if (event === "custom") {
@@ -124,7 +124,7 @@ export const createPartnerCommission = async ({
   }
 
   // handle rewards with max reward amount limit
-  if (reward?.maxAmount) {
+  if (reward.maxAmount) {
     const totalRewards = await prisma.commission.aggregate({
       where: {
         earnings: {
