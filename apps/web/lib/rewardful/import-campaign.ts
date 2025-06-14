@@ -6,7 +6,7 @@ import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 
 export async function importCampaign({ programId }: { programId: string }) {
-  const { workspaceId, rewards: defaultRewards } =
+  const { workspaceId, rewards: defaultSaleReward } =
     await prisma.program.findUniqueOrThrow({
       where: {
         id: programId,
@@ -14,6 +14,7 @@ export async function importCampaign({ programId }: { programId: string }) {
       include: {
         rewards: {
           where: {
+            event: EventType.sale,
             default: true,
           },
         },
@@ -55,20 +56,16 @@ export async function importCampaign({ programId }: { programId: string }) {
   });
 
   if (!rewardFound) {
-    const defaultSaleReward = defaultRewards.find(
-      (reward) => reward.event === EventType.sale,
-    );
-
     const reward = await prisma.reward.create({
       data: {
         ...newReward,
         id: createId({ prefix: "rw_" }),
-        default: !defaultSaleReward,
+        default: !defaultSaleReward.length,
       },
     });
 
     // if there's no default reward, means that this is a newly imported program
-    if (!defaultRewards.length) {
+    if (!defaultSaleReward.length) {
       await prisma.program.update({
         where: {
           id: programId,
