@@ -1,5 +1,5 @@
 import { CustomerActivityResponse, CustomerProps } from "@/lib/types";
-import { ArrowUpRight, CopyButton, UTM_PARAMETERS } from "@dub/ui";
+import { CopyButton, UTM_PARAMETERS } from "@dub/ui";
 import {
   capitalize,
   cn,
@@ -8,10 +8,10 @@ import {
   getParamsFromURL,
   getPrettyUrl,
 } from "@dub/utils";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Fragment, HTMLProps, useMemo } from "react";
 import DeviceIcon from "../analytics/device-icon";
+import { ConditionalLink } from "../shared/conditional-link";
 
 export function CustomerDetailsColumn({
   customer,
@@ -217,28 +217,3 @@ const DetailHeading = ({
     {...rest}
   ></h2>
 );
-
-// technically we don't need the conditional link anymore, but keeping it for now
-const ConditionalLink = ({
-  ref: _,
-  href,
-  className,
-  children,
-  ...rest
-}: HTMLProps<HTMLAnchorElement>) => {
-  return href ? (
-    <Link
-      href={href}
-      className={cn(
-        "group flex items-center decoration-dotted underline-offset-2 hover:text-neutral-950 hover:underline",
-        className,
-      )}
-      {...rest}
-    >
-      <div className="min-w-0 truncate">{children}</div>
-      <ArrowUpRight className="ml-1 size-3 shrink-0 -translate-x-0.5 translate-y-0.5 opacity-0 transition-[transform,opacity] group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100" />
-    </Link>
-  ) : (
-    <div className={className}>{children}</div>
-  );
-};
