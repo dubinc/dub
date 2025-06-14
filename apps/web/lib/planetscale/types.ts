@@ -38,20 +38,3 @@ export interface EdgeDomainProps {
   createdAt: string;
   updatedAt: string;
 }
-
-export interface EdgeProgramProps {
-  id: string;
-  workspaceId: string;
-  slug: string;
-  name: string;
-  logo: string | null;
-  wordmark: string | null;
-  brandColor: string | null;
-  landerData: any;
-  rewards: {
-    event: "click" | "lead" | "sale";
-    type: "percentage" | "flat";
-    amount: number;
-    maxDuration: number | null;
-  }[];
-}
