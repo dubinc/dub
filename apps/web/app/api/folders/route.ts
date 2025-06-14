@@ -19,8 +19,6 @@ export const GET = withWorkspace(
     const { search, pageSize, page } =
       listFoldersQuerySchema.parse(searchParams);
 
-    console.log({ search, pageSize, page });
-
     const folders = await getFolders({
       workspaceId: workspace.id,
       userId: session.user.id,
