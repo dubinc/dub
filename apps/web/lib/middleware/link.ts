@@ -27,8 +27,8 @@ import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
-import { conn } from "../planetscale/connection";
-import { checkSubscriptionStatus } from '../actions/check-subscription-status';
+import { checkSubscriptionStatusAuthLess } from '../actions/check-subscription-status-auth-less';
+import { checkFeaturesAccessAuthLess } from '../actions/check-features-access-auth-less';
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -73,13 +73,9 @@ export default async function LinkMiddleware(
     const linkData = await getLinkViaEdge({ id: link.id });
 
     if (linkData?.userId) {
-      const totalUserClicks = linkData.totalUserClicks || 0;
-      const daysSinceRegistration = linkData.userCreatedAt ? 
-        Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+      const { featuresAccess } = await checkFeaturesAccessAuthLess(linkData.userId);
 
-      const subStatus = await checkSubscriptionStatus(linkData.userEmail as string);
-
-      if (!subStatus.isSubscribed && (totalUserClicks > 30 || daysSinceRegistration > 10)) {
+      if (!featuresAccess) {
         return NextResponse.redirect(new URL(`https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`, req.url), {
           headers: {
             ...DUB_HEADERS,
@@ -96,12 +92,9 @@ export default async function LinkMiddleware(
 
     // Check user restrictions
     if (linkData?.userId) {
-      const daysSinceRegistration = linkData.userCreatedAt ? 
-        Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
-
-      const subStatus = await checkSubscriptionStatus(linkData.userEmail as string);
+      const { featuresAccess } = await checkFeaturesAccessAuthLess(linkData.userId);
       
-      if (!subStatus.isSubscribed && (linkData.totalUserClicks > 30 || daysSinceRegistration > 10)) {
+      if (!featuresAccess) {
         return NextResponse.redirect(new URL(`https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`, req.url), {
           headers: {
             ...DUB_HEADERS,
