@@ -27,6 +27,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.default
         ? null
         : rewardId,
+      status: "approved",
     },
     select: {
       partner: {
