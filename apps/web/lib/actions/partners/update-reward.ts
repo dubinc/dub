@@ -19,7 +19,7 @@ export const updateRewardAction = authActionClient
       amount,
       maxDuration,
       type,
-      maxAmount,
+      // maxAmount, // TODO: Temporarily disabling maxAmount for now – until more users ask for it
       includedPartnerIds,
       excludedPartnerIds,
     } = parsedInput;
@@ -29,13 +29,14 @@ export const updateRewardAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    if (maxAmount && maxAmount < amount) {
-      throw new Error(
-        "Max reward amount cannot be less than the reward amount.",
-      );
-    }
+    // TODO: Temporarily disabling maxAmount for now – until more users ask for it
+    // if (maxAmount && maxAmount < amount) {
+    //   throw new Error(
+    //     "Max reward amount cannot be less than the reward amount.",
+    //   );
+    // }
 
-    const reward = await getRewardOrThrow({
+    await getRewardOrThrow({
       rewardId,
       programId,
     });
@@ -58,7 +59,7 @@ export const updateRewardAction = authActionClient
 
       if (invalidPartnerIds.length > 0) {
         throw new Error(
-          `Invalid partner IDs provided: ${invalidPartnerIds.join(", ")}`,
+          `Invalid partner IDs provided (partners must be enrolled in the program): ${invalidPartnerIds.join(", ")}`,
         );
       }
     }
@@ -71,7 +72,7 @@ export const updateRewardAction = authActionClient
         type,
         amount,
         maxDuration,
-        maxAmount,
+        // maxAmount, // TODO: Temporarily disabling maxAmount for now – until more users ask for it
       },
     });
 

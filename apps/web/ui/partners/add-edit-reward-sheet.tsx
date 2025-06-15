@@ -514,7 +514,7 @@ function RewardSheetContent({
   );
 }
 
-// Temporarily hiding this in the UI for now – until more users ask for it
+// TODO: Temporarily disabling maxAmount for now – until more users ask for it
 function RewardLimitSection({
   event,
   register,

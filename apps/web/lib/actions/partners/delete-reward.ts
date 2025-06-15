@@ -29,30 +29,31 @@ export const deleteRewardAction = authActionClient
       throw new Error(`Default ${reward.event} reward cannot be deleted.`);
     }
 
-    const defaultReward = await prisma.reward.findFirst({
-      where: {
-        programId,
-        event: reward.event,
-        default: true,
-      },
-    });
-
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
     await prisma.$transaction(async (tx) => {
-      // 1. Update current associations
+      // 1. Find the default reward for the same event (if it exists)
+      const defaultReward = await tx.reward.findFirst({
+        where: {
+          programId,
+          event: reward.event,
+          default: true,
+        },
+      });
+
+      // 2. Update current associations
       await tx.programEnrollment.updateMany({
         where: {
           programId,
           [rewardIdColumn]: reward.id,
         },
         data: {
-          // Replace the reward with the default reward if it exists
+          // Replace the current reward with the default reward for the same event if it exists
           [rewardIdColumn]: defaultReward ? defaultReward.id : null,
         },
       });
 
-      // 2. Finally, delete the reward
+      // 3. Finally, delete the current reward
       await tx.reward.delete({
         where: {
           id: reward.id,
