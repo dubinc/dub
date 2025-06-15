@@ -20,6 +20,7 @@ import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
 import { checkSubscriptionStatus } from '@/lib/actions/check-subscription-status';
+import { checkSubscriptionStatusAuthLess } from '@/lib/actions/check-subscription-status-auth-less';
 
 export async function createLink(link: ProcessedLinkProps) {
   let {
@@ -58,7 +59,7 @@ export async function createLink(link: ProcessedLinkProps) {
 
       const totalUserClicks = totalClicks._sum.clicks || 0;
 
-      const subStatus = await checkSubscriptionStatus(user.email as string);
+      const subStatus = await checkSubscriptionStatusAuthLess(user.email as string);
 
       if (!subStatus.isSubscribed && (daysSinceRegistration > 10 || totalUserClicks >= 30)) {
         throw new Error("Access restricted: Account age over 10 days or exceeded 30 total clicks limit.");

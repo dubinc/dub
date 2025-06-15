@@ -1,0 +1,35 @@
+'use server';
+
+import { conn } from "@/lib/planetscale/connection";
+import { checkSubscriptionStatusAuthLess } from './check-subscription-status-auth-less';
+
+export const checkFeaturesAccessAuthLess = async (userId: string) => {
+  const { rows } = await conn.execute(
+    `SELECT u.createdAt as userCreatedAt, u.email as email,
+      (SELECT SUM(clicks) FROM Link l WHERE l.userId = u.id) as totalUserClicks
+    FROM User u 
+    WHERE u.id = ?`,
+    [userId],
+  );
+
+  const userData = rows?.[0];
+  if (!userData) {
+    return {
+      featuresAccess: false,
+    };
+  }
+
+  const subStatus = await checkSubscriptionStatusAuthLess(userData.email);
+
+  const totalClicks = userData.totalUserClicks || 0;
+  const daysSinceRegistration = userData.userCreatedAt
+    ? Math.floor(
+        (Date.now() - new Date(userData.userCreatedAt).getTime()) /
+          (1000 * 60 * 60 * 24),
+      )
+    : 0;
+
+  return {
+    featuresAccess: subStatus.isSubscribed || (totalClicks <= 30 && daysSinceRegistration <= 10),
+  };
+};
