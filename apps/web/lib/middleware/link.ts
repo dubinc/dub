@@ -28,6 +28,7 @@ import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 import { conn } from "../planetscale/connection";
+import { checkSubscriptionStatus } from '../actions/check-subscription-status';
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -66,31 +67,19 @@ export default async function LinkMiddleware(
     });
   }
 
-  console.log('link middleware');
-  console.log(domain, key);
-
   let link = await linkCache.get({ domain, key });
 
-  console.log('link cache', link);
-
   if (link) {
-    // If link is from cache, we still need to check total clicks and registration date
-    const { rows } = await conn.execute(
-      `SELECT l.*, u.createdAt as userCreatedAt,
-        (SELECT SUM(clicks) FROM Link WHERE userId = l.userId) as totalUserClicks
-       FROM Link l 
-       LEFT JOIN User u ON l.userId = u.id
-       WHERE l.id = ?`,
-      [link.id]
-    );
-    
-    const linkData = rows?.[0];
+    const linkData = await getLinkViaEdge({ id: link.id });
+
     if (linkData?.userId) {
       const totalUserClicks = linkData.totalUserClicks || 0;
       const daysSinceRegistration = linkData.userCreatedAt ? 
         Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
-      if (totalUserClicks > 30 || daysSinceRegistration > 10) {
+      const subStatus = await checkSubscriptionStatus(linkData.userEmail as string);
+
+      if (!subStatus.isSubscribed && (totalUserClicks > 30 || daysSinceRegistration > 10)) {
         return NextResponse.redirect(new URL(`https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`, req.url), {
           headers: {
             ...DUB_HEADERS,
@@ -103,16 +92,16 @@ export default async function LinkMiddleware(
   }
 
   if (!link) {
-    const linkData = await getLinkViaEdge(domain, key);
-
-    console.log('link data', linkData);
+    const linkData = await getLinkViaEdge({ domain, key });
 
     // Check user restrictions
     if (linkData?.userId) {
       const daysSinceRegistration = linkData.userCreatedAt ? 
         Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+      const subStatus = await checkSubscriptionStatus(linkData.userEmail as string);
       
-      if (linkData.totalUserClicks > 30 || daysSinceRegistration > 10) {
+      if (!subStatus.isSubscribed && (linkData.totalUserClicks > 30 || daysSinceRegistration > 10)) {
         return NextResponse.redirect(new URL(`https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`, req.url), {
           headers: {
             ...DUB_HEADERS,
@@ -194,7 +183,7 @@ export default async function LinkMiddleware(
     // - no `pw` param is provided
     // - the `pw` param is incorrect
     // this will also ensure that no clicks are tracked unless the password is correct
-    if (!pw || (await getLinkViaEdge(domain, key))?.password !== pw) {
+    if (!pw || (await getLinkViaEdge({ domain, key }))?.password !== pw) {
       return NextResponse.rewrite(new URL(`/password/${linkId}`, req.url), {
         headers: {
           ...DUB_HEADERS,

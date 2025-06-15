@@ -177,7 +177,7 @@ export const createUserAccountAction = actionClient
               // @ts-ignore
               data: qrDataToCreate.styles.data,
             },
-            createdLink.url,
+            createdLink.shortLink,
             createdLink.id,
             createdLink.userId,
             qrDataToCreate?.file,
