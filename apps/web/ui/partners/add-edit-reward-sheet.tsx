@@ -411,7 +411,7 @@ function RewardSheetContent({
                           required: true,
                           valueAsNumber: true,
                           min: 0,
-                          max: type === "flat" ? 1000 : 100,
+                          max: type === "percentage" ? 100 : undefined,
                           onChange: handleMoneyInputChange,
                         })}
                         onKeyDown={handleMoneyKeyDown}
