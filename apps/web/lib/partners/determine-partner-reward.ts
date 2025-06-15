@@ -17,7 +17,7 @@ export const determinePartnerReward = async ({
   partnerId: string;
   programId: string;
 }) => {
-  const rewardType = REWARD_EVENT_COLUMN_MAPPING[event];
+  const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
 
   const partnerEnrollment = (await prisma.programEnrollment.findUnique({
     where: {
@@ -27,7 +27,7 @@ export const determinePartnerReward = async ({
       },
     },
     include: {
-      [rewardType]: true,
+      [rewardIdColumn]: true,
     },
   })) as (ProgramEnrollment & { [key: string]: Reward | null }) | null;
 
@@ -35,7 +35,7 @@ export const determinePartnerReward = async ({
     return null;
   }
 
-  const partnerReward = partnerEnrollment[rewardType];
+  const partnerReward = partnerEnrollment[rewardIdColumn];
 
   if (!partnerReward || partnerReward.amount === 0) {
     return null;

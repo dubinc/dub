@@ -37,19 +37,18 @@ export const deleteRewardAction = authActionClient
       },
     });
 
-    await prisma.$transaction(async (tx) => {
-      const columnName = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
+    await prisma.$transaction(async (tx) => {
       // 1. Update current associations
-      // - If the reward is the default, update the default reward
-      // - If the reward is not the default, update the reward to null
       await tx.programEnrollment.updateMany({
         where: {
           programId,
-          [columnName]: reward.id,
+          [rewardIdColumn]: reward.id,
         },
         data: {
-          [columnName]: defaultReward ? defaultReward.id : null,
+          // Replace the reward with the default reward if it exists
+          [rewardIdColumn]: defaultReward ? defaultReward.id : null,
         },
       });
 

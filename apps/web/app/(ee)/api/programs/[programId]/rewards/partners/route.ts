@@ -19,10 +19,14 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     programId,
   });
 
+  // For the default reward, return only non-eligible partners
+  // For other rewards, return all eligible partners
   const partners = await prisma.programEnrollment.findMany({
     where: {
       programId,
-      [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: rewardId,
+      [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.default
+        ? null
+        : rewardId,
     },
     select: {
       partner: {

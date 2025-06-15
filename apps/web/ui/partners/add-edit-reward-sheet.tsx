@@ -68,9 +68,9 @@ function RewardSheetContent({
   reward,
   isDefault,
 }: RewardSheetProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
-  const { program, mutate: mutateProgram } = useProgram();
+  const { mutate: mutateProgram } = useProgram();
 
   const [commissionStructure, setCommissionStructure] = useState<
     "one-off" | "recurring"
@@ -94,7 +94,8 @@ function RewardSheetContent({
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
       maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
       isDefault: isDefault || false,
-      partnerIds: null,
+      includedPartnerIds: null,
+      excludedPartnerIds: null,
     },
   });
 
@@ -106,11 +107,8 @@ function RewardSheetContent({
     }
   }, [reward]);
 
-  const [amount, type, partnerIds = []] = watch([
-    "amount",
-    "type",
-    "partnerIds",
-  ]);
+  const [amount, type, includedPartnerIds = [], excludedPartnerIds = []] =
+    watch(["amount", "type", "includedPartnerIds", "excludedPartnerIds"]);
 
   const selectedEvent = watch("event");
 
@@ -119,13 +117,13 @@ function RewardSheetContent({
       query: {
         rewardId: reward?.id,
       },
-      enabled: Boolean(reward?.id && program?.id),
+      enabled: Boolean(reward?.id && defaultProgramId),
     });
 
   useEffect(() => {
     if (rewardPartners && rewardPartners.length > 0) {
       setValue(
-        "partnerIds",
+        isDefault ? "excludedPartnerIds" : "includedPartnerIds",
         rewardPartners.map((partner) => partner.id),
       );
     }
@@ -138,7 +136,7 @@ function RewardSheetContent({
         setIsOpen(false);
         toast.success("Reward created!");
         await mutateProgram();
-        await mutatePrefix(`/api/programs/${program?.id}/rewards`);
+        await mutatePrefix(`/api/programs/${defaultProgramId}/rewards`);
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -154,7 +152,7 @@ function RewardSheetContent({
         toast.success("Reward updated!");
         await mutateProgram();
         await mutatePrefix([
-          `/api/programs/${program?.id}/rewards`,
+          `/api/programs/${defaultProgramId}/rewards`,
           `/api/partners/count?groupBy=${REWARD_EVENT_COLUMN_MAPPING[event]}&workspaceId=${workspaceId}`,
         ]);
       },
@@ -170,8 +168,8 @@ function RewardSheetContent({
       onSuccess: async () => {
         setIsOpen(false);
         toast.success("Reward deleted!");
-        await mutate(`/api/programs/${program?.id}`);
-        await mutatePrefix(`/api/programs/${program?.id}/rewards`);
+        await mutate(`/api/programs/${defaultProgramId}`);
+        await mutatePrefix(`/api/programs/${defaultProgramId}/rewards`);
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -180,14 +178,15 @@ function RewardSheetContent({
   );
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !program) {
+    if (!workspaceId || !defaultProgramId) {
       return;
     }
 
     const payload = {
       ...data,
       workspaceId,
-      partnerIds,
+      includedPartnerIds: isDefault ? null : includedPartnerIds,
+      excludedPartnerIds: isDefault ? excludedPartnerIds : null,
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
@@ -205,7 +204,7 @@ function RewardSheetContent({
   };
 
   const onDelete = async () => {
-    if (!workspaceId || !program || !reward) {
+    if (!workspaceId || !defaultProgramId || !reward) {
       return;
     }
 
@@ -261,27 +260,31 @@ function RewardSheetContent({
             type="multiple"
             defaultValue={defaultAccordionValues}
           >
-            {!isDefault && (
-              <ProgramSheetAccordionItem value="partner-eligibility">
-                <ProgramSheetAccordionTrigger>
-                  Partner Eligibility
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="space-y-4">
-                    {!isDefault && (
-                      <RewardPartnersTable
-                        partnerIds={partnerIds || []}
-                        setPartnerIds={(value: string[]) => {
-                          setValue("partnerIds", value);
-                        }}
-                        rewardPartners={rewardPartners || []}
-                        loading={isLoadingRewardPartners}
-                      />
-                    )}
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
-            )}
+            <ProgramSheetAccordionItem value="partner-eligibility">
+              <ProgramSheetAccordionTrigger>
+                Partner Eligibility
+              </ProgramSheetAccordionTrigger>
+              <ProgramSheetAccordionContent>
+                <div className="space-y-4">
+                  <RewardPartnersTable
+                    partnerIds={
+                      (isDefault ? excludedPartnerIds : includedPartnerIds) ||
+                      []
+                    }
+                    setPartnerIds={(value: string[]) => {
+                      if (isDefault) {
+                        setValue("excludedPartnerIds", value);
+                      } else {
+                        setValue("includedPartnerIds", value);
+                      }
+                    }}
+                    rewardPartners={rewardPartners || []}
+                    loading={isLoadingRewardPartners}
+                    mode={isDefault ? "exclude" : "include"}
+                  />
+                </div>
+              </ProgramSheetAccordionContent>
+            </ProgramSheetAccordionItem>
 
             {selectedEvent === "sale" && (
               <ProgramSheetAccordionItem value="commission-structure">
