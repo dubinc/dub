@@ -283,6 +283,11 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
                             setSelectedLinkId={(id) =>
                               setValue("linkId", id, { shouldDirty: true })
                             }
+                            disabledTooltip={
+                              !partnerId
+                                ? "You need to select a partner first before you can select a link"
+                                : undefined
+                            }
                           />
                         </div>
                       </div>
