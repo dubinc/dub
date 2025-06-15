@@ -18,7 +18,6 @@ export const createRewardAction = authActionClient
       amount,
       type,
       maxDuration,
-      maxAmount,
       isDefault,
       includedPartnerIds,
       excludedPartnerIds,
@@ -28,12 +27,6 @@ export const createRewardAction = authActionClient
     excludedPartnerIds = excludedPartnerIds || [];
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-
-    if (maxAmount && maxAmount < amount) {
-      throw new Error(
-        "Max reward amount cannot be less than the reward amount.",
-      );
-    }
 
     // Only one default reward is allowed for each event
     if (isDefault) {
@@ -87,7 +80,6 @@ export const createRewardAction = authActionClient
         type,
         amount,
         maxDuration,
-        maxAmount,
         default: isDefault,
       },
     });

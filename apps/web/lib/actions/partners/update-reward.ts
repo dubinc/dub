@@ -19,7 +19,6 @@ export const updateRewardAction = authActionClient
       amount,
       maxDuration,
       type,
-      // maxAmount, // TODO: Temporarily disabling maxAmount for now – until more users ask for it
       includedPartnerIds,
       excludedPartnerIds,
     } = parsedInput;
@@ -28,13 +27,6 @@ export const updateRewardAction = authActionClient
     excludedPartnerIds = excludedPartnerIds || [];
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-
-    // TODO: Temporarily disabling maxAmount for now – until more users ask for it
-    // if (maxAmount && maxAmount < amount) {
-    //   throw new Error(
-    //     "Max reward amount cannot be less than the reward amount.",
-    //   );
-    // }
 
     await getRewardOrThrow({
       rewardId,
@@ -72,7 +64,6 @@ export const updateRewardAction = authActionClient
         type,
         amount,
         maxDuration,
-        // maxAmount, // TODO: Temporarily disabling maxAmount for now – until more users ask for it
       },
     });
 

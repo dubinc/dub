@@ -33,17 +33,14 @@ export const createOrUpdateRewardSchema = z.object({
   type: z.nativeEnum(RewardStructure).default(RewardStructure.flat),
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
-  maxAmount: z.number().nullish(),
   isDefault: z.boolean(),
   includedPartnerIds: z
     .array(z.string())
     .nullish()
-    .default([])
     .describe("Only applicable for non-default rewards"),
   excludedPartnerIds: z
     .array(z.string())
     .nullish()
-    .default([])
     .describe("Only applicable for default rewards"),
 });
 
