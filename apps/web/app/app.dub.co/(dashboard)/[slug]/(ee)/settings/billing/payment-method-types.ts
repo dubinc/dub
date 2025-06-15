@@ -39,6 +39,22 @@ export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
         : "Not connected",
     },
     {
+      type: "acss_debit",
+      title: "ACSS Debit",
+      icon: GreekTemple,
+      description: paymentMethod?.acss_debit
+        ? `Account ending in ****${paymentMethod.acss_debit.last4}`
+        : "Not connected",
+    },
+    {
+      type: "sepa_debit",
+      title: "SEPA Debit",
+      icon: GreekTemple,
+      description: paymentMethod?.sepa_debit
+        ? `Account ending in ****${paymentMethod.sepa_debit.last4}`
+        : "Not connected",
+    },
+    {
       type: "link",
       title: "Link",
       icon: StripeLink,

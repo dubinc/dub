@@ -1,4 +1,7 @@
-import { PAYOUT_FAILURE_FEE_CENTS } from "@/lib/partners/constants";
+import {
+  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+  PAYOUT_FAILURE_FEE_CENTS,
+} from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutFailed from "@dub/email/templates/partner-payout-failed";
@@ -80,8 +83,13 @@ export async function chargeFailed(event: Stripe.Event) {
   let cardLast4: string | undefined;
   let chargedFailureFee = false;
 
-  // Charge failure fee for ACH payment failures
-  if (charge.payment_method_details?.type === "us_bank_account") {
+  // Charge failure fee for direct debit payment failures
+  if (
+    charge.payment_method_details &&
+    DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(
+      charge.payment_method_details.type as Stripe.PaymentMethod.Type,
+    )
+  ) {
     const [cards, links] = await Promise.all([
       stripe.paymentMethods.list({
         customer: workspace.stripeId,
