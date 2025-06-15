@@ -17,7 +17,7 @@ export const getLinkViaEdge = async ({ id, domain, key }: GetLinkParams) => {
   
   const { rows } =
     (await conn.execute(
-      `SELECT l.*, u.id as userId, u.createdAt as userCreatedAt,
+      `SELECT l.*, u.id as userId, u.createdAt as userCreatedAt, u.email as userEmail,
         (SELECT SUM(clicks) FROM Link WHERE userId = u.id) as totalUserClicks
        FROM Link l 
        LEFT JOIN User u ON l.userId = u.id 

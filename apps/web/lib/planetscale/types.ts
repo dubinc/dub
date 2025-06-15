@@ -21,6 +21,7 @@ export interface EdgeLinkProps {
   userId: string | null;
   userCreatedAt: string | null;
   totalUserClicks: number;
+  userEmail: string | null;
 }
 
 export interface EdgeDomainProps {

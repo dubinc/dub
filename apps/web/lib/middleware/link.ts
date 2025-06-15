@@ -28,6 +28,7 @@ import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
 import { conn } from "../planetscale/connection";
+import { checkSubscriptionStatus } from '../actions/check-subscription-status';
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -76,7 +77,9 @@ export default async function LinkMiddleware(
       const daysSinceRegistration = linkData.userCreatedAt ? 
         Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
-      if (totalUserClicks > 30 || daysSinceRegistration > 10) {
+      const subStatus = await checkSubscriptionStatus(linkData.userEmail as string);
+
+      if (!subStatus.isSubscribed && (totalUserClicks > 30 || daysSinceRegistration > 10)) {
         return NextResponse.redirect(new URL(`https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`, req.url), {
           headers: {
             ...DUB_HEADERS,
@@ -95,8 +98,10 @@ export default async function LinkMiddleware(
     if (linkData?.userId) {
       const daysSinceRegistration = linkData.userCreatedAt ? 
         Math.floor((Date.now() - new Date(linkData.userCreatedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+      const subStatus = await checkSubscriptionStatus(linkData.userEmail as string);
       
-      if (linkData.totalUserClicks > 30 || daysSinceRegistration > 10) {
+      if (!subStatus.isSubscribed && (linkData.totalUserClicks > 30 || daysSinceRegistration > 10)) {
         return NextResponse.redirect(new URL(`https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`, req.url), {
           headers: {
             ...DUB_HEADERS,
