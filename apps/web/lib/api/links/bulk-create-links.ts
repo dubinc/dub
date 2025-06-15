@@ -22,7 +22,12 @@ export async function bulkCreateLinks({
   links: ProcessedLinkProps[];
   skipRedisCache?: boolean;
 }) {
-  if (links.length === 0) return [];
+  if (links.length === 0) {
+    return {
+      validLinks: [],
+      invalidLinks: [],
+    };
+  }
 
   const hasTags = checkIfLinksHaveTags(links);
   const hasWebhooks = checkIfLinksHaveWebhooks(links);
@@ -44,6 +49,60 @@ export async function bulkCreateLinks({
       ];
     }),
   );
+
+  // Check if any links already exist
+  const existingLinks = await prisma.link.findMany({
+    where: {
+      shortLink: {
+        in: Array.from(shortLinkToIndexMap.keys()),
+      },
+    },
+    select: {
+      shortLink: true,
+    },
+    take: shortLinkToIndexMap.size,
+  });
+
+  const invalidLinks: {
+    error: string;
+    code: string;
+    link: ProcessedLinkProps;
+  }[] = [];
+
+  if (existingLinks.length > 0) {
+    existingLinks.forEach((existingLink) => {
+      invalidLinks.push({
+        code: "conflict",
+        error: "Duplicate key: This short link already exists.",
+        link: links.find(
+          (l) =>
+            existingLink.shortLink ===
+            linkConstructorSimple({ domain: l.domain, key: l.key }),
+        ) as ProcessedLinkProps,
+      });
+    });
+  }
+
+  // Remove existing links from the links array
+  links = links.filter(
+    (link) =>
+      !existingLinks.some(
+        (l) =>
+          linkConstructorSimple({ domain: link.domain, key: link.key }) ===
+          l.shortLink,
+      ),
+  );
+
+  existingLinks.forEach((link) => {
+    shortLinkToIndexMap.delete(link.shortLink);
+  });
+
+  if (links.length === 0) {
+    return {
+      validLinks: [],
+      invalidLinks,
+    };
+  }
 
   // Create all links first using createMany
   await prisma.link.createMany({
@@ -123,9 +182,18 @@ export async function bulkCreateLinks({
         );
       }
 
-      createdLinksData.forEach((link, idx) => {
-        const originalLink = links[idx];
-        if (!originalLink) return;
+      createdLinksData.forEach((link) => {
+        const originalLinkIndex = shortLinkToIndexMap.get(link.shortLink);
+
+        if (originalLinkIndex === undefined) {
+          return;
+        }
+
+        const originalLink = links[originalLinkIndex];
+
+        if (!originalLink) {
+          return;
+        }
 
         const { tagId, tagIds, tagNames } = originalLink;
         const combinedTagIds = combineTagIds({ tagId, tagIds });
@@ -165,9 +233,18 @@ export async function bulkCreateLinks({
     if (hasWebhooks) {
       const linkWebhooksToCreate: { linkId: string; webhookId: string }[] = [];
 
-      createdLinksData.forEach((link, idx) => {
-        const originalLink = links[idx];
-        if (!originalLink?.webhookIds?.length) return;
+      createdLinksData.forEach((link) => {
+        const originalLinkIndex = shortLinkToIndexMap.get(link.shortLink);
+
+        if (originalLinkIndex === undefined) {
+          return;
+        }
+
+        const originalLink = links[originalLinkIndex];
+
+        if (!originalLink?.webhookIds?.length) {
+          return;
+        }
 
         originalLink.webhookIds.forEach((webhookId) => {
           linkWebhooksToCreate.push({
@@ -232,5 +309,10 @@ export async function bulkCreateLinks({
     return aIndex - bIndex;
   });
 
-  return createdLinksData.map((link) => transformLink(link));
+  return {
+    validLinks: createdLinksData.map(
+      (link) => transformLink(link) as ProcessedLinkProps,
+    ),
+    invalidLinks,
+  };
 }
