@@ -13,23 +13,20 @@ export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const {
-      partnerIds,
+    let {
       event,
       amount,
       type,
       maxDuration,
-      maxAmount,
       isDefault,
+      includedPartnerIds,
+      excludedPartnerIds,
     } = parsedInput;
 
-    const programId = getDefaultProgramIdOrThrow(workspace);
+    includedPartnerIds = includedPartnerIds || [];
+    excludedPartnerIds = excludedPartnerIds || [];
 
-    if (maxAmount && maxAmount < amount) {
-      throw new Error(
-        "Max reward amount cannot be less than the reward amount.",
-      );
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     // Only one default reward is allowed for each event
     if (isDefault) {
@@ -48,12 +45,14 @@ export const createRewardAction = authActionClient
       }
     }
 
-    if (partnerIds && partnerIds.length > 0) {
+    const finalPartnerIds = [...includedPartnerIds, ...excludedPartnerIds];
+
+    if (finalPartnerIds && finalPartnerIds.length > 0) {
       const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId,
           partnerId: {
-            in: partnerIds,
+            in: finalPartnerIds,
           },
         },
         select: {
@@ -61,7 +60,7 @@ export const createRewardAction = authActionClient
         },
       });
 
-      const invalidPartnerIds = partnerIds.filter(
+      const invalidPartnerIds = finalPartnerIds.filter(
         (id) =>
           !programEnrollments.some((enrollment) => enrollment.partnerId === id),
       );
@@ -81,38 +80,32 @@ export const createRewardAction = authActionClient
         type,
         amount,
         maxDuration,
-        maxAmount,
         default: isDefault,
       },
     });
 
-    const rewardEventColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-    // Update all partners for default rewards
-    if (reward.default) {
-      await prisma.programEnrollment.updateMany({
-        where: {
-          programId,
-          [rewardEventColumn]: null,
-        },
-        data: {
-          [rewardEventColumn]: reward.id,
-        },
-      });
-    }
-
-    // For non-default rewards, update only the partners that are being added
-    else if (partnerIds && partnerIds.length > 0) {
-      await prisma.programEnrollment.updateMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIds,
-          },
-        },
-        data: {
-          [rewardEventColumn]: reward.id,
-        },
-      });
-    }
+    await prisma.programEnrollment.updateMany({
+      where: {
+        programId,
+        ...(reward.default
+          ? {
+              [rewardIdColumn]: null,
+              ...(excludedPartnerIds.length > 0 && {
+                partnerId: {
+                  notIn: excludedPartnerIds,
+                },
+              }),
+            }
+          : {
+              partnerId: {
+                in: includedPartnerIds,
+              },
+            }),
+      },
+      data: {
+        [rewardIdColumn]: reward.id,
+      },
+    });
   });

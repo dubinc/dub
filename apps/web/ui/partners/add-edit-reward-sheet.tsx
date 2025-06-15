@@ -17,31 +17,11 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import {
-  AnimatedSizeContainer,
-  Button,
-  CircleCheckFill,
-  InfoTooltip,
-  Sheet,
-  Switch,
-} from "@dub/ui";
+import { AnimatedSizeContainer, Button, CircleCheckFill, Sheet } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import {
-  FieldErrors,
-  useForm,
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from "react-hook-form";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
@@ -68,9 +48,9 @@ function RewardSheetContent({
   reward,
   isDefault,
 }: RewardSheetProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
-  const { program, mutate: mutateProgram } = useProgram();
+  const { mutate: mutateProgram } = useProgram();
 
   const [commissionStructure, setCommissionStructure] = useState<
     "one-off" | "recurring"
@@ -92,9 +72,9 @@ function RewardSheetContent({
           : reward.maxDuration
         : Infinity,
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
-      maxAmount: reward?.maxAmount ? reward.maxAmount / 100 : null,
       isDefault: isDefault || false,
-      partnerIds: null,
+      includedPartnerIds: null,
+      excludedPartnerIds: null,
     },
   });
 
@@ -106,11 +86,8 @@ function RewardSheetContent({
     }
   }, [reward]);
 
-  const [amount, type, partnerIds = []] = watch([
-    "amount",
-    "type",
-    "partnerIds",
-  ]);
+  const [amount, type, includedPartnerIds = [], excludedPartnerIds = []] =
+    watch(["amount", "type", "includedPartnerIds", "excludedPartnerIds"]);
 
   const selectedEvent = watch("event");
 
@@ -119,13 +96,13 @@ function RewardSheetContent({
       query: {
         rewardId: reward?.id,
       },
-      enabled: Boolean(reward?.id && program?.id),
+      enabled: Boolean(reward?.id && defaultProgramId),
     });
 
   useEffect(() => {
     if (rewardPartners && rewardPartners.length > 0) {
       setValue(
-        "partnerIds",
+        isDefault ? "excludedPartnerIds" : "includedPartnerIds",
         rewardPartners.map((partner) => partner.id),
       );
     }
@@ -138,7 +115,7 @@ function RewardSheetContent({
         setIsOpen(false);
         toast.success("Reward created!");
         await mutateProgram();
-        await mutatePrefix(`/api/programs/${program?.id}/rewards`);
+        await mutatePrefix(`/api/programs/${defaultProgramId}/rewards`);
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -154,7 +131,7 @@ function RewardSheetContent({
         toast.success("Reward updated!");
         await mutateProgram();
         await mutatePrefix([
-          `/api/programs/${program?.id}/rewards`,
+          `/api/programs/${defaultProgramId}/rewards`,
           `/api/partners/count?groupBy=${REWARD_EVENT_COLUMN_MAPPING[event]}&workspaceId=${workspaceId}`,
         ]);
       },
@@ -170,8 +147,8 @@ function RewardSheetContent({
       onSuccess: async () => {
         setIsOpen(false);
         toast.success("Reward deleted!");
-        await mutate(`/api/programs/${program?.id}`);
-        await mutatePrefix(`/api/programs/${program?.id}/rewards`);
+        await mutate(`/api/programs/${defaultProgramId}`);
+        await mutatePrefix(`/api/programs/${defaultProgramId}/rewards`);
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -180,18 +157,18 @@ function RewardSheetContent({
   );
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !program) {
+    if (!workspaceId || !defaultProgramId) {
       return;
     }
 
     const payload = {
       ...data,
       workspaceId,
-      partnerIds,
+      includedPartnerIds: isDefault ? null : includedPartnerIds,
+      excludedPartnerIds: isDefault ? excludedPartnerIds : null,
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
-      maxAmount: data.maxAmount ? data.maxAmount * 100 : null,
     };
 
     if (!reward) {
@@ -205,7 +182,7 @@ function RewardSheetContent({
   };
 
   const onDelete = async () => {
-    if (!workspaceId || !program || !reward) {
+    if (!workspaceId || !defaultProgramId || !reward) {
       return;
     }
 
@@ -219,19 +196,23 @@ function RewardSheetContent({
     });
   };
 
-  // Determine which accordions should be open by default
-  const defaultAccordionValues = useMemo(() => {
-    const baseValues = ["reward-type", "commission-structure", "payout-amount"];
+  const [accordionValues, setAccordionValues] = useState<string[]>([
+    "reward-type",
+    "commission-structure",
+    "reward-details",
+  ]);
 
+  useEffect(() => {
     // Only include partner-eligibility if:
-    // 1. No existing reward (new creation), OR
-    // 2. Existing, non-default reward
-    if (!reward || !isDefault) {
-      baseValues.push("partner-eligibility");
+    // 1. New non-default reward, OR
+    // 2. Existing reward that has rewardPartners (either included or excluded)
+    if (
+      (!reward && !isDefault) ||
+      (rewardPartners && rewardPartners.length > 0)
+    ) {
+      setAccordionValues((prev) => [...prev, "partner-eligibility"]);
     }
-
-    return baseValues;
-  }, [reward, isDefault]);
+  }, [rewardPartners, reward, isDefault]);
 
   const canDeleteReward = reward && !reward.default;
 
@@ -259,30 +240,9 @@ function RewardSheetContent({
         <div className="flex-1 overflow-y-auto p-6">
           <ProgramSheetAccordion
             type="multiple"
-            defaultValue={defaultAccordionValues}
+            value={accordionValues}
+            onValueChange={setAccordionValues}
           >
-            {!isDefault && (
-              <ProgramSheetAccordionItem value="partner-eligibility">
-                <ProgramSheetAccordionTrigger>
-                  Partner Eligibility
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="space-y-4">
-                    {!isDefault && (
-                      <RewardPartnersTable
-                        partnerIds={partnerIds || []}
-                        setPartnerIds={(value: string[]) => {
-                          setValue("partnerIds", value);
-                        }}
-                        rewardPartners={rewardPartners || []}
-                        loading={isLoadingRewardPartners}
-                      />
-                    )}
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
-            )}
-
             {selectedEvent === "sale" && (
               <ProgramSheetAccordionItem value="commission-structure">
                 <ProgramSheetAccordionTrigger>
@@ -396,7 +356,7 @@ function RewardSheetContent({
               </ProgramSheetAccordionItem>
             )}
 
-            <ProgramSheetAccordionItem value="payout-amount">
+            <ProgramSheetAccordionItem value="reward-details">
               <ProgramSheetAccordionTrigger>
                 Reward Details
               </ProgramSheetAccordionTrigger>
@@ -451,7 +411,7 @@ function RewardSheetContent({
                           required: true,
                           valueAsNumber: true,
                           min: 0,
-                          max: type === "flat" ? 1000 : 100,
+                          max: type === "percentage" ? 100 : undefined,
                           onChange: handleMoneyInputChange,
                         })}
                         onKeyDown={handleMoneyKeyDown}
@@ -461,6 +421,32 @@ function RewardSheetContent({
                       </span>
                     </div>
                   </div>
+                </div>
+              </ProgramSheetAccordionContent>
+            </ProgramSheetAccordionItem>
+
+            <ProgramSheetAccordionItem value="partner-eligibility">
+              <ProgramSheetAccordionTrigger>
+                Partner Eligibility
+              </ProgramSheetAccordionTrigger>
+              <ProgramSheetAccordionContent>
+                <div className="space-y-4">
+                  <RewardPartnersTable
+                    partnerIds={
+                      (isDefault ? excludedPartnerIds : includedPartnerIds) ||
+                      []
+                    }
+                    setPartnerIds={(value: string[]) => {
+                      if (isDefault) {
+                        setValue("excludedPartnerIds", value);
+                      } else {
+                        setValue("includedPartnerIds", value);
+                      }
+                    }}
+                    rewardPartners={rewardPartners || []}
+                    loading={isLoadingRewardPartners}
+                    mode={isDefault ? "exclude" : "include"}
+                  />
                 </div>
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
@@ -510,88 +496,6 @@ function RewardSheetContent({
         </div>
       </form>
     </>
-  );
-}
-
-// Temporarily hiding this in the UI for now – until more users ask for it
-function RewardLimitSection({
-  event,
-  register,
-  watch,
-  setValue,
-  errors,
-}: {
-  event: EventType;
-  register: UseFormRegister<FormData>;
-  watch: UseFormWatch<FormData>;
-  setValue: UseFormSetValue<FormData>;
-  errors: FieldErrors<FormData>;
-}) {
-  const [maxAmount] = watch(["maxAmount"]);
-  const [isLimited, setIsLimited] = useState(maxAmount !== null);
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <Switch
-          checked={isLimited}
-          trackDimensions="radix-state-checked:bg-neutral-900 radix-state-unchecked:bg-neutral-200"
-          fn={(checked: boolean) => {
-            setIsLimited(checked);
-
-            if (!checked) {
-              setValue("maxAmount", null);
-            }
-          }}
-        />
-        <span className="text-sm font-medium text-neutral-800">
-          Limit {event} rewards
-        </span>
-        <InfoTooltip content="Limit how much a partner can receive payouts." />
-      </div>
-
-      <div className="-m-1">
-        <AnimatedSizeContainer
-          height
-          transition={{ ease: "easeInOut", duration: 0.2 }}
-        >
-          {isLimited && (
-            <div className="p-1">
-              <div className="flex flex-col gap-4">
-                <div>
-                  <label className="text-sm font-medium text-neutral-800">
-                    Reward limit
-                  </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
-                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                      $
-                    </span>
-                    <input
-                      className={cn(
-                        "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                        errors.maxAmount &&
-                          "border-red-600 focus:border-red-500 focus:ring-red-600",
-                      )}
-                      {...register("maxAmount", {
-                        required: isLimited,
-                        valueAsNumber: true,
-                        min: 0,
-                        onChange: handleMoneyInputChange,
-                      })}
-                      onKeyDown={handleMoneyKeyDown}
-                      placeholder="0"
-                    />
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                      USD
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </AnimatedSizeContainer>
-      </div>
-    </div>
   );
 }
 

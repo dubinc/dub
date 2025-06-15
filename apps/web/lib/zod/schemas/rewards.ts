@@ -25,7 +25,6 @@ export const RewardSchema = z.object({
   maxDuration: z.number().nullish(),
   maxAmount: z.number().nullish(),
   default: z.boolean(),
-  partnersCount: z.number().nullish(),
 });
 
 export const createOrUpdateRewardSchema = z.object({
@@ -34,9 +33,15 @@ export const createOrUpdateRewardSchema = z.object({
   type: z.nativeEnum(RewardStructure).default(RewardStructure.flat),
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
-  maxAmount: z.number().nullish(),
   isDefault: z.boolean(),
-  partnerIds: z.array(z.string()).nullish(),
+  includedPartnerIds: z
+    .array(z.string())
+    .nullish()
+    .describe("Only applicable for non-default rewards"),
+  excludedPartnerIds: z
+    .array(z.string())
+    .nullish()
+    .describe("Only applicable for default rewards"),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
