@@ -2,7 +2,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { EventType, Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partners/count - get the count of partners for a program
@@ -10,8 +10,16 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { groupBy, status, country, rewardId, search, ids } =
-      partnersCountQuerySchema.parse(searchParams);
+    const {
+      groupBy,
+      status,
+      country,
+      clickRewardId,
+      leadRewardId,
+      saleRewardId,
+      search,
+      ids,
+    } = partnersCountQuerySchema.parse(searchParams);
 
     const commonWhere: Prisma.PartnerWhereInput = {
       ...(search && {
@@ -19,6 +27,18 @@ export const GET = withWorkspace(
       }),
       ...(ids && {
         id: { in: ids },
+      }),
+    };
+
+    const commonRewardWhere: Prisma.ProgramEnrollmentWhereInput = {
+      ...(clickRewardId && {
+        clickRewardId,
+      }),
+      ...(leadRewardId && {
+        leadRewardId,
+      }),
+      ...(saleRewardId && {
+        saleRewardId,
       }),
     };
 
@@ -30,13 +50,7 @@ export const GET = withWorkspace(
           programs: {
             some: {
               programId,
-              ...(rewardId && {
-                rewards: {
-                  some: {
-                    rewardId,
-                  },
-                },
-              }),
+              ...commonRewardWhere,
             },
             every: {
               status: status || { notIn: ["rejected", "banned", "archived"] },
@@ -61,13 +75,7 @@ export const GET = withWorkspace(
         by: ["status"],
         where: {
           programId,
-          ...(rewardId && {
-            rewards: {
-              some: {
-                rewardId,
-              },
-            },
-          }),
+          ...commonRewardWhere,
           partner: {
             ...(country && {
               country,
@@ -95,43 +103,56 @@ export const GET = withWorkspace(
     }
 
     // Get partner count by reward
-    if (groupBy === "rewardId") {
-      const [customRewardsPartners, allRewards] = await Promise.all([
-        prisma.partnerReward.groupBy({
-          by: ["rewardId"],
+    if (
+      groupBy &&
+      ["clickRewardId", "leadRewardId", "saleRewardId"].includes(groupBy)
+    ) {
+      const [rewardPartners, rewards] = await Promise.all([
+        prisma.programEnrollment.groupBy({
+          by: [groupBy],
           where: {
-            programEnrollment: {
-              programId,
-              status: status || { notIn: ["rejected", "banned", "archived"] },
-              partner: {
-                ...(country && {
-                  country,
-                }),
-                ...commonWhere,
-              },
+            programId,
+            status: status || { notIn: ["rejected", "banned", "archived"] },
+            partner: {
+              ...(country && {
+                country,
+              }),
+              ...commonWhere,
             },
           },
           _count: true,
           orderBy: {
             _count: {
-              rewardId: "desc",
+              [groupBy]: "desc",
             },
           },
         }),
+
         prisma.reward.findMany({
           where: {
             programId,
+            ...(groupBy === "clickRewardId" && {
+              event: EventType.click,
+            }),
+            ...(groupBy === "leadRewardId" && {
+              event: EventType.lead,
+            }),
+            ...(groupBy === "saleRewardId" && {
+              event: EventType.sale,
+            }),
           },
         }),
       ]);
 
-      const partnersWithReward = customRewardsPartners.map((p) => {
-        const reward = allRewards.find((r) => r.id === p.rewardId);
-        return {
-          ...reward,
-          partnersCount: p._count,
-        };
-      });
+      const partnersWithReward = rewards
+        .map((r) => {
+          return {
+            ...r,
+            partnersCount:
+              rewardPartners.find((p) => p[groupBy] === r.id)?._count ?? 0,
+          };
+        })
+        .sort((a, b) => (b.partnersCount ?? 0) - (a.partnersCount ?? 0));
 
       return NextResponse.json(partnersWithReward);
     }
@@ -141,13 +162,7 @@ export const GET = withWorkspace(
       where: {
         programId,
         status: status || { notIn: ["rejected", "banned", "archived"] },
-        ...(rewardId && {
-          rewards: {
-            some: {
-              rewardId,
-            },
-          },
-        }),
+        ...commonRewardWhere,
         partner: {
           ...(country && {
             country,

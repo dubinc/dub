@@ -37,7 +37,6 @@ model Program {
   cookieLength      Int           @default(90)
   holdingPeriodDays Int           @default(0) // number of days to wait before earnings are added to a payout
   minPayoutAmount   Int           @default(10000) // Default minimum payout amount of $100
-  defaultRewardId   String?       @unique // default reward for the program
   defaultDiscountId String?       @unique // default discount for the program
   embedData         Json?         @db.Json
   landerData        Json?         @db.Json
@@ -49,9 +48,8 @@ model Program {
   ageVerification   Int?
   linkStructure     LinkStructure @default(short)
   linkParameter     String? // null for SHORT, "via" for QUERY, "refer" for PATH
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   workspace       Project              @relation(fields: [workspaceId], references: [id])
   primaryDomain   Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
@@ -62,7 +60,6 @@ model Program {
   links           Link[]
   commissions     Commission[]
   rewards         Reward[]
-  defaultReward   Reward?              @relation("ProgramDefaultReward", fields: [defaultRewardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   discounts       Discount[]           @relation("ProgramDiscounts")
   defaultDiscount Discount?            @relation("ProgramDefaultDiscount", fields: [defaultDiscountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
@@ -76,6 +73,9 @@ model ProgramEnrollment {
   programId        String
   tenantId         String?
   discountId       String? // custom discount for this partner
+  clickRewardId    String?
+  leadRewardId     String?
+  saleRewardId     String?
   applicationId    String?                 @unique
   status           ProgramEnrollmentStatus @default(pending)
   totalCommissions Int                     @default(0) // total commissions earned by the partner (in cents)
@@ -89,12 +89,17 @@ model ProgramEnrollment {
   links       Link[]
   discount    Discount?           @relation(fields: [discountId], references: [id])
   application ProgramApplication? @relation(fields: [applicationId], references: [id])
-  rewards     PartnerReward[]
+  clickReward Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward  Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward  Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
-  @@index([programId])
-  @@index([discountId])
+  @@index(programId)
+  @@index(discountId)
+  @@index(clickRewardId)
+  @@index(leadRewardId)
+  @@index(saleRewardId)
 }
 
 model ProgramApplication {
@@ -111,5 +116,5 @@ model ProgramApplication {
   program    Program            @relation(fields: [programId], references: [id])
   enrollment ProgramEnrollment?
 
-  @@index([programId])
+  @@index(programId)
 }

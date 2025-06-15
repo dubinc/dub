@@ -120,11 +120,8 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
     groupBy: "status",
   });
 
-  const sentPayoutsCount =
-    payoutsCount?.find(
-      (payout) =>
-        payout.status === "processing" || payout.status === "completed",
-    )?.count ?? 0;
+  const completedPayoutsCount =
+    payoutsCount?.find((payout) => payout.status === "completed")?.count ?? 0;
 
   const formRef = useRef<HTMLFormElement>(null);
   const { handleKeyDown } = useEnterSubmit(formRef);
@@ -239,7 +236,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
                       onChange={field.onChange}
                       error={errors.country ? true : false}
                       disabledTooltip={
-                        sentPayoutsCount > 0
+                        completedPayoutsCount > 0
                           ? "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support."
                           : undefined
                       }
@@ -294,17 +291,17 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
                       ]}
                       selected={profileType}
                       selectAction={(option: "individual" | "company") => {
-                        if (sentPayoutsCount === 0) {
+                        if (completedPayoutsCount === 0) {
                           setValue("profileType", option);
                         }
                       }}
                       className={cn(
                         "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
-                        sentPayoutsCount > 0 && "cursor-not-allowed",
+                        completedPayoutsCount > 0 && "cursor-not-allowed",
                       )}
                       optionClassName={cn(
                         "h-9 flex items-center justify-center rounded-lg flex-1",
-                        sentPayoutsCount > 0 && "pointer-events-none",
+                        completedPayoutsCount > 0 && "pointer-events-none",
                       )}
                       indicatorClassName="bg-white"
                     />
@@ -344,7 +341,7 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
                             ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                             : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                         )}
-                        disabled={sentPayoutsCount > 0}
+                        disabled={completedPayoutsCount > 0}
                         {...register("companyName", {
                           required: profileType === "company",
                         })}

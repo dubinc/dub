@@ -1,13 +1,16 @@
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, Reward } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 
 export async function getProgramEnrollmentOrThrow({
   partnerId,
   programId,
+  includeRewards = false,
 }: {
   partnerId: string;
   programId: string;
+  includeRewards?: boolean;
 }) {
   const include: Prisma.ProgramEnrollmentInclude = {
     program: true,
@@ -16,6 +19,11 @@ export async function getProgramEnrollmentOrThrow({
         createdAt: "asc",
       },
     },
+    ...(includeRewards && {
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
+    }),
   };
 
   const programEnrollment = programId.startsWith("prog_")
@@ -58,6 +66,15 @@ export async function getProgramEnrollmentOrThrow({
 
   return {
     ...programEnrollment,
+    ...(includeRewards && {
+      rewards: sortRewardsByEventOrder(
+        [
+          programEnrollment.clickReward,
+          programEnrollment.leadReward,
+          programEnrollment.saleReward,
+        ].filter((r): r is Reward => r !== null),
+      ),
+    }),
     links,
   };
 }
