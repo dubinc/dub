@@ -127,6 +127,14 @@ export const checkSystemSubscriptionStatus = async (
           )[0]
         : data?.subscriptions?.[0];
 
+    if (!subscription) {
+      return {
+        isSubscribed: false,
+        subscriptionId: null,
+        status: null,
+      };
+    }
+
     const isSubscribed = activeStatuses.includes(subscription.status);
 
     debugUtil({
