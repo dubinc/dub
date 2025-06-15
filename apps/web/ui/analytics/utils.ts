@@ -1,7 +1,7 @@
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { fetcher } from "@dub/utils";
-import { useContext } from "react";
+import { ContextType, useContext } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { AnalyticsContext } from "./analytics-provider";
 
@@ -20,12 +20,18 @@ export function useAnalyticsFilterOption(
   groupByOrParams:
     | AnalyticsGroupByOptions
     | ({ groupBy: AnalyticsGroupByOptions } & Record<string, any>),
-  options?: { cacheOnly?: boolean },
+  options?: {
+    cacheOnly?: boolean;
+    context?: Pick<
+      ContextType<typeof AnalyticsContext>,
+      "baseApiPath" | "queryString" | "selectedTab" | "requiresUpgrade"
+    >;
+  },
 ): AnalyticsFilterResult {
   const { cache } = useSWRConfig();
 
   const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
-    useContext(AnalyticsContext);
+    options?.context ?? useContext(AnalyticsContext);
 
   const enabled =
     !options?.cacheOnly ||
