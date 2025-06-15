@@ -261,6 +261,7 @@ export const plans = [
   "free",
   "pro",
   "business",
+  "business legacy",
   "business plus",
   "business extra",
   "business max",

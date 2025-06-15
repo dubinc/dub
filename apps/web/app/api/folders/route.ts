@@ -38,6 +38,7 @@ export const GET = withWorkspace(
     requiredPlan: [
       "pro",
       "business",
+      "business legacy",
       "business plus",
       "business extra",
       "business max",
@@ -139,6 +140,7 @@ export const POST = withWorkspace(
     requiredPlan: [
       "pro",
       "business",
+      "business legacy",
       "business plus",
       "business extra",
       "business max",
