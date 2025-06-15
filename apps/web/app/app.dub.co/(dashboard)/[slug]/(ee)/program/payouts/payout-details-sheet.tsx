@@ -1,11 +1,15 @@
 import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
+import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
+import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
+import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
-  ExpandingArrow,
   LoadingSpinner,
   Sheet,
   StatusBadge,
@@ -14,6 +18,7 @@ import {
   useTable,
 } from "@dub/ui";
 import {
+  APP_DOMAIN,
   capitalize,
   cn,
   currencyFormatter,
@@ -26,10 +31,6 @@ import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo, useState } from "react";
 import useSWR from "swr";
-import { CommissionTypeIcon } from "./comission-type-icon";
-import { CommissionRowMenu } from "./commission-row-menu";
-import { CommissionTypeBadge } from "./commission-type-badge";
-import { PayoutStatusBadges } from "./payout-status-badges";
 
 type PayoutDetailsSheetProps = {
   payout: PayoutResponse;
@@ -59,21 +60,19 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
     return {
       Partner: (
-        <a
+        <ConditionalLink
           href={`/${slug}/program/partners?partnerId=${payout.partner.id}`}
           target="_blank"
-          className="group flex items-center gap-0.5"
         >
           <img
             src={
               payout.partner.image || `${OG_AVATAR_URL}${payout.partner.name}`
             }
             alt={payout.partner.name}
-            className="mr-1.5 size-5 rounded-full"
+            className="mr-1.5 inline-flex size-5 rounded-full"
           />
-          <div>{payout.partner.name}</div>
-          <ExpandingArrow className="size-3" />
-        </a>
+          {payout.partner.name}
+        </ConditionalLink>
       ),
 
       Period: formatPeriod(payout),
@@ -90,7 +89,14 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       }),
 
       ...(payout.invoiceId && {
-        Invoice: payout.invoiceId,
+        Invoice: (
+          <ConditionalLink
+            href={`${APP_DOMAIN}/invoices/${payout.invoiceId}`}
+            target="_blank"
+          >
+            {payout.invoiceId}
+          </ConditionalLink>
+        ),
       }),
 
       Description: payout.description || "-",
@@ -218,13 +224,13 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
           <div className="text-base font-medium text-neutral-900">
             Invoice details
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-3 gap-2 text-sm">
             {Object.entries(invoiceData).map(([key, value]) => (
               <Fragment key={key}>
                 <div className="flex items-center font-medium text-neutral-500">
                   {key}
                 </div>
-                <div className="text-neutral-800">{value}</div>
+                <div className="col-span-2 text-neutral-800">{value}</div>
               </Fragment>
             ))}
           </div>
