@@ -24,26 +24,10 @@ model Reward {
   updatedAt   DateTime       @updatedAt
 
   program          Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partners         PartnerReward[]
   clickEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
   leadEnrollments  ProgramEnrollment[] @relation("LeadRewardEnrollments")
   saleEnrollments  ProgramEnrollment[] @relation("SaleRewardEnrollments")
 
   @@index([programId, event])
   @@index(event) // used in aggregate-clicks cron job
-}
-
-// TODO: Remove this table after https://github.com/dubinc/dub/pull/2504 merges
-model PartnerReward {
-  id                  String @id @default(cuid())
-  programEnrollmentId String
-  rewardId            String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
-
-  @@unique([programEnrollmentId, rewardId])
-  @@index(rewardId)
 }
