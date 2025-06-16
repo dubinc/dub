@@ -4,15 +4,26 @@ import { paypalEnv } from "@/lib/paypal/env";
 export const cancelPaypalPayout = async (paypalTransferId: string) => {
   const paypalAccessToken = await createPaypalToken();
 
-  const response = await fetch(
+  const res = await fetch(
     `${paypalEnv.PAYPAL_API_HOST}/v1/payments/payouts-item/${paypalTransferId}/cancel`,
     {
       method: "POST",
       headers: {
         Authorization: `Bearer ${paypalAccessToken}`,
+        "Content-Type": "application/json",
       },
     },
-  ).then((r) => r.json());
+  );
+
+  const body = await res.json();
+
+  if (!res.ok) {
+    console.error("[PayPal] Failed to cancel payout.", body);
+    throw new Error("Failed to cancel PayPal payout.");
+  }
+
+  return body;
+};
 
   return response;
 };
