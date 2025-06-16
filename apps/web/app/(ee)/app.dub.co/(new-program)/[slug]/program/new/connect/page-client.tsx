@@ -7,7 +7,9 @@ import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { GuidesList, type IntegrationType } from "./guide-list";
+import { Guide } from "./guide";
+import { GuidesList } from "./guide-list";
+import { IntegrationGuide, IntegrationType } from "./types";
 
 export function PageClient() {
   const router = useRouter();
@@ -15,6 +17,9 @@ export function PageClient() {
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
   const [integrationType, setIntegrationType] =
     useState<IntegrationType>("no-code");
+  const [selectedGuide, setSelectedGuide] = useState<IntegrationGuide | null>(
+    null,
+  );
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -44,10 +49,15 @@ export function PageClient() {
       </p>
 
       <div className="mt-6 space-y-10">
-        <GuidesList
-          integrationType={integrationType}
-          onIntegrationTypeChange={setIntegrationType}
-        />
+        {selectedGuide ? (
+          <Guide guide={selectedGuide} />
+        ) : (
+          <GuidesList
+            integrationType={integrationType}
+            onIntegrationTypeChange={setIntegrationType}
+            onGuideSelect={setSelectedGuide}
+          />
+        )}
 
         <Button
           text="I'll do this later"

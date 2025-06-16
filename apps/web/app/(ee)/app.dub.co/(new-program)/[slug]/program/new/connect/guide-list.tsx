@@ -2,23 +2,15 @@ import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
 import { ToggleGroup } from "@dub/ui";
 import { Framer } from "lucide-react";
-
-export type IntegrationType = "no-code" | "code";
-
-export type Guide = {
-  type: IntegrationType;
-  title: string;
-  description?: string;
-  icon: JSX.Element;
-  recommended?: boolean;
-};
+import { IntegrationGuide, IntegrationType } from "./types";
 
 interface GuidesListProps {
   integrationType: IntegrationType;
   onIntegrationTypeChange: (type: IntegrationType) => void;
+  onGuideSelect: (guide: IntegrationGuide) => void;
 }
 
-export const guides: Guide[] = [
+export const guides: IntegrationGuide[] = [
   {
     type: "no-code",
     title: "Framer",
@@ -49,6 +41,7 @@ export const guides: Guide[] = [
 export function GuidesList({
   integrationType,
   onIntegrationTypeChange,
+  onGuideSelect,
 }: GuidesListProps) {
   return (
     <>
@@ -70,9 +63,10 @@ export function GuidesList({
         {guides
           .filter((g) => g.type === integrationType)
           .map((guide) => (
-            <div
+            <button
               key={guide.title}
               className="group relative flex h-40 cursor-pointer flex-col justify-center rounded-lg bg-neutral-200/40 transition-colors duration-100 hover:bg-neutral-200/60"
+              onClick={() => onGuideSelect(guide)}
             >
               {guide.recommended && (
                 <span className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 rounded-md bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-600">
@@ -92,7 +86,7 @@ export function GuidesList({
                   {guide.description}
                 </div>
               </div>
-            </div>
+            </button>
           ))}
       </div>
     </>
