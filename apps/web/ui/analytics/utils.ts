@@ -6,7 +6,9 @@ import useSWR, { useSWRConfig } from "swr";
 import { AnalyticsContext } from "./analytics-provider";
 
 type AnalyticsFilterResult = {
-  data: ({ count?: number } & Record<string, any>)[] | null;
+  data:
+    | ({ count?: number; saleAmount?: number } & Record<string, any>)[]
+    | null;
   loading: boolean;
 };
 

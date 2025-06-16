@@ -53,6 +53,7 @@ import {
   capitalize,
   CONTINENTS,
   COUNTRIES,
+  currencyFormatter,
   getApexDomain,
   GOOGLE_FAVICON_URL,
   linkConstructor,
@@ -67,6 +68,7 @@ import {
   ComponentProps,
   ContextType,
   useCallback,
+  useContext,
   useMemo,
   useState,
 } from "react";
@@ -93,10 +95,16 @@ export function useAnalyticsFilters({
   dashboardProps?: AnalyticsDashboardProps;
   context?: Pick<
     ContextType<typeof AnalyticsContext>,
-    "baseApiPath" | "queryString" | "selectedTab" | "requiresUpgrade"
+    | "baseApiPath"
+    | "queryString"
+    | "selectedTab"
+    | "saleUnit"
+    | "requiresUpgrade"
   >;
   programPage?: boolean;
 } = {}) {
+  const { selectedTab, saleUnit } = context ?? useContext(AnalyticsContext);
+
   const { slug, programSlug } = useParams();
   const { plan } = useWorkspace();
 
@@ -331,6 +339,16 @@ export function useAnalyticsFilters({
     utm_content: utmContents,
   };
 
+  const getFilterOptionTotal = useCallback(
+    ({ count, saleAmount }: { count?: number; saleAmount?: number }) => {
+      console.log({ selectedTab, saleUnit });
+      return selectedTab === "sales" && saleUnit === "saleAmount" && saleAmount
+        ? currencyFormatter(saleAmount / 100)
+        : nFormatter(count, { full: true });
+    },
+    [selectedTab, saleUnit],
+  );
+
   // Some suggestions will only appear if previously requested (see isRequested above)
   const aiFilterSuggestions = useMemo(
     () => [
@@ -376,10 +394,10 @@ export function useAnalyticsFilters({
     },
     options:
       links?.map(
-        ({ domain, key, url, count }: LinkProps & { count?: number }) => ({
+        ({ domain, key, url, ...rest }: LinkProps & { count?: number }) => ({
           value: linkConstructor({ domain, key, pretty: true }),
           label: linkConstructor({ domain, key, pretty: true }),
-          right: nFormatter(count, { full: true }),
+          right: getFilterOptionTotal(rest),
           data: { url },
           permalink:
             slug && !partnerPage
@@ -454,7 +472,7 @@ export function useAnalyticsFilters({
                 label: "Partner",
                 separatorAfter: true,
                 options:
-                  partners?.map(({ count, partner }) => {
+                  partners?.map(({ partner, ...rest }) => {
                     return {
                       value: partner.id,
                       label: partner.name,
@@ -467,7 +485,7 @@ export function useAnalyticsFilters({
                           className="size-4 rounded-full"
                         />
                       ),
-                      right: nFormatter(count, { full: true }),
+                      right: getFilterOptionTotal(rest),
                     };
                   }) ?? null,
               },
@@ -614,10 +632,10 @@ export function useAnalyticsFilters({
         ),
         getOptionLabel: (value) => COUNTRIES[value],
         options:
-          countries?.map(({ country, count }) => ({
+          countries?.map(({ country, ...rest }) => ({
             value: country,
             label: COUNTRIES[country],
-            right: nFormatter(count, { full: true }),
+            right: getFilterOptionTotal(rest),
           })) ?? null,
       },
       {
@@ -625,7 +643,7 @@ export function useAnalyticsFilters({
         icon: OfficeBuilding,
         label: "City",
         options:
-          cities?.map(({ city, country, count }) => ({
+          cities?.map(({ city, country, ...rest }) => ({
             value: city,
             label: city,
             icon: (
@@ -635,7 +653,7 @@ export function useAnalyticsFilters({
                 className="h-2.5 w-4"
               />
             ),
-            right: nFormatter(count, { full: true }),
+            right: getFilterOptionTotal(rest),
           })) ?? null,
       },
       {
@@ -643,7 +661,7 @@ export function useAnalyticsFilters({
         icon: LocationPin,
         label: "Region",
         options:
-          regions?.map(({ region, country, count }) => ({
+          regions?.map(({ region, country, ...rest }) => ({
             value: region,
             label: REGIONS[region] || region.split("-")[1],
             icon: (
@@ -653,7 +671,7 @@ export function useAnalyticsFilters({
                 className="h-2.5 w-4"
               />
             ),
-            right: nFormatter(count, { full: true }),
+            right: getFilterOptionTotal(rest),
           })) ?? null,
       },
       {
@@ -665,10 +683,10 @@ export function useAnalyticsFilters({
         ),
         getOptionLabel: (value) => CONTINENTS[value],
         options:
-          continents?.map(({ continent, count }) => ({
+          continents?.map(({ continent, ...rest }) => ({
             value: continent,
             label: CONTINENTS[continent],
-            right: nFormatter(count, { full: true }),
+            right: getFilterOptionTotal(rest),
           })) ?? null,
       },
       {
@@ -683,10 +701,10 @@ export function useAnalyticsFilters({
           />
         ),
         options:
-          devices?.map(({ device, count }) => ({
+          devices?.map(({ device, ...rest }) => ({
             value: device,
             label: device,
-            right: nFormatter(count, { full: true }),
+            right: getFilterOptionTotal(rest),
           })) ?? null,
       },
       {
@@ -697,10 +715,10 @@ export function useAnalyticsFilters({
           <DeviceIcon display={value} tab="browsers" className="h-4 w-4" />
         ),
         options:
-          browsers?.map(({ browser, count }) => ({
+          browsers?.map(({ browser, ...rest }) => ({
             value: browser,
             label: browser,
-            right: nFormatter(count, { full: true }),
+            right: getFilterOptionTotal(rest),
           })) ?? null,
       },
       {
@@ -711,10 +729,10 @@ export function useAnalyticsFilters({
           <DeviceIcon display={value} tab="os" className="h-4 w-4" />
         ),
         options:
-          os?.map(({ os, count }) => ({
+          os?.map(({ os, ...rest }) => ({
             value: os,
             label: os,
-            right: nFormatter(count, { full: true }),
+            right: getFilterOptionTotal(rest),
           })) ?? null,
       },
       ...(programPage
@@ -725,11 +743,11 @@ export function useAnalyticsFilters({
               icon: CursorRays,
               label: "Trigger",
               options:
-                triggers?.map(({ trigger, count }) => ({
+                triggers?.map(({ trigger, ...rest }) => ({
                   value: trigger,
                   label: TRIGGER_DISPLAY[trigger],
                   icon: trigger === "qr" ? QRCode : CursorRays,
-                  right: nFormatter(count, { full: true }),
+                  right: getFilterOptionTotal(rest),
                 })) ?? null,
               separatorAfter: true,
             },
@@ -742,10 +760,10 @@ export function useAnalyticsFilters({
           <RefererIcon display={value} className="h-4 w-4" />
         ),
         options:
-          referers?.map(({ referer, count }) => ({
+          referers?.map(({ referer, ...rest }) => ({
             value: referer,
             label: referer,
-            right: nFormatter(count, { full: true }),
+            right: getFilterOptionTotal(rest),
           })) ?? null,
       },
       ...(programPage
@@ -759,10 +777,10 @@ export function useAnalyticsFilters({
                 <RefererIcon display={value} className="h-4 w-4" />
               ),
               options:
-                refererUrls?.map(({ refererUrl, count }) => ({
+                refererUrls?.map(({ refererUrl, ...rest }) => ({
                   value: refererUrl,
                   label: refererUrl,
-                  right: nFormatter(count, { full: true }),
+                  right: getFilterOptionTotal(rest),
                 })) ?? null,
             },
             {
@@ -776,10 +794,10 @@ export function useAnalyticsFilters({
                 />
               ),
               options:
-                urls?.map(({ url, count }) => ({
+                urls?.map(({ url, ...rest }) => ({
                   value: url,
                   label: url.replace(/^https?:\/\//, "").replace(/\/$/, ""),
-                  right: nFormatter(count, { full: true }),
+                  right: getFilterOptionTotal(rest),
                 })) ?? null,
             },
             ...UTM_PARAMETERS.filter(({ key }) => key !== "ref").map(

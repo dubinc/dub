@@ -1,9 +1,5 @@
-import { ANALYTICS_SALE_UNIT } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
-import {
-  AnalyticsResponseOptions,
-  AnalyticsSaleUnit,
-} from "@/lib/analytics/types";
+import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { AnalyticsTabs } from "@/ui/analytics/analytics-tabs";
 import { useRouterStuff } from "@dub/ui";
@@ -24,17 +20,10 @@ import { ProgramAnalyticsContext } from "./page-client";
 export function AnalyticsChart() {
   const id = useId();
 
-  const { queryParams, searchParams } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
 
-  const { start, end, interval, event, queryString } = useContext(
+  const { start, end, interval, event, saleUnit, queryString } = useContext(
     ProgramAnalyticsContext,
-  );
-
-  const saleUnit: AnalyticsSaleUnit = useMemo(
-    () =>
-      ANALYTICS_SALE_UNIT.find((u) => u === searchParams.get("saleUnit")) ||
-      "saleAmount",
-    [searchParams.get("saleUnit")],
   );
 
   const { data: totalEvents } = useSWR<{

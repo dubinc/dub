@@ -1,7 +1,7 @@
 "use client";
 
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
-import { IntervalOptions } from "@/lib/analytics/types";
+import { AnalyticsSaleUnit, IntervalOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useAnalyticsFilters } from "@/ui/analytics/use-analytics-filters";
@@ -9,7 +9,7 @@ import { useAnalyticsQuery } from "@/ui/analytics/use-analytics-query";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Filter, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { createContext } from "react";
+import { createContext, useMemo } from "react";
 import { AnalyticsChart } from "./analytics-chart";
 import { AnalyticsPartnersTable } from "./analytics-partners-table";
 
@@ -18,22 +18,30 @@ type ProgramAnalyticsContextType = {
   end?: string;
   interval?: IntervalOptions;
   event: "sales" | "leads" | "clicks";
+  saleUnit: AnalyticsSaleUnit;
   queryString?: string;
 };
 
 export const ProgramAnalyticsContext =
-  createContext<ProgramAnalyticsContextType>({ event: "sales" });
+  createContext<ProgramAnalyticsContextType>({
+    event: "sales",
+    saleUnit: "saleAmount",
+  });
 
 export function ProgramAnalyticsPageClient() {
   const { defaultProgramId } = useWorkspace();
   const { searchParamsObj } = useRouterStuff();
 
-  const {
-    start,
-    end,
-    interval = DUB_PARTNERS_ANALYTICS_INTERVAL,
-    event = "sales",
-  } = searchParamsObj as Partial<ProgramAnalyticsContextType>;
+  const { start, end, interval, event, saleUnit } = useMemo(
+    () =>
+      ({
+        interval: DUB_PARTNERS_ANALYTICS_INTERVAL,
+        event: "sales",
+        saleUnit: "saleAmount",
+        ...searchParamsObj,
+      }) as ProgramAnalyticsContextType,
+    [searchParamsObj],
+  );
 
   const queryString = editQueryString(
     useAnalyticsQuery({
@@ -61,6 +69,7 @@ export function ProgramAnalyticsPageClient() {
       baseApiPath: "/api/analytics",
       queryString,
       selectedTab: event,
+      saleUnit,
     },
     programPage: true,
   });
@@ -98,7 +107,7 @@ export function ProgramAnalyticsPageClient() {
         </div>
       </div>
       <ProgramAnalyticsContext.Provider
-        value={{ start, end, interval, event, queryString }}
+        value={{ start, end, interval, event, saleUnit, queryString }}
       >
         <div className="border-border-subtle divide-border-subtle divide-y overflow-hidden rounded-2xl border">
           <AnalyticsChart />
