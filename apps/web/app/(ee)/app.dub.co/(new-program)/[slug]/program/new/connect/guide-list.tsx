@@ -1,12 +1,17 @@
+"use client";
+
+import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
-import { ToggleGroup } from "@dub/ui";
-import { Framer } from "lucide-react";
+import { Button, ToggleGroup } from "@dub/ui";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 import { IntegrationGuide, IntegrationType } from "./types";
 
 interface GuidesListProps {
-  integrationType: IntegrationType;
-  onIntegrationTypeChange: (type: IntegrationType) => void;
   onGuideSelect: (guide: IntegrationGuide) => void;
 }
 
@@ -15,36 +20,61 @@ export const guides: IntegrationGuide[] = [
     type: "no-code",
     title: "Framer",
     description: "Dub Analytics",
-    icon: <Framer />,
+    icon: Shopify,
     recommended: true,
   },
   {
     type: "no-code",
     title: "Shopify",
     description: "Dub Analytics",
-    icon: <Shopify />,
+    icon: Shopify,
   },
   {
     type: "no-code",
     title: "Webflow",
     description: "Dub Analytics",
-    icon: <Stripe />,
+    icon: Stripe,
   },
   {
     type: "code",
     title: "WordPress",
     description: "Dub Analytics",
-    icon: <Shopify />,
+    icon: Shopify,
   },
 ];
 
-export function GuidesList({
-  integrationType,
-  onIntegrationTypeChange,
-  onGuideSelect,
-}: GuidesListProps) {
+export function GuidesList({ onGuideSelect }: GuidesListProps) {
+  const router = useRouter();
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
+  const [integrationType, setIntegrationType] =
+    useState<IntegrationType>("no-code");
+
+  const { executeAsync, isPending } = useAction(onboardProgramAction, {
+    onSuccess: () => {
+      router.push(`/${workspaceSlug}/program/new/overview`);
+      mutate();
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
+  const onContinue = async () => {
+    if (!workspaceId) {
+      return;
+    }
+
+    setHasSubmitted(true);
+
+    await executeAsync({
+      workspaceId,
+      step: "connect",
+    });
+  };
+
   return (
-    <>
+    <div className="space-y-10">
       <div className="flex flex-col gap-4">
         <ToggleGroup
           className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1"
@@ -55,7 +85,7 @@ export function GuidesList({
             { value: "code", label: "Developer integrations" },
           ]}
           selected={integrationType}
-          selectAction={onIntegrationTypeChange}
+          selectAction={(value) => setIntegrationType(value as IntegrationType)}
         />
       </div>
 
@@ -75,7 +105,7 @@ export function GuidesList({
               )}
 
               <div className="mb-4 flex h-16 items-center justify-center">
-                <IconWrapper>{guide.icon}</IconWrapper>
+                <guide.icon className="size-11" />
               </div>
 
               <div className="text-center">
@@ -89,10 +119,15 @@ export function GuidesList({
             </button>
           ))}
       </div>
-    </>
+
+      <Button
+        text="I'll do this later"
+        variant="secondary"
+        className="w-full"
+        type="button"
+        onClick={onContinue}
+        loading={isPending || hasSubmitted}
+      />
+    </div>
   );
 }
-
-const IconWrapper = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex size-11 items-center justify-center">{children}</div>
-);

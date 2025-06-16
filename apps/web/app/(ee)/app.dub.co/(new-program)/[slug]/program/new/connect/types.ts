@@ -4,6 +4,6 @@ export type IntegrationGuide = {
   type: IntegrationType;
   title: string;
   description?: string;
-  icon: JSX.Element;
+  icon: any;
   recommended?: boolean;
 };
