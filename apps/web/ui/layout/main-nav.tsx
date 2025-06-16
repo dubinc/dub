@@ -88,8 +88,8 @@ export function MainNav({
           <Sidebar toolContent={toolContent} newsContent={newsContent} />
         </div>
       </div>
-      <div className="bg-neutral-200 md:pt-1.5">
-        <div className="relative min-h-full bg-neutral-100 pt-px md:rounded-tl-2xl md:bg-white">
+      <div className="bg-neutral-200 md:pt-2">
+        <div className="relative min-h-full bg-neutral-100 pt-px md:rounded-tl-xl md:bg-white">
           <SideNavContext.Provider value={{ isOpen, setIsOpen }}>
             {children}
           </SideNavContext.Provider>
