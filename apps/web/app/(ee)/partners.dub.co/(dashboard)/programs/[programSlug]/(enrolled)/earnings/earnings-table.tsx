@@ -100,23 +100,26 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             linkId: getValue().id,
           }),
         },
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <LinkLogo
-              apexDomain={getApexDomain(row.original.link.url)}
-              className="size-4 shrink-0 sm:size-4"
-            />
-            <CopyText
-              value={row.original.link.shortLink}
-              successMessage="Copied link to clipboard!"
-              className="truncate"
-            >
-              <span className="truncate" title={row.original.link.shortLink}>
-                {getPrettyUrl(row.original.link.shortLink)}
-              </span>
-            </CopyText>
-          </div>
-        ),
+        cell: ({ row }) =>
+          row.original.link ? (
+            <div className="flex items-center gap-3">
+              <LinkLogo
+                apexDomain={getApexDomain(row.original.link.url)}
+                className="size-4 shrink-0 sm:size-4"
+              />
+              <CopyText
+                value={row.original.link.shortLink}
+                successMessage="Copied link to clipboard!"
+                className="truncate"
+              >
+                <span className="truncate" title={row.original.link.shortLink}>
+                  {getPrettyUrl(row.original.link.shortLink)}
+                </span>
+              </CopyText>
+            </div>
+          ) : (
+            "-"
+          ),
         size: 250,
       },
       {
