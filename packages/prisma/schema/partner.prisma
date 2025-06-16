@@ -46,7 +46,7 @@ model Partner {
   youtubeVerifiedAt DateTime?
   youtubeSubscriberCount Int?
   youtubeVideoCount      Int?
-  youtubeViewCount       Int?
+  youtubeViewCount       BigInt?
 
   twitter           String?
   twitterVerifiedAt DateTime?
