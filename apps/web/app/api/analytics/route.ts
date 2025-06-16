@@ -3,8 +3,11 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import {
@@ -48,6 +51,16 @@ export const GET = withWorkspace(
 
     event = oldEvent || event;
     groupBy = oldType || groupBy;
+
+    if (programId) {
+      const workspaceProgramId = getDefaultProgramIdOrThrow(workspace);
+      if (programId !== workspaceProgramId) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: `Program ${programId} does not belong to workspace ${prefixWorkspaceId(workspace.id)}.`,
+        });
+      }
+    }
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });

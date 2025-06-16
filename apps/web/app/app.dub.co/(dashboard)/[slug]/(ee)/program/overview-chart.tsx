@@ -2,7 +2,7 @@ import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import useCommissionsTimeseries from "@/lib/swr/use-commissions-timeseries";
-import useProgramRevenue from "@/lib/swr/use-program-revenue";
+import useWorkspace from "@/lib/swr/use-workspace";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Combobox, useRouterStuff } from "@dub/ui";
 import {
@@ -13,10 +13,11 @@ import {
   YAxis,
 } from "@dub/ui/charts";
 import { LoadingSpinner } from "@dub/ui/icons";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { useId, useMemo, useState } from "react";
+import useSWR from "swr";
 
 const chartOptions = [
   { value: "revenue", label: "Revenue" },
@@ -27,6 +28,7 @@ type ViewType = "revenue" | "commissions";
 
 export function OverviewChart() {
   const id = useId();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { searchParamsObj } = useRouterStuff();
   const [viewType, setViewType] = useState<ViewType>("revenue");
 
@@ -40,14 +42,30 @@ export function OverviewChart() {
     interval?: IntervalOptions;
   };
 
-  const { data: revenue, error: revenueError } = useProgramRevenue({
-    event: "sales",
-    groupBy: "timeseries",
-    interval,
-    start: start ? new Date(start) : undefined,
-    end: end ? new Date(end) : undefined,
-    enabled: viewType === "revenue",
-  });
+  const { data: revenue, error: revenueError } = useSWR<
+    {
+      start: Date;
+      sales: number;
+      saleAmount: number;
+    }[]
+  >(
+    workspaceId && defaultProgramId && viewType === "revenue"
+      ? `/api/analytics?${new URLSearchParams({
+          workspaceId,
+          programId: defaultProgramId,
+          event: "sales",
+          groupBy: "timeseries",
+          interval,
+          ...(start && { start }),
+          ...(end && { end }),
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        } as Record<string, string>).toString()}`
+      : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
 
   const { data: commissions, error: commissionsError } =
     useCommissionsTimeseries({
@@ -62,10 +80,11 @@ export function OverviewChart() {
   const data = useMemo(() => {
     const sourceData = viewType === "revenue" ? revenue : commissions;
 
-    return sourceData?.map(({ start, saleAmount, earnings }) => ({
-      date: new Date(start),
+    return sourceData?.map((item) => ({
+      date: new Date(item.start),
       values: {
-        amount: (viewType === "revenue" ? saleAmount : earnings) / 100,
+        amount:
+          (viewType === "revenue" ? item.saleAmount : item.earnings) / 100,
       },
     }));
   }, [revenue, commissions, viewType]);
