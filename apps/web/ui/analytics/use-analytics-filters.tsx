@@ -46,6 +46,7 @@ import {
   ReferredVia,
   Tag,
   User,
+  Users,
   Window,
 } from "@dub/ui/icons";
 import {
@@ -253,6 +254,10 @@ export function useAnalyticsFilters({
     cacheOnly: !isRequested("link"),
     context,
   });
+  const { data: partners } = useAnalyticsFilterOption("top_partners", {
+    cacheOnly: !isRequested("partnerId"),
+    context,
+  });
   const { data: countries } = useAnalyticsFilterOption("countries", {
     cacheOnly: !isRequested("country"),
     context,
@@ -439,137 +444,163 @@ export function useAnalyticsFilters({
             icon,
           })) ?? null,
       },
-      ...(dashboardProps || programPage
+      ...(dashboardProps
         ? []
-        : partnerPage
-          ? [LinkFilterItem, CustomerFilterItem]
-          : [
-              ...(canManageCustomers ? [CustomerFilterItem] : []),
+        : programPage
+          ? [
               {
-                key: "folderId",
-                icon: Folder,
-                label: "Folder",
-                shouldFilter: !foldersAsync,
-                getOptionIcon: (value, props) => {
-                  const folderName = props.option?.label;
-                  const folder = folders?.find(
-                    ({ name }) => name === folderName,
-                  );
-
-                  return folder ? (
-                    <FolderIcon
-                      folder={folder}
-                      shape="square"
-                      iconClassName="size-3"
-                    />
-                  ) : null;
-                },
-                options: loadingFolders
-                  ? null
-                  : [
-                      ...(folders || []),
-                      // Add currently filtered folder if not already in the list
-                      ...(selectedFolder &&
-                      !folders?.find((f) => f.id === selectedFolder.id)
-                        ? [selectedFolder]
-                        : []),
-                    ].map((folder) => ({
-                      value: folder.id,
+                key: "partnerId",
+                icon: Users,
+                label: "Partner",
+                separatorAfter: true,
+                options:
+                  partners?.map(({ count, partner }) => {
+                    return {
+                      value: partner.id,
+                      label: partner.name,
                       icon: (
-                        <FolderIcon
-                          folder={folder}
-                          shape="square"
-                          iconClassName="size-3"
+                        <img
+                          src={
+                            partner.image || `${OG_AVATAR_URL}${partner.name}`
+                          }
+                          alt={`${partner.name} image`}
+                          className="size-4 rounded-full"
                         />
                       ),
-                      label: folder.name,
-                    })),
+                      right: nFormatter(count, { full: true }),
+                    };
+                  }) ?? null,
               },
-              {
-                key: "tagIds",
-                icon: Tag,
-                label: "Tag",
-                multiple: true,
-                shouldFilter: !tagsAsync,
-                getOptionIcon: (value, props) => {
-                  const tagColor =
-                    props.option?.data?.color ??
-                    tags?.find(({ id }) => id === value)?.color;
-                  return tagColor ? (
-                    <TagBadge color={tagColor} withIcon className="sm:p-1" />
-                  ) : null;
-                },
-                options: loadingTags
-                  ? null
-                  : [
-                      ...(tags || []),
-                      // Add currently filtered tags if not already in the list
-                      ...(selectedTags || []).filter(
-                        ({ id }) => !tags?.some((t) => t.id === id),
-                      ),
-                    ].map(({ id, name, color }) => ({
-                      value: id,
-                      icon: (
-                        <TagBadge color={color} withIcon className="sm:p-1" />
-                      ),
-                      label: name,
-                      data: { color },
-                    })),
-              },
-              {
-                key: "domain",
-                icon: Globe2,
-                label: "Domain",
-                shouldFilter: !domainsAsync,
-                getOptionIcon: (value) => (
-                  <BlurImage
-                    src={`${GOOGLE_FAVICON_URL}${value}`}
-                    alt={value}
-                    className="h-4 w-4 rounded-full"
-                    width={16}
-                    height={16}
-                  />
-                ),
-                options: loadingDomains
-                  ? null
-                  : [
-                      ...domains.map((domain) => ({
-                        value: domain.slug,
-                        label: domain.slug,
+            ]
+          : partnerPage
+            ? [LinkFilterItem, CustomerFilterItem]
+            : [
+                ...(canManageCustomers ? [CustomerFilterItem] : []),
+                {
+                  key: "folderId",
+                  icon: Folder,
+                  label: "Folder",
+                  shouldFilter: !foldersAsync,
+                  getOptionIcon: (value, props) => {
+                    const folderName = props.option?.label;
+                    const folder = folders?.find(
+                      ({ name }) => name === folderName,
+                    );
+
+                    return folder ? (
+                      <FolderIcon
+                        folder={folder}
+                        shape="square"
+                        iconClassName="size-3"
+                      />
+                    ) : null;
+                  },
+                  options: loadingFolders
+                    ? null
+                    : [
+                        ...(folders || []),
+                        // Add currently filtered folder if not already in the list
+                        ...(selectedFolder &&
+                        !folders?.find((f) => f.id === selectedFolder.id)
+                          ? [selectedFolder]
+                          : []),
+                      ].map((folder) => ({
+                        value: folder.id,
+                        icon: (
+                          <FolderIcon
+                            folder={folder}
+                            shape="square"
+                            iconClassName="size-3"
+                          />
+                        ),
+                        label: folder.name,
                       })),
-                      // Add currently filtered domain if not already in the list
-                      ...(!searchParamsObj.domain ||
-                      domains.some((d) => d.slug === searchParamsObj.domain)
-                        ? []
-                        : [
-                            {
-                              value: searchParamsObj.domain,
-                              label: searchParamsObj.domain,
-                              hideDuringSearch: true,
-                            },
-                          ]),
-                    ],
-              },
-              LinkFilterItem,
-              {
-                key: "root",
-                icon: Sliders,
-                label: "Link type",
-                separatorAfter: true,
-                options: [
-                  {
-                    value: true,
-                    icon: Globe2,
-                    label: "Root domain link",
+                },
+                {
+                  key: "tagIds",
+                  icon: Tag,
+                  label: "Tag",
+                  multiple: true,
+                  shouldFilter: !tagsAsync,
+                  getOptionIcon: (value, props) => {
+                    const tagColor =
+                      props.option?.data?.color ??
+                      tags?.find(({ id }) => id === value)?.color;
+                    return tagColor ? (
+                      <TagBadge color={tagColor} withIcon className="sm:p-1" />
+                    ) : null;
                   },
-                  {
-                    value: false,
-                    icon: Hyperlink,
-                    label: "Regular short link",
-                  },
-                ],
-              },
-            ]),
+                  options: loadingTags
+                    ? null
+                    : [
+                        ...(tags || []),
+                        // Add currently filtered tags if not already in the list
+                        ...(selectedTags || []).filter(
+                          ({ id }) => !tags?.some((t) => t.id === id),
+                        ),
+                      ].map(({ id, name, color }) => ({
+                        value: id,
+                        icon: (
+                          <TagBadge color={color} withIcon className="sm:p-1" />
+                        ),
+                        label: name,
+                        data: { color },
+                      })),
+                },
+                {
+                  key: "domain",
+                  icon: Globe2,
+                  label: "Domain",
+                  shouldFilter: !domainsAsync,
+                  getOptionIcon: (value) => (
+                    <BlurImage
+                      src={`${GOOGLE_FAVICON_URL}${value}`}
+                      alt={value}
+                      className="h-4 w-4 rounded-full"
+                      width={16}
+                      height={16}
+                    />
+                  ),
+                  options: loadingDomains
+                    ? null
+                    : [
+                        ...domains.map((domain) => ({
+                          value: domain.slug,
+                          label: domain.slug,
+                        })),
+                        // Add currently filtered domain if not already in the list
+                        ...(!searchParamsObj.domain ||
+                        domains.some((d) => d.slug === searchParamsObj.domain)
+                          ? []
+                          : [
+                              {
+                                value: searchParamsObj.domain,
+                                label: searchParamsObj.domain,
+                                hideDuringSearch: true,
+                              },
+                            ]),
+                      ],
+                },
+                LinkFilterItem,
+                {
+                  key: "root",
+                  icon: Sliders,
+                  label: "Link type",
+                  separatorAfter: true,
+                  options: [
+                    {
+                      value: true,
+                      icon: Globe2,
+                      label: "Root domain link",
+                    },
+                    {
+                      value: false,
+                      icon: Hyperlink,
+                      label: "Regular short link",
+                    },
+                  ],
+                },
+              ]),
       {
         key: "country",
         icon: FlagWavy,
