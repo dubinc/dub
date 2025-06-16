@@ -15,15 +15,12 @@ export const cancelPaypalPayout = async (paypalTransferId: string) => {
     },
   );
 
-  const body = await res.json();
+  const data = await res.json();
 
   if (!res.ok) {
-    console.error("[PayPal] Failed to cancel payout.", body);
+    console.error("[PayPal] Failed to cancel payout.", data);
     throw new Error("Failed to cancel PayPal payout.");
   }
 
-  return body;
-};
-
-  return response;
+  return data;
 };
