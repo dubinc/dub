@@ -49,6 +49,10 @@ const guides: Guide[] = [
   },
 ];
 
+const IconWrapper = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex size-11 items-center justify-center">{children}</div>
+);
+
 export function PageClient() {
   const router = useRouter();
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -114,7 +118,7 @@ export function PageClient() {
               )}
 
               <div className="mb-4 flex h-16 items-center justify-center">
-                {guide.icon}
+                <IconWrapper>{guide.icon}</IconWrapper>
               </div>
 
               <div className="text-center">
