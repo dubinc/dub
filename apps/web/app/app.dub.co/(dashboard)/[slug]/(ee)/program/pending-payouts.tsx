@@ -1,8 +1,8 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
-import { usePayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { buttonVariants } from "@dub/ui";
 import { cn, currencyFormatter, fetcher, OG_AVATAR_URL } from "@dub/utils";
+import { usePayoutDetailsSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-details-sheet";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import useSWR from "swr";

@@ -20,15 +20,18 @@ export function EarningsCalculatorBlock({
   showTitleAndDescription?: boolean;
 }) {
   const id = useId();
-
-  const reward = program?.rewards?.find(
-    (r) => r.id === program?.defaultRewardId,
-  );
-
   const [value, setValue] = useState(10);
+
+  // Find the default sale reward
+  const reward = program?.rewards?.find((r) => r.default && r.event === "sale");
+
+  if (!reward) {
+    return null;
+  }
+
   const revenue = value * ((block.data.productPrice || 30_00) / 100);
 
-  return reward && reward.event === "sale" ? (
+  return (
     <div className="space-y-5">
       {showTitleAndDescription && (
         <div className="space-y-2">
@@ -91,5 +94,5 @@ export function EarningsCalculatorBlock({
         </div>
       </div>
     </div>
-  ) : null;
+  );
 }

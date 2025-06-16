@@ -4,11 +4,11 @@ import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
-  ExpandingArrow,
   InvoiceDollar,
   LoadingSpinner,
   Sheet,
@@ -55,21 +55,19 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
     return {
       Program: (
-        <a
+        <ConditionalLink
           href={`/programs/${payout.program.slug}`}
           target="_blank"
-          className="group flex items-center gap-0.5"
         >
           <img
             src={
               payout.program.logo || `${OG_AVATAR_URL}${payout.program.name}`
             }
             alt={payout.program.name}
-            className="mr-1.5 size-4 rounded-sm"
+            className="mr-1.5 inline-flex size-4 rounded-sm"
           />
-          <span>{payout.program.name}</span>
-          <ExpandingArrow className="size-3" />
-        </a>
+          {payout.program.name}
+        </ConditionalLink>
       ),
 
       Period: formatPeriod(payout),

@@ -1,8 +1,9 @@
 import { prisma } from "@dub/prisma";
-import { Program } from "@dub/prisma/client";
+import { Program, Reward } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
+import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate } from "./types";
@@ -33,6 +34,16 @@ export async function importAffiliates({
   let hasMoreAffiliates = true;
   let processedBatches = 0;
 
+  const reward = await prisma.reward.findUniqueOrThrow({
+    where: {
+      id: rewardId,
+    },
+    select: {
+      id: true,
+      event: true,
+    },
+  });
+
   while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
     const affiliates = await rewardfulApi.listAffiliates({
       campaignId,
@@ -61,7 +72,7 @@ export async function importAffiliates({
             program,
             affiliate,
             userId,
-            rewardId,
+            reward,
           }),
         ),
       );
@@ -87,12 +98,12 @@ async function createPartnerAndLinks({
   program,
   affiliate,
   userId,
-  rewardId,
+  reward,
 }: {
   program: Program;
   affiliate: RewardfulAffiliate;
   userId: string;
-  rewardId?: string;
+  reward: Pick<Reward, "id" | "event">;
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -117,6 +128,7 @@ async function createPartnerAndLinks({
       programId: program.id,
       partnerId: partner.id,
       status: "approved",
+      ...(reward && { [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id }),
     },
     update: {
       status: "approved",
@@ -149,19 +161,4 @@ async function createPartnerAndLinks({
       projectId: program.workspaceId,
     })),
   });
-
-  if (rewardId) {
-    const partnerReward = {
-      programEnrollmentId: programEnrollment.id,
-      rewardId,
-    };
-
-    await prisma.partnerReward.upsert({
-      where: {
-        programEnrollmentId_rewardId: partnerReward,
-      },
-      create: partnerReward,
-      update: {},
-    });
-  }
 }

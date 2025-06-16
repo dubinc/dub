@@ -7,14 +7,15 @@ import { notFound } from "next/navigation";
 import { PartnerBanner } from "../partner-banner";
 
 export default async function LoginPage({
-  params,
+  params: { programSlug },
 }: {
   params: { programSlug?: string };
 }) {
-  const { programSlug } = params;
   const program = programSlug ? await getProgram({ slug: programSlug }) : null;
 
-  if (programSlug && !program) notFound();
+  if (programSlug && !program) {
+    notFound();
+  }
 
   return (
     <AuthLayout showTerms>
