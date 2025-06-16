@@ -283,7 +283,7 @@ export const analyticsFilterTB = z
   );
 
 export const eventsFilterTB = analyticsFilterTB
-  .omit({ granularity: true, timezone: true, page: true })
+  .omit({ granularity: true, timezone: true, page: true, sortBy: true })
   .and(
     z.object({
       offset: z.coerce.number().default(0),
