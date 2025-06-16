@@ -41,6 +41,7 @@ export const GET = withWorkspace(
       domain,
       key,
       folderId,
+      programId,
     } = parsedParams;
 
     let link: Link | null = null;
@@ -83,12 +84,14 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
-    const folderIds = folderIdToVerify
-      ? undefined
-      : await getFolderIdsToFilter({
-          workspace,
-          userId: session.user.id,
-        });
+    // no need to get folder ids if we are filtering by a folder or program
+    const folderIds =
+      folderIdToVerify || programId
+        ? undefined
+        : await getFolderIdsToFilter({
+            workspace,
+            userId: session.user.id,
+          });
 
     // Identify the request is from deprecated clicks endpoint
     // (/api/analytics/clicks)
