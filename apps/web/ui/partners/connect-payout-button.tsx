@@ -67,6 +67,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
       toast.error(
         "Your country is not supported for payout. Please go to partners.dub.co/settings to update your country, or contact support.",
       );
+      return;
     }
   }, [executeStripeAsync, executePaypalAsync, partner]);
 
@@ -78,7 +79,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
               ...CONNECT_SUPPORTED_COUNTRIES,
               ...PAYPAL_SUPPORTED_COUNTRIES,
             ].includes(partner.country)
-          ? `Your country (${COUNTRIES[partner.country]}) is not supported for payout. Please update your country or contact support.`
+          ? `Your current country (${COUNTRIES[partner.country]}) is not supported for payout. Please update your country or contact support.`
           : undefined,
     [partner?.country],
   );
