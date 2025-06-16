@@ -166,16 +166,7 @@ export function AnalyticsChart() {
                   : nFormatter
               }
             />
-            <Areas
-              seriesStyles={[
-                {
-                  id: "saleAmount",
-                  areaFill: `url(#${id}-color-gradient)`,
-                  lineStroke: `url(#${id}-color-gradient)`,
-                  lineClassName: "text-violet-500",
-                },
-              ]}
-            />
+            <Areas />
           </TimeSeriesChart>
         )}
       </div>
