@@ -154,7 +154,7 @@ export default function ProgramWelcome({
               </span>{" "}
               -{" "}
               <Link
-                href={`${programDashboardUrl}/settings/rewards`}
+                href={`${programDashboardUrl}/rewards`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 Add more rewards
