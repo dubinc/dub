@@ -96,9 +96,8 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         header: "Link",
         accessorKey: "link",
         meta: {
-          filterParams: ({ getValue }) => ({
-            linkId: getValue().id,
-          }),
+          filterParams: ({ row }) =>
+            row.original.link ? { linkId: row.original.link.id } : null,
         },
         cell: ({ row }) =>
           row.original.link ? (
@@ -134,7 +133,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               className="px-4 py-2.5"
             />
           ) : (
-            "-"
+            <p className="px-4 py-2.5">-</p>
           ),
         meta: {
           filterParams: ({ row }) =>
@@ -142,7 +141,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               ? {
                   customerId: row.original.customer.id,
                 }
-              : {},
+              : null,
         },
       },
       {
@@ -194,7 +193,8 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
       return (
-        meta?.filterParams && (
+        meta?.filterParams &&
+        meta.filterParams(cell) && (
           <FilterButtonTableRow set={meta.filterParams(cell)} />
         )
       );
