@@ -5,6 +5,9 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
 import { authPartnerActionClient } from "../safe-action";
 
+// TODO (kiran):
+// Combine this with the updatePartnerProfileAction
+
 // Update a partner invoice settings
 export const updatePartnerInvoiceSettingsAction = authPartnerActionClient
   .schema(partnerInvoiceSettingsSchema)
