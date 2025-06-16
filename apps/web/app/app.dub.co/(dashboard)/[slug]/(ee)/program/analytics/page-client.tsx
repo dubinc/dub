@@ -114,7 +114,7 @@ export function ProgramAnalyticsPageClient() {
       <ProgramAnalyticsContext.Provider
         value={{ start, end, interval, event, saleUnit, queryString }}
       >
-        <div className="border-border-subtle divide-border-subtle divide-y overflow-hidden rounded-2xl border">
+        <div className="border-border-subtle divide-border-subtle divide-y overflow-hidden border sm:rounded-2xl">
           <AnalyticsChart />
           <div>
             <AnalyticsPartnersTable />
