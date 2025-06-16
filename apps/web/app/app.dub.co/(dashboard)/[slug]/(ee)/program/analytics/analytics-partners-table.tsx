@@ -94,13 +94,14 @@ export function AnalyticsPartnersTable() {
         enableHiding: false,
         minSize: 250,
         cell: ({ row }) => {
+          const p = row.original.partner;
           return (
             <PartnerRowItem
               partner={{
-                ...row.original.partner,
-                payoutsEnabledAt: new Date(
-                  row.original.partner.payoutsEnabledAt,
-                ),
+                ...p,
+                payoutsEnabledAt: p.payoutsEnabledAt
+                  ? new Date(p.payoutsEnabledAt)
+                  : null,
               }}
             />
           );

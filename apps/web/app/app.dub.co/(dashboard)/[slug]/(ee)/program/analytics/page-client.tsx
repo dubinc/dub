@@ -126,9 +126,7 @@ export function ProgramAnalyticsPageClient() {
       >
         <div className="border-border-subtle divide-border-subtle divide-y overflow-hidden border sm:rounded-2xl">
           <AnalyticsChart />
-          <div>
-            <AnalyticsPartnersTable />
-          </div>
+          <AnalyticsPartnersTable />
         </div>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
