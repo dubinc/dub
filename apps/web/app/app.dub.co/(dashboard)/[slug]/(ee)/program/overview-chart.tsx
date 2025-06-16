@@ -44,7 +44,7 @@ export function OverviewChart() {
 
   const { data: revenue, error: revenueError } = useSWR<
     {
-      start: Date;
+      start: string;
       sales: number;
       saleAmount: number;
     }[]
