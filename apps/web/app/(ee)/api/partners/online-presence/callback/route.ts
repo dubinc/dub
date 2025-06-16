@@ -118,14 +118,8 @@ export async function GET(req: Request) {
           [provider]: partner[provider],
           [verifiedColumn]: new Date(),
           ...(provider === "youtube" &&
-            metadata && {
+            metadata?.channelId && {
               youtubeChannelId: metadata.channelId,
-              youtubeSubscriberCount: parseInt(
-                metadata.subscriberCount || "0",
-                10,
-              ),
-              youtubeVideoCount: parseInt(metadata.videoCount || "0", 10),
-              youtubeViewCount: parseInt(metadata.viewCount || "0", 10),
             }),
         },
       });

@@ -35,11 +35,16 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
           `https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&access_token=${accessToken}`,
         ).then((r) => r.json());
 
-        const channelId = channelResponse?.items?.[0]?.id;
-        const handle = channelResponse?.items?.[0]?.snippet?.customUrl;
+        const data = channelResponse?.items?.[0];
 
-        const { subscriberCount, viewCount, videoCount } =
-          channelResponse?.items?.[0]?.statistics;
+        if (!data) {
+          return {
+            verified: false,
+          };
+        }
+
+        const channelId = data.id;
+        const handle = data.snippet.customUrl;
 
         return {
           verified:
@@ -48,9 +53,6 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
           metadata: {
             channelId,
             handle,
-            subscriberCount,
-            videoCount,
-            viewCount,
           },
         };
       },

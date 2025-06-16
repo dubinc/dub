@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 /*
     This route is used to update youtube stats for youtubeVerified partners
-    Runs once a day at 12:00 AM UTC
+    Runs once a day at 12:00 AM UTC (cron expression: 0 0 * * *)
 */
 export async function GET(req: Request) {
   try {
