@@ -74,7 +74,7 @@ export async function GET(req: Request) {
         const newStats = {
           youtubeSubscriberCount: parseInt(subscriberCount || "0", 10),
           youtubeVideoCount: parseInt(videoCount || "0", 10),
-          youtubeViewCount: parseInt(videoCount || "0", 10),
+          youtubeViewCount: parseInt(viewCount || "0", 10),
         };
 
         if (deepEqual(currentStats, newStats)) {
