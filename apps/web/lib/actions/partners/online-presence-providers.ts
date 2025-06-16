@@ -48,7 +48,6 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
           };
         }
 
-        console.log(JSON.stringify(data, null, 2));
         const channelId = data.id;
         const handle = data.snippet.customUrl;
         const { subscriberCount, videoCount, viewCount } = data.statistics;

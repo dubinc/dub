@@ -3,6 +3,7 @@ import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { chunk, deepEqual } from "@dub/utils";
 import { google } from "googleapis";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,8 @@ export async function GET(req: Request) {
       },
       select: {
         id: true,
+        email: true,
+        youtube: true,
         youtubeChannelId: true,
         youtubeSubscriberCount: true,
         youtubeVideoCount: true,
@@ -85,8 +88,16 @@ export async function GET(req: Request) {
           where: { id: partner.id },
           data: newStats,
         });
+        console.log(
+          `Updated YouTube stats for ${partner.email} (@${partner.youtube})`,
+          newStats,
+        );
       }
     }
+
+    return NextResponse.json({
+      message: `YouTube stats updated for ${youtubeVerifiedPartners.length} partners`,
+    });
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
