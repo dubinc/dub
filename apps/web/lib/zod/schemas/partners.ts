@@ -578,7 +578,7 @@ export const archivePartnerSchema = z.object({
 });
 
 export const partnerInvoiceSettingsSchema = z.object({
-  companyName: z.string().max(190).trim(),
+  companyName: z.string().max(190).trim().min(1, "Business name is required."),
   address: z.string().max(500).trim().nullable(),
   taxId: z.string().max(100).trim().nullable(),
 });
