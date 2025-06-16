@@ -18,10 +18,10 @@ export async function GET(req: Request) {
 
     const youtubeVerifiedPartners = await prisma.partner.findMany({
       where: {
-        youtubeVerifiedAt: {
+        youtubeChannelId: {
           not: null,
         },
-        youtubeChannelId: {
+        youtubeVerifiedAt: {
           not: null,
         },
       },
@@ -66,15 +66,15 @@ export async function GET(req: Request) {
 
         // Only compare the YouTube stats
         const currentStats = {
-          youtubeViewCount: partner.youtubeViewCount,
           youtubeSubscriberCount: partner.youtubeSubscriberCount,
           youtubeVideoCount: partner.youtubeVideoCount,
+          youtubeViewCount: BigInt(partner.youtubeViewCount),
         };
 
         const newStats = {
-          youtubeViewCount: parseInt(viewCount || "0", 10),
           youtubeSubscriberCount: parseInt(subscriberCount || "0", 10),
           youtubeVideoCount: parseInt(videoCount || "0", 10),
+          youtubeViewCount: BigInt(viewCount || "0"),
         };
 
         if (deepEqual(currentStats, newStats)) {
