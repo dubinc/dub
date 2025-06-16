@@ -4,7 +4,7 @@ import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import { Table, usePagination, useTable } from "@dub/ui";
-import { currencyFormatter, fetcher, nFormatter } from "@dub/utils";
+import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { useContext, useMemo } from "react";
 import useSWR from "swr";
 
@@ -70,15 +70,18 @@ export function AnalyticsPartnersTable() {
     error: topPartnersError,
     isLoading: topPartnersLoading,
   } = useSWR<AnalyticsResponse["top_partners"][]>(
-    `/api/analytics?${editQueryString(queryString ?? "", {
+    `/api/analytics?${editQueryString(queryString, {
       event: "composite",
       groupBy: "top_partners",
       sortBy: selectedTab,
     })}`,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
-  const topPartnersPage = useMemo(() => {
+  const topPartnersList = useMemo(() => {
     return topPartners?.slice(
       (pagination.pageIndex - 1) * pagination.pageSize,
       pagination.pageIndex * pagination.pageSize,
@@ -86,7 +89,7 @@ export function AnalyticsPartnersTable() {
   }, [topPartners, pagination]);
 
   const { table, ...tableProps } = useTable({
-    data: topPartnersPage || [],
+    data: topPartnersList || [],
     columns: [
       {
         id: "partner",
@@ -152,6 +155,8 @@ export function AnalyticsPartnersTable() {
     },
     pagination,
     onPaginationChange: setPagination,
+    sortableColumns: ["clicks", "leads", "saleAmount"],
+    sortBy: selectedTab === "sales" ? "saleAmount" : selectedTab,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
@@ -160,15 +165,19 @@ export function AnalyticsPartnersTable() {
     error: topPartnersError ? "Failed to load partners" : undefined,
   });
 
-  return topPartnersLoading ? (
+  return !topPartnersList ? (
     <PartnerTableSkeleton />
-  ) : topPartnersPage && topPartnersPage.length > 0 ? (
-    <Table
-      {...tableProps}
-      table={table}
-      containerClassName="border-none"
-      scrollWrapperClassName="min-h-[200px]"
-    />
+  ) : topPartnersList.length > 0 ? (
+    <div
+      className={cn("relative", topPartnersLoading && "pointer-events-none")}
+    >
+      <Table
+        {...tableProps}
+        table={table}
+        containerClassName="border-none"
+        scrollWrapperClassName="min-h-[200px]"
+      />
+    </div>
   ) : (
     <div className="text-content-muted flex h-36 items-center justify-center text-sm">
       {topPartnersError ? "Failed to load partners." : "No partners found."}
