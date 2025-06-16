@@ -1,7 +1,7 @@
 import { Metadata, NextPage } from "next";
 
 import { contentfulClient } from "@/lib/contentful/contenful.config.ts";
-import { HelpCenterCardsComponent } from "./elements/help-center-cards/help-center-cards.component";
+import { HelpCenterCardsComponent } from "./elements/help-center-cards";
 import { ISection } from "./types";
 
 export const revalidate = 60;
