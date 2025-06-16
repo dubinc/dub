@@ -55,14 +55,12 @@ export default function ProgramWelcome({
             <Section className="mt-8">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
-
             <Heading
               className="mt-8 text-lg font-semibold leading-7 text-neutral-900"
               as="h2"
             >
               Congratulations on creating a program!
             </Heading>
-
             <Text className="mb-6 mt-5 text-sm leading-5 text-neutral-600">
               Your program{" "}
               <span className="font-semibold text-neutral-800">
@@ -70,7 +68,6 @@ export default function ProgramWelcome({
               </span>{" "}
               is created and ready to share with your partners.
             </Text>
-
             <Section className="mb-6 rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-6 py-4">
               <Row>
                 <Column width={10}>
@@ -97,72 +94,67 @@ export default function ProgramWelcome({
                 </Column>
               </Row>
             </Section>
-
             <Heading
               className="mb-6 text-base font-semibold leading-6 text-neutral-900"
               as="h3"
             >
               Getting started
             </Heading>
-
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
-              1. <span className="font-medium">Customize your dashboard</span> -
-              Make it yours.{" "}
+              1.{" "}
+              <span className="font-medium">
+                Create your program application page
+              </span>
+              : Use our{" "}
               <Link
                 href={`${programDashboardUrl}/branding`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
-                Update the logo and colors
+                interactive builder
               </Link>{" "}
-              to give your partners a fully branded experience.
+              to create a beautiful, branded program application page to get
+              more partners applying to join your program.
             </Text>
-
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
-              2. <span className="font-medium">Invite partners</span> - Bring
-              your friends, family, and VIP customers to your program; to{" "}
+              2. <span className="font-medium">Set up your bank account</span>:{" "}
+              <Link
+                href="https://dub.co/help/article/how-to-set-up-bank-account"
+                className="font-semibold text-neutral-800 underline underline-offset-2"
+              >
+                Set up a bank account
+              </Link>{" "}
+              to start paying out commissions to your partners.
+            </Text>
+            <Text className="mb-4 text-sm leading-5 text-neutral-800">
+              3. <span className="font-medium">Invite your partners</span>:
+              Easily{" "}
               <Link
                 href={`${programDashboardUrl}/partners`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
-                turn fans into advocates
+                invite influencers, affiliates, and users
+              </Link>{" "}
+              to your program, or{" "}
+              <Link
+                href="https://dub.co/docs/partners/white-labeling"
+                className="font-semibold text-neutral-800 underline underline-offset-2"
+              >
+                enroll them automatically.
               </Link>
               .
             </Text>
-
-            <Text className="mb-4 text-sm leading-5 text-neutral-800">
-              3. <span className="font-medium">Build your landing page</span> -{" "}
-              <Link
-                href={`${programDashboardUrl}/branding`}
-                className="font-semibold text-neutral-800 underline underline-offset-2"
-              >
-                Add content
-              </Link>{" "}
-              to help new partners quickly understand your brand and what makes
-              it great.
-            </Text>
-
-            <Text className="mb-4 text-sm leading-5 text-neutral-800">
-              4. <span className="font-medium">Share your program page</span> -
-              No need to wait. Even with minimal content, it's ready to share
-              and easy for anyone to join.
-            </Text>
-
             <Text className="mb-0 text-sm leading-5 text-neutral-800">
-              5.{" "}
-              <span className="font-medium">
-                Add more rewards and discounts
-              </span>{" "}
-              -{" "}
+              4. <span className="font-medium">Create more rewards</span> - Set
+              up{" "}
               <Link
                 href={`${programDashboardUrl}/rewards`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
-                Add more rewards
+                click, lead, and sale-based rewards
               </Link>{" "}
-              for clicks, leads, and sales. You can also add discounts for new
-              customers.
+              to incentivize your partners to drive more traffic and
+              conversions.
             </Text>
-
             <Section className="my-10">
               <Link
                 href={programDashboardUrl}
@@ -171,7 +163,6 @@ export default function ProgramWelcome({
                 Go to your dashboard
               </Link>
             </Section>
-
             <Footer email={email} marketing />
           </Container>
         </Body>
