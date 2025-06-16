@@ -124,13 +124,29 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       label: "Payout reference number",
       value: <Text style={tw("text-neutral-800 w-2/3")}>{payout.id}</Text>,
     },
-    ...(partner.invoiceInfo
+    ...(partner.companyName ||
+    partner.invoiceSettings?.address ||
+    partner.invoiceSettings?.taxId
       ? [
           {
             label: "Invoice info",
             value: (
               <Text style={tw("text-neutral-800 w-2/3")}>
-                {partner.invoiceInfo}
+                {partner.companyName && (
+                  <>
+                    {partner.companyName}
+                    {"\n"}
+                  </>
+                )}
+                {partner.invoiceSettings?.address && (
+                  <>
+                    {partner.invoiceSettings.address}
+                    {"\n"}
+                  </>
+                )}
+                {partner.invoiceSettings?.taxId && (
+                  <>Tax ID: {partner.invoiceSettings.taxId}</>
+                )}
               </Text>
             ),
           },
