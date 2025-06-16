@@ -29,7 +29,7 @@ export const PartnerEarningsSchema = CommissionSchema.merge(
       id: true,
       shortLink: true,
       url: true,
-    }),
+    }).nullish(),
   }),
 );
 

@@ -29,6 +29,7 @@ export function EarningsCalculatorBlock({
     return null;
   }
 
+  const rewardAmount = reward.amount ?? 0;
   const revenue = value * ((block.data.productPrice || 30_00) / 100);
 
   return (
@@ -83,8 +84,8 @@ export function EarningsCalculatorBlock({
             <NumberFlow
               value={Math.floor(
                 reward.type === "flat"
-                  ? reward.amount / 100
-                  : revenue * (reward.amount / 100),
+                  ? (value * rewardAmount) / 100
+                  : revenue * (rewardAmount / 100),
               )}
               className="text-4xl font-medium text-neutral-800"
               prefix="$"

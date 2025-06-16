@@ -463,6 +463,15 @@ export const analyticsResponse = {
   top_partners: z
     .object({
       partnerId: z.string().describe("The ID of the partner"),
+      partner: z.object({
+        id: z.string().describe("The ID of the partner"),
+        name: z.string().describe("The name of the partner"),
+        image: z.string().nullable().describe("The image of the partner"),
+        payoutsEnabledAt: z
+          .string()
+          .nullable()
+          .describe("The date the partner enabled payouts"),
+      }),
       clicks: z.number().describe("The total number of clicks").default(0),
       leads: z.number().describe("The total number of leads").default(0),
       sales: z.number().describe("The total number of sales").default(0),
