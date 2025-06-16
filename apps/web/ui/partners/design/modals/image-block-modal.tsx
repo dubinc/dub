@@ -1,5 +1,4 @@
 import { uploadLanderImageAction } from "@/lib/actions/partners/upload-lander-image";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { programLanderImageBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { Button, FileUpload, Modal } from "@dub/ui";
@@ -34,8 +33,7 @@ function ImageBlockModalInner({
 }: ImageBlockModalProps) {
   const id = useId();
 
-  const { id: workspaceId } = useWorkspace();
-  const { program } = useProgram();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const {
     handleSubmit,
@@ -58,7 +56,7 @@ function ImageBlockModalInner({
     try {
       const result = await executeAsync({
         workspaceId: workspaceId!,
-        programId: program!.id,
+        programId: defaultProgramId!,
       });
 
       if (!result?.data) throw new Error("Failed to get signed upload URL");

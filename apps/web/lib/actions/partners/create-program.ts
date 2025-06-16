@@ -11,7 +11,7 @@ import { PartnerInvite } from "@dub/email/templates/partner-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
 import { generateRandomString, nanoid, R2_URL } from "@dub/utils";
-import { Program, Project, User } from "@prisma/client";
+import { Program, Project, Reward, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
@@ -96,6 +96,7 @@ export const createProgram = async ({
                 amount,
                 maxDuration,
                 event: defaultRewardType,
+                default: true,
               },
             },
           }),
@@ -149,6 +150,8 @@ export const createProgram = async ({
     });
   }
 
+  const reward = program.rewards?.[0];
+
   waitUntil(
     Promise.allSettled([
       // invite partners
@@ -157,6 +160,7 @@ export const createProgram = async ({
             invitePartner({
               workspace,
               program,
+              reward,
               partner,
               userId: user.id,
             }),
@@ -170,9 +174,6 @@ export const createProgram = async ({
         },
         data: {
           ...(logoUrl && { logo: logoUrl }),
-          ...(program.rewards?.[0]?.id && {
-            defaultRewardId: program.rewards[0].id,
-          }),
         },
       }),
 
@@ -197,17 +198,19 @@ export const createProgram = async ({
     ]),
   );
 
-  redirect(`/${workspace.slug}/programs/${program.id}?onboarded-program=true`);
+  redirect(`/${workspace.slug}/program?onboarded-program=true`);
 };
 
 // Invite a partner to the program
 async function invitePartner({
   program,
+  reward,
   workspace,
   partner,
   userId,
 }: {
   program: Program;
+  reward?: Pick<Reward, "id" | "event">;
   workspace: Pick<Project, "id" | "plan" | "webhookEnabled">;
   partner: {
     email: string;
@@ -247,6 +250,7 @@ async function invitePartner({
     },
     skipEnrollmentCheck: true,
     status: "invited",
+    ...(reward && { reward }),
   });
 
   waitUntil(

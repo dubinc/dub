@@ -1,4 +1,4 @@
-import { currencyFormatter, DUB_WORDMARK } from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK, pluralize } from "@dub/utils";
 import {
   Body,
   Column,
@@ -22,7 +22,6 @@ export default function ProgramPayoutReminder({
     slug: "acme",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
   },
   payout = {
@@ -35,7 +34,6 @@ export default function ProgramPayoutReminder({
     slug: string;
   };
   program: {
-    id: string;
     name: string;
   };
   payout: {
@@ -47,7 +45,8 @@ export default function ProgramPayoutReminder({
     <Html>
       <Head />
       <Preview>
-        {payout.partnersCount.toString()} partners awaiting your payout for{" "}
+        {payout.partnersCount.toString()}{" "}
+        {pluralize("partner", payout.partnersCount)} awaiting your payout for{" "}
         {program.name}
       </Preview>
       <Tailwind>
@@ -58,14 +57,15 @@ export default function ProgramPayoutReminder({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-800">
-              {payout.partnersCount} partners awaiting your payout for{" "}
-              {program.name}
+              {payout.partnersCount}{" "}
+              {pluralize("partner", payout.partnersCount)} awaiting your payout
+              for {program.name}
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              There are {payout.partnersCount} partners ready to be paid out for{" "}
-              {program.name}. Completing these on time will keep your program
-              running smooth and your partners happy.
+              You have some partners awaiting their payout for {program.name}.
+              Completing these on time will keep your program running smooth and
+              your partners happy.
             </Text>
 
             <Section className="rounded-lg border border-solid border-neutral-200 p-4">
@@ -92,7 +92,7 @@ export default function ProgramPayoutReminder({
 
               <Section className="mt-6 text-center">
                 <Link
-                  href={`https://app.dub.co/${workspace.slug}/programs/${program.id}/payouts?status=pending&sortBy=amount&confirmPayouts=true`}
+                  href={`https://app.dub.co/${workspace.slug}/program/payouts?status=pending&sortBy=amount&confirmPayouts=true`}
                   className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm leading-none text-white no-underline"
                 >
                   Review and confirm payouts

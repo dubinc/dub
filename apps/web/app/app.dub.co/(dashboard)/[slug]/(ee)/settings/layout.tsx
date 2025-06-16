@@ -1,1 +1,1 @@
-export { default } from "../../settings/layout";
+export { default } from "../../settings/(basic-layout)/layout";

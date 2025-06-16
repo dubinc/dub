@@ -92,6 +92,7 @@ export default async function AppMiddleware(req: NextRequest) {
         "/upgrade",
         "/wrapped",
       ].includes(path) ||
+      path.startsWith("/program/") ||
       path.startsWith("/settings/") ||
       isTopLevelSettingsRedirect(path)
     ) {
