@@ -2,7 +2,6 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { chunk, deepEqual } from "@dub/utils";
-import { google } from "googleapis";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +14,9 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const youtube = google.youtube("v3");
+    if (!process.env.YOUTUBE_API_KEY) {
+      throw new Error("YOUTUBE_API_KEY is not defined");
+    }
 
     const youtubeVerifiedPartners = await prisma.partner.findMany({
       where: {
@@ -41,31 +42,35 @@ export async function GET(req: Request) {
 
     for (const chunk of chunks) {
       const channelIds = chunk.map(
-        (partner) => partner.youtubeChannelId as string, // coerce this cause we already filtered above
+        (partner) => partner.youtubeChannelId as string,
       );
 
       if (channelIds.length === 0) continue;
 
-      const response = await youtube.channels.list({
-        key: process.env.YOUTUBE_API_KEY,
-        part: ["statistics", "snippet"],
-        id: channelIds,
-      });
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id=${channelIds.join(",")}`,
+        {
+          headers: {
+            "X-Goog-Api-Key": process.env.YOUTUBE_API_KEY,
+          },
+        },
+      );
 
-      const stats = response.data.items;
-
-      if (!stats) {
+      if (!response.ok) {
+        console.error("Failed to fetch YouTube data:", await response.text());
         continue;
       }
 
-      for (const stat of stats) {
-        const partner = chunk.find((p) => p.youtubeChannelId === stat.id);
+      const data = await response.json().then((r) => r.items);
 
-        if (!partner || !stat.statistics) {
+      for (const d of data) {
+        const partner = chunk.find((p) => p.youtubeChannelId === d.id);
+
+        if (!partner || !d.statistics) {
           continue;
         }
 
-        const { viewCount, subscriberCount, videoCount } = stat.statistics;
+        const { viewCount, subscriberCount, videoCount } = d.statistics;
 
         // Only compare the YouTube stats
         const currentStats = {
