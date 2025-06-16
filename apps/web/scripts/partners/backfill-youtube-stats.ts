@@ -38,6 +38,9 @@ async function main() {
       id: true,
       youtube: true,
     },
+    orderBy: {
+      createdAt: "asc",
+    },
     take: 10,
   });
 
@@ -58,15 +61,19 @@ async function main() {
     const stats = response.data.items;
 
     if (!stats) {
+      console.log("No stats found");
       return;
     }
 
     for (const stat of stats) {
       const partner = youtubeVerifiedPartners.find(
-        (p) => p.youtube === stat.snippet?.customUrl,
+        (p) =>
+          p.youtube?.toLowerCase() ===
+          stat.snippet?.customUrl?.replace("@", "").toLowerCase(),
       );
 
       if (!partner || !stat.statistics) {
+        console.log("No partner or stats found");
         continue;
       }
 
