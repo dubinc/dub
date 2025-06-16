@@ -67,6 +67,7 @@ function CreateClawbackSheetContent(
 
     await executeAsync({
       ...data,
+      amount: data.amount * 100,
       workspaceId,
     });
   };

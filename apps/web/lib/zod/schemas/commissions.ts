@@ -16,6 +16,7 @@ export const CommissionSchema = z.object({
   currency: z.string(),
   status: z.nativeEnum(CommissionStatus),
   invoiceId: z.string().nullish(),
+  description: z.string().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -182,5 +183,7 @@ export const createClawbackSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   amount: z.number().min(0, "Amount must be positive."),
-  description: z.enum(CLAWBACK_REASONS.map((r) => r.value) as [string, ...string[]]),
+  description: z.enum(
+    CLAWBACK_REASONS.map((r) => r.value) as [string, ...string[]],
+  ),
 });

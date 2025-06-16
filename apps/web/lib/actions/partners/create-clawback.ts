@@ -27,7 +27,8 @@ export const createClawbackAction = authActionClient
         partnerId,
         description,
         type: "custom",
-        amount: -amount,
+        amount: 0,
+        earnings: -amount,
         quantity: 1,
       },
     });

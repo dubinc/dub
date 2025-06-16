@@ -3,6 +3,7 @@
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
+import { CLAWBACK_REASONS } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
@@ -16,6 +17,7 @@ import {
   Filter,
   StatusBadge,
   Table,
+  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
@@ -71,6 +73,7 @@ const CommissionTableInner = memo(
         keepPreviousData: true,
       },
     );
+
     const { commissionsCount } = useCommissionsCount({
       exclude: ["status", "page"],
     });
@@ -147,11 +150,30 @@ const CommissionTableInner = memo(
         {
           id: "commission",
           header: "Commission",
-          accessorFn: (d) =>
-            currencyFormatter(d.earnings / 100, {
+          cell: ({ row }) => {
+            const commission = row.original;
+
+            const earnings = currencyFormatter(commission.earnings / 100, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            }),
+            });
+
+            if (commission.description) {
+              const reasonDescription = CLAWBACK_REASONS.find(
+                (r) => r.value === commission.description,
+              )?.description;
+
+              return (
+                <Tooltip content={reasonDescription}>
+                  <span className="cursor-help truncate underline decoration-dotted underline-offset-2">
+                    {earnings}
+                  </span>
+                </Tooltip>
+              );
+            }
+
+            return earnings;
+          },
         },
         {
           header: "Status",
