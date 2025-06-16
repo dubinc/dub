@@ -104,7 +104,7 @@ export function AnalyticsChart() {
           </div>
         ) : (
           <TimeSeriesChart
-            key={`${start?.toString}-${end?.toString()}-${interval?.toString()}-${event}`}
+            key={`${start?.toString()}-${end?.toString()}-${interval?.toString()}-${event}-${saleUnit}`}
             data={chartData || []}
             series={[
               {
