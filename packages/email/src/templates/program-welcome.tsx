@@ -27,7 +27,6 @@ export default function ProgramWelcome({
     slug: "acme",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     slug: "acme",
     name: "Acme",
     logo: DUB_LOGO,
@@ -38,14 +37,13 @@ export default function ProgramWelcome({
     slug: string;
   };
   program: {
-    id: string;
     slug: string;
     name: string;
     logo: string | null;
   };
 }) {
   const programLandingUrl = `https://partners.dub.co/${program.slug}`;
-  const programDashboardUrl = `https://app.dub.co/${workspace.slug}/programs/${program.id}`;
+  const programDashboardUrl = `https://app.dub.co/${workspace.slug}/program`;
 
   return (
     <Html>
