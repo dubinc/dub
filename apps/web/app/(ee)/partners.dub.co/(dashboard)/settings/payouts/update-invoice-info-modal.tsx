@@ -1,3 +1,5 @@
+"use client";
+
 import { updatePartnerInvoiceInfoAction } from "@/lib/actions/partners/update-partner-invoice-info";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -7,6 +9,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -36,6 +39,12 @@ function UpdateInvoiceInfoModalInner({
 }: UpdateInvoiceInfoModalProps) {
   const { partner } = usePartnerProfile();
   const [invoiceInfo, setInvoiceInfo] = useState(partner?.invoiceInfo ?? "");
+
+  useEffect(() => {
+    if (partner?.invoiceInfo) {
+      setInvoiceInfo(partner.invoiceInfo);
+    }
+  }, [partner?.invoiceInfo]);
 
   const { executeAsync, isPending } = useAction(
     updatePartnerInvoiceInfoAction,

@@ -124,6 +124,18 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       label: "Payout reference number",
       value: <Text style={tw("text-neutral-800 w-2/3")}>{payout.id}</Text>,
     },
+    ...(partner.invoiceInfo
+      ? [
+          {
+            label: "Invoice info",
+            value: (
+              <Text style={tw("text-neutral-800 w-2/3")}>
+                {partner.invoiceInfo}
+              </Text>
+            ),
+          },
+        ]
+      : []),
     // if partner is in EU or AU, add VAT/GST reverse charge note
     ...(EU_PARTNER || AU_PARTNER
       ? [
