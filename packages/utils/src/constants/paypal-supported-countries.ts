@@ -1,51 +1,43 @@
-// @see: https://docs.stripe.com/connect/cross-border-payouts#supported-countries
-export const CONNECT_SUPPORTED_COUNTRIES = [
-  "AL", // Albania
-  "DZ", // Algeria
-  "AO", // Angola
-  "AG", // Antigua & Barbuda
+import { CONNECT_SUPPORTED_COUNTRIES } from "./connect-supported-countries";
+
+// @see: https://developer.paypal.com/docs/payouts/standard/reference/country-feature
+export const PAYPAL_SUPPORTED_COUNTRIES_FULL = [
+  "AD", // Andorra
   "AR", // Argentina
-  "AM", // Armenia
   "AU", // Australia
   "AT", // Austria
-  "AZ", // Azerbaijan
   "BS", // Bahamas
   "BH", // Bahrain
-  "BD", // Bangladesh
   "BE", // Belgium
-  "BJ", // Benin
-  "BT", // Bhutan
-  "BO", // Bolivia
-  "BA", // Bosnia & Herzegovina
+  "BM", // Bermuda
   "BW", // Botswana
-  "BN", // Brunei
+  "BR", // Brazil
   "BG", // Bulgaria
-  "KH", // Cambodia
   "CA", // Canada
+  "KY", // Cayman Islands
   "CL", // Chile
+  "CN", // China
   "CO", // Colombia
   "CR", // Costa Rica
-  "CI", // Côte d'Ivoire
   "HR", // Croatia
   "CY", // Cyprus
   "CZ", // Czech Republic
   "DK", // Denmark
   "DO", // Dominican Republic
   "EC", // Ecuador
-  "EG", // Egypt
   "SV", // El Salvador
   "EE", // Estonia
-  "ET", // Ethiopia
+  "FO", // Faroe Islands
   "FI", // Finland
   "FR", // France
-  "GA", // Gabon
-  "GM", // Gambia
+  "GE", // Georgia
   "DE", // Germany
-  "GH", // Ghana
+  "GI", // Gibraltar
   "GR", // Greece
+  "GL", // Greenland
   "GT", // Guatemala
-  "GY", // Guyana
-  "HK", // Hong Kong
+  "HN", // Honduras
+  "HK", // Hong Kong SAR China
   "HU", // Hungary
   "IS", // Iceland
   "IN", // India
@@ -59,40 +51,32 @@ export const CONNECT_SUPPORTED_COUNTRIES = [
   "KZ", // Kazakhstan
   "KE", // Kenya
   "KW", // Kuwait
-  "LA", // Laos
   "LV", // Latvia
+  "LS", // Lesotho
   "LI", // Liechtenstein
   "LT", // Lithuania
   "LU", // Luxembourg
-  "MO", // Macao SAR China
-  "MG", // Madagascar
   "MY", // Malaysia
   "MT", // Malta
   "MU", // Mauritius
   "MX", // Mexico
   "MD", // Moldova
   "MC", // Monaco
-  "MN", // Mongolia
   "MA", // Morocco
   "MZ", // Mozambique
-  "NA", // Namibia
   "NL", // Netherlands
   "NZ", // New Zealand
-  "NE", // Niger
-  "NG", // Nigeria
-  "MK", // North Macedonia
+  "NI", // Nicaragua
   "NO", // Norway
   "OM", // Oman
-  "PK", // Pakistan
   "PA", // Panama
-  "PY", // Paraguay
   "PE", // Peru
   "PH", // Philippines
   "PL", // Poland
   "PT", // Portugal
   "QA", // Qatar
+  "RE", // Réunion
   "RO", // Romania
-  "RW", // Rwanda
   "SM", // San Marino
   "SA", // Saudi Arabia
   "SN", // Senegal
@@ -101,22 +85,20 @@ export const CONNECT_SUPPORTED_COUNTRIES = [
   "SK", // Slovakia
   "SI", // Slovenia
   "ZA", // South Africa
-  "KR", // South Korea
   "ES", // Spain
-  "LK", // Sri Lanka
-  "LC", // St. Lucia
   "SE", // Sweden
   "CH", // Switzerland
-  "TW", // Taiwan
-  "TZ", // Tanzania
-  "TH", // Thailand
-  "TT", // Trinidad & Tobago
-  "TN", // Tunisia
   "TR", // Turkey
   "AE", // United Arab Emirates
   "GB", // United Kingdom
   "US", // United States
   "UY", // Uruguay
-  "UZ", // Uzbekistan
+  "VE", // Venezuela
   "VN", // Vietnam
 ];
+
+// paypal supported countries that are not supported by Stripe
+export const PAYPAL_SUPPORTED_COUNTRIES =
+  PAYPAL_SUPPORTED_COUNTRIES_FULL.filter(
+    (country) => !CONNECT_SUPPORTED_COUNTRIES.includes(country),
+  );
