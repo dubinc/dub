@@ -29,9 +29,7 @@ export async function POST(req: Request) {
           select: {
             payouts: {
               where: {
-                status: {
-                  not: "completed",
-                },
+                status: "processing",
               },
             },
           },
@@ -54,9 +52,7 @@ export async function POST(req: Request) {
     const payouts = await prisma.payout.findMany({
       where: {
         invoiceId,
-        status: {
-          not: "completed",
-        },
+        status: "processing",
         partner: {
           payoutsEnabledAt: {
             not: null,
