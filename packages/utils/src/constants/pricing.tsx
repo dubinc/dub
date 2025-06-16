@@ -351,8 +351,9 @@ export const getCurrentPlan = (plan: string) => {
 
 export const getNextPlan = (plan?: string | null) => {
   if (!plan) return PRO_PLAN;
+  const currentPlan = plan.toLowerCase().split(" ")[0]; // to account for old Business plans (e.g. "Business Plus")
   return PLANS[
-    PLANS.findIndex((p) => p.name.toLowerCase() === plan.toLowerCase()) + 1
+    PLANS.findIndex((p) => p.name.toLowerCase() === currentPlan) + 1
   ];
 };
 
