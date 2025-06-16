@@ -71,7 +71,6 @@ export const transformLinkTB = (link: ExpandedLink) => {
 };
 
 export const recordLink = async (payload: ExpandedLink | ExpandedLink[]) => {
-  console.log("RECORDING LINK!!!", payload);
   if (Array.isArray(payload)) {
     return await recordLinkTB(payload.map(transformLinkTB));
   } else {
