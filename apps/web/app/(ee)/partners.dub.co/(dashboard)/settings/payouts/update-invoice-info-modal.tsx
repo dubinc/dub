@@ -1,8 +1,9 @@
 "use client";
 
-import { updatePartnerInvoiceInfoAction } from "@/lib/actions/partners/update-partner-invoice-info";
+import { updatePartnerInvoiceSettingsAction } from "@/lib/actions/partners/update-partner-invoice-settings";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { partnerInvoiceSettingsSchema } from "@/lib/zod/schemas/partners";
 import { Button, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -13,13 +14,17 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useForm } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+import { z } from "zod";
 
 type UpdateInvoiceInfoModalProps = {
   showUpdateInvoiceInfoModal: boolean;
   setShowUpdateInvoiceInfoModal: Dispatch<SetStateAction<boolean>>;
 };
+
+type UpdateInvoiceInfoFormData = z.infer<typeof partnerInvoiceSettingsSchema>;
 
 function UpdateInvoiceInfoModal(props: UpdateInvoiceInfoModalProps) {
   const { showUpdateInvoiceInfoModal, setShowUpdateInvoiceInfoModal } = props;
@@ -38,16 +43,31 @@ function UpdateInvoiceInfoModalInner({
   setShowUpdateInvoiceInfoModal,
 }: UpdateInvoiceInfoModalProps) {
   const { partner } = usePartnerProfile();
-  const [invoiceInfo, setInvoiceInfo] = useState(partner?.invoiceInfo ?? "");
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { isDirty },
+  } = useForm<UpdateInvoiceInfoFormData>({
+    defaultValues: {
+      companyName: partner?.companyName ?? "",
+      address: partner?.invoiceSettings?.address ?? "",
+      taxId: partner?.invoiceSettings?.taxId ?? "",
+    },
+  });
 
   useEffect(() => {
-    if (partner?.invoiceInfo) {
-      setInvoiceInfo(partner.invoiceInfo);
+    if (partner?.invoiceSettings) {
+      setValue("companyName", partner.companyName ?? "");
+      setValue("address", partner.invoiceSettings.address ?? "");
+      setValue("taxId", partner.invoiceSettings.taxId ?? "");
     }
-  }, [partner?.invoiceInfo]);
+  }, [partner?.invoiceSettings, setValue]);
 
   const { executeAsync, isPending } = useAction(
-    updatePartnerInvoiceInfoAction,
+    updatePartnerInvoiceSettingsAction,
     {
       onSuccess: async () => {
         toast.success("Invoice info updated successfully!");
@@ -60,28 +80,63 @@ function UpdateInvoiceInfoModalInner({
     },
   );
 
+  const onSubmit = async (data: UpdateInvoiceInfoFormData) => {
+    await executeAsync(data);
+  };
+
+  const shouldDisableSubmit = useMemo(() => {
+    return !watch("companyName") || !isDirty;
+  }, [watch, isDirty]);
+
   return (
-    <>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-4 border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Invoice info</h3>
+        <h3 className="text-lg font-medium leading-none">Invoice settings</h3>
         <p className="text-sm font-normal text-neutral-600">
-          Add optional details to your payout invoices, like your business name,
-          address, tax ID, or other info.
+          This information is added to your payout invoices.
         </p>
       </div>
 
       <div className="flex flex-col gap-2 bg-neutral-50 p-4 sm:p-6">
-        <label className="text-sm font-medium leading-5 text-neutral-900">
-          Invoice info
-        </label>
-        <TextareaAutosize
-          autoFocus
-          required
-          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-          minRows={4}
-          value={invoiceInfo}
-          onChange={(e) => setInvoiceInfo(e.target.value)}
-        />
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium leading-5 text-neutral-900">
+              Business name
+            </label>
+            <div className="relative mt-2 rounded-md shadow-sm">
+              <input
+                required
+                autoFocus
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                {...register("companyName", { required: true })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium leading-5 text-neutral-900">
+              Business address
+            </label>
+            <TextareaAutosize
+              required
+              className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              minRows={4}
+              {...register("address")}
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium leading-5 text-neutral-900">
+              Tax ID
+            </label>
+            <div className="relative mt-2 rounded-md shadow-sm">
+              <input
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                {...register("taxId")}
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
@@ -97,14 +152,11 @@ function UpdateInvoiceInfoModalInner({
           text="Save"
           className="h-8 w-fit px-3"
           loading={isPending}
-          onClick={async () => {
-            await executeAsync({
-              invoiceInfo,
-            });
-          }}
+          disabled={shouldDisableSubmit}
+          type="submit"
         />
       </div>
-    </>
+    </form>
   );
 }
 
