@@ -41,8 +41,12 @@ model Partner {
   websiteTxtRecord  String?
   websiteVerifiedAt DateTime?
 
-  youtube           String?
-  youtubeVerifiedAt DateTime?
+  youtube                String?
+  youtubeChannelId       String?
+  youtubeVerifiedAt      DateTime?
+  youtubeSubscriberCount Int       @default(0)
+  youtubeVideoCount      Int       @default(0)
+  youtubeViewCount       Int       @default(0)
 
   twitter           String?
   twitterVerifiedAt DateTime?
