@@ -198,6 +198,7 @@ export const PartnerSchema = z
       .date()
       .nullable()
       .describe("The date when the partner enabled payouts."),
+    invoiceInfo: z.string().nullable().describe("The partner's invoice info."),
     createdAt: z
       .date()
       .describe("The date when the partner was created on Dub."),

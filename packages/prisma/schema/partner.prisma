@@ -59,6 +59,8 @@ model Partner {
 
   tiktok           String?
   tiktokVerifiedAt DateTime?
+
+  invoiceInfo String? @db.Text
 }
 
 model PartnerUser {

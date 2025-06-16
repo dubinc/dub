@@ -1,4 +1,8 @@
+import { updatePartnerInvoiceInfoAction } from "@/lib/actions/partners/update-partner-invoice-info";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, Modal } from "@dub/ui";
+import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
   SetStateAction,
@@ -6,6 +10,8 @@ import {
   useMemo,
   useState,
 } from "react";
+import TextareaAutosize from "react-textarea-autosize";
+import { toast } from "sonner";
 
 type UpdateInvoiceInfoModalProps = {
   showUpdateInvoiceInfoModal: boolean;
@@ -28,6 +34,23 @@ function UpdateInvoiceInfoModal(props: UpdateInvoiceInfoModalProps) {
 function UpdateInvoiceInfoModalInner({
   setShowUpdateInvoiceInfoModal,
 }: UpdateInvoiceInfoModalProps) {
+  const { partner } = usePartnerProfile();
+  const [invoiceInfo, setInvoiceInfo] = useState(partner?.invoiceInfo ?? "");
+
+  const { executeAsync, isPending } = useAction(
+    updatePartnerInvoiceInfoAction,
+    {
+      onSuccess: async () => {
+        toast.success("Invoice info updated successfully!");
+        setShowUpdateInvoiceInfoModal(false);
+        mutatePrefix("/api/partner-profile");
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
+    },
+  );
+
   return (
     <>
       <div className="space-y-4 border-b border-neutral-200 p-4 sm:p-6">
@@ -42,10 +65,13 @@ function UpdateInvoiceInfoModalInner({
         <label className="text-sm font-medium leading-5 text-neutral-900">
           Invoice info
         </label>
-        <textarea
+        <TextareaAutosize
+          autoFocus
           required
           className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-          rows={3}
+          minRows={4}
+          value={invoiceInfo}
+          onChange={(e) => setInvoiceInfo(e.target.value)}
         />
       </div>
 
@@ -53,15 +79,20 @@ function UpdateInvoiceInfoModalInner({
         <Button
           variant="secondary"
           text="Cancel"
+          disabled={isPending}
           className="h-8 w-fit px-3"
           onClick={() => setShowUpdateInvoiceInfoModal(false)}
         />
 
         <Button
-          autoFocus
           text="Save"
           className="h-8 w-fit px-3"
-          onClick={() => {}}
+          loading={isPending}
+          onClick={async () => {
+            await executeAsync({
+              invoiceInfo,
+            });
+          }}
         />
       </div>
     </>

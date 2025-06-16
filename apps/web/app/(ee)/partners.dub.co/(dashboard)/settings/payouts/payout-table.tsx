@@ -2,7 +2,6 @@
 
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -33,7 +32,6 @@ import { PayoutDetailsSheet } from "./payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
-  const { partner } = usePartnerProfile();
   const { queryParams, searchParams } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "periodEnd";
