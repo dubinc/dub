@@ -108,7 +108,7 @@ export function PageClient() {
               className="group relative flex h-40 flex-col justify-center rounded-lg bg-neutral-200/40 transition-colors duration-100 hover:bg-neutral-200/60"
             >
               {guide.recommended && (
-                <span className="absolute left-4 top-4 rounded-md bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                <span className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 rounded-md bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-600">
                   Recommended
                 </span>
               )}
