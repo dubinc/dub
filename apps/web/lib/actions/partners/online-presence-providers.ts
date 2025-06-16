@@ -9,10 +9,10 @@ type OnlinePresenceProvider = {
   clientIdParam?: string;
   pkce?: boolean;
   scopes: string;
-  verify: (props: {
-    partner: Partner;
-    accessToken: string;
-  }) => Promise<boolean>;
+  verify: (props: { partner: Partner; accessToken: string }) => Promise<{
+    verified: boolean;
+    metadata?: Record<string, string>;
+  }>;
 };
 
 export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
@@ -25,19 +25,34 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
       clientSecret: process.env.YOUTUBE_CLIENT_SECRET ?? null,
       scopes: "https://www.googleapis.com/auth/youtube.readonly",
       verify: async ({ partner, accessToken }) => {
-        if (!partner.youtube) return false;
+        if (!partner.youtube)
+          return {
+            verified: false,
+          };
 
         // Fetch channel info
         const channelResponse = await fetch(
           `https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true&access_token=${accessToken}`,
         ).then((r) => r.json());
 
+        const channelId = channelResponse?.items?.[0]?.id;
         const handle = channelResponse?.items?.[0]?.snippet?.customUrl;
 
-        return (
-          !!handle &&
-          `@${partner.youtube?.toLowerCase()}` === handle.toLowerCase()
-        );
+        const { subscriberCount, viewCount, videoCount } =
+          channelResponse?.items?.[0]?.statistics;
+
+        return {
+          verified:
+            !!handle &&
+            `@${partner.youtube?.toLowerCase()}` === handle.toLowerCase(),
+          metadata: {
+            channelId,
+            handle,
+            subscriberCount,
+            videoCount,
+            viewCount,
+          },
+        };
       },
     },
     twitter: {
@@ -49,7 +64,10 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
       pkce: true,
       scopes: "users.read tweet.read",
       verify: async ({ partner, accessToken }) => {
-        if (!partner.twitter) return false;
+        if (!partner.twitter)
+          return {
+            verified: false,
+          };
 
         // Fetch user info
         const userResponse = await fetch("https://api.twitter.com/2/users/me", {
@@ -60,9 +78,11 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
 
         const username = userResponse?.data?.username;
 
-        return (
-          !!username && partner.twitter.toLowerCase() === username.toLowerCase()
-        );
+        return {
+          verified:
+            !!username &&
+            partner.twitter.toLowerCase() === username.toLowerCase(),
+        };
       },
     },
     tiktok: {
@@ -74,7 +94,10 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
       clientIdParam: "client_key",
       scopes: "user.info.basic,user.info.profile",
       verify: async ({ partner, accessToken }) => {
-        if (!partner.tiktok) return false;
+        if (!partner.tiktok)
+          return {
+            verified: false,
+          };
 
         // Fetch user info
         const userResponse = await fetch(
@@ -88,9 +111,11 @@ export const ONLINE_PRESENCE_PROVIDERS: Record<string, OnlinePresenceProvider> =
 
         const username = userResponse?.data?.user?.username;
 
-        return (
-          !!username && partner.tiktok.toLowerCase() === username.toLowerCase()
-        );
+        return {
+          verified:
+            !!username &&
+            partner.tiktok.toLowerCase() === username.toLowerCase(),
+        };
       },
     },
   };

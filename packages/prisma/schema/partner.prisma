@@ -42,7 +42,11 @@ model Partner {
   websiteVerifiedAt DateTime?
 
   youtube           String?
+  youtubeChannelId  String?
   youtubeVerifiedAt DateTime?
+  youtubeSubscriberCount Int?
+  youtubeVideoCount      Int?
+  youtubeViewCount       Int?
 
   twitter           String?
   twitterVerifiedAt DateTime?
