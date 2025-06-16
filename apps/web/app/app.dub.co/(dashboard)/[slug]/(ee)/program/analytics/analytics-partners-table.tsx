@@ -3,7 +3,7 @@ import { editQueryString } from "@/lib/analytics/utils";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { Table, usePagination, useTable } from "@dub/ui";
 import { currencyFormatter, fetcher, nFormatter } from "@dub/utils";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import useSWR from "swr";
 import { ProgramAnalyticsContext } from "./page-client";
 
@@ -62,8 +62,7 @@ function PartnerTableSkeleton() {
 export function AnalyticsPartnersTable() {
   const { queryString } = useContext(ProgramAnalyticsContext);
 
-  const [pageSize, setPageSize] = useState(10);
-  const { pagination, setPagination } = usePagination(pageSize);
+  const { pagination, setPagination } = usePagination(10);
 
   const {
     data: topPartners,
