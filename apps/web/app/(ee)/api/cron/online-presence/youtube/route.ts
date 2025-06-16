@@ -68,13 +68,13 @@ export async function GET(req: Request) {
         const currentStats = {
           youtubeSubscriberCount: partner.youtubeSubscriberCount,
           youtubeVideoCount: partner.youtubeVideoCount,
-          youtubeViewCount: BigInt(partner.youtubeViewCount),
+          youtubeViewCount: partner.youtubeViewCount,
         };
 
         const newStats = {
           youtubeSubscriberCount: parseInt(subscriberCount || "0", 10),
           youtubeVideoCount: parseInt(videoCount || "0", 10),
-          youtubeViewCount: BigInt(viewCount || "0"),
+          youtubeViewCount: parseInt(videoCount || "0", 10),
         };
 
         if (deepEqual(currentStats, newStats)) {
