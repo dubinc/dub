@@ -8,7 +8,7 @@ import { authPartnerActionClient } from "../safe-action";
 // Combine this with the updatePartnerProfileAction
 
 const schema = z.object({
-  invoiceInfo: z.string().max(1000).nullable(),
+  invoiceInfo: z.string().max(1000).trim().nullable(),
 });
 
 // Update a partner invoice info
