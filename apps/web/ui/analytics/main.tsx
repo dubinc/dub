@@ -1,13 +1,6 @@
 import { EventType } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  BlurImage,
-  buttonVariants,
-  ChartLine,
-  Filter2,
-  ToggleGroup,
-  useRouterStuff,
-} from "@dub/ui";
+import { BlurImage, buttonVariants, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Play } from "lucide-react";
 import Link from "next/link";
@@ -16,6 +9,7 @@ import AnalyticsAreaChart from "./analytics-area-chart";
 import { AnalyticsFunnelChart } from "./analytics-funnel-chart";
 import { AnalyticsContext } from "./analytics-provider";
 import { AnalyticsTabs } from "./analytics-tabs";
+import { ChartViewSwitcher } from "./chart-view-switcher";
 
 type Tab = {
   id: EventType;
@@ -109,29 +103,13 @@ export default function Main() {
               <AnalyticsAreaChart resource={tab.id} demo={showPaywall} />
             </div>
           )}
-          {view === "funnel" && <AnalyticsFunnelChart demo={showPaywall} />}
+          {view === "funnel" && (
+            <div className="h-[444px] w-full sm:h-[464px]">
+              <AnalyticsFunnelChart demo={showPaywall} />
+            </div>
+          )}
         </div>
-        <ToggleGroup
-          className="absolute right-3 top-3 flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100"
-          optionClassName="size-8 p-0 flex items-center justify-center"
-          indicatorClassName="border border-neutral-200 bg-white"
-          options={[
-            {
-              label: <ChartLine className="size-4 text-neutral-600" />,
-              value: "timeseries",
-            },
-            {
-              label: <Filter2 className="size-4 -rotate-90 text-neutral-600" />,
-              value: "funnel",
-            },
-          ]}
-          selected={view}
-          selectAction={(option) => {
-            queryParams({
-              set: { view: option },
-            });
-          }}
-        />
+        <ChartViewSwitcher className="absolute right-3 top-3" />
         {showPaywall && <ConversionTrackingPaywall />}
       </div>
     </div>

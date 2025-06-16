@@ -1,12 +1,12 @@
 import { AnalyticsResponse } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import { Table, usePagination, useTable } from "@dub/ui";
 import { currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { useContext, useMemo } from "react";
 import useSWR from "swr";
-import { ProgramAnalyticsContext } from "./page-client";
 
 function PartnerTableSkeleton() {
   return (
@@ -61,7 +61,7 @@ function PartnerTableSkeleton() {
 }
 
 export function AnalyticsPartnersTable() {
-  const { event, queryString } = useContext(ProgramAnalyticsContext);
+  const { selectedTab, queryString } = useContext(AnalyticsContext);
 
   const { pagination, setPagination } = usePagination(10);
 
@@ -73,7 +73,7 @@ export function AnalyticsPartnersTable() {
     `/api/analytics?${editQueryString(queryString ?? "", {
       event: "composite",
       groupBy: "top_partners",
-      sortBy: event,
+      sortBy: selectedTab,
     })}`,
     fetcher,
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
-import { AnalyticsSaleUnit, IntervalOptions } from "@/lib/analytics/types";
+import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
@@ -13,40 +13,27 @@ import { useAnalyticsFilters } from "@/ui/analytics/use-analytics-filters";
 import { useAnalyticsQuery } from "@/ui/analytics/use-analytics-query";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Filter, useRouterStuff } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { createContext, useMemo } from "react";
+import { cn, fetcher } from "@dub/utils";
+import { ContextType, useMemo } from "react";
+import useSWR from "swr";
 import { AnalyticsChart } from "./analytics-chart";
 import { AnalyticsPartnersTable } from "./analytics-partners-table";
-
-type ProgramAnalyticsContextType = {
-  start?: string;
-  end?: string;
-  interval?: IntervalOptions;
-  event: "sales" | "leads" | "clicks";
-  saleUnit: AnalyticsSaleUnit;
-  queryString?: string;
-};
-
-export const ProgramAnalyticsContext =
-  createContext<ProgramAnalyticsContextType>({
-    event: "sales",
-    saleUnit: "saleAmount",
-  });
 
 export function ProgramAnalyticsPageClient() {
   const { defaultProgramId } = useWorkspace();
   const { searchParamsObj } = useRouterStuff();
 
-  const { start, end, interval, event, saleUnit } = useMemo(
-    () =>
-      ({
-        interval: DUB_PARTNERS_ANALYTICS_INTERVAL,
-        event: "sales",
-        saleUnit: "saleAmount",
-        ...searchParamsObj,
-      }) as ProgramAnalyticsContextType,
-    [searchParamsObj],
-  );
+  const { start, end, interval, selectedTab, saleUnit, view } = useMemo(() => {
+    const { event, ...rest } = searchParamsObj;
+
+    return {
+      interval: DUB_PARTNERS_ANALYTICS_INTERVAL,
+      selectedTab: event || "sales",
+      saleUnit: "saleAmount",
+      view: "timeseries",
+      ...rest,
+    } as ContextType<typeof AnalyticsContext>;
+  }, [searchParamsObj]);
 
   const queryString = editQueryString(
     useAnalyticsQuery({
@@ -55,6 +42,18 @@ export function ProgramAnalyticsPageClient() {
     }).queryString,
     {
       programId: defaultProgramId!,
+    },
+  );
+
+  const { data: totalEvents } = useSWR<{
+    [key in AnalyticsResponseOptions]: number;
+  }>(
+    `/api/analytics?${editQueryString(queryString ?? "", {
+      event: "composite",
+    })}`,
+    fetcher,
+    {
+      keepPreviousData: true,
     },
   );
 
@@ -73,7 +72,7 @@ export function ProgramAnalyticsPageClient() {
     context: {
       baseApiPath: "/api/analytics",
       queryString,
-      selectedTab: event,
+      selectedTab,
       saleUnit,
     },
     programPage: true,
@@ -111,8 +110,19 @@ export function ProgramAnalyticsPageClient() {
           />
         </div>
       </div>
-      <ProgramAnalyticsContext.Provider
-        value={{ start, end, interval, event, saleUnit, queryString }}
+      <AnalyticsContext.Provider
+        value={{
+          basePath: "",
+          baseApiPath: "/api/analytics",
+          selectedTab,
+          saleUnit,
+          view,
+          queryString,
+          start: start ? new Date(start) : undefined,
+          end: end ? new Date(end) : undefined,
+          interval,
+          totalEvents,
+        }}
       >
         <div className="border-border-subtle divide-border-subtle divide-y overflow-hidden border sm:rounded-2xl">
           <AnalyticsChart />
@@ -120,20 +130,7 @@ export function ProgramAnalyticsPageClient() {
             <AnalyticsPartnersTable />
           </div>
         </div>
-      </ProgramAnalyticsContext.Provider>
-      <AnalyticsContext.Provider
-        value={{
-          basePath: "",
-          baseApiPath: "/api/analytics",
-          selectedTab: event,
-          saleUnit,
-          view: "timeseries",
-          queryString,
-          start: start ? new Date(start) : undefined,
-          end: end ? new Date(end) : undefined,
-          interval,
-        }}
-      >
+
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <TopLinks filterLinks={false} />
           <Referer />
