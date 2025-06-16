@@ -341,7 +341,6 @@ export function useAnalyticsFilters({
 
   const getFilterOptionTotal = useCallback(
     ({ count, saleAmount }: { count?: number; saleAmount?: number }) => {
-      console.log({ selectedTab, saleUnit });
       return selectedTab === "sales" && saleUnit === "saleAmount" && saleAmount
         ? currencyFormatter(saleAmount / 100)
         : nFormatter(count, { full: true });
