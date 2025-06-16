@@ -60,7 +60,7 @@ function PartnerTableSkeleton() {
 }
 
 export function AnalyticsPartnersTable() {
-  const { queryString } = useContext(ProgramAnalyticsContext);
+  const { event, queryString } = useContext(ProgramAnalyticsContext);
 
   const { pagination, setPagination } = usePagination(10);
 
@@ -72,6 +72,7 @@ export function AnalyticsPartnersTable() {
     `/api/analytics?${editQueryString(queryString ?? "", {
       event: "composite",
       groupBy: "top_partners",
+      sortBy: event,
     })}`,
     fetcher,
   );

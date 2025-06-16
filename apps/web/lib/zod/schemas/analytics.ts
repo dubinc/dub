@@ -224,6 +224,7 @@ export const analyticsQuerySchema = z
       .describe(
         "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
       ),
+    sortBy: z.enum(EVENT_TYPES).optional(),
   })
   .merge(utmTagsSchema);
 
@@ -277,6 +278,7 @@ export const analyticsFilterTB = z
       partnerId: true,
       tenantId: true,
       folderId: true,
+      sortBy: true,
     }),
   );
 
@@ -298,7 +300,7 @@ const sortOrder = z
   .describe("The sort order. The default is `desc`.");
 
 export const eventsQuerySchema = analyticsQuerySchema
-  .omit({ groupBy: true })
+  .omit({ groupBy: true, sortBy: true })
   .extend({
     event: z
       .enum(EVENT_TYPES)

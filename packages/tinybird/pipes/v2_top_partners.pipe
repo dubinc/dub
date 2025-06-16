@@ -155,11 +155,19 @@ SQL >
 NODE top_partners_composite
 SQL >
 
+    %
     SELECT c.partnerId as partnerId, clicks, leads, sales, saleAmount
     FROM top_partners_clicks AS c
     LEFT JOIN top_partners_leads AS l ON c.partnerId = l.partnerId
     LEFT JOIN top_partners_sales AS s ON c.partnerId = s.partnerId
-    ORDER BY c.clicks DESC
+    ORDER BY
+        {% if defined(sortBy) %}
+            {% if sortBy == 'sales' %} s.sales
+            {% elif sortBy == 'leads' %} l.leads
+            {% else %} c.clicks
+            {% end %}
+        {% else %} c.clicks
+    {% end %} DESC
 
 
 
