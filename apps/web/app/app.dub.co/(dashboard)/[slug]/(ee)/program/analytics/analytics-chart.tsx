@@ -1,6 +1,12 @@
+import { ANALYTICS_SALE_UNIT } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
+import {
+  AnalyticsResponseOptions,
+  AnalyticsSaleUnit,
+} from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
-import { Combobox, useRouterStuff } from "@dub/ui";
+import { AnalyticsTabs } from "@/ui/analytics/analytics-tabs";
+import { useRouterStuff } from "@dub/ui";
 import {
   Areas,
   ChartContext,
@@ -9,26 +15,38 @@ import {
   YAxis,
 } from "@dub/ui/charts";
 import { LoadingSpinner } from "@dub/ui/icons";
-import { currencyFormatter, fetcher, nFormatter } from "@dub/utils";
-import NumberFlow from "@number-flow/react";
+import { capitalize, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { useContext, useId, useMemo } from "react";
 import useSWR from "swr";
 import { ProgramAnalyticsContext } from "./page-client";
 
-const chartOptions = [
-  { value: "sales", label: "Revenue" },
-  { value: "leads", label: "Leads" },
-  { value: "clicks", label: "Clicks" },
-];
-
 export function AnalyticsChart() {
   const id = useId();
 
-  const { queryParams } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const { start, end, interval, event, queryString } = useContext(
     ProgramAnalyticsContext,
+  );
+
+  const saleUnit: AnalyticsSaleUnit = useMemo(
+    () =>
+      ANALYTICS_SALE_UNIT.find((u) => u === searchParams.get("saleUnit")) ||
+      "saleAmount",
+    [searchParams.get("saleUnit")],
+  );
+
+  const { data: totalEvents } = useSWR<{
+    [key in AnalyticsResponseOptions]: number;
+  }>(
+    `/api/analytics?${editQueryString(queryString ?? "", {
+      event: "composite",
+    })}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   const { data, error } = useSWR<
@@ -52,59 +70,41 @@ export function AnalyticsChart() {
       data?.map((d) => ({
         date: new Date(d.start),
         values: {
-          amount: event === "sales" ? d.saleAmount / 100 : d[event],
+          amount:
+            event === "sales" && saleUnit === "saleAmount"
+              ? d.saleAmount / 100
+              : d[event],
         },
       })),
-    [data, event],
-  );
-
-  const total = useMemo(
-    () => chartData?.reduce((acc, curr) => acc + curr.values.amount, 0),
-    [chartData],
+    [data, event, saleUnit],
   );
 
   const dataLoading = !chartData && !error;
 
   return (
     <div>
-      <div>
-        <div className="-ml-2 flex justify-between gap-2">
-          <Combobox
-            selected={chartOptions.find(({ value }) => value === event) || null}
-            setSelected={(option) =>
-              option && queryParams({ set: { event: option.value } })
-            }
-            options={chartOptions}
-            optionClassName="w-36"
-            caret={true}
-            hideSearch={true}
-            buttonProps={{
-              variant: "outline",
-              className: "h-7 w-fit px-2 text-content-subtle",
-            }}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          {total === undefined ? (
-            <div className="h-[45px] w-24 animate-pulse rounded-md bg-neutral-200" />
-          ) : (
-            <NumberFlow
-              value={total}
-              className="text-3xl text-neutral-800"
-              format={
-                event === "sales"
-                  ? {
-                      style: "currency",
-                      currency: "USD",
-                    }
-                  : undefined
-              }
-            />
-          )}
-        </div>
+      <div className="border-b border-neutral-200">
+        <AnalyticsTabs
+          showConversions={true}
+          totalEvents={totalEvents}
+          tab={event}
+          tabHref={(id) =>
+            queryParams({
+              set: {
+                event: id,
+              },
+              getNewPath: true,
+            }) as string
+          }
+          saleUnit={saleUnit}
+          setSaleUnit={(option) =>
+            queryParams({
+              set: { saleUnit: option },
+            })
+          }
+        />
       </div>
-      <div className="relative mt-4 h-72 md:h-96">
+      <div className="relative mt-4 h-72 p-6 md:h-96">
         {dataLoading ? (
           <div className="flex size-full items-center justify-center">
             <LoadingSpinner />
@@ -136,14 +136,11 @@ export function AnalyticsChart() {
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
                       <p className="capitalize text-neutral-600">
-                        {
-                          chartOptions.find(({ value }) => value === event)
-                            ?.label
-                        }
+                        {capitalize(event)}
                       </p>
                     </div>
                     <p className="text-right font-medium text-neutral-900">
-                      {event === "sales"
+                      {event === "sales" && saleUnit === "saleAmount"
                         ? currencyFormatter(d.values.amount, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
@@ -174,7 +171,11 @@ export function AnalyticsChart() {
             />
             <YAxis
               showGridLines
-              tickFormat={event === "sales" ? currencyFormatter : nFormatter}
+              tickFormat={
+                event === "sales" && saleUnit === "saleAmount"
+                  ? currencyFormatter
+                  : nFormatter
+              }
             />
             <Areas
               seriesStyles={[

@@ -101,9 +101,7 @@ export function ProgramAnalyticsPageClient() {
         value={{ start, end, interval, event, queryString }}
       >
         <div className="border-border-subtle divide-border-subtle divide-y overflow-hidden rounded-2xl border">
-          <div className="p-6">
-            <AnalyticsChart />
-          </div>
+          <AnalyticsChart />
           <div>
             <AnalyticsPartnersTable />
           </div>
