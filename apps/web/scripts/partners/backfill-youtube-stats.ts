@@ -72,22 +72,19 @@ async function main() {
 
       const { viewCount, subscriberCount, videoCount } = stat.statistics;
 
-      await prisma.partner.update({
-        where: { id: partner.id },
-        data: {
-          youtubeChannelId: stat.id,
-          youtubeSubscriberCount: parseInt(subscriberCount || "0", 10),
-          youtubeVideoCount: parseInt(videoCount || "0", 10),
-          youtubeViewCount: parseInt(viewCount || "0", 10),
-        },
-      });
-
-      console.log(`Updated ${partner.youtube} with stats`, {
+      const newStats = {
         youtubeChannelId: stat.id,
         youtubeSubscriberCount: parseInt(subscriberCount || "0", 10),
         youtubeVideoCount: parseInt(videoCount || "0", 10),
         youtubeViewCount: parseInt(viewCount || "0", 10),
+      };
+
+      await prisma.partner.update({
+        where: { id: partner.id },
+        data: newStats,
       });
+
+      console.log(`Updated ${partner.youtube} with stats`, newStats);
     }
   } catch (error) {
     console.error("Error fetching channel data:", error);
