@@ -103,8 +103,7 @@ export function AnalyticsChart() {
             {view === "timeseries" ? (
               <div className="relative size-full p-6 pt-10">
                 <TimeSeriesChart
--                  key={`${start?.toString()}-${end?.toString()}-${interval?.toString()}-${event}-${saleUnit}`}
-+                  key={`${start?.toString()}-${end?.toString()}-${interval ?? ""}-${selectedTab}-${saleUnit}`}
+                  key={`${start?.toString()}-${end?.toString()}-${interval ?? ""}-${selectedTab}-${saleUnit}`}
                   data={chartData || []}
                   series={[
                     {
