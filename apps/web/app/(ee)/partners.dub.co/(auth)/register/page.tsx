@@ -1,7 +1,7 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@dub/prisma";
 import { cookies } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import RegisterPageClient from "./page-client";
 
 export default async function RegisterPage({
@@ -9,6 +9,10 @@ export default async function RegisterPage({
 }: {
   params: { programSlug?: string };
 }) {
+  if (programSlug === "framer") {
+    redirect("/framer/login");
+  }
+
   const program = programSlug
     ? (await getProgram({ slug: programSlug })) ?? undefined
     : undefined;
