@@ -44,10 +44,7 @@ export async function GET(req: Request) {
     });
 
     if (!pendingPayouts.length) {
-      return NextResponse.json({
-        success: true,
-        message: "No action needed",
-      });
+      return NextResponse.json("No action needed.");
     }
 
     const [partnerData, programData] = await Promise.all([
@@ -74,8 +71,11 @@ export async function GET(req: Request) {
         type: "errors",
       });
 
-      console.log("Resend is not configured, skipping email sending.");
-      return;
+      console.warn("Resend is not configured, skipping email sending.");
+
+      return NextResponse.json(
+        "Resend is not configured, skipping email sending.",
+      );
     }
 
     const partnerProgramMap = new Map<
