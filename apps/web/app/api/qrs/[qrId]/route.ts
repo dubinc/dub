@@ -26,6 +26,7 @@ export const GET = withWorkspace(
 // PATCH /api/qrs/[qrId] – update a qr
 export const PATCH = withWorkspace(
   async ({ req, headers, workspace, params, session }) => {
+    // TODO: CHECK
     if (session?.user?.id) {
       const { featuresAccess } = await checkFeaturesAccessAuthLess(
         session?.user?.id,
