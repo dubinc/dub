@@ -11,6 +11,7 @@ import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { Modal } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Options } from "qr-code-styling";
 import {
   Dispatch,
@@ -83,7 +84,16 @@ export function QRBuilderModal({
     <Modal
       showModal={showQRBuilderModal}
       setShowModal={setShowQRBuilderModal}
-      className="border-border-500 h-full max-w-screen-lg transition-[height] duration-[300ms] md:h-fit"
+      drawerRootProps={{
+        closeThreshold: Infinity,
+        dismissible: false,
+        disablePreventScroll: true,
+        repositionInputs: true,
+      }}
+      className={cn(
+        "border-border-500 h-full max-w-screen-lg transition-[height] duration-[300ms]",
+        "inset-0 md:bottom-auto md:left-1/2 md:right-auto md:top-1/2 md:h-fit md:-translate-x-1/2 md:-translate-y-1/2",
+      )}
     >
       <div className="flex flex-col gap-2">
         {/* header */}
