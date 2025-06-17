@@ -1,4 +1,5 @@
 import { parse } from "@/lib/middleware/utils";
+import { UserProps } from "@/lib/types.ts";
 import { userSessionIdInit } from "core/services/cookie/user-session-id-init.service.ts";
 import { NextRequest, NextResponse } from "next/server";
 import EmbedMiddleware from "./embed";
@@ -6,22 +7,22 @@ import NewLinkMiddleware from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getOnboardingStep } from "./utils/get-onboarding-step";
-import { getUserViaToken } from "./utils/get-user-via-token";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(
   req: NextRequest,
   country?: string,
+  user?: UserProps,
+  isPublicRoute?: boolean,
 ) {
-  const { path, fullPath } = parse(req);
+  const { domain, path, fullPath } = parse(req);
   console.log("here1");
   console.log(path, fullPath);
 
   if (path.startsWith("/embed")) {
     return EmbedMiddleware(req);
   }
-  const user = await getUserViaToken(req);
   const isWorkspaceInvite =
     req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
@@ -52,7 +53,7 @@ export default async function AppMiddleware(
 
     return NextResponse.rewrite(
       new URL(
-        `/${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
+        `/login${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
         req.url,
       ),
       { headers: { "Set-Cookie": cookies.join(", ") } },
@@ -103,7 +104,6 @@ export default async function AppMiddleware(
         "/",
         "/login",
         "/register",
-        "/landing",
         "/workspaces",
         "/analytics",
         "/events",
@@ -116,6 +116,8 @@ export default async function AppMiddleware(
       isTopLevelSettingsRedirect(path)
     ) {
       return WorkspacesMiddleware(req, user);
+    } else if (isPublicRoute) {
+      return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
     } else if (appRedirect(path)) {
       return NextResponse.redirect(new URL(appRedirect(path), req.url));
     }

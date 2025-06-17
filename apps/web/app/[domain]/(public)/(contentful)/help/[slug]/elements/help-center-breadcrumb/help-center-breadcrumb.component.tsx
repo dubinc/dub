@@ -8,7 +8,7 @@ interface IHelpCenterBreadcrumbComponentProps {
 }
 
 const breadcrumbItems = [
-  { label: "Home", href: "/landing" },
+  { label: "Home", href: "/" },
   { label: "Help Center", href: "/help" },
 ];
 
