@@ -81,7 +81,7 @@ export function GuideList() {
                   {guide.title}
                 </div>
                 <div className="text-sm font-medium text-[#737373]">
-                  {guide.description}
+                  {guide.shortDescription}
                 </div>
               </div>
             </Link>

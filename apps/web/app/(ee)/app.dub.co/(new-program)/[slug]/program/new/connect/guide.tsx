@@ -2,12 +2,12 @@
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Markdown } from "@/ui/shared/markdown";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Markdown } from "./markdown";
 import { IntegrationGuide } from "./types";
 
 interface GuideProps {
@@ -45,6 +45,10 @@ export function Guide({ selectedGuide, markdown }: GuideProps) {
 
   const Icon = selectedGuide.icon;
 
+  if (!markdown) {
+    return null;
+  }
+
   return (
     <>
       <hr className="mb-6 border-neutral-200" />
@@ -60,27 +64,14 @@ export function Guide({ selectedGuide, markdown }: GuideProps) {
           />
         </div>
 
-        <h2 className="py-2 text-xl font-semibold leading-7 text-neutral-900">
-          Instructions for {selectedGuide.title}
+        <h2 className="mt-6 text-xl font-semibold leading-7 text-neutral-900">
+          {selectedGuide.description}
         </h2>
 
         <div className="rounded-2xl bg-white p-0 py-6 shadow-none">
-          {/* Step 1 */}
-          <div className="mb-4">
-            <div className="mb-1 text-base font-bold">
-              Step 1: Install the Dub {selectedGuide.title} App
-            </div>
-            <div className="mb-6 text-neutral-600">
-              Ensure your program is connected to your website, so you can track
-              your clicks, leads, and sales on your program.
-            </div>
-          </div>
+          <Markdown>{markdown}</Markdown>
 
-          <div className="mb-8 rounded-2xl bg-neutral-100">
-            {markdown && <Markdown className="p-6">{markdown}</Markdown>}
-          </div>
-
-          <div className="flex flex-col gap-2">
+          <div className="mt-10 flex flex-col gap-2">
             <Button
               text="I've completed this"
               className="w-full"
