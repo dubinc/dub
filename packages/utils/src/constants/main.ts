@@ -11,7 +11,6 @@ export const APP_HOSTNAMES = new Set([
   `preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "localhost:8888",
   "localhost",
-  process.env.NEXT_PUBLIC_NGROK_URL,
 ]);
 
 // export const APP_DOMAIN =

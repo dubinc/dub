@@ -1,5 +1,4 @@
 import { parse } from "@/lib/middleware/utils";
-import { getUserCountry } from "@/lib/middleware/utils/get-user-country.ts";
 import { userSessionIdInit } from "core/services/cookie/user-session-id-init.service.ts";
 import { NextRequest, NextResponse } from "next/server";
 import EmbedMiddleware from "./embed";
@@ -11,7 +10,10 @@ import { getUserViaToken } from "./utils/get-user-via-token";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 import WorkspacesMiddleware from "./workspaces";
 
-export default async function AppMiddleware(req: NextRequest) {
+export default async function AppMiddleware(
+  req: NextRequest,
+  country?: string,
+) {
   const { path, fullPath } = parse(req);
   console.log("here1");
   console.log(path, fullPath);
@@ -19,7 +21,6 @@ export default async function AppMiddleware(req: NextRequest) {
   if (path.startsWith("/embed")) {
     return EmbedMiddleware(req);
   }
-  const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
   const isWorkspaceInvite =
     req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
@@ -38,18 +39,9 @@ export default async function AppMiddleware(req: NextRequest) {
   if (
     !user &&
     path !== "/login" &&
-    path !== "/landing" &&
     path !== "/forgot-password" &&
     path !== "/register" &&
     path !== "/auth/saml" &&
-    // helps, terms and policy
-    path !== "/cookie-policy" &&
-    path !== "/eula" &&
-    path !== "/privacy-policy" &&
-    !path.startsWith("/help") &&
-    // helps, terms and policy
-    path !== "/qr-disabled" &&
-    path !== "/qr-complete-setup" &&
     !path.startsWith("/auth/reset-password/") &&
     !path.startsWith("/share/")
   ) {
@@ -57,10 +49,10 @@ export default async function AppMiddleware(req: NextRequest) {
     if (sessionCookie) {
       cookies.push(sessionCookie);
     }
-    
+
     return NextResponse.rewrite(
       new URL(
-        `/landing${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
+        `/${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
         req.url,
       ),
       { headers: { "Set-Cookie": cookies.join(", ") } },
@@ -134,7 +126,7 @@ export default async function AppMiddleware(req: NextRequest) {
   if (sessionCookie) {
     finalCookies.push(sessionCookie);
   }
-  
+
   return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
     headers: { "Set-Cookie": finalCookies.join(", ") },
   });
