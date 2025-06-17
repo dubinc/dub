@@ -12,10 +12,10 @@ import { IntegrationGuide } from "./types";
 
 interface GuideProps {
   selectedGuide: IntegrationGuide;
-  guideContent: string | null;
+  markdown: string | null;
 }
 
-export function Guide({ selectedGuide, guideContent }: GuideProps) {
+export function Guide({ selectedGuide, markdown }: GuideProps) {
   const router = useRouter();
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
@@ -77,9 +77,7 @@ export function Guide({ selectedGuide, guideContent }: GuideProps) {
           </div>
 
           <div className="mb-8 rounded-2xl bg-neutral-100">
-            {guideContent && (
-              <Markdown className="p-6">{guideContent}</Markdown>
-            )}
+            {markdown && <Markdown className="p-6">{markdown}</Markdown>}
           </div>
 
           <div className="flex flex-col gap-2">

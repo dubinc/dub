@@ -6,7 +6,7 @@ import { guides } from "./constants";
 import { PageClient } from "./page-client";
 import { IntegrationGuide } from "./types";
 
-function getGuideContent(guideKey: string): string | null {
+function getMarkdown(guideKey: string): string | null {
   const markdownPath = join(process.cwd(), "markdown", `${guideKey}.md`);
 
   try {
@@ -26,7 +26,7 @@ export default async function Page({
 }) {
   let { guide } = searchParams;
   let selectedGuide: IntegrationGuide | null = null;
-  let content: string | null = null;
+  let markdown: string | null = null;
 
   if (guide) {
     selectedGuide = guides.find((g) => g.key === guide.toLowerCase()) ?? null;
@@ -35,16 +35,16 @@ export default async function Page({
       notFound();
     }
 
-    content = getGuideContent(selectedGuide.key);
+    markdown = getMarkdown(selectedGuide.key);
 
-    if (!content) {
+    if (!markdown) {
       notFound();
     }
   }
 
   return (
     <StepPage title="Connecting Dub">
-      <PageClient guideContent={content} />
+      <PageClient markdown={markdown} />
     </StepPage>
   );
 }

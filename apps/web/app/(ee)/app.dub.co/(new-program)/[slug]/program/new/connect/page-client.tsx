@@ -8,10 +8,10 @@ import { GuideList } from "./guide-list";
 import { IntegrationGuide } from "./types";
 
 interface PageClientProps {
-  guideContent: string | null;
+  markdown: string | null;
 }
 
-export function PageClient({ guideContent }: PageClientProps) {
+export function PageClient({ markdown }: PageClientProps) {
   const searchParams = useSearchParams();
   const [selectedGuide, setSelectedGuide] = useState<IntegrationGuide | null>(
     null,
@@ -43,7 +43,7 @@ export function PageClient({ guideContent }: PageClientProps) {
 
       <div>
         {selectedGuide ? (
-          <Guide selectedGuide={selectedGuide} guideContent={guideContent} />
+          <Guide selectedGuide={selectedGuide} markdown={markdown} />
         ) : (
           <GuideList />
         )}
