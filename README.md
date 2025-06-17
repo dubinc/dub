@@ -49,7 +49,6 @@ Our platform powers 100M+ clicks and 2M+ links monthly, and is used by world-cla
 - [Stripe](https://stripe.com/) – payments
 - [Resend](https://resend.com/) – emails
 - [Vercel](https://vercel.com/) – deployments
-- [Pangea](https://pangea.cloud/services/domain-intel/reputation) - link scanning
 
 ## Self-Hosting
 
