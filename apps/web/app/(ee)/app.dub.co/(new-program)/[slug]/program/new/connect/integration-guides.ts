@@ -40,7 +40,7 @@ export const guides: IntegrationGuide[] = [
     type: "code",
     key: "react",
     title: "React",
-    description: "Dub Analytics",
+    description: "How to add @dub/analytics to your React or Next.js site",
     shortDescription: "Dub Analytics",
     icon: Code,
   },
