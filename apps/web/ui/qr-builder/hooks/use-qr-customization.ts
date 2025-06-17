@@ -29,9 +29,12 @@ export function useQrCustomization(
     initialData?.qrType as EQRType,
   );
 
-  const [data, setData] = useState(
-    initialData?.link?.shortLink || DEFAULT_WEBSITE,
-  );
+  const initialContentForQrBuild =
+    initialData?.qrType !== "wifi"
+      ? initialData?.link?.shortLink
+      : initialData?.data;
+
+  const [data, setData] = useState(initialContentForQrBuild || DEFAULT_WEBSITE);
   console.log("[useQrCustomization] data", data);
   console.log("[useQrCustomization] qrCode", qrCode);
   const isQrDisabled = !data?.trim() || data === DEFAULT_WEBSITE;
