@@ -1,7 +1,7 @@
 model Discount {
   id String @id @default(cuid())
 
-  amount      Int            @default(0)
+  amount      Int             @default(0)
   type        RewardStructure @default(percentage)
   maxDuration Int? // in months (0 -> not recurring, null -> lifetime)
   description String?

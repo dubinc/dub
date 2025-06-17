@@ -96,27 +96,29 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         header: "Link",
         accessorKey: "link",
         meta: {
-          filterParams: ({ getValue }) => ({
-            linkId: getValue().id,
-          }),
+          filterParams: ({ row }) =>
+            row.original.link ? { linkId: row.original.link.id } : null,
         },
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <LinkLogo
-              apexDomain={getApexDomain(row.original.link.url)}
-              className="size-4 shrink-0 sm:size-4"
-            />
-            <CopyText
-              value={row.original.link.shortLink}
-              successMessage="Copied link to clipboard!"
-              className="truncate"
-            >
-              <span className="truncate" title={row.original.link.shortLink}>
-                {getPrettyUrl(row.original.link.shortLink)}
-              </span>
-            </CopyText>
-          </div>
-        ),
+        cell: ({ row }) =>
+          row.original.link ? (
+            <div className="flex items-center gap-3">
+              <LinkLogo
+                apexDomain={getApexDomain(row.original.link.url)}
+                className="size-4 shrink-0 sm:size-4"
+              />
+              <CopyText
+                value={row.original.link.shortLink}
+                successMessage="Copied link to clipboard!"
+                className="truncate"
+              >
+                <span className="truncate" title={row.original.link.shortLink}>
+                  {getPrettyUrl(row.original.link.shortLink)}
+                </span>
+              </CopyText>
+            </div>
+          ) : (
+            "-"
+          ),
         size: 250,
       },
       {
@@ -131,7 +133,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               className="px-4 py-2.5"
             />
           ) : (
-            "-"
+            <p className="px-4 py-2.5">-</p>
           ),
         meta: {
           filterParams: ({ row }) =>
@@ -139,7 +141,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               ? {
                   customerId: row.original.customer.id,
                 }
-              : {},
+              : null,
         },
       },
       {
@@ -191,7 +193,8 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
       return (
-        meta?.filterParams && (
+        meta?.filterParams &&
+        meta.filterParams(cell) && (
           <FilterButtonTableRow set={meta.filterParams(cell)} />
         )
       );
