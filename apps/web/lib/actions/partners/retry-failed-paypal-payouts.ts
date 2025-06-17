@@ -18,6 +18,8 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
     const { partner } = ctx;
     const { payoutId } = parsedInput;
 
+    throw new Error("Not implemented");
+
     if (!partner.payoutsEnabledAt) {
       throw new Error(
         "You haven't enabled payouts yet. Please enable payouts in your payout settings.",
@@ -48,6 +50,7 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
         partnerId: true,
         status: true,
         amount: true,
+        paypalTransferId: true,
         program: {
           select: {
             name: true,
@@ -66,6 +69,10 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
 
     if (!payout.invoiceId) {
       throw new Error("This payout has no invoice ID.");
+    }
+
+    if (!payout.paypalTransferId) {
+      throw new Error("This payout has no existing PayPal transfer ID.");
     }
 
     try {

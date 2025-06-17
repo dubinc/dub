@@ -1,7 +1,9 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
-import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import { AnalyticsFunnelChart } from "@/ui/analytics/analytics-funnel-chart";
+import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { AnalyticsTabs } from "@/ui/analytics/analytics-tabs";
+import { ChartViewSwitcher } from "@/ui/analytics/chart-view-switcher";
 import { useRouterStuff } from "@dub/ui";
 import {
   Areas,
@@ -15,28 +17,22 @@ import { capitalize, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { useContext, useId, useMemo } from "react";
 import useSWR from "swr";
-import { ProgramAnalyticsContext } from "./page-client";
 
 export function AnalyticsChart() {
   const id = useId();
 
   const { queryParams } = useRouterStuff();
 
-  const { start, end, interval, event, saleUnit, queryString } = useContext(
-    ProgramAnalyticsContext,
-  );
-
-  const { data: totalEvents } = useSWR<{
-    [key in AnalyticsResponseOptions]: number;
-  }>(
-    `/api/analytics?${editQueryString(queryString ?? "", {
-      event: "composite",
-    })}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const {
+    start,
+    end,
+    interval,
+    selectedTab,
+    saleUnit,
+    view,
+    totalEvents,
+    queryString,
+  } = useContext(AnalyticsContext);
 
   const { data, error } = useSWR<
     {
@@ -60,12 +56,12 @@ export function AnalyticsChart() {
         date: new Date(d.start),
         values: {
           amount:
-            event === "sales" && saleUnit === "saleAmount"
+            selectedTab === "sales" && saleUnit === "saleAmount"
               ? d.saleAmount / 100
-              : d[event],
+              : d[selectedTab],
         },
       })),
-    [data, event, saleUnit],
+    [data, selectedTab, saleUnit],
   );
 
   const dataLoading = !chartData && !error;
@@ -76,7 +72,7 @@ export function AnalyticsChart() {
         <AnalyticsTabs
           showConversions={true}
           totalEvents={totalEvents}
-          tab={event}
+          tab={selectedTab}
           tabHref={(id) =>
             queryParams({
               set: {
@@ -93,7 +89,7 @@ export function AnalyticsChart() {
           }
         />
       </div>
-      <div className="relative mt-4 h-72 p-6 md:h-96">
+      <div className="relative h-72 md:h-96">
         {dataLoading ? (
           <div className="flex size-full items-center justify-center">
             <LoadingSpinner />
@@ -103,71 +99,81 @@ export function AnalyticsChart() {
             Failed to load data
           </div>
         ) : (
-          <TimeSeriesChart
-            key={`${start?.toString()}-${end?.toString()}-${interval?.toString()}-${event}-${saleUnit}`}
-            data={chartData || []}
-            series={[
-              {
-                id: "amount",
-                valueAccessor: (d) => d.values.amount,
-                colorClassName: "text-[#8B5CF6]",
-                isActive: true,
-              },
-            ]}
-            tooltipClassName="p-0"
-            tooltipContent={(d) => {
-              return (
-                <>
-                  <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
-                    {formatDateTooltip(d.date, { interval, start, end })}
-                  </p>
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
-                      <p className="capitalize text-neutral-600">
-                        {capitalize(event)}
-                      </p>
-                    </div>
-                    <p className="text-right font-medium text-neutral-900">
-                      {event === "sales" && saleUnit === "saleAmount"
-                        ? currencyFormatter(d.values.amount, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })
-                        : nFormatter(d.values.amount)}
-                    </p>
-                  </div>
-                </>
-              );
-            }}
-          >
-            <ChartContext.Consumer>
-              {(context) => (
-                <LinearGradient
-                  id={`${id}-color-gradient`}
-                  from="#7D3AEC"
-                  to="#DA2778"
-                  x1={0}
-                  x2={context?.width ?? 1}
-                  gradientUnits="userSpaceOnUse"
-                />
-              )}
-            </ChartContext.Consumer>
-            <XAxis
-              tickFormat={(date) =>
-                formatDateTooltip(date, { interval, start, end })
-              }
-            />
-            <YAxis
-              showGridLines
-              tickFormat={
-                event === "sales" && saleUnit === "saleAmount"
-                  ? currencyFormatter
-                  : nFormatter
-              }
-            />
-            <Areas />
-          </TimeSeriesChart>
+          <>
+            {view === "timeseries" ? (
+              <div className="relative size-full p-6 pt-10">
+                <TimeSeriesChart
+                  key={`${start?.toString()}-${end?.toString()}-${interval ?? ""}-${selectedTab}-${saleUnit}`}
+                  data={chartData || []}
+                  series={[
+                    {
+                      id: "amount",
+                      valueAccessor: (d) => d.values.amount,
+                      colorClassName: "text-[#8B5CF6]",
+                      isActive: true,
+                    },
+                  ]}
+                  tooltipClassName="p-0"
+                  tooltipContent={(d) => {
+                    return (
+                      <>
+                        <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
+                          {formatDateTooltip(d.date, { interval, start, end })}
+                        </p>
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
+                            <p className="capitalize text-neutral-600">
+                              {capitalize(selectedTab)}
+                            </p>
+                          </div>
+                          <p className="text-right font-medium text-neutral-900">
+                            {selectedTab === "sales" &&
+                            saleUnit === "saleAmount"
+                              ? currencyFormatter(d.values.amount, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })
+                              : nFormatter(d.values.amount)}
+                          </p>
+                        </div>
+                      </>
+                    );
+                  }}
+                >
+                  <ChartContext.Consumer>
+                    {(context) => (
+                      <LinearGradient
+                        id={`${id}-color-gradient`}
+                        from="#7D3AEC"
+                        to="#DA2778"
+                        x1={0}
+                        x2={context?.width ?? 1}
+                        gradientUnits="userSpaceOnUse"
+                      />
+                    )}
+                  </ChartContext.Consumer>
+                  <XAxis
+                    tickFormat={(date) =>
+                      formatDateTooltip(date, { interval, start, end })
+                    }
+                  />
+                  <YAxis
+                    showGridLines
+                    tickFormat={
+                      selectedTab === "sales" && saleUnit === "saleAmount"
+                        ? currencyFormatter
+                        : nFormatter
+                    }
+                  />
+                  <Areas />
+                </TimeSeriesChart>
+              </div>
+            ) : (
+              <AnalyticsFunnelChart />
+            )}
+            <ChartViewSwitcher className="absolute right-3 top-3" />
+          </>
         )}
       </div>
     </div>

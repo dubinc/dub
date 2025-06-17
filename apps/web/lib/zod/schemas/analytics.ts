@@ -224,7 +224,6 @@ export const analyticsQuerySchema = z
       .describe(
         "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
       ),
-    sortBy: z.enum(EVENT_TYPES).optional(),
   })
   .merge(utmTagsSchema);
 

@@ -12,7 +12,12 @@ import {
   StatusBadge,
   Stripe as StripeIcon,
 } from "@dub/ui";
-import { cn, CONNECT_SUPPORTED_COUNTRIES, fetcher } from "@dub/utils";
+import {
+  cn,
+  CONNECT_SUPPORTED_COUNTRIES,
+  fetcher,
+  PAYPAL_SUPPORTED_COUNTRIES,
+} from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
@@ -72,9 +77,10 @@ export function PayoutMethodsDropdown() {
         partner?.paypalEmail
           ? `Account ${partner.paypalEmail}`
           : "Not connected",
-      isVisible: (partner: Pick<PartnerProps, "country">) =>
-        partner.country &&
-        !CONNECT_SUPPORTED_COUNTRIES.includes(partner.country),
+      isVisible: (partner: Pick<PartnerProps, "country" | "paypalEmail">) =>
+        (partner.country &&
+          PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)) ||
+        partner.paypalEmail,
     },
     {
       id: "stripe",
@@ -117,15 +123,13 @@ export function PayoutMethodsDropdown() {
   };
 
   const selectedMethod = (() => {
-    if (partner?.country === "US") {
-      return payoutMethods.find(({ id }) => id === "stripe")!;
-    }
-
     if (partner?.stripeConnectId) {
       return payoutMethods.find(({ id }) => id === "stripe");
+    } else if (partner?.paypalEmail) {
+      return payoutMethods.find(({ id }) => id === "paypal");
     }
 
-    return payoutMethods.find(({ id }) => id === "paypal");
+    return null;
   })();
 
   const isConnected = (method: string) => {
@@ -190,11 +194,6 @@ export function PayoutMethodsDropdown() {
                           text={isConnected(id) ? "Manage" : "Connect"}
                           onClick={() => connectPayout(id)}
                           loading={isStripePending || isPaypalPending}
-                          disabledTooltip={
-                            id === "paypal" && !isConnected(id)
-                              ? "PayPal payouts are coming soon."
-                              : undefined
-                          }
                           className="h-7 w-fit text-xs"
                         />
                       </div>

@@ -31,9 +31,7 @@ export function PayoutStatsAndSettings() {
           <div className="mt-2 flex items-center gap-2">
             {partner && !partner.payoutsEnabledAt && (
               <Tooltip
-                content={`A valid ${
-                  partner.stripeConnectId ? "Stripe" : "PayPal"
-                } connection is required for payouts.`}
+                content="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in."
                 side="right"
               >
                 <div>
