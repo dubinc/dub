@@ -5,6 +5,8 @@ export const PERMISSION_ACTIONS = [
   "workspaces.write",
   "links.read",
   "links.write",
+  "qrs.read",
+  "qrs.write",
   "tags.read",
   "tags.write",
   "analytics.read",

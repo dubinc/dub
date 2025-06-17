@@ -30,7 +30,7 @@ export function QrCodeDetailsColumn({
     >
       <div className="hidden gap-3 lg:flex lg:gap-6">
         <QrCardType currentQrTypeInfo={currentQrTypeInfo} />
-        {qrCode.link.archived || isTrialOver ? (
+        {qrCode.archived || isTrialOver ? (
           <QRCardStatus archived />
         ) : (
           <QRCardAnalyticsBadge qrCode={qrCode} />
