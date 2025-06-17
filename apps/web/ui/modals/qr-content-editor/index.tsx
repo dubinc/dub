@@ -196,10 +196,6 @@ export function QRContentEditorModal({
     }
   };
 
-  const handleValidateFields = () => {
-    validateFields();
-  };
-
   const handleHiddenNetworkChange = (checked: boolean) => {
     setIsHiddenNetwork(checked);
   };
@@ -239,7 +235,7 @@ export function QRContentEditorModal({
                 qrType={selectedQRType}
                 isHiddenNetwork={isHiddenNetwork}
                 onHiddenNetworkChange={handleHiddenNetworkChange}
-                validateFields={handleValidateFields}
+                validateFields={validateFields}
                 minimalFlow={true}
                 hideNameField={true}
               />

@@ -29,7 +29,9 @@ export function useQrCustomization(
     initialData?.qrType as EQRType,
   );
 
-  const [data, setData] = useState(initialData?.data || DEFAULT_WEBSITE);
+  const [data, setData] = useState(
+    initialData?.link?.shortLink || DEFAULT_WEBSITE,
+  );
   console.log("[useQrCustomization] data", data);
   console.log("[useQrCustomization] qrCode", qrCode);
   const isQrDisabled = !data?.trim() || data === DEFAULT_WEBSITE;
