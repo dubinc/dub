@@ -4,7 +4,14 @@ import { ProgramPayoutsPageClient } from "./page-client";
 
 export default function ProgramPayoutsPage() {
   return (
-    <PageContent title="Payouts">
+    <PageContent
+      title="Payouts"
+      titleInfo={{
+        title:
+          "Learn more about how you can send payouts to your affiliate partners globally with Dub.",
+        href: "https://dub.co/docs/partners/payouts",
+      }}
+    >
       <PageWidthWrapper>
         <ProgramPayoutsPageClient />
       </PageWidthWrapper>

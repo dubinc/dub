@@ -1,5 +1,6 @@
 "use server";
 
+import { cancelPaypalPayout } from "@/lib/paypal/cancel-paypal-payout";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
@@ -48,6 +49,7 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
         partnerId: true,
         status: true,
         amount: true,
+        paypalTransferId: true,
         program: {
           select: {
             name: true,
@@ -68,6 +70,10 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
       throw new Error("This payout has no invoice ID.");
     }
 
+    if (!payout.paypalTransferId) {
+      throw new Error("This payout has no existing PayPal transfer ID.");
+    }
+
     try {
       await createPayPalBatchPayout({
         invoiceId: `${payout.invoiceId}-${nanoid(10)}`,
@@ -82,6 +88,8 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
           },
         ],
       });
+
+      await cancelPaypalPayout(payout.paypalTransferId);
     } catch (error) {
       throw new Error(
         "Failed to retry payout. Please try again or contact support.",
