@@ -1,9 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { limiter } from "@/lib/cron/limiter";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { sendEmail } from "@dub/email";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
 import { prisma } from "@dub/prisma";
+import { chunk, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -45,93 +46,120 @@ export async function GET(req: Request) {
     if (!pendingPayouts.length) {
       return NextResponse.json({
         success: true,
-        message: `No action needed`,
+        message: "No action needed",
       });
     }
 
-    const partnerData = await prisma.partner.findMany({
-      where: {
-        id: {
-          in: pendingPayouts.map((payout) => payout.partnerId),
+    const [partnerData, programData] = await Promise.all([
+      prisma.partner.findMany({
+        where: {
+          id: {
+            in: pendingPayouts.map((payout) => payout.partnerId),
+          },
         },
-      },
-    });
+      }),
 
-    const programData = await prisma.program.findMany({
-      where: {
-        id: {
-          in: pendingPayouts.map((payout) => payout.programId),
+      prisma.program.findMany({
+        where: {
+          id: {
+            in: pendingPayouts.map((payout) => payout.programId),
+          },
         },
-      },
-    });
+      }),
+    ]);
 
-    const partnerPrograms = Object.entries(
-      pendingPayouts.reduce(
-        (acc, payout) => {
-          const { partnerId, programId } = payout;
-          const { amount } = payout._sum;
+    if (!resend) {
+      await log({
+        message: "Resend is not configured, skipping email sending.",
+        type: "errors",
+      });
 
-          const partner = partnerData.find((p) => p.id === partnerId);
-          const program = programData.find((p) => p.id === programId);
-          if (!partner?.email || !program) {
-            return acc;
-          }
+      console.log("Resend is not configured, skipping email sending.");
+      return;
+    }
 
-          acc[partner.email] = acc[partner.email] || [];
-          acc[partner.email].push({
-            amount: amount ?? 0,
-            partner: {
-              name: partner.name,
-              email: partner.email,
-            },
-            program: {
-              id: program.id,
-              name: program.name,
-              logo: program.logo,
-            },
-          });
-          return acc;
+    const partnerProgramMap = new Map<
+      string,
+      {
+        partner: {
+          id: string;
+          name: string;
+          email: string;
+        };
+        programs: {
+          id: string;
+          name: string;
+          logo: string;
+          amount: number;
+        }[];
+      }
+    >();
+
+    for (const payout of pendingPayouts) {
+      const { partnerId, programId } = payout;
+      const { amount } = payout._sum;
+
+      const partner = partnerData.find((p) => p.id === partnerId);
+      const program = programData.find((p) => p.id === programId);
+
+      if (!partner?.email || !program) {
+        continue;
+      }
+
+      if (!partnerProgramMap.has(partnerId)) {
+        partnerProgramMap.set(partnerId, {
+          partner: {
+            id: partner.id,
+            name: partner.name,
+            email: partner.email,
+          },
+          programs: [],
+        });
+      }
+
+      partnerProgramMap.get(partnerId)!.programs.push({
+        id: program.id,
+        name: program.name,
+        logo: program.logo!,
+        amount: amount ?? 0,
+      });
+    }
+
+    const partnerPrograms = Array.from(partnerProgramMap.values());
+    const partnerProgramsChunks = chunk(partnerPrograms, 1);
+    const connectPayoutsLastRemindedAt = new Date();
+
+    console.log(partnerPrograms);
+
+    for (const partnerProgramsChunk of partnerProgramsChunks) {
+      await resend.batch.send(
+        partnerProgramsChunk.map(({ partner, programs }) => ({
+          from: VARIANT_TO_FROM_MAP.notifications,
+          to: partner.email,
+          subject: "Connect your payout details on Dub Partners",
+          variant: "notifications",
+          react: ConnectPayoutReminder({
+            email: partner.email,
+            programs,
+          }),
+        })),
+      );
+
+      console.info(`Emails sent to ${partnerProgramsChunk.length} partners`);
+
+      await prisma.partner.updateMany({
+        where: {
+          id: {
+            in: partnerProgramsChunk.map(({ partner }) => partner.id),
+          },
         },
-        {} as Record<
-          string,
-          Array<{ amount: number; partner: any; program: any }>
-        >,
-      ),
-    );
+        data: {
+          connectPayoutsLastRemindedAt,
+        },
+      });
+    }
 
-    await Promise.all(
-      partnerPrograms.map(([partnerEmail, data]) =>
-        limiter.schedule(async () => {
-          const res = await sendEmail({
-            subject: `Connect your payout details on Dub Partners`,
-            email: partnerEmail,
-            react: ConnectPayoutReminder({
-              email: partnerEmail,
-              programs: data.map(({ program, amount }) => ({
-                id: program.id,
-                name: program.name,
-                logo: program.logo,
-                amount,
-              })),
-            }),
-            variant: "notifications",
-          });
-          console.log(res);
-
-          // Update last notified date
-          await prisma.partner.update({
-            where: {
-              email: partnerEmail,
-            },
-            data: {
-              connectPayoutsLastRemindedAt: new Date(),
-            },
-          });
-        }),
-      ),
-    );
-
-    return NextResponse.json(partnerPrograms);
+    return NextResponse.json("OK");
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
