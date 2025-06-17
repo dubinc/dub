@@ -63,7 +63,7 @@ export default async function LoginPage({
         <div className="mt-8">
           <LoginForm
             methods={["email", "password", "google"]}
-            next={`/${programSlug ? `/programs/${programSlug}` : ""}`}
+            next={programSlug ? `/programs/${programSlug}` : "/"}
           />
         </div>
         <p className="mt-6 text-center text-sm font-medium text-neutral-500">
