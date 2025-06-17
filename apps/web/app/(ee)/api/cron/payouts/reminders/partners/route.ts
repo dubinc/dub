@@ -126,7 +126,7 @@ export async function GET(req: Request) {
     }
 
     const partnerPrograms = Array.from(partnerProgramMap.values());
-    const partnerProgramsChunks = chunk(partnerPrograms, 1);
+    const partnerProgramsChunks = chunk(partnerPrograms, 100);
     const connectPayoutsLastRemindedAt = new Date();
 
     for (const partnerProgramsChunk of partnerProgramsChunks) {
