@@ -96,6 +96,7 @@ export const PATCH = withWorkspace(
     requiredPermissions: ["workspaces.write"],
     requiredPlan: [
       "business",
+      "business legacy",
       "business plus",
       "business extra",
       "business max",
