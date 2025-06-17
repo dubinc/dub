@@ -109,7 +109,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
       inputField = (
         <textarea
           className={cn(
-            "border-border-500 focus:border-secondary h-36 w-full cursor-pointer rounded-md border p-3 text-base",
+            "border-border-500 focus:border-secondary h-36 w-full rounded-md border p-3 text-base",
             {
               "border-red-500": error,
             },
@@ -149,7 +149,7 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
         <Input
           type={type}
           className={cn(
-            "border-border-500 focus:border-secondary h-11 w-full max-w-2xl cursor-pointer rounded-md border p-3 text-base",
+            "border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base",
             {
               "border-red-500": error,
             },

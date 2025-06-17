@@ -10,8 +10,8 @@ export const buttonVariants = cva("transition-all", {
       primary:
         "border-secondary bg-secondary text-white hover:ring-4 hover:ring-secondary-200/40",
       secondary: cn(
-        "border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50 focus-visible:border-neutral-500 outline-none",
-        "data-[state=open]:border-neutral-500 data-[state=open]:ring-4 data-[state=open]:ring-neutral-200",
+        "border-secondary bg-white text-secondary hover:bg-secondary-50 focus-visible:border-secondary-500 outline-none",
+        "data-[state=open]:border-secondary-500 data-[state=open]:ring-4 data-[state=open]:ring-secondary-200",
       ),
       outline: "border-transparent text-neutral-600 hover:bg-neutral-100",
       success:
