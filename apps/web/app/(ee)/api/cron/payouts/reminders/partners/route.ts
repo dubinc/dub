@@ -129,8 +129,6 @@ export async function GET(req: Request) {
     const partnerProgramsChunks = chunk(partnerPrograms, 1);
     const connectPayoutsLastRemindedAt = new Date();
 
-    console.log(partnerPrograms);
-
     for (const partnerProgramsChunk of partnerProgramsChunks) {
       await resend.batch.send(
         partnerProgramsChunk.map(({ partner, programs }) => ({
@@ -145,7 +143,7 @@ export async function GET(req: Request) {
         })),
       );
 
-      console.info(`Emails sent to ${partnerProgramsChunk.length} partners`);
+      console.info(partnerProgramsChunk);
 
       await prisma.partner.updateMany({
         where: {
