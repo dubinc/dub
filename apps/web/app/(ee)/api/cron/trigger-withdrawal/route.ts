@@ -55,10 +55,16 @@ export async function GET(req: Request) {
 
     const balanceToWithdraw = currentNetBalance - reservedBalance;
 
+    const createdPayout = await stripe.payouts.create({
+      amount: balanceToWithdraw,
+      currency: "usd",
+    });
+
     return NextResponse.json({
       currentNetBalance,
       reservedBalance,
       balanceToWithdraw,
+      createdPayout,
     });
   } catch (error) {
     return handleAndReturnErrorResponse(error);
