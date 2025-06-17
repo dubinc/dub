@@ -1,3 +1,4 @@
+import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
@@ -22,6 +23,17 @@ export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
     if (workspace) {
       throwIfLinksUsageExceeded(workspace);
+    }
+
+    // TODO: CHECK
+    if (session?.user?.id) {
+      const { featuresAccess } = await checkFeaturesAccessAuthLess(
+        session?.user?.id,
+      );
+
+      if (!featuresAccess) {
+        throw new Error("Access denied: Account have not subscription.");
+      }
     }
 
     console.log("here create qr");
