@@ -55,6 +55,12 @@ export async function GET(req: Request) {
 
     const balanceToWithdraw = currentNetBalance - reservedBalance;
 
+    if (balanceToWithdraw <= 10000) {
+      return NextResponse.json({
+        message: "Balance to withdraw is less than $100, skipping...",
+      });
+    }
+
     const createdPayout = await stripe.payouts.create({
       amount: balanceToWithdraw,
       currency: "usd",
