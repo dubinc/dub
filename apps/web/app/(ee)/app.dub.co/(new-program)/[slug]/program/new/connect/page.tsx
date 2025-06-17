@@ -1,21 +1,11 @@
 import { readFileSync } from "fs";
 import { notFound } from "next/navigation";
 import { join } from "path";
+import { Suspense } from "react";
 import { StepPage } from "../step-page";
 import { guides } from "./integration-guides";
 import { PageClient } from "./page-client";
 import { IntegrationGuide } from "./types";
-
-function getMarkdown(guideKey: string): string | null {
-  const markdownPath = join(process.cwd(), "markdown", `${guideKey}.md`);
-
-  try {
-    return readFileSync(markdownPath, "utf-8");
-  } catch (error) {
-    console.warn(`Guide content not found for: ${guideKey}`);
-    return null;
-  }
-}
 
 export default async function Page({
   searchParams,
@@ -44,7 +34,20 @@ export default async function Page({
 
   return (
     <StepPage title="Connecting Dub">
-      <PageClient markdown={markdown} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <PageClient markdown={markdown} />
+      </Suspense>
     </StepPage>
   );
+}
+
+function getMarkdown(guideKey: string): string | null {
+  const markdownPath = join(process.cwd(), "integration-guides", `${guideKey}.md`);
+
+  try {
+    return readFileSync(markdownPath, "utf-8");
+  } catch (error) {
+    console.warn(`Guide content not found for: ${guideKey}`);
+    return null;
+  }
 }
