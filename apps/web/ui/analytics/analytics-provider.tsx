@@ -209,7 +209,7 @@ export default function AnalyticsProvider({
         folderId ||
         tagIds
           ? undefined
-          : false,
+          : "false",
     });
 
   // Reset requiresUpgrade when query changes
