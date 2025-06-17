@@ -85,6 +85,7 @@ export function OverviewChart() {
                   ? {
                       style: "currency",
                       currency: "USD",
+                      // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                       trailingZeroDisplay: "stripIfInteger",
                     }
                   : {
