@@ -37,10 +37,7 @@ export async function sendStripePayouts({
 
     console.log(`Transfer created for payout ${payout.id}`, transfer);
 
-    // TODO:
-    // See if we can use the Prisma transaction to update the payout and commission
-
-    await Promise.all([
+    await Promise.allSettled([
       prisma.payout.update({
         where: {
           id: payout.id,
@@ -79,7 +76,7 @@ export async function sendStripePayouts({
         }),
     ]);
 
-    // sleep for 500ms
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // sleep for 250ms
+    await new Promise((resolve) => setTimeout(resolve, 250));
   }
 }
