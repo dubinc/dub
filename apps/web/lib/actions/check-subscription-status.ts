@@ -1,14 +1,12 @@
-'use server';
+"use server";
 
-import { PaymentService } from 'core/integration/payment/server';
-import { authUserActionClient } from './safe-action';
-import { checkSubscriptionStatusAuthLess } from './check-subscription-status-auth-less';
+import { checkSubscriptionStatusAuthLess } from "./check-subscription-status-auth-less";
+import { authUserActionClient } from "./safe-action";
 
-const paymentService = new PaymentService();
-
-export const checkSubscriptionStatus = authUserActionClient
-  .action(async ({ ctx }) => {
+export const checkSubscriptionStatus = authUserActionClient.action(
+  async ({ ctx }) => {
     const { user } = ctx;
 
     return await checkSubscriptionStatusAuthLess(user.email);
-  });
+  },
+);

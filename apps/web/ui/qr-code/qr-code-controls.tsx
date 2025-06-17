@@ -195,7 +195,7 @@ export function QrCodeControls({
             <div className="border-t border-neutral-200/10" />
             <div className="grid gap-1 p-2">
               <Button
-                text={qrCode.link.archived ? "Unpause" : "Pause"}
+                text={qrCode.archived ? "Unpause" : "Pause"}
                 variant="outline"
                 onClick={async () => {
                   if (isTrialOver) {
@@ -207,7 +207,7 @@ export function QrCodeControls({
                   setArchiving(true);
                   const res = await sendArchiveRequest({
                     qrId: qrCode.id,
-                    archive: !qrCode.link.archived,
+                    archive: !qrCode.archived,
                     workspaceId,
                   });
 
@@ -220,7 +220,7 @@ export function QrCodeControls({
 
                   mutatePrefix(["/api/qrs", "/api/links"]);
                   toast.success(
-                    `Successfully ${qrCode.link.archived ? "unpaused" : "paused"} QR code!`,
+                    `Successfully ${qrCode.archived ? "unpaused" : "paused"} QR code!`,
                   );
                   setOpenPopover(false);
                   setArchiving(false);

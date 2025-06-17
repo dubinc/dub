@@ -1,7 +1,7 @@
-'use server';
+"use server";
 
 import { conn } from "@/lib/planetscale/connection";
-import { checkSubscriptionStatusAuthLess } from './check-subscription-status-auth-less';
+import { checkSubscriptionStatusAuthLess } from "./check-subscription-status-auth-less";
 
 export const checkFeaturesAccessAuthLess = async (userId: string) => {
   const { rows } = await conn.execute(
@@ -16,10 +16,14 @@ export const checkFeaturesAccessAuthLess = async (userId: string) => {
   if (!userData) {
     return {
       featuresAccess: false,
+      isTrialOver: true,
+      isSubscribed: false,
+      subscriptionNotPaid: true,
     };
   }
 
-  const subStatus = await checkSubscriptionStatusAuthLess(userData.email);
+  const { isSubscribed, subscriptionId } =
+    await checkSubscriptionStatusAuthLess(userData.email);
 
   const totalClicks = userData.totalUserClicks || 0;
   const daysSinceRegistration = userData.userCreatedAt
@@ -29,7 +33,12 @@ export const checkFeaturesAccessAuthLess = async (userId: string) => {
       )
     : 0;
 
+  const isTrialOver = totalClicks >= 30 || daysSinceRegistration >= 10;
+
   return {
-    featuresAccess: subStatus.isSubscribed || (totalClicks <= 30 && daysSinceRegistration <= 10),
+    featuresAccess: isSubscribed || !isTrialOver,
+    isTrialOver,
+    isSubscribed,
+    subscriptionNotPaid: !!subscriptionId && !isSubscribed,
   };
 };

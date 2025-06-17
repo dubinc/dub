@@ -1,3 +1,4 @@
+import { checkFeaturesAccess } from "@/lib/actions/check-features-access.ts";
 import { qstash } from "@/lib/cron";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -19,8 +20,6 @@ import { linkCache } from "./cache";
 import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
-import { checkSubscriptionStatus } from '@/lib/actions/check-subscription-status';
-import { checkSubscriptionStatusAuthLess } from '@/lib/actions/check-subscription-status-auth-less';
 
 export async function createLink(link: ProcessedLinkProps) {
   let {
@@ -38,32 +37,39 @@ export async function createLink(link: ProcessedLinkProps) {
 
   // Check user restrictions if userId is provided
   if (userId) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { 
-        createdAt: true,
-        email: true,
-      }
-    });
+    // const user = await prisma.user.findUnique({
+    //   where: { id: userId },
+    //   select: {
+    //     createdAt: true,
+    //     email: true,
+    //   }
+    // });
+    //
+    // if (user) {
+    //   const daysSinceRegistration = Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+    //
+    //   // Get total clicks for all user's links
+    //   const totalClicks = await prisma.link.aggregate({
+    //     where: { userId },
+    //     _sum: {
+    //       clicks: true
+    //     }
+    //   });
+    //
+    //   const totalUserClicks = totalClicks._sum.clicks || 0;
+    //
+    //   const subStatus = await checkSubscriptionStatusAuthLess(user.email as string);
+    //
+    //   if (!subStatus.isSubscribed && (daysSinceRegistration > 10 || totalUserClicks >= 30)) {
+    //     throw new Error("Access restricted: Account age over 10 days or exceeded 30 total clicks limit.");
+    //   }
+    // }
 
-    if (user) {
-      const daysSinceRegistration = Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24));
-      
-      // Get total clicks for all user's links
-      const totalClicks = await prisma.link.aggregate({
-        where: { userId },
-        _sum: {
-          clicks: true
-        }
-      });
+    // TODO: CHECK
+    const result = await checkFeaturesAccess();
 
-      const totalUserClicks = totalClicks._sum.clicks || 0;
-
-      const subStatus = await checkSubscriptionStatusAuthLess(user.email as string);
-
-      if (!subStatus.isSubscribed && (daysSinceRegistration > 10 || totalUserClicks >= 30)) {
-        throw new Error("Access restricted: Account age over 10 days or exceeded 30 total clicks limit.");
-      }
+    if (!result?.data?.featuresAccess) {
+      throw new Error("Access denied: Account have not subscription.");
     }
   }
 
