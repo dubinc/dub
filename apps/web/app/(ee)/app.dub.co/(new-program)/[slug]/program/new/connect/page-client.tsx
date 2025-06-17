@@ -1,14 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { guides } from "./constants";
 import { Guide } from "./guide";
-import { GuidesList } from "./guide-list";
+import { GuideList } from "./guide-list";
 import { IntegrationGuide } from "./types";
 
-export function PageClient() {
+interface PageClientProps {
+  guideContent: string | null;
+}
+
+export function PageClient({ guideContent }: PageClientProps) {
+  const searchParams = useSearchParams();
   const [selectedGuide, setSelectedGuide] = useState<IntegrationGuide | null>(
     null,
   );
+
+  useEffect(() => {
+    const guide = searchParams.get("guide");
+
+    if (!guide) {
+      setSelectedGuide(null);
+      return;
+    }
+
+    const integrationGuide = guides.find(
+      (g) => g.title.toLowerCase() === guide.toLowerCase(),
+    );
+
+    if (integrationGuide) {
+      setSelectedGuide(integrationGuide);
+    }
+  }, [searchParams]);
 
   return (
     <div>
@@ -19,12 +43,9 @@ export function PageClient() {
 
       <div>
         {selectedGuide ? (
-          <Guide
-            guide={selectedGuide}
-            clearSelectedGuide={() => setSelectedGuide(null)}
-          />
+          <Guide selectedGuide={selectedGuide} guideContent={guideContent} />
         ) : (
-          <GuidesList onGuideSelect={setSelectedGuide} />
+          <GuideList />
         )}
       </div>
     </div>

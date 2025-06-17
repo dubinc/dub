@@ -2,6 +2,7 @@
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { Markdown } from "@/ui/shared/markdown";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
@@ -9,13 +10,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { IntegrationGuide } from "./types";
 
-export function Guide({
-  guide,
-  clearSelectedGuide,
-}: {
-  guide: IntegrationGuide;
-  clearSelectedGuide: () => void;
-}) {
+interface GuideProps {
+  selectedGuide: IntegrationGuide;
+  guideContent: string | null;
+}
+
+export function Guide({ selectedGuide, guideContent }: GuideProps) {
   const router = useRouter();
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
@@ -43,7 +43,7 @@ export function Guide({
     });
   };
 
-  const Icon = guide.icon;
+  const Icon = selectedGuide.icon;
 
   return (
     <>
@@ -56,19 +56,19 @@ export function Guide({
             variant="secondary"
             className="h-8 w-fit rounded-lg px-2"
             type="button"
-            onClick={clearSelectedGuide}
+            onClick={() => router.push(`/${workspaceSlug}/program/new/connect`)}
           />
         </div>
 
         <h2 className="py-2 text-xl font-semibold leading-7 text-neutral-900">
-          Instructions for {guide.title}
+          Instructions for {selectedGuide.title}
         </h2>
 
         <div className="rounded-2xl bg-white p-0 py-6 shadow-none">
           {/* Step 1 */}
           <div className="mb-4">
             <div className="mb-1 text-base font-bold">
-              Step 1: Install the Dub {guide.title} App
+              Step 1: Install the Dub {selectedGuide.title} App
             </div>
             <div className="mb-6 text-neutral-600">
               Ensure your program is connected to your website, so you can track
@@ -76,11 +76,10 @@ export function Guide({
             </div>
           </div>
 
-          {/* Help Article Section */}
-          <div className="mb-8 flex min-h-[260px] items-center justify-center rounded-2xl bg-neutral-100">
-            <span className="text-center text-neutral-500">
-              Rest of the help article content
-            </span>
+          <div className="mb-8 rounded-2xl bg-neutral-100">
+            {guideContent && (
+              <Markdown className="p-6">{guideContent}</Markdown>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
