@@ -55,4 +55,6 @@ export async function createPayPalBatchPayout({
   }
 
   console.log("[PayPal] Batch payout created", data);
+
+  return data;
 }

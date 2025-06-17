@@ -4,7 +4,6 @@ import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
-import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { PayoutStatus } from "@dub/prisma/client";
@@ -149,15 +148,15 @@ export function PayoutTable() {
           </div>
         ),
       },
-      // Menu
-      {
-        id: "menu",
-        enableHiding: false,
-        minSize: 30,
-        size: 30,
-        maxSize: 30,
-        cell: ({ row }) => <PayoutRowMenu row={row} />,
-      },
+      // Menu – disable until we have a way to retry failed payouts
+      // {
+      //   id: "menu",
+      //   enableHiding: false,
+      //   minSize: 30,
+      //   size: 30,
+      //   maxSize: 30,
+      //   cell: ({ row }) => <PayoutRowMenu row={row} />,
+      // },
     ],
     pagination,
     onPaginationChange: setPagination,

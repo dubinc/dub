@@ -10,18 +10,18 @@ enum RewardStructure {
 }
 
 model Reward {
-  id          String         @id @default(cuid())
+  id          String          @id @default(cuid())
   programId   String
   name        String?
   description String?
   event       EventType
   type        RewardStructure @default(percentage)
-  amount      Int            @default(0)
+  amount      Int             @default(0)
   maxDuration Int? // in months (0 -> not recurring, null -> infinite)
   maxAmount   Int? // how much a partner can receive payouts (in cents)
-  default     Boolean        @default(false)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  default     Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   program          Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
   clickEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")

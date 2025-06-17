@@ -1,8 +1,19 @@
 import { prisma } from "@dub/prisma";
-import { CONNECT_SUPPORTED_COUNTRIES, currencyFormatter } from "@dub/utils";
+import {
+  COUNTRIES,
+  PAYPAL_SUPPORTED_COUNTRIES,
+  currencyFormatter,
+} from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
+  console.log("Checking pending PayPal payouts...");
+  console.log(
+    "PayPal supported countries:",
+    PAYPAL_SUPPORTED_COUNTRIES,
+    PAYPAL_SUPPORTED_COUNTRIES.map((country) => COUNTRIES[country]),
+  );
+
   const payouts = await prisma.payout.findMany({
     where: {
       status: {
@@ -13,7 +24,7 @@ async function main() {
       },
       partner: {
         country: {
-          notIn: CONNECT_SUPPORTED_COUNTRIES,
+          in: PAYPAL_SUPPORTED_COUNTRIES,
         },
       },
     },
