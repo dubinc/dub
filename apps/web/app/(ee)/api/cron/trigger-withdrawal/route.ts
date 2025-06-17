@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const [currentBalance, pendingPayouts] = await Promise.all([
+    const [stripeBalanceData, totalProcessingPayouts] = await Promise.all([
       stripe.balance.retrieve(),
       prisma.payout.aggregate({
         where: {
@@ -26,40 +26,39 @@ export async function GET(req: Request) {
       }),
     ]);
 
+    const currentAvailableBalance = stripeBalanceData.available[0].amount;
+    const currentPendingBalance = stripeBalanceData.pending[0].amount;
+    const currentNetBalance = currentAvailableBalance + currentPendingBalance;
+
+    console.log({
+      currentAvailableBalance,
+      currentPendingBalance,
+      currentNetBalance,
+      totalProcessingPayouts,
+      stripeBalanceData,
+    });
+
     let reservedBalance = 50000; // keep at least $500 in the account
 
-    const totalPendingPayouts = pendingPayouts._sum.amount;
-    if (totalPendingPayouts) {
+    const totaltotalProcessingPayouts = totalProcessingPayouts._sum.amount;
+    if (totaltotalProcessingPayouts) {
       // add the pending payouts to the reserved balance (to make sure we have enough balance
       // to pay out partners when chargeSucceeded webhook is triggered)
-      reservedBalance += totalPendingPayouts;
+      reservedBalance += totaltotalProcessingPayouts;
     }
 
-    if (reservedBalance > currentBalance.available[0].amount) {
+    if (reservedBalance > currentNetBalance) {
       return NextResponse.json({
         message: "Insufficient balance to trigger withdrawal, skipping...",
       });
     }
 
-    const balanceToWithdraw =
-      currentBalance.available[0].amount - reservedBalance;
-
-    if (balanceToWithdraw <= 10000) {
-      return NextResponse.json({
-        message: "Balance to withdraw is less than $100, skipping...",
-      });
-    }
-
-    const createPayout = await stripe.payouts.create({
-      amount: balanceToWithdraw,
-      currency: "usd",
-    });
+    const balanceToWithdraw = currentNetBalance - reservedBalance;
 
     return NextResponse.json({
-      currentBalance,
+      currentNetBalance,
       reservedBalance,
       balanceToWithdraw,
-      createPayout,
     });
   } catch (error) {
     return handleAndReturnErrorResponse(error);
