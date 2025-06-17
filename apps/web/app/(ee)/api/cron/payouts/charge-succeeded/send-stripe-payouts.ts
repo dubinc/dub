@@ -19,18 +19,21 @@ export async function sendStripePayouts({
   const { invoiceId, chargeId, achCreditTransfer } = payload;
 
   for (const payout of payouts) {
-    const transfer = await stripe.transfers.create({
-      amount: payout.amount,
-      currency: "usd",
-      transfer_group: invoiceId,
-      destination: payout.partner.stripeConnectId!,
-      description: `Dub Partners payout (${payout.program.name})`,
-      ...(!achCreditTransfer
-        ? {
-            source_transaction: chargeId,
-          }
-        : {}),
-    });
+    const transfer = await stripe.transfers.create(
+      {
+        amount: payout.amount,
+        currency: "usd",
+        transfer_group: invoiceId,
+        destination: payout.partner.stripeConnectId!,
+        description: `Dub Partners payout (${payout.program.name})`,
+        ...(!achCreditTransfer
+          ? {
+              source_transaction: chargeId,
+            }
+          : {}),
+      },
+      { idempotencyKey: payout.id }, // add idempotency key to avoid duplicate transfers
+    );
 
     console.log(`Transfer created for payout ${payout.id}`, transfer);
 
@@ -75,5 +78,8 @@ export async function sendStripePayouts({
           variant: "notifications",
         }),
     ]);
+
+    // sleep for 500ms
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 }

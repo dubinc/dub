@@ -50,7 +50,7 @@
     }
   ],
   "functions": {
-    "app/api/cron/**/*.ts": {
+    "app/(ee)/api/cron/**/*.ts": {
       "maxDuration": 300
     }
   }
