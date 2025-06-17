@@ -92,10 +92,10 @@ export function SidebarNav<T extends Record<any, any>>({
       <nav className="grid size-full grid-cols-[64px_1fr]">
         <div className="flex flex-col items-center justify-between">
           <div className="flex flex-col items-center p-2">
-            <div className="py-1.5">
+            <div className="pt-2 pb-1">
               <Link
                 href="/"
-                className="block rounded-lg px-1 py-3 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
+                className="block rounded-lg px-1 py-4 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
               >
                 <NavWordmark className="h-5" isInApp />
               </Link>
@@ -116,8 +116,8 @@ export function SidebarNav<T extends Record<any, any>>({
             </div>
           </div>
         </div>
-        <div className="size-full overflow-hidden py-1.5 pr-1.5">
-          <div className="scrollbar-hide relative flex size-full flex-col overflow-y-auto overflow-x-hidden rounded-2xl bg-neutral-100">
+        <div className="size-full overflow-hidden py-2 pr-2">
+          <div className="scrollbar-hide relative flex size-full flex-col overflow-y-auto overflow-x-hidden rounded-xl bg-neutral-100">
             <div className="relative flex grow flex-col p-3 text-neutral-500">
               <div className="relative w-full grow">
                 {Object.entries(areas).map(([area, areaConfig]) => {
@@ -136,7 +136,7 @@ export function SidebarNav<T extends Record<any, any>>({
                         // @ts-ignore - TS can't handle the conditional Link+href
                         <TitleContainer
                           {...(backHref ? { href: backHref } : {})}
-                          className="group mb-3 flex items-center gap-3 px-3 py-1"
+                          className="group mb-2 flex items-center gap-3 px-3 py-2"
                         >
                           {backHref && (
                             <div
