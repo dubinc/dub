@@ -4,7 +4,14 @@ import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import { Table, usePagination, useTable } from "@dub/ui";
-import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
+import {
+  capitalize,
+  cn,
+  COUNTRIES,
+  currencyFormatter,
+  fetcher,
+  nFormatter,
+} from "@dub/utils";
 import { useContext, useMemo } from "react";
 import useSWR from "swr";
 
@@ -71,9 +78,8 @@ export function AnalyticsPartnersTable() {
     isLoading: topPartnersLoading,
   } = useSWR<AnalyticsResponse["top_partners"][]>(
     `/api/analytics?${editQueryString(queryString, {
-      event: "composite",
+      event: selectedTab,
       groupBy: "top_partners",
-      sortBy: selectedTab,
     })}`,
     fetcher,
     {
@@ -116,29 +122,51 @@ export function AnalyticsPartnersTable() {
         },
       },
       {
-        id: "clicks",
-        header: "Clicks",
-        accessorFn: (d) => nFormatter(d.clicks),
+        id: "location",
+        header: "Location",
+        minSize: 150,
+        cell: ({ row }) => {
+          const country = row.original.partner.country;
+          return (
+            <div className="flex items-center gap-2">
+              {country && (
+                <img
+                  alt={`${country} flag`}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
+              <span className="min-w-0 truncate">
+                {(country ? COUNTRIES[country] : null) ?? "-"}
+              </span>
+            </div>
+          );
+        },
       },
-      {
-        id: "leads",
-        header: "Leads",
-        accessorFn: (d) => nFormatter(d.leads),
-      },
-      {
-        id: "sales",
-        header: "Sales",
-        accessorFn: (d) => nFormatter(d.sales),
-      },
-      {
-        id: "saleAmount",
-        header: "Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.saleAmount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
+      ...(selectedTab === "sales"
+        ? [
+            {
+              id: "sales",
+              header: "Sales",
+              accessorFn: (d) => nFormatter(d.sales),
+            },
+            {
+              id: "saleAmount",
+              header: "Revenue",
+              accessorFn: (d) =>
+                currencyFormatter(d.saleAmount / 100, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }),
+            },
+          ]
+        : [
+            {
+              id: selectedTab,
+              header: `${capitalize(selectedTab)}`,
+              accessorFn: (d) => nFormatter(d[selectedTab]),
+            },
+          ]),
     ],
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as

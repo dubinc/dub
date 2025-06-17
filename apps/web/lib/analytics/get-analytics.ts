@@ -214,6 +214,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         id: true,
         name: true,
         image: true,
+        country: true,
         payoutsEnabledAt: true,
       },
     });
