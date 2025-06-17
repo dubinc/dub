@@ -1,215 +1,107 @@
-import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
-import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
-import { IntervalOptions } from "@/lib/analytics/types";
-import useCommissionsTimeseries from "@/lib/swr/use-commissions-timeseries";
-import useWorkspace from "@/lib/swr/use-workspace";
-import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Combobox, useRouterStuff } from "@dub/ui";
-import {
-  Areas,
-  ChartContext,
-  TimeSeriesChart,
-  XAxis,
-  YAxis,
-} from "@dub/ui/charts";
-import { LoadingSpinner } from "@dub/ui/icons";
-import { currencyFormatter, fetcher } from "@dub/utils";
+import { editQueryString } from "@/lib/analytics/utils";
+import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
+import { Combobox, LoadingSpinner, useRouterStuff } from "@dub/ui";
+import { fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { LinearGradient } from "@visx/gradient";
-import { useId, useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import useSWR from "swr";
+import { AnalyticsTimeseriesChart } from "./analytics/analytics-timeseries-chart";
 
 const chartOptions = [
-  { value: "revenue", label: "Revenue" },
-  { value: "commissions", label: "Commissions" },
+  { value: "sales", label: "Revenue", currency: true },
+  { value: "leads", label: "Leads" },
+  { value: "clicks", label: "Clicks" },
 ];
 
-type ViewType = "revenue" | "commissions";
-
 export function OverviewChart() {
-  const id = useId();
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
-  const { searchParamsObj } = useRouterStuff();
-  const [viewType, setViewType] = useState<ViewType>("revenue");
+  const { queryParams } = useRouterStuff();
+  const { selectedTab, saleUnit, queryString, totalEvents } =
+    useContext(AnalyticsContext);
 
-  const {
-    start,
-    end,
-    interval = DUB_PARTNERS_ANALYTICS_INTERVAL,
-  } = searchParamsObj as {
-    start?: string;
-    end?: string;
-    interval?: IntervalOptions;
-  };
-
-  const { data: revenue, error: revenueError } = useSWR<
+  const { data, error, isLoading } = useSWR<
     {
-      start: string;
+      start: Date;
+      clicks: number;
+      leads: number;
       sales: number;
       saleAmount: number;
     }[]
   >(
-    workspaceId && defaultProgramId && viewType === "revenue"
-      ? `/api/analytics?${new URLSearchParams({
-          workspaceId,
-          programId: defaultProgramId,
-          event: "sales",
-          groupBy: "timeseries",
-          interval,
-          ...(start && { start }),
-          ...(end && { end }),
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        } as Record<string, string>).toString()}`
-      : null,
+    `/api/analytics?${editQueryString(queryString, {
+      event: "composite",
+      groupBy: "timeseries",
+    })}`,
     fetcher,
-    {
-      keepPreviousData: true,
-    },
   );
 
-  const { data: commissions, error: commissionsError } =
-    useCommissionsTimeseries({
-      event: "sales",
-      groupBy: "timeseries",
-      interval,
-      start: start ? new Date(start) : undefined,
-      end: end ? new Date(end) : undefined,
-      enabled: viewType === "commissions",
-    });
-
-  const data = useMemo(() => {
-    const sourceData = viewType === "revenue" ? revenue : commissions;
-
-    return sourceData?.map((item) => ({
-      date: new Date(item.start),
-      values: {
-        amount:
-          (viewType === "revenue" ? item.saleAmount : item.earnings) / 100,
-      },
-    }));
-  }, [revenue, commissions, viewType]);
-
-  const total = useMemo(() => {
-    return data?.reduce((acc, curr) => acc + curr.values.amount, 0);
-  }, [data]);
-
-  const dataLoading = !data && !revenueError && !commissionsError;
-  const error = revenueError || commissionsError;
+  const chartData = useMemo(
+    () =>
+      data?.map((d) => ({
+        date: new Date(d.start),
+        values: {
+          amount:
+            selectedTab === "sales" && saleUnit === "saleAmount"
+              ? d.saleAmount / 100
+              : d[selectedTab],
+        },
+      })),
+    [data, selectedTab, saleUnit],
+  );
 
   return (
-    <div>
-      <div>
-        <div className="flex justify-between gap-2">
-          <Combobox
-            selected={
-              chartOptions.find((opt) => opt.value === viewType) || null
+    <div className="flex size-full flex-col gap-6">
+      <div className="flex flex-col">
+        <Combobox
+          selected={
+            chartOptions.find((opt) => opt.value === selectedTab) || null
+          }
+          setSelected={(option) =>
+            option && queryParams({ set: { event: option.value } })
+          }
+          options={chartOptions.slice()}
+          optionClassName="w-36"
+          caret={true}
+          hideSearch={true}
+          buttonProps={{
+            variant: "outline",
+            className: "h-7 w-fit px-2 -ml-2 -mt-1.5",
+          }}
+        />
+        {totalEvents ? (
+          <NumberFlow
+            value={
+              selectedTab === "sales" && saleUnit === "saleAmount"
+                ? totalEvents.saleAmount / 100
+                : totalEvents[selectedTab]
             }
-            setSelected={(option) =>
-              option && setViewType(option.value as ViewType)
+            className="text-content-emphasis block text-3xl font-medium"
+            format={
+              selectedTab === "sales" && saleUnit === "saleAmount"
+                ? {
+                    style: "currency",
+                    currency: "USD",
+                    trailingZeroDisplay: "stripIfInteger",
+                  }
+                : {
+                    notation:
+                      totalEvents[selectedTab] > 999999
+                        ? "compact"
+                        : "standard",
+                  }
             }
-            options={chartOptions}
-            optionClassName="w-36"
-            caret={true}
-            hideSearch={true}
-            buttonProps={{
-              variant: "outline",
-              className: "h-9 w-fit",
-            }}
           />
-
-          <SimpleDateRangePicker className="h-9 w-fit px-2" />
-        </div>
-
-        <div className="flex flex-col gap-1 px-4">
-          {total === undefined ? (
-            <div className="h-11 w-24 animate-pulse rounded-md bg-neutral-200" />
-          ) : (
-            <NumberFlow
-              value={total}
-              className="text-3xl text-neutral-800"
-              format={{
-                style: "currency",
-                currency: "USD",
-              }}
-            />
-          )}
-        </div>
+        ) : (
+          <div className="mb-1 mt-px h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
+        )}
       </div>
-      <div className="relative mt-4 h-72 md:h-96">
-        {dataLoading ? (
+
+      <div className="relative min-h-0 grow">
+        {isLoading ? (
           <div className="flex size-full items-center justify-center">
             <LoadingSpinner />
           </div>
-        ) : error ? (
-          <div className="flex size-full items-center justify-center text-sm text-neutral-500">
-            Failed to load data
-          </div>
         ) : (
-          <TimeSeriesChart
-            key={`${start?.toString}-${end?.toString()}-${interval?.toString()}-${viewType}`}
-            data={data || []}
-            series={[
-              {
-                id: "amount",
-                valueAccessor: (d) => d.values.amount,
-                colorClassName: "text-[#8B5CF6]",
-                isActive: true,
-              },
-            ]}
-            tooltipClassName="p-0"
-            tooltipContent={(d) => {
-              return (
-                <>
-                  <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
-                    {formatDateTooltip(d.date, { interval, start, end })}
-                  </p>
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
-                      <p className="capitalize text-neutral-600">
-                        {viewType === "revenue" ? "Revenue" : "Commissions"}
-                      </p>
-                    </div>
-                    <p className="text-right font-medium text-neutral-900">
-                      {currencyFormatter(d.values.amount, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                  </div>
-                </>
-              );
-            }}
-          >
-            <ChartContext.Consumer>
-              {(context) => (
-                <LinearGradient
-                  id={`${id}-color-gradient`}
-                  from="#7D3AEC"
-                  to="#DA2778"
-                  x1={0}
-                  x2={context?.width ?? 1}
-                  gradientUnits="userSpaceOnUse"
-                />
-              )}
-            </ChartContext.Consumer>
-            <XAxis
-              tickFormat={(date) =>
-                formatDateTooltip(date, { interval, start, end })
-              }
-            />
-            <YAxis showGridLines tickFormat={currencyFormatter} />
-            <Areas
-              seriesStyles={[
-                {
-                  id: "saleAmount",
-                  areaFill: `url(#${id}-color-gradient)`,
-                  lineStroke: `url(#${id}-color-gradient)`,
-                  lineClassName: "text-violet-500",
-                },
-              ]}
-            />
-          </TimeSeriesChart>
+          <AnalyticsTimeseriesChart data={chartData} />
         )}
       </div>
     </div>
