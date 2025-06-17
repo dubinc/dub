@@ -32,8 +32,7 @@ export function QrCodeTitleColumn({
   isTrialOver,
   setShowTrialExpiredModal,
 }: QrCodeTitleColumnProps) {
-  const { domain, key, createdAt, shortLink, archived, title } =
-    qrCode?.link ?? {};
+  const { domain, key, createdAt, shortLink, title } = qrCode?.link ?? {};
   const { isMobile, width } = useMediaQuery();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,7 +62,7 @@ export function QrCodeTitleColumn({
               height={width! < 1024 ? 90 : 64}
             />
           </div>
-          {archived || isTrialOver ? (
+          {qrCode.archived || isTrialOver ? (
             <QRCardStatus className="lg:hidden" archived />
           ) : (
             <QRCardAnalyticsBadge className="lg:hidden" qrCode={qrCode} />
