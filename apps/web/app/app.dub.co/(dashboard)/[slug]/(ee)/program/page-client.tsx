@@ -6,12 +6,14 @@ import { editQueryString } from "@/lib/analytics/utils";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
+import { ProgramOverviewCard } from "@/ui/partners/program-overview-card";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { OverviewChart } from "./overview-chart";
+import { OverviewTasks } from "./overview-tasks";
 
 export default function ProgramOverviewPageClient() {
   const { program } = useProgram();
@@ -70,13 +72,13 @@ export default function ProgramOverviewPageClient() {
       >
         <div className="@4xl:grid-cols-[minmax(0,1fr)_400px] grid grid-cols-1 gap-6 rounded-2xl bg-neutral-100 p-4">
           {/* Chart */}
-          <div className="border-border-subtle @4xl:h-full h-96 rounded-[0.625rem] border bg-white p-6">
+          <ProgramOverviewCard className="@4xl:h-full h-96 p-6">
             <OverviewChart />
-          </div>
+          </ProgramOverviewCard>
 
           <div className="@4xl:grid-cols-1 @2xl:grid-cols-2 grid grid-cols-1 gap-6">
             {/* Tasks */}
-            <div className="border-border-subtle h-48 rounded-[0.625rem] border bg-white"></div>
+            <OverviewTasks />
 
             {/* Program links */}
             <div className="border-border-subtle h-48 rounded-[0.625rem] border bg-white"></div>
