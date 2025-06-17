@@ -208,7 +208,7 @@ export default function AnalyticsProvider({
         adminPage ||
         folderId ||
         tagIds
-          ? true
+          ? undefined
           : false,
     });
 
