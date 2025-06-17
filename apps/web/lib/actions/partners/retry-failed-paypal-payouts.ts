@@ -1,6 +1,5 @@
 "use server";
 
-import { cancelPaypalPayout } from "@/lib/paypal/cancel-paypal-payout";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
@@ -88,8 +87,6 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
           },
         ],
       });
-
-      await cancelPaypalPayout(payout.paypalTransferId);
     } catch (error) {
       throw new Error(
         "Failed to retry payout. Please try again or contact support.",
