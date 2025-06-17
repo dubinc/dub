@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { guides } from "./constants";
+import { guides } from "./integration-guides";
 import { Guide } from "./guide";
 import { GuideList } from "./guide-list";
 import { IntegrationGuide } from "./types";

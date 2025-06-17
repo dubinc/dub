@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { notFound } from "next/navigation";
 import { join } from "path";
 import { StepPage } from "../step-page";
-import { guides } from "./constants";
+import { guides } from "./integration-guides";
 import { PageClient } from "./page-client";
 import { IntegrationGuide } from "./types";
 
