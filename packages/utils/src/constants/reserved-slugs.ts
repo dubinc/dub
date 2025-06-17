@@ -49,6 +49,7 @@ export const RESERVED_SLUGS = [
   "wrapped",
   "invoices",
   "onboarding",
+  "program",
   "programs",
   "partners",
   "payouts",

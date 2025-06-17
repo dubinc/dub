@@ -471,6 +471,7 @@ export const analyticsResponse = {
           .string()
           .nullable()
           .describe("The date the partner enabled payouts"),
+        country: z.string().nullable().describe("The country of the partner"),
       }),
       clicks: z.number().describe("The total number of clicks").default(0),
       leads: z.number().describe("The total number of leads").default(0),
