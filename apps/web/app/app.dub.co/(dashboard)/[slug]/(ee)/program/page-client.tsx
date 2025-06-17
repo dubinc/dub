@@ -13,6 +13,7 @@ import { fetcher } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { OverviewChart } from "./overview-chart";
+import { OverviewLinks } from "./overview-links";
 import { OverviewTasks } from "./overview-tasks";
 
 export default function ProgramOverviewPageClient() {
@@ -81,7 +82,7 @@ export default function ProgramOverviewPageClient() {
             <OverviewTasks />
 
             {/* Program links */}
-            <div className="border-border-subtle h-48 rounded-[0.625rem] border bg-white"></div>
+            <OverviewLinks />
           </div>
         </div>
         <div className="@2xl:grid-cols-2 @4xl:grid-cols-3 grid grid-cols-1 gap-6">

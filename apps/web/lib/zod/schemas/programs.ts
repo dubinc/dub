@@ -28,6 +28,7 @@ export const ProgramSchema = z.object({
   minPayoutAmount: z.number(),
   linkStructure: z.nativeEnum(LinkStructure),
   linkParameter: z.string().nullish(),
+  landerPublishedAt: z.date().nullish(),
 
   // Discounts (for dual-sided incentives)
   discounts: z.array(DiscountSchema).nullish(),
