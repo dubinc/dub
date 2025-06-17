@@ -1,3 +1,4 @@
+import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags.ts";
 import { getQr } from "@/lib/api/qrs/get-qr";
@@ -25,6 +26,17 @@ export const GET = withWorkspace(
 // PATCH /api/qrs/[qrId] – update a qr
 export const PATCH = withWorkspace(
   async ({ req, headers, workspace, params, session }) => {
+    // TODO: CHECK
+    if (session?.user?.id) {
+      const { featuresAccess } = await checkFeaturesAccessAuthLess(
+        session?.user?.id,
+      );
+
+      if (!featuresAccess) {
+        throw new Error("Access denied: Account have not subscription.");
+      }
+    }
+
     const qr = await getQr({
       qrId: params.qrId,
     });
@@ -70,6 +82,17 @@ export const PATCH = withWorkspace(
 // PUT /api/links/[qrId] – archive a qr
 export const PUT = withWorkspace(
   async ({ req, headers, params, workspace, session }) => {
+    // TODO: CHECK
+    if (session?.user?.id) {
+      const { featuresAccess } = await checkFeaturesAccessAuthLess(
+        session?.user?.id,
+      );
+
+      if (!featuresAccess) {
+        throw new Error("Access denied: Account have not subscription.");
+      }
+    }
+
     const qr = await getQr({
       qrId: params.qrId,
     });
