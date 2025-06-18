@@ -1,20 +1,20 @@
 "use client";
 
 import { Button } from "@dub/ui";
-import { useUpdateInvoiceInfoModal } from "./update-invoice-info-modal";
+import { useUpdateInvoiceSettingsModal } from "./update-invoice-info-modal";
 
 export function InvoiceSettingsButton() {
-  const { UpdateInvoiceInfoModal, setShowUpdateInvoiceInfoModal } =
-    useUpdateInvoiceInfoModal();
+  const { UpdateInvoiceSettingsModal, setShowUpdateInvoiceSettingsModal } =
+    useUpdateInvoiceSettingsModal();
 
   return (
     <>
-      <UpdateInvoiceInfoModal />
+      <UpdateInvoiceSettingsModal />
       <Button
         type="button"
         text="Invoice settings"
         variant="secondary"
-        onClick={() => setShowUpdateInvoiceInfoModal(true)}
+        onClick={() => setShowUpdateInvoiceSettingsModal(true)}
       />
     </>
   );
