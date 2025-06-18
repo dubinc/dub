@@ -7,7 +7,8 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { CommissionsBlock } from "@/ui/partners/overview/blocks/commissions-block";
 import { CountriesBlock } from "@/ui/partners/overview/blocks/countries-block";
-import { TopPartnersBlock } from "@/ui/partners/overview/blocks/top-partners-block";
+import { LinksBlock } from "@/ui/partners/overview/blocks/links-block";
+import { PartnersBlock } from "@/ui/partners/overview/blocks/partners-block";
 import { TrafficSourcesBlock } from "@/ui/partners/overview/blocks/traffic-sources-block";
 import { ProgramOverviewBlock } from "@/ui/partners/overview/program-overview-block";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
@@ -25,12 +26,12 @@ const PlaceholderBlock = () => (
 );
 
 const BLOCKS = [
-  TopPartnersBlock,
+  PartnersBlock,
   TrafficSourcesBlock,
   CommissionsBlock,
   PlaceholderBlock,
   CountriesBlock,
-  PlaceholderBlock,
+  LinksBlock,
 ];
 
 export default function ProgramOverviewPageClient() {

@@ -40,6 +40,7 @@ export function OverviewLinks() {
         icon: Window,
         label: "Partner portal",
         href: `${PARTNERS_DOMAIN}`,
+        disabled: !program,
       },
     ],
     [slug, program],
@@ -65,7 +66,7 @@ export function OverviewLinks() {
           <div
             key={link.label}
             className={cn(
-              "group relative",
+              "group relative transition-opacity",
               link.disabled && "pointer-events-none opacity-50",
             )}
           >

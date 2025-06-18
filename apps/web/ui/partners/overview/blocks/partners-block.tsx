@@ -6,7 +6,7 @@ import Link from "next/link";
 import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
-export function TopPartnersBlock() {
+export function PartnersBlock() {
   const {
     id: workspaceId,
     slug: workspaceSlug,
