@@ -7,13 +7,13 @@ import { ComingSoonPage } from "../coming-soon-page";
 const EXAMPLE_RISKS = [
   {
     title: "Suspicious self-referral",
-    avatarIndex: 0,
+    avatarIndex: 2,
     name: "Olivia Carter",
     date: subDays(new Date(), 1),
   },
   {
     title: "Potential fraud",
-    avatarIndex: 1,
+    avatarIndex: 12,
     name: "Liam Johnson",
     date: subDays(new Date(), 3),
   },
