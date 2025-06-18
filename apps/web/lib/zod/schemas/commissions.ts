@@ -186,7 +186,7 @@ export const CLAWBACK_REASONS_MAP = Object.fromEntries(
 export const createClawbackSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  amount: z.number().min(0, "Amount must be positive."),
+  amount: z.number().gt(0, "Amount must be greater than 0."),
   description: z.enum(
     CLAWBACK_REASONS.map((r) => r.value) as [string, ...string[]],
   ),
