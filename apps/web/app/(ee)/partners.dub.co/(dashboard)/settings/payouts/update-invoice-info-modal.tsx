@@ -70,7 +70,7 @@ function UpdateInvoiceInfoModalInner({
     updatePartnerInvoiceSettingsAction,
     {
       onSuccess: async () => {
-        toast.success("Invoice info updated successfully!");
+        toast.success("Invoice settings updated successfully!");
         setShowUpdateInvoiceInfoModal(false);
         mutatePrefix("/api/partner-profile");
       },
@@ -118,7 +118,6 @@ function UpdateInvoiceInfoModalInner({
               Business address
             </label>
             <TextareaAutosize
-              required
               className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
               minRows={4}
               {...register("address")}

@@ -12,7 +12,7 @@ export function UpdateInvoiceInfoButton() {
       <UpdateInvoiceInfoModal />
       <Button
         type="button"
-        text="Invoice info"
+        text="Invoice settings"
         variant="secondary"
         onClick={() => setShowUpdateInvoiceInfoModal(true)}
       />

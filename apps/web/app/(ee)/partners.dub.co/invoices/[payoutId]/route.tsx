@@ -131,19 +131,21 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           {
             label: "Invoice info",
             value: (
-              <Text style={tw("text-neutral-800 w-2/3")}>
+              <Text style={tw("text-neutral-800 w-2/3 leading-4")}>
                 {partner.companyName && (
                   <>
                     {partner.companyName}
                     {"\n"}
                   </>
                 )}
+
                 {partner.invoiceSettings?.address && (
                   <>
                     {partner.invoiceSettings.address}
                     {"\n"}
                   </>
                 )}
+
                 {partner.invoiceSettings?.taxId && (
                   <>Tax ID: {partner.invoiceSettings.taxId}</>
                 )}

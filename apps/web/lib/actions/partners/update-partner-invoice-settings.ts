@@ -16,8 +16,8 @@ export const updatePartnerInvoiceSettingsAction = authPartnerActionClient
     const { companyName, address, taxId } = parsedInput;
 
     const invoiceSettings = {
-      address,
-      taxId,
+      address: address || undefined,
+      taxId: taxId || undefined,
     } as Prisma.JsonObject;
 
     await prisma.partner.update({
