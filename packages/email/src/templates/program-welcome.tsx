@@ -116,7 +116,7 @@ export default function ProgramWelcome({
               more partners applying to join your program.
             </Text>
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
-              2. <span className="font-medium">Set up your bank account</span>:{" "}
+              2. <span className="font-medium">Connect your bank account</span>:{" "}
               <Link
                 href="https://dub.co/help/article/how-to-set-up-bank-account"
                 className="font-semibold text-neutral-800 underline underline-offset-2"
@@ -126,7 +126,18 @@ export default function ProgramWelcome({
               to start paying out commissions to your partners.
             </Text>
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
-              3. <span className="font-medium">Invite your partners</span>:
+              3. <span className="font-medium">Set up conversion tracking</span>
+              :{" "}
+              <Link
+                href="https://dub.co/docs/partners/quickstart"
+                className="font-semibold text-neutral-800 underline underline-offset-2"
+              >
+                Follow our quickstart guide
+              </Link>{" "}
+              to set up conversion tracking for your program.
+            </Text>
+            <Text className="mb-4 text-sm leading-5 text-neutral-800">
+              4. <span className="font-medium">Invite your partners</span>:
               Easily{" "}
               <Link
                 href={`${programDashboardUrl}/partners`}
@@ -141,10 +152,9 @@ export default function ProgramWelcome({
               >
                 enroll them automatically.
               </Link>
-              .
             </Text>
             <Text className="mb-0 text-sm leading-5 text-neutral-800">
-              4. <span className="font-medium">Create more rewards</span> - Set
+              5. <span className="font-medium">Create more rewards</span> - Set
               up{" "}
               <Link
                 href={`${programDashboardUrl}/rewards`}

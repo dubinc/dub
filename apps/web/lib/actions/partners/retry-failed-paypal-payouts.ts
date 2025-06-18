@@ -18,6 +18,8 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
     const { partner } = ctx;
     const { payoutId } = parsedInput;
 
+    throw new Error("Not implemented");
+
     if (!partner.payoutsEnabledAt) {
       throw new Error(
         "You haven't enabled payouts yet. Please enable payouts in your payout settings.",

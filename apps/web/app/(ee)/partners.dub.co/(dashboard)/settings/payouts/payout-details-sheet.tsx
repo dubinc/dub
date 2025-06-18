@@ -129,9 +129,9 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
               <img
                 src={
                   row.original.customer.avatar ||
-                  `${OG_AVATAR_URL}${row.original.customer.name}`
+                  `${OG_AVATAR_URL}${row.original.customer.id}`
                 }
-                alt={row.original.customer.name}
+                alt={row.original.customer.id}
                 className="size-6 rounded-full"
               />
             )}
