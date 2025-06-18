@@ -39,7 +39,7 @@ export function OverviewLinks() {
       {
         icon: Window,
         label: "Partner portal",
-        href: `${PARTNERS_DOMAIN}`,
+        href: `${PARTNERS_DOMAIN}/programs/${program?.slug}`,
         disabled: !program,
       },
     ],
