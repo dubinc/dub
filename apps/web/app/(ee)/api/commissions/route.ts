@@ -38,8 +38,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const commissions = await prisma.commission.findMany({
     where: invoiceId
       ? {
-          programId,
           invoiceId,
+          programId,
         }
       : {
           earnings: {

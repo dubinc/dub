@@ -19,25 +19,25 @@ export async function sendStripePayouts({
   const { invoiceId, chargeId, achCreditTransfer } = payload;
 
   for (const payout of payouts) {
-    const transfer = await stripe.transfers.create({
-      amount: payout.amount,
-      currency: "usd",
-      transfer_group: invoiceId,
-      destination: payout.partner.stripeConnectId!,
-      description: `Dub Partners payout (${payout.program.name})`,
-      ...(!achCreditTransfer
-        ? {
-            source_transaction: chargeId,
-          }
-        : {}),
-    });
+    const transfer = await stripe.transfers.create(
+      {
+        amount: payout.amount,
+        currency: "usd",
+        transfer_group: invoiceId,
+        destination: payout.partner.stripeConnectId!,
+        description: `Dub Partners payout (${payout.program.name})`,
+        ...(!achCreditTransfer
+          ? {
+              source_transaction: chargeId,
+            }
+          : {}),
+      },
+      { idempotencyKey: payout.id }, // add idempotency key to avoid duplicate transfers
+    );
 
     console.log(`Transfer created for payout ${payout.id}`, transfer);
 
-    // TODO:
-    // See if we can use the Prisma transaction to update the payout and commission
-
-    await Promise.all([
+    await Promise.allSettled([
       prisma.payout.update({
         where: {
           id: payout.id,
@@ -75,5 +75,8 @@ export async function sendStripePayouts({
           variant: "notifications",
         }),
     ]);
+
+    // sleep for 250ms
+    await new Promise((resolve) => setTimeout(resolve, 250));
   }
 }

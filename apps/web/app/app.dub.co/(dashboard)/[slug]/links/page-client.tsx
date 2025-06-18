@@ -208,6 +208,11 @@ function WorkspaceLinks() {
                 <SearchBoxPersisted
                   loading={isValidating}
                   inputClassName="h-10"
+                  placeholder={
+                    isMegaFolder
+                      ? "Search by short link"
+                      : "Search by short link or URL"
+                  }
                 />
               </div>
 
@@ -217,9 +222,7 @@ function WorkspaceLinks() {
                   <div className="h-10 w-10 rounded-md bg-neutral-200" />
                 </div>
               ) : canCreateLinks ? (
-                <>
-                  <MoreLinkOptions />
-                </>
+                <MoreLinkOptions />
               ) : (
                 <div className="w-fit">
                   <RequestFolderEditAccessButton
