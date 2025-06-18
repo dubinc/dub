@@ -1,12 +1,11 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PartnerProps } from "@/lib/types";
-import { ArrowUpRight, LoadingSpinner } from "@dub/ui";
-import { currencyFormatter, fetcher, OG_AVATAR_URL } from "@dub/utils";
+import { ArrowUpRight, BlurImage, Link4, LoadingSpinner } from "@dub/ui";
+import { currencyFormatter, fetcher, GOOGLE_FAVICON_URL } from "@dub/utils";
 import Link from "next/link";
 import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
-export function TopPartnersBlock() {
+export function TrafficSourcesBlock() {
   const {
     id: workspaceId,
     slug: workspaceSlug,
@@ -15,16 +14,14 @@ export function TopPartnersBlock() {
 
   let { data, isLoading, error } = useSWR<
     {
-      partnerId: string;
+      referer: string;
       saleAmount: number;
-      sales: number;
-      partner: Pick<PartnerProps, "name" | "image">;
     }[]
   >(
     `/api/analytics?${new URLSearchParams({
       workspaceId: workspaceId!,
       programId: defaultProgramId!,
-      groupBy: "top_partners",
+      groupBy: "referers",
       interval: "all",
       event: "sales",
     })}`,
@@ -33,8 +30,8 @@ export function TopPartnersBlock() {
 
   return (
     <ProgramOverviewBlock
-      title="Top partners by revenue"
-      viewAllHref={`/${workspaceSlug}/program/partners`}
+      title="Top traffic sources by revenue"
+      viewAllHref={`/${workspaceSlug}/program/analytics`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
         {isLoading ? (
@@ -47,31 +44,36 @@ export function TopPartnersBlock() {
           </div>
         ) : data?.length === 0 ? (
           <div className="text-content-subtle flex size-full items-center justify-center py-4 text-xs">
-            No partners found
+            No traffic sources found
           </div>
         ) : (
-          data?.slice(0, 6).map((partner, idx) => (
+          data?.slice(0, 6).map(({ referer, saleAmount }, idx) => (
             <Link
-              key={partner.partnerId + idx}
-              href={`/${workspaceSlug}/program/partners?partnerId=${partner.partnerId}`}
+              key={idx}
+              href={`/${workspaceSlug}/program/analytics?referer=${referer}`}
               target="_blank"
               className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"
             >
               <div className="flex min-w-0 items-center gap-2">
-                <img
-                  src={
-                    partner.partner.image ||
-                    `${OG_AVATAR_URL}${partner.partner.name}`
-                  }
-                  alt={`${partner.partner.name} avatar`}
-                  className="size-4 rounded-full"
-                />
-                <span className="min-w-0 truncate">{partner.partner.name}</span>
+                {referer === "(direct)" ? (
+                  <Link4 className="size-4" />
+                ) : (
+                  <BlurImage
+                    src={`${GOOGLE_FAVICON_URL}${referer}`}
+                    alt={`${referer} icon`}
+                    width={16}
+                    height={16}
+                    className="size-4 rounded-full"
+                  />
+                )}
+                <span className="min-w-0 truncate">
+                  {referer === "(direct)" ? "Direct" : referer}
+                </span>
                 <ArrowUpRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
               </div>
 
               <span>
-                {currencyFormatter(partner.saleAmount / 100, {
+                {currencyFormatter(saleAmount / 100, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}

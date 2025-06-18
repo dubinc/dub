@@ -7,6 +7,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { TopPartnersBlock } from "@/ui/partners/overview/blocks/top-partners-block";
+import { TrafficSourcesBlock } from "@/ui/partners/overview/blocks/traffic-sources-block";
 import { ProgramOverviewBlock } from "@/ui/partners/overview/program-overview-block";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -24,7 +25,7 @@ const PlaceholderBlock = () => (
 
 const BLOCKS = [
   TopPartnersBlock,
-  PlaceholderBlock,
+  TrafficSourcesBlock,
   PlaceholderBlock,
   PlaceholderBlock,
   PlaceholderBlock,
