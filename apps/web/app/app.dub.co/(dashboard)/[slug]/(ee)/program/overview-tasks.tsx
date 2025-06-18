@@ -14,9 +14,13 @@ export function OverviewTasks() {
     number | undefined
   >({ status: "pending", ignoreParams: true });
 
-  const { payoutsCount, loading: payoutsCountLoading } = usePayoutsCount<
-    number | undefined
-  >({ status: "pending" });
+  const {
+    payoutsCount: eligiblePayoutsCount,
+    loading: eligiblePayoutsLoading,
+  } = usePayoutsCount<number | undefined>({
+    eligibility: "eligible",
+    status: "pending",
+  });
 
   const tasks = useMemo(
     () => [
@@ -30,9 +34,9 @@ export function OverviewTasks() {
       {
         icon: MoneyBills2,
         label: "Confirm pending payouts",
-        count: payoutsCount,
-        href: `/${slug}/program/payouts?status=pending`,
-        loading: payoutsCountLoading,
+        count: eligiblePayoutsCount,
+        href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
+        loading: eligiblePayoutsLoading,
       },
       {
         icon: ShieldKeyhole,
@@ -46,8 +50,8 @@ export function OverviewTasks() {
       slug,
       partnersCount,
       partnersCountLoading,
-      payoutsCount,
-      payoutsCountLoading,
+      eligiblePayoutsCount,
+      eligiblePayoutsLoading,
     ],
   );
 
@@ -77,7 +81,7 @@ export function OverviewTasks() {
                 className={cn(
                   "flex h-8 items-center rounded-lg bg-black/5 px-4 text-neutral-400",
                   task.loading && "w-10 animate-pulse",
-                  task.count && "bg-blue-100 text-blue-600",
+                  task.count && task.count > 0 && "bg-blue-100 text-blue-600",
                 )}
               >
                 {task.count ?? (task.loading ? "" : "-")}
