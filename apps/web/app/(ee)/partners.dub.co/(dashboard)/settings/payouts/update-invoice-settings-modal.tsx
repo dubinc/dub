@@ -10,7 +10,6 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -51,7 +50,6 @@ function UpdateInvoiceSettingsModalInner({
     register,
     handleSubmit,
     watch,
-    setValue,
     formState: { isDirty },
   } = useForm<UpdateInvoiceSettingsFormData>({
     defaultValues: {
@@ -60,14 +58,6 @@ function UpdateInvoiceSettingsModalInner({
       taxId: partner?.invoiceSettings?.taxId ?? "",
     },
   });
-
-  useEffect(() => {
-    if (partner?.invoiceSettings) {
-      setValue("companyName", partner.companyName ?? "");
-      setValue("address", partner.invoiceSettings.address ?? "");
-      setValue("taxId", partner.invoiceSettings.taxId ?? "");
-    }
-  }, [partner?.invoiceSettings, setValue]);
 
   const { executeAsync, isPending } = useAction(
     updatePartnerInvoiceSettingsAction,

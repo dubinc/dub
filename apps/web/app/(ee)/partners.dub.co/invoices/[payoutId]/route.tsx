@@ -201,7 +201,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
                 {partner.companyName || "-"}
               </Text>
               {partner.invoiceSettings?.address && (
-                <Text style={tw("text-sm text-neutral-800 leading-6")}>
+                <Text style={tw("text-sm text-neutral-500 leading-6")}>
                   {partner.invoiceSettings.address}
                 </Text>
               )}
