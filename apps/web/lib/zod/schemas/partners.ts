@@ -198,6 +198,13 @@ export const PartnerSchema = z
       .date()
       .nullable()
       .describe("The date when the partner enabled payouts."),
+    invoiceSettings: z
+      .object({
+        address: z.string().nullish(),
+        taxId: z.string().nullish(),
+      })
+      .nullable()
+      .describe("The partner's invoice settings."),
     createdAt: z
       .date()
       .describe("The date when the partner was created on Dub."),
@@ -568,4 +575,10 @@ export const banPartnerSchema = z.object({
 export const archivePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
+});
+
+export const partnerInvoiceSettingsSchema = z.object({
+  companyName: z.string().max(190).trim().min(1, "Business name is required."),
+  address: z.string().max(500).trim().nullable(),
+  taxId: z.string().max(100).trim().nullable(),
 });
