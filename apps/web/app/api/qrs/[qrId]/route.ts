@@ -1,5 +1,6 @@
 import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
-import { DubApiError } from "@/lib/api/errors";
+import { DubApiError, ErrorCodes } from "@/lib/api/errors";
+import { processLink, updateLink } from '@/lib/api/links';
 import { includeTags } from "@/lib/api/links/include-tags.ts";
 import { getQr } from "@/lib/api/qrs/get-qr";
 import { updateQr } from "@/lib/api/qrs/update-qr";
@@ -44,14 +45,41 @@ export const PATCH = withWorkspace(
     const body = updateQrBodySchema.parse(await parseRequestBody(req)) || {};
 
     try {
-      const response = await prisma.link.update({
-        where: {
-          id: qr.link!.id,
+      const updatedLink = {
+        ...qr.link!,
+        url: body.link!.url,
+        geo: qr.link!.geo as Record<string, string> | null,
+      };
+
+      const {
+        link: processedLink,
+        error,
+        code,
+      } = await processLink({
+        payload: {
+          ...updatedLink,
+          expiresAt: updatedLink.expiresAt?.toISOString() || null,
         },
-        data: {
-          url: body.link!.url,
-          archived: body.archived || false,
+        workspace,
+        skipKeyChecks: true,
+        skipExternalIdChecks: true,
+        skipFolderChecks: true,
+      });
+
+      if (error) {
+        throw new DubApiError({
+          code: code as ErrorCodes,
+          message: error,
+        });
+      }
+
+      const response = await updateLink({
+        oldLink: {
+          domain: qr.link!.domain,
+          key: qr.link!.key,
+          image: qr.link!.image,
         },
+        updatedLink: processedLink,
       });
 
       // waitUntil(
