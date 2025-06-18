@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { endOfMonth } from "date-fns";
 
 export const createPayout = async ({
@@ -51,42 +52,68 @@ export const createPayout = async ({
 
   const { holdingPeriodDays } = programEnrollment.program;
 
-  const commissions = await prisma.commission.findMany({
-    where: {
-      earnings: {
-        gt: 0,
-      },
-      programId,
-      partnerId,
-      status: "pending",
-      payoutId: null,
-      // Only process commissions that were created before the holding period
-      ...(holdingPeriodDays > 0 && {
-        createdAt: {
-          lt: new Date(Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000),
+  const commonWhere: Prisma.CommissionWhereInput = {
+    programId,
+    partnerId,
+    status: "pending",
+    payoutId: null,
+  };
+
+  const [commissions, clawbacks] = await Promise.all([
+    // Find all pending commissions
+    // We only process commissions that were created before the holding period
+    prisma.commission.findMany({
+      where: {
+        earnings: {
+          gt: 0,
         },
-      }),
-    },
-    select: {
-      id: true,
-      createdAt: true,
-      earnings: true,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
+        ...commonWhere,
+        ...(holdingPeriodDays > 0 && {
+          createdAt: {
+            lt: new Date(Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000),
+          },
+        }),
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        earnings: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    }),
 
-  if (commissions.length === 0) {
-    console.log(
-      `No pending commissions found for partner ${partnerId} in program ${programId}.`,
-    );
+    // Find all pending clawbacks
+    // We don't wait for the holding period to be over for clawbacks
+    prisma.commission.findMany({
+      where: {
+        earnings: {
+          lt: 0,
+        },
+        ...commonWhere,
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        earnings: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    }),
+  ]);
 
+  if (commissions.length === 0 && clawbacks.length === 0) {
     return;
   }
 
   console.log(
     `Found ${commissions.length} pending commissions for partner ${partnerId} in program ${programId}.`,
+  );
+
+  console.log(
+    `Found ${clawbacks.length} pending clawbacks for partner ${partnerId} in program ${programId}.`,
   );
 
   // earliest commission date
