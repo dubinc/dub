@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@dub/ui";
-import { useUpdateInvoiceSettingsModal } from "./update-invoice-info-modal";
+import { useUpdateInvoiceSettingsModal } from "./update-invoice-settings-modal";
 
 export function InvoiceSettingsButton() {
   const { UpdateInvoiceSettingsModal, setShowUpdateInvoiceSettingsModal } =
