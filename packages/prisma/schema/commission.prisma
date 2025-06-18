@@ -42,8 +42,9 @@ model Commission {
   link     Link?     @relation(fields: [linkId], references: [id])
   customer Customer? @relation(fields: [customerId], references: [id])
 
-  @@unique([programId, invoiceId])
+  @@unique([invoiceId, programId])
   @@index([earnings, programId, partnerId, status])
+  @@index([programId, createdAt, status, amount, earnings])
   @@index([partnerId, customerId])
   @@index(payoutId)
   @@index(customerId)

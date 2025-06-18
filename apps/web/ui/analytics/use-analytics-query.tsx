@@ -68,7 +68,7 @@ export function useAnalyticsQuery({
     ? searchParams.get("root") === "true"
     : defaultRoot
       ? defaultRoot({ key, folderId, tagIds })
-      : false;
+      : "false";
 
   const selectedTab: EventType = useMemo(() => {
     const event = searchParams.get("event");

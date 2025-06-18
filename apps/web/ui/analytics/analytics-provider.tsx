@@ -208,8 +208,8 @@ export default function AnalyticsProvider({
         adminPage ||
         folderId ||
         tagIds
-          ? true
-          : false,
+          ? undefined
+          : "false",
     });
 
   // Reset requiresUpgrade when query changes

@@ -69,10 +69,15 @@ export async function recordClick({
     return null;
   }
 
+  const ua = userAgent(req);
   const isBot = detectBot(req);
 
   // don't record clicks from bots
   if (isBot) {
+    console.log(`Click not recorded ❌ – Bot detected.`, {
+      ua,
+      isBot,
+    });
     return null;
   }
 
@@ -106,7 +111,6 @@ export async function recordClick({
 
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
-  const ua = userAgent(req);
   const referer = referrer || req.headers.get("referer");
 
   const identity_hash = await getIdentityHash(req);
