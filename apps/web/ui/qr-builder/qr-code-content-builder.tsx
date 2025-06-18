@@ -87,6 +87,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
             <Controller
               name="networkEncryption"
               control={control}
+              defaultValue={WIFI_ENCRYPTION_TYPES[0].id}
               render={({ field: { onChange, value } }) => (
                 <Select
                   options={WIFI_ENCRYPTION_TYPES}
