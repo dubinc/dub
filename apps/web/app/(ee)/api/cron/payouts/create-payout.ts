@@ -116,23 +116,18 @@ export const createPayout = async ({
     `Found ${clawbacks.length} pending clawbacks for partner ${partnerId} in program ${programId}.`,
   );
 
-  const allCommissions = [...commissions, ...clawbacks];
+  // sort the commissions and clawbacks by createdAt
+  const allCommissions = [...commissions, ...clawbacks].sort(
+    (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+  );
 
   // earliest commission date
-  const periodStart = allCommissions.reduce(
-    (earliest, commission) =>
-      commission.createdAt < earliest ? commission.createdAt : earliest,
-    allCommissions[0].createdAt,
-  );
+  const periodStart = allCommissions[0].createdAt;
 
   // end of the month of the latest commission date
   // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
   const periodEnd = endOfMonth(
-    allCommissions.reduce(
-      (latest, commission) =>
-        commission.createdAt > latest ? commission.createdAt : latest,
-      allCommissions[0].createdAt,
-    ),
+    allCommissions[allCommissions.length - 1].createdAt,
   );
 
   await prisma.$transaction(async (tx) => {
