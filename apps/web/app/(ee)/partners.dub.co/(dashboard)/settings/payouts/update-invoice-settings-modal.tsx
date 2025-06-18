@@ -129,7 +129,7 @@ function UpdateInvoiceSettingsModalInner({
 
           <div>
             <label className="text-sm font-medium leading-5 text-neutral-900">
-              Tax ID
+              Business tax ID
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
               <input
