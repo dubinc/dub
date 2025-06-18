@@ -1,4 +1,6 @@
+import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { ArrowUpRight, LinkLogo, LoadingSpinner } from "@dub/ui";
 import {
   currencyFormatter,
@@ -7,6 +9,7 @@ import {
   getPrettyUrl,
 } from "@dub/utils";
 import Link from "next/link";
+import { useContext } from "react";
 import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
@@ -17,6 +20,8 @@ export function LinksBlock() {
     defaultProgramId,
   } = useWorkspace();
 
+  const { queryString } = useContext(AnalyticsContext);
+
   const { data, isLoading, error } = useSWR<
     {
       shortLink: string;
@@ -26,11 +31,8 @@ export function LinksBlock() {
       saleAmount: number;
     }[]
   >(
-    `/api/analytics?${new URLSearchParams({
-      workspaceId: workspaceId!,
-      programId: defaultProgramId!,
+    `/api/analytics?${editQueryString(queryString, {
       groupBy: "top_links",
-      interval: "all",
       event: "sales",
     })}`,
     fetcher,

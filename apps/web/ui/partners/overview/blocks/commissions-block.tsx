@@ -1,25 +1,20 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
+import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, StatusBadge } from "@dub/ui";
 import { currencyFormatter, fetcher, OG_AVATAR_URL } from "@dub/utils";
+import { useContext } from "react";
 import useSWR from "swr";
 import { CommissionStatusBadges } from "../../commission-status-badges";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function CommissionsBlock() {
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    defaultProgramId,
-  } = useWorkspace();
+  const { slug: workspaceSlug } = useWorkspace();
+
+  const { queryString } = useContext(AnalyticsContext);
 
   const { data, error, isLoading } = useSWR<CommissionResponse[]>(
-    `/api/commissions?${new URLSearchParams({
-      workspaceId: workspaceId!,
-      programId: defaultProgramId!,
-      pageSize: "6",
-      interval: "90d",
-    })}`,
+    `/api/commissions?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,

@@ -1,18 +1,15 @@
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
-import useWorkspace from "@/lib/swr/use-workspace";
+import { editQueryString } from "@/lib/analytics/utils";
+import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner } from "@dub/ui";
 import { FunnelChart } from "@dub/ui/charts";
 import { fetcher, nFormatter } from "@dub/utils";
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function ConversionBlock() {
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    defaultProgramId,
-  } = useWorkspace();
+  const { queryString } = useContext(AnalyticsContext);
 
   const {
     data: totalEvents,
@@ -21,11 +18,8 @@ export function ConversionBlock() {
   } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
-    `/api/analytics?${new URLSearchParams({
-      workspaceId: workspaceId!,
-      programId: defaultProgramId!,
+    `/api/analytics?${editQueryString(queryString, {
       event: "composite",
-      interval: "all",
     })}`,
     fetcher,
     {

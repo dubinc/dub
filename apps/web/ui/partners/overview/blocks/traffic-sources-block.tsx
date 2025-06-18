@@ -1,16 +1,17 @@
+import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { ArrowUpRight, BlurImage, Link4, LoadingSpinner } from "@dub/ui";
 import { currencyFormatter, fetcher, GOOGLE_FAVICON_URL } from "@dub/utils";
 import Link from "next/link";
+import { useContext } from "react";
 import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function TrafficSourcesBlock() {
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    defaultProgramId,
-  } = useWorkspace();
+  const { slug: workspaceSlug } = useWorkspace();
+
+  const { queryString } = useContext(AnalyticsContext);
 
   const { data, isLoading, error } = useSWR<
     {
@@ -18,11 +19,8 @@ export function TrafficSourcesBlock() {
       saleAmount: number;
     }[]
   >(
-    `/api/analytics?${new URLSearchParams({
-      workspaceId: workspaceId!,
-      programId: defaultProgramId!,
+    `/api/analytics?${editQueryString(queryString, {
       groupBy: "referers",
-      interval: "all",
       event: "sales",
     })}`,
     fetcher,
