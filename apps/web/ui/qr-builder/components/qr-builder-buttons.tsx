@@ -90,7 +90,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         size={size}
         variant="secondary"
         color="blue"
-        className="flex min-h-10 min-w-0 shrink basis-1/4"
+        className="border-secondary focus-visible:border-secondary-500 hover:bg-secondary-50 text-secondary data-[state=open]:border-secondary-500 data-[state=open]:ring-secondary-200 flex min-h-10 min-w-0 shrink basis-1/4"
         disabled={step <= minStep || isProcessing}
         onClick={handleBack}
         icon={
