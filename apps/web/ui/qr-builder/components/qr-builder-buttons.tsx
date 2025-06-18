@@ -100,7 +100,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
             })}
           />
         }
-        text="Back"
+        text={<span className="hidden md:inline">Back</span>}
       />
 
       <Button
