@@ -35,8 +35,6 @@ type QRBuilderModalProps = {
   props?: ResponseQrCode;
   showQRBuilderModal: boolean;
   setShowQRBuilderModal: Dispatch<SetStateAction<boolean>>;
-  isProcessing: boolean;
-  setIsProcessing: Dispatch<SetStateAction<boolean>>;
   initialStep?: number;
 };
 
@@ -44,11 +42,11 @@ export function QRBuilderModal({
   props,
   showQRBuilderModal,
   setShowQRBuilderModal,
-  isProcessing,
-  setIsProcessing,
   initialStep,
 }: QRBuilderModalProps) {
   const { createQr, updateQr } = useQrSave();
+
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSaveQR = async (data: QRBuilderData) => {
     setIsProcessing(true);
@@ -59,10 +57,8 @@ export function QRBuilderModal({
       return;
     }
 
-    let response = false;
-
     if (props) {
-      response = await updateQr(props.id, {
+      await updateQr(props.id, {
         data: data.styles.data,
         styles: data.styles,
         frameOptions: data.frameOptions,
@@ -70,13 +66,11 @@ export function QRBuilderModal({
         files: data.files,
       });
     } else {
-      response = await createQr(data as FullQrCreateData);
+      await createQr(data as FullQrCreateData);
     }
 
     setIsProcessing(false);
-    if (response) {
-      setShowQRBuilderModal(false);
-    }
+    setShowQRBuilderModal(false);
   };
 
   return (
@@ -104,9 +98,7 @@ export function QRBuilderModal({
           <button
             disabled={isProcessing}
             type="button"
-            onClick={() => {
-              setShowQRBuilderModal(false);
-            }}
+            onClick={() => setShowQRBuilderModal(false)}
             className="group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:right-0 md:block"
           >
             <X className="h-5 w-5" />
@@ -148,7 +140,6 @@ export function useQRBuilder(data?: {
 }) {
   const { props, initialStep } = data ?? {};
 
-  const [isProcessing, setIsProcessing] = useState(false);
   const [showQRBuilderModal, setShowQRBuilderModal] = useState(false);
 
   const QRBuilderModalCallback = useCallback(() => {
@@ -157,19 +148,10 @@ export function useQRBuilder(data?: {
         props={props}
         showQRBuilderModal={showQRBuilderModal}
         setShowQRBuilderModal={setShowQRBuilderModal}
-        isProcessing={isProcessing}
-        setIsProcessing={setIsProcessing}
         initialStep={initialStep}
       />
     );
-  }, [
-    props,
-    showQRBuilderModal,
-    setShowQRBuilderModal,
-    isProcessing,
-    setIsProcessing,
-    initialStep,
-  ]);
+  }, [props, showQRBuilderModal, setShowQRBuilderModal, initialStep]);
 
   const CreateQRButtonCallback = useCallback(() => {
     return <CreateQRButton setShowQRBuilderModal={setShowQRBuilderModal} />;
@@ -180,13 +162,7 @@ export function useQRBuilder(data?: {
       CreateQRButton: CreateQRButtonCallback,
       QRBuilderModal: QRBuilderModalCallback,
       setShowQRBuilderModal,
-      isProcessing,
     }),
-    [
-      CreateQRButtonCallback,
-      QRBuilderModalCallback,
-      setShowQRBuilderModal,
-      isProcessing,
-    ],
+    [CreateQRButtonCallback, QRBuilderModalCallback, setShowQRBuilderModal],
   );
 }
