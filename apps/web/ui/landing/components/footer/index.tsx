@@ -6,7 +6,7 @@ import { Logo } from "@/ui/shared/logo.tsx";
 import {
   GENERAL_LINKS,
   LEGAL_LINKS,
-} from "../../../../app/app.dub.co/(public)/constants/types.ts";
+} from "app/[domain]/(public)/constants/types";
 
 export const Footer = () => (
   <footer className="mt-auto w-full">

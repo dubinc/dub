@@ -124,7 +124,7 @@ function QRPreviewModal({
     <Modal
       showModal={showQRPreviewModal}
       setShowModal={setShowQRPreviewModal}
-      className="border-border-500"
+      className="border-border-500 h-fit"
     >
       <Theme>
         <div className="flex flex-col gap-2">

@@ -7,6 +7,8 @@ import {
   LinkMiddleware,
 } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
+import { getUserCountry } from "@/lib/middleware/utils/get-user-country.ts";
+import { getUserViaToken } from "@/lib/middleware/utils/get-user-via-token.ts";
 import {
   ADMIN_HOSTNAMES,
   API_HOSTNAMES,
@@ -16,6 +18,10 @@ import {
 } from "@dub/utils";
 import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import {
+  ALLOWED_REGIONS,
+  PUBLIC_ROUTES,
+} from "./app/[domain]/(public)/constants/types.ts";
 import PartnersMiddleware from "./lib/middleware/partners";
 
 export const config = {
@@ -34,6 +40,8 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key, fullKey } = parse(req);
+  const country = await getUserCountry(req);
+  const user = await getUserViaToken(req);
 
   console.log("here");
   console.log(domain, path, key, fullKey);
@@ -43,26 +51,36 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   AxiomMiddleware(req, ev);
 
-  // Temporarily special handling for public routes, needs to be fixed
-  if (path === "/qr-complete-setup" || path === "/qr-disabled") {
-    return AppMiddleware(req);
+  const isPublicRoute =
+    PUBLIC_ROUTES.includes(path) ||
+    path.startsWith("/help") ||
+    ALLOWED_REGIONS.includes(path.slice(1));
+
+  // Try to fix public routes locally
+  if (isPublicRoute) {
+    if (APP_HOSTNAMES.has(domain)) {
+      if (user) {
+        return AppMiddleware(req, country, user, isPublicRoute);
+      }
+    }
+
+    return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url), {
+      headers: {
+        "Set-Cookie": `country=${country}; Path=/; Secure; SameSite=Strict;`,
+      },
+    });
   }
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
     console.log("middleware here1");
-    return AppMiddleware(req);
+    return AppMiddleware(req, country, user);
   }
 
   // for API
   if (API_HOSTNAMES.has(domain)) {
     console.log("middleware here2");
     return ApiMiddleware(req);
-  }
-
-  // for public stats pages (e.g. d.to/stats/try)
-  if (path.startsWith("/stats/")) {
-    return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
   }
 
   // default redirects for dub.sh

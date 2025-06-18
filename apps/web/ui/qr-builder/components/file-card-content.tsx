@@ -57,22 +57,44 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
   const scrollToFileItem = () => {
     setTimeout(() => {
       if (fileItemRef.current) {
+        const scrollableContainer = fileItemRef.current.closest(
+          '[class*="overflow-y-auto"]',
+        ); // if inside the modal
         const rect = fileItemRef.current.getBoundingClientRect();
-
         const viewportHeight = window.innerHeight;
-
         const stickyButtonsHeight = 70;
 
-        if (rect.bottom > viewportHeight - stickyButtonsHeight) {
-          window.scrollBy({
-            top: rect.bottom - (viewportHeight - stickyButtonsHeight) + 20,
-            behavior: "smooth",
-          });
-        } else if (rect.top < 0) {
-          fileItemRef.current.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
+        if (scrollableContainer) {
+          const containerRect = scrollableContainer.getBoundingClientRect();
+          const relativeBottom = rect.bottom - containerRect.top;
+          const containerVisibleHeight = containerRect.height;
+
+          if (rect.bottom > viewportHeight - stickyButtonsHeight) {
+            scrollableContainer.scrollBy({
+              top:
+                relativeBottom -
+                (containerVisibleHeight - stickyButtonsHeight) +
+                20,
+              behavior: "smooth",
+            });
+          } else if (rect.top < containerRect.top) {
+            scrollableContainer.scrollBy({
+              top: rect.top - containerRect.top,
+              behavior: "smooth",
+            });
+          }
+        } else {
+          if (rect.bottom > viewportHeight - stickyButtonsHeight) {
+            window.scrollBy({
+              top: rect.bottom - (viewportHeight - stickyButtonsHeight) + 20,
+              behavior: "smooth",
+            });
+          } else if (rect.top < 0) {
+            fileItemRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
         }
       }
     }, 100);
@@ -113,7 +135,6 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         onFileAccept={onFileAccept}
         onFileReject={onFileReject}
         accept={acceptedFileType}
-        multiple={!isLogo}
       >
         <FileUploadDropzone
           className={cn("border-secondary-100", {

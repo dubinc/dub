@@ -7,60 +7,26 @@ export const useIsInViewport = (
 ) => {
   const [isIntersecting, setIsIntersecting] = useState(false);
 
-  const checkIsInViewport = () => {
+  useEffect(() => {
     if (!ref?.current) return;
 
-    const { top, bottom } = ref.current.getBoundingClientRect();
-    const windowHeight =
-      window.innerHeight || document.documentElement.clientHeight;
-
-    // Get the sticky element if it exists
-    const stickyElement = document.querySelector(
-      "header",
-    ) as HTMLDivElement | null;
-    const stickyOffset = stickyElement ? stickyElement.offsetHeight : 0;
-
-    // Calculate the visible portion of the target element within the viewport
-    const visiblePortion = Math.max(
-      0,
-      Math.min(bottom, windowHeight) - Math.max(top, stickyOffset),
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsIntersecting(entry.intersectionRatio >= threshold);
+      },
+      {
+        threshold: [threshold],
+        root: parentRef?.current || null,
+        rootMargin: "0px",
+      },
     );
-    const elementHeight = bottom - top;
 
-    // Calculate the visible percentage
-    const visiblePercentage = visiblePortion / elementHeight;
-
-    setIsIntersecting(visiblePercentage >= threshold);
-  };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      checkIsInViewport();
-    };
-
-    const handleResize = () => {
-      checkIsInViewport();
-    };
-
-    window.addEventListener("resize", handleResize);
-    window.addEventListener("scroll", handleScroll);
-    checkIsInViewport();
-
-    const resizeObserver = new ResizeObserver(handleResize);
-    if (ref?.current) {
-      resizeObserver.observe(ref.current);
-    }
-
-    if (parentRef?.current) {
-      resizeObserver.observe(parentRef.current);
-    }
+    observer.observe(ref.current);
 
     return () => {
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("scroll", handleScroll);
-      resizeObserver.disconnect();
+      observer.disconnect();
     };
-  }, [ref, threshold]);
+  }, [ref, parentRef, threshold]);
 
   return isIntersecting;
 };

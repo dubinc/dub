@@ -73,7 +73,7 @@ export default function UserDropdown() {
             icon={LogOut}
             onClick={() =>
               signOut({
-                callbackUrl: "/landing",
+                callbackUrl: "/",
               })
             }
           />

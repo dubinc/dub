@@ -37,7 +37,7 @@ const FIELD_VALIDATION_RULES: Record<string, z.ZodTypeAny> = {
     ),
   file: z
     .union([
-      z.array(z.instanceof(File)).min(1, ERROR_MESSAGES.file.noFileUploaded),
+      z.array(z.any()).min(1, ERROR_MESSAGES.file.noFileUploaded),
       z.undefined(),
     ])
     .transform((val) => val || [])
@@ -51,7 +51,7 @@ const getFieldValidation = (id: string, type?: TQRInputType): z.ZodTypeAny => {
     return (
       FIELD_VALIDATION_RULES[id] ||
       z
-        .union([z.array(z.instanceof(File)), z.undefined()])
+        .union([z.array(z.any()), z.undefined()])
         .transform((val) => val || [])
         .refine((files) => files.length > 0, {
           message: ERROR_MESSAGES.file.noFileUploaded,

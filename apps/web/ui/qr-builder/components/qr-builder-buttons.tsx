@@ -1,6 +1,7 @@
+import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Button, Flex, Responsive } from "@radix-ui/themes";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Flex, Responsive } from "@radix-ui/themes";
+import { ChevronLeft } from "lucide-react";
 import { FC } from "react";
 
 interface IQrBuilderButtonsProps {
@@ -64,15 +65,15 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
     if (!lastStep) {
       return "Continue";
     }
-    
+
     if (isEdit) {
       return "Save changes";
     }
-    
+
     if (homePageDemo) {
       return "Download QR Code";
     }
-    
+
     return "Create QR Code";
   };
 
@@ -87,16 +88,20 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
     >
       <Button
         size={size}
-        variant="outline"
+        variant="secondary"
         color="blue"
-        className="flex min-h-10 min-w-0 shrink"
+        className="flex min-h-10 min-w-0 shrink basis-1/4"
         disabled={step <= minStep || isProcessing}
         onClick={handleBack}
-      >
-        <Flex gap="2" align="center" justify="center">
-          <ChevronLeft /> <span className="hidden md:inline-flex">Back</span>
-        </Flex>
-      </Button>
+        icon={
+          <ChevronLeft
+            className={cn("text-secondary", {
+              "text-neutral-400": isProcessing,
+            })}
+          />
+        }
+        text={<span className="hidden md:inline">Back</span>}
+      />
 
       <Button
         type="submit"
@@ -105,12 +110,9 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         className="grow basis-3/4"
         onClick={handleContinue}
         disabled={isProcessing}
-      >
-        <Flex align="center" justify="center" gap="2">
-          {isProcessing && <Loader2 className="h-4 w-4 animate-spin" />}
-          {buttonText}
-        </Flex>
-      </Button>
+        loading={isProcessing}
+        text={buttonText}
+      />
     </Flex>
   );
 };
