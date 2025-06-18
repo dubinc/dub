@@ -113,7 +113,6 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         onFileAccept={onFileAccept}
         onFileReject={onFileReject}
         accept={acceptedFileType}
-        multiple={!isLogo}
       >
         <FileUploadDropzone
           className={cn("border-secondary-100", {
