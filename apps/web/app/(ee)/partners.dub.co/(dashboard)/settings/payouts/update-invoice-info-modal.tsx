@@ -19,29 +19,32 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type UpdateInvoiceInfoModalProps = {
-  showUpdateInvoiceInfoModal: boolean;
-  setShowUpdateInvoiceInfoModal: Dispatch<SetStateAction<boolean>>;
+type UpdateInvoiceSettingsModalProps = {
+  showUpdateInvoiceSettingsModal: boolean;
+  setShowUpdateInvoiceSettingsModal: Dispatch<SetStateAction<boolean>>;
 };
 
-type UpdateInvoiceInfoFormData = z.infer<typeof partnerInvoiceSettingsSchema>;
+type UpdateInvoiceSettingsFormData = z.infer<
+  typeof partnerInvoiceSettingsSchema
+>;
 
-function UpdateInvoiceInfoModal(props: UpdateInvoiceInfoModalProps) {
-  const { showUpdateInvoiceInfoModal, setShowUpdateInvoiceInfoModal } = props;
+function UpdateInvoiceSettingsModal(props: UpdateInvoiceSettingsModalProps) {
+  const { showUpdateInvoiceSettingsModal, setShowUpdateInvoiceSettingsModal } =
+    props;
 
   return (
     <Modal
-      showModal={showUpdateInvoiceInfoModal}
-      setShowModal={setShowUpdateInvoiceInfoModal}
+      showModal={showUpdateInvoiceSettingsModal}
+      setShowModal={setShowUpdateInvoiceSettingsModal}
     >
-      <UpdateInvoiceInfoModalInner {...props} />
+      <UpdateInvoiceSettingsModalInner {...props} />
     </Modal>
   );
 }
 
-function UpdateInvoiceInfoModalInner({
-  setShowUpdateInvoiceInfoModal,
-}: UpdateInvoiceInfoModalProps) {
+function UpdateInvoiceSettingsModalInner({
+  setShowUpdateInvoiceSettingsModal,
+}: UpdateInvoiceSettingsModalProps) {
   const { partner } = usePartnerProfile();
 
   const {
@@ -50,7 +53,7 @@ function UpdateInvoiceInfoModalInner({
     watch,
     setValue,
     formState: { isDirty },
-  } = useForm<UpdateInvoiceInfoFormData>({
+  } = useForm<UpdateInvoiceSettingsFormData>({
     defaultValues: {
       companyName: partner?.companyName ?? "",
       address: partner?.invoiceSettings?.address ?? "",
@@ -71,7 +74,7 @@ function UpdateInvoiceInfoModalInner({
     {
       onSuccess: async () => {
         toast.success("Invoice settings updated successfully!");
-        setShowUpdateInvoiceInfoModal(false);
+        setShowUpdateInvoiceSettingsModal(false);
         mutatePrefix("/api/partner-profile");
       },
       onError({ error }) {
@@ -80,7 +83,7 @@ function UpdateInvoiceInfoModalInner({
     },
   );
 
-  const onSubmit = async (data: UpdateInvoiceInfoFormData) => {
+  const onSubmit = async (data: UpdateInvoiceSettingsFormData) => {
     await executeAsync(data);
   };
 
@@ -144,7 +147,7 @@ function UpdateInvoiceInfoModalInner({
           text="Cancel"
           disabled={isPending}
           className="h-8 w-fit px-3"
-          onClick={() => setShowUpdateInvoiceInfoModal(false)}
+          onClick={() => setShowUpdateInvoiceSettingsModal(false)}
         />
 
         <Button
@@ -159,24 +162,24 @@ function UpdateInvoiceInfoModalInner({
   );
 }
 
-export function useUpdateInvoiceInfoModal() {
-  const [showUpdateInvoiceInfoModal, setShowUpdateInvoiceInfoModal] =
+export function useUpdateInvoiceSettingsModal() {
+  const [showUpdateInvoiceSettingsModal, setShowUpdateInvoiceSettingsModal] =
     useState(false);
 
-  const UpdateInvoiceInfoModalCallback = useCallback(() => {
+  const UpdateInvoiceSettingsModalCallback = useCallback(() => {
     return (
-      <UpdateInvoiceInfoModal
-        showUpdateInvoiceInfoModal={showUpdateInvoiceInfoModal}
-        setShowUpdateInvoiceInfoModal={setShowUpdateInvoiceInfoModal}
+      <UpdateInvoiceSettingsModal
+        showUpdateInvoiceSettingsModal={showUpdateInvoiceSettingsModal}
+        setShowUpdateInvoiceSettingsModal={setShowUpdateInvoiceSettingsModal}
       />
     );
-  }, [showUpdateInvoiceInfoModal, setShowUpdateInvoiceInfoModal]);
+  }, [showUpdateInvoiceSettingsModal, setShowUpdateInvoiceSettingsModal]);
 
   return useMemo(
     () => ({
-      setShowUpdateInvoiceInfoModal,
-      UpdateInvoiceInfoModal: UpdateInvoiceInfoModalCallback,
+      setShowUpdateInvoiceSettingsModal,
+      UpdateInvoiceSettingsModal: UpdateInvoiceSettingsModalCallback,
     }),
-    [setShowUpdateInvoiceInfoModal, UpdateInvoiceInfoModalCallback],
+    [setShowUpdateInvoiceSettingsModal, UpdateInvoiceSettingsModalCallback],
   );
 }
