@@ -69,7 +69,7 @@ export function ConversionBlock() {
       className="pb-0"
       contentClassName="px-0 mt-1"
     >
-      <div className="h-full min-h-32">
+      <div className="h-full min-h-48">
         {isLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
