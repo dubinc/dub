@@ -5,7 +5,7 @@ import useCommissionsTimeseries from "@/lib/swr/use-commissions-timeseries";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { ButtonLink } from "@/ui/placeholders/button-link";
-import { Combobox, LoadingSpinner } from "@dub/ui";
+import { Combobox, LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { currencyFormatter, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
@@ -20,6 +20,7 @@ const chartOptions = [
 type ViewType = "revenue" | "commissions";
 
 export function OverviewChart() {
+  const { getQueryString } = useRouterStuff();
   const { queryString, start, end, interval } = useContext(AnalyticsContext);
 
   const [viewType, setViewType] = useState<ViewType>("revenue");
@@ -106,7 +107,9 @@ export function OverviewChart() {
         </div>
 
         <ButtonLink
-          href={`/${slug}/program/analytics`}
+          href={`/${slug}/program/analytics${getQueryString(undefined, {
+            include: ["interval", "start", "end"],
+          })}`}
           variant="secondary"
           className="h-8 px-3 text-sm"
         >

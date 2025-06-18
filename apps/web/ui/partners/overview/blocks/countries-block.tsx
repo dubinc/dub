@@ -1,7 +1,7 @@
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import { ArrowUpRight, Link4, LoadingSpinner } from "@dub/ui";
+import { ArrowUpRight, Link4, LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, currencyFormatter, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { useContext } from "react";
@@ -10,6 +10,8 @@ import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function CountriesBlock() {
   const { slug: workspaceSlug } = useWorkspace();
+
+  const { getQueryString } = useRouterStuff();
 
   const { queryString } = useContext(AnalyticsContext);
 
@@ -29,7 +31,12 @@ export function CountriesBlock() {
   return (
     <ProgramOverviewBlock
       title="Top countries by revenue"
-      viewAllHref={`/${workspaceSlug}/program/analytics`}
+      viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
+        undefined,
+        {
+          include: ["interval", "start", "end"],
+        },
+      )}`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
         {isLoading ? (
@@ -48,7 +55,12 @@ export function CountriesBlock() {
           data?.slice(0, 6).map(({ country, saleAmount }) => (
             <Link
               key={country}
-              href={`/${workspaceSlug}/program/analytics?country=${country}`}
+              href={`/${workspaceSlug}/program/analytics${getQueryString(
+                { country },
+                {
+                  include: ["interval", "start", "end"],
+                },
+              )}`}
               target="_blank"
               className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"
             >
