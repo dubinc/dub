@@ -6,11 +6,11 @@ import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { CommissionsBlock } from "@/ui/partners/overview/blocks/commissions-block";
+import { ConversionBlock } from "@/ui/partners/overview/blocks/conversion-block";
 import { CountriesBlock } from "@/ui/partners/overview/blocks/countries-block";
 import { LinksBlock } from "@/ui/partners/overview/blocks/links-block";
 import { PartnersBlock } from "@/ui/partners/overview/blocks/partners-block";
 import { TrafficSourcesBlock } from "@/ui/partners/overview/blocks/traffic-sources-block";
-import { ProgramOverviewBlock } from "@/ui/partners/overview/program-overview-block";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { useRouterStuff } from "@dub/ui";
@@ -21,15 +21,11 @@ import { OverviewChart } from "./overview-chart";
 import { OverviewLinks } from "./overview-links";
 import { OverviewTasks } from "./overview-tasks";
 
-const PlaceholderBlock = () => (
-  <ProgramOverviewBlock title="Placeholder">WIP</ProgramOverviewBlock>
-);
-
 const BLOCKS = [
   PartnersBlock,
   TrafficSourcesBlock,
   CommissionsBlock,
-  PlaceholderBlock,
+  ConversionBlock,
   CountriesBlock,
   LinksBlock,
 ];
@@ -108,10 +104,6 @@ export default function ProgramOverviewPageClient() {
           ))}
         </div>
       </AnalyticsContext.Provider>
-      {/* <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <TopPartners />
-        <PendingPayouts />
-      </div> */}
     </div>
   );
 }

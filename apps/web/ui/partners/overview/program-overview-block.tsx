@@ -6,15 +6,17 @@ import { ProgramOverviewCard } from "./program-overview-card";
 export function ProgramOverviewBlock({
   title,
   viewAllHref,
+  className,
   contentClassName,
   children,
 }: PropsWithChildren<{
   title: ReactNode;
   viewAllHref?: string;
+  className?: string;
   contentClassName?: string;
 }>) {
   return (
-    <ProgramOverviewCard className="flex h-full flex-col py-6">
+    <ProgramOverviewCard className={cn("flex h-full flex-col py-6", className)}>
       <div className="flex justify-between px-6">
         <h2 className="text-content-emphasis text-sm font-medium">{title}</h2>
         {viewAllHref && (
