@@ -34,7 +34,9 @@ export const GET = withPartnerProfile(
 
     const where: Prisma.CommissionWhereInput = {
       earnings: {
-        not: 0,
+        not: {
+          equals: 0,
+        },
       },
       programId: program.id,
       partnerId: partner.id,
