@@ -35,11 +35,10 @@ export default function ProgramOverviewPageClient() {
 
   const { defaultProgramId, id: workspaceId } = useWorkspace();
 
-  const { start, end, interval, selectedTab } = useMemo(() => {
+  const { start, end, interval } = useMemo(() => {
     const { event, ...rest } = searchParamsObj;
     return {
       interval: DUB_PARTNERS_ANALYTICS_INTERVAL,
-      selectedTab: event || "sales",
       ...rest,
     } as Record<string, any>;
   }, [searchParamsObj]);
@@ -74,7 +73,7 @@ export default function ProgramOverviewPageClient() {
         value={{
           basePath: "",
           baseApiPath: "/api/analytics",
-          selectedTab,
+          selectedTab: "sales",
           saleUnit: "saleAmount",
           view: "timeseries",
           queryString,
