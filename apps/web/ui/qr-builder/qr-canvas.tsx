@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import QRCodeStyling from "qr-code-styling";
 import { forwardRef, RefObject, useEffect, useRef } from "react";
 
@@ -10,8 +9,6 @@ interface QRCanvasProps {
 
 export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
   ({ qrCode, width = 200, height = 200 }, ref) => {
-    const { data: session } = useSession();
-    const isAuthenticated = !!session;
     const internalCanvasRef = useRef<HTMLCanvasElement>(null);
     const svgContainerRef = useRef<HTMLDivElement>(null);
 
@@ -79,7 +76,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
         observer.disconnect();
         svgContainerRef.current?.replaceChildren();
       };
-    }, [qrCode, canvasRef, width, height, isAuthenticated]);
+    }, [qrCode, canvasRef, width, height]);
 
     return (
       <div className="flex flex-col gap-4">
