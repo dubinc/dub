@@ -93,6 +93,38 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
       );
 
+      const typeStep = step === 1;
+      const contentStep = step === 2;
+      const customizationStep = step === 3;
+
+      const qrBuilderContentWrapperRef = useRef<HTMLDivElement>(null);
+      const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
+      const qrBuilderCustomizationButtonsWrapperRef =
+        useRef<HTMLDivElement>(null);
+
+      const scrollContainerRef = useMemo(() => {
+        if (qrBuilderContentWrapperRef.current) {
+          const scrollableContainer =
+            qrBuilderContentWrapperRef.current.closest(
+              '[class*="overflow-y-auto"]',
+            );
+          if (scrollableContainer) {
+            return { current: scrollableContainer as HTMLDivElement };
+          }
+        }
+        return null;
+      }, [qrBuilderContentWrapperRef.current]);
+
+      const currentButtonsRef = contentStep
+        ? qrBuilderButtonsWrapperRef
+        : qrBuilderCustomizationButtonsWrapperRef;
+
+      const navigationButtonsInViewport = useIsInViewport(
+        currentButtonsRef,
+        0.6,
+        scrollContainerRef,
+      );
+
       const handleScroll = () => {
         if (isMobile && qrBuilderContentWrapperRef.current) {
           qrBuilderContentWrapperRef.current.style.scrollMargin = "60px";
@@ -173,10 +205,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         });
       };
 
-      const typeStep = step === 1;
-      const contentStep = step === 2;
-      const customizationStep = step === 3;
-
       const [currentQRType, setCurrentQRType] = useState<EQRType | null>(null);
 
       useEffect(() => {
@@ -212,13 +240,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       console.log("[QrBuilder] demoProps", demoProps);
 
       const hideDemoPlaceholderOnMobile = isMobile && typeStep;
-      const qrBuilderContentWrapperRef = useRef<HTMLDivElement>(null);
-      const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
-      const navigationButtonsInViewport = useIsInViewport(
-        qrBuilderButtonsWrapperRef,
-        0.6,
-        qrBuilderContentWrapperRef,
-      );
 
       const handleStepClick = useCallback(
         (newStep: number) => {
@@ -361,7 +382,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     handlers={handlers}
                   />
 
-                  <div ref={qrBuilderButtonsWrapperRef} className="w-full">
+                  <div
+                    ref={qrBuilderCustomizationButtonsWrapperRef}
+                    className="w-full"
+                  >
                     <QrBuilderButtons
                       step={step}
                       onStepChange={setStep}
@@ -455,23 +479,20 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             </Flex>
           </div>
 
-          {homepageDemo &&
-            isMobile &&
-            !navigationButtonsInViewport &&
-            !typeStep && (
-              <div className="border-border-500 sticky bottom-0 left-0 z-50 w-full border-t bg-white px-6 py-3 shadow-md">
-                <QrBuilderButtons
-                  step={step}
-                  onStepChange={setStep}
-                  onSaveClick={onSaveClick}
-                  onBackClick={onBackClick}
-                  validateFields={handleValidationAndContentSubmit}
-                  isEdit={isEdit}
-                  isProcessing={isProcessing}
-                  homePageDemo={homepageDemo}
-                />
-              </div>
-            )}
+          {isMobile && !navigationButtonsInViewport && !typeStep && (
+            <div className="border-border-500 sticky bottom-0 left-0 z-50 w-full border-t bg-white px-6 py-3 shadow-md">
+              <QrBuilderButtons
+                step={step}
+                onStepChange={setStep}
+                onSaveClick={onSaveClick}
+                onBackClick={onBackClick}
+                validateFields={handleValidationAndContentSubmit}
+                isEdit={isEdit}
+                isProcessing={isProcessing}
+                homePageDemo={homepageDemo}
+              />
+            </div>
+          )}
         </div>
       );
     },

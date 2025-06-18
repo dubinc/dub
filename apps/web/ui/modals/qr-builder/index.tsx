@@ -11,7 +11,6 @@ import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { Modal } from "@dub/ui";
-import { cn } from "@dub/utils";
 import { Options } from "qr-code-styling";
 import {
   Dispatch,
@@ -91,9 +90,7 @@ export function QRBuilderModal({
         repositionInputs: true,
       }}
       showFullScreenOnMobile
-      className={cn(
-        "border-border-500 h-full max-w-screen-lg transition-[height] duration-[300ms] md:h-fit",
-      )}
+      className="border-border-500 h-full max-w-screen-lg transition-[height] duration-[300ms] md:h-fit"
     >
       <div className="flex flex-col gap-2">
         {/* header */}
