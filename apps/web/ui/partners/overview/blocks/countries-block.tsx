@@ -47,9 +47,9 @@ export function CountriesBlock() {
             No countries found
           </div>
         ) : (
-          data?.slice(0, 6).map(({ country, saleAmount }, idx) => (
+          data?.slice(0, 6).map(({ country, saleAmount }) => (
             <Link
-              key={idx}
+              key={country}
               href={`/${workspaceSlug}/program/analytics?country=${country}`}
               target="_blank"
               className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"

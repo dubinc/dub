@@ -57,9 +57,9 @@ export function LinksBlock() {
         ) : (
           data
             ?.slice(0, 6)
-            .map(({ shortLink, url, domain, key, saleAmount }, idx) => (
+            .map(({ shortLink, url, domain, key, saleAmount }) => (
               <Link
-                key={idx}
+                key={shortLink}
                 href={`/${workspaceSlug}/links/${domain}/${key}`}
                 target="_blank"
                 className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"

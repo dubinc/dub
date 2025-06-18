@@ -47,9 +47,9 @@ export function TrafficSourcesBlock() {
             No traffic sources found
           </div>
         ) : (
-          data?.slice(0, 6).map(({ referer, saleAmount }, idx) => (
+          data?.slice(0, 6).map(({ referer, saleAmount }) => (
             <Link
-              key={idx}
+              key={referer}
               href={`/${workspaceSlug}/program/analytics?referer=${referer}`}
               target="_blank"
               className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"

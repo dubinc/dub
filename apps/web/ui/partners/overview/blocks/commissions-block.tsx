@@ -45,12 +45,12 @@ export function CommissionsBlock() {
             No commissions found
           </div>
         ) : (
-          data?.slice(0, 6).map(({ partner, status, earnings }, idx) => {
+          data?.slice(0, 6).map(({ id, partner, status, earnings }) => {
             const badge = CommissionStatusBadges[status];
 
             return (
               <div
-                key={idx}
+                key={id}
                 className="text-content-default flex h-10 items-center justify-between text-xs font-medium"
               >
                 <div className="flex min-w-0 items-center gap-2">
