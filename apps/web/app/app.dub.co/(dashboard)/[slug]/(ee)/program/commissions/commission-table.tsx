@@ -3,7 +3,7 @@
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
-import { CLAWBACK_REASONS } from "@/lib/zod/schemas/commissions";
+import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
@@ -24,6 +24,7 @@ import {
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
 import {
+  cn,
   currencyFormatter,
   fetcher,
   formatDateTime,
@@ -159,20 +160,34 @@ const CommissionTableInner = memo(
             });
 
             if (commission.description) {
-              const reasonDescription = CLAWBACK_REASONS.find(
-                (r) => r.value === commission.description,
-              )?.description;
+              const reason =
+                CLAWBACK_REASONS_MAP[commission.description]?.description ??
+                commission.description;
 
               return (
-                <Tooltip content={reasonDescription}>
-                  <span className="cursor-help truncate underline decoration-dotted underline-offset-2">
+                <Tooltip content={reason}>
+                  <span
+                    className={cn(
+                      "cursor-help truncate underline decoration-dotted underline-offset-2",
+                      commission.earnings < 0 && "text-red-600",
+                    )}
+                  >
                     {earnings}
                   </span>
                 </Tooltip>
               );
             }
 
-            return earnings;
+            return (
+              <span
+                className={cn(
+                  commission.earnings < 0 && "text-red-600",
+                  "truncate",
+                )}
+              >
+                {earnings}
+              </span>
+            );
           },
         },
         {

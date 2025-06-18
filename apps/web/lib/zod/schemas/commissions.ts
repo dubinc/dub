@@ -179,6 +179,10 @@ export const CLAWBACK_REASONS = [
   },
 ];
 
+export const CLAWBACK_REASONS_MAP = Object.fromEntries(
+  CLAWBACK_REASONS.map((r) => [r.value, r]),
+);
+
 export const createClawbackSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
