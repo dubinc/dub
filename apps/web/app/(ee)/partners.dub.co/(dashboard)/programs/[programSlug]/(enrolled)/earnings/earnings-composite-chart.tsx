@@ -22,6 +22,7 @@ import {
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import { CommissionType } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";
 import { Fragment, useMemo, useState } from "react";
 
@@ -278,10 +279,10 @@ function EarningsTableControls() {
         key: "type",
         icon: Sliders,
         label: "Type",
-        options: ["click", "lead", "sale"].map((slug) => ({
-          value: slug,
-          label: capitalize(slug) as string,
-          icon: <CommissionTypeIcon type={slug} />,
+        options: Object.values(CommissionType).map((type) => ({
+          value: type,
+          label: capitalize(type) as string,
+          icon: <CommissionTypeIcon type={type} />,
         })),
       },
       {
