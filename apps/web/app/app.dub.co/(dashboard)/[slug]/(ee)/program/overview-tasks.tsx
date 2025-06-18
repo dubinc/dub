@@ -1,7 +1,7 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramOverviewCard } from "@/ui/partners/program-overview-card";
+import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import { Badge, MoneyBills2, ShieldKeyhole, UserCheck } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";

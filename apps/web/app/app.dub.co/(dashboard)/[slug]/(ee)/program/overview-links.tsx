@@ -1,6 +1,6 @@
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramOverviewCard } from "@/ui/partners/program-overview-card";
+import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import {
   ArrowUpRight,

@@ -6,7 +6,9 @@ import { editQueryString } from "@/lib/analytics/utils";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import { ProgramOverviewCard } from "@/ui/partners/program-overview-card";
+import { TopPartnersBlock } from "@/ui/partners/overview/blocks/top-partners-block";
+import { ProgramOverviewBlock } from "@/ui/partners/overview/program-overview-block";
+import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
@@ -15,6 +17,19 @@ import useSWR from "swr";
 import { OverviewChart } from "./overview-chart";
 import { OverviewLinks } from "./overview-links";
 import { OverviewTasks } from "./overview-tasks";
+
+const PlaceholderBlock = () => (
+  <ProgramOverviewBlock title="Placeholder">WIP</ProgramOverviewBlock>
+);
+
+const BLOCKS = [
+  TopPartnersBlock,
+  PlaceholderBlock,
+  PlaceholderBlock,
+  PlaceholderBlock,
+  PlaceholderBlock,
+  PlaceholderBlock,
+];
 
 export default function ProgramOverviewPageClient() {
   const { program } = useProgram();
@@ -86,11 +101,8 @@ export default function ProgramOverviewPageClient() {
           </div>
         </div>
         <div className="@2xl:grid-cols-2 @4xl:grid-cols-3 grid grid-cols-1 gap-6">
-          {[...Array(6)].map((_, idx) => (
-            <div
-              key={idx}
-              className="border-border-subtle h-64 rounded-[0.625rem] border bg-white"
-            ></div>
+          {BLOCKS.map((Block, idx) => (
+            <Block key={idx} />
           ))}
         </div>
       </AnalyticsContext.Provider>
