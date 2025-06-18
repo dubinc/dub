@@ -6,6 +6,7 @@ import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { CommissionsBlock } from "@/ui/partners/overview/blocks/commissions-block";
+import { CountriesBlock } from "@/ui/partners/overview/blocks/countries-block";
 import { TopPartnersBlock } from "@/ui/partners/overview/blocks/top-partners-block";
 import { TrafficSourcesBlock } from "@/ui/partners/overview/blocks/traffic-sources-block";
 import { ProgramOverviewBlock } from "@/ui/partners/overview/program-overview-block";
@@ -28,7 +29,7 @@ const BLOCKS = [
   TrafficSourcesBlock,
   CommissionsBlock,
   PlaceholderBlock,
-  PlaceholderBlock,
+  CountriesBlock,
   PlaceholderBlock,
 ];
 
