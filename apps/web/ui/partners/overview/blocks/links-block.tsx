@@ -1,7 +1,12 @@
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import { ArrowUpRight, LinkLogo, LoadingSpinner } from "@dub/ui";
+import {
+  ArrowUpRight,
+  LinkLogo,
+  LoadingSpinner,
+  useRouterStuff,
+} from "@dub/ui";
 import {
   currencyFormatter,
   fetcher,
@@ -14,11 +19,9 @@ import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function LinksBlock() {
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    defaultProgramId,
-  } = useWorkspace();
+  const { slug: workspaceSlug } = useWorkspace();
+
+  const { getQueryString } = useRouterStuff();
 
   const { queryString } = useContext(AnalyticsContext);
 
@@ -41,7 +44,12 @@ export function LinksBlock() {
   return (
     <ProgramOverviewBlock
       title="Top links by revenue"
-      viewAllHref={`/${workspaceSlug}/program/analytics`}
+      viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
+        undefined,
+        {
+          include: ["interval", "start", "end"],
+        },
+      )}`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
         {isLoading ? (

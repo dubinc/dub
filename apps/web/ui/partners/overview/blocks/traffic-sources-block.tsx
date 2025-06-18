@@ -1,7 +1,13 @@
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import { ArrowUpRight, BlurImage, Link4, LoadingSpinner } from "@dub/ui";
+import {
+  ArrowUpRight,
+  BlurImage,
+  Link4,
+  LoadingSpinner,
+  useRouterStuff,
+} from "@dub/ui";
 import { currencyFormatter, fetcher, GOOGLE_FAVICON_URL } from "@dub/utils";
 import Link from "next/link";
 import { useContext } from "react";
@@ -10,6 +16,8 @@ import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function TrafficSourcesBlock() {
   const { slug: workspaceSlug } = useWorkspace();
+
+  const { getQueryString } = useRouterStuff();
 
   const { queryString } = useContext(AnalyticsContext);
 
@@ -29,7 +37,12 @@ export function TrafficSourcesBlock() {
   return (
     <ProgramOverviewBlock
       title="Top traffic sources by revenue"
-      viewAllHref={`/${workspaceSlug}/program/analytics`}
+      viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
+        undefined,
+        {
+          include: ["interval", "start", "end"],
+        },
+      )}`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
         {isLoading ? (
@@ -48,7 +61,12 @@ export function TrafficSourcesBlock() {
           data?.slice(0, 6).map(({ referer, saleAmount }) => (
             <Link
               key={referer}
-              href={`/${workspaceSlug}/program/analytics?referer=${referer}`}
+              href={`/${workspaceSlug}/program/analytics${getQueryString(
+                { referer },
+                {
+                  include: ["interval", "start", "end"],
+                },
+              )}`}
               target="_blank"
               className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"
             >

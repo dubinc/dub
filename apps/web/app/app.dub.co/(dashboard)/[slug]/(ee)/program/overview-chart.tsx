@@ -16,7 +16,8 @@ const chartOptions = [
 ];
 
 export function OverviewChart() {
-  const { queryParams } = useRouterStuff();
+  const { queryParams, getQueryString } = useRouterStuff();
+
   const { selectedTab, saleUnit, queryString, totalEvents } =
     useContext(AnalyticsContext);
 
@@ -102,7 +103,9 @@ export function OverviewChart() {
         </div>
 
         <ButtonLink
-          href={`/${slug}/program/analytics`}
+          href={`/${slug}/program/analytics${getQueryString(undefined, {
+            include: ["interval", "start", "end"],
+          })}`}
           variant="secondary"
           className="h-8 px-3 text-sm"
         >
