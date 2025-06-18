@@ -5,7 +5,7 @@ import ProgramOverviewPageClient from "./page-client";
 export default async function ProgramOverviewPage() {
   return (
     <PageContent title="Overview">
-      <PageWidthWrapper>
+      <PageWidthWrapper className="mb-10">
         <ProgramOverviewPageClient />
       </PageWidthWrapper>
     </PageContent>
