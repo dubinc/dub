@@ -13,7 +13,7 @@ export function TopPartnersBlock() {
     defaultProgramId,
   } = useWorkspace();
 
-  let { data, isLoading, error } = useSWR<
+  const { data, isLoading, error } = useSWR<
     {
       partnerId: string;
       saleAmount: number;

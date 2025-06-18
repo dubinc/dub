@@ -3,9 +3,9 @@
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
+import { CommissionsBlock } from "@/ui/partners/overview/blocks/commissions-block";
 import { TopPartnersBlock } from "@/ui/partners/overview/blocks/top-partners-block";
 import { TrafficSourcesBlock } from "@/ui/partners/overview/blocks/traffic-sources-block";
 import { ProgramOverviewBlock } from "@/ui/partners/overview/program-overview-block";
@@ -26,14 +26,13 @@ const PlaceholderBlock = () => (
 const BLOCKS = [
   TopPartnersBlock,
   TrafficSourcesBlock,
-  PlaceholderBlock,
+  CommissionsBlock,
   PlaceholderBlock,
   PlaceholderBlock,
   PlaceholderBlock,
 ];
 
 export default function ProgramOverviewPageClient() {
-  const { program } = useProgram();
   const { searchParamsObj } = useRouterStuff();
 
   const { defaultProgramId, id: workspaceId } = useWorkspace();

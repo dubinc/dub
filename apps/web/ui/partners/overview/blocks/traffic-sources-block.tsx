@@ -12,7 +12,7 @@ export function TrafficSourcesBlock() {
     defaultProgramId,
   } = useWorkspace();
 
-  let { data, isLoading, error } = useSWR<
+  const { data, isLoading, error } = useSWR<
     {
       referer: string;
       saleAmount: number;
