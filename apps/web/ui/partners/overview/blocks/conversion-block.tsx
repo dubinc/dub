@@ -1,7 +1,8 @@
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import { LoadingSpinner } from "@dub/ui";
+import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { FunnelChart } from "@dub/ui/charts";
 import { fetcher, nFormatter } from "@dub/utils";
 import { useContext, useMemo } from "react";
@@ -9,6 +10,10 @@ import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function ConversionBlock() {
+  const { slug: workspaceSlug } = useWorkspace();
+
+  const { getQueryString } = useRouterStuff();
+
   const { queryString } = useContext(AnalyticsContext);
 
   const {
@@ -60,6 +65,12 @@ export function ConversionBlock() {
   return (
     <ProgramOverviewBlock
       title="Conversion rate"
+      viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
+        { view: "funnel" },
+        {
+          include: ["interval", "start", "end"],
+        },
+      )}`}
       className="pb-0"
       contentClassName="px-0 mt-1"
     >
