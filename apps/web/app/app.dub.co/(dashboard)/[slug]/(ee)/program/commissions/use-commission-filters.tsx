@@ -79,7 +79,7 @@ export function useCommissionFilters() {
         label: "Type",
         options: Object.values(CommissionType).map((type) => ({
           value: type,
-          label: capitalize(type),
+          label: capitalize(type) as string,
           icon: <CommissionTypeIcon type={type} />,
         })),
       },
