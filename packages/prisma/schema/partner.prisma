@@ -59,6 +59,8 @@ model Partner {
 
   tiktok           String?
   tiktokVerifiedAt DateTime?
+
+  invoiceSettings Json?
 }
 
 model PartnerUser {
