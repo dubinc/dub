@@ -257,6 +257,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           ref={qrBuilderContentWrapperRef}
           className={cn(
             "border-border-500 mx-auto h-full w-full rounded-lg border bg-white transition-[height] duration-[300ms]",
+            {
+              "pointer-events-none": isProcessing,
+            },
           )}
         >
           <Flex align="center" justify="center" className="px-6 py-3">

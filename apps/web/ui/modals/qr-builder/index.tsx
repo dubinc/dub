@@ -90,9 +90,9 @@ export function QRBuilderModal({
         disablePreventScroll: true,
         repositionInputs: true,
       }}
+      showFullScreenOnMobile
       className={cn(
-        "border-border-500 h-full max-w-screen-lg transition-[height] duration-[300ms]",
-        "inset-0 md:bottom-auto md:left-1/2 md:right-auto md:top-1/2 md:h-fit md:-translate-x-1/2 md:-translate-y-1/2",
+        "border-border-500 h-full max-w-screen-lg transition-[height] duration-[300ms] md:h-fit",
       )}
     >
       <div className="flex flex-col gap-2">

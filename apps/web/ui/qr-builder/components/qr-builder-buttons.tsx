@@ -93,7 +93,13 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         className="flex min-h-10 min-w-0 shrink basis-1/4"
         disabled={step <= minStep || isProcessing}
         onClick={handleBack}
-        icon={<ChevronLeft className="text-secondary" />}
+        icon={
+          <ChevronLeft
+            className={cn("text-secondary", {
+              "text-neutral-400": isProcessing,
+            })}
+          />
+        }
         text="Back"
       />
 
