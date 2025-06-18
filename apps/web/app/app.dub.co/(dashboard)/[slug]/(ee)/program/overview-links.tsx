@@ -78,7 +78,7 @@ export function OverviewLinks() {
                 "relative flex items-center justify-between gap-2 rounded-lg p-2 pl-3 text-sm font-semibold transition-colors",
                 "group-hover:bg-bg-inverted/5 group-hover:active:bg-bg-inverted/10",
               )}
-              aria-disabled={link.disabled}
+              {...(link.disabled && { "aria-disabled": true, tabIndex: -1 })}
             >
               <div className="flex min-w-0 items-center gap-2.5">
                 <link.icon className="size-4 shrink-0" />
