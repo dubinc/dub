@@ -148,7 +148,12 @@ export function PayoutMethodsDropdown() {
     <div>
       <Popover
         content={
-          <div className="relative w-[350px]">
+          <div
+            className={cn(
+              "relative w-[350px]",
+              isConnected("paypal") && "w-fit",
+            )}
+          >
             <div className="w-full space-y-0.5 rounded-lg bg-white p-1 text-sm">
               <div className="flex flex-col gap-2">
                 {payoutMethods
@@ -157,9 +162,7 @@ export function PayoutMethodsDropdown() {
                     return (
                       <div
                         key={id}
-                        className={cn(
-                          "flex w-full items-center justify-between rounded-md px-2 py-1.5 transition-all duration-75",
-                        )}
+                        className="flex w-full items-center justify-between gap-4 rounded-md px-2 py-1.5 transition-all duration-75"
                       >
                         <div className="flex items-center gap-x-2">
                           <div
@@ -191,7 +194,13 @@ export function PayoutMethodsDropdown() {
 
                         <Button
                           variant={isConnected(id) ? "secondary" : "primary"}
-                          text={isConnected(id) ? "Manage" : "Connect"}
+                          text={
+                            isConnected(id)
+                              ? id === "paypal"
+                                ? "Switch account"
+                                : "Manage"
+                              : "Connect"
+                          }
                           onClick={() => connectPayout(id)}
                           loading={isStripePending || isPaypalPending}
                           className="h-7 w-fit text-xs"
