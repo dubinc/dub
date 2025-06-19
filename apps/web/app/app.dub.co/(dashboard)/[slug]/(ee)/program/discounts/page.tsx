@@ -4,7 +4,14 @@ import { ProgramSettingsDiscountsPageClient } from "./page-client";
 
 export default function ProgramSettingsDiscountsPage() {
   return (
-    <PageContent title="Discounts">
+    <PageContent
+      title="Discounts"
+      titleInfo={{
+        title:
+          "Create dual-sided incentives (e.g. discounts for new customers and rewards for partners).",
+        href: "https://dub.co/help/article/dual-sided-incentives",
+      }}
+    >
       <PageWidthWrapper className="mb-8">
         <ProgramSettingsDiscountsPageClient />
       </PageWidthWrapper>

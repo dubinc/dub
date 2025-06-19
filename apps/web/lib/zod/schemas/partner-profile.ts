@@ -2,6 +2,7 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
+import { CommissionType } from "@prisma/client";
 import { z } from "zod";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
 import {
@@ -29,7 +30,7 @@ export const PartnerEarningsSchema = CommissionSchema.merge(
       id: true,
       shortLink: true,
       url: true,
-    }),
+    }).nullish(),
   }),
 );
 
@@ -43,7 +44,7 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
       interval: z
         .enum(DATE_RANGE_INTERVAL_PRESETS)
         .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
-      type: z.enum(["click", "lead", "sale"]).optional(),
+      type: z.nativeEnum(CommissionType).optional(),
       linkId: z.string().optional(),
       sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
     }),
@@ -58,7 +59,7 @@ export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
       interval: z
         .enum(DATE_RANGE_INTERVAL_PRESETS)
         .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
-      type: z.enum(["click", "lead", "sale"]).optional(),
+      type: z.nativeEnum(CommissionType).optional(),
       linkId: z.string().optional(),
       groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
     }),

@@ -127,6 +127,7 @@ export * from "./history";
 export * from "./hyperlink";
 export * from "./icosahedron";
 export * from "./incognito";
+export * from "./input-field";
 export * from "./input-password";
 export * from "./input-password-pointer";
 export * from "./input-search";

@@ -11,6 +11,7 @@ import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Sliders, User, Users } from "@dub/ui/icons";
 import { capitalize, cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -76,10 +77,10 @@ export function useCommissionFilters() {
         key: "type",
         icon: Sliders,
         label: "Type",
-        options: ["click", "lead", "sale", "custom"].map((slug) => ({
-          value: slug,
-          label: capitalize(slug) as string,
-          icon: <CommissionTypeIcon type={slug} />,
+        options: Object.values(CommissionType).map((type) => ({
+          value: type,
+          label: capitalize(type) as string,
+          icon: <CommissionTypeIcon type={type} />,
         })),
       },
       {

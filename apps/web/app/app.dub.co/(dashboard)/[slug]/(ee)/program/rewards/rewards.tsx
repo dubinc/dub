@@ -1,19 +1,14 @@
 "use client";
 
-import useProgram from "@/lib/swr/use-program";
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import useRewards from "@/lib/swr/use-rewards";
 import type { RewardProps } from "@/lib/types";
+import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { useRewardSheet } from "@/ui/partners/add-edit-reward-sheet";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { EventType } from "@dub/prisma/client";
-import {
-  Badge,
-  Button,
-  MoneyBill,
-  Popover,
-  useKeyboardShortcut,
-} from "@dub/ui";
+import { Badge, Button, Popover, useKeyboardShortcut } from "@dub/ui";
 import { pluralize } from "@dub/utils";
 import { Gift } from "lucide-react";
 import { useState } from "react";
@@ -21,24 +16,26 @@ import { useState } from "react";
 export function Rewards() {
   return (
     <div className="flex flex-col gap-6">
-      <DefaultReward />
+      <DefaultRewards />
       <AdditionalRewards />
     </div>
   );
 }
 
-const DefaultReward = () => {
-  const { program } = useProgram();
+const DefaultRewards = () => {
   const { rewards, loading } = useRewards();
 
-  const defaultReward =
-    program?.defaultRewardId &&
-    rewards?.find((r) => r.id === program.defaultRewardId);
+  const defaultClickReward = rewards?.find(
+    (r) => r.event === "click" && r.default,
+  );
 
-  const { RewardSheet, setIsOpen } = useRewardSheet({
-    event: "lead",
-    isDefault: true,
-  });
+  const defaultLeadReward = rewards?.find(
+    (r) => r.event === "lead" && r.default,
+  );
+
+  const defaultSaleReward = rewards?.find(
+    (r) => r.event === "sale" && r.default,
+  );
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
@@ -46,49 +43,35 @@ const DefaultReward = () => {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-neutral-900">
-              Default Reward
+              Default Rewards
             </h2>
             <p className="mt-1 text-sm text-neutral-600">
-              The default reward offered to all partners
+              Rewards offered to all partners enrolled in your program
             </p>
           </div>
         </div>
         {loading ? (
-          <RewardSkeleton />
-        ) : defaultReward ? (
-          <Reward reward={defaultReward} />
+          <>
+            <RewardSkeleton />
+            <RewardSkeleton />
+            <RewardSkeleton />
+          </>
         ) : (
-          <div className="flex items-center justify-between gap-4 rounded-lg bg-neutral-50 p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex size-10 items-center justify-center rounded-full border border-neutral-300">
-                <MoneyBill className="size-5" />
-              </div>
-              <p className="text-sm text-neutral-600">
-                No default reward created
-              </p>
-            </div>
-            <Button
-              text="Create default reward"
-              variant="primary"
-              className="h-9 w-fit"
-              onClick={() => setIsOpen(true)}
-            />
-          </div>
+          <>
+            <RewardItem reward={defaultSaleReward} event="sale" isDefault />
+            <RewardItem reward={defaultLeadReward} event="lead" isDefault />
+            <RewardItem reward={defaultClickReward} event="click" isDefault />
+          </>
         )}
-
-        {RewardSheet}
       </div>
     </div>
   );
 };
 
 const AdditionalRewards = () => {
-  const { program } = useProgram();
   const { rewards, loading } = useRewards();
 
-  const additionalRewards = rewards?.filter(
-    (reward) => reward.id !== program?.defaultRewardId,
-  );
+  const additionalRewards = rewards?.filter((reward) => !reward.default);
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
@@ -99,7 +82,8 @@ const AdditionalRewards = () => {
               Additional Rewards
             </h2>
             <p className="mt-1 text-sm text-neutral-600">
-              Add more reward types or reward groups
+              Custom rewards for specific partners that override the default
+              rewards
             </p>
           </div>
           <CreateRewardButton />
@@ -112,7 +96,11 @@ const AdditionalRewards = () => {
         ) : additionalRewards && additionalRewards.length > 0 ? (
           <div className="flex flex-col gap-4">
             {additionalRewards.map((reward) => (
-              <Reward key={reward.id} reward={reward} />
+              <RewardItem
+                key={reward.id}
+                reward={reward}
+                event={reward.event}
+              />
             ))}
           </div>
         ) : (
@@ -132,48 +120,6 @@ const AdditionalRewards = () => {
         )}
       </div>
     </div>
-  );
-};
-
-const Reward = ({ reward }: { reward: RewardProps }) => {
-  const { RewardSheet, setIsOpen } = useRewardSheet({
-    event: reward.event,
-    reward,
-  });
-
-  const Icon = REWARD_EVENTS[reward.event].icon;
-
-  return (
-    <>
-      <div
-        className="flex cursor-pointer items-center gap-4 rounded-lg border border-neutral-200 p-4 transition-all hover:border-neutral-300"
-        onClick={() => setIsOpen(true)}
-      >
-        <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
-          <Icon className="size-4 text-neutral-600" />
-        </div>
-        <div className="flex flex-1 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-normal">
-              <ProgramRewardDescription
-                reward={reward}
-                hideIfZero={false}
-                amountClassName="text-blue-600"
-              />
-            </span>
-          </div>
-          {reward.partnersCount && reward?.partnersCount > 0 ? (
-            <Badge variant="green">
-              {reward.partnersCount}{" "}
-              {pluralize("partner", reward.partnersCount)}
-            </Badge>
-          ) : (
-            <Badge variant="gray">All partners</Badge>
-          )}
-        </div>
-      </div>
-      {RewardSheet}
-    </>
   );
 };
 
@@ -266,5 +212,93 @@ const RewardSkeleton = () => {
         <div className="h-6 w-24 animate-pulse rounded-full bg-neutral-100" />
       </div>
     </div>
+  );
+};
+
+const RewardItem = ({
+  reward,
+  event,
+  isDefault = false,
+}: {
+  reward?: RewardProps;
+  event: EventType;
+  isDefault?: boolean;
+}) => {
+  const { RewardSheet, setIsOpen } = useRewardSheet({
+    event,
+    reward,
+    isDefault,
+  });
+
+  const { partnersCount: rewardPartnersCount, loading: partnersCountLoading } =
+    usePartnersCount<
+      | (RewardProps & {
+          partnersCount: number;
+        })[]
+      | undefined
+    >({
+      groupBy: REWARD_EVENT_COLUMN_MAPPING[event],
+      enabled: !isDefault,
+    });
+
+  const partnerCount =
+    !isDefault && reward
+      ? (rewardPartnersCount || []).find((r) => r.id === reward.id)
+          ?.partnersCount
+      : undefined;
+
+  const Icon = REWARD_EVENTS[event].icon;
+
+  return (
+    <>
+      <div
+        className="flex cursor-pointer items-center gap-4 rounded-lg border border-neutral-200 p-4 transition-all hover:border-neutral-300"
+        onClick={() => setIsOpen(true)}
+      >
+        <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
+          <Icon className="size-4 text-neutral-600" />
+        </div>
+        <div className="flex flex-1 items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-normal">
+              {reward ? (
+                <ProgramRewardDescription
+                  reward={reward}
+                  hideIfZero={false}
+                  amountClassName="text-blue-600"
+                />
+              ) : (
+                <span className="text-sm font-normal text-neutral-600">
+                  No default {event} reward configured
+                </span>
+              )}
+            </span>
+          </div>
+
+          {isDefault ? (
+            reward ? (
+              <Badge variant="gray">All partners</Badge>
+            ) : (
+              <Button
+                text="Create"
+                variant="primary"
+                className="h-8 w-fit"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(true);
+                }}
+              />
+            )
+          ) : partnersCountLoading ? (
+            <div className="h-4 w-24 animate-pulse rounded-full bg-neutral-100" />
+          ) : (
+            <Badge variant="green">
+              {partnerCount} {pluralize("partner", partnerCount || 0)}
+            </Badge>
+          )}
+        </div>
+      </div>
+      {RewardSheet}
+    </>
   );
 };

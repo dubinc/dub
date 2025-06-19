@@ -4,11 +4,11 @@ import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
-  ExpandingArrow,
   InvoiceDollar,
   LoadingSpinner,
   Sheet,
@@ -55,21 +55,19 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
     return {
       Program: (
-        <a
+        <ConditionalLink
           href={`/programs/${payout.program.slug}`}
           target="_blank"
-          className="group flex items-center gap-0.5"
         >
           <img
             src={
               payout.program.logo || `${OG_AVATAR_URL}${payout.program.name}`
             }
             alt={payout.program.name}
-            className="mr-1.5 size-4 rounded-sm"
+            className="mr-1.5 inline-flex size-4 rounded-sm"
           />
-          <span>{payout.program.name}</span>
-          <ExpandingArrow className="size-3" />
-        </a>
+          {payout.program.name}
+        </ConditionalLink>
       ),
 
       Period: formatPeriod(payout),
@@ -120,17 +118,20 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         header: "Details",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            {row.original.type === "click" ? (
+            {["click", "custom"].includes(row.original.type) ? (
               <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100">
-                <CommissionTypeIcon type="click" className="size-4" />
+                <CommissionTypeIcon
+                  type={row.original.type}
+                  className="size-4"
+                />
               </div>
             ) : (
               <img
                 src={
                   row.original.customer.avatar ||
-                  `${OG_AVATAR_URL}${row.original.customer.name}`
+                  `${OG_AVATAR_URL}${row.original.customer.id}`
                 }
-                alt={row.original.customer.name}
+                alt={row.original.customer.id}
                 className="size-6 rounded-full"
               />
             )}
@@ -139,7 +140,9 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
               <span className="text-sm text-neutral-700">
                 {row.original.type === "click"
                   ? `${row.original.quantity} ${pluralize("click", row.original.quantity)}`
-                  : row.original.customer.email || row.original.customer.name}
+                  : row.original.customer
+                    ? row.original.customer.email || row.original.customer.name
+                    : "Custom commission"}
               </span>
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}
