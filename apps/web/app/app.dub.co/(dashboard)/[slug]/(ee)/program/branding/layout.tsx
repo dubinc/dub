@@ -10,6 +10,11 @@ export default function ProgramSettingsLayout({
   return (
     <PageContent
       title="Branding"
+      titleInfo={{
+        title:
+          "Customize your program's landing page, partner portal, and referral embed to ensure brand consistency.",
+        href: "https://dub.co/help/article/program-branding",
+      }}
       controls={
         <ProgramBrandingTabs slug={params.slug} programId={params.programId} />
       }
