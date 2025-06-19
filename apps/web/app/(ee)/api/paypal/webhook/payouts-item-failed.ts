@@ -12,6 +12,7 @@ const PAYPAL_TO_DUB_STATUS = {
   "PAYMENT.PAYOUTS-ITEM.HELD": "processing",
   "PAYMENT.PAYOUTS-ITEM.REFUNDED": "failed",
   "PAYMENT.PAYOUTS-ITEM.RETURNED": "failed",
+  "PAYMENT.PAYOUTS-ITEM.UNCLAIMED": "processing",
 };
 
 export async function payoutsItemFailed(event: any) {
@@ -43,20 +44,31 @@ export async function payoutsItemFailed(event: any) {
     return;
   }
 
+  const payoutStatus = PAYPAL_TO_DUB_STATUS[body.event_type];
   const failureReason = body.resource.errors?.message;
 
-  await Promise.all([
-    prisma.payout.update({
-      where: {
-        id: payout.id,
-      },
-      data: {
-        paypalTransferId: payoutItemId,
-        status: PAYPAL_TO_DUB_STATUS[body.event_type],
-        failureReason,
-      },
-    }),
+  await prisma.payout.update({
+    where: {
+      id: payout.id,
+    },
+    data: {
+      paypalTransferId: payoutItemId,
+      status: payoutStatus,
+      failureReason,
+    },
+  });
 
+  if (payoutStatus === "processing") {
+    await log({
+      message: `Paypal payout is stuck in processing for invoice ${invoiceId} and partner ${paypalEmail}. PayPal webhook status: ${body.event_type}.${
+        failureReason ? ` Failure reason: ${failureReason}` : ""
+      }`,
+      type: "errors",
+    });
+    return; // we only send emails for failed payouts
+  }
+
+  await Promise.all([
     payout.partner.email
       ? sendEmail({
           subject: `Your recent partner payout from ${payout.program.name} failed`,

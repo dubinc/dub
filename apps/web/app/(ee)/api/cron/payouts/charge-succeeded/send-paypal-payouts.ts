@@ -17,6 +17,6 @@ export async function sendPaypalPayouts({
 
   await createPayPalBatchPayout({
     payouts,
-    invoiceId,
+    senderBatchId: invoiceId,
   });
 }
