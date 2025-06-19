@@ -8,7 +8,7 @@ import { prisma } from "@dub/prisma";
 import { createId } from "../utils";
 
 export async function createQr(
-  { data, qrType, title, description, styles, frameOptions, file }: NewQrProps,
+  { data, qrType, title, description, styles, frameOptions, file, fileName }: NewQrProps,
   url: string,
   linkId: string,
   userId: string | null,
@@ -24,6 +24,7 @@ export async function createQr(
     styles,
     frameOptions,
     file,
+    fileName,
     homePageDemo,
   );
   const qr = await prisma.qr.create({
@@ -38,6 +39,7 @@ export async function createQr(
       linkId,
       userId,
       fileId,
+      fileName,
     },
   });
 

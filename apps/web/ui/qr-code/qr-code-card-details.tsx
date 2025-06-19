@@ -49,19 +49,21 @@ const getDisplayContent = (qrCode: ResponseQrCode): string => {
     case EQRType.PDF:
     case EQRType.IMAGE:
     case EQRType.VIDEO:
+      if (qrCode.fileName) {
+        return qrCode.fileName;
+      }
+
       if (qrCode.link?.url) {
         try {
           const url = new URL(qrCode.link.url);
-          const pathname = url.pathname;
-          const fileName = pathname.split("/").pop();
-          if (fileName) {
-            return decodeURIComponent(fileName);
-          }
-        } catch (e) {
-          // Если не удалось распарсить URL, возвращаем как есть
+          const id = url.pathname.split("/").pop();
+          return id || qrCode.link.url;
+        } catch {
+          return qrCode.link.url;
         }
       }
-      return qrCode.link?.url || data;
+
+      return data;
 
     case EQRType.WEBSITE:
     case EQRType.APP_LINK:

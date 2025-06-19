@@ -85,7 +85,7 @@ export const QRCodeDemoWifi: FC<IQRCodeDemoWifiProps> = ({ networkName }) => {
           width="264"
           height="318"
           filterUnits="userSpaceOnUse"
-          colorInterpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
           <feFlood flood-opacity="0" result="BackgroundImageFix" />
           <feColorMatrix

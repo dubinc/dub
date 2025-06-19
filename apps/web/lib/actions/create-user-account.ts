@@ -35,6 +35,10 @@ const qrDataToCreateSchema = z.object({
     "feedback",
   ]),
   file: z.string().nullish().describe("The file ID for the uploaded content"),
+  fileName: z
+    .string()
+    .nullish()
+    .describe("The original name of the uploaded file"),
 });
 
 const schema = signUpSchema.extend({
@@ -176,6 +180,7 @@ export const createUserAccountAction = actionClient
               link: createdLink,
               // @ts-ignore
               data: qrDataToCreate.styles.data,
+              fileName: qrDataToCreate?.fileName,
             },
             createdLink.shortLink,
             createdLink.id,

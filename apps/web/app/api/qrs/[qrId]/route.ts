@@ -1,5 +1,6 @@
 import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
-import { DubApiError } from "@/lib/api/errors";
+import { DubApiError, ErrorCodes } from "@/lib/api/errors";
+import { processLink, updateLink } from '@/lib/api/links';
 import { includeTags } from "@/lib/api/links/include-tags.ts";
 import { getQr } from "@/lib/api/qrs/get-qr";
 import { updateQr } from "@/lib/api/qrs/update-qr";
@@ -7,6 +8,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { updateQrBodySchema } from "@/lib/zod/schemas/qrs";
 import { prisma } from "@dub/prisma";
+import { R2_URL } from '@dub/utils';
 import { NextResponse } from "next/server";
 
 // GET /api/qrs/[qrId] – get a qr
@@ -43,15 +45,44 @@ export const PATCH = withWorkspace(
 
     const body = updateQrBodySchema.parse(await parseRequestBody(req)) || {};
 
+    const fileId = crypto.randomUUID();
+
     try {
-      const response = await prisma.link.update({
-        where: {
-          id: qr.link!.id,
+      const updatedLink = {
+        ...qr.link!,
+        url: body.file ? `${R2_URL}/qrs-content/${fileId}` : body.link!.url,
+        geo: qr.link!.geo as Record<string, string> | null,
+      };
+
+      const {
+        link: processedLink,
+        error,
+        code,
+      } = await processLink({
+        payload: {
+          ...updatedLink,
+          expiresAt: updatedLink.expiresAt?.toISOString() || null,
         },
-        data: {
-          url: body.link!.url,
-          archived: body.archived || false,
+        workspace,
+        skipKeyChecks: true,
+        skipExternalIdChecks: true,
+        skipFolderChecks: true,
+      });
+
+      if (error) {
+        throw new DubApiError({
+          code: code as ErrorCodes,
+          message: error,
+        });
+      }
+
+      const response = await updateLink({
+        oldLink: {
+          domain: qr.link!.domain,
+          key: qr.link!.key,
+          image: qr.link!.image,
         },
+        updatedLink: processedLink,
       });
 
       // waitUntil(
@@ -62,7 +93,7 @@ export const PATCH = withWorkspace(
       //   }),
       // );
 
-      const updatedQr = await updateQr(params.qrId, body);
+      const updatedQr = await updateQr(params.qrId, body, fileId, qr.fileId);
 
       return NextResponse.json(updatedQr, {
         headers,
