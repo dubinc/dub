@@ -15,10 +15,12 @@ interface GuideProps {
   markdown: string | null;
 }
 
+type ButtonType = "completed" | "later";
+
 export function Guide({ selectedGuide, markdown }: GuideProps) {
   const router = useRouter();
-  const [hasSubmitted, setHasSubmitted] = useState(false);
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
+  const [pressedButton, setPressedButton] = useState<ButtonType | null>(null);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -27,15 +29,16 @@ export function Guide({ selectedGuide, markdown }: GuideProps) {
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
+      setPressedButton(null);
     },
   });
 
-  const onContinue = async () => {
+  const onContinue = async (buttonType: "completed" | "later") => {
     if (!workspaceId) {
       return;
     }
 
-    setHasSubmitted(true);
+    setPressedButton(buttonType);
 
     await executeAsync({
       workspaceId,
@@ -76,8 +79,9 @@ export function Guide({ selectedGuide, markdown }: GuideProps) {
               text="I've completed this"
               className="w-full"
               type="button"
-              onClick={onContinue}
-              loading={isPending || hasSubmitted}
+              onClick={() => onContinue("completed")}
+              loading={isPending && pressedButton === "completed"}
+              disabled={isPending && pressedButton === "later"}
             />
 
             <Button
@@ -85,8 +89,9 @@ export function Guide({ selectedGuide, markdown }: GuideProps) {
               variant="secondary"
               className="w-full"
               type="button"
-              onClick={onContinue}
-              loading={isPending || hasSubmitted}
+              onClick={() => onContinue("later")}
+              loading={isPending && pressedButton === "later"}
+              disabled={isPending && pressedButton === "completed"}
             />
           </div>
         </div>
