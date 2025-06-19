@@ -9,7 +9,7 @@ const schema = z.object({
     SearchResults: z.array(
       z.object({
         DomainName: z.string(),
-        Available: z.enum(["yes", "no"]),
+        Available: z.string().nullable().default(null),
         Price: z.string().nullish().default(null),
         Status: z.string().nullish().default(null),
       }),
