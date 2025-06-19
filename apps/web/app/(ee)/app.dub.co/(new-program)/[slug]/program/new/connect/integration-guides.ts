@@ -56,7 +56,7 @@ export const guides: IntegrationGuide[] = [
     key: "shopify",
     title: "Shopify",
     description: "How to add @dub/analytics to your Shopify store",
-    shortDescription: "Dub Analytics",
+    shortDescription: "Track sales",
     icon: Shopify,
   },
   {
@@ -64,7 +64,7 @@ export const guides: IntegrationGuide[] = [
     key: "stripe",
     title: "Stripe",
     description: "How to add @dub/analytics to your Stripe store",
-    shortDescription: "Dub Analytics",
+    shortDescription: "Track sales",
     icon: Stripe,
   },
   {
