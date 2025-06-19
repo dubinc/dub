@@ -23,19 +23,19 @@ export const getLinkStructureOptions = ({
     {
       id: LinkStructure.short,
       label: "Short link",
-      example: `${shortDomain}/${username}`,
+      example: `${shortDomain}/{partnerName}`,
       comingSoon: false,
     },
     {
       id: LinkStructure.query,
       label: "Query parameter",
-      example: `${websiteDomain}?via=${username}`,
+      example: `${websiteDomain}?via={partnerName}`,
       comingSoon: false,
     },
     {
       id: LinkStructure.path,
       label: "Dynamic path",
-      example: `${websiteDomain}/refer/${username}`,
+      example: `${websiteDomain}/refer/{partnerName}`,
       comingSoon: true,
     },
   ];
