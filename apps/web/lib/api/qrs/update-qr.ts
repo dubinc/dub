@@ -17,6 +17,7 @@ export async function updateQr(id: string, { data, qrType, title, description, s
       styles,
       frameOptions,
       archived: archived || false,
+      fileId: file ? fileId : oldFileId,
     },
     include: {
       link: true,
