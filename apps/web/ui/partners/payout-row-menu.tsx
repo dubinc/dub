@@ -1,11 +1,10 @@
 import { retryFailedPaypalPayoutsAction } from "@/lib/actions/partners/retry-failed-paypal-payouts";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { Button, Icon, Popover } from "@dub/ui";
-import { Dots } from "@dub/ui/icons";
+import { Dots, Refresh2 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { RefreshCcw } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -54,7 +53,7 @@ export function PayoutRowMenu({ row }: { row: Row<PartnerPayoutResponse> }) {
             {canRetry && (
               <Command.Group className="p-1.5">
                 <MenuItem
-                  icon={RefreshCcw}
+                  icon={Refresh2}
                   label="Retry payout"
                   onSelect={retryPayout}
                   disabled={isPending}
