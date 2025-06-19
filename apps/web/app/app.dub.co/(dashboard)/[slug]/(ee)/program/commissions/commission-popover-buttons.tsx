@@ -1,8 +1,7 @@
 "use client";
 
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, IconMenu, Popover } from "@dub/ui";
-import { RotateCcw } from "lucide-react";
+import { Button, IconMenu, Popover, Refresh2 } from "@dub/ui";
 import { useState } from "react";
 import { useCreateClawbackSheet } from "./create-clawback-sheet";
 
@@ -28,7 +27,7 @@ export function CommissionPopoverButtons() {
               >
                 <IconMenu
                   text="Create clawback"
-                  icon={<RotateCcw className="h-4 w-4" />}
+                  icon={<Refresh2 className="h-4 w-4" />}
                 />
               </button>
             </div>
