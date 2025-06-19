@@ -52,7 +52,6 @@ export const LinksToolbar = memo(
     const { slug, plan } = useWorkspace();
 
     const { isMegaFolder } = useIsMegaFolder();
-    console.log({ isMegaFolder });
 
     const { canManageFolderPermissions } = getPlanCapabilities(plan);
     const { folders } = useFolderPermissions();
