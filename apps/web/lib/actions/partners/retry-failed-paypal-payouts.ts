@@ -77,7 +77,7 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
 
     try {
       await createPayPalBatchPayout({
-        senderBatchId: `${payout.id}_${nanoid(7)}`,
+        invoiceId: `${payout.invoiceId}-${nanoid(7)}`,
         payouts: [
           {
             id: payout.id,

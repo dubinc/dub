@@ -7,19 +7,19 @@ interface CreatePayPalBatchPayout {
     partner: Pick<Partner, "paypalEmail">;
     program: Pick<Program, "name">;
   })[];
-  senderBatchId: string;
+  invoiceId: string;
 }
 
 // Create a batch payout for an array of payouts for a program
 export async function createPayPalBatchPayout({
   payouts,
-  senderBatchId,
+  invoiceId,
 }: CreatePayPalBatchPayout) {
   const paypalAccessToken = await createPaypalToken();
 
   const body = {
     sender_batch_header: {
-      sender_batch_id: senderBatchId,
+      sender_batch_id: invoiceId,
     },
     items: payouts.map((payout) => ({
       recipient_type: "EMAIL",
@@ -50,7 +50,7 @@ export async function createPayPalBatchPayout({
   if (!response.ok) {
     console.error("[PayPal] Batch payout creation failed", data);
     throw new Error(
-      `[PayPal] Batch payout creation failed. Sender batch ID: ${senderBatchId}. Error: ${JSON.stringify(data)}`,
+      `[PayPal] Batch payout creation failed. Invoice ID: ${invoiceId}. Error: ${JSON.stringify(data)}`,
     );
   }
 
