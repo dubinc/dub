@@ -258,10 +258,10 @@ export function ProgramPartnersApplicationsPageClient() {
       }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (p) => `partner${p ? "s" : ""}`,
+    resourceName: (p) => `application${p ? "s" : ""}`,
     rowCount: partnersCount || 0,
     loading: isLoading || isCurrentPartnerLoading,
-    error: error || countError ? "Failed to load partners" : undefined,
+    error: error || countError ? "Failed to load applications" : undefined,
   });
 
   return (

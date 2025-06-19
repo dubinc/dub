@@ -270,7 +270,7 @@ export function PartnerTable() {
   });
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-6">
       {detailsSheetState.partnerId &&
         currentPartner &&
         (currentPartner.status === "pending" ? (
