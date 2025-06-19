@@ -38,10 +38,12 @@ export function useQrSave() {
     async (data: FullQrCreateData) => {
       try {
         const file = data.files && data.files.length > 0 ? data.files[0] : null;
+        const fileName = file ? file.name : undefined;
         const body = {
           ...data,
           data: data.styles.data,
           file: file ? await fileToBase64(file) : undefined,
+          fileName,
           link: {
             url: data.styles.data,
             domain: SHORT_DOMAIN,
@@ -86,10 +88,12 @@ export function useQrSave() {
     async (qrId: string, data: QrUpdateData) => {
       try {
         const file = data.files && data.files.length > 0 ? data.files[0] : null;
+        const fileName = file ? file.name : undefined;
         const body = {
           ...data,
           ...(data.styles && { data: data.styles.data }),
           ...(file && { file: await fileToBase64(file) }),
+          ...(fileName && { fileName }),
           ...(data.data && {
             link: {
               url: data.data,

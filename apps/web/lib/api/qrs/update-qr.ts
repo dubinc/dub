@@ -4,7 +4,7 @@ import { createId } from "../utils";
 import { EQRType, FILE_QR_TYPES } from '@/ui/qr-builder/constants/get-qr-config';
 import { storage } from '@/lib/storage';
 
-export async function updateQr(id: string, { data, qrType, title, description, styles, frameOptions, archived, file }: Partial<NewQrProps>, fileId: string, oldFileId: string | null) {
+export async function updateQr(id: string, { data, qrType, title, description, styles, frameOptions, archived, file, fileName }: Partial<NewQrProps>, fileId: string, oldFileId: string | null) {
   const qr = await prisma.qr.update({
     where: {
       id,
@@ -18,6 +18,7 @@ export async function updateQr(id: string, { data, qrType, title, description, s
       frameOptions,
       archived: archived || false,
       fileId: file ? fileId : oldFileId,
+      fileName,
     },
     include: {
       link: true,
