@@ -97,7 +97,8 @@ export function PayoutTable() {
             row.original.status === "pending" &&
             row.original.amount >= row.original.program.minPayoutAmount
           ) {
-            tooltip = "This payout will be processed at the end of the month.";
+            tooltip =
+              "This payout will be processed depends on your program's payment schedule, which is usually at the beginning or the end of the month.";
           }
 
           return badge ? (
