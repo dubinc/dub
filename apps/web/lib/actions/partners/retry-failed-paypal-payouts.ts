@@ -18,8 +18,6 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
     const { partner } = ctx;
     const { payoutId } = parsedInput;
 
-    throw new Error("Not implemented");
-
     if (!partner.payoutsEnabledAt) {
       throw new Error(
         "You haven't enabled payouts yet. Please enable payouts in your payout settings.",
@@ -64,7 +62,9 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
     }
 
     if (payout.status !== "failed") {
-      throw new Error("This payout cannot be retried.");
+      throw new Error(
+        "This payout cannot be retried (you can only retry failed payouts).",
+      );
     }
 
     if (!payout.invoiceId) {
@@ -77,7 +77,7 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
 
     try {
       await createPayPalBatchPayout({
-        invoiceId: `${payout.invoiceId}-${nanoid(10)}`,
+        invoiceId: `${payout.invoiceId}-${nanoid(7)}`,
         payouts: [
           {
             id: payout.id,
