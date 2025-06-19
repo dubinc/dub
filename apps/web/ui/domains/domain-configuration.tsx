@@ -151,8 +151,8 @@ const DnsRecord = ({
         className={cn(
           "scrollbar-hide grid items-end gap-x-10 gap-y-1 overflow-x-auto rounded-lg bg-neutral-100/80 p-4 text-sm",
           hasTtl
-            ? "grid-cols-[repeat(4,min-content)]"
-            : "grid-cols-[repeat(3,min-content)]",
+            ? "grid-cols-[repeat(4,max-content)]"
+            : "grid-cols-[repeat(3,max-content)]",
         )}
       >
         {["Type", "Name", "Value"].concat(hasTtl ? "TTL" : []).map((s) => (
