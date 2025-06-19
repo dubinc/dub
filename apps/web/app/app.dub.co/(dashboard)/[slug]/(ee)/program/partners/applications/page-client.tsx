@@ -5,7 +5,6 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
-import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -267,25 +266,15 @@ export function ProgramPartnersApplicationsPageClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      {detailsSheetState.partnerId &&
-        currentPartner &&
-        (currentPartner.status === "pending" ? (
-          <PartnerApplicationSheet
-            isOpen={detailsSheetState.open}
-            setIsOpen={(open) =>
-              setDetailsSheetState((s) => ({ ...s, open }) as any)
-            }
-            partner={currentPartner}
-          />
-        ) : (
-          <PartnerDetailsSheet
-            isOpen={detailsSheetState.open}
-            setIsOpen={(open) =>
-              setDetailsSheetState((s) => ({ ...s, open }) as any)
-            }
-            partner={currentPartner}
-          />
-        ))}
+      {detailsSheetState.partnerId && currentPartner && (
+        <PartnerApplicationSheet
+          isOpen={detailsSheetState.open}
+          setIsOpen={(open) =>
+            setDetailsSheetState((s) => ({ ...s, open }) as any)
+          }
+          partner={currentPartner}
+        />
+      )}
       <div className="w-min">
         <SearchBoxPersisted
           placeholder="Search by name or email"
