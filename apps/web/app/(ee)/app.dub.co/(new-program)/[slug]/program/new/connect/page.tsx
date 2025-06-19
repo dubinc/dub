@@ -42,7 +42,11 @@ export default async function Page({
 }
 
 function getMarkdown(guideKey: string): string | null {
-  const markdownPath = join(process.cwd(), "integration-guides", `${guideKey}.md`);
+  const markdownPath = join(
+    process.cwd(),
+    "integration-guides",
+    `${guideKey}.md`,
+  );
 
   try {
     return readFileSync(markdownPath, "utf-8");
