@@ -25,6 +25,7 @@ export const createPartnerCommission = async ({
   amount = 0,
   quantity,
   currency,
+  description,
   createdAt,
 }: {
   // we optionally let the caller pass in a reward to avoid a db call
@@ -40,6 +41,7 @@ export const createPartnerCommission = async ({
   amount?: number;
   quantity: number;
   currency?: string;
+  description?: string;
   createdAt?: Date;
 }) => {
   let earnings = 0;
@@ -175,6 +177,7 @@ export const createPartnerCommission = async ({
         currency,
         earnings,
         status,
+        description,
         createdAt,
       },
     });

@@ -3,6 +3,7 @@
 import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
+import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
@@ -13,12 +14,14 @@ import {
   LinkLogo,
   StatusBadge,
   Table,
+  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { CircleDollar } from "@dub/ui/icons";
 import {
+  cn,
   currencyFormatter,
   fetcher,
   formatDateTime,
@@ -160,11 +163,44 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         id: "earnings",
         header: "Earnings",
         accessorKey: "earnings",
-        cell: ({ row }) =>
-          currencyFormatter(row.original.earnings / 100, {
+        cell: ({ row }) => {
+          const commission = row.original;
+
+          const earnings = currencyFormatter(commission.earnings / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
-          }),
+          });
+
+          if (commission.description) {
+            const reason =
+              CLAWBACK_REASONS_MAP[commission.description]?.description ??
+              commission.description;
+
+            return (
+              <Tooltip content={reason}>
+                <span
+                  className={cn(
+                    "cursor-help truncate underline decoration-dotted underline-offset-2",
+                    commission.earnings < 0 && "text-red-600",
+                  )}
+                >
+                  {earnings}
+                </span>
+              </Tooltip>
+            );
+          }
+
+          return (
+            <span
+              className={cn(
+                commission.earnings < 0 && "text-red-600",
+                "truncate",
+              )}
+            >
+              {earnings}
+            </span>
+          );
+        },
       },
       {
         header: "Status",

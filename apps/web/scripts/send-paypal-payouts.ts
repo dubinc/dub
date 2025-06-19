@@ -1,40 +1,29 @@
+import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { createId } from "../lib/api/create-id";
 import { createPaypalToken } from "../lib/paypal/create-paypal-token";
 import { paypalEnv } from "../lib/paypal/env";
 
-const payouts = [
-  {
-    id: createId({ prefix: "po_" }),
-    partner: {
-      paypalEmail: "test@test.com",
-    },
-    program: {
-      name: "Dub",
-    },
-    amount: 1000,
-  },
-  {
-    id: createId({ prefix: "po_" }),
-    partner: {
-      paypalEmail: "test@test.com",
-    },
-    program: {
-      name: "Dub",
-    },
-    amount: 1000,
-  },
-];
-
 async function main() {
+  const payouts = await prisma.payout.findMany({
+    where: {
+      id: "po_xxxxx",
+    },
+    include: {
+      partner: true,
+      program: true,
+    },
+  });
+
+  // DON'T FORGET TO CHANGE TO PROD ENVS BEFORE RUNNING THIS SCRIPT
   const paypalAccessToken = await createPaypalToken();
+
   console.log({ paypalAccessToken });
 
   console.log("Creating PayPal batch payout with env", paypalEnv);
 
   const body = {
     sender_batch_header: {
-      sender_batch_id: "test_another",
+      sender_batch_id: payouts[0].id,
     },
     items: payouts.map((payout) => ({
       recipient_type: "EMAIL",
@@ -48,7 +37,10 @@ async function main() {
     })),
   };
 
-  console.log("Creating PayPal batch payout with body", body);
+  console.log(
+    "Creating PayPal batch payout with body",
+    JSON.stringify(body, null, 2),
+  );
 
   const response = await fetch(
     `${paypalEnv.PAYPAL_API_HOST}/v1/payments/payouts`,

@@ -145,6 +145,19 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           },
         ]
       : []),
+    ...(partner.country &&
+    (EU_COUNTRY_CODES.includes(partner.country) || partner.country === "AU")
+      ? [
+          {
+            label: `${partner.country === "AU" ? "GST" : "VAT"} reverse charge`,
+            value: (
+              <Text style={tw("text-neutral-800 w-2/3")}>
+                Tax to be paid on reverse charge basis.
+              </Text>
+            ),
+          },
+        ]
+      : []),
   ];
 
   const supportEmail = payout.program.supportEmail || "support@dub.co";
