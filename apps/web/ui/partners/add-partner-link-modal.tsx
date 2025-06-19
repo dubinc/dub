@@ -87,7 +87,9 @@ const AddPartnerLinkModal = ({
       setShowModal(false);
       copyToClipboard(data.shortLink);
     } catch (error) {
-      setErrorMessage(error.message || "Failed to create link.");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to create link.",
+      );
     } finally {
       setIsSubmitting(false);
     }
