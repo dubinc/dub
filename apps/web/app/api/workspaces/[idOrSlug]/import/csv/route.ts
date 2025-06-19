@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
@@ -15,7 +16,10 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
   const folderId = formData.get("folderId") as string | null;
 
   if (!file) {
-    return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    throw new DubApiError({
+      code: "bad_request",
+      message: "No CSV file was provided.",
+    });
   }
 
   if (folderId) {
