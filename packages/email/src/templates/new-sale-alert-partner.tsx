@@ -97,7 +97,17 @@ export function NewSaleAlertPartner({
               You received{" "}
               <strong className="text-black">{earningsInDollars}</strong> in
               commission for this sale and it will be eligible for payout after
-              the program's {program.holdingPeriodDays}-day holding period.
+              the program's {program.holdingPeriodDays}-day holding period (
+              <strong>
+                {new Date(
+                  Date.now() + program.holdingPeriodDays * 24 * 60 * 60 * 1000,
+                ).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </strong>
+              ).
             </Text>
 
             <Section className="mb-12 mt-8">
