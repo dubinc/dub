@@ -398,7 +398,17 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
     scrollWrapperClassName: "min-h-[40px]",
   } as any);
 
-  return <Table {...table} />;
+  return (
+    <div className="flex flex-col gap-4">
+      <Button
+        variant="secondary"
+        text="Create link"
+        className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
+        onClick={() => {}}
+      />
+      <Table {...table} />
+    </div>
+  );
 };
 
 function Menu({ partner }: { partner: EnrolledPartnerProps }) {
