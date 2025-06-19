@@ -3,7 +3,7 @@
 import { mutateSuffix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
-import { Lock, X } from "@/ui/shared/icons";
+import { X } from "@/ui/shared/icons";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
   Button,
@@ -17,7 +17,12 @@ import {
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
-import { ArrowTurnLeft, Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
+import {
+  ArrowTurnLeft,
+  Pen2,
+  PenWriting,
+  QRCode as QRCodeIcon,
+} from "@dub/ui/icons";
 import {
   cn,
   getDomainWithoutWWW,
@@ -318,7 +323,7 @@ function PartnerLinkModalContent({
                     ) && setLockKey(false);
                   }}
                 >
-                  <Lock className="h-3 w-3" />
+                  <PenWriting className="size-3.5" />
                 </button>
               )}
             </div>
