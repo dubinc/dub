@@ -68,10 +68,13 @@ const AddPartnerLinkModal = ({
           ...formData,
           partnerId: partner.id,
           programId: program.id,
+          domain: program.domain,
           url: linkConstructor({
             domain: destinationDomain,
             key: formData.url,
           }),
+          trackConversion: true,
+          folderId: program.defaultFolderId,
         }),
       });
 
@@ -139,7 +142,7 @@ const AddPartnerLinkModal = ({
 
               <div className="flex">
                 <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                  {getDomainWithoutWWW(program?.domain || "")}
+                  {program?.domain}
                 </span>
 
                 <input
