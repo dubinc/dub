@@ -21,6 +21,7 @@ export type LinkBuilderProps = {
     plan?: string;
     nextPlan?: (typeof PLANS)[number];
     conversionEnabled?: boolean;
+    defaultProgramId?: string | null;
   };
   modal: boolean;
 };
