@@ -2,9 +2,9 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { guides } from "./integration-guides";
 import { Guide } from "./guide";
 import { GuideList } from "./guide-list";
+import { guides } from "./integration-guides";
 import { IntegrationGuide } from "./types";
 
 interface PageClientProps {
@@ -25,9 +25,7 @@ export function PageClient({ markdown }: PageClientProps) {
       return;
     }
 
-    const integrationGuide = guides.find(
-      (g) => g.title.toLowerCase() === guide.toLowerCase(),
-    );
+    const integrationGuide = guides.find((g) => g.key === guide.toLowerCase());
 
     if (integrationGuide) {
       setSelectedGuide(integrationGuide);
