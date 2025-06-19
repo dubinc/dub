@@ -89,16 +89,21 @@ export function PayoutTable() {
         header: "Status",
         cell: ({ row }) => {
           const badge = PayoutStatusBadges[row.original.status];
+          let tooltip: string | undefined = undefined;
+
+          if (row.original.status === "failed" && row.original.failureReason) {
+            tooltip = row.original.failureReason;
+          } else if (
+            row.original.status === "pending" &&
+            row.original.amount >= row.original.program.minPayoutAmount
+          ) {
+            tooltip = "This payout will be processed at the end of the month.";
+          }
+
           return badge ? (
             <StatusBadge icon={badge.icon} variant={badge.variant}>
               <DynamicTooltipWrapper
-                tooltipProps={
-                  row.original.status === "failed" && row.original.failureReason
-                    ? {
-                        content: row.original.failureReason,
-                      }
-                    : undefined
-                }
+                tooltipProps={tooltip ? { content: tooltip } : undefined}
               >
                 {badge.label}
               </DynamicTooltipWrapper>
