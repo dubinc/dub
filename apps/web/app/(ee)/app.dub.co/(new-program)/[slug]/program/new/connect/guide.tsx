@@ -7,8 +7,8 @@ import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { IntegrationGuide } from "./integration-guides";
 import { Markdown } from "./markdown";
-import { IntegrationGuide } from "./types";
 
 interface GuideProps {
   selectedGuide: IntegrationGuide;

@@ -4,8 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Guide } from "./guide";
 import { GuideList } from "./guide-list";
-import { guides } from "./integration-guides";
-import { IntegrationGuide } from "./types";
+import { guides, IntegrationGuide } from "./integration-guides";
 
 interface PageClientProps {
   markdown: string | null;

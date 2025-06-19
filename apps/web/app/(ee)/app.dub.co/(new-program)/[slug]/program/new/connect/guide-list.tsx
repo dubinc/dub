@@ -8,8 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { guides } from "./integration-guides";
-import { IntegrationType } from "./types";
+import { guides, IntegrationType } from "./integration-guides";
 
 export function GuideList() {
   const router = useRouter();

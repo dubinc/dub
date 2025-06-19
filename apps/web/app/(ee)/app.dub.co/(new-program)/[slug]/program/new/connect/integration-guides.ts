@@ -4,7 +4,19 @@ import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
 import { Supabase } from "@/ui/layout/sidebar/conversions/icons/supabase";
 import { Code, Framer, Globe } from "lucide-react";
-import { IntegrationGuide } from "./types";
+
+export type IntegrationType = "no-code" | "code";
+
+export type IntegrationGuide = {
+  type: IntegrationType;
+  key: string;
+  title: string;
+  description: string;
+  shortDescription: string;
+  icon: any;
+  recommended?: boolean;
+  content?: string;
+};
 
 export const guides: IntegrationGuide[] = [
   {

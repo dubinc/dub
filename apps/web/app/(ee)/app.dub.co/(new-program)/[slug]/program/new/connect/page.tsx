@@ -3,9 +3,8 @@ import { notFound } from "next/navigation";
 import { join } from "path";
 import { Suspense } from "react";
 import { StepPage } from "../step-page";
-import { guides } from "./integration-guides";
+import { guides, IntegrationGuide } from "./integration-guides";
 import { PageClient } from "./page-client";
-import { IntegrationGuide } from "./types";
 
 export default async function Page({
   searchParams,
