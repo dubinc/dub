@@ -15,17 +15,22 @@ import {
   Icon,
   Popover,
   Table,
+  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, User, Users } from "@dub/ui/icons";
-import { cn, COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import { BadgeCheck2Fill, Dots, User, Users } from "@dub/ui/icons";
+import { cn, COUNTRIES, fetcher, formatDate, getPrettyUrl } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { partnersColumns, useColumnVisibility } from "../use-column-visibility";
+import {
+  applicationsColumns,
+  useColumnVisibility,
+} from "./use-column-visibility";
 
 export function ProgramPartnersApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
@@ -76,7 +81,7 @@ export function ProgramPartnersApplicationsPageClient() {
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
   const { pagination, setPagination } = usePagination();
 
-  const { table, ...tableProps } = useTable({
+  const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
     data: partners || [],
     columns: [
       {
@@ -117,8 +122,95 @@ export function ProgramPartnersApplicationsPageClient() {
           );
         },
       },
-
-      // TODO: Socials
+      // Socials
+      {
+        id: "website",
+        header: "Website",
+        minSize: 150,
+        cell: ({ row }) => {
+          return (
+            <SocialColumn
+              value={getPrettyUrl(row.original.website)}
+              verified={!!row.original.websiteVerifiedAt}
+              href={row.original.website}
+            />
+          );
+        },
+      },
+      {
+        id: "youtube",
+        header: "YouTube",
+        minSize: 150,
+        cell: ({ row }) => {
+          return (
+            <SocialColumn
+              at
+              value={row.original.youtube}
+              verified={!!row.original.youtubeVerifiedAt}
+              href={`https://youtube.com/@${row.original.youtube}`}
+            />
+          );
+        },
+      },
+      {
+        id: "twitter",
+        header: "X/Twitter",
+        minSize: 150,
+        cell: ({ row }) => {
+          return (
+            <SocialColumn
+              at
+              value={row.original.twitter}
+              verified={!!row.original.twitterVerifiedAt}
+              href={`https://x.com/${row.original.twitter}`}
+            />
+          );
+        },
+      },
+      {
+        id: "linkedin",
+        header: "LinkedIn",
+        minSize: 150,
+        cell: ({ row }) => {
+          return (
+            <SocialColumn
+              value={row.original.linkedin}
+              verified={!!row.original.linkedinVerifiedAt}
+              href={`https://linkedin.com/in/${row.original.linkedin}`}
+            />
+          );
+        },
+      },
+      {
+        id: "instagram",
+        header: "Instagram",
+        minSize: 150,
+        cell: ({ row }) => {
+          return (
+            <SocialColumn
+              at
+              value={row.original.instagram}
+              verified={!!row.original.instagramVerifiedAt}
+              href={`https://instagram.com/${row.original.instagram}`}
+            />
+          );
+        },
+      },
+      {
+        id: "tiktok",
+        header: "TikTok",
+        minSize: 150,
+        cell: ({ row }) => {
+          return (
+            <SocialColumn
+              at
+              value={row.original.tiktok}
+              verified={!!row.original.tiktokVerifiedAt}
+              href={`https://tiktok.com/@${row.original.tiktok}`}
+            />
+          );
+        },
+      },
 
       // Menu
       {
@@ -132,7 +224,7 @@ export function ProgramPartnersApplicationsPageClient() {
           <RowMenuButton row={row} workspaceId={workspaceId!} />
         ),
       },
-    ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
+    ].filter((c) => c.id === "menu" || applicationsColumns.all.includes(c.id)),
     onRowClick: (row) => {
       queryParams({
         set: {
@@ -327,4 +419,39 @@ function useCurrentPartner({
   }
 
   return { currentPartner, isLoading };
+}
+
+function SocialColumn({
+  at,
+  value,
+  verified,
+  href,
+}: {
+  at?: boolean;
+  value: string;
+  verified: boolean;
+  href: string;
+}) {
+  return value ? (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 hover:underline"
+    >
+      <span className="min-w-0 truncate">
+        {at && "@"}
+        {value}
+      </span>
+      {verified && (
+        <Tooltip content="Verified" disableHoverableContent>
+          <div>
+            <BadgeCheck2Fill className="size-4 text-green-600" />
+          </div>
+        </Tooltip>
+      )}
+    </Link>
+  ) : (
+    "-"
+  );
 }
