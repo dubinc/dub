@@ -261,7 +261,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                         <span className="text-neutral-500">(optional)</span>
                       </label>
 
-                      <div className="relative mt-2 rounded-md shadow-sm">
+                      <div className="relative mt-2 rounded-md p-px shadow-sm">
                         <select
                           className={cn(
                             "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
@@ -275,7 +275,8 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                           {rewards?.map((reward) => (
                             <option value={reward.id} key={reward.id}>
                               {reward.name ||
-                                formatRewardDescription({ reward })}
+                                formatRewardDescription({ reward })}{" "}
+                              {reward.default && "(Default)"}
                             </option>
                           ))}
                         </select>
@@ -291,7 +292,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                         <span className="text-neutral-500">(optional)</span>
                       </label>
 
-                      <div className="relative mt-2 rounded-md shadow-sm">
+                      <div className="relative mt-2 rounded-md p-px shadow-sm">
                         <select
                           className={cn(
                             "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",

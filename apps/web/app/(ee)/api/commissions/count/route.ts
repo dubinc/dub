@@ -31,7 +31,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     by: ["status"],
     where: {
       earnings: {
-        gt: 0,
+        not: 0,
       },
       programId,
       partnerId,

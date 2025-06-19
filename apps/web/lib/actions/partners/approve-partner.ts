@@ -9,6 +9,7 @@ import {
   approvePartnerSchema,
   EnrolledPartnerSchema,
 } from "@/lib/zod/schemas/partners";
+import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { sendEmail } from "@dub/email";
 import { PartnerApplicationApproved } from "@dub/email/templates/partner-application-approved";
@@ -28,7 +29,7 @@ export const approvePartnerAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [program, link] = await Promise.all([
+    const [program, link, defaultRewards] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -40,6 +41,13 @@ export const approvePartnerAction = authActionClient
             linkId,
           })
         : null,
+
+      prisma.reward.findMany({
+        where: {
+          programId,
+          default: true,
+        },
+      }),
     ]);
 
     if (link?.partnerId) {
@@ -56,6 +64,14 @@ export const approvePartnerAction = authActionClient
         },
         data: {
           status: "approved",
+          ...(defaultRewards.length > 0 && {
+            ...Object.fromEntries(
+              defaultRewards.map((r) => [
+                REWARD_EVENT_COLUMN_MAPPING[r.event],
+                r.id,
+              ]),
+            ),
+          }),
         },
         include: {
           partner: true,

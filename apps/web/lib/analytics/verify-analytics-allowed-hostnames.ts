@@ -15,7 +15,7 @@ export const verifyAnalyticsAllowedHostnames = ({
   const hostname = sourceUrl?.hostname.replace(/^www\./, "");
 
   if (!hostname) {
-    console.log("No hostname found in request. Denying request ❌", {
+    console.log("Click not recorded ❌ – No hostname found in request.", {
       allowedHostnames,
     });
     return false;
@@ -39,7 +39,7 @@ export const verifyAnalyticsAllowedHostnames = ({
   }
 
   console.log(
-    `Hostname ${hostname} does not match any allowed patterns. Denying request ❌`,
+    `Click not recorded ❌ – Hostname ${hostname} does not match any allowed patterns.`,
     {
       allowedHostnames,
     },

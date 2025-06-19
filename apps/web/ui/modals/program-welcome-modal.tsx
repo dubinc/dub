@@ -27,7 +27,7 @@ function ProgramWelcomeModal({
 
   const NEXT_STEPS = [
     {
-      text: "Create a public landing page for your program",
+      text: "Create your program application page",
       href: `/${workspaceSlug}/program/branding`,
     },
     {
@@ -37,6 +37,10 @@ function ProgramWelcomeModal({
     {
       text: "Invite more partners to your program",
       href: "https://dub.co/help/article/inviting-partners",
+    },
+    {
+      text: "Set up click, lead, and sale-based rewards",
+      href: `/${workspaceSlug}/program/rewards`,
     },
   ];
 
@@ -88,7 +92,7 @@ function ProgramWelcomeModal({
                     href={step.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm text-neutral-500 underline decoration-dotted"
+                    className="flex items-center gap-2 text-sm font-medium text-neutral-800 underline decoration-dotted"
                   >
                     <CheckCircleFill className="h-5 w-5 text-green-500" />
                     <p>{step.text}</p>

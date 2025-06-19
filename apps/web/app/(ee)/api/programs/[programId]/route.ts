@@ -15,8 +15,7 @@ export const GET = withWorkspace(
       },
       {
         includeDefaultDiscount: true,
-        includeDefaultReward: true,
-        includeRewards: true,
+        includeDefaultRewards: true,
         includeLanderData: includeLanderData || false,
       },
     );

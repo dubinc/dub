@@ -30,17 +30,6 @@ async function main() {
       },
     });
 
-    if (!program.defaultRewardId) {
-      await prisma.program.update({
-        where: {
-          id: program.id,
-        },
-        data: {
-          defaultRewardId: reward.id,
-        },
-      });
-    }
-
     console.log(`Migrated commission attributes for program ${program.id}`);
   }
 }

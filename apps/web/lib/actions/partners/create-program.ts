@@ -8,9 +8,10 @@ import { PlanProps } from "@/lib/types";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
+import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
 import { generateRandomString, nanoid, R2_URL } from "@dub/utils";
-import { Program, Project, User } from "@prisma/client";
+import { Program, Project, Reward, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
@@ -23,7 +24,7 @@ export const createProgram = async ({
     Project,
     "id" | "slug" | "plan" | "store" | "webhookEnabled" | "invoicePrefix"
   >;
-  user: Pick<User, "id">;
+  user: Pick<User, "id" | "email">;
 }) => {
   const store = workspace.store as Record<string, any>;
   if (!store.programOnboarding) {
@@ -95,6 +96,7 @@ export const createProgram = async ({
                 amount,
                 maxDuration,
                 event: defaultRewardType,
+                default: true,
               },
             },
           }),
@@ -148,6 +150,8 @@ export const createProgram = async ({
     });
   }
 
+  const reward = program.rewards?.[0];
+
   waitUntil(
     Promise.allSettled([
       // invite partners
@@ -156,11 +160,13 @@ export const createProgram = async ({
             invitePartner({
               workspace,
               program,
+              reward,
               partner,
               userId: user.id,
             }),
           )
         : []),
+
       // update the program with the logo and default reward
       prisma.program.update({
         where: {
@@ -168,9 +174,6 @@ export const createProgram = async ({
         },
         data: {
           ...(logoUrl && { logo: logoUrl }),
-          ...(program.rewards?.[0]?.id && {
-            defaultRewardId: program.rewards[0].id,
-          }),
         },
       }),
 
@@ -178,6 +181,20 @@ export const createProgram = async ({
       uploadedLogo &&
         isStored(uploadedLogo) &&
         storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
+
+      // send email about the new program
+      sendEmail({
+        subject: `Your program ${program.name} is created and ready to share with your partners.`,
+        email: user.email!,
+        react: ProgramWelcome({
+          email: user.email!,
+          workspace,
+          program: {
+            ...program,
+            logo: logoUrl,
+          },
+        }),
+      }),
     ]),
   );
 
@@ -187,11 +204,13 @@ export const createProgram = async ({
 // Invite a partner to the program
 async function invitePartner({
   program,
+  reward,
   workspace,
   partner,
   userId,
 }: {
   program: Program;
+  reward?: Pick<Reward, "id" | "event">;
   workspace: Pick<Project, "id" | "plan" | "webhookEnabled">;
   partner: {
     email: string;
@@ -231,6 +250,7 @@ async function invitePartner({
     },
     skipEnrollmentCheck: true,
     status: "invited",
+    ...(reward && { reward }),
   });
 
   waitUntil(

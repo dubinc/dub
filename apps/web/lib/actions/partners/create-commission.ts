@@ -85,9 +85,9 @@ export const createCommissionAction = authActionClient
     if (invoiceId) {
       const commission = await prisma.commission.findUnique({
         where: {
-          programId_invoiceId: {
-            programId,
+          invoiceId_programId: {
             invoiceId,
+            programId,
           },
         },
         select: {

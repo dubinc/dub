@@ -122,7 +122,7 @@ async function handler(req: Request) {
       Process 100 partners at a time for a program that match the criteria:
       - is currently approved
       - has signed up for partners.dub.co
-      - has links that have at least 1 total click
+      - has links that have at least 1 total lead
     */
     while (true) {
       const programEnrollments = await prisma.programEnrollment.findMany({
@@ -136,7 +136,7 @@ async function handler(req: Request) {
           },
           links: {
             some: {
-              clicks: {
+              leads: {
                 gt: 0,
               },
             },
@@ -166,7 +166,7 @@ async function handler(req: Request) {
       });
 
       console.log(
-        `Found ${programEnrollments.length} active partners that have signed up for partners.dub.co and have links with at least 1 total click.`,
+        `Found ${programEnrollments.length} active partners that have signed up for partners.dub.co and have links with at least 1 total lead.`,
       );
 
       if (programEnrollments.length === 0) {

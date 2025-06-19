@@ -16,10 +16,12 @@ import {
   Globe,
   InvoiceDollar,
   Key,
+  LinesY as LinesYStatic,
   MoneyBills2,
   PaperPlane,
   Receipt2,
   ShieldCheck,
+  ShieldKeyhole,
   Sliders,
   Tag,
   UserPlus,
@@ -213,9 +215,20 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         name: "Insights",
         items: [
           {
+            name: "Analytics",
+            icon: LinesYStatic,
+            href: `/${slug}/program/analytics`,
+            badge: "New",
+          },
+          {
             name: "Commissions",
             icon: InvoiceDollar,
             href: `/${slug}/program/commissions`,
+          },
+          {
+            name: "Fraud & Risk",
+            icon: ShieldKeyhole,
+            href: `/${slug}/program/fraud`,
           },
         ],
       },
