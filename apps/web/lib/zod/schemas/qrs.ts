@@ -15,6 +15,12 @@ export const createQrBodySchema = z.object({
     .describe(
       "The file the link leads to",
     ),
+  fileName: z
+    .string()
+    .nullish()
+    .describe(
+      "The original name of the uploaded file",
+    ),
   link: createLinkBodySchema,
 });
 
