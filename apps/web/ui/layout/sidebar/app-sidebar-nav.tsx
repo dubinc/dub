@@ -41,6 +41,7 @@ import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
+import { useProgramApplicationsCount } from "./use-program-applications-count";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
 type SidebarNavData = {
@@ -50,6 +51,7 @@ type SidebarNavData = {
   defaultProgramId?: string;
   session?: Session | null;
   showNews?: boolean;
+  applicationsCount?: number;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -175,7 +177,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   }),
 
   // Program
-  program: ({ slug, showNews }) => ({
+  program: ({ slug, showNews, applicationsCount }) => ({
     title: "Partner Program",
     showNews,
     direction: "left",
@@ -208,6 +210,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Applications",
             icon: UserCheck,
             href: `/${slug}/program/partners/applications`,
+            badge: applicationsCount
+              ? applicationsCount > 99
+                ? "99+"
+                : applicationsCount
+              : undefined,
           },
         ],
       },
@@ -398,6 +405,10 @@ export function AppSidebarNav({
           : "default";
   }, [slug, pathname]);
 
+  const applicationsCount = useProgramApplicationsCount({
+    enabled: currentArea === "program",
+  });
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -412,6 +423,7 @@ export function AppSidebarNav({
         session: session || undefined,
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
+        applicationsCount,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
