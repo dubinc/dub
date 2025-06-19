@@ -2,7 +2,6 @@
 
 import { LinkStructure } from "@dub/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
-import { useSession } from "next-auth/react";
 
 export const getLinkStructureOptions = ({
   domain,
@@ -11,11 +10,6 @@ export const getLinkStructureOptions = ({
   domain?: string | null;
   url?: string | null;
 }) => {
-  const { data: session } = useSession();
-  const username =
-    session?.user?.name?.split(" ")[0].toLowerCase() ??
-    session?.user?.email?.split("@")[0] ??
-    "steven";
   const shortDomain = domain || "refer.dub.co";
   const websiteDomain = (url && getDomainWithoutWWW(url)) || "dub.co";
 
