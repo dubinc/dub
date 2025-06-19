@@ -23,6 +23,7 @@ import { LockOpen } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
+import { useAddPartnerLinkModal } from "./add-partner-link-modal";
 import { useBanPartnerModal } from "./ban-partner-modal";
 import { usePartnerApplicationSheet } from "./partner-application-sheet";
 import { PartnerInfoSection } from "./partner-info-section";
@@ -38,7 +39,7 @@ type PartnerDetailsSheetProps = {
 type Tab = "payouts" | "links";
 
 function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
-  const { slug, defaultProgramId } = useWorkspace();
+  const { slug } = useWorkspace();
   const [tab, setTab] = useState<Tab>("links");
 
   const { createCommissionSheet, setIsOpen: setCreateCommissionSheetOpen } =
@@ -309,6 +310,11 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
 const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
   const { slug } = useWorkspace();
 
+  const { AddPartnerLinkModal, setShowAddPartnerLinkModal } =
+    useAddPartnerLinkModal({
+      partner,
+    });
+
   const table = useTable({
     data: partner.links || [],
     columns: [
@@ -399,15 +405,18 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
   } as any);
 
   return (
-    <div className="flex flex-col gap-4">
-      <Button
-        variant="secondary"
-        text="Create link"
-        className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
-        onClick={() => {}}
-      />
-      <Table {...table} />
-    </div>
+    <>
+      <AddPartnerLinkModal />
+      <div className="flex flex-col gap-4">
+        <Button
+          variant="secondary"
+          text="Create link"
+          className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
+          onClick={() => setShowAddPartnerLinkModal(true)}
+        />
+        <Table {...table} />
+      </div>
+    </>
   );
 };
 
