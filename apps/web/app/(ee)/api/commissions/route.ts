@@ -43,7 +43,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         }
       : {
           earnings: {
-            gt: 0,
+            not: 0,
           },
           programId,
           partnerId,
