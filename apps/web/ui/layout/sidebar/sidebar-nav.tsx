@@ -12,13 +12,13 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ComponentType,
   PropsWithChildren,
   ReactNode,
   Suspense,
   useMemo,
   useState,
 } from "react";
-import { CreateProgramCard } from "./create-program-card";
 import UserDropdown from "./user-dropdown";
 
 export type NavItemCommon = {
@@ -26,6 +26,7 @@ export type NavItemCommon = {
   href: `/${string}`;
   exact?: boolean;
   isActive?: (pathname: string, href: string) => boolean;
+  badge?: string;
 };
 
 export type NavSubItemType = NavItemCommon;
@@ -41,6 +42,9 @@ export type NavGroupType = {
   href: string;
   active: boolean;
   onClick?: () => void;
+  popup?: ComponentType<{
+    referenceElement: HTMLElement | null;
+  }>;
 
   description: string;
   learnMoreHref?: string;
@@ -89,10 +93,10 @@ export function SidebarNav<T extends Record<any, any>>({
       <nav className="grid size-full grid-cols-[64px_1fr]">
         <div className="flex flex-col items-center justify-between">
           <div className="flex flex-col items-center p-2">
-            <div className="py-1.5">
+            <div className="pb-1 pt-2">
               <Link
                 href="/"
-                className="block rounded-lg px-1 py-3 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
+                className="block rounded-lg px-1 py-4 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
               >
                 <NavWordmark className="h-5" isInApp />
               </Link>
@@ -113,8 +117,8 @@ export function SidebarNav<T extends Record<any, any>>({
             </div>
           </div>
         </div>
-        <div className="size-full overflow-hidden py-1.5 pr-1.5">
-          <div className="scrollbar-hide relative flex size-full flex-col overflow-y-auto overflow-x-hidden rounded-2xl bg-neutral-100">
+        <div className="size-full overflow-hidden py-2 pr-2">
+          <div className="scrollbar-hide relative flex size-full flex-col overflow-y-auto overflow-x-hidden rounded-xl bg-neutral-100">
             <div className="relative flex grow flex-col p-3 text-neutral-500">
               <div className="relative w-full grow">
                 {Object.entries(areas).map(([area, areaConfig]) => {
@@ -133,7 +137,7 @@ export function SidebarNav<T extends Record<any, any>>({
                         // @ts-ignore - TS can't handle the conditional Link+href
                         <TitleContainer
                           {...(backHref ? { href: backHref } : {})}
-                          className="group mb-3 flex items-center gap-3 px-3 py-1"
+                          className="group mb-2 flex items-center gap-3 px-3 py-2"
                         >
                           {backHref && (
                             <div
@@ -164,7 +168,6 @@ export function SidebarNav<T extends Record<any, any>>({
                           </div>
                         ))}
                       </div>
-                      {currentArea === "default" && <CreateProgramCard />}
                       <AnimatePresence>
                         {showNews && (
                           <motion.div
@@ -257,39 +260,45 @@ function NavGroupItem({
     href,
     active,
     onClick,
+    popup: Popup,
   },
 }: {
   group: NavGroupType;
 }) {
+  const [element, setElement] = useState<HTMLAnchorElement | null>(null);
   const [hovered, setHovered] = useState(false);
 
   return (
-    <NavGroupTooltip
-      name={name}
-      description={description}
-      learnMoreHref={learnMoreHref}
-    >
-      <div>
-        <Link
-          href={href}
-          onPointerEnter={() => setHovered(true)}
-          onPointerLeave={() => setHovered(false)}
-          onClick={onClick}
-          className={cn(
-            "flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
-            "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-            active
-              ? "bg-white"
-              : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
-          )}
-        >
-          <Icon
-            className="text-content-default size-5"
-            data-hovered={hovered}
-          />
-        </Link>
-      </div>
-    </NavGroupTooltip>
+    <>
+      <NavGroupTooltip
+        name={name}
+        description={description}
+        learnMoreHref={learnMoreHref}
+      >
+        <div>
+          <Link
+            ref={Popup ? setElement : undefined}
+            href={href}
+            onPointerEnter={() => setHovered(true)}
+            onPointerLeave={() => setHovered(false)}
+            onClick={onClick}
+            className={cn(
+              "flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
+              "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+              active
+                ? "bg-white"
+                : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
+            )}
+          >
+            <Icon
+              className="text-content-default size-5"
+              data-hovered={hovered}
+            />
+          </Link>
+        </div>
+      </NavGroupTooltip>
+      {Popup && element && <Popup referenceElement={element} />}
+    </>
   );
 }
 
@@ -322,30 +331,42 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         className={cn(
-          "text-content-default group flex items-center gap-2.5 rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
+          "text-content-default group flex items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           isActive && !items
             ? "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100"
             : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
         )}
       >
-        {Icon && (
-          <Icon
-            className={cn(
-              "size-4",
-              !items && "group-data-[active=true]:text-blue-600",
-            )}
-            data-hovered={hovered}
-          />
-        )}
-        {name}
-        {items && (
-          <div className="flex grow justify-end">
-            {items ? (
-              <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
-            ) : null}
-          </div>
-        )}
+        <span className="flex items-center gap-2.5">
+          {Icon && (
+            <Icon
+              className={cn(
+                "size-4",
+                !items && "group-data-[active=true]:text-blue-600",
+              )}
+              data-hovered={hovered}
+            />
+          )}
+          {name}
+        </span>
+        <span className="ml-2 flex items-center gap-2">
+          {"badge" in item && item.badge && (
+            <span
+              className={cn(
+                "flex items-center justify-center rounded px-1.5 py-0.5 text-xs font-semibold",
+                isActive && !items
+                  ? "bg-blue-600 text-white"
+                  : "bg-blue-100 text-blue-600",
+              )}
+            >
+              {item.badge}
+            </span>
+          )}
+          {items && (
+            <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
+          )}
+        </span>
       </Link>
       {items && (
         <AnimatedSizeContainer

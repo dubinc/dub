@@ -129,9 +129,9 @@ async function createCommission({
 
   const commissionFound = await prisma.commission.findUnique({
     where: {
-      programId_invoiceId: {
-        programId: program.id,
+      invoiceId_programId: {
         invoiceId: sale.id,
+        programId: program.id,
       },
     },
   });

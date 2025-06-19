@@ -122,7 +122,7 @@ export default async function LinkMiddleware(
     ev.waitUntil(
       (async () => {
         if (!isPartnerLink) {
-          linkCache.set(linkData as any);
+          await linkCache.set(linkData as any);
           return;
         }
 
@@ -132,7 +132,7 @@ export default async function LinkMiddleware(
         });
 
         // we'll use this data on /track/click
-        linkCache.set({
+        await linkCache.set({
           ...(linkData as any),
           ...(partner && { partner }),
           ...(discount && { discount }),

@@ -16,10 +16,12 @@ import {
   Globe,
   InvoiceDollar,
   Key,
+  LinesY as LinesYStatic,
   MoneyBills2,
   PaperPlane,
   Receipt2,
   ShieldCheck,
+  ShieldKeyhole,
   Sliders,
   Tag,
   UserPlus,
@@ -31,6 +33,7 @@ import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
+import { DubPartnersPopup } from "./dub-partners-popup";
 import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
 import { CursorRays } from "./icons/cursor-rays";
@@ -81,6 +84,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     icon: ConnectedDots4,
     href: slug ? `/${slug}/program` : "/program",
     active: pathname.startsWith(`/${slug}/program`),
+    popup: DubPartnersPopup,
 
     onClick: defaultProgramId
       ? () => {
@@ -211,9 +215,20 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         name: "Insights",
         items: [
           {
+            name: "Analytics",
+            icon: LinesYStatic,
+            href: `/${slug}/program/analytics`,
+            badge: "New",
+          },
+          {
             name: "Commissions",
             icon: InvoiceDollar,
             href: `/${slug}/program/commissions`,
+          },
+          {
+            name: "Fraud & Risk",
+            icon: ShieldKeyhole,
+            href: `/${slug}/program/fraud`,
           },
         ],
       },

@@ -1,5 +1,4 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getReward } from "@/lib/fetchers/get-reward";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { Wordmark } from "@dub/ui";
@@ -14,13 +13,20 @@ export async function generateMetadata({
 }: {
   params: { programSlug: string };
 }) {
-  const program = await getProgram({ slug: programSlug });
+  const program = await getProgram({
+    slug: programSlug,
+    include: ["defaultRewards"],
+  });
 
-  if (!program || !program.defaultRewardId) {
+  if (!program) {
     notFound();
   }
 
-  const reward = await getReward({ id: program.defaultRewardId });
+  if (!program.rewards || program.rewards.length === 0) {
+    notFound();
+  }
+
+  const reward = program.rewards[0];
 
   return constructMetadata({
     title: `${program.name} Affiliate Program`,

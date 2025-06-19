@@ -1,8 +1,12 @@
 import { getSession } from "@/lib/auth";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { prisma } from "@dub/prisma";
-import { CONNECT_SUPPORTED_COUNTRIES } from "@dub/utils";
+import {
+  CONNECT_SUPPORTED_COUNTRIES,
+  PAYPAL_SUPPORTED_COUNTRIES,
+} from "@dub/utils";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 export default function OnboardingVerificationPage() {
@@ -112,9 +116,19 @@ async function PayoutRSC() {
       email: user.email,
     },
   });
-  const provider =
-    partner?.country && CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
-      ? "stripe"
-      : "paypal";
+  if (!partner?.country) {
+    redirect("/");
+  }
+
+  const provider = CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
+    ? "stripe"
+    : PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)
+      ? "paypal"
+      : null;
+
+  if (!provider) {
+    redirect("/");
+  }
+
   return <PayoutProvider provider={provider} />;
 }

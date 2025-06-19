@@ -15,7 +15,7 @@ export default async function ApplyPage({
 }) {
   const program = await getProgram({
     slug: programSlug,
-    include: ["rewards", "defaultDiscount"],
+    include: ["defaultRewards", "defaultDiscount"],
   });
 
   if (!program || !program.landerData || !program.landerPublishedAt) {

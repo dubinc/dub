@@ -52,7 +52,9 @@ export const partnersQuerySchema = z
   .object({
     status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
     country: z.string().optional(),
-    rewardId: z.string().optional(),
+    clickRewardId: z.string().optional(),
+    leadRewardId: z.string().optional(),
+    saleRewardId: z.string().optional(),
     search: z.string().optional(),
     sortBy: z
       .enum([
@@ -97,7 +99,15 @@ export const partnersCountQuerySchema = partnersQuerySchema
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["status", "country", "rewardId"]).optional(),
+    groupBy: z
+      .enum([
+        "status",
+        "country",
+        "clickRewardId",
+        "leadRewardId",
+        "saleRewardId",
+      ])
+      .optional(),
   });
 
 export const partnerInvitesQuerySchema = getPaginationQuerySchema({
@@ -188,6 +198,13 @@ export const PartnerSchema = z
       .date()
       .nullable()
       .describe("The date when the partner enabled payouts."),
+    invoiceSettings: z
+      .object({
+        address: z.string().nullish(),
+        taxId: z.string().nullish(),
+      })
+      .nullable()
+      .describe("The partner's invoice settings."),
     createdAt: z
       .date()
       .describe("The date when the partner was created on Dub."),
@@ -286,10 +303,7 @@ export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
   image: z.string(),
-  clicks: z.number().default(0),
-  leads: z.number().default(0),
-  sales: z.number().default(0),
-  saleAmount: z.number().default(0),
+  totalCommissions: z.number().default(0),
 });
 
 export const PARTNER_CUSTOMERS_MAX_PAGE_SIZE = 100;
@@ -561,4 +575,10 @@ export const banPartnerSchema = z.object({
 export const archivePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
+});
+
+export const partnerInvoiceSettingsSchema = z.object({
+  companyName: z.string().max(190).trim().min(1, "Business name is required."),
+  address: z.string().max(500).trim().nullable(),
+  taxId: z.string().max(100).trim().nullable(),
 });

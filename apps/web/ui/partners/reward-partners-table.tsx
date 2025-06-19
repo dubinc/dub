@@ -13,6 +13,8 @@ interface RewardPartnersTableProps {
   partnerIds: string[];
   setPartnerIds: (value: string[]) => void;
   loading: boolean;
+  mode?: "include" | "exclude";
+  label?: string;
 }
 
 export function RewardPartnersTable({
@@ -20,6 +22,8 @@ export function RewardPartnersTable({
   setPartnerIds,
   rewardPartners,
   loading,
+  mode = "include",
+  label = mode === "include" ? "Eligible partners" : "Non-eligible partners",
 }: RewardPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -185,7 +189,7 @@ export function RewardPartnersTable({
     tdClassName: () => cn("border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
+    resourceName: (p) => `partner${p ? "s" : ""}`,
     getRowId: (row: EnrolledPartnerProps) => row.id,
     loading,
     rowCount: selectedPartners?.length || 0,
@@ -193,9 +197,7 @@ export function RewardPartnersTable({
 
   return (
     <div className="flex flex-col gap-3">
-      <label className="text-sm font-medium text-neutral-800">
-        Eligible partners
-      </label>
+      <label className="text-sm font-medium text-neutral-800">{label}</label>
 
       <Combobox
         options={partnersOptions}

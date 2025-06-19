@@ -4,7 +4,6 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { PageContent } from "@/ui/layout/page-content";
-import { redirect } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import { PartnersUpgradeCTA } from "./partners-ugrade-cta";
 
@@ -31,15 +30,17 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
     return <LayoutLoader />;
   }
 
-  if (!partnersEnabled || !getPlanCapabilities(plan).canManageProgram) {
+  if (
+    !partnersEnabled ||
+    !getPlanCapabilities(plan).canManageProgram ||
+    !defaultProgramId
+  ) {
     return (
       <PageContent>
         <PartnersUpgradeCTA />
       </PageContent>
     );
   }
-
-  if (!defaultProgramId) redirect(`/${slug}/program/new`);
 
   return children;
 }

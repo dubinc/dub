@@ -15,7 +15,6 @@ const confirmPayoutsSchema = z.object({
 
 const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 
-// Confirm payouts
 export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
