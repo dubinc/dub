@@ -28,6 +28,8 @@ import {
   useState,
 } from "react";
 import { FormProvider } from "react-hook-form";
+import { trackClientEvents } from "../../core/integration/analytic";
+import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 import {
   EQRType,
   LINKED_QR_TYPES,
@@ -212,6 +214,16 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       };
 
       const handleSelectQRType = (type: EQRType) => {
+        trackClientEvents({
+          event: EAnalyticEvents.PAGE_CLICKED,
+          params: {
+            page_name: homepageDemo ? "landing" : "profile",
+            content_value: type,
+            content_group: "choose_type",
+            // TODO: add email and mixpanel_user_id
+          },
+        });
+
         setSelectedQRType(type);
         handleNextStep();
       };
@@ -223,12 +235,36 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
 
       const handleContinue = async () => {
         if (isCustomizationStep) {
+          trackClientEvents({
+            event: EAnalyticEvents.PAGE_CLICKED,
+            params: {
+              page_name: homepageDemo ? "landing" : "profile",
+              content_value: homepageDemo
+                ? "download"
+                : isEdit
+                  ? "save"
+                  : "create",
+              content_group: "complete_content",
+              // TODO: add email and mixpanel_user_id
+            },
+          });
+
           onSaveClick();
           return;
         }
 
         const isValid = await handleValidationAndContentSubmit();
         if (isValid) {
+          trackClientEvents({
+            event: EAnalyticEvents.PAGE_CLICKED,
+            params: {
+              page_name: homepageDemo ? "landing" : "profile",
+              content_value: "continue",
+              content_group: "complete_content",
+              // TODO: add email and mixpanel_user_id
+            },
+          });
+
           handleNextStep();
           handleScroll();
         }
