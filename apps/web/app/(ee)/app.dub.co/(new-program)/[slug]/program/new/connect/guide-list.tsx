@@ -84,7 +84,7 @@ export function GuideList() {
               </div>
             </AccordionTrigger>
 
-            <AccordionContent className="p-4">
+            <AccordionContent className="space-y-6 p-4">
               <p className="text-sm font-medium leading-5 text-neutral-700">
                 {section.description}
               </p>
@@ -95,22 +95,13 @@ export function GuideList() {
                     prefetch={true}
                     href={`/${workspaceSlug}/program/new/connect?guide=${guide.key}`}
                     key={guide.title}
-                    className="group relative flex h-32 cursor-pointer flex-col justify-center rounded-lg bg-white transition-colors duration-100 hover:bg-neutral-200/60"
+                    className="group relative flex h-[140px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg bg-neutral-100 px-2 py-4 text-center"
                   >
-                    <div className="mb-2 flex h-12 items-center justify-center">
+                    <div className="flex h-16 w-full items-center justify-center">
                       <guide.icon className="size-9" />
                     </div>
-
-                    <div className="text-center">
-                      <div className="text-sm font-semibold text-[##171717]">
-                        {guide.title}
-                      </div>
-
-                      {guide.description && (
-                        <div className="text-xs font-medium text-[#737373]">
-                          {guide.description}
-                        </div>
-                      )}
+                    <div className="w-full text-sm font-semibold leading-5 text-neutral-900">
+                      {guide.title}
                     </div>
                   </Link>
                 ))}
