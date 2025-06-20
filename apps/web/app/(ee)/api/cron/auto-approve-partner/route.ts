@@ -31,20 +31,53 @@ export async function POST(req: Request) {
         id: programId,
       },
       include: {
-        workspace: true,
+        workspace: {
+          select: {
+            id: true,
+            plan: true,
+            webhookEnabled: true,
+          },
+        },
       },
     });
 
     if (!program.autoApprovePartners) {
-      return new Response("Program does not have auto-approval enabled.");
+      return new Response(
+        `Program ${programId} does not have auto-approval enabled. Skipping auto-approval.`,
+      );
     }
+
+    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
+        },
+      },
+    });
+
+    if (programEnrollment.status !== "pending") {
+      return new Response(
+        `${partnerId} is ${programEnrollment.status}. Skipping auto-approval.`,
+      );
+    }
+
+    const workspaceOwner = await prisma.projectUsers.findFirstOrThrow({
+      where: {
+        projectId: program.workspaceId,
+        role: "owner",
+      },
+      select: {
+        userId: true,
+      },
+    });
 
     await approvePartnerEnrollment({
       workspace: program.workspace as WorkspaceProps,
       program,
       partnerId,
       linkId: null,
-      userId: "xxx", // FIXME: Add a user id
+      userId: workspaceOwner.userId,
     });
 
     return new Response("Partner is auto-approved.");
