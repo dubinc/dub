@@ -42,8 +42,22 @@ async function main() {
       `Combining ${payoutsToCombine.length} payouts for partner ${partnerId}`,
     );
 
-    const periodStart = payoutsToCombine[0].periodStart;
-    const periodEnd = payoutsToCombine[payoutsToCombine.length - 1].periodEnd;
+    const periodStart = payoutsToCombine.reduce(
+      (earliest, payout) =>
+        payout.periodStart && earliest && payout.periodStart < earliest
+          ? payout.periodStart
+          : earliest,
+      payoutsToCombine[0].periodStart || new Date(),
+    );
+
+    const periodEnd = payoutsToCombine.reduce(
+      (latest, payout) =>
+        payout.periodEnd && latest && payout.periodEnd > latest
+          ? payout.periodEnd
+          : latest,
+      payoutsToCombine[0].periodEnd || new Date(),
+    );
+
     const totalAmount = payoutsToCombine.reduce(
       (sum, payout) => sum + payout.amount,
       0,
