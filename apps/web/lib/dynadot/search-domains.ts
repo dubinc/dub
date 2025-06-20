@@ -9,7 +9,7 @@ const schema = z.object({
     SearchResults: z.array(
       z.object({
         DomainName: z.string(),
-        Available: z.enum(["yes", "no"]),
+        Available: z.enum(["yes", "no"]).nullish().default("no"),
         Price: z.string().nullish().default(null),
         Status: z.string().nullish().default(null),
       }),
@@ -47,6 +47,8 @@ export const searchDomainsAvailability = async ({
   }
 
   const data = schema.parse(await response.json());
+
+  console.log(JSON.stringify(data, null, 2));
 
   if (data.SearchResponse.ResponseCode === "-1") {
     throw new DubApiError({
