@@ -6,6 +6,7 @@ import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { storage } from "@/lib/storage";
+import { redis } from "@/lib/upstash";
 import {
   updateWorkspaceSchema,
   WorkspaceSchema,
@@ -106,9 +107,31 @@ export const PATCH = withWorkspace(
         });
       }
 
-      if (logoUploaded && workspace.logo) {
-        waitUntil(storage.delete(workspace.logo.replace(`${R2_URL}/`, "")));
-      }
+      waitUntil(
+        (async () => {
+          if (logoUploaded && workspace.logo) {
+            await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
+          }
+
+          // Sync the allowedHostnames cache
+          const cacheKey = `allowedHostnamesCache:${workspace.id}`;
+          const current = JSON.stringify(workspace.allowedHostnames);
+          const next = JSON.stringify(response.allowedHostnames);
+
+          if (current !== next) {
+            if (
+              Array.isArray(response.allowedHostnames) &&
+              response.allowedHostnames.length > 0
+            ) {
+              await redis.set(cacheKey, next, {
+                ex: 60 * 60 * 24 * 7, // 7 days
+              });
+            } else {
+              await redis.del(cacheKey);
+            }
+          }
+        })(),
+      );
 
       return NextResponse.json(
         WorkspaceSchema.parse({
