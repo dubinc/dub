@@ -52,11 +52,11 @@ export const getWorkspaceViaEdge = async ({
     }
   });
 
-  delete workspaceData.slug;
-  delete workspaceData.verified;
+  // Remove domain fields from workspace object
+  const { slug, verified, ...cleanWorkspaceData } = workspaceData;
 
   return {
-    ...workspaceData,
+    ...cleanWorkspaceData,
     domains,
   } as WorkspaceProps & { domains: { slug: string; verified: boolean }[] };
 };
