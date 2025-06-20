@@ -15,7 +15,7 @@ export function GuideList() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
   const [integrationType, setIntegrationType] =
-    useState<IntegrationType>("no-code");
+    useState<IntegrationType>("client-sdk");
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -79,9 +79,12 @@ export function GuideList() {
                 <div className="text-sm font-semibold text-[##171717]">
                   {guide.title}
                 </div>
-                <div className="text-sm font-medium text-[#737373]">
-                  {guide.shortDescription}
-                </div>
+
+                {guide.description && (
+                  <div className="text-sm font-medium text-[#737373]">
+                    {guide.description}
+                  </div>
+                )}
               </div>
             </Link>
           ))}
