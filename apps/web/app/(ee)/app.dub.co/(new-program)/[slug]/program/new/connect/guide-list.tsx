@@ -1,103 +1,142 @@
 "use client";
 
-import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button, ToggleGroup } from "@dub/ui";
-import { useAction } from "next-safe-action/hooks";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Button,
+} from "@dub/ui";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { guides, IntegrationType } from "./integration-guides";
+import {
+  guides,
+  IntegrationGuide,
+  IntegrationType,
+} from "./integration-guides";
+
+const sections: {
+  type: IntegrationType;
+  title: string;
+  description: string;
+}[] = [
+  {
+    type: "client-sdk",
+    title: "Set up client-side script",
+    description:
+      "The step allows Dub to track clicks, automatically fetch the partner and discount data for a given link. Select the guide for instructions.",
+  },
+  {
+    type: "server-sdk",
+    title: "Set up server-side SDK",
+    description:
+      "Install the server-side SDK of your choice and select the guide for instructions.",
+  },
+  {
+    type: "track-leads",
+    title: "Track lead events",
+    description:
+      "The step allows your app to send lead events to Dub. Select the guide for instructions.",
+  },
+  {
+    type: "track-sales",
+    title: "Track sale events",
+    description:
+      "The step allows your app to send sale events to Dub. Select the guide for instructions.",
+  },
+];
 
 export function GuideList() {
-  const router = useRouter();
-  const [hasSubmitted, setHasSubmitted] = useState(false);
-  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
-  const [integrationType, setIntegrationType] =
-    useState<IntegrationType>("client-sdk");
+  const { slug: workspaceSlug } = useWorkspace();
 
-  const { executeAsync, isPending } = useAction(onboardProgramAction, {
-    onSuccess: () => {
-      router.push(`/${workspaceSlug}/program/new/overview`);
-      mutate();
+  const guidesByType = guides.reduce(
+    (acc, guide) => {
+      if (!acc[guide.type]) {
+        acc[guide.type] = [];
+      }
+      acc[guide.type].push(guide);
+      return acc;
     },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
-    },
-  });
-
-  const onContinue = async () => {
-    if (!workspaceId) {
-      return;
-    }
-
-    setHasSubmitted(true);
-
-    await executeAsync({
-      workspaceId,
-      step: "connect",
-    });
-  };
+    {} as Record<IntegrationType, IntegrationGuide[]>,
+  );
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-col gap-4">
-        <ToggleGroup
-          className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1"
-          optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm font-medium transition-colors text-neutral-800"
-          indicatorClassName="bg-white shadow border-none rounded-md"
-          options={[
-            { value: "no-code", label: "No-code integrations" },
-            { value: "code", label: "Developer integrations" },
-          ]}
-          selected={integrationType}
-          selectAction={(value) => setIntegrationType(value as IntegrationType)}
-        />
-      </div>
+      <Accordion
+        type="multiple"
+        className="w-full space-y-4"
+        defaultValue={[sections[0].type]}
+      >
+        {sections.map((section, index) => (
+          <AccordionItem
+            key={section.type}
+            value={section.type}
+            className="rounded-lg border border-neutral-200 bg-white p-0"
+          >
+            <AccordionTrigger className="w-full rounded-t-lg bg-neutral-100 px-4 py-2.5 text-left">
+              <div className="flex items-center gap-2">
+                <div className="flex size-6 items-center justify-center rounded-full bg-white text-base font-semibold leading-6 text-neutral-900">
+                  {index + 1}
+                </div>
+                <h3 className="text-base font-semibold leading-6 text-neutral-900">
+                  {section.title}
+                </h3>
+              </div>
+            </AccordionTrigger>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-        {guides
-          .filter((g) => g.type === integrationType)
-          .map((guide) => (
-            <Link
-              href={`/${workspaceSlug}/program/new/connect?guide=${guide.key}`}
-              key={guide.title}
-              className="group relative flex h-40 cursor-pointer flex-col justify-center rounded-lg bg-neutral-200/40 transition-colors duration-100 hover:bg-neutral-200/60"
-            >
-              {guide.recommended && (
-                <span className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 rounded-md bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-600">
-                  Recommended
-                </span>
-              )}
+            <AccordionContent className="p-4">
+              <p className="text-sm font-medium leading-5 text-neutral-700">
+                {section.description}
+              </p>
 
-              <div className="mb-4 flex h-16 items-center justify-center">
-                <guide.icon className="size-11" />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                {(guidesByType[section.type] || []).map((guide) => (
+                  <Link
+                    prefetch={true}
+                    href={`/${workspaceSlug}/program/new/connect?guide=${guide.key}`}
+                    key={guide.title}
+                    className="group relative flex h-32 cursor-pointer flex-col justify-center rounded-lg bg-white transition-colors duration-100 hover:bg-neutral-200/60"
+                  >
+                    <div className="mb-2 flex h-12 items-center justify-center">
+                      <guide.icon className="size-9" />
+                    </div>
+
+                    <div className="text-center">
+                      <div className="text-sm font-semibold text-[##171717]">
+                        {guide.title}
+                      </div>
+
+                      {guide.description && (
+                        <div className="text-xs font-medium text-[#737373]">
+                          {guide.description}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                ))}
               </div>
 
-              <div className="text-center">
-                <div className="text-sm font-semibold text-[##171717]">
-                  {guide.title}
-                </div>
-
-                {guide.description && (
-                  <div className="text-sm font-medium text-[#737373]">
-                    {guide.description}
-                  </div>
+              <div className="mt-6 flex flex-col items-center justify-center space-y-3">
+                <Button
+                  text="I've completed this"
+                  variant="secondary"
+                  className="w-52"
+                />
+                {(section.type === "server-sdk" ||
+                  section.type === "track-leads" ||
+                  section.type === "track-sales") && (
+                  <p className="text-center text-xs text-neutral-500">
+                    If you're using Shopify, you can skip this step.{" "}
+                    <Link href="#" className="text-neutral-700 underline">
+                      Read the guide.
+                    </Link>
+                  </p>
                 )}
               </div>
-            </Link>
-          ))}
-      </div>
-
-      <Button
-        text="I'll do this later"
-        variant="secondary"
-        className="w-full"
-        type="button"
-        onClick={onContinue}
-        loading={isPending || hasSubmitted}
-      />
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
     </div>
   );
 }
