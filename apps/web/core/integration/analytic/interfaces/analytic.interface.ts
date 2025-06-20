@@ -6,6 +6,12 @@ export enum EAnalyticEvents {
   ELEMENT_CLICKED = "elementClicked",
   ELEMENT_OPENED = "elementOpened",
 
+  SIGNUP_ATTEMPT = "signupAttempt",
+  SIGNUP_SUCCESS = "signupSuccess",
+
+  LOGIN_ATTEMPT = "loginAttempt",
+  LOGIN_SUCCESS = "loginSuccess",
+
   PURCHASE_ATTEMPT = "purchaseAttempt",
   PURCHASE_SUCCESS = "purchaseSuccess",
   PURCHASE_ERROR = "purchaseError",
