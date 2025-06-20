@@ -33,6 +33,9 @@ export const approvePartnersBulkAction = authActionClient
           in: [...new Set(partnerIds)],
         },
       },
+      select: {
+        partnerId: true,
+      },
     });
 
     if (programEnrollments.length === 0) {
