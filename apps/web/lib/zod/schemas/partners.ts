@@ -548,7 +548,7 @@ export const approvePartnerSchema = z.object({
 
 export const approvePartnersBulkSchema = z.object({
   workspaceId: z.string(),
-  partnerIds: z.array(z.string()),
+  partnerIds: z.array(z.string()).max(100).min(1),
 });
 
 export const retrievePartnerLinksSchema = z
