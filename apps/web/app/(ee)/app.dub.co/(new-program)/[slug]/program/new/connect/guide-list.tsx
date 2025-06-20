@@ -8,7 +8,9 @@ import {
   AccordionTrigger,
   Button,
 } from "@dub/ui";
+import { Check } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import {
   guides,
   IntegrationGuide,
@@ -49,6 +51,14 @@ const sections: {
 export function GuideList() {
   const { slug: workspaceSlug } = useWorkspace();
 
+  const [completedSections, setCompletedSections] = useState<
+    Set<IntegrationType>
+  >(new Set());
+
+  const [openSections, setOpenSections] = useState<string[]>([
+    sections[0].type,
+  ]);
+
   const guidesByType = guides.reduce(
     (acc, guide) => {
       if (!acc[guide.type]) {
@@ -60,69 +70,115 @@ export function GuideList() {
     {} as Record<IntegrationType, IntegrationGuide[]>,
   );
 
+  const handleComplete = (sectionType: IntegrationType) => {
+    setCompletedSections((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(sectionType);
+      return newSet;
+    });
+
+    const completedSectionIndex = sections.findIndex(
+      (s) => s.type === sectionType,
+    );
+
+    setOpenSections((prevOpenSections) => {
+      // close current section
+      const newOpenSections = prevOpenSections.filter((s) => s !== sectionType);
+
+      // open next section
+      if (completedSectionIndex < sections.length - 1) {
+        const nextSection = sections[completedSectionIndex + 1];
+        newOpenSections.push(nextSection.type);
+      }
+
+      return newOpenSections;
+    });
+  };
+
   return (
     <div className="space-y-10">
       <Accordion
         type="multiple"
         className="w-full space-y-4"
-        defaultValue={[sections[0].type]}
+        value={openSections}
+        onValueChange={setOpenSections}
       >
-        {sections.map((section, index) => (
-          <AccordionItem
-            key={section.type}
-            value={section.type}
-            className="rounded-lg border border-neutral-200 bg-white p-0"
-          >
-            <AccordionTrigger className="w-full rounded-t-lg bg-neutral-100 px-4 py-2.5 text-left">
-              <div className="flex items-center gap-2">
-                <div className="flex size-6 items-center justify-center rounded-full bg-white text-base font-semibold leading-6 text-neutral-900">
-                  {index + 1}
-                </div>
-                <h3 className="text-base font-semibold leading-6 text-neutral-900">
-                  {section.title}
-                </h3>
-              </div>
-            </AccordionTrigger>
+        {sections.map((section, index) => {
+          const isCompleted = completedSections.has(section.type);
+          const isOpen = openSections.includes(section.type);
 
-            <AccordionContent className="space-y-6 p-4">
-              <p className="text-sm font-medium leading-5 text-neutral-700">
-                {section.description}
-              </p>
+          return (
+            <div
+              key={section.type}
+              className="overflow-hidden rounded-lg border border-neutral-200"
+            >
+              <AccordionItem
+                key={section.type}
+                value={section.type}
+                className="border-none bg-white p-0"
+              >
+                <AccordionTrigger className="w-full rounded-none bg-neutral-100 px-4 py-2.5 text-left">
+                  <div className="flex items-center gap-2">
+                    {isCompleted && !isOpen ? (
+                      <div className="flex size-5 items-center justify-center rounded-full bg-black text-white">
+                        <Check className="size-3" />
+                      </div>
+                    ) : (
+                      <div className="flex size-6 items-center justify-center rounded-full bg-white text-base font-semibold leading-6 text-neutral-900">
+                        {index + 1}
+                      </div>
+                    )}
+                    <h3 className="text-base font-semibold leading-6 text-neutral-900">
+                      {section.title}
+                    </h3>
+                  </div>
+                </AccordionTrigger>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                {(guidesByType[section.type] || []).map((guide) => (
-                  <Link
-                    prefetch={true}
-                    href={`/${workspaceSlug}/program/new/connect?guide=${guide.key}`}
-                    key={guide.title}
-                    className="group relative flex h-[140px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg bg-neutral-100 px-2 py-4 text-center"
-                  >
-                    <div className="flex h-16 w-full items-center justify-center">
-                      <guide.icon className="size-9" />
-                    </div>
-                    <div className="w-full text-sm font-semibold leading-5 text-neutral-900">
-                      {guide.title}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-
-              <div className="mt-6 flex flex-col items-center justify-center space-y-3">
-                <Button text="I've completed this" className="rounded-lg" />
-                {(section.type === "server-sdk" ||
-                  section.type === "track-leads" ||
-                  section.type === "track-sales") && (
-                  <p className="text-center text-xs text-neutral-500">
-                    If you're using Shopify, you can skip this step.{" "}
-                    <Link href="#" className="text-neutral-700 underline">
-                      Read the guide.
-                    </Link>
+                <AccordionContent className="space-y-6 p-4">
+                  <p className="text-sm font-medium leading-5 text-neutral-700">
+                    {section.description}
                   </p>
-                )}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                    {(guidesByType[section.type] || []).map((guide) => (
+                      <Link
+                        prefetch={true}
+                        href={`/${workspaceSlug}/program/new/connect?guide=${guide.key}`}
+                        key={guide.title}
+                        className="group relative flex h-[140px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg bg-neutral-100 px-2 py-4 text-center"
+                      >
+                        <div className="flex h-16 w-full items-center justify-center">
+                          <guide.icon className="size-9" />
+                        </div>
+                        <div className="w-full text-sm font-semibold leading-5 text-neutral-900">
+                          {guide.title}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 flex flex-col items-center justify-center space-y-3">
+                    <Button
+                      text="I've completed this"
+                      className="rounded-lg"
+                      onClick={() => handleComplete(section.type)}
+                    />
+                    {(section.type === "server-sdk" ||
+                      section.type === "track-leads" ||
+                      section.type === "track-sales") && (
+                      <p className="text-center text-xs text-neutral-500">
+                        If you're using Shopify, you can skip this step.{" "}
+                        <Link href="#" className="text-neutral-700 underline">
+                          Read the guide.
+                        </Link>
+                      </p>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </div>
+          );
+        })}
       </Accordion>
     </div>
   );
