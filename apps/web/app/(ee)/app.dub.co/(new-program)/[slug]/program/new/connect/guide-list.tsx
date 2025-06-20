@@ -108,11 +108,7 @@ export function GuideList() {
               </div>
 
               <div className="mt-6 flex flex-col items-center justify-center space-y-3">
-                <Button
-                  text="I've completed this"
-                  variant="secondary"
-                  className="w-52"
-                />
+                <Button text="I've completed this" className="rounded-lg" />
                 {(section.type === "server-sdk" ||
                   section.type === "track-leads" ||
                   section.type === "track-sales") && (
