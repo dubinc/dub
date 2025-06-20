@@ -59,7 +59,9 @@ export default function PlanUsage() {
     status: "approved",
   });
 
-  const payoutFees = plan ? PAYOUT_FEES[plan.toLowerCase()]?.ach : null;
+  const payoutFees = plan
+    ? PAYOUT_FEES[plan.toLowerCase()]?.direct_debit
+    : null;
 
   const { data: tags } = useTagsCount();
   const { users } = useUsers();
