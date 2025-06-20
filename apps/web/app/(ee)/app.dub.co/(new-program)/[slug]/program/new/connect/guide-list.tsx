@@ -163,12 +163,18 @@ export function GuideList() {
                       className="rounded-lg"
                       onClick={() => handleComplete(section.type)}
                     />
+
                     {(section.type === "server-sdk" ||
                       section.type === "track-leads" ||
                       section.type === "track-sales") && (
-                      <p className="text-center text-xs text-neutral-500">
+                      <p className="text-center text-sm font-medium leading-5 text-neutral-500">
                         If you're using Shopify, you can skip this step.{" "}
-                        <Link href="#" className="text-neutral-700 underline">
+                        <Link
+                          href="https://dub.co/docs/conversions/sales/shopify"
+                          className="text-neutral-500 underline underline-offset-2"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           Read the guide.
                         </Link>
                       </p>
@@ -180,6 +186,23 @@ export function GuideList() {
           );
         })}
       </Accordion>
+
+      <div className="flex items-center justify-between gap-4">
+        <a
+          href="https://dub.co/docs/partners/quickstart"
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm font-medium leading-5 text-neutral-700 no-underline hover:underline"
+        >
+          View full documentation ↗
+        </a>
+
+        <Button
+          text="I'll connect Dub later"
+          className="h-8 w-fit rounded-lg"
+          variant="secondary"
+        />
+      </div>
     </div>
   );
 }
