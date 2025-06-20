@@ -235,7 +235,10 @@ export const importLinksFromRebrandly = async ({
     );
 
     // bulk create links
-    await bulkCreateLinks({ links: linksToCreate });
+    await bulkCreateLinks({
+      links: linksToCreate,
+      skipRedisCache: true,
+    });
 
     count += importedLinks.length;
 
