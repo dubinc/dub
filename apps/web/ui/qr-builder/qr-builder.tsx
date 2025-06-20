@@ -1,11 +1,12 @@
 import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
-import { QRCodeDemoMap } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-map.ts";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { useIsInViewport } from "@/ui/qr-builder/hooks/use-is-in-viewport.ts";
+import { useQRBuilderSteps } from "@/ui/qr-builder/hooks/use-qr-builder-steps.ts";
 import { useQRContentForm } from "@/ui/qr-builder/hooks/use-qr-content-form.ts";
+import { useQRTypeDemo } from "@/ui/qr-builder/hooks/use-qr-type-demo.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
 import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
@@ -22,7 +23,6 @@ import {
   forwardRef,
   Ref,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -57,16 +57,15 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       { props, homepageDemo, handleSaveQR, isProcessing, isEdit, initialStep },
       ref,
     ) => {
+      // ===== PROPS & CONSTANTS =====
       const { isMobile } = useMediaQuery();
-      const [step, setStep] = useState<number>(() => {
-        if (isProcessing) return 3;
-        return initialStep || 1;
-      });
-      const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
-        useState<string>("Frame");
-      const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
-      const [typeSelectionError, setTypeSelectionError] = useState<string>("");
 
+      const filteredQrTypes = QR_TYPES.filter(
+        (qrType) =>
+          !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
+      );
+
+      // ===== HOOKS & STATE =====
       const {
         options,
         qrCode,
@@ -74,57 +73,13 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         selectedSuggestedLogo,
         selectedSuggestedFrame,
         handlers,
-        data,
         setData,
         isQrDisabled,
         selectedQRType,
         setSelectedQRType,
-        initialInputValues,
       } = useQrCustomization(props, homepageDemo);
-      console.log("selectedQRType", selectedQRType);
-      console.log(
-        "[useQrCustomization] initialInputValues",
-        initialInputValues,
-      );
-      console.log("[useQrCustomization] props", props);
-      console.log("[useQrCustomization] data", data);
-      const filteredQrTypes = QR_TYPES.filter(
-        (qrType) =>
-          !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
-      );
 
-      const typeStep = step === 1;
-      const contentStep = step === 2;
-      const customizationStep = step === 3;
-
-      const qrBuilderContentWrapperRef = useRef<HTMLDivElement>(null);
-      const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
-      const qrBuilderCustomizationButtonsWrapperRef =
-        useRef<HTMLDivElement>(null);
-
-      const scrollContainerRef = useMemo(() => {
-        if (qrBuilderContentWrapperRef.current) {
-          const scrollableContainer =
-            qrBuilderContentWrapperRef.current.closest(
-              '[class*="overflow-y-auto"]',
-            );
-          if (scrollableContainer) {
-            return { current: scrollableContainer as HTMLDivElement };
-          }
-        }
-        return null;
-      }, [qrBuilderContentWrapperRef.current]);
-
-      const currentButtonsRef = contentStep
-        ? qrBuilderButtonsWrapperRef
-        : qrBuilderCustomizationButtonsWrapperRef;
-
-      const navigationButtonsInViewport = useIsInViewport(
-        currentButtonsRef,
-        0.6,
-        scrollContainerRef,
-      );
-
+      // ===== EVENT HANDLERS =====
       const handleScroll = () => {
         if (isMobile && qrBuilderContentWrapperRef.current) {
           qrBuilderContentWrapperRef.current.style.scrollMargin = "60px";
@@ -133,22 +88,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             block: "start",
           });
         }
-      };
-
-      const handleNextStep = () => {
-        setStep((prev) => Math.min(prev + 1, 3));
-        handleScroll();
-      };
-
-      const handleSelectQRType = (type: EQRType) => {
-        console.log("type", type);
-        setTypeSelectionError("");
-        setSelectedQRType(type);
-        handleNextStep();
-      };
-
-      const handleHoverQRType = (type: EQRType | null) => {
-        setHoveredQRType(type);
       };
 
       const handleContent = useCallback(
@@ -163,9 +102,16 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         }) => {
           // QR name is not needed for QR code generation
           const { qrName, ...filteredInputValues } = inputValues;
-          console.log(inputValues);
+
           setData(
-            qrTypeDataHandlers[qrType]?.(filteredInputValues, isHiddenNetwork),
+            qrType === EQRType.WIFI
+              ? qrTypeDataHandlers[qrType]?.(
+                  filteredInputValues as Record<string, string>,
+                  isHiddenNetwork,
+                )
+              : qrTypeDataHandlers[qrType]?.(
+                  filteredInputValues as Record<string, string>,
+                ),
           );
           setFiles(
             (inputValues.filesImage ||
@@ -188,6 +134,71 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         handleContent,
       });
 
+      const {
+        step,
+        isTypeStep,
+        isContentStep,
+        isCustomizationStep,
+        typeSelectionError,
+        handleNextStep,
+        handleChangeStep,
+      } = useQRBuilderSteps({
+        selectedQRType,
+        form,
+        handleValidationAndContentSubmit,
+        isProcessing,
+        initialStep,
+      });
+
+      const { currentQRType, qrCodeDemo, demoProps, handleHoverQRType } =
+        useQRTypeDemo({
+          step,
+          selectedQRType,
+          form,
+        });
+
+      const [styleOptionActiveTab, setStyleOptionActiveTab] = useState<
+        "Frame" | "Style" | "Shape" | "Logo"
+      >("Frame");
+
+      // ===== REFS =====
+      const qrBuilderContentWrapperRef = useRef<HTMLDivElement>(null);
+      const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
+      const qrBuilderCustomizationButtonsWrapperRef =
+        useRef<HTMLDivElement>(null);
+
+      // ===== COMPUTED VALUES =====
+      const scrollContainerRef = useMemo(() => {
+        if (qrBuilderContentWrapperRef.current) {
+          const scrollableContainer =
+            qrBuilderContentWrapperRef.current.closest(
+              '[class*="overflow-y-auto"]',
+            );
+          if (scrollableContainer) {
+            return { current: scrollableContainer as HTMLDivElement };
+          }
+        }
+        return null;
+      }, [qrBuilderContentWrapperRef.current]);
+
+      const currentButtonsRef = isContentStep
+        ? qrBuilderButtonsWrapperRef
+        : qrBuilderCustomizationButtonsWrapperRef;
+
+      const navigationButtonsInViewport = useIsInViewport(
+        currentButtonsRef,
+        0.6,
+        scrollContainerRef,
+      );
+
+      const hideDemoPlaceholderOnMobile = isMobile && isTypeStep;
+
+      // ===== EVENT HANDLERS =====
+      const handleSelectQRType = (type: EQRType) => {
+        setSelectedQRType(type);
+        handleNextStep();
+      };
+
       const onSaveClick = () => {
         const formValues = form.getValues();
         const qrNameFieldId = `qrName-${selectedQRType}`;
@@ -203,74 +214,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         }).then(() => {
           // setFiles(null);
         });
-      };
-
-      const [currentQRType, setCurrentQRType] = useState<EQRType | null>(null);
-
-      useEffect(() => {
-        const typeStep = step === 1;
-        const newCurrentQRType = typeStep
-          ? hoveredQRType !== null
-            ? hoveredQRType
-            : selectedQRType
-          : selectedQRType;
-
-        setCurrentQRType(newCurrentQRType);
-        console.log("[QRBuilder] currentQRType updated to:", newCurrentQRType);
-      }, [step, hoveredQRType, selectedQRType]);
-
-      const qrCodeDemo = useMemo(() => {
-        return currentQRType ? QRCodeDemoMap[currentQRType] : null;
-      }, [currentQRType]);
-
-      const demoProps = useMemo(() => {
-        if (!qrCodeDemo || !currentQRType) return {};
-
-        return qrCodeDemo.propsKeys.reduce(
-          (acc: Record<string, string | File[] | undefined>, key: string) => {
-            acc[key] = form.getValues()[key];
-            return acc;
-          },
-          {},
-        );
-      }, [qrCodeDemo, form.getValues(), currentQRType]);
-
-      console.log("[QrBuilder] currentQRType", currentQRType);
-      console.log("[QrBuilder] qrCodeDemo", qrCodeDemo);
-      console.log("[QrBuilder] demoProps", demoProps);
-
-      const hideDemoPlaceholderOnMobile = isMobile && typeStep;
-
-      const handleStepClick = useCallback(
-        (newStep: number) => {
-          if (newStep === 2 && !selectedQRType) {
-            setTypeSelectionError("Please select a QR code type to continue");
-            return;
-          }
-
-          setTypeSelectionError("");
-
-          if (newStep === 3 && step === 2) {
-            form.trigger().then((isValid) => {
-              if (isValid) {
-                handleValidationAndContentSubmit();
-                setStep(newStep);
-              }
-            });
-            return;
-          }
-
-          if (newStep === 2) {
-            form.trigger();
-          }
-
-          setStep(newStep);
-        },
-        [selectedQRType, handleValidationAndContentSubmit, form, step],
-      );
-
-      const onBackClick = () => {
-        handleScroll();
       };
 
       return (
@@ -294,7 +237,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 { number: 2, label: "Complete Content" },
                 { number: 3, label: "Customize QR" },
               ]}
-              onStepClick={handleStepClick}
+              onStepClick={handleChangeStep}
             />
           </Flex>
 
@@ -305,7 +248,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               direction={{ initial: "column-reverse", md: "row" }}
               gap={{ initial: "4", md: "6" }}
             >
-              {typeStep && (
+              {isTypeStep && (
                 <Flex
                   gap="4"
                   direction="column"
@@ -327,7 +270,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 </Flex>
               )}
 
-              {contentStep && (
+              {isContentStep && (
                 <Flex
                   gap="4"
                   direction="column"
@@ -346,9 +289,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     <div ref={qrBuilderButtonsWrapperRef} className="w-full">
                       <QrBuilderButtons
                         step={step}
-                        onStepChange={setStep}
+                        onStepChange={handleChangeStep}
                         onSaveClick={onSaveClick}
-                        onBackClick={onBackClick}
+                        onBackClick={handleScroll}
                         validateFields={handleValidationAndContentSubmit}
                         isEdit={isEdit}
                         isProcessing={isProcessing}
@@ -359,7 +302,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 </Flex>
               )}
 
-              {customizationStep && (
+              {isCustomizationStep && (
                 <Flex
                   gap="4"
                   direction="column"
@@ -369,9 +312,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 >
                   <QrTabsCustomization
                     styleOptionActiveTab={styleOptionActiveTab}
-                    setStyleOptionActiveActiveTab={
-                      setStyleOptionActiveActiveTab
-                    }
+                    setStyleOptionActiveTab={setStyleOptionActiveTab}
                     selectedSuggestedFrame={selectedSuggestedFrame}
                     selectedSuggestedLogo={selectedSuggestedLogo}
                     uploadedLogo={uploadedLogo}
@@ -388,9 +329,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   >
                     <QrBuilderButtons
                       step={step}
-                      onStepChange={setStep}
+                      onStepChange={handleChangeStep}
                       onSaveClick={onSaveClick}
-                      onBackClick={onBackClick}
+                      onBackClick={handleScroll}
                       validateFields={handleValidationAndContentSubmit}
                       isEdit={isEdit}
                       isProcessing={isProcessing}
@@ -405,11 +346,11 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   className={cn(
                     "bg-background relative flex h-auto shrink-0 basis-2/5 items-start justify-center rounded-lg px-6 pb-0 pt-3 md:p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
                     {
-                      "items-start pb-3": customizationStep,
+                      "items-start pb-3": isCustomizationStep,
                     },
                   )}
                 >
-                  {!customizationStep && (
+                  {!isCustomizationStep && (
                     <div className="relative inline-block">
                       {!currentQRType ? (
                         <QRCodeDemoPlaceholder />
@@ -435,7 +376,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     </div>
                   )}
 
-                  {customizationStep && (
+                  {isCustomizationStep && (
                     <div className="center sticky top-20 flex flex-col gap-6">
                       <motion.div
                         key={currentQRType}
@@ -479,13 +420,13 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             </Flex>
           </div>
 
-          {isMobile && !navigationButtonsInViewport && !typeStep && (
+          {isMobile && !navigationButtonsInViewport && !isTypeStep && (
             <div className="border-border-500 sticky bottom-0 left-0 z-50 w-full border-t bg-white px-6 py-3 shadow-md">
               <QrBuilderButtons
                 step={step}
-                onStepChange={setStep}
+                onStepChange={handleChangeStep}
                 onSaveClick={onSaveClick}
-                onBackClick={onBackClick}
+                onBackClick={handleScroll}
                 validateFields={handleValidationAndContentSubmit}
                 isEdit={isEdit}
                 isProcessing={isProcessing}

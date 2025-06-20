@@ -43,7 +43,7 @@ export const QrTypeTabs = ({
   onRegistrationClick,
   isMobile,
 }: QrTypeTabsProps) => {
-  const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
+  const [styleOptionActiveTab, setStyleOptionActiveTab] =
     useState<string>("Frame");
 
   const handleContent = useCallback(
@@ -138,8 +138,8 @@ export const QrTypeTabs = ({
                   <QrTabsStepTitle stepNumber={2} title={"Customize your QR"} />
                   {/*<QrTabsCustomization*/}
                   {/*  styleOptionActiveTab={styleOptionActiveTab}*/}
-                  {/*  setStyleOptionActiveActiveTab={*/}
-                  {/*    setStyleOptionActiveActiveTab*/}
+                  {/*  setStyleOptionActiveTab={*/}
+                  {/*    setStyleOptionActiveTab*/}
                   {/*  }*/}
                   {/*  selectedSuggestedFrame={selectedSuggestedFrame}*/}
                   {/*  selectedSuggestedLogo={selectedSuggestedLogo}*/}
