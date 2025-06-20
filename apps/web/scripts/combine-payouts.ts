@@ -3,7 +3,7 @@ import "dotenv-flow/config";
 
 // A script to combine payouts for a partner
 async function main() {
-  const programId = "prog_CYCu7IMAapjkRpTnr8F1azjN";
+  const programId = "prog_";
 
   const pendingPayouts = await prisma.payout.groupBy({
     by: ["programId", "partnerId"],
