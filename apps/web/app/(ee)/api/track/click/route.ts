@@ -103,13 +103,13 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     // if there's no cached clickId, track the click event
     if (!cachedClickId) {
-      console.log("cachedAllowedHostnames", cachedAllowedHostnames);
-
       if (!cachedAllowedHostnames) {
-        const workspace = await getWorkspaceViaEdge(cachedLink.projectId!);
-        cachedAllowedHostnames = workspace?.allowedHostnames as string[];
+        const workspace = await getWorkspaceViaEdge({
+          workspaceId: cachedLink.projectId!,
+          includeDomains: true,
+        });
 
-        console.log("workspace", workspace);
+        cachedAllowedHostnames = workspace?.allowedHostnames as string[];
 
         waitUntil(
           allowedHostnamesCache.mset({
@@ -119,12 +119,12 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
         );
       }
 
-      if (
-        !verifyAnalyticsAllowedHostnames({
-          allowedHostnames: cachedAllowedHostnames,
-          req,
-        })
-      ) {
+      const allowRequest = verifyAnalyticsAllowedHostnames({
+        allowedHostnames: cachedAllowedHostnames,
+        req,
+      });
+
+      if (!allowRequest) {
         throw new DubApiError({
           code: "forbidden",
           message: "Click tracking is not allowed from this referrer.",

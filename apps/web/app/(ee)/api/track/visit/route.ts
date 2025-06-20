@@ -76,7 +76,10 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     waitUntil(
       (async () => {
-        const workspace = await getWorkspaceViaEdge(cachedLink.projectId!);
+        const workspace = await getWorkspaceViaEdge({
+          workspaceId: cachedLink.projectId!,
+        });
+
         const allowedHostnames = workspace?.allowedHostnames as string[];
 
         if (
