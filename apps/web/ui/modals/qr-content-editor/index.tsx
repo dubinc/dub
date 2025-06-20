@@ -9,6 +9,7 @@ import { useQrSave } from "@/ui/qr-code/hooks/use-qr-save.ts";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
+import { fileToBase64 } from "@/ui/utils/file-to-base64";
 import { Button, Modal } from "@dub/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Theme } from "@radix-ui/themes";
@@ -22,7 +23,6 @@ import {
 } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { fileToBase64 } from "@/ui/utils/file-to-base64";
 
 const getModalTitle = (qrType: EQRType): string => {
   switch (qrType) {
@@ -93,6 +93,7 @@ export function QRContentEditorModal({
       return;
     }
 
+    console.log("[EDITORMODAL] initialInputValues", initialInputValues);
     const values = {
       ...initialInputValues,
       [`qrName-${selectedQRType}`]: qrCode?.title || "QR Code",

@@ -56,28 +56,32 @@ export async function POST(req: Request) {
 
     console.log("Upload result:", uploadResult);
 
-    // Generate thumbnail for images and videos
+    // Generate thumbnail for images only (PDFs and videos don't need thumbnails)
     let thumbnailFileId: string | null = null;
-    if (qrType && (qrType === EQRType.IMAGE || qrType === EQRType.VIDEO)) {
+    if (qrType && qrType === EQRType.IMAGE) {
       try {
         const thumbnailResult = await generateThumbnail(file, qrType);
         if (thumbnailResult) {
           thumbnailFileId = thumbnailResult.thumbnailFileId;
-          
+
           // Upload thumbnail
-          await storage.upload(`qrs-content/${thumbnailFileId}`, thumbnailResult.thumbnailBlob, {
-            contentType: 'image/jpeg',
-          });
-          
-          console.log("Thumbnail uploaded:", thumbnailFileId);
+          await storage.upload(
+            `qrs-content/${thumbnailFileId}`,
+            thumbnailResult.thumbnailBlob,
+            {
+              contentType: "image/jpeg",
+            },
+          );
+
+          console.log("Image thumbnail uploaded:", thumbnailFileId);
         }
       } catch (error) {
-        console.error("Error generating thumbnail:", error);
+        console.error("Error generating image thumbnail:", error);
         // Don't fail the upload if thumbnail generation fails
       }
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       fileId,
       thumbnailFileId,
     });

@@ -1150,8 +1150,14 @@ const FileUploadItemMetadata = React.forwardRef<
   const originalFileSize = file?.originalFileSize;
 
   // Use original file info if available (for thumbnails), otherwise use current file info
-  const displayName = (isThumbnail && originalFileName) ? originalFileName : itemContext.fileState.file.name;
-  const displaySize = (isThumbnail && originalFileSize !== undefined) ? formatBytes(originalFileSize) : formatBytes(itemContext.fileState.file.size);
+  const displayName =
+    isThumbnail && originalFileName
+      ? originalFileName
+      : itemContext.fileState.file.name;
+  const displaySize =
+    isThumbnail && originalFileSize
+      ? formatBytes(originalFileSize)
+      : formatBytes(itemContext.fileState.file.size);
 
   const ItemMetadataPrimitive = asChild ? Slot : "div";
 

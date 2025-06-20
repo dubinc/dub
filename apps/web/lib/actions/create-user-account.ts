@@ -39,6 +39,10 @@ const qrDataToCreateSchema = z.object({
     .string()
     .nullish()
     .describe("The original name of the uploaded file"),
+  fileSize: z
+    .number()
+    .nullish()
+    .describe("The original size of the uploaded file"),
   thumbnailFileId: z
     .string()
     .nullish()
@@ -185,6 +189,7 @@ export const createUserAccountAction = actionClient
               // @ts-ignore
               data: qrDataToCreate.styles.data,
               fileName: qrDataToCreate?.fileName,
+              fileSize: qrDataToCreate?.fileSize,
             },
             createdLink.shortLink,
             createdLink.id,

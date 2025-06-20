@@ -55,10 +55,8 @@ export default function QrCodesContainer({
 
       const updatedQrs = await Promise.all(
         qrs.map(async (qr) => {
-          if (
-            (qr.qrType === "image" || qr.qrType === "video") &&
-            qr.thumbnailFileId
-          ) {
+          // Handle images with actual thumbnails
+          if (qr.qrType === "image" && qr.thumbnailFileId) {
             try {
               const thumbnailResult = await getFileContent(qr.thumbnailFileId);
 
@@ -79,22 +77,47 @@ export default function QrCodesContainer({
                 (thumbnailFile as any).thumbnailFileId = qr.thumbnailFileId;
                 (thumbnailFile as any).originalFileId = qr.fileId;
                 (thumbnailFile as any).originalFileName = qr.fileName;
+                (thumbnailFile as any).originalFileSize = qr.fileSize || 0;
 
-                if (qr.qrType === "image") {
-                  (qr as any).initialInputValues = {
-                    filesImage: [thumbnailFile],
-                  };
-                } else if (qr.qrType === "video") {
-                  (qr as any).initialInputValues = {
-                    filesVideo: [thumbnailFile],
-                  };
-                }
+                (qr as any).initialInputValues = {
+                  filesImage: [thumbnailFile],
+                };
               }
             } catch (error) {
               console.warn(
                 `Failed to preload thumbnail for QR ${qr.id}:`,
                 error,
               );
+            }
+          }
+          // Handle PDFs and videos with placeholder files for instant preview
+          else if (
+            (qr.qrType === "pdf" || qr.qrType === "video") &&
+            qr.fileId &&
+            qr.fileName
+          ) {
+            // Create a placeholder file object with metadata for instant preview
+            const placeholderFile = new File(
+              [""], // Empty content since we don't need actual file data
+              qr.fileName,
+              { type: qr.qrType === "pdf" ? "application/pdf" : "video/mp4" },
+            );
+            console.log("[QRCODES] qr", qr, qr.fileSize);
+
+            // Add metadata for the file upload component
+            (placeholderFile as any).isThumbnail = true;
+            (placeholderFile as any).originalFileId = qr.fileId;
+            (placeholderFile as any).originalFileName = qr.fileName;
+            (placeholderFile as any).originalFileSize = qr.fileSize;
+
+            if (qr.qrType === "pdf") {
+              (qr as any).initialInputValues = {
+                filesPDF: [placeholderFile],
+              };
+            } else if (qr.qrType === "video") {
+              (qr as any).initialInputValues = {
+                filesVideo: [placeholderFile],
+              };
             }
           }
 

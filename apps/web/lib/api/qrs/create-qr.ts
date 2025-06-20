@@ -8,28 +8,6 @@ import {
 import { prisma } from "@dub/prisma";
 import { createId } from "../utils";
 
-function getMimeType(base64String: string, fileName: string): string {
-  if (base64String.startsWith("data:")) {
-    return base64String.split(";")[0].split(":")[1];
-  }
-
-  const extension = fileName.split(".").pop()?.toLowerCase();
-  switch (extension) {
-    case "png":
-    case "jpg":
-    case "jpeg":
-      return `image/${extension === "jpg" ? "jpeg" : extension}`;
-    case "pdf":
-      return "application/pdf";
-    case "mp4":
-    case "avi":
-    case "mov":
-      return `video/${extension}`;
-    default:
-      return "application/octet-stream";
-  }
-}
-
 export async function createQr(
   {
     data,
@@ -40,6 +18,7 @@ export async function createQr(
     frameOptions,
     file,
     fileName,
+    fileSize,
   }: NewQrProps,
   url: string,
   linkId: string,
@@ -58,6 +37,7 @@ export async function createQr(
     frameOptions,
     file,
     fileName,
+    fileSize,
     homePageDemo,
   );
 
@@ -67,20 +47,15 @@ export async function createQr(
     console.log("Starting file processing for dashboard QR creation...");
 
     if (file.startsWith("data:")) {
-      const mimeType = getMimeType(file, fileName || "file");
+      await storage.upload(`qrs-content/${fileId}`, file);
 
-      await storage.upload(`qrs-content/${fileId}`, file, {
-        contentType: mimeType,
-      });
-
-      // Generate thumbnail for images and videos
-      if (qrType === EQRType.IMAGE || qrType === EQRType.VIDEO) {
+      // Generate thumbnail for images
+      if (qrType === EQRType.IMAGE) {
         console.log("Starting thumbnail generation for qrType:", qrType);
         try {
-          // Convert base64 to Blob only for thumbnail generation
           const base64Data = file.replace(/^data:[^;]+;base64,/, "");
           const buffer = Buffer.from(base64Data, "base64");
-          const fileBlob = new Blob([buffer], { type: mimeType });
+          const fileBlob = new Blob([buffer]);
 
           const thumbnailResult = await generateThumbnail(
             fileBlob,
@@ -89,7 +64,6 @@ export async function createQr(
           if (thumbnailResult) {
             generatedThumbnailFileId = thumbnailResult.thumbnailFileId;
 
-            // Upload thumbnail
             await storage.upload(
               `qrs-content/${generatedThumbnailFileId}`,
               thumbnailResult.thumbnailBlob,
@@ -102,7 +76,6 @@ export async function createQr(
           }
         } catch (error) {
           console.error("Error generating thumbnail:", error);
-          // Don't fail the QR creation if thumbnail generation fails
         }
       } else {
         console.log("Skipping thumbnail generation for qrType:", qrType);
@@ -135,6 +108,7 @@ export async function createQr(
       userId,
       fileId,
       fileName,
+      fileSize,
       thumbnailFileId: finalThumbnailFileId,
     },
   });

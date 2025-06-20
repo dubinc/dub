@@ -19,6 +19,7 @@ export async function updateQr(
     archived,
     file,
     fileName,
+    fileSize,
   }: Partial<NewQrProps>,
   fileId: string,
   oldFileId: string | null,
@@ -42,8 +43,8 @@ export async function updateQr(
 
     await storage.upload(`qrs-content/${fileId}`, file);
 
-    // Generate thumbnail for images and videos
-    if (qrType === EQRType.IMAGE || qrType === EQRType.VIDEO) {
+    // Generate thumbnail for images
+    if (qrType === EQRType.IMAGE) {
       try {
         const base64Data = file.replace(/^data:[^;]+;base64,/, "");
         const buffer = Buffer.from(base64Data, "base64");
@@ -88,6 +89,7 @@ export async function updateQr(
       archived: archived || false,
       fileId: file ? fileId : oldFileId,
       fileName,
+      fileSize,
       thumbnailFileId: thumbnailFileId || undefined,
     },
     include: {
