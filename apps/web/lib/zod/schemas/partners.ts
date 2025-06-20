@@ -548,7 +548,25 @@ export const approvePartnerSchema = z.object({
 
 export const approvePartnersBulkSchema = z.object({
   workspaceId: z.string(),
-  partnerIds: z.array(z.string()).max(100).min(1),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
+});
+
+export const rejectPartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+});
+
+export const rejectPartnersBulkSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
 });
 
 export const retrievePartnerLinksSchema = z

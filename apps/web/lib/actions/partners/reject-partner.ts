@@ -1,14 +1,10 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import z from "../../zod";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { authActionClient } from "../safe-action";
-
-const rejectPartnerSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string(),
-});
 
 // Reject a pending partner
 export const rejectPartnerAction = authActionClient
@@ -37,9 +33,7 @@ export const rejectPartnerAction = authActionClient
         id: programEnrollment.id,
       },
       data: {
-        status: "rejected",
+        status: ProgramEnrollmentStatus.rejected,
       },
     });
-
-    // TODO: [partners] Notify partner of rejection?
   });

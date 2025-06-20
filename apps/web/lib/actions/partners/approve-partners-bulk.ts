@@ -16,21 +16,19 @@ export const approvePartnersBulkAction = authActionClient
     const { workspace, user } = ctx;
     let { partnerIds } = parsedInput;
 
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
-      programId: getDefaultProgramIdOrThrow(workspace),
+      programId,
     });
-
-    if (partnerIds.length === 0) {
-      throw new Error("No partner IDs provided.");
-    }
 
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId: program.id,
         status: "pending",
         partnerId: {
-          in: [...new Set(partnerIds)],
+          in: partnerIds,
         },
       },
       select: {
@@ -39,7 +37,7 @@ export const approvePartnersBulkAction = authActionClient
     });
 
     if (programEnrollments.length === 0) {
-      throw new Error("No pending program enrollments found.");
+      throw new Error("No pending program enrollments found to approve.");
     }
 
     await qstash.publishJSON({
@@ -47,9 +45,7 @@ export const approvePartnersBulkAction = authActionClient
       body: {
         programId: program.id,
         userId: user.id,
-        partnerIds: programEnrollments.map(
-          (enrollment) => enrollment.partnerId,
-        ),
+        partnerIds: programEnrollments.map(({ partnerId }) => partnerId),
       },
     });
   });
