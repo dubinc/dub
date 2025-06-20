@@ -546,6 +546,11 @@ export const approvePartnerSchema = z.object({
   linkId: z.string().nullable(),
 });
 
+export const approvePartnersBulkSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z.array(z.string()),
+});
+
 export const retrievePartnerLinksSchema = z
   .object({
     programId: z.string(),
