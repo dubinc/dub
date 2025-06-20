@@ -1,3 +1,4 @@
+import { allowedHostnamesCache } from "@/lib/analytics/allowed-hostnames-cache";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
@@ -6,7 +7,6 @@ import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { storage } from "@/lib/storage";
-import { redis } from "@/lib/upstash";
 import {
   updateWorkspaceSchema,
   WorkspaceSchema,
@@ -113,21 +113,24 @@ export const PATCH = withWorkspace(
             await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
           }
 
-          // Sync the allowedHostnames cache
-          const cacheKey = `allowedHostnamesCache:${workspace.id}`;
+          // Sync the allowedHostnames cache for workspace domains
           const current = JSON.stringify(workspace.allowedHostnames);
           const next = JSON.stringify(response.allowedHostnames);
+          const domains = response.domains.map(({ slug }) => slug);
 
           if (current !== next) {
             if (
               Array.isArray(response.allowedHostnames) &&
               response.allowedHostnames.length > 0
             ) {
-              await redis.set(cacheKey, next, {
-                ex: 60 * 60 * 24 * 7, // 7 days
+              allowedHostnamesCache.mset({
+                allowedHostnames: next,
+                domains,
               });
             } else {
-              await redis.del(cacheKey);
+              allowedHostnamesCache.deleteMany({
+                domains,
+              });
             }
           }
         })(),

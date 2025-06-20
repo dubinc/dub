@@ -1,3 +1,4 @@
+import { allowedHostnamesCache } from "@/lib/analytics/allowed-hostnames-cache";
 import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
@@ -57,11 +58,12 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-    let [cachedClickId, cachedLink] = await redis.mget<
-      [string, RedisLinkProps]
+    let [cachedClickId, cachedLink, cachedAllowedHostnames] = await redis.mget<
+      [string, RedisLinkProps, string[]]
     >([
       recordClickCache._createKey({ domain, key, ip }),
       linkCache._createKey({ domain, key }),
+      allowedHostnamesCache._createKey({ domain }),
     ]);
 
     // assign a new clickId if there's no cached clickId
@@ -101,32 +103,46 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     // if there's no cached clickId, track the click event
     if (!cachedClickId) {
-      waitUntil(
-        (async () => {
-          const workspace = await getWorkspaceViaEdge(cachedLink.projectId!);
-          const allowedHostnames = workspace?.allowedHostnames as string[];
+      console.log("cachedAllowedHostnames", cachedAllowedHostnames);
 
-          if (
-            verifyAnalyticsAllowedHostnames({
-              allowedHostnames,
-              req,
-            })
-          ) {
-            await recordClick({
-              req,
-              clickId,
-              linkId: cachedLink.id,
-              domain,
-              key,
-              url: finalUrl,
-              workspaceId: cachedLink.projectId,
-              skipRatelimit: true,
-              ...(referrer && { referrer }),
-              shouldPassClickId: true,
-            });
-          }
-        })(),
-      );
+      if (!cachedAllowedHostnames) {
+        const workspace = await getWorkspaceViaEdge(cachedLink.projectId!);
+        cachedAllowedHostnames = workspace?.allowedHostnames as string[];
+
+        console.log("workspace", workspace);
+
+        waitUntil(
+          allowedHostnamesCache.mset({
+            allowedHostnames: JSON.stringify(cachedAllowedHostnames),
+            domains: workspace?.domains.map(({ slug }) => slug) ?? [],
+          }),
+        );
+      }
+
+      if (
+        !verifyAnalyticsAllowedHostnames({
+          allowedHostnames: cachedAllowedHostnames,
+          req,
+        })
+      ) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "Click tracking is not allowed from this referrer.",
+        });
+      }
+
+      await recordClick({
+        req,
+        clickId,
+        linkId: cachedLink.id,
+        domain,
+        key,
+        url: finalUrl,
+        workspaceId: cachedLink.projectId,
+        skipRatelimit: true,
+        ...(referrer && { referrer }),
+        shouldPassClickId: true,
+      });
     }
 
     const isPartnerLink = Boolean(cachedLink.programId && cachedLink.partnerId);
