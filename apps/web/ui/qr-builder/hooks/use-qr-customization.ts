@@ -35,8 +35,6 @@ export function useQrCustomization(
       : initialData?.data;
 
   const [data, setData] = useState(initialContentForQrBuild || DEFAULT_WEBSITE);
-  console.log("[useQrCustomization] data", data);
-  console.log("[useQrCustomization] qrCode", qrCode);
   const isQrDisabled = !data?.trim() || data === DEFAULT_WEBSITE;
 
   const [options, setOptions] = useState<Options>({
@@ -73,7 +71,7 @@ export function useQrCustomization(
     ...(initialData?.styles as Options),
   });
 
-  const parseQRData = (data: string, type: EQRType): Record<string, string> => {
+  const parseQRData = (data: string, type: EQRType): Record<string, any> => {
     switch (type) {
       case EQRType.WHATSAPP:
         try {
@@ -142,15 +140,29 @@ export function useQrCustomization(
   };
 
   const [initialInputValues, setInitialInputValues] = useState<
-    Record<string, string>
+    Record<string, any>
   >({});
 
   useEffect(() => {
     if (initialData) {
-      const parsedData = parseQRData(
+      let parsedData = parseQRData(
         initialData.data,
         initialData.qrType as EQRType,
       );
+
+      // For file QRs, merge in preloaded files if present (dashboard flow)
+      if (
+        (initialData.qrType === EQRType.IMAGE ||
+          initialData.qrType === EQRType.VIDEO ||
+          initialData.qrType === EQRType.PDF) &&
+        (initialData as any).initialInputValues
+      ) {
+        parsedData = {
+          ...parsedData,
+          ...(initialData as any).initialInputValues,
+        };
+      }
+
       setInitialInputValues(parsedData);
     }
   }, [initialData]);

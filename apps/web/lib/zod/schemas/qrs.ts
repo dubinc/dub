@@ -12,16 +12,14 @@ export const createQrBodySchema = z.object({
   file: z
     .string()
     .nullish()
-    .describe(
-      "The file the link leads to",
-    ),
+    .describe("The file the link leads to"),
   fileName: z
     .string()
     .nullish()
-    .describe(
-      "The original name of the uploaded file",
-    ),
+    .describe("The original name of the uploaded file"),
   link: createLinkBodySchema,
 });
 
-export const updateQrBodySchema = createQrBodySchema.partial();
+export const updateQrBodySchema = createQrBodySchema.partial().extend({
+  link: createLinkBodySchema.optional(),
+});

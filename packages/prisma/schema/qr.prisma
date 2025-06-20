@@ -29,6 +29,7 @@ model Qr {
 
   fileId          String?
   fileName        String?
+  thumbnailFileId String?
 
   linkId          String?
   link            Link?      @relation(fields: [linkId], references: [id])

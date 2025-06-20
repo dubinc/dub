@@ -1,5 +1,6 @@
 "use client";
 
+import { getFileContent } from "@/lib/actions/get-file-content.ts";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import { ExpandedLinkProps, QRProps, UserProps } from "@/lib/types";
 import QrCodeCardPlaceholder from "@/ui/qr-code/qr-code-card-placeholder.tsx";
@@ -13,6 +14,7 @@ import {
   SetStateAction,
   createContext,
   useContext,
+  useEffect,
   useState,
 } from "react";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
@@ -38,12 +40,78 @@ export default function QrCodesContainer({
 
   const { qrs, isValidating } = useQrs({ sortBy, showArchived: true });
 
+  // State to hold QRs with preloaded thumbnails
+  const [qrsWithThumbnails, setQrsWithThumbnails] = useState<
+    ResponseQrCode[] | undefined
+  >(undefined);
+
+  useEffect(() => {
+    if (!qrs) {
+      return;
+    }
+
+    async function preloadThumbnails() {
+      if (!qrs) return;
+
+      const updatedQrs = await Promise.all(
+        qrs.map(async (qr) => {
+          if (
+            (qr.qrType === "image" || qr.qrType === "video") &&
+            qr.thumbnailFileId
+          ) {
+            try {
+              const thumbnailResult = await getFileContent(qr.thumbnailFileId);
+
+              if (thumbnailResult.success) {
+                const { content, contentType } = thumbnailResult.data;
+                const binaryString = atob(content);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  bytes[i] = binaryString.charCodeAt(i);
+                }
+                const thumbnailFile = new File(
+                  [bytes],
+                  `${qr.fileName || "file"}_thumb.jpg`,
+                  { type: contentType },
+                );
+
+                (thumbnailFile as any).isThumbnail = true;
+                (thumbnailFile as any).thumbnailFileId = qr.thumbnailFileId;
+                (thumbnailFile as any).originalFileId = qr.fileId;
+                (thumbnailFile as any).originalFileName = qr.fileName;
+
+                if (qr.qrType === "image") {
+                  (qr as any).initialInputValues = {
+                    filesImage: [thumbnailFile],
+                  };
+                } else if (qr.qrType === "video") {
+                  (qr as any).initialInputValues = {
+                    filesVideo: [thumbnailFile],
+                  };
+                }
+              }
+            } catch (error) {
+              console.warn(
+                `Failed to preload thumbnail for QR ${qr.id}:`,
+                error,
+              );
+            }
+          }
+
+          return { ...qr };
+        }),
+      );
+      setQrsWithThumbnails(updatedQrs);
+    }
+    preloadThumbnails();
+  }, [qrs]);
+
   return (
     <MaxWidthWrapper className="grid gap-y-2">
       <QrCodesList
         CreateQrCodeButton={CreateQrCodeButton}
-        qrCodes={qrs}
-        loading={isValidating}
+        qrCodes={qrsWithThumbnails}
+        loading={isValidating || (qrs && !qrsWithThumbnails)}
         compact={viewMode === "rows"}
         isTrialOver={isTrialOver}
       />

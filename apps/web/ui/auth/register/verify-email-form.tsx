@@ -32,6 +32,7 @@ type TProcessedQRData = {
   qrType: EQRType;
   file?: string | null;
   fileName?: string | null;
+  thumbnailFileId?: string | null;
 };
 
 export const VerifyEmailForm = ({
@@ -67,6 +68,7 @@ export const VerifyEmailForm = ({
 
         const formData = new FormData();
         formData.append("file", firstFile);
+        formData.append("qrType", qrDataToCreate.qrType);
 
         const response = await fetch("/api/qrs/upload", {
           method: "POST",
@@ -77,8 +79,8 @@ export const VerifyEmailForm = ({
           throw new Error("Failed to upload file");
         }
 
-        const { fileId } = await response.json();
-        return { ...qrDataToCreate, file: fileId, fileName: firstFile.name };
+        const { fileId, thumbnailFileId } = await response.json();
+        return { ...qrDataToCreate, file: fileId, fileName: firstFile.name, thumbnailFileId };
       } catch (error) {
         console.error("Error uploading file:", error);
         showMessage(

@@ -1,6 +1,8 @@
 import { getIP } from "@/lib/api/utils";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
+import { generateThumbnail } from "@/lib/utils/generate-thumbnail";
+import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -12,6 +14,7 @@ export async function POST(req: Request) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
+    const qrType = formData.get("qrType") as EQRType;
 
     if (!file) {
       return new NextResponse("No file provided", { status: 400 });
@@ -43,15 +46,41 @@ export async function POST(req: Request) {
       size: file.size,
       blobType: blob.type,
       blobSize: blob.size,
+      qrType,
     });
 
+    // Upload the original file
     const uploadResult = await storage.upload(`qrs-content/${fileId}`, blob, {
       contentType: file.type,
     });
 
     console.log("Upload result:", uploadResult);
 
-    return NextResponse.json({ fileId });
+    // Generate thumbnail for images and videos
+    let thumbnailFileId: string | null = null;
+    if (qrType && (qrType === EQRType.IMAGE || qrType === EQRType.VIDEO)) {
+      try {
+        const thumbnailResult = await generateThumbnail(file, qrType);
+        if (thumbnailResult) {
+          thumbnailFileId = thumbnailResult.thumbnailFileId;
+          
+          // Upload thumbnail
+          await storage.upload(`qrs-content/${thumbnailFileId}`, thumbnailResult.thumbnailBlob, {
+            contentType: 'image/jpeg',
+          });
+          
+          console.log("Thumbnail uploaded:", thumbnailFileId);
+        }
+      } catch (error) {
+        console.error("Error generating thumbnail:", error);
+        // Don't fail the upload if thumbnail generation fails
+      }
+    }
+
+    return NextResponse.json({ 
+      fileId,
+      thumbnailFileId,
+    });
   } catch (error) {
     console.error("Error uploading file:", error);
     return new NextResponse(

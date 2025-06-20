@@ -11,7 +11,7 @@ import { prisma } from "@dub/prisma";
 import { R2_URL } from '@dub/utils';
 import { NextResponse } from "next/server";
 
-// GET /api/qrs/[qrId] – get a qr
+// GET /api/qrs/[qrId] – get a qr
 export const GET = withWorkspace(
   async ({ headers, workspace, params, session }) => {
     const qr = await getQr({
@@ -84,14 +84,6 @@ export const PATCH = withWorkspace(
         },
         updatedLink: processedLink,
       });
-
-      // waitUntil(
-      //   sendWorkspaceWebhook({
-      //     trigger: "link.updated",
-      //     workspace,
-      //     data: linkEventSchema.parse(response),
-      //   }),
-      // );
 
       const updatedQr = await updateQr(params.qrId, body, fileId, qr.fileId);
 
