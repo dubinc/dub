@@ -194,11 +194,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const hideDemoPlaceholderOnMobile = isMobile && isTypeStep;
 
       // ===== EVENT HANDLERS =====
-      const handleSelectQRType = (type: EQRType) => {
-        setSelectedQRType(type);
-        handleNextStep();
-      };
-
       const onSaveClick = () => {
         const formValues = form.getValues();
         const qrNameFieldId = `qrName-${selectedQRType}`;
@@ -214,6 +209,29 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         }).then(() => {
           // setFiles(null);
         });
+      };
+
+      const handleSelectQRType = (type: EQRType) => {
+        setSelectedQRType(type);
+        handleNextStep();
+      };
+
+      const handleBack = () => {
+        handleChangeStep(Math.max(step - 1, 1));
+        handleScroll();
+      };
+
+      const handleContinue = async () => {
+        if (isCustomizationStep) {
+          onSaveClick();
+          return;
+        }
+
+        const isValid = await handleValidationAndContentSubmit();
+        if (isValid) {
+          handleNextStep();
+          handleScroll();
+        }
       };
 
       return (
@@ -289,10 +307,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     <div ref={qrBuilderButtonsWrapperRef} className="w-full">
                       <QrBuilderButtons
                         step={step}
-                        onStepChange={handleChangeStep}
-                        onSaveClick={onSaveClick}
-                        onBackClick={handleScroll}
-                        validateFields={handleValidationAndContentSubmit}
+                        onBack={handleBack}
+                        onContinue={handleContinue}
                         isEdit={isEdit}
                         isProcessing={isProcessing}
                         homePageDemo={homepageDemo}
@@ -329,10 +345,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   >
                     <QrBuilderButtons
                       step={step}
-                      onStepChange={handleChangeStep}
-                      onSaveClick={onSaveClick}
-                      onBackClick={handleScroll}
-                      validateFields={handleValidationAndContentSubmit}
+                      onBack={handleBack}
+                      onContinue={handleContinue}
                       isEdit={isEdit}
                       isProcessing={isProcessing}
                       homePageDemo={homepageDemo}
@@ -424,10 +438,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             <div className="border-border-500 sticky bottom-0 left-0 z-50 w-full border-t bg-white px-6 py-3 shadow-md">
               <QrBuilderButtons
                 step={step}
-                onStepChange={handleChangeStep}
-                onSaveClick={onSaveClick}
-                onBackClick={handleScroll}
-                validateFields={handleValidationAndContentSubmit}
+                onBack={handleBack}
+                onContinue={handleContinue}
                 isEdit={isEdit}
                 isProcessing={isProcessing}
                 homePageDemo={homepageDemo}
