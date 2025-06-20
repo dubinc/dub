@@ -3,7 +3,6 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@prisma/client";
 import { authActionClient } from "../safe-action";
 
 // Reject a pending partner
@@ -33,7 +32,7 @@ export const rejectPartnerAction = authActionClient
         id: programEnrollment.id,
       },
       data: {
-        status: ProgramEnrollmentStatus.rejected,
+        status: "rejected",
       },
     });
   });
