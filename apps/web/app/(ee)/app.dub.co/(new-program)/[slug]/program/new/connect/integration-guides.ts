@@ -1,9 +1,17 @@
 import { BetterAuth } from "@/ui/layout/sidebar/conversions/icons/better-auth";
 import { Clerk } from "@/ui/layout/sidebar/conversions/icons/clerk";
+import { Go } from "@/ui/layout/sidebar/conversions/icons/go";
+import { Php } from "@/ui/layout/sidebar/conversions/icons/php";
+import { Python } from "@/ui/layout/sidebar/conversions/icons/python";
+import { React } from "@/ui/layout/sidebar/conversions/icons/react";
+import { Ruby } from "@/ui/layout/sidebar/conversions/icons/ruby";
 import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
 import { Supabase } from "@/ui/layout/sidebar/conversions/icons/supabase";
-import { Code, Framer, Globe } from "lucide-react";
+import { Typescript } from "@/ui/layout/sidebar/conversions/icons/typescript";
+import { Webflow } from "@/ui/layout/sidebar/conversions/icons/webflow";
+import { Wordpress } from "@/ui/layout/sidebar/conversions/icons/wordpress";
+import { Code, Framer, SquareCode } from "lucide-react";
 
 export type IntegrationType =
   | "client-sdk"
@@ -27,7 +35,7 @@ export const guides: IntegrationGuide[] = [
     type: "client-sdk",
     key: "react",
     title: "React",
-    icon: Code,
+    icon: React,
   },
   {
     type: "client-sdk",
@@ -39,13 +47,13 @@ export const guides: IntegrationGuide[] = [
     type: "client-sdk",
     key: "wordpress",
     title: "WordPress",
-    icon: Code,
+    icon: Wordpress,
   },
   {
     type: "client-sdk",
     key: "webflow",
     title: "Webflow",
-    icon: Globe,
+    icon: Webflow,
   },
   {
     type: "client-sdk",
@@ -57,7 +65,7 @@ export const guides: IntegrationGuide[] = [
     type: "client-sdk",
     key: "manual",
     title: "Manual",
-    icon: Code,
+    icon: SquareCode,
   },
 
   // Server SDK
@@ -65,37 +73,37 @@ export const guides: IntegrationGuide[] = [
     type: "server-sdk",
     key: "typescript",
     title: "TypeScript",
-    icon: Code,
+    icon: Typescript,
   },
   {
     type: "server-sdk",
     key: "golang",
     title: "Go",
-    icon: Code,
+    icon: Go,
   },
   {
     type: "server-sdk",
     key: "python",
     title: "Python",
-    icon: Code,
+    icon: Python,
   },
   {
     type: "server-sdk",
     key: "ruby",
     title: "Ruby",
-    icon: Code,
+    icon: Ruby,
   },
   {
     type: "server-sdk",
     key: "php",
     title: "PHP",
-    icon: Code,
+    icon: Php,
   },
   {
     type: "server-sdk",
     key: "rest",
     title: "REST API",
-    icon: Code,
+    icon: SquareCode,
   },
 
   // Track Leads
