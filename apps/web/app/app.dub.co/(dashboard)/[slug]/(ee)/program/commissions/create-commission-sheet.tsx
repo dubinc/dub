@@ -163,15 +163,15 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
     }
 
     if (commissionType === "sale") {
-      return !linkId || !saleAmount;
+      return !linkId || !customerId || !saleAmount;
     }
 
     if (commissionType === "lead") {
-      return !linkId;
+      return !linkId || !customerId;
     }
 
     return false;
-  }, [commissionType, partnerId, linkId, saleAmount, amount]);
+  }, [commissionType, partnerId, linkId, customerId, saleAmount, amount]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
