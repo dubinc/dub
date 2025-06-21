@@ -151,8 +151,6 @@ export async function recordClick({
     referer_url: referer || "(direct)",
   };
 
-  const hasWebhooks = webhookIds && webhookIds.length > 0;
-
   if (shouldCacheClickId) {
     // cache the click ID and its corresponding click data in Redis for 5 mins
     // we're doing this because ingested click events are not available immediately in Tinybird
@@ -225,6 +223,7 @@ export async function recordClick({
       }
 
       // if the link has webhooks enabled, we need to check if the workspace usage has exceeded the limit
+      const hasWebhooks = webhookIds && webhookIds.length > 0;
       if (workspaceId && hasWebhooks) {
         const workspaceRows = await conn.execute(
           "SELECT usage, usageLimit FROM Project WHERE id = ? LIMIT 1",
@@ -243,7 +242,7 @@ export async function recordClick({
           workspaceData && workspaceData.usage >= workspaceData.usageLimit;
 
         // Send webhook events if link has webhooks enabled and the workspace usage has not exceeded the limit
-        if (hasWebhooks && !hasExceededUsageLimit) {
+        if (!hasExceededUsageLimit) {
           await sendLinkClickWebhooks({ webhookIds, linkId, clickData });
         }
       }

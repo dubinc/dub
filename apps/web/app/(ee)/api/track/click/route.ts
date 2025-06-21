@@ -92,7 +92,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     if (!cachedLink.projectId) {
       throw new DubApiError({
         code: "not_found",
-        message: "Link not found.",
+        message: "Link does not belong to a workspace.",
       });
     }
 
@@ -106,7 +106,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     if (!cachedClickId) {
       if (!cachedAllowedHostnames) {
         const workspace = await getWorkspaceViaEdge({
-          workspaceId: cachedLink.projectId!,
+          workspaceId: cachedLink.projectId,
           includeDomains: true,
         });
 
