@@ -89,12 +89,10 @@ export default function QrCodesContainer({
               qr.fileId &&
               qr.fileName
             ) {
-              // Create a placeholder file object with metadata for instant preview
-              const placeholderFile = new File(
-                [""], // Empty content since we don't need actual file data
-                qr.fileName,
-                { type: qr.qrType === "pdf" ? "application/pdf" : "video/mp4" },
-              );
+              // Create a placeholder file object for preview in QRContentEditorModal
+              const placeholderFile = new File([""], qr.fileName, {
+                type: qr.qrType === "pdf" ? "application/pdf" : "video/mp4",
+              });
 
               (placeholderFile as any).isThumbnail = true;
               (placeholderFile as any).fileId = qr.fileId;
