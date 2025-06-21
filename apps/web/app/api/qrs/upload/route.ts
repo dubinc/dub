@@ -1,7 +1,6 @@
 import { getIP } from "@/lib/api/utils";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -13,7 +12,6 @@ export async function POST(req: Request) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
-    const qrType = formData.get("qrType") as EQRType;
 
     if (!file) {
       return new NextResponse("No file provided", { status: 400 });
@@ -45,19 +43,15 @@ export async function POST(req: Request) {
       size: file.size,
       blobType: blob.type,
       blobSize: blob.size,
-      qrType,
     });
 
-    // Upload the original file
     const uploadResult = await storage.upload(`qrs-content/${fileId}`, blob, {
       contentType: file.type,
     });
 
     console.log("Upload result:", uploadResult);
 
-    return NextResponse.json({ 
-      fileId,
-    });
+    return NextResponse.json({ fileId });
   } catch (error) {
     console.error("Error uploading file:", error);
     return new NextResponse(
