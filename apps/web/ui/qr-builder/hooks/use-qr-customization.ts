@@ -16,6 +16,17 @@ import { DotType } from "qr-code-styling/lib/types";
 import { useEffect, useState } from "react";
 import { convertSvgUrlToBase64 } from "../helpers/convert-svg-url-to-base64.ts";
 
+type TStyleWithData = { data: string };
+
+function isStyleWithData(obj: unknown): obj is TStyleWithData {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "data" in obj &&
+    typeof (obj as any).data === "string"
+  );
+}
+
 export function useQrCustomization(
   initialData?: ResponseQrCode,
   homepageDemo?: boolean,
@@ -146,7 +157,7 @@ export function useQrCustomization(
   useEffect(() => {
     if (initialData) {
       let parsedData = parseQRData(
-        initialData.data,
+        isStyleWithData(initialData?.styles) ? initialData?.styles.data : "",
         initialData.qrType as EQRType,
       );
 
