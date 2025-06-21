@@ -231,13 +231,16 @@ export async function recordClick({
           [workspaceId],
         );
 
-        const hasExceededUsageLimit =
+        const workspaceData =
           workspaceRows.rows.length > 0
             ? (workspaceRows.rows[0] as Pick<
                 WorkspaceProps,
                 "usage" | "usageLimit"
               >)
             : null;
+
+        const hasExceededUsageLimit =
+          workspaceData && workspaceData.usage >= workspaceData.usageLimit;
 
         // Send webhook events if link has webhooks enabled and the workspace usage has not exceeded the limit
         if (hasWebhooks && !hasExceededUsageLimit) {
