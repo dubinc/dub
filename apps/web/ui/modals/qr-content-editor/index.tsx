@@ -80,6 +80,10 @@ export function QRContentEditorModal({
   });
 
   useEffect(() => {
+    if (isProcessing) {
+      return;
+    }
+
     if (initialInputValues && Object.keys(initialInputValues).length > 0) {
       console.log("Setting initial values:", initialInputValues);
       console.log("QR Code data:", qrCode?.data);
@@ -99,6 +103,7 @@ export function QRContentEditorModal({
     qrCode?.data,
     selectedQRType,
     qrCode?.title,
+    isProcessing,
   ]);
 
   const [isHiddenNetwork, setIsHiddenNetwork] = useState(false);
