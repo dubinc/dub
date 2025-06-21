@@ -53,7 +53,9 @@ export const GET = withWorkspace(
               ...commonRewardWhere,
             },
             every: {
-              status: status || { notIn: ["rejected", "banned", "archived"] },
+              status: status || {
+                notIn: ["pending", "rejected", "banned", "archived"],
+              },
             },
           },
           ...commonWhere,
@@ -112,7 +114,9 @@ export const GET = withWorkspace(
           by: [groupBy],
           where: {
             programId,
-            status: status || { notIn: ["rejected", "banned", "archived"] },
+            status: status || {
+              notIn: ["pending", "rejected", "banned", "archived"],
+            },
             partner: {
               ...(country && {
                 country,
@@ -161,7 +165,9 @@ export const GET = withWorkspace(
     const count = await prisma.programEnrollment.count({
       where: {
         programId,
-        status: status || { notIn: ["rejected", "banned", "archived"] },
+        status: status || {
+          notIn: ["pending", "rejected", "banned", "archived"],
+        },
         ...commonRewardWhere,
         partner: {
           ...(country && {
