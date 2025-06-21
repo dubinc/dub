@@ -68,7 +68,6 @@ export const VerifyEmailForm = ({
 
         const formData = new FormData();
         formData.append("file", firstFile);
-        formData.append("qrType", qrDataToCreate.qrType);
 
         const response = await fetch("/api/qrs/upload", {
           method: "POST",
