@@ -1,5 +1,8 @@
 import { allowedHostnamesCache } from "@/lib/analytics/allowed-hostnames-cache";
-import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
+import {
+  getHostnameFromRequest,
+  verifyAnalyticsAllowedHostnames,
+} from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
@@ -109,7 +112,8 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
           includeDomains: true,
         });
 
-        cachedAllowedHostnames = workspace?.allowedHostnames as string[];
+        cachedAllowedHostnames = (workspace?.allowedHostnames ??
+          []) as string[];
 
         waitUntil(
           allowedHostnamesCache.mset({
@@ -127,7 +131,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       if (!allowRequest) {
         throw new DubApiError({
           code: "forbidden",
-          message: "Click tracking is not allowed from this referrer.",
+          message: `Request origin '${getHostnameFromRequest(req)}' is not included in the allowed hostnames for this workspace (${cachedAllowedHostnames.join(", ")}). Update your allowed hostnames here: https://app.dub.co/settings/analytics`,
         });
       }
 
