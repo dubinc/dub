@@ -1,4 +1,8 @@
-import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
+import { allowedHostnamesCache } from "@/lib/analytics/allowed-hostnames-cache";
+import {
+  getHostnameFromRequest,
+  verifyAnalyticsAllowedHostnames,
+} from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
@@ -15,8 +19,6 @@ import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-export const runtime = "edge";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -48,7 +50,7 @@ const trackClickResponseSchema = z.object({
   }).nullish(),
 });
 
-// POST /api/track/click – Track a click event from the client-side
+// POST /api/track/click – Track a click event for a link
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
     const { domain, key, url, referrer } = trackClickSchema.parse(
@@ -57,11 +59,12 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-    let [cachedClickId, cachedLink] = await redis.mget<
-      [string, RedisLinkProps]
+    let [cachedClickId, cachedLink, cachedAllowedHostnames] = await redis.mget<
+      [string, RedisLinkProps, string[]]
     >([
       recordClickCache._createKey({ domain, key, ip }),
       linkCache._createKey({ domain, key }),
+      allowedHostnamesCache._createKey({ domain }),
     ]);
 
     // assign a new clickId if there's no cached clickId
@@ -89,7 +92,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     if (!cachedLink.projectId) {
       throw new DubApiError({
         code: "not_found",
-        message: "Link not found.",
+        message: "Link does not belong to a workspace.",
       });
     }
 
@@ -101,32 +104,47 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     // if there's no cached clickId, track the click event
     if (!cachedClickId) {
-      waitUntil(
-        (async () => {
-          const workspace = await getWorkspaceViaEdge(cachedLink.projectId!);
-          const allowedHostnames = workspace?.allowedHostnames as string[];
+      if (!cachedAllowedHostnames) {
+        const workspace = await getWorkspaceViaEdge({
+          workspaceId: cachedLink.projectId,
+          includeDomains: true,
+        });
 
-          if (
-            verifyAnalyticsAllowedHostnames({
-              allowedHostnames,
-              req,
-            })
-          ) {
-            await recordClick({
-              req,
-              clickId,
-              linkId: cachedLink.id,
-              domain,
-              key,
-              url: finalUrl,
-              workspaceId: cachedLink.projectId,
-              skipRatelimit: true,
-              ...(referrer && { referrer }),
-              shouldPassClickId: true,
-            });
-          }
-        })(),
-      );
+        cachedAllowedHostnames = (workspace?.allowedHostnames ??
+          []) as string[];
+
+        waitUntil(
+          allowedHostnamesCache.mset({
+            allowedHostnames: JSON.stringify(cachedAllowedHostnames),
+            domains: workspace?.domains.map(({ slug }) => slug) ?? [],
+          }),
+        );
+      }
+
+      const allowRequest = verifyAnalyticsAllowedHostnames({
+        allowedHostnames: cachedAllowedHostnames,
+        req,
+      });
+
+      if (!allowRequest) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: `Request origin '${getHostnameFromRequest(req)}' is not included in the allowed hostnames for this workspace. Update your allowed hostnames here: https://app.dub.co/settings/analytics`,
+        });
+      }
+
+      await recordClick({
+        req,
+        clickId,
+        linkId: cachedLink.id,
+        domain,
+        key,
+        url: finalUrl,
+        workspaceId: cachedLink.projectId,
+        skipRatelimit: true,
+        ...(referrer && { referrer }),
+        shouldCacheClickId: true,
+      });
     }
 
     const isPartnerLink = Boolean(cachedLink.programId && cachedLink.partnerId);
