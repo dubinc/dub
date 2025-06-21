@@ -7,6 +7,12 @@ export const E2E_LINK = {
   url: "https://github.com/dubinc",
 };
 
+export const E2E_TRACK_CLICK_HEADERS = {
+  referer: "https://dub.co",
+  "User-Agent":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+};
+
 export const E2E_TAG = {
   id: "clvkopm8b0009nf98azsp9epk",
   name: "E2E Tests (DO NOT DELETE)",

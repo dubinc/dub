@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_LINK } from "../utils/resource";
+import { E2E_LINK, E2E_TRACK_CLICK_HEADERS } from "../utils/resource";
 
 // Helper function to verify click tracking response
 const expectValidClickResponse = ({
@@ -35,12 +35,6 @@ const expectValidClickResponse = ({
   });
 };
 
-const TRACK_CLICK_HEADERS = {
-  referer: "https://dub.co",
-  "User-Agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-};
-
 describe("POST /track/click", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
@@ -48,7 +42,7 @@ describe("POST /track/click", async () => {
   test("track a basic click", async () => {
     const response = await http.post<{ clickId: string }>({
       path: "/track/click",
-      headers: TRACK_CLICK_HEADERS,
+      headers: E2E_TRACK_CLICK_HEADERS,
       body: {
         domain: E2E_LINK.domain,
         key: E2E_LINK.key,
@@ -63,7 +57,7 @@ describe("POST /track/click", async () => {
   test("same clickId should be returned on subsequent requests", async () => {
     const response1 = await http.post<{ clickId: string }>({
       path: "/track/click",
-      headers: TRACK_CLICK_HEADERS,
+      headers: E2E_TRACK_CLICK_HEADERS,
       body: {
         domain: E2E_LINK.domain,
         key: E2E_LINK.key,
@@ -72,7 +66,7 @@ describe("POST /track/click", async () => {
 
     const response2 = await http.post<{ clickId: string }>({
       path: "/track/click",
-      headers: TRACK_CLICK_HEADERS,
+      headers: E2E_TRACK_CLICK_HEADERS,
       body: {
         domain: E2E_LINK.domain,
         key: E2E_LINK.key,
@@ -85,7 +79,7 @@ describe("POST /track/click", async () => {
   test("partner link should return partner data", async () => {
     const clickResponse = await http.post<{ clickId: string }>({
       path: "/track/click",
-      headers: TRACK_CLICK_HEADERS,
+      headers: E2E_TRACK_CLICK_HEADERS,
       body: {
         domain: "getacme.link",
         key: "derek",
@@ -103,7 +97,7 @@ describe("POST /track/click", async () => {
   test("missing domain should return validation error", async () => {
     const response = await http.post({
       path: "/track/click",
-      headers: TRACK_CLICK_HEADERS,
+      headers: E2E_TRACK_CLICK_HEADERS,
       body: {
         key: E2E_LINK.key,
       },
@@ -123,7 +117,7 @@ describe("POST /track/click", async () => {
   test("missing key should return validation error", async () => {
     const response = await http.post({
       path: "/track/click",
-      headers: TRACK_CLICK_HEADERS,
+      headers: E2E_TRACK_CLICK_HEADERS,
       body: {
         domain: E2E_LINK.domain,
       },
@@ -143,7 +137,7 @@ describe("POST /track/click", async () => {
   test("non-existent link should return not found error", async () => {
     const response = await http.post({
       path: "/track/click",
-      headers: TRACK_CLICK_HEADERS,
+      headers: E2E_TRACK_CLICK_HEADERS,
       body: {
         domain: E2E_LINK.domain,
         key: "non-existent-key",
@@ -165,7 +159,7 @@ describe("POST /track/click", async () => {
   //     const response = await http.post({
   //       path: "/track/click",
   //       headers: {
-  //         ...TRACK_CLICK_HEADERS,
+  //         ...E2E_TRACK_CLICK_HEADERS,
   //         referer: "https://not-allowed.com",
   //       },
   //       body: {
@@ -205,7 +199,7 @@ describe("POST /track/click", async () => {
   test("POST request should return CORS headers", async () => {
     const response = await http.post<{ clickId: string }>({
       path: "/track/click",
-      headers: TRACK_CLICK_HEADERS,
+      headers: E2E_TRACK_CLICK_HEADERS,
       body: {
         domain: E2E_LINK.domain,
         key: E2E_LINK.key,
@@ -218,7 +212,7 @@ describe("POST /track/click", async () => {
   test("clickId should be a valid string", async () => {
     const response = await http.post<{ clickId: string }>({
       path: "/track/click",
-      headers: TRACK_CLICK_HEADERS,
+      headers: E2E_TRACK_CLICK_HEADERS,
       body: {
         domain: E2E_LINK.domain,
         key: E2E_LINK.key,

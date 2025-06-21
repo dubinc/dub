@@ -1,5 +1,6 @@
 import { TrackLeadResponse, TrackSaleResponse } from "@/lib/types";
 import { randomCustomer } from "tests/utils/helpers";
+import { E2E_TRACK_CLICK_HEADERS } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -32,11 +33,7 @@ describe("POST /track/lead", async () => {
 
   const clickResponse = await http.post<{ clickId: string }>({
     path: "/track/click",
-    headers: {
-      referer: "https://dub.co",
-      "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    },
+    headers: E2E_TRACK_CLICK_HEADERS,
     body: {
       domain: "getacme.link",
       key: "derek",
@@ -50,7 +47,7 @@ describe("POST /track/lead", async () => {
 
   const customer1 = randomCustomer();
 
-  test("track a lead", async () => {
+  test("track a lead (with clickId from a prior /track/click request)", async () => {
     const response = await http.post<TrackLeadResponse>({
       path: "/track/lead",
       body: {
