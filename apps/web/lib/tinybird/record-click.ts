@@ -6,7 +6,7 @@ import {
   getDomainWithoutWWW,
 } from "@dub/utils";
 import { EU_COUNTRY_CODES } from "@dub/utils/src/constants/countries";
-import { geolocation, ipAddress } from "@vercel/functions";
+import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { userAgent } from "next/server";
 import { recordClickCache } from "../api/links/record-click-cache";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
@@ -151,105 +151,103 @@ export async function recordClick({
     referer_url: referer || "(direct)",
   };
 
-  const hasWebhooks = webhookIds && webhookIds.length > 0;
-
-  const response = await Promise.allSettled([
-    fetchWithRetry(
-      `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-        },
-        body: JSON.stringify(clickData),
-      },
-    ).then((res) => res.json()),
-
-    // cache the recorded click for the corresponding IP address in Redis for 1 hour
-    recordClickCache.set({ domain, key, ip, clickId }),
-
+  if (shouldCacheClickId) {
     // cache the click ID and its corresponding click data in Redis for 5 mins
     // we're doing this because ingested click events are not available immediately in Tinybird
-    shouldCacheClickId &&
-      redis.set(`clickIdCache:${clickId}`, clickData, {
-        ex: 60 * 5,
-      }),
-
-    // increment the click count for the link (based on their ID)
-    // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
-    conn.execute(
-      "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-      [linkId],
-    ),
-    // if the link has a destination URL, increment the usage count for the workspace
-    // and then we have a cron that will reset it at the start of new billing cycle
-    url &&
-      conn.execute(
-        "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
-        [linkId],
-      ),
-
-    // fetch the workspace usage for the workspace
-    workspaceId && hasWebhooks
-      ? conn.execute(
-          "SELECT usage, usageLimit FROM Project WHERE id = ? LIMIT 1",
-          [workspaceId],
-        )
-      : null,
-  ]);
-
-  // Find the rejected promises and log them
-  if (response.some((result) => result.status === "rejected")) {
-    const errors = response
-      .map((result, index) => {
-        if (result.status === "rejected") {
-          const operations = [
-            "Tinybird click event ingestion",
-            "Redis click cache set",
-            "Redis click ID cache set",
-            "Link clicks increment",
-            "Workspace usage increment",
-            "Workspace usage fetch",
-          ];
-          return {
-            operation: operations[index] || `Operation ${index}`,
-            error: result.reason,
-            errorString: JSON.stringify(result.reason, null, 2),
-          };
-        }
-        return null;
-      })
-      .filter((err): err is NonNullable<typeof err> => err !== null);
-
-    console.error("[Record click] - Rejected promises:", {
-      totalErrors: errors.length,
-      errors: errors.map((err) => ({
-        operation: err.operation,
-        error: err.error,
-        errorString: err.errorString,
-      })),
+    await redis.set(`clickIdCache:${clickId}`, clickData, {
+      ex: 60 * 5,
     });
   }
 
-  const [, , , , workspaceRows] = response;
+  waitUntil(
+    (async () => {
+      const response = await Promise.allSettled([
+        fetchWithRetry(
+          `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+            },
+            body: JSON.stringify(clickData),
+          },
+        ).then((res) => res.json()),
 
-  const workspace =
-    workspaceRows.status === "fulfilled" &&
-    workspaceRows.value &&
-    workspaceRows.value.rows.length > 0
-      ? (workspaceRows.value.rows[0] as Pick<
-          WorkspaceProps,
-          "usage" | "usageLimit"
-        >)
-      : null;
+        // cache the recorded click for the corresponding IP address in Redis for 1 hour
+        recordClickCache.set({ domain, key, ip, clickId }),
 
-  const hasExceededUsageLimit =
-    workspace && workspace.usage >= workspace.usageLimit;
+        // increment the click count for the link (based on their ID)
+        // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
+        conn.execute(
+          "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
+          [linkId],
+        ),
+        // if the link has a destination URL, increment the usage count for the workspace
+        // and then we have a cron that will reset it at the start of new billing cycle
+        url &&
+          conn.execute(
+            "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
+            [linkId],
+          ),
+      ]);
 
-  // Send webhook events if link has webhooks enabled and the workspace usage has not exceeded the limit
-  if (hasWebhooks && !hasExceededUsageLimit) {
-    await sendLinkClickWebhooks({ webhookIds, linkId, clickData });
-  }
+      // Find the rejected promises and log them
+      if (response.some((result) => result.status === "rejected")) {
+        const errors = response
+          .map((result, index) => {
+            if (result.status === "rejected") {
+              const operations = [
+                "Tinybird click event ingestion",
+                "recordClickCache set",
+                "Link clicks increment",
+                "Workspace usage increment",
+              ];
+              return {
+                operation: operations[index] || `Operation ${index}`,
+                error: result.reason,
+                errorString: JSON.stringify(result.reason, null, 2),
+              };
+            }
+            return null;
+          })
+          .filter((err): err is NonNullable<typeof err> => err !== null);
+
+        console.error("[Record click] - Rejected promises:", {
+          totalErrors: errors.length,
+          errors: errors.map((err) => ({
+            operation: err.operation,
+            error: err.error,
+            errorString: err.errorString,
+          })),
+        });
+      }
+
+      // if the link has webhooks enabled, we need to check if the workspace usage has exceeded the limit
+      const hasWebhooks = webhookIds && webhookIds.length > 0;
+      if (workspaceId && hasWebhooks) {
+        const workspaceRows = await conn.execute(
+          "SELECT usage, usageLimit FROM Project WHERE id = ? LIMIT 1",
+          [workspaceId],
+        );
+
+        const workspaceData =
+          workspaceRows.rows.length > 0
+            ? (workspaceRows.rows[0] as Pick<
+                WorkspaceProps,
+                "usage" | "usageLimit"
+              >)
+            : null;
+
+        const hasExceededUsageLimit =
+          workspaceData && workspaceData.usage >= workspaceData.usageLimit;
+
+        // Send webhook events if link has webhooks enabled and the workspace usage has not exceeded the limit
+        if (!hasExceededUsageLimit) {
+          await sendLinkClickWebhooks({ webhookIds, linkId, clickData });
+        }
+      }
+    })(),
+  );
 
   return clickData;
 }
