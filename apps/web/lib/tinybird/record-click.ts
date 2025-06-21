@@ -38,7 +38,7 @@ export async function recordClick({
   skipRatelimit,
   timestamp,
   referrer,
-  shouldPassClickId,
+  shouldCacheClickId,
 }: {
   req: Request;
   clickId?: string;
@@ -51,7 +51,7 @@ export async function recordClick({
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
-  shouldPassClickId?: boolean;
+  shouldCacheClickId?: boolean;
 }) {
   if (!clickId) {
     return null;
@@ -170,7 +170,7 @@ export async function recordClick({
 
     // cache the click ID and its corresponding click data in Redis for 5 mins
     // we're doing this because ingested click events are not available immediately in Tinybird
-    shouldPassClickId &&
+    shouldCacheClickId &&
       redis.set(`clickIdCache:${clickId}`, clickData, {
         ex: 60 * 5,
       }),
@@ -200,8 +200,35 @@ export async function recordClick({
 
   // Find the rejected promises and log them
   if (response.some((result) => result.status === "rejected")) {
-    const errors = response.filter((result) => result.status === "rejected");
-    console.error("[Record click] - Rejected promises", errors);
+    const errors = response
+      .map((result, index) => {
+        if (result.status === "rejected") {
+          const operations = [
+            "Tinybird click event ingestion",
+            "Redis click cache set",
+            "Redis click ID cache set",
+            "Link clicks increment",
+            "Workspace usage increment",
+            "Workspace usage fetch",
+          ];
+          return {
+            operation: operations[index] || `Operation ${index}`,
+            error: result.reason,
+            errorString: JSON.stringify(result.reason, null, 2),
+          };
+        }
+        return null;
+      })
+      .filter((err): err is NonNullable<typeof err> => err !== null);
+
+    console.error("[Record click] - Rejected promises:", {
+      totalErrors: errors.length,
+      errors: errors.map((err) => ({
+        operation: err.operation,
+        error: err.error,
+        errorString: err.errorString,
+      })),
+    });
   }
 
   const [, , , , workspaceRows] = response;

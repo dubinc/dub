@@ -1,3 +1,15 @@
+export const getHostnameFromRequest = (req: Request) => {
+  const source = req.headers.get("referer") || req.headers.get("origin");
+  if (!source) return null;
+  try {
+    const sourceUrl = new URL(source);
+    return sourceUrl.hostname.replace(/^www\./, "");
+  } catch (error) {
+    console.log("Error getting hostname from request", { source, error });
+    return null;
+  }
+};
+
 export const verifyAnalyticsAllowedHostnames = ({
   allowedHostnames,
   req,
@@ -10,9 +22,7 @@ export const verifyAnalyticsAllowedHostnames = ({
     return true;
   }
 
-  const source = req.headers.get("referer") || req.headers.get("origin");
-  const sourceUrl = source ? new URL(source) : null;
-  const hostname = sourceUrl?.hostname.replace(/^www\./, "");
+  const hostname = getHostnameFromRequest(req);
 
   if (!hostname) {
     console.log("Click not recorded ❌ – No hostname found in request.", {
