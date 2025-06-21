@@ -5,18 +5,16 @@ import { E2E_LINK } from "../utils/resource";
 // Helper function to verify click tracking response
 const expectValidClickResponse = ({
   response,
-  clickId,
   hasPartner = false,
   hasDiscount = false,
 }: {
   response: { status: number; data: any };
-  clickId: string;
   hasPartner?: boolean;
   hasDiscount?: boolean;
 }) => {
   expect(response.status).toEqual(200);
   expect(response.data).toStrictEqual({
-    clickId,
+    clickId: expect.any(String),
     ...(hasPartner && {
       partner: expect.objectContaining({
         id: expect.any(String),
@@ -59,7 +57,6 @@ describe("POST /track/click", async () => {
 
     expectValidClickResponse({
       response,
-      clickId: response.data.clickId,
     });
   });
 
@@ -98,7 +95,6 @@ describe("POST /track/click", async () => {
     expect(clickResponse.status).toEqual(200);
     expectValidClickResponse({
       response: clickResponse,
-      clickId: clickResponse.data.clickId,
       hasPartner: true,
       hasDiscount: true,
     });
