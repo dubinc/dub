@@ -164,7 +164,7 @@ export default async function LinkMiddleware(
 
   const url = testUrl || cachedLink.url;
 
-  // we only pass the clickId if:
+  // if the following is true, we need to cache the clickId data (so it's available for subsequent /track/lead requests):
   // - trackConversion is enabled
   // - it's a partner link
   const shouldCacheClickId = trackConversion || isPartnerLink;

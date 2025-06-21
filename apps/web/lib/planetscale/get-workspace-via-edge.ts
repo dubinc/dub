@@ -13,11 +13,11 @@ export const getWorkspaceViaEdge = async ({
     ? `
       SELECT 
         w.*,
-        d.slug,
-        d.verified
+        d.slug
       FROM Project w
       LEFT JOIN Domain d ON w.id = d.projectId
       WHERE w.id = ?
+      LIMIT 100
     `
     : `
       SELECT 
@@ -40,23 +40,22 @@ export const getWorkspaceViaEdge = async ({
 
   const firstRow = rows[0] as any;
   const workspaceData = { ...firstRow };
-  const domains: { slug: string; verified: boolean }[] = [];
+  const domains: { slug: string }[] = [];
 
   // Process all rows to collect domains
   rows.forEach((row: any) => {
-    if (row.slug && row.verified) {
+    if (row.slug) {
       domains.push({
         slug: row.slug,
-        verified: row.verified,
       });
     }
   });
 
   // Remove domain fields from workspace object
-  const { slug, verified, ...cleanWorkspaceData } = workspaceData;
+  const { slug, ...cleanWorkspaceData } = workspaceData;
 
   return {
     ...cleanWorkspaceData,
     domains,
-  } as WorkspaceProps & { domains: { slug: string; verified: boolean }[] };
+  } as WorkspaceProps & { domains: { slug: string }[] };
 };
