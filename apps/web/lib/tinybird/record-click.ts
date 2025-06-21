@@ -38,7 +38,7 @@ export async function recordClick({
   skipRatelimit,
   timestamp,
   referrer,
-  shouldPassClickId,
+  shouldCacheClickId,
 }: {
   req: Request;
   clickId?: string;
@@ -51,7 +51,7 @@ export async function recordClick({
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
-  shouldPassClickId?: boolean;
+  shouldCacheClickId?: boolean;
 }) {
   if (!clickId) {
     return null;
@@ -170,7 +170,7 @@ export async function recordClick({
 
     // cache the click ID and its corresponding click data in Redis for 5 mins
     // we're doing this because ingested click events are not available immediately in Tinybird
-    shouldPassClickId &&
+    shouldCacheClickId &&
       redis.set(`clickIdCache:${clickId}`, clickData, {
         ex: 60 * 5,
       }),

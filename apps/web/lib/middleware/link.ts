@@ -167,7 +167,7 @@ export default async function LinkMiddleware(
   // we only pass the clickId if:
   // - trackConversion is enabled
   // - it's a partner link
-  const shouldPassClickId = trackConversion || isPartnerLink;
+  const shouldCacheClickId = trackConversion || isPartnerLink;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
@@ -247,7 +247,7 @@ export default async function LinkMiddleware(
   let clickId = cookieStore.get(dubIdCookieName)?.value;
   if (!clickId) {
     // if we need to pass the clickId, check if clickId is cached in Redis
-    if (shouldPassClickId) {
+    if (shouldCacheClickId) {
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
       clickId = (await recordClickCache.get({ domain, key, ip })) || undefined;
@@ -278,7 +278,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -326,7 +326,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -336,7 +336,7 @@ export default async function LinkMiddleware(
           `/deeplink/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              ...(shouldPassClickId && { clickId }),
+              ...(shouldCacheClickId && { clickId }),
               ...(isPartnerLink && { via: key }),
             }),
           )}`,
@@ -364,7 +364,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -374,7 +374,7 @@ export default async function LinkMiddleware(
           `/cloaked/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              ...(shouldPassClickId && { clickId }),
+              ...(shouldCacheClickId && { clickId }),
               ...(isPartnerLink && { via: key }),
             }),
           )}`,
@@ -404,7 +404,7 @@ export default async function LinkMiddleware(
         url: ios,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -412,7 +412,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(ios, {
           req,
-          ...(shouldPassClickId && { clickId }),
+          ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
         }),
         {
@@ -438,7 +438,7 @@ export default async function LinkMiddleware(
         url: android,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -446,7 +446,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(android, {
           req,
-          ...(shouldPassClickId && { clickId }),
+          ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
         }),
         {
@@ -472,7 +472,7 @@ export default async function LinkMiddleware(
         url: geo[country],
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -480,7 +480,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(geo[country], {
           req,
-          ...(shouldPassClickId && { clickId }),
+          ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
         }),
         {
@@ -506,7 +506,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -514,7 +514,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(url, {
           req,
-          ...(shouldPassClickId && { clickId }),
+          ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
         }),
         {
