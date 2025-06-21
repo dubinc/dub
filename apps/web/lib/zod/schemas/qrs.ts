@@ -32,6 +32,4 @@ export const createQrBodySchema = z.object({
   link: createLinkBodySchema,
 });
 
-export const updateQrBodySchema = createQrBodySchema.partial().extend({
-  link: createLinkBodySchema.optional(),
-});
+export const updateQrBodySchema = createQrBodySchema.partial();
