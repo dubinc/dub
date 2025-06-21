@@ -27,6 +27,7 @@ export const GET = withWorkspace(
       select: {
         slug: true,
         primary: true,
+        verified: true,
       },
       take: 100,
     });
@@ -91,7 +92,14 @@ export const PATCH = withWorkspace(
           }),
         },
         include: {
-          domains: true,
+          domains: {
+            select: {
+              slug: true,
+              primary: true,
+              verified: true,
+            },
+            take: 100,
+          },
           users: true,
         },
       });
