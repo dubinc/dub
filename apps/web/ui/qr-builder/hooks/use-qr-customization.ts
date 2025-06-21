@@ -82,7 +82,10 @@ export function useQrCustomization(
     ...(initialData?.styles as Options),
   });
 
-  const parseQRData = (data: string, type: EQRType): Record<string, any> => {
+  const parseQRData = (
+    data: string,
+    type: EQRType,
+  ): Record<string, string | File[]> => {
     switch (type) {
       case EQRType.WHATSAPP:
         try {
@@ -151,7 +154,7 @@ export function useQrCustomization(
   };
 
   const [initialInputValues, setInitialInputValues] = useState<
-    Record<string, any>
+    Record<string, string | File[]>
   >({});
 
   useEffect(() => {
@@ -161,7 +164,7 @@ export function useQrCustomization(
         initialData.qrType as EQRType,
       );
 
-      // For file QRs, merge in preloaded files if present (dashboard flow)
+      // Merge in preloaded files for file QRs types if present on dashboard
       if (
         (initialData.qrType === EQRType.IMAGE ||
           initialData.qrType === EQRType.VIDEO ||
