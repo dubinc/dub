@@ -38,11 +38,6 @@ export async function createQr(
     fileSize,
     homePageDemo,
   );
-
-  if (FILE_QR_TYPES.includes(qrType as EQRType) && file && !homePageDemo) {
-    await storage.upload(`qrs-content/${fileId}`, file);
-  }
-
   const qr = await prisma.qr.create({
     data: {
       id: createId({ prefix: "qr_" }),
@@ -59,6 +54,10 @@ export async function createQr(
       fileSize,
     },
   });
+
+  if (FILE_QR_TYPES.includes(qrType as EQRType) && file && !homePageDemo) {
+    await storage.upload(`qrs-content/${fileId}`, file);
+  }
 
   return qr;
 }

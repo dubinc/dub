@@ -23,14 +23,6 @@ export async function updateQr(
   fileId: string,
   oldFileId: string | null,
 ) {
-  if (FILE_QR_TYPES.includes(qrType as EQRType) && file) {
-    if (oldFileId) {
-      await storage.delete(`qrs-content/${oldFileId}`);
-    }
-
-    await storage.upload(`qrs-content/${fileId}`, file);
-  }
-
   const qr = await prisma.qr.update({
     where: {
       id,
@@ -52,6 +44,13 @@ export async function updateQr(
       user: true,
     },
   });
+
+  if (FILE_QR_TYPES.includes(qrType as EQRType) && file) {
+    if (oldFileId) {
+      await storage.delete(`qrs-content/${oldFileId}`);
+    }
+    await storage.upload(`qrs-content/${fileId}`, file);
+  }
 
   return qr;
 }
