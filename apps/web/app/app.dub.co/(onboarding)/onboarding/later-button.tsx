@@ -19,7 +19,7 @@ export function LaterButton({
       type="button"
       onClick={() => (next === "finish" ? finish() : continueTo(next))}
       className={cn(
-        "mx-auto flex w-fit items-center gap-2 text-center text-sm text-neutral-500 transition-colors enabled:hover:text-neutral-700",
+        "mx-auto flex w-fit items-center gap-2 text-center text-sm font-medium text-neutral-800 transition-colors enabled:hover:text-neutral-950",
         className,
       )}
       disabled={isLoading || isSuccessful}
