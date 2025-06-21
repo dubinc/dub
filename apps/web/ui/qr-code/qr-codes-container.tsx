@@ -64,9 +64,7 @@ export default function QrCodesContainer({
               try {
                 const imageResult = await getFileContent(qr.fileId);
                 if (imageResult.success) {
-                  const compressedBlob = await compressImage(
-                    imageResult.data.content,
-                  );
+                  const compressedBlob = await compressImage(imageResult.data);
                   const compressedFile = createCompressedImageFile(
                     compressedBlob,
                     qr.fileName,
