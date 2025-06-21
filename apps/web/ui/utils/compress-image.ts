@@ -7,6 +7,12 @@ export async function compressImage(
   return new Promise((resolve, reject) => {
     const img = new Image();
 
+    img.onerror = () => {
+      reject(new Error("Failed to load image"));
+    };
+
+    img.src = `data:image/jpeg;base64,${base64Data}`;
+
     img.onload = () => {
       try {
         const canvas = document.createElement("canvas");
@@ -40,12 +46,6 @@ export async function compressImage(
         reject(error);
       }
     };
-
-    img.onerror = () => {
-      reject(new Error("Failed to load image"));
-    };
-
-    img.src = `data:image/jpeg;base64,${base64Data}`;
   });
 }
 
