@@ -424,6 +424,7 @@ const processMappedLinks = async ({
 
     await bulkCreateLinks({
       links: validLinks as ProcessedLinkProps[],
+      skipRedisCache: true,
     });
 
     await redis.incrby(`${redisKey}:created`, validLinks.length);
