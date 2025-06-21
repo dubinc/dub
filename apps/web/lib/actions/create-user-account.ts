@@ -43,10 +43,6 @@ const qrDataToCreateSchema = z.object({
     .number()
     .nullish()
     .describe("The original size of the uploaded file"),
-  thumbnailFileId: z
-    .string()
-    .nullish()
-    .describe("The thumbnail file ID for the uploaded content"),
 });
 
 const schema = signUpSchema.extend({
@@ -196,7 +192,6 @@ export const createUserAccountAction = actionClient
             createdLink.userId,
             qrDataToCreate?.file,
             true,
-            qrDataToCreate?.thumbnailFileId,
           );
         } catch (error) {
           throw new DubApiError({

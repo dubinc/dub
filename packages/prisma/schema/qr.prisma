@@ -30,7 +30,6 @@ model Qr {
   fileId          String?
   fileName        String?
   fileSize        Int?        // Original file size in bytes
-  thumbnailFileId String?
 
   linkId          String?
   link            Link?      @relation(fields: [linkId], references: [id])

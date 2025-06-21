@@ -5,6 +5,10 @@ import useQrs from "@/lib/swr/use-qrs.ts";
 import { ExpandedLinkProps, QRProps, UserProps } from "@/lib/types";
 import QrCodeCardPlaceholder from "@/ui/qr-code/qr-code-card-placeholder.tsx";
 import { QrCodesDisplayContext } from "@/ui/qr-code/qr-codes-display-provider.tsx";
+import {
+  compressImage,
+  createCompressedImageFile,
+} from "@/ui/utils/compress-image.ts";
 import { CardList, MaxWidthWrapper } from "@dub/ui";
 import { CursorRays, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
@@ -40,8 +44,8 @@ export default function QrCodesContainer({
 
   const { qrs, isValidating } = useQrs({ sortBy, showArchived: true });
 
-  // State to hold QRs with preloaded thumbnails
-  const [qrsWithThumbnails, setQrsWithThumbnails] = useState<
+  // State to hold QRs with preloaded previews
+  const [qrsWithPreviews, setQrsWithPreviews] = useState<
     ResponseQrCode[] | undefined
   >(undefined);
 
@@ -50,91 +54,83 @@ export default function QrCodesContainer({
       return;
     }
 
-    async function preloadThumbnails() {
-      if (!qrs) return;
+    setQrsWithPreviews(qrs);
 
-      const updatedQrs = await Promise.all(
-        qrs.map(async (qr) => {
-          // Handle images with actual thumbnails
-          if (qr.qrType === "image" && qr.thumbnailFileId) {
-            try {
-              const thumbnailResult = await getFileContent(qr.thumbnailFileId);
+    const compressImagesInBackground = async () => {
+      try {
+        const updatedQrs = await Promise.all(
+          qrs.map(async (qr) => {
+            if (qr.qrType === "image" && qr.fileId && qr.fileName) {
+              try {
+                const imageResult = await getFileContent(qr.fileId);
+                if (imageResult.success) {
+                  const compressedBlob = await compressImage(
+                    imageResult.data.content,
+                  );
+                  const compressedFile = createCompressedImageFile(
+                    compressedBlob,
+                    qr.fileName,
+                    qr.fileId,
+                    qr.fileSize || 0,
+                  );
 
-              if (thumbnailResult.success) {
-                const { content, contentType } = thumbnailResult.data;
-                const binaryString = atob(content);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                  bytes[i] = binaryString.charCodeAt(i);
+                  (qr as any).initialInputValues = {
+                    filesImage: [compressedFile],
+                  };
                 }
-                const thumbnailFile = new File(
-                  [bytes],
-                  `${qr.fileName || "file"}_thumb.jpg`,
-                  { type: contentType },
+              } catch (error) {
+                console.warn(
+                  `Failed to compress image for QR ${qr.id}:`,
+                  error,
                 );
+              }
+            } else if (
+              (qr.qrType === "pdf" || qr.qrType === "video") &&
+              qr.fileId &&
+              qr.fileName
+            ) {
+              // Create a placeholder file object with metadata for instant preview
+              const placeholderFile = new File(
+                [""], // Empty content since we don't need actual file data
+                qr.fileName,
+                { type: qr.qrType === "pdf" ? "application/pdf" : "video/mp4" },
+              );
 
-                (thumbnailFile as any).isThumbnail = true;
-                (thumbnailFile as any).thumbnailFileId = qr.thumbnailFileId;
-                (thumbnailFile as any).originalFileId = qr.fileId;
-                (thumbnailFile as any).originalFileName = qr.fileName;
-                (thumbnailFile as any).originalFileSize = qr.fileSize || 0;
+              (placeholderFile as any).isThumbnail = true;
+              (placeholderFile as any).fileId = qr.fileId;
+              (placeholderFile as any).originalFileName = qr.fileName;
+              (placeholderFile as any).originalFileSize = qr.fileSize;
 
+              if (qr.qrType === "pdf") {
                 (qr as any).initialInputValues = {
-                  filesImage: [thumbnailFile],
+                  filesPDF: [placeholderFile],
+                };
+              } else if (qr.qrType === "video") {
+                (qr as any).initialInputValues = {
+                  filesVideo: [placeholderFile],
                 };
               }
-            } catch (error) {
-              console.warn(
-                `Failed to preload thumbnail for QR ${qr.id}:`,
-                error,
-              );
             }
-          }
-          // Handle PDFs and videos with placeholder files for instant preview
-          else if (
-            (qr.qrType === "pdf" || qr.qrType === "video") &&
-            qr.fileId &&
-            qr.fileName
-          ) {
-            // Create a placeholder file object with metadata for instant preview
-            const placeholderFile = new File(
-              [""], // Empty content since we don't need actual file data
-              qr.fileName,
-              { type: qr.qrType === "pdf" ? "application/pdf" : "video/mp4" },
-            );
-            console.log("[QRCODES] qr", qr, qr.fileSize);
 
-            // Add metadata for the file upload component
-            (placeholderFile as any).isThumbnail = true;
-            (placeholderFile as any).originalFileId = qr.fileId;
-            (placeholderFile as any).originalFileName = qr.fileName;
-            (placeholderFile as any).originalFileSize = qr.fileSize;
+            return { ...qr };
+          }),
+        );
 
-            if (qr.qrType === "pdf") {
-              (qr as any).initialInputValues = {
-                filesPDF: [placeholderFile],
-              };
-            } else if (qr.qrType === "video") {
-              (qr as any).initialInputValues = {
-                filesVideo: [placeholderFile],
-              };
-            }
-          }
+        setQrsWithPreviews(updatedQrs);
+      } catch (error) {
+        console.error("Error compressing images:", error);
+      }
+    };
 
-          return { ...qr };
-        }),
-      );
-      setQrsWithThumbnails(updatedQrs);
-    }
-    preloadThumbnails();
+    setTimeout(compressImagesInBackground, 100);
   }, [qrs]);
 
   return (
     <MaxWidthWrapper className="grid gap-y-2">
       <QrCodesList
         CreateQrCodeButton={CreateQrCodeButton}
-        qrCodes={qrsWithThumbnails}
-        loading={isValidating || (qrs && !qrsWithThumbnails)}
+        qrCodes={qrsWithPreviews}
+        loading={isValidating || (qrs && !qrsWithPreviews)}
         compact={viewMode === "rows"}
         isTrialOver={isTrialOver}
       />
