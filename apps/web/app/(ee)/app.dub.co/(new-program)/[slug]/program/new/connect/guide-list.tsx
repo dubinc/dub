@@ -158,16 +158,16 @@ export function GuideList() {
                     ))}
                   </div>
 
-                  <div className="mt-6 flex flex-col items-center justify-center space-y-3">
+                  <div className="flex flex-col items-center justify-center space-y-3">
                     <Button
                       text="I've completed this"
                       className="rounded-lg"
                       onClick={() => handleComplete(section.type)}
                     />
 
-                    {(section.type === "server-sdk" ||
-                      section.type === "track-leads" ||
-                      section.type === "track-sales") && (
+                    {["server-sdk", "track-leads", "track-sales"].includes(
+                      section.type,
+                    ) && (
                       <p className="flex items-center justify-center gap-2 text-center text-sm font-medium leading-5 text-neutral-500">
                         <Shopify className="inline size-4" />
                         If you're using Shopify, you can skip this step.{" "}
@@ -199,11 +199,13 @@ export function GuideList() {
           View full documentation ↗
         </a>
 
-        <Button
-          text="I'll connect Dub later"
-          className="h-8 w-fit rounded-lg"
-          variant="secondary"
-        />
+        <Link href={`/${workspaceSlug}/program/new/overview`}>
+          <Button
+            text="I'll connect Dub later"
+            className="h-8 w-fit rounded-lg"
+            variant="secondary"
+          />
+        </Link>
       </div>
     </div>
   );
