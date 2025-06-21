@@ -1143,13 +1143,12 @@ const FileUploadItemMetadata = React.forwardRef<
 
   if (!itemContext.fileState) return null;
 
-  // Check if this is a thumbnail file with original file info
+  // Check if file is a thumbnail
   const file = itemContext.fileState.file as any;
   const isThumbnail = file?.isThumbnail;
   const originalFileName = file?.originalFileName;
   const originalFileSize = file?.originalFileSize;
 
-  // Use original file info if available (for thumbnails), otherwise use current file info
   const displayName =
     isThumbnail && originalFileName
       ? originalFileName
