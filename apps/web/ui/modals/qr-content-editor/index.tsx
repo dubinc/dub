@@ -1,6 +1,6 @@
 "use client";
 
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { EQRType, QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
@@ -9,7 +9,6 @@ import { useQrSave } from "@/ui/qr-code/hooks/use-qr-save.ts";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
-import { fileToBase64 } from "@/ui/utils/file-to-base64";
 import { Button, Modal } from "@dub/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Theme } from "@radix-ui/themes";
@@ -64,11 +63,10 @@ export function QRContentEditorModal({
   isProcessing,
   setIsProcessing,
 }: QRContentEditorModalProps) {
-  if (!showQRContentEditorModal) {
-    return null;
-  }
-
   const selectedQRType = (qrCode?.qrType as EQRType) || EQRType.WEBSITE;
+  const currentQrTypeInfo = QR_TYPES.find(
+    (item) => item.id === selectedQRType,
+  )!;
 
   const { initialInputValues } = useQrCustomization(qrCode);
   const { updateQr } = useQrSave();
@@ -76,30 +74,32 @@ export function QRContentEditorModal({
   const validationSchema = getQRValidationSchema(selectedQRType);
 
   const methods = useForm<QRContentEditorData>({
+    defaultValues: {},
     resolver: zodResolver(validationSchema),
     mode: "onBlur",
   });
 
   useEffect(() => {
-    const hasFileData = Object.values(initialInputValues).some(
-      (value) =>
-        Array.isArray(value) && value.length > 0 && value[0] instanceof File,
-    );
-    const hasOtherData = Object.values(initialInputValues).some(
-      (value) => typeof value === "string" && value.length > 0,
-    );
+    if (initialInputValues && Object.keys(initialInputValues).length > 0) {
+      console.log("Setting initial values:", initialInputValues);
+      console.log("QR Code data:", qrCode?.data);
+      console.log("QR Code type:", selectedQRType);
 
-    if (!hasFileData && !hasOtherData) {
-      return;
+      const valuesWithQrName = {
+        ...initialInputValues,
+        [`qrName-${selectedQRType}`]: qrCode?.title || "QR Code",
+      };
+
+      console.log("Values with qrName:", valuesWithQrName);
+      methods.reset(valuesWithQrName);
     }
-
-    console.log("[EDITORMODAL] initialInputValues", initialInputValues);
-    const values = {
-      ...initialInputValues,
-      [`qrName-${selectedQRType}`]: qrCode?.title || "QR Code",
-    };
-    methods.reset(values);
-  }, [initialInputValues, qrCode?.title, selectedQRType, methods]);
+  }, [
+    initialInputValues,
+    methods,
+    qrCode?.data,
+    selectedQRType,
+    qrCode?.title,
+  ]);
 
   const [isHiddenNetwork, setIsHiddenNetwork] = useState(false);
 
@@ -143,26 +143,13 @@ export function QRContentEditorModal({
         return;
       }
 
-      // Convert File objects to base64 strings
-      let file: string | undefined;
-      let fileName: string | undefined;
-
-      if (formData.filesImage && formData.filesImage.length > 0) {
-        file = await fileToBase64(formData.filesImage[0] as File);
-        fileName = (formData.filesImage[0] as File).name;
-      } else if (formData.filesPDF && formData.filesPDF.length > 0) {
-        file = await fileToBase64(formData.filesPDF[0] as File);
-        fileName = (formData.filesPDF[0] as File).name;
-      } else if (formData.filesVideo && formData.filesVideo.length > 0) {
-        file = await fileToBase64(formData.filesVideo[0] as File);
-        fileName = (formData.filesVideo[0] as File).name;
-      }
-
       const updateData = {
         data: qrDataString,
         qrType: selectedQRType,
-        ...(file && { file }),
-        ...(fileName && { fileName }),
+        // Добавляем файлы если они есть
+        ...(formData.filesImage && { files: formData.filesImage as File[] }),
+        ...(formData.filesPDF && { files: formData.filesPDF as File[] }),
+        ...(formData.filesVideo && { files: formData.filesVideo as File[] }),
       };
 
       console.log("Sending update data:", updateData);
@@ -190,13 +177,18 @@ export function QRContentEditorModal({
   };
 
   const validateFields = async () => {
+    console.log("Validating form...");
     const isValid = await methods.trigger();
+    console.log("Form validation result:", isValid);
 
     if (isValid) {
       const formData = methods.getValues();
+      console.log("Form data to save:", formData);
       handleSaveQR(formData);
     } else {
       const errors = methods.formState.errors;
+      console.log("Validation errors:", errors);
+
       const firstError = Object.values(errors)[0];
       if (firstError?.message) {
         toast.error(firstError.message as string);
@@ -238,6 +230,7 @@ export function QRContentEditorModal({
           <div className="px-6 pb-6">
             <FormProvider {...methods}>
               {/* QR Content Builder */}
+
               <QRCodeContentBuilder
                 qrType={selectedQRType}
                 isHiddenNetwork={isHiddenNetwork}
@@ -272,27 +265,36 @@ export function QRContentEditorModal({
 }
 
 export function useQRContentEditor(data?: { qrCode?: ResponseQrCode }) {
+  const { qrCode } = data ?? {};
+
+  const [isProcessing, setIsProcessing] = useState(false);
   const [showQRContentEditorModal, setShowQRContentEditorModal] =
     useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const QRContentEditorModalCallback = useCallback(() => {
     return (
       <QRContentEditorModal
-        qrCode={data?.qrCode}
+        qrCode={qrCode}
         showQRContentEditorModal={showQRContentEditorModal}
         setShowQRContentEditorModal={setShowQRContentEditorModal}
         isProcessing={isProcessing}
         setIsProcessing={setIsProcessing}
       />
     );
-  }, [data?.qrCode, showQRContentEditorModal, isProcessing]);
+  }, [
+    qrCode,
+    showQRContentEditorModal,
+    setShowQRContentEditorModal,
+    isProcessing,
+    setIsProcessing,
+  ]);
 
   return useMemo(
     () => ({
-      setShowQRContentEditorModal,
       QRContentEditorModal: QRContentEditorModalCallback,
+      setShowQRContentEditorModal,
+      isProcessing,
     }),
-    [setShowQRContentEditorModal, QRContentEditorModalCallback],
+    [QRContentEditorModalCallback, setShowQRContentEditorModal, isProcessing],
   );
 }
