@@ -20,8 +20,6 @@ import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-export const runtime = "edge";
-
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -52,7 +50,7 @@ const trackClickResponseSchema = z.object({
   }).nullish(),
 });
 
-// POST /api/track/click – Track a click event from the client-side
+// POST /api/track/click – Track a click event for a link
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
     const { domain, key, url, referrer } = trackClickSchema.parse(
