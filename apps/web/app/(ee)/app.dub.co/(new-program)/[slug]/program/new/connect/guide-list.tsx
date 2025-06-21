@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import {
   Accordion,
   AccordionContent,
@@ -148,7 +149,7 @@ export function GuideList() {
                         className="group relative flex h-[140px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg bg-neutral-100 px-2 py-4 text-center"
                       >
                         <div className="flex h-16 w-full items-center justify-center">
-                          <guide.icon className="size-9" />
+                          <guide.icon className="size-10" />
                         </div>
                         <div className="w-full text-sm font-semibold leading-5 text-neutral-900">
                           {guide.title}
@@ -167,7 +168,8 @@ export function GuideList() {
                     {(section.type === "server-sdk" ||
                       section.type === "track-leads" ||
                       section.type === "track-sales") && (
-                      <p className="text-center text-sm font-medium leading-5 text-neutral-500">
+                      <p className="flex items-center justify-center gap-2 text-center text-sm font-medium leading-5 text-neutral-500">
+                        <Shopify className="inline size-4" />
                         If you're using Shopify, you can skip this step.{" "}
                         <Link
                           href="https://dub.co/docs/conversions/sales/shopify"

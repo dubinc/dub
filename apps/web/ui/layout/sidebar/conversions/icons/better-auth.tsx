@@ -3,39 +3,33 @@ import { SVGProps } from "react";
 export function BetterAuth(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="41"
+      width="40"
       height="40"
-      fill="none"
       viewBox="0 0 40 40"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <rect x="5.52" y="9.68" width="6.96" height="20.72" fill="black" />
-      <rect x="27.01" y="9.68" width="7.39" height="20.72" fill="black" />
-      <rect
-        x="34.18"
-        y="9.68"
-        width="6.68"
-        height="13.96"
-        transform="rotate(90 34.18 9.68)"
-        fill="black"
-      />
-      <rect
-        x="34.4"
-        y="23.72"
-        width="6.68"
-        height="14.18"
-        transform="rotate(90 34.4 23.72)"
-        fill="black"
-      />
-      <rect
-        x="20.22"
-        y="16.36"
-        width="7.37"
-        height="7.74"
-        transform="rotate(90 20.22 16.36)"
-        fill="black"
-      />
+      <g clip-path="url(#clip0_18024_112090)">
+        <path d="M0 0H40V40H0V0Z" fill="black" />
+        <path
+          d="M5.51953 9.68018H12.4786V30.4002H5.51953V9.68018ZM27.0055 9.68018H34.3995V30.4002H27.0055V9.68018Z"
+          fill="white"
+        />
+        <path
+          d="M34.1823 9.68018V16.3567H20.2207V9.68018H34.1823ZM34.3997 23.7237V30.4002H20.2207V23.7237H34.3997Z"
+          fill="white"
+        />
+        <path
+          d="M20.2214 16.3564V23.7236H12.4795V16.3564H20.2214Z"
+          fill="white"
+        />
+      </g>
+      <defs>
+        <clipPath id="clip0_18024_112090">
+          <rect width="40" height="40" fill="white" />
+        </clipPath>
+      </defs>
     </svg>
   );
 }

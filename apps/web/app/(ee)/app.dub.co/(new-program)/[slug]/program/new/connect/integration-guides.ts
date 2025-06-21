@@ -1,17 +1,21 @@
+import { Appwrite } from "@/ui/layout/sidebar/conversions/icons/appwrite";
+import { Auth0 } from "@/ui/layout/sidebar/conversions/icons/auth0";
 import { BetterAuth } from "@/ui/layout/sidebar/conversions/icons/better-auth";
 import { Clerk } from "@/ui/layout/sidebar/conversions/icons/clerk";
 import { Go } from "@/ui/layout/sidebar/conversions/icons/go";
+import { NextAuth } from "@/ui/layout/sidebar/conversions/icons/next-auth";
 import { Php } from "@/ui/layout/sidebar/conversions/icons/php";
 import { Python } from "@/ui/layout/sidebar/conversions/icons/python";
 import { React } from "@/ui/layout/sidebar/conversions/icons/react";
 import { Ruby } from "@/ui/layout/sidebar/conversions/icons/ruby";
+import { Segment } from "@/ui/layout/sidebar/conversions/icons/segment";
 import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
 import { Supabase } from "@/ui/layout/sidebar/conversions/icons/supabase";
 import { Typescript } from "@/ui/layout/sidebar/conversions/icons/typescript";
 import { Webflow } from "@/ui/layout/sidebar/conversions/icons/webflow";
 import { Wordpress } from "@/ui/layout/sidebar/conversions/icons/wordpress";
-import { Code, Framer, SquareCode } from "lucide-react";
+import { Framer, SquareCode } from "lucide-react";
 
 export type IntegrationType =
   | "client-sdk"
@@ -123,7 +127,7 @@ export const guides: IntegrationGuide[] = [
     type: "track-leads",
     key: "nextauth",
     title: "NextAuth.js",
-    icon: Code,
+    icon: NextAuth,
   },
   {
     type: "track-leads",
@@ -135,19 +139,19 @@ export const guides: IntegrationGuide[] = [
     type: "track-leads",
     key: "auth0",
     title: "Auth0",
-    icon: Code,
+    icon: Auth0,
   },
   {
     type: "track-leads",
     key: "appwrite",
     title: "Appwrite",
-    icon: Code,
+    icon: Appwrite,
   },
   {
     type: "track-leads",
     key: "segment-track-leads",
     title: "Segment",
-    icon: Code,
+    icon: Segment,
   },
 
   // Track Sales
@@ -176,6 +180,6 @@ export const guides: IntegrationGuide[] = [
     type: "track-sales",
     key: "segment-track-sales",
     title: "Segment",
-    icon: Code,
+    icon: Segment,
   },
 ];

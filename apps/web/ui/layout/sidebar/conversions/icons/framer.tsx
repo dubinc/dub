@@ -8,6 +8,7 @@ export function Framer(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 28 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <g clip-path="url(#clip0_18024_111660)">
         <path

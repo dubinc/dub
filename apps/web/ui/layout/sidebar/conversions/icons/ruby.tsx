@@ -8,6 +8,7 @@ export function Ruby(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 42 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <g clip-path="url(#clip0_18024_111842)">
         <path

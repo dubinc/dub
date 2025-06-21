@@ -15,16 +15,11 @@ interface PageClientProps {
 
 export function PageClient({ markdown }: PageClientProps) {
   const searchParams = useSearchParams();
+  const { watch } = useFormContext<ProgramData>();
+
   const [selectedGuide, setSelectedGuide] = useState<IntegrationGuide | null>(
     null,
   );
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { isSubmitting },
-  } = useFormContext<ProgramData>();
 
   const [url] = watch(["url"]);
 
