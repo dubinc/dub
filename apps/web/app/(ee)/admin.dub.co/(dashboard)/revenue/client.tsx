@@ -25,15 +25,9 @@ export default function RevenuePageClient() {
       sales: number;
       saleAmount: number;
     }[];
-  }>(
-    `/api/admin/revenue${getQueryString({
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    })}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  }>(`/api/admin/revenue${getQueryString()}`, fetcher, {
+    keepPreviousData: true,
+  });
 
   const { pagination, setPagination } = usePagination();
 
@@ -87,13 +81,13 @@ export default function RevenuePageClient() {
       },
       {
         id: "sales",
-        header: "Sales",
+        header: "Total Sales",
         accessorKey: "sales",
         cell: ({ row }) => nFormatter(row.original.sales, { full: true }),
       },
       {
         id: "revenue",
-        header: "Revenue",
+        header: "Affiliate Revenue",
         accessorKey: "revenue",
         cell: ({ row }) =>
           currencyFormatter(row.original.saleAmount / 100, {
@@ -113,7 +107,7 @@ export default function RevenuePageClient() {
     () => [
       {
         id: "partners",
-        label: "Partners",
+        label: "Active Partners",
         value: programs?.reduce(
           (acc, { partners }) => acc + (partners || 0),
           0,
@@ -122,13 +116,13 @@ export default function RevenuePageClient() {
       },
       {
         id: "sales",
-        label: "Sales",
+        label: "Total Sales",
         value: programs?.reduce((acc, { sales }) => acc + (sales || 0), 0),
         colorClassName: "bg-green-500",
       },
       {
         id: "revenue",
-        label: "Revenue",
+        label: "Affiliate Revenue",
         value: programs?.reduce(
           (acc, { saleAmount }) => acc + (saleAmount || 0),
           0,
@@ -156,7 +150,7 @@ export default function RevenuePageClient() {
                 <span>{label}</span>
               </div>
               <div className="mt-1 flex h-12 items-center">
-                {!isLoading && value !== undefined ? (
+                {value !== undefined ? (
                   id === "revenue" ? (
                     <NumberFlow
                       value={value / 100}
