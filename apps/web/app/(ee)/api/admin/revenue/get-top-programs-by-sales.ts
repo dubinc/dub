@@ -39,7 +39,13 @@ export async function getTopProgramsBySales({
       logo: true,
       _count: {
         select: {
-          partners: true,
+          partners: {
+            where: {
+              totalCommissions: {
+                gt: 0,
+              },
+            },
+          },
         },
       },
     },

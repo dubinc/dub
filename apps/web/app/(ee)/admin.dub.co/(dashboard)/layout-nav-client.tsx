@@ -24,12 +24,12 @@ const tabs = [
     label: "Commissions",
   },
   {
-    href: "/revenue",
-    label: "Revenue",
-  },
-  {
     href: "/payouts",
     label: "Payouts",
+  },
+  {
+    href: "/revenue",
+    label: "Revenue",
   },
 ];
 

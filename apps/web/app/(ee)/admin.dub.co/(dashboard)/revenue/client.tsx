@@ -13,14 +13,8 @@ import NumberFlow from "@number-flow/react";
 import { useMemo } from "react";
 import useSWR from "swr";
 
-type Tab = {
-  id: string;
-  label: string;
-  colorClassName: string;
-};
-
 export default function RevenuePageClient() {
-  const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
+  const { getQueryString } = useRouterStuff();
 
   const { data: { programs } = {}, isLoading } = useSWR<{
     programs: {
@@ -40,25 +34,6 @@ export default function RevenuePageClient() {
       keepPreviousData: true,
     },
   );
-
-  const tabs: Tab[] = [
-    {
-      id: "revenue",
-      label: "Revenue",
-      colorClassName: "text-purple-500 bg-purple-500/50 border-purple-500",
-    },
-  ];
-
-  const tab = tabs[0];
-  const selectedTab = tab.id;
-
-  const totals = useMemo(() => {
-    return {
-      revenue:
-        programs?.reduce((acc, { saleAmount }) => acc + (saleAmount || 0), 0) ??
-        0,
-    };
-  }, [programs]);
 
   const { pagination, setPagination } = usePagination();
 
@@ -106,7 +81,7 @@ export default function RevenuePageClient() {
       },
       {
         id: "partners",
-        header: "Partners",
+        header: "Active Partners",
         accessorKey: "partners",
         cell: ({ row }) => nFormatter(row.original.partners, { full: true }),
       },
@@ -134,46 +109,57 @@ export default function RevenuePageClient() {
     loading: isLoading,
   });
 
+  const stats = useMemo(
+    () => [
+      {
+        id: "partners",
+        label: "Partners",
+        value: programs?.reduce(
+          (acc, { partners }) => acc + (partners || 0),
+          0,
+        ),
+        colorClassName: "bg-blue-500",
+      },
+      {
+        id: "sales",
+        label: "Sales",
+        value: programs?.reduce((acc, { sales }) => acc + (sales || 0), 0),
+        colorClassName: "bg-green-500",
+      },
+      {
+        id: "revenue",
+        label: "Revenue",
+        value: programs?.reduce(
+          (acc, { saleAmount }) => acc + (saleAmount || 0),
+          0,
+        ),
+        colorClassName: "bg-purple-500",
+      },
+    ],
+    [programs],
+  );
+
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6 p-6">
       <SimpleDateRangePicker defaultInterval="mtd" className="w-fit" />
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-        <div className="scrollbar-hide grid w-full grid-cols-2 divide-x overflow-y-hidden sm:grid-cols-3">
-          {tabs.map(({ id, label, colorClassName }) => {
-            return (
-              <button
-                key={id}
-                onClick={() => {
-                  queryParams({
-                    set: { tab: id },
-                  });
-                }}
-                className={cn(
-                  "border-box relative block h-full w-full flex-none px-4 py-3 sm:px-8 sm:py-6",
-                  "transition-colors hover:bg-neutral-50 focus:outline-none active:bg-neutral-100",
-                  "ring-inset ring-neutral-500 focus-visible:ring-1 sm:first:rounded-tl-xl",
-                )}
-              >
-                {/* Active tab indicator */}
+        <div className="grid w-full grid-cols-1 divide-x sm:grid-cols-3">
+          {stats.map(({ id, label, value, colorClassName }) => (
+            <div key={id} className="flex-none px-4 py-3 sm:px-8 sm:py-6">
+              <div className="flex items-center gap-2.5 text-sm text-neutral-600">
                 <div
                   className={cn(
-                    "absolute bottom-0 left-0 h-0.5 w-full bg-black transition-transform duration-100",
-                    selectedTab !== id && "translate-y-[3px]",
+                    "h-2 w-2 rounded-sm shadow-[inset_0_0_0_1px_#00000019]",
+                    colorClassName,
                   )}
                 />
-                <div className="flex items-center gap-2.5 text-sm text-neutral-600">
-                  <div
-                    className={cn(
-                      "h-2 w-2 rounded-sm bg-current shadow-[inset_0_0_0_1px_#00000019]",
-                      colorClassName,
-                    )}
-                  />
-                  <span>{label}</span>
-                </div>
-                <div className="mt-1 flex h-12 items-center">
-                  {(totals[id] || totals[id] === 0) && !isLoading ? (
+                <span>{label}</span>
+              </div>
+              <div className="mt-1 flex h-12 items-center">
+                {!isLoading && value !== undefined ? (
+                  id === "revenue" ? (
                     <NumberFlow
-                      value={(totals[id] ?? 0) / 100}
+                      value={value / 100}
                       className="text-xl font-medium sm:text-3xl"
                       format={{
                         style: "currency",
@@ -183,12 +169,17 @@ export default function RevenuePageClient() {
                       }}
                     />
                   ) : (
-                    <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
-                  )}
-                </div>
-              </button>
-            );
-          })}
+                    <NumberFlow
+                      value={value}
+                      className="text-xl font-medium sm:text-3xl"
+                    />
+                  )
+                ) : (
+                  <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
       <div className="w-full">
