@@ -3,26 +3,24 @@ import { withAdmin } from "@/lib/auth";
 import { THE_BEGINNING_OF_TIME } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
-import { getCommissionsTimeseries } from "./get-commissions-timeseries";
-import { getTopProgramsByCommissions } from "./get-top-program-by-commissions";
+import { getTopProgramsBySales } from "./get-top-programs-by-sales";
 
 export const GET = withAdmin(async ({ searchParams }) => {
-  const { interval = "mtd", start, end, timezone = "UTC" } = searchParams;
+  const { interval = "mtd", start, end } = searchParams;
 
-  const { startDate, endDate, granularity } = getStartEndDates({
+  const { startDate, endDate } = getStartEndDates({
     interval,
     start: start ? startOfDay(new Date(start)) : undefined,
     end: end ? endOfDay(new Date(end)) : undefined,
     dataAvailableFrom: THE_BEGINNING_OF_TIME,
   });
 
-  const [programs, timeseries] = await Promise.all([
-    getTopProgramsByCommissions({ startDate, endDate }),
-    getCommissionsTimeseries({ startDate, endDate, granularity, timezone }),
-  ]);
+  const programs = await getTopProgramsBySales({
+    startDate,
+    endDate,
+  });
 
   return NextResponse.json({
     programs,
-    timeseries,
   });
 });

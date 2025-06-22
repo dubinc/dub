@@ -1,7 +1,5 @@
 "use client";
 
-import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
-import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   CrownSmall,
@@ -10,15 +8,9 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import {
-  cn,
-  currencyFormatter,
-  fetcher,
-  THE_BEGINNING_OF_TIME,
-} from "@dub/utils";
+import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { Fragment, useMemo } from "react";
+import { useMemo } from "react";
 import useSWR from "swr";
 
 type Tab = {
@@ -27,23 +19,20 @@ type Tab = {
   colorClassName: string;
 };
 
-export default function CommissionsPageClient() {
+export default function RevenuePageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-  const { interval, start, end } = searchParamsObj;
 
-  const { data: { programs, timeseries } = {}, isLoading } = useSWR<{
+  const { data: { programs } = {}, isLoading } = useSWR<{
     programs: {
       id: string;
       name: string;
       logo: string;
-      commissions: number;
-    }[];
-    timeseries: {
-      start: Date;
-      commissions: number;
+      partners: number;
+      sales: number;
+      saleAmount: number;
     }[];
   }>(
-    `/api/admin/commissions${getQueryString({
+    `/api/admin/revenue${getQueryString({
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })}`,
     fetcher,
@@ -54,32 +43,22 @@ export default function CommissionsPageClient() {
 
   const tabs: Tab[] = [
     {
-      id: "commissions",
-      label: "Commissions",
-      colorClassName: "text-teal-500 bg-teal-500/50 border-teal-500",
+      id: "revenue",
+      label: "Revenue",
+      colorClassName: "text-purple-500 bg-purple-500/50 border-purple-500",
     },
   ];
 
   const tab = tabs[0];
   const selectedTab = tab.id;
 
-  const chartData =
-    timeseries?.map(({ start, commissions }) => ({
-      date: start ? new Date(start) : new Date(),
-      values: {
-        commissions: commissions || 0,
-      },
-    })) ?? null;
-
   const totals = useMemo(() => {
     return {
-      commissions:
-        timeseries?.reduce(
-          (acc, { commissions }) => acc + (commissions || 0),
-          0,
-        ) ?? 0,
+      revenue:
+        programs?.reduce((acc, { saleAmount }) => acc + (saleAmount || 0), 0) ??
+        0,
     };
-  }, [timeseries]);
+  }, [programs]);
 
   const { pagination, setPagination } = usePagination();
 
@@ -126,11 +105,23 @@ export default function CommissionsPageClient() {
         ),
       },
       {
-        id: "commissions",
-        header: "Commissions",
-        accessorKey: "commissions",
+        id: "partners",
+        header: "Partners",
+        accessorKey: "partners",
+        cell: ({ row }) => nFormatter(row.original.partners, { full: true }),
+      },
+      {
+        id: "sales",
+        header: "Sales",
+        accessorKey: "sales",
+        cell: ({ row }) => nFormatter(row.original.sales, { full: true }),
+      },
+      {
+        id: "revenue",
+        header: "Revenue",
+        accessorKey: "revenue",
         cell: ({ row }) =>
-          currencyFormatter(row.original.commissions / 100, {
+          currencyFormatter(row.original.saleAmount / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
@@ -198,78 +189,6 @@ export default function CommissionsPageClient() {
               </button>
             );
           })}
-        </div>
-        <div className="p-5 sm:p-10">
-          <div className="flex h-96 w-full items-center justify-center">
-            {chartData ? (
-              chartData.length > 0 ? (
-                <TimeSeriesChart
-                  data={chartData}
-                  series={[
-                    {
-                      id: "commissions",
-                      valueAccessor: (d) => d.values.commissions,
-                      isActive: selectedTab === "commissions",
-                      colorClassName: tab.colorClassName,
-                    },
-                  ]}
-                  tooltipClassName="p-0"
-                  tooltipContent={(d) => (
-                    <>
-                      <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
-                        {formatDateTooltip(d.date, {
-                          interval,
-                          start,
-                          end,
-                        })}
-                      </p>
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
-                        <Fragment>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={cn(
-                                "h-2 w-2 rounded-sm shadow-[inset_0_0_0_1px_#0003]",
-                                tab.colorClassName,
-                              )}
-                            />
-                            <p className="capitalize text-neutral-600">
-                              {tab.label}
-                            </p>
-                          </div>
-                          <p className="text-right font-medium text-neutral-900">
-                            {currencyFormatter(d.values[tab.id] / 100)}
-                          </p>
-                        </Fragment>
-                      </div>
-                    </>
-                  )}
-                >
-                  <Areas />
-                  <XAxis
-                    maxTicks={5}
-                    tickFormat={(d) =>
-                      formatDateTooltip(d, {
-                        interval,
-                        start,
-                        end,
-                        dataAvailableFrom: THE_BEGINNING_OF_TIME,
-                      })
-                    }
-                  />
-                  <YAxis
-                    showGridLines
-                    tickFormat={(value) => currencyFormatter(value / 100)}
-                  />
-                </TimeSeriesChart>
-              ) : (
-                <div className="text-center text-sm text-neutral-600">
-                  No data available.
-                </div>
-              )
-            ) : (
-              <AnalyticsLoadingSpinner />
-            )}
-          </div>
         </div>
       </div>
       <div className="w-full">
