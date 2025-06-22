@@ -81,6 +81,7 @@
     "concurrently": "^8.0.1",
     "contentful": "^11.5.15",
     "csv-parse": "^5.5.6",
+    "customerio-node": "^4.2.0",
     "date-fns": "^3.6.0",
     "dub": "^0.46.25",
     "framer-motion": "^10.16.16",
