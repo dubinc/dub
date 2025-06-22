@@ -26,11 +26,14 @@ export async function getTopProgramsBySales({
     programId: string;
   }[];
 
+  const programIds = topProgramsData
+    .map((item) => item.programId)
+    .filter((id) => id !== ACME_PROGRAM_ID);
+
   const programs = await prisma.program.findMany({
     where: {
       id: {
-        in: topProgramsData.map((item) => item.programId),
-        not: ACME_PROGRAM_ID,
+        in: programIds,
       },
     },
     select: {
