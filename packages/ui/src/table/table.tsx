@@ -21,6 +21,7 @@ import {
 import { Button } from "../button";
 import { Checkbox } from "../checkbox";
 import { LoadingSpinner, SortOrder } from "../icons";
+import { SelectionToolbar } from "./selection-toolbar";
 import { TableProps, UseTableProps } from "./types";
 
 const tableCellClassName = (columnId: string, clickable?: boolean) =>
@@ -98,13 +99,13 @@ export function useTable<T extends any>(
             {
               id: "select",
               enableHiding: false,
-              minSize: 32,
-              size: 32,
-              maxSize: 32,
+              minSize: 30,
+              size: 30,
+              maxSize: 30,
               header: ({ table }: { table: TableType<T> }) => (
                 <div className="flex size-full items-center justify-center">
                   <Checkbox
-                    className="border-border-default size-4 rounded"
+                    className="border-border-default size-4 rounded data-[state=checked]:bg-black"
                     checked={
                       table.getIsAllRowsSelected()
                         ? true
@@ -120,7 +121,7 @@ export function useTable<T extends any>(
               cell: ({ row }: { row: Row<T> }) => (
                 <div className="flex size-full items-center justify-center">
                   <Checkbox
-                    className="border-border-default size-4 rounded"
+                    className="border-border-default size-4 rounded data-[state=checked]:bg-black"
                     checked={row.getIsSelected()}
                     onCheckedChange={row.getToggleSelectedHandler()}
                     title="Select"
@@ -274,6 +275,8 @@ export function Table<T>({
   pagination,
   resourceName,
   onRowClick,
+  onRowSelectionChange,
+  selectionControls,
   rowProps,
   rowCount,
   children,
@@ -319,7 +322,7 @@ export function Table<T>({
               minWidth: tableWidth,
             }}
           >
-            <thead>
+            <thead className="relative">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
@@ -401,6 +404,9 @@ export function Table<T>({
                   })}
                 </tr>
               ))}
+              {onRowSelectionChange && (
+                <SelectionToolbar table={table} controls={selectionControls} />
+              )}
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => {

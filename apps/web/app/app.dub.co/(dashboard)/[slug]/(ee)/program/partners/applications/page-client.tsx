@@ -25,6 +25,7 @@ import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { useColumnVisibility } from "./use-column-visibility";
 
@@ -263,6 +264,22 @@ export function ProgramPartnersApplicationsPageClient() {
     onRowSelectionChange: (rows) => {
       console.log(rows);
     },
+    selectionControls: (table) => (
+      <>
+        <Button
+          variant="primary"
+          text="Approve"
+          className="h-7 w-fit rounded-lg px-2.5"
+          onClick={() => toast.info("WIP")}
+        />
+        <Button
+          variant="secondary"
+          text="Reject"
+          className="h-7 w-fit rounded-lg px-2.5"
+          onClick={() => toast.info("WIP")}
+        />
+      </>
+    ),
 
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
