@@ -253,7 +253,6 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (!key) {
-    console.log("keyLength", keyLength, domain);
     key = await getRandomKey({
       domain,
       prefix: payload["prefix"],
