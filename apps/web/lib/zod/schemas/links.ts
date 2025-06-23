@@ -246,6 +246,14 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The short link slug. If not provided, a random 7-character slug will be generated.",
     ),
+  keyLength: z
+    .number()
+    .min(3)
+    .max(190)
+    .optional()
+    .describe(
+      "The length of the short link slug. Defaults to 7 if not provided. When used with `prefix`, the total length of the key will be `prefix.length + keyLength`.",
+    ),
   externalId: z
     .string()
     .min(1)
