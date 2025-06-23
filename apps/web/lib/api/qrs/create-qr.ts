@@ -42,7 +42,7 @@ export async function createQr(
     data: {
       id: createId({ prefix: "qr_" }),
       qrType,
-      data: qrType === "wifi" ? data : url,
+      data: data,
       title,
       description,
       styles,
