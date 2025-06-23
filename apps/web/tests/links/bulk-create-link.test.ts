@@ -68,24 +68,70 @@ const verifyBulkLinks = ({
 
 test("POST /links/bulk", async (ctx) => {
   const testContext = await setupBulkTest(ctx);
-  const { h } = testContext;
+  const { h, http } = testContext;
 
-  const bulkLinks = Array.from({ length: 2 }, () => ({
-    url: `https://example.com/${randomId()}`,
-    domain,
-  }));
+  // First create a link with a specific key
+  const { data: existingLink } = await http.post<Link>({
+    path: "/links",
+    body: {
+      url: "https://example.com",
+      domain,
+      key: randomId(),
+    },
+  });
 
-  const { status, data: links } = await testContext.http.post<Link[]>({
+  const existingKey = existingLink.key;
+
+  const bulkLinks = [
+    // no key provided
+    {
+      url: `https://example.com/${randomId()}`,
+      domain,
+    },
+    // with random key
+    {
+      url: `https://example.com/${randomId()}`,
+      domain,
+      key: randomId(),
+    },
+    // with existing key
+    {
+      url: `https://example.com/${randomId()}`,
+      domain,
+      key: existingKey,
+    },
+  ];
+
+  const { status, data: links } = await http.post<Link[]>({
     path: "/links/bulk",
     body: bulkLinks,
   });
 
   onTestFinished(async () => {
-    await Promise.all([h.deleteLink(links[0].id), h.deleteLink(links[1].id)]);
+    await Promise.all([
+      h.deleteLink(existingLink.id),
+      ...links.map((link) => h.deleteLink(link.id)),
+    ]);
   });
 
   expect(status).toEqual(200);
-  verifyBulkLinks({ links, bulkLinks, context: testContext });
+
+  verifyBulkLinks({
+    links: links.slice(0, 2),
+    bulkLinks: bulkLinks.slice(0, 2),
+    context: testContext,
+  });
+
+  const errorLink = links.find((l) => "code" in l);
+  expect(errorLink).toMatchObject({
+    code: "conflict",
+    error: "Duplicate key: This short link already exists.",
+    link: expect.objectContaining({
+      url: bulkLinks[2].url,
+      domain,
+      key: bulkLinks[2].key,
+    }),
+  });
 });
 
 test("POST /links/bulk with tag ID", async (ctx) => {

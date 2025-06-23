@@ -15,6 +15,7 @@ import {
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
+import { DubApiError } from "../errors";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { scheduleABTestCompletion } from "./ab-test-scheduler";
 import { linkCache } from "./cache";
@@ -51,87 +52,105 @@ export async function createLink(link: ProcessedLinkProps) {
     key,
   });
 
-  const response = await prisma.link.create({
-    data: {
-      ...rest,
-      id: createId({ prefix: "link_" }),
-      key,
-      shortLink: linkConstructorSimple({ domain: link.domain, key }),
-      title: truncate(title, 120),
-      description: truncate(description, 240),
-      // if it's an uploaded image, make this null first because we'll update it later
-      image: proxy && image && isNotHostedImage(image) ? null : image,
-      utm_source,
-      utm_medium,
-      utm_campaign,
-      utm_term,
-      utm_content,
-      expiresAt: expiresAt ? new Date(expiresAt) : null,
-      geo: geo || Prisma.JsonNull,
+  let response;
 
-      testVariants: testVariants || Prisma.JsonNull,
-      testCompletedAt: testCompletedAt ? new Date(testCompletedAt) : null,
-      testStartedAt: testStartedAt ? new Date(testStartedAt) : null,
+  try {
+    response = await prisma.link.create({
+      data: {
+        ...rest,
+        id: createId({ prefix: "link_" }),
+        key,
+        shortLink: linkConstructorSimple({ domain: link.domain, key }),
+        title: truncate(title, 120),
+        description: truncate(description, 240),
+        // if it's an uploaded image, make this null first because we'll update it later
+        image: proxy && image && isNotHostedImage(image) ? null : image,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_term,
+        utm_content,
+        expiresAt: expiresAt ? new Date(expiresAt) : null,
+        geo: geo || Prisma.JsonNull,
 
-      // Associate tags by tagNames
-      ...(tagNames?.length &&
-        link.projectId && {
-          tags: {
-            create: tagNames.map((tagName, idx) => ({
-              tag: {
-                connect: {
-                  name_projectId: {
-                    name: tagName,
-                    projectId: link.projectId as string,
+        testVariants: testVariants || Prisma.JsonNull,
+        testCompletedAt: testCompletedAt ? new Date(testCompletedAt) : null,
+        testStartedAt: testStartedAt ? new Date(testStartedAt) : null,
+
+        // Associate tags by tagNames
+        ...(tagNames?.length &&
+          link.projectId && {
+            tags: {
+              create: tagNames.map((tagName, idx) => ({
+                tag: {
+                  connect: {
+                    name_projectId: {
+                      name: tagName,
+                      projectId: link.projectId as string,
+                    },
                   },
                 },
-              },
-              createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
-            })),
-          },
-        }),
-
-      // Associate tags by IDs (takes priority over tagNames)
-      ...(combinedTagIds &&
-        combinedTagIds.length > 0 && {
-          tags: {
-            createMany: {
-              data: combinedTagIds.map((tagId, idx) => ({
-                tagId,
                 createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
               })),
             },
-          },
-        }),
+          }),
 
-      // Webhooks
-      ...(webhookIds &&
-        webhookIds.length > 0 && {
-          webhooks: {
-            createMany: {
-              data: webhookIds.map((webhookId) => ({
-                webhookId,
-              })),
+        // Associate tags by IDs (takes priority over tagNames)
+        ...(combinedTagIds &&
+          combinedTagIds.length > 0 && {
+            tags: {
+              createMany: {
+                data: combinedTagIds.map((tagId, idx) => ({
+                  tagId,
+                  createdAt: new Date(new Date().getTime() + idx * 100), // increment by 100ms for correct order
+                })),
+              },
+            },
+          }),
+
+        // Webhooks
+        ...(webhookIds &&
+          webhookIds.length > 0 && {
+            webhooks: {
+              createMany: {
+                data: webhookIds.map((webhookId) => ({
+                  webhookId,
+                })),
+              },
+            },
+          }),
+
+        // Shared dashboard
+        ...(publicStats && {
+          dashboard: {
+            create: {
+              id: createId({ prefix: "dash_" }),
+              projectId: link.projectId,
+              userId: link.userId,
             },
           },
         }),
+      },
+      include: {
+        ...includeTags,
+        webhooks: webhookIds ? true : false,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: "Duplicate key: This short link already exists.",
+        });
+      }
+    }
 
-      // Shared dashboard
-      ...(publicStats && {
-        dashboard: {
-          create: {
-            id: createId({ prefix: "dash_" }),
-            projectId: link.projectId,
-            userId: link.userId,
-          },
-        },
-      }),
-    },
-    include: {
-      ...includeTags,
-      webhooks: webhookIds ? true : false,
-    },
-  });
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: error.message,
+    });
+  }
 
   const uploadedImageUrl = `${R2_URL}/images/${response.id}`;
 

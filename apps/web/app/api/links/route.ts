@@ -1,7 +1,8 @@
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { createLink, getLinksForWorkspace, processLink } from "@/lib/api/links";
+import { getLinksForWorkspace, processLink } from "@/lib/api/links";
+import { createLinkWithKeyRetry } from "@/lib/api/links/create-link-with-key-retry";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -100,6 +101,8 @@ export const POST = withWorkspace(
       }
     }
 
+    const { key } = body;
+
     const { link, error, code } = await processLink({
       payload: body,
       workspace,
@@ -113,28 +116,24 @@ export const POST = withWorkspace(
       });
     }
 
-    try {
-      const response = await createLink(link);
+    const response = await createLinkWithKeyRetry({
+      link,
+      isRandomKey: !key,
+    });
 
-      if (response.projectId && response.userId) {
-        waitUntil(
-          sendWorkspaceWebhook({
-            trigger: "link.created",
-            workspace,
-            data: linkEventSchema.parse(response),
-          }),
-        );
-      }
-
-      return NextResponse.json(response, {
-        headers,
-      });
-    } catch (error) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: error.message,
-      });
+    if (response.projectId && response.userId) {
+      waitUntil(
+        sendWorkspaceWebhook({
+          trigger: "link.created",
+          workspace,
+          data: linkEventSchema.parse(response),
+        }),
+      );
     }
+
+    return NextResponse.json(response, {
+      headers,
+    });
   },
   {
     requiredPermissions: ["links.write"],

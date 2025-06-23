@@ -143,58 +143,47 @@ export const PUT = withWorkspace(
         });
       }
 
-      try {
-        const response = await updateLink({
-          oldLink: {
-            domain: link.domain,
-            key: link.key,
-            image: link.image,
-          },
-          updatedLink: processedLink,
-        });
-
-        waitUntil(
-          sendWorkspaceWebhook({
-            trigger: "link.updated",
-            workspace,
-            data: linkEventSchema.parse(response),
-          }),
-        );
-
-        return NextResponse.json(response, {
-          headers,
-        });
-      } catch (error) {
-        throw new DubApiError({
-          code: "unprocessable_entity",
-          message: error.message,
-        });
-      }
-    } else {
-      // proceed with /api/links POST logic
-      const { link, error, code } = await processLink({
-        payload: body,
-        workspace,
-        userId: session.user.id,
+      const response = await updateLink({
+        oldLink: {
+          domain: link.domain,
+          key: link.key,
+          image: link.image,
+        },
+        updatedLink: processedLink,
       });
 
-      if (error != null) {
-        throw new DubApiError({
-          code: code as ErrorCodes,
-          message: error,
-        });
-      }
+      waitUntil(
+        sendWorkspaceWebhook({
+          trigger: "link.updated",
+          workspace,
+          data: linkEventSchema.parse(response),
+        }),
+      );
 
-      try {
-        const response = await createLink(link);
-        return NextResponse.json(response, { headers });
-      } catch (error) {
-        throw new DubApiError({
-          code: "unprocessable_entity",
-          message: error.message,
-        });
-      }
+      return NextResponse.json(response, { headers });
     }
+
+    // Otherwise, proceed with /api/links POST logic
+    const {
+      link: processedLink,
+      error,
+      code,
+    } = await processLink({
+      payload: body,
+      workspace,
+      userId: session.user.id,
+    });
+
+    if (error != null) {
+      throw new DubApiError({
+        code: code as ErrorCodes,
+        message: error,
+      });
+    }
+
+    const response = await createLink(processedLink);
+
+    return NextResponse.json(response, { headers });
   },
   {
     requiredPermissions: ["links.write"],
