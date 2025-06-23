@@ -13,8 +13,11 @@ import {
   useCallback,
   useMemo,
   useState,
+  useEffect,
 } from "react";
 import { ConsentNotice } from "./consent-notice.tsx";
+import { trackClientEvents } from "core/integration/analytic/analytic.service";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 
 export type AuthType = "login" | "signup";
 
@@ -42,6 +45,18 @@ export function AuthModal({
   const [registrationStep, setRegistrationStep] = useState<ERegistrationStep>(
     ERegistrationStep.SIGNUP,
   );
+
+  // Track elementOpened event when modal opens
+  useEffect(() => {
+    if (showAuthModal) {
+      trackClientEvents({
+        event: EAnalyticEvents.ELEMENT_OPENED,
+        params: {
+          element_name: authType,
+        },
+      });
+    }
+  }, [showAuthModal, authType]);
 
   const setAuthModalMessage = useCallback(
     (msg: string | null, type: MessageType) => {
@@ -214,4 +229,19 @@ export function useAuthModal() {
     }),
     [AuthModalCallback, showModal, showAuthModal],
   );
+}
+
+// Hook for tracking auth-related clicks
+export function useAuthTracking(authType?: AuthType) {
+  const trackAuthClick = useCallback((contentValue: string) => {
+    trackClientEvents({
+      event: EAnalyticEvents.ELEMENT_CLICKED,
+      params: {
+        element_name: authType || "signup", // Default to signup if not specified
+        content_value: contentValue,
+      },
+    });
+  }, [authType]);
+
+  return { trackAuthClick };
 }

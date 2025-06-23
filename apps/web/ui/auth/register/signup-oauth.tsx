@@ -1,9 +1,12 @@
 "use client";
 
 import { Button, Github, Google } from "@dub/ui";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useAuthTracking } from "../../../app/app.dub.co/(auth)/auth.modal";
+import { trackClientEvents } from "core/integration/analytic/analytic.service";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 
 export const SignUpOAuth = ({
   methods,
@@ -14,6 +17,9 @@ export const SignUpOAuth = ({
   const next = searchParams?.get("next");
   const [clickedGoogle, setClickedGoogle] = useState(false);
   const [clickedGithub, setClickedGithub] = useState(false);
+  const { trackAuthClick } = useAuthTracking("signup");
+  const { data: session } = useSession();
+  const hasTrackedSuccess = useRef(false);
 
   useEffect(() => {
     // when leave page, reset state
@@ -23,6 +29,20 @@ export const SignUpOAuth = ({
     };
   }, []);
 
+  // Track successful signup when session becomes available
+  useEffect(() => {
+    if (session?.user?.email && !hasTrackedSuccess.current) {
+      hasTrackedSuccess.current = true;
+      trackClientEvents({
+        event: EAnalyticEvents.SIGNUP_SUCCESS,
+        params: {
+          method: "google",
+          email: session.user.email,
+        },
+      });
+    }
+  }, [session]);
+
   return (
     <>
       {methods.includes("google") && (
@@ -30,6 +50,13 @@ export const SignUpOAuth = ({
           variant="secondary"
           text="Continue with Google"
           onClick={() => {
+            trackAuthClick("google");
+            trackClientEvents({
+              event: EAnalyticEvents.SIGNUP_ATTEMPT,
+              params: {
+                method: "google",
+              },
+            });
             setClickedGoogle(true);
             signIn("google", {
               ...(next && next.length > 0 ? { callbackUrl: next } : {}),

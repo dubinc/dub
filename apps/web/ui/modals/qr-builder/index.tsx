@@ -1,8 +1,9 @@
 "use client";
 
-import { Button, useKeyboardShortcut } from "@dub/ui";
+import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
 
+import useUser from "@/lib/swr/use-user.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
@@ -10,7 +11,6 @@ import { FullQrCreateData, useQrSave } from "@/ui/qr-code/hooks/use-qr-save";
 import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
-import { Modal } from "@dub/ui";
 import { Options } from "qr-code-styling";
 import {
   Dispatch,
@@ -20,6 +20,8 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { trackClientEvents } from "../../../core/integration/analytic";
+import { EAnalyticEvents } from "../../../core/integration/analytic/interfaces/analytic.interface.ts";
 
 export type QRBuilderData = {
   title: string;
@@ -124,12 +126,25 @@ type CreateQRButtonProps = {
 };
 
 export function CreateQRButton(props: CreateQRButtonProps) {
+  const { user } = useUser();
+
   useKeyboardShortcut("c", () => props.setShowQRBuilderModal(true));
 
   return (
     <Button
       text="Create QR code"
-      onClick={() => props.setShowQRBuilderModal(true)}
+      onClick={() => {
+        trackClientEvents({
+          event: EAnalyticEvents.PAGE_CLICKED,
+          params: {
+            page_name: "profile",
+            content_value: "create_qr",
+            email: user?.email,
+          },
+          sessionId: user?.id,
+        });
+        props.setShowQRBuilderModal(true);
+      }}
     />
   );
 }

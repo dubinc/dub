@@ -35,8 +35,7 @@ export function useQrCustomization(
       : initialData?.data;
 
   const [data, setData] = useState(initialContentForQrBuild || DEFAULT_WEBSITE);
-  console.log("[useQrCustomization] data", data);
-  console.log("[useQrCustomization] qrCode", qrCode);
+
   const isQrDisabled = !data?.trim() || data === DEFAULT_WEBSITE;
 
   const [options, setOptions] = useState<Options>({
@@ -141,7 +140,7 @@ export function useQrCustomization(
     return {};
   };
 
-  const [initialInputValues, setInitialInputValues] = useState<
+  const [parsedInputValues, setIParsedInputValues] = useState<
     Record<string, string>
   >({});
 
@@ -151,7 +150,7 @@ export function useQrCustomization(
         initialData.data,
         initialData.qrType as EQRType,
       );
-      setInitialInputValues(parsedData);
+      setIParsedInputValues(parsedData);
     }
   }, [initialData]);
 
@@ -322,6 +321,6 @@ export function useQrCustomization(
     isQrDisabled,
     selectedQRType,
     setSelectedQRType,
-    initialInputValues,
+    parsedInputValues,
   };
 }

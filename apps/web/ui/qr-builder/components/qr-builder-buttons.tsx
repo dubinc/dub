@@ -6,13 +6,10 @@ import { FC } from "react";
 
 interface IQrBuilderButtonsProps {
   step: number;
-  onStepChange: (newStep: number) => void;
-  onSaveClick: () => void;
-  onBackClick: () => void;
-  validateFields: () => Promise<boolean>;
+  onBack: () => void;
+  onContinue: () => void;
   maxStep?: number;
   minStep?: number;
-  onContinue?: () => void;
   className?: string;
   size?: Responsive<"3" | "4" | "1" | "2"> | undefined;
   display?: Responsive<"none" | "inline-flex" | "flex"> | undefined;
@@ -23,11 +20,8 @@ interface IQrBuilderButtonsProps {
 
 export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   step,
-  onStepChange,
+  onBack,
   onContinue,
-  onSaveClick,
-  onBackClick,
-  validateFields,
   maxStep = 3,
   minStep = 1,
   className,
@@ -37,32 +31,10 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   isProcessing = false,
   homePageDemo = false,
 }) => {
-  const lastStep = step === maxStep;
-
-  const handleBack = () => {
-    onStepChange(Math.max(step - 1, minStep));
-    onBackClick();
-  };
-
-  const handleContinue = async () => {
-    if (lastStep) {
-      onSaveClick();
-      return;
-    }
-
-    const isValid = await validateFields();
-
-    if (!isValid) return;
-
-    if (onContinue) {
-      onContinue();
-    } else {
-      onStepChange(Math.min(step + 1, maxStep));
-    }
-  };
+  const isLastStep = step === maxStep;
 
   const getButtonText = () => {
-    if (!lastStep) {
+    if (!isLastStep) {
       return "Continue";
     }
 
@@ -92,7 +64,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         color="blue"
         className="border-secondary focus-visible:border-secondary-500 hover:bg-secondary-50 text-secondary data-[state=open]:border-secondary-500 data-[state=open]:ring-secondary-200 flex min-h-10 min-w-0 shrink basis-1/4"
         disabled={step <= minStep || isProcessing}
-        onClick={handleBack}
+        onClick={onBack}
         icon={
           <ChevronLeft
             className={cn("text-secondary", {
@@ -108,7 +80,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         size={size}
         color="blue"
         className="grow basis-3/4"
-        onClick={handleContinue}
+        onClick={onContinue}
         disabled={isProcessing}
         loading={isProcessing}
         text={buttonText}

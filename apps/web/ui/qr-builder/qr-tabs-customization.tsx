@@ -12,7 +12,7 @@ import { QR_STYLES_OPTIONS } from "./constants/get-qr-config.ts";
 
 interface QrTabsCustomizationProps {
   styleOptionActiveTab: string;
-  setStyleOptionActiveActiveTab: (tab: string) => void;
+  setStyleOptionActiveTab: (tab: "Frame" | "Style" | "Shape" | "Logo") => void;
   selectedSuggestedFrame: string;
   selectedSuggestedLogo: string;
   uploadedLogo: File | null;
@@ -34,7 +34,7 @@ interface QrTabsCustomizationProps {
 
 export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
   styleOptionActiveTab,
-  setStyleOptionActiveActiveTab,
+  setStyleOptionActiveTab,
   selectedSuggestedFrame,
   selectedSuggestedLogo,
   isQrDisabled,
@@ -46,7 +46,7 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
   return isMobile || !homepageDemo ? (
     <Tabs.Root
       value={styleOptionActiveTab}
-      onValueChange={setStyleOptionActiveActiveTab}
+      onValueChange={setStyleOptionActiveTab}
       className="text-neutral flex w-full flex-col items-center justify-center gap-4"
     >
       <Tabs.List className="flex w-full items-center gap-1 overflow-x-auto rounded-lg">

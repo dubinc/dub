@@ -7,6 +7,7 @@ import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
 import { constructMetadata } from "@dub/utils";
 import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ReactNode } from "react";
+import { AnalyticInitializerComponent } from "./analytic-initializer.component.ts";
 
 export const dynamic = "force-static";
 export const metadata = constructMetadata();
@@ -31,6 +32,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
       </div>
       {/*<Toolbar show={["onboarding"]} />*/}
       <ClientSessionComponent />
+      <AnalyticInitializerComponent />
     </TrialStatusProvider>
   );
 }

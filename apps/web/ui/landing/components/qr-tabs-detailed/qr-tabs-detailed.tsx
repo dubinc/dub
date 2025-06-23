@@ -1,3 +1,5 @@
+"use client";
+
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -6,19 +8,34 @@ import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Button, Heading, Text } from "@radix-ui/themes";
 import { FC, useState } from "react";
+import { trackClientEvents } from "../../../../core/integration/analytic";
+import { EAnalyticEvents } from "../../../../core/integration/analytic/interfaces/analytic.interface.ts";
 import { QrTabsDetailedImage } from "./components/qr-tabs-detailed-image.tsx";
 import { QrTabsDetailedTitle } from "./components/qr-tabs-detailed-title.tsx";
 
 interface IQrTabsDetailedProps {
-  scrollToQRGenerationBlock: () => void;
+  handleScrollButtonClick: (type: "1" | "2") => void;
 }
 
 export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
-  scrollToQRGenerationBlock,
+  handleScrollButtonClick,
 }) => {
   const { isMobile } = useMediaQuery();
 
   const [activeTab, setActiveTab] = useState<string>("website");
+
+  const onQrTypeClick = (newActiveTab: string) => {
+    trackClientEvents({
+      event: EAnalyticEvents.PAGE_CLICKED,
+      params: {
+        page_name: "landing",
+        content_value: newActiveTab,
+        content_group: "carousel",
+      },
+    });
+
+    setActiveTab(newActiveTab);
+  };
 
   return (
     <section className="bg-primary-100 w-full px-3 py-6 md:py-12">
@@ -37,7 +54,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
         </div>
         <Tabs.Root
           value={activeTab}
-          onValueChange={setActiveTab}
+          onValueChange={onQrTypeClick}
           className="flex w-full flex-col items-center justify-center gap-6"
         >
           <ScrollArea.Root
@@ -119,7 +136,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                       size={{ initial: "4", md: "3" }}
                       color={"blue"}
                       variant="solid"
-                      onClick={scrollToQRGenerationBlock}
+                      onClick={() => handleScrollButtonClick("2")}
                     >
                       <Text size={{ initial: "3", md: "4" }}>
                         Create QR code

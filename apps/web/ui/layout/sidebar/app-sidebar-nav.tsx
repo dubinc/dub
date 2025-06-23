@@ -45,6 +45,7 @@ const NAV_AREAS: SidebarNavAreas<{
     queryString,
     programs,
     showNews,
+    session,
     setShowTrialExpiredModal,
     isTrialOver,
   }) => ({
@@ -80,6 +81,12 @@ const NAV_AREAS: SidebarNavAreas<{
             icon: () => <Icon icon="mage:qr-code" className="h-5 w-5" />,
             href: `/${slug}`,
             exact: true,
+            onClick: isTrialOver
+              ? (e: MouseEvent) => {
+                  e.preventDefault();
+                  setShowTrialExpiredModal?.(true);
+                }
+              : undefined,
           },
           {
             name: "Statistics",
