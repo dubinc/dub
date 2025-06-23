@@ -256,7 +256,7 @@ export async function processLink<T extends Record<string, any>>({
     key = await getRandomKey({
       domain,
       prefix: payload["prefix"],
-      length: keyLength || (domain === "loooooooo.ng" ? 69 : 7),
+      length: keyLength,
     });
   } else if (!skipKeyChecks) {
     const processedKey = processKey({ domain, key });
