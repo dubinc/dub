@@ -207,6 +207,7 @@ export * from "./user-crown";
 export * from "./user-delete";
 export * from "./user-focus";
 export * from "./user-plus";
+export * from "./user-xmark";
 export * from "./users";
 export * from "./users-fill";
 export * from "./users-settings";

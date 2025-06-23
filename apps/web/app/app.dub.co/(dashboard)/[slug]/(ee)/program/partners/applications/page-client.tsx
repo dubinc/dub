@@ -1,5 +1,7 @@
 "use client";
 
+import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
+import { rejectPartnersBulkAction } from "@/lib/actions/partners/reject-partners-bulk";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -11,7 +13,7 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   Button,
   EditColumnsButton,
-  Icon,
+  MenuItem,
   Popover,
   Table,
   Tooltip,
@@ -19,10 +21,23 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { BadgeCheck2Fill, Dots, User, Users } from "@dub/ui/icons";
-import { cn, COUNTRIES, fetcher, formatDate, getPrettyUrl } from "@dub/utils";
+import {
+  BadgeCheck2Fill,
+  Dots,
+  LoadingSpinner,
+  Users,
+  UserXmark,
+} from "@dub/ui/icons";
+import {
+  COUNTRIES,
+  fetcher,
+  formatDate,
+  getPrettyUrl,
+  pluralize,
+} from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -44,7 +59,8 @@ export function ProgramPartnersApplicationsPageClient() {
   const {
     data: partners,
     error,
-    isLoading,
+    isValidating,
+    mutate,
   } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString(
       {
@@ -56,6 +72,7 @@ export function ProgramPartnersApplicationsPageClient() {
     fetcher,
     {
       keepPreviousData: true,
+      revalidateOnFocus: false,
     },
   );
 
@@ -73,6 +90,19 @@ export function ProgramPartnersApplicationsPageClient() {
     useCurrentPartner({
       partners,
       partnerId: detailsSheetState.partnerId,
+    });
+
+  const { executeAsync: rejectPartners, isPending: isRejectingPartners } =
+    useAction(rejectPartnersBulkAction, {
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+      },
+      onSuccess: ({ input }) => {
+        toast.success(
+          `${pluralize("Partner", input.partnerIds.length)} rejected`,
+        );
+        mutate();
+      },
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
@@ -221,7 +251,7 @@ export function ProgramPartnersApplicationsPageClient() {
         maxSize: 43,
         header: ({ table }) => <EditColumnsButton table={table} />,
         cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} />
+          <RowMenuButton row={row} workspaceId={workspaceId!} mutate={mutate} />
         ),
       },
     ],
@@ -266,22 +296,36 @@ export function ProgramPartnersApplicationsPageClient() {
       }),
 
     getRowId: (row) => row.id,
-    onRowSelectionChange: (rows) => {
-      console.log(rows);
-    },
     selectionControls: (table) => (
       <>
         <Button
           variant="primary"
           text="Approve"
           className="h-7 w-fit rounded-lg px-2.5"
-          onClick={() => toast.info("WIP")}
+          onClick={() => console.log(table.getSelectedRowModel().rows)}
         />
         <Button
           variant="secondary"
           text="Reject"
           className="h-7 w-fit rounded-lg px-2.5"
-          onClick={() => toast.info("WIP")}
+          loading={isRejectingPartners}
+          onClick={() => {
+            if (
+              !window.confirm(
+                "Are you sure you want to reject these applications?",
+              )
+            )
+              return;
+
+            const partnerIds = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original.id);
+
+            rejectPartners({
+              workspaceId: workspaceId!,
+              partnerIds,
+            });
+          }}
         />
       </>
     ),
@@ -290,7 +334,7 @@ export function ProgramPartnersApplicationsPageClient() {
     tdClassName: "border-l-0",
     resourceName: (p) => `application${p ? "s" : ""}`,
     rowCount: partnersCount || 0,
-    loading: isLoading || isCurrentPartnerLoading,
+    loading: isValidating || isCurrentPartnerLoading,
     error: error || countError ? "Failed to load applications" : undefined,
   });
 
@@ -336,11 +380,24 @@ export function ProgramPartnersApplicationsPageClient() {
 function RowMenuButton({
   row,
   workspaceId,
+  mutate,
 }: {
   row: Row<EnrolledPartnerProps>;
   workspaceId: string;
+  mutate: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const { executeAsync: rejectPartner, isPending: isRejectingPartner } =
+    useAction(rejectPartnerAction, {
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+      },
+      onSuccess: () => {
+        toast.success(`Partner application rejected`);
+        mutate();
+      },
+    });
 
   return (
     <>
@@ -351,12 +408,26 @@ function RowMenuButton({
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
               <MenuItem
-                icon={User}
-                label="WIP"
+                as={Command.Item}
+                icon={UserXmark}
+                variant="danger"
                 onSelect={() => {
-                  alert("WIP");
+                  setIsOpen(false);
+                  if (
+                    !window.confirm(
+                      "Are you sure you want to reject this application?",
+                    )
+                  )
+                    return;
+
+                  rejectPartner({
+                    workspaceId: workspaceId!,
+                    partnerId: row.original.id,
+                  });
                 }}
-              />
+              >
+                Reject partner
+              </MenuItem>
             </Command.List>
           </Command>
         }
@@ -366,49 +437,16 @@ function RowMenuButton({
           type="button"
           className="h-8 whitespace-nowrap px-2"
           variant="outline"
-          icon={<Dots className="h-4 w-4 shrink-0" />}
+          icon={
+            isRejectingPartner ? (
+              <LoadingSpinner className="size-4 shrink-0" />
+            ) : (
+              <Dots className="size-4 shrink-0" />
+            )
+          }
         />
       </Popover>
     </>
-  );
-}
-
-function MenuItem({
-  icon: IconComp,
-  label,
-  onSelect,
-  variant = "default",
-}: {
-  icon: Icon;
-  label: string;
-  onSelect: () => void;
-  variant?: "default" | "danger";
-}) {
-  const variantStyles = {
-    default: {
-      text: "text-neutral-600",
-      icon: "text-neutral-500",
-    },
-    danger: {
-      text: "text-red-600",
-      icon: "text-red-600",
-    },
-  };
-
-  const { text, icon } = variantStyles[variant];
-
-  return (
-    <Command.Item
-      className={cn(
-        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
-        "data-[selected=true]:bg-neutral-100",
-        text,
-      )}
-      onSelect={onSelect}
-    >
-      <IconComp className={cn("size-4 shrink-0", icon)} />
-      {label}
-    </Command.Item>
   );
 }
 

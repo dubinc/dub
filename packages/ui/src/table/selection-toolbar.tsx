@@ -26,17 +26,17 @@ export function SelectionToolbar<T>({
       <td colSpan={table.getHeaderGroups().length} className="contents size-0">
         <div
           className={cn(
-            "pointer-events-none absolute bottom-px left-11 right-0 top-0 bg-white opacity-0 duration-150",
+            "pointer-events-none absolute bottom-px left-11 right-0 top-0 bg-white opacity-0 duration-100",
             selectedCount && "pointer-events-auto opacity-100",
           )}
         >
           <div
             className={cn(
-              "flex size-full -translate-x-1 items-center gap-2 transition-transform duration-150",
+              "flex size-full -translate-x-1 items-center gap-2 transition-transform duration-100",
               selectedCount && "translate-x-0",
             )}
           >
-            <span className="text-content-emphasis mr-2 text-sm font-medium">
+            <span className="text-content-emphasis mr-2 text-sm font-medium tabular-nums">
               {lastSelectedCount} selected
             </span>
             {controls?.(table)}

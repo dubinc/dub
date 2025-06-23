@@ -60,6 +60,9 @@ export function useTable<T extends any>(
     columnResizeMode = "onChange",
   } = props;
 
+  const selectionEnabled =
+    !!props.onRowSelectionChange || !!props.selectionControls;
+
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     props.columnVisibility ?? {},
   );
@@ -94,7 +97,7 @@ export function useTable<T extends any>(
 
   const tableColumns = useMemo(
     () => [
-      ...(props.onRowSelectionChange
+      ...(selectionEnabled
         ? [
             {
               id: "select",
@@ -133,7 +136,7 @@ export function useTable<T extends any>(
         : []),
       ...columns,
     ],
-    [props.onRowSelectionChange, columns],
+    [selectionEnabled, columns],
   );
 
   const table = useReactTable({
@@ -282,6 +285,8 @@ export function Table<T>({
   children,
   enableColumnResizing = false,
 }: TableProps<T>) {
+  const selectionEnabled = !!onRowSelectionChange || !!selectionControls;
+
   // Memoize table width calculation
   const tableWidth = useMemo(() => {
     if (!enableColumnResizing) return "100%";
@@ -404,7 +409,7 @@ export function Table<T>({
                   })}
                 </tr>
               ))}
-              {onRowSelectionChange && (
+              {selectionEnabled && (
                 <SelectionToolbar table={table} controls={selectionControls} />
               )}
             </thead>
