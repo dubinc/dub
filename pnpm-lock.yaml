@@ -231,6 +231,9 @@ importers:
       csv-parse:
         specifier: ^5.5.6
         version: 5.5.6
+      customerio-node:
+        specifier: ^4.2.0
+        version: 4.2.0
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
@@ -584,6 +587,9 @@ importers:
       '@react-email/components':
         specifier: ^0.0.22
         version: 0.0.22(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
+      customerio-node:
+        specifier: ^4.2.0
+        version: 4.2.0
       lucide-react:
         specifier: ^0.462.0
         version: 0.462.0(react@18.2.0)
@@ -14340,6 +14346,10 @@ packages:
 
   /csv-parse@5.5.6:
     resolution: {integrity: sha512-uNpm30m/AGSkLxxy7d9yRXpJQFrZzVWLFBkS+6ngPcZkw/5k3L/jjFuj7tVnEpRn+QgmiXr21nDlhCiUK4ij2A==}
+    dev: false
+
+  /customerio-node@4.2.0:
+    resolution: {integrity: sha512-QEBD6zSDvYgX3e7fhblEpolSbygSVt0OKLS+el5v0EsfkL7ugW+qtiST0Y6alPDq6i4cuEGKEIZHrADmu1rW6A==}
     dev: false
 
   /d3-array@1.2.4:

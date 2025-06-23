@@ -1,10 +1,10 @@
 import { CreateEmailOptions } from "resend";
 import { resend, sendEmailViaResend } from "./resend";
 import { sendViaNodeMailer } from "./send-via-nodemailer";
-import { sendViaMailchimp, Var } from "./send-via-mailchimp";
-import { MAILCHIMP_TEMPLATES } from "./constants";
+import { sendViaCustomerIO } from "./send-via-customerio";
+import { CUSTOMER_IO_TEMPLATES } from "./constants";
 
-export { MAILCHIMP_TEMPLATES };
+export { CUSTOMER_IO_TEMPLATES };
 
 export const sendEmail = async ({
   email,
@@ -17,17 +17,20 @@ export const sendEmail = async ({
   scheduledAt,
   marketing,
   template,
-  vars,
+  messageData,
 }: Omit<CreateEmailOptions, "to" | "from"> & {
   email: string;
   from?: string;
   marketing?: boolean;
   template?: string;
-  vars?: Var[];
+  messageData?: Record<string, string>;
 }) => {
-  // If template is provided, use Mailchimp
-  if (template && process.env.MAILCHIMP_API_KEY) {
-    return await sendViaMailchimp(template, email, vars);
+  console.log("Sending email");
+  console.log("template", template);
+  console.log("process.env.CUSTOMER_IO_API_KEY", process.env.CUSTOMER_IO_API_KEY);
+  // If template is provided, use Customer.io transactional API
+  if (template && process.env.CUSTOMER_IO_API_KEY) {
+    return await sendViaCustomerIO(template, email, messageData);
   }
 
   // Otherwise, follow the existing provider logic
@@ -60,6 +63,6 @@ export const sendEmail = async ({
   }
 
   console.info(
-    "Email sending failed: No email service is configured. Please set up at least one email service (Mailchimp, Resend, or SMTP) to send emails.",
+    "Email sending failed: No email service is configured. Please set up at least one email service (Customer.io, Resend, or SMTP) to send emails.",
   );
 };
