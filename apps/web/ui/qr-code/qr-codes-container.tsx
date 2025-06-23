@@ -50,76 +50,88 @@ export default function QrCodesContainer({
   >(undefined);
 
   useEffect(() => {
-    if (!qrs) {
-      return;
-    }
+    if (!qrs) return;
 
     setQrsWithPreviews(qrs);
 
-    const compressImagesInBackground = async () => {
-      try {
-        const updatedQrs = await Promise.all(
-          qrs.map(async (qr) => {
-            if (qr.qrType === "image" && qr.fileId && qr.fileName) {
-              try {
-                const imageResult = await getFileContent(qr.fileId);
-                if (imageResult.success) {
-                  const compressedBlob = await compressImage(imageResult.data);
-                  const compressedFile = createCompressedImageFile(
-                    compressedBlob,
-                    qr.fileName,
-                    qr.fileId,
-                    qr.fileSize || 0,
-                  );
+    const timeoutId = setTimeout(() => {
+      compressImagesInBackground(qrs);
+    }, 100);
 
-                  (qr as any).initialInputValues = {
-                    filesImage: [compressedFile],
-                  };
-                }
-              } catch (error) {
-                console.warn(
-                  `Failed to compress image for QR ${qr.id}:`,
-                  error,
-                );
-              }
-            } else if (
-              (qr.qrType === "pdf" || qr.qrType === "video") &&
-              qr.fileId &&
-              qr.fileName
-            ) {
-              // Create a placeholder file object for preview in QRContentEditorModal
-              const placeholderFile = new File([""], qr.fileName, {
-                type: qr.qrType === "pdf" ? "application/pdf" : "video/mp4",
-              });
+    return () => clearTimeout(timeoutId);
+  }, [qrs]);
 
-              (placeholderFile as any).isThumbnail = true;
-              (placeholderFile as any).fileId = qr.fileId;
-              (placeholderFile as any).originalFileName = qr.fileName;
-              (placeholderFile as any).originalFileSize = qr.fileSize;
+  const compressImagesInBackground = async (qrs: ResponseQrCode[]) => {
+    try {
+      const updatedQrs = await Promise.all(
+        qrs.map(async (qr) => {
+          const { qrType, fileId, fileName } = qr;
 
-              if (qr.qrType === "pdf") {
-                (qr as any).initialInputValues = {
-                  filesPDF: [placeholderFile],
-                };
-              } else if (qr.qrType === "video") {
-                (qr as any).initialInputValues = {
-                  filesVideo: [placeholderFile],
-                };
-              }
-            }
+          if (!fileId || !fileName) return { ...qr };
 
-            return { ...qr };
-          }),
-        );
+          if (qrType === "image") return await handleImageCompression(qr);
+          if (qrType === "pdf" || qrType === "video")
+            return handleMediaPlaceholder(qr);
 
-        setQrsWithPreviews(updatedQrs);
-      } catch (error) {
-        console.error("Error compressing images:", error);
-      }
+          return { ...qr };
+        }),
+      );
+
+      setQrsWithPreviews(updatedQrs);
+    } catch (error) {
+      console.error("Error compressing images:", error);
+    }
+  };
+
+  const handleImageCompression = async (qr: ResponseQrCode) => {
+    try {
+      const result = await getFileContent(qr.fileId!);
+      if (!result.success) return { ...qr };
+
+      const compressedBlob = await compressImage(result.data);
+      const compressedFile = createCompressedImageFile(
+        compressedBlob,
+        qr.fileName!,
+        qr.fileId!,
+        qr.fileSize || 0,
+      );
+
+      return {
+        ...qr,
+        initialInputValues: {
+          filesImage: [compressedFile],
+        },
+      };
+    } catch (error) {
+      console.warn(`Failed to compress image for QR ${qr.id}:`, error);
+      return { ...qr };
+    }
+  };
+
+  const handleMediaPlaceholder = (qr: ResponseQrCode) => {
+    const typeMap = {
+      pdf: "application/pdf",
+      video: "video/mp4",
     };
 
-    setTimeout(compressImagesInBackground, 100);
-  }, [qrs]);
+    const placeholderFile = new File([""], qr.fileName!, {
+      type: typeMap[qr.qrType],
+    });
+
+    Object.assign(placeholderFile, {
+      isThumbnail: true,
+      fileId: qr.fileId,
+      originalFileName: qr.fileName,
+      originalFileSize: qr.fileSize,
+    });
+
+    return {
+      ...qr,
+      initialInputValues: {
+        [qr.qrType === "pdf" ? "filesPDF" : "filesVideo"]: [placeholderFile],
+      },
+    };
+  };
 
   return (
     <MaxWidthWrapper className="grid gap-y-2">
