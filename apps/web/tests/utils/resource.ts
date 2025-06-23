@@ -3,7 +3,14 @@ export const E2E_WORKSPACE_ID = "ws_clrei1gld0002vs9mzn93p8ik";
 
 export const E2E_LINK = {
   domain: "dub.sh",
+  key: "test-click-tracking",
   url: "https://github.com/dubinc",
+};
+
+export const E2E_TRACK_CLICK_HEADERS = {
+  referer: "https://dub.co",
+  "User-Agent":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
 };
 
 export const E2E_TAG = {
@@ -18,7 +25,6 @@ export const E2E_TAG_2 = {
   color: "blue",
 };
 
-export const E2E_CLICK_ID = "GWGrkftJdYlZD2mq";
 export const E2E_CUSTOMER_ID = "cm25onzuv0001s1bbxchrc0ae";
 export const E2E_CUSTOMER_EXTERNAL_ID = "cus_jTrfVKYN3Buc3F80JoqBiY0g";
 export const E2E_WEBHOOK_ID = "wh_MHR7sZXXtZ7keBaNYZ30rQ0v";

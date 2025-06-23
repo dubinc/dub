@@ -29,12 +29,7 @@ type Tab = {
 
 export default function CommissionsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-  const {
-    tab: selectedTab = "commissions",
-    interval,
-    start,
-    end,
-  } = searchParamsObj;
+  const { interval, start, end } = searchParamsObj;
 
   const { data: { programs, timeseries } = {}, isLoading } = useSWR<{
     programs: {
@@ -42,12 +37,10 @@ export default function CommissionsPageClient() {
       name: string;
       logo: string;
       commissions: number;
-      revenue: number;
     }[];
     timeseries: {
       start: Date;
       commissions: number;
-      revenue: number;
     }[];
   }>(
     `/api/admin/commissions${getQueryString({
@@ -65,21 +58,16 @@ export default function CommissionsPageClient() {
       label: "Commissions",
       colorClassName: "text-teal-500 bg-teal-500/50 border-teal-500",
     },
-    {
-      id: "revenue",
-      label: "Revenue",
-      colorClassName: "text-purple-500 bg-purple-500/50 border-purple-500",
-    },
   ];
 
-  const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
+  const tab = tabs[0];
+  const selectedTab = tab.id;
 
   const chartData =
-    timeseries?.map(({ start, commissions, revenue }) => ({
+    timeseries?.map(({ start, commissions }) => ({
       date: start ? new Date(start) : new Date(),
       values: {
         commissions: commissions || 0,
-        revenue: revenue || 0,
       },
     })) ?? null;
 
@@ -90,8 +78,6 @@ export default function CommissionsPageClient() {
           (acc, { commissions }) => acc + (commissions || 0),
           0,
         ) ?? 0,
-      revenue:
-        timeseries?.reduce((acc, { revenue }) => acc + (revenue || 0), 0) ?? 0,
     };
   }, [timeseries]);
 
@@ -145,16 +131,6 @@ export default function CommissionsPageClient() {
         accessorKey: "commissions",
         cell: ({ row }) =>
           currencyFormatter(row.original.commissions / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "revenue",
-        header: "Revenue",
-        accessorKey: "revenue",
-        cell: ({ row }) =>
-          currencyFormatter(row.original.revenue / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
@@ -234,12 +210,6 @@ export default function CommissionsPageClient() {
                       id: "commissions",
                       valueAccessor: (d) => d.values.commissions,
                       isActive: selectedTab === "commissions",
-                      colorClassName: tab.colorClassName,
-                    },
-                    {
-                      id: "revenue",
-                      valueAccessor: (d) => d.values.revenue,
-                      isActive: selectedTab === "revenue",
                       colorClassName: tab.colorClassName,
                     },
                   ]}
