@@ -1,12 +1,12 @@
 "use client";
 
+import { useAuthTracking } from "@/ui/modals/auth-modal.tsx";
 import { Button, Github, Google } from "@dub/ui";
-import { signIn, useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
-import { useAuthTracking } from "../../../app/app.dub.co/(auth)/auth.modal";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { signIn, useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export const SignUpOAuth = ({
   methods,

@@ -1,8 +1,8 @@
 "use client";
 
+import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
 import { Button, Text } from "@radix-ui/themes";
-import { useAuthModal } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 
 export const Header = () => {
   const { AuthModal, showModal } = useAuthModal();

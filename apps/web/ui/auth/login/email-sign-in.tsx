@@ -1,19 +1,19 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { showMessage } from "@/ui/auth/helpers";
+import { useAuthTracking } from "@/ui/modals/auth-modal";
+import { MessageType } from "@/ui/modals/auth-modal.tsx";
 import { Button, Input, useMediaQuery } from "@dub/ui";
 import { InputPassword } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { trackClientEvents } from "core/integration/analytic/analytic.service";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { Mail } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
-import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { errorCodes, LoginFormContext } from "./login-form";
-import { useAuthTracking } from "../../../app/app.dub.co/(auth)/auth.modal";
-import { trackClientEvents } from "core/integration/analytic/analytic.service";
-import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 
 export const EmailSignIn = ({
   redirectTo,

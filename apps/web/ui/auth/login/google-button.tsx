@@ -1,12 +1,12 @@
+import { useAuthTracking } from "@/ui/modals/auth-modal.tsx";
 import { Button } from "@dub/ui";
 import { Google } from "@dub/ui/icons";
-import { signIn } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useContext } from "react";
-import { LoginFormContext } from "./login-form";
-import { useAuthTracking } from "../../../app/app.dub.co/(auth)/auth.modal";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useContext } from "react";
+import { LoginFormContext } from "./login-form";
 
 export function GoogleButton() {
   const searchParams = useSearchParams();
@@ -31,7 +31,7 @@ export function GoogleButton() {
         });
         setClickedMethod("google");
         setLastUsedAuthMethod("google");
-        
+
         const response = await signIn("google", {
           redirect: false,
           callbackUrl: next || "/workspaces",

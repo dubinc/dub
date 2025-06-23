@@ -5,14 +5,13 @@ import z from "@/lib/zod";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
 import { showMessage } from "@/ui/auth/helpers";
 import { ERegistrationStep } from "@/ui/auth/register/constants";
+import { MessageType, useAuthTracking } from "@/ui/modals/auth-modal.tsx";
 import { Button, Input } from "@dub/ui";
-import { useAction } from "next-safe-action/hooks";
-import { useForm } from "react-hook-form";
-import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
-import { useRegisterContext } from "./context";
-import { useAuthTracking } from "../../../app/app.dub.co/(auth)/auth.modal";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { useAction } from "next-safe-action/hooks";
+import { useForm } from "react-hook-form";
+import { useRegisterContext } from "./context";
 
 type SignUpProps = z.infer<typeof signUpSchema>;
 
@@ -56,17 +55,19 @@ export const SignUpEmail = ({
   });
 
   return (
-    <form onSubmit={handleSubmit(async (data) => {
-      trackAuthClick("email");
-      trackClientEvents({
-        event: EAnalyticEvents.SIGNUP_ATTEMPT,
-        params: {
-          method: "email",
-          email: data.email,
-        },
-      });
-      await executeAsync(data);
-    })}>
+    <form
+      onSubmit={handleSubmit(async (data) => {
+        trackAuthClick("email");
+        trackClientEvents({
+          event: EAnalyticEvents.SIGNUP_ATTEMPT,
+          params: {
+            method: "email",
+            email: data.email,
+          },
+        });
+        await executeAsync(data);
+      })}
+    >
       <div className="flex flex-col space-y-4">
         <Input
           type="email"

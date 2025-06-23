@@ -5,19 +5,19 @@ import { ERegistrationStep } from "@/ui/auth/register/constants";
 import { SignUpContent } from "@/ui/auth/register/signup-content";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { trackClientEvents } from "core/integration/analytic/analytic.service";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, X, XCircle } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
-  useEffect,
 } from "react";
-import { ConsentNotice } from "./consent-notice.tsx";
-import { trackClientEvents } from "core/integration/analytic/analytic.service";
-import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { ConsentNotice } from "../../app/app.dub.co/(auth)/consent-notice.tsx";
 
 export type AuthType = "login" | "signup";
 
@@ -225,23 +225,25 @@ export function useAuthModal() {
     () => ({
       AuthModal: AuthModalCallback,
       showModal,
-      showAuthModal,
     }),
-    [AuthModalCallback, showModal, showAuthModal],
+    [AuthModalCallback, showModal],
   );
 }
 
 // Hook for tracking auth-related clicks
 export function useAuthTracking(authType?: AuthType) {
-  const trackAuthClick = useCallback((contentValue: string) => {
-    trackClientEvents({
-      event: EAnalyticEvents.ELEMENT_CLICKED,
-      params: {
-        element_name: authType || "signup", // Default to signup if not specified
-        content_value: contentValue,
-      },
-    });
-  }, [authType]);
+  const trackAuthClick = useCallback(
+    (contentValue: string) => {
+      trackClientEvents({
+        event: EAnalyticEvents.ELEMENT_CLICKED,
+        params: {
+          element_name: authType || "signup", // Default to signup if not specified
+          content_value: contentValue,
+        },
+      });
+    },
+    [authType],
+  );
 
   return { trackAuthClick };
 }

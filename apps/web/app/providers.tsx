@@ -8,10 +8,12 @@ import {
   useRemoveGAParams,
 } from "@dub/ui";
 import PlausibleProvider from "next-plausible";
+import { SessionProvider } from "next-auth/react";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { ReactNode } from "react";
 import { Toaster } from "sonner";
+import { ModalProvider } from "@/ui/modals/modal-provider";
 
 if (typeof window !== "undefined") {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
@@ -27,30 +29,34 @@ export default function RootProviders({ children }: { children: ReactNode }) {
   useRemoveGAParams();
 
   return (
-    <PostHogProvider client={posthog}>
-      <PlausibleProvider
-        domain="dub.co"
-        revenue
-        scriptProps={{
-          src: "/_proxy/plausible/script.js",
-          // @ts-ignore
-          "data-api": "/_proxy/plausible/event",
-        }}
-      />
-      <TooltipProvider>
-        <KeyboardShortcutProvider>
-          <Toaster closeButton className="pointer-events-auto" />
-          <PosthogPageview />
-          {children}
-          <DubAnalytics
-            apiHost="/_proxy/dub"
-            shortDomain="refer.dub.co"
-            cookieOptions={{
-              domain: ".dub.co",
-            }}
-          />
-        </KeyboardShortcutProvider>
-      </TooltipProvider>
-    </PostHogProvider>
+    <SessionProvider>
+      <PostHogProvider client={posthog}>
+        <PlausibleProvider
+          domain="dub.co"
+          revenue
+          scriptProps={{
+            src: "/_proxy/plausible/script.js",
+            // @ts-ignore
+            "data-api": "/_proxy/plausible/event",
+          }}
+        />
+        <TooltipProvider>
+          <KeyboardShortcutProvider>
+            <ModalProvider>
+              <Toaster closeButton className="pointer-events-auto" />
+              <PosthogPageview />
+              {children}
+            </ModalProvider>
+            <DubAnalytics
+              apiHost="/_proxy/dub"
+              shortDomain="refer.dub.co"
+              cookieOptions={{
+                domain: ".dub.co",
+              }}
+            />
+          </KeyboardShortcutProvider>
+        </TooltipProvider>
+      </PostHogProvider>
+    </SessionProvider>
   );
 }
