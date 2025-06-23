@@ -5,6 +5,7 @@ import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { sendEmail } from "@dub/email";
 import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
 import { prisma } from "@dub/prisma";
+import { pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -164,7 +165,6 @@ export async function GET(req: Request) {
             email: user.email,
           },
           program: {
-            id: program.id,
             name: program.name,
           },
           payout: {
@@ -182,7 +182,10 @@ export async function GET(req: Request) {
         ({ workspace, user, program, payout }) =>
           limiter.schedule(() =>
             sendEmail({
-              subject: `${payout.partnersCount} partners awaiting your payout for ${program.name}`,
+              subject: `${payout.partnersCount} ${pluralize(
+                "partner",
+                payout.partnersCount,
+              )} awaiting your payout for ${program.name}`,
               email: user.email!,
               react: ProgramPayoutReminder({
                 email: user.email!,

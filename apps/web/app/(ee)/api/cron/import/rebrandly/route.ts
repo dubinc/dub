@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     await verifyQstashSignature({ req, rawBody });
 
     const body = JSON.parse(rawBody);
-    const { workspaceId, importTags } = body;
+    const { workspaceId, importTags, createdAfter } = body;
 
     try {
       const rebrandlyApiKey = await redis.get<string>(
@@ -64,6 +64,7 @@ export async function POST(req: Request) {
         ...body,
         tagsToId,
         rebrandlyApiKey,
+        createdAfter,
       });
       return NextResponse.json({
         response: "success",

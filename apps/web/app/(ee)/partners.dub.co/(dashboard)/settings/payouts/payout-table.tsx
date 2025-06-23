@@ -2,13 +2,14 @@
 
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
+import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
+  DynamicTooltipWrapper,
   Filter,
   SimpleTooltipContent,
   StatusBadge,
@@ -31,7 +32,6 @@ import { PayoutDetailsSheet } from "./payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
-  const { partner } = usePartnerProfile();
   const { queryParams, searchParams } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "periodEnd";
@@ -89,9 +89,30 @@ export function PayoutTable() {
         header: "Status",
         cell: ({ row }) => {
           const badge = PayoutStatusBadges[row.original.status];
+          const tooltip = (() => {
+            if (
+              row.original.status === "failed" &&
+              row.original.failureReason
+            ) {
+              return row.original.failureReason;
+            }
+            if (row.original.status === "pending") {
+              return row.original.amount >= row.original.program.minPayoutAmount
+                ? "This payout will be processed depends on your program's payment schedule, which is usually at the beginning or the end of the month."
+                : `This program's minimum payout amount is ${currencyFormatter(
+                    row.original.program.minPayoutAmount / 100,
+                  )}. This payout will be accrued and processed during the next payout period.`;
+            }
+            return undefined;
+          })();
+
           return badge ? (
             <StatusBadge icon={badge.icon} variant={badge.variant}>
-              {badge.label}
+              <DynamicTooltipWrapper
+                tooltipProps={tooltip ? { content: tooltip } : undefined}
+              >
+                {badge.label}
+              </DynamicTooltipWrapper>
             </StatusBadge>
           ) : (
             "-"
@@ -116,7 +137,6 @@ export function PayoutTable() {
             <AmountRowItem
               amount={row.original.amount}
               status={row.original.status}
-              payoutsEnabled={Boolean(partner?.payoutsEnabledAt)}
               minPayoutAmount={row.original.program.minPayoutAmount}
             />
 
@@ -137,6 +157,15 @@ export function PayoutTable() {
             )}
           </div>
         ),
+      },
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 30,
+        size: 30,
+        maxSize: 30,
+        cell: ({ row }) => <PayoutRowMenu row={row} />,
       },
     ],
     pagination,
@@ -224,12 +253,10 @@ export function PayoutTable() {
 function AmountRowItem({
   amount,
   status,
-  payoutsEnabled,
   minPayoutAmount,
 }: {
   amount: number;
   status: PayoutStatus;
-  payoutsEnabled: boolean;
   minPayoutAmount: number;
 }) {
   const display = currencyFormatter(amount / 100, {

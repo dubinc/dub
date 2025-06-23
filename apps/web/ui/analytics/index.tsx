@@ -30,13 +30,19 @@ export default function Analytics({
   return (
     <AnalyticsProvider {...{ adminPage, dashboardProps }}>
       <AnalyticsContext.Consumer>
-        {({ dashboardProps }) => {
+        {({ dashboardProps, partnerPage }) => {
           return (
             <div
               className={cn("pb-10", dashboardProps && "bg-neutral-50 pt-10")}
             >
               <Toggle />
-              <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">
+              <div
+                className={cn(
+                  "mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10",
+                  // TODO: [PageContent] Remove once all pages are migrated to the new PageContent
+                  !dashboardProps && !adminPage && !partnerPage && "lg:px-6",
+                )}
+              >
                 <Main />
                 <StatsGrid />
               </div>

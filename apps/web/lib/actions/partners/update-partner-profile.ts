@@ -61,20 +61,18 @@ export const updatePartnerProfileAction = authPartnerActionClient
       partner.companyName?.toLowerCase() !== companyName?.toLowerCase();
 
     if (countryChanged || profileTypeChanged || companyNameChanged) {
-      // Partner should be able to update their country, profile type, or company name
-      // if they don't have any sent payouts
-      const sentPayoutsCount = await prisma.payout.count({
+      // Partner is only able to update their country, profile type, or company name
+      // as long as they don't have any completed payouts
+      const completedPayoutsCount = await prisma.payout.count({
         where: {
           partnerId: partner.id,
-          status: {
-            in: ["processing", "completed"],
-          },
+          status: "completed",
         },
       });
 
-      if (sentPayoutsCount > 0) {
+      if (completedPayoutsCount > 0) {
         throw new Error(
-          "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support.",
+          "Since you've already received payouts on Dub, you cannot change your country or profile type. Please contact support to update those fields.",
         );
       }
 

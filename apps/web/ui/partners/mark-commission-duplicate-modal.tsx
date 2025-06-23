@@ -5,7 +5,6 @@ import { CommissionResponse } from "@/lib/types";
 import { Button, Modal, StatusBadge } from "@dub/ui";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CustomerRowItem } from "../customers/customer-row-item";
@@ -35,8 +34,7 @@ function ModalInner({
   setShowModal,
   commission,
 }: Omit<ModalProps, "showModal">) {
-  const { id: workspaceId } = useWorkspace();
-  const { programId } = useParams<{ programId: string }>();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const { executeAsync, isExecuting, hasSucceeded } = useAction(
     markCommissionDuplicateAction,
@@ -45,7 +43,7 @@ function ModalInner({
         toast.success("Successfully marked commission as duplicate.");
         await mutatePrefix([
           "/api/commissions",
-          `/api/programs/${programId}/payouts`,
+          `/api/programs/${defaultProgramId}/payouts`,
         ]);
         setShowModal(false);
       },
@@ -147,7 +145,7 @@ function ModalInner({
         />
         <Button
           onClick={async () => {
-            if (!workspaceId || !programId) {
+            if (!workspaceId) {
               return;
             }
 

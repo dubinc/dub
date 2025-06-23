@@ -1,8 +1,10 @@
 "use server";
 
 import { DubApiError } from "@/lib/api/errors";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -40,6 +42,10 @@ export const markCommissionDuplicateAction = authActionClient
       throw new Error("You cannot mark a paid commission as duplicate.");
     }
 
+    if (commission.type === "custom") {
+      throw new Error("You cannot mark a custom commission as duplicate.");
+    }
+
     // there is a payout associated with this sale
     // we need to update the payout amount if the sale is being marked as duplicate
     if (commission.payout) {
@@ -65,6 +71,13 @@ export const markCommissionDuplicateAction = authActionClient
         payoutId: null,
       },
     });
+
+    waitUntil(
+      syncTotalCommissions({
+        partnerId: commission.partnerId,
+        programId,
+      }),
+    );
 
     // TODO: We might want to store the history of the sale status changes
     // TODO: Send email to the partner informing them about the sale status change

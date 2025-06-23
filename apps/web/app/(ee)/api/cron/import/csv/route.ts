@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     const payload = payloadSchema.parse(JSON.parse(rawBody));
     const { workspaceId, id } = payload;
     const redisKey = `import:csv:${workspaceId}:${id}`;
-    const BATCH_SIZE = 100; // Process 500 links at a time
+    const BATCH_SIZE = 100;
 
     const rows = await redis.lpop<Record<string, string>[]>(
       `${redisKey}:rows`,
@@ -424,6 +424,7 @@ const processMappedLinks = async ({
 
     await bulkCreateLinks({
       links: validLinks as ProcessedLinkProps[],
+      skipRedisCache: true,
     });
 
     await redis.incrby(`${redisKey}:created`, validLinks.length);

@@ -45,7 +45,7 @@ import {
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   createPartnerSchema,
-  EnrolledPartnerSchemaWithExpandedFields,
+  EnrolledPartnerSchemaExtended,
   PartnerSchema,
 } from "./zod/schemas/partners";
 import {
@@ -400,7 +400,7 @@ export type PartnerProfileCustomerProps = z.infer<
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
 export type EnrolledPartnerProps = z.infer<
-  typeof EnrolledPartnerSchemaWithExpandedFields
+  typeof EnrolledPartnerSchemaExtended
 >;
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
@@ -478,3 +478,11 @@ export type ProgramData = z.infer<typeof programDataSchema>;
 export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
 
 export type PayoutMethod = "stripe" | "paypal";
+
+export type PaymentMethodOption = {
+  currency?: string;
+  mandate_options?: {
+    payment_schedule?: string;
+    transaction_type?: string;
+  };
+};

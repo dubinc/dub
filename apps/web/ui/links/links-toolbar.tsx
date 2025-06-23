@@ -49,7 +49,7 @@ export const LinksToolbar = memo(
     links: ResponseLink[];
     linksCount: number;
   }) => {
-    const { flags, slug, plan } = useWorkspace();
+    const { slug, plan } = useWorkspace();
 
     const { isMegaFolder } = useIsMegaFolder();
 
@@ -206,11 +206,11 @@ export const LinksToolbar = memo(
         {/* Leave room at bottom of list */}
         <div className="h-[90px]" />
 
-        <div className="fixed bottom-4 left-0 w-full sm:max-[1330px]:w-[calc(100%-150px)] md:left-[240px] md:w-[calc(100%-240px)] md:max-[1330px]:w-[calc(100%-240px-150px)]">
+        <div className="fixed bottom-4 left-0 w-full sm:max-[1372px]:w-[calc(100%-150px)] md:left-[304px] md:w-[calc(100%-304px)] md:max-[1372px]:w-[calc(100%-304px-150px)]">
           <div
             className={cn(
               "relative left-1/2 w-full max-w-[768px] -translate-x-1/2 px-5",
-              "max-[1330px]:left-0 max-[1330px]:translate-x-0",
+              "max-[1372px]:left-0 max-[1372px]:translate-x-0",
             )}
           >
             <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white [filter:drop-shadow(0_5px_8px_#222A351d)]">
