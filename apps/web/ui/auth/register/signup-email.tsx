@@ -10,6 +10,9 @@ import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { useRegisterContext } from "./context";
+import { useAuthTracking } from "../../../app/app.dub.co/(auth)/auth.modal";
+import { trackClientEvents } from "core/integration/analytic/analytic.service";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 
 type SignUpProps = z.infer<typeof signUpSchema>;
 
@@ -21,6 +24,7 @@ export const SignUpEmail = ({
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
 }) => {
   const { setStep, setEmail, setPassword, step } = useRegisterContext();
+  const { trackAuthClick } = useAuthTracking("signup");
 
   const {
     register,
@@ -52,7 +56,17 @@ export const SignUpEmail = ({
   });
 
   return (
-    <form onSubmit={handleSubmit(async (data) => await executeAsync(data))}>
+    <form onSubmit={handleSubmit(async (data) => {
+      trackAuthClick("email");
+      trackClientEvents({
+        event: EAnalyticEvents.SIGNUP_ATTEMPT,
+        params: {
+          method: "email",
+          email: data.email,
+        },
+      });
+      await executeAsync(data);
+    })}>
       <div className="flex flex-col space-y-4">
         <Input
           type="email"

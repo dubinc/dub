@@ -1,6 +1,11 @@
+"use client";
+
+import useUser from "@/lib/swr/use-user.ts";
 import { Logo } from "@/ui/shared/logo.tsx";
 import { AnimatedSizeContainer, ClientOnly, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { trackClientEvents } from "core/integration/analytic/analytic.service";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -157,6 +162,7 @@ export function SidebarNav<T extends Record<any, any>>({
 
 function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
   const { name, href, exact, onClick } = item;
+  const { user } = useUser();
 
   const Icon = "icon" in item ? item.icon : undefined;
   const items = "items" in item ? item.items : undefined;
@@ -172,6 +178,24 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
       : pathname.startsWith(hrefWithoutQuery);
   }, [pathname, href, exact]);
 
+  const handleClick = (e: React.MouseEvent) => {
+    // Track menu item click
+    trackClientEvents({
+      event: EAnalyticEvents.PAGE_CLICKED,
+      params: {
+        page_name: "profile",
+        content_value: name.toLowerCase().replace(/\s+/g, "_"),
+        email: user?.email,
+      },
+      sessionId: user?.id,
+    });
+
+    // Call original onClick if provided
+    if (onClick) {
+      onClick(e);
+    }
+  };
+
   return (
     <div>
       <Link
@@ -179,7 +203,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         data-active={isActive}
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
-        onClick={onClick}
+        onClick={handleClick}
         className={cn(
           "hover:bg-border-100 active:bg-secondary-100 group flex items-center gap-2.5 rounded-md p-2 text-sm leading-none text-neutral-600 transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",

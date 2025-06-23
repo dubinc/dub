@@ -49,7 +49,7 @@ export const QrConfigTypeTabsMobile = ({
 }: QrConfigTypeTabsMobileProps) => {
   const [openPopover, setOpenPopover] = useState<boolean>(false);
 
-  const [styleOptionActiveTab, setStyleOptionActiveActiveTab] =
+  const [styleOptionActiveTab, setStyleOptionActiveTab] =
     useState<string>("Frame");
   const [mobileStepActiveTab, setMobileStepActiveTab] = useState<string>(
     QR_GENERATION_STEPS[0].id,
@@ -139,7 +139,7 @@ export const QrConfigTypeTabsMobile = ({
         >
           {/*<QrTabsCustomization*/}
           {/*  styleOptionActiveTab={styleOptionActiveTab}*/}
-          {/*  setStyleOptionActiveActiveTab={setStyleOptionActiveActiveTab}*/}
+          {/*  setStyleOptionActiveTab={setStyleOptionActiveTab}*/}
           {/*  selectedSuggestedFrame={selectedSuggestedFrame}*/}
           {/*  selectedSuggestedLogo={selectedSuggestedLogo}*/}
           {/*  uploadedLogo={uploadedLogo}*/}

@@ -35,6 +35,7 @@ export function useQrCustomization(
       : initialData?.data;
 
   const [data, setData] = useState(initialContentForQrBuild || DEFAULT_WEBSITE);
+
   const isQrDisabled = !data?.trim() || data === DEFAULT_WEBSITE;
 
   const [options, setOptions] = useState<Options>({
@@ -142,7 +143,7 @@ export function useQrCustomization(
     return {};
   };
 
-  const [initialInputValues, setInitialInputValues] = useState<
+  const [parsedInputValues, setIParsedInputValues] = useState<
     Record<string, string | File[]>
   >({});
 
@@ -166,7 +167,7 @@ export function useQrCustomization(
         };
       }
 
-      setInitialInputValues(parsedData);
+      setIParsedInputValues(parsedData);
     }
   }, [initialData]);
 
@@ -337,6 +338,6 @@ export function useQrCustomization(
     isQrDisabled,
     selectedQRType,
     setSelectedQRType,
-    initialInputValues,
+    parsedInputValues,
   };
 }

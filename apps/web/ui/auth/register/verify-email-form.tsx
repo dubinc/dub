@@ -22,6 +22,8 @@ import { useState } from "react";
 import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { useRegisterContext } from "./context";
 import { ResendOtp } from "./resend-otp";
+import { trackClientEvents } from "core/integration/analytic/analytic.service";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 
 type TProcessedQRData = {
   title: string;
@@ -101,6 +103,15 @@ export const VerifyEmailForm = ({
 
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
+      // Track successful signup
+      trackClientEvents({
+        event: EAnalyticEvents.SIGNUP_SUCCESS,
+        params: {
+          method: "email",
+          email: email,
+        },
+      });
+
       showMessage(
         "Account created! Redirecting to dashboard...",
         "success",

@@ -68,7 +68,7 @@ export function QRContentEditorModal({
     (item) => item.id === selectedQRType,
   )!;
 
-  const { initialInputValues } = useQrCustomization(qrCode);
+  const { parsedInputValues } = useQrCustomization(qrCode);
   const { updateQr } = useQrSave();
 
   const validationSchema = getQRValidationSchema(selectedQRType);
@@ -84,35 +84,28 @@ export function QRContentEditorModal({
       return;
     }
 
-    if (initialInputValues && Object.keys(initialInputValues).length > 0) {
-      console.log("Setting initial values:", initialInputValues);
+    if (parsedInputValues && Object.keys(parsedInputValues).length > 0) {
+      console.log("Setting initial values:", parsedInputValues);
       console.log("QR Code data:", qrCode?.data);
       console.log("QR Code type:", selectedQRType);
 
       const valuesWithQrName = {
-        ...initialInputValues,
+        ...parsedInputValues,
         [`qrName-${selectedQRType}`]: qrCode?.title || "QR Code",
       };
 
       console.log("Values with qrName:", valuesWithQrName);
       methods.reset(valuesWithQrName);
     }
-  }, [
-    initialInputValues,
-    methods,
-    qrCode?.data,
-    selectedQRType,
-    qrCode?.title,
-    isProcessing,
-  ]);
+  }, [parsedInputValues, methods, qrCode?.data, selectedQRType, qrCode?.title, isProcessing]);
 
   const [isHiddenNetwork, setIsHiddenNetwork] = useState(false);
 
   useEffect(() => {
-    if (initialInputValues?.isHiddenNetwork) {
-      setIsHiddenNetwork(initialInputValues.isHiddenNetwork === "true");
+    if (parsedInputValues?.isHiddenNetwork) {
+      setIsHiddenNetwork(parsedInputValues.isHiddenNetwork === "true");
     }
-  }, [initialInputValues?.isHiddenNetwork]);
+  }, [parsedInputValues?.isHiddenNetwork]);
 
   const handleSaveQR = async (formData: QRContentEditorData) => {
     if (!qrCode?.id) {

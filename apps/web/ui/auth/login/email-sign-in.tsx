@@ -11,6 +11,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useState } from "react";
 import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { errorCodes, LoginFormContext } from "./login-form";
+import { useAuthTracking } from "../../../app/app.dub.co/(auth)/auth.modal";
+import { trackClientEvents } from "core/integration/analytic/analytic.service";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 
 export const EmailSignIn = ({
   redirectTo,
@@ -27,6 +30,7 @@ export const EmailSignIn = ({
   const { isMobile } = useMediaQuery();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { trackAuthClick } = useAuthTracking("login");
 
   const {
     showPasswordField,
@@ -50,6 +54,16 @@ export const EmailSignIn = ({
       <form
         onSubmit={async (e) => {
           e.preventDefault();
+
+          // Track email click
+          trackAuthClick("email");
+          trackClientEvents({
+            event: EAnalyticEvents.LOGIN_ATTEMPT,
+            params: {
+              method: "email",
+              email: email,
+            },
+          });
 
           // Check if the user can enter a password, and if so display the field
           if (!showPasswordField) {
@@ -149,6 +163,14 @@ export const EmailSignIn = ({
           }
 
           if (provider === "credentials") {
+            // Track successful login
+            trackClientEvents({
+              event: EAnalyticEvents.LOGIN_SUCCESS,
+              params: {
+                method: "email",
+                email: email,
+              },
+            });
             router.push(response?.url || redirectTo || "/workspaces");
           }
         }}
