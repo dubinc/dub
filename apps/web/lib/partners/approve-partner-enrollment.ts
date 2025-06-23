@@ -14,7 +14,6 @@ import {
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
-import { determinePartnerReward } from "./determine-partner-reward";
 
 export async function approvePartnerEnrollment({
   workspace,
@@ -125,12 +124,6 @@ export async function approvePartnerEnrollment({
         links: [partnerLink],
       });
 
-      const reward = await determinePartnerReward({
-        programId,
-        partnerId,
-        event: "sale",
-      });
-
       await Promise.allSettled([
         updatedLink ? recordLink(updatedLink) : Promise.resolve(null),
 
@@ -150,7 +143,7 @@ export async function approvePartnerEnrollment({
               payoutsEnabled: Boolean(partner.payoutsEnabledAt),
             },
             rewardDescription: ProgramRewardDescription({
-              reward,
+              reward: defaultRewards.find((r) => r.event === "sale"),
             }),
           }),
         }),
