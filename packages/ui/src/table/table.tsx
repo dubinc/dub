@@ -30,6 +30,7 @@ const tableCellClassName = (columnId: string, clickable?: boolean) =>
     columnId === "select" && "py-0 pr-0 pl-2",
     columnId === "menu" && "bg-bg-default border-l-transparent py-0 px-1",
     clickable && "group-hover/row:bg-bg-muted transition-colors duration-75",
+    "group-data-[selected=true]/row:bg-blue-50",
   ]);
 
 const resizingClassName = cn([
@@ -100,6 +101,22 @@ export function useTable<T extends any>(
               minSize: 32,
               size: 32,
               maxSize: 32,
+              header: ({ table }: { table: TableType<T> }) => (
+                <div className="flex size-full items-center justify-center">
+                  <Checkbox
+                    className="border-border-default size-4 rounded"
+                    checked={
+                      table.getIsAllRowsSelected()
+                        ? true
+                        : table.getIsSomeRowsSelected()
+                          ? "indeterminate"
+                          : false
+                    }
+                    onCheckedChange={() => table.toggleAllPageRowsSelected()}
+                    title="Select all"
+                  />
+                </div>
+              ),
               cell: ({ row }: { row: Row<T> }) => (
                 <div className="flex size-full items-center justify-center">
                   <Checkbox
@@ -194,6 +211,7 @@ const ResizableTableRow = memo(
               }
             : undefined
         }
+        data-selected={row.getIsSelected()}
         {...rest}
       >
         {row.getVisibleCells().map((cell) => (
@@ -333,7 +351,10 @@ export function Table<T>({
                       >
                         <div className="flex items-center justify-between gap-6 !pr-0">
                           <ButtonOrDiv
-                            className="flex items-center gap-2"
+                            className={cn(
+                              "flex items-center gap-2",
+                              header.column.id === "select" && "size-full",
+                            )}
                             {...(isSortableColumn && {
                               type: "button",
                               disabled: !isSortableColumn,
@@ -419,6 +440,7 @@ export function Table<T>({
                           }
                         : undefined
                     }
+                    data-selected={row.getIsSelected()}
                     {...rest}
                   >
                     {row.getVisibleCells().map((cell) => (
