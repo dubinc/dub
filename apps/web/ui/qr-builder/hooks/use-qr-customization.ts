@@ -143,7 +143,7 @@ export function useQrCustomization(
     return {};
   };
 
-  const [parsedInputValues, setIParsedInputValues] = useState<
+  const [parsedInputValues, setParsedInputValues] = useState<
     Record<string, string | File[]>
   >({});
 
@@ -167,7 +167,7 @@ export function useQrCustomization(
         };
       }
 
-      setIParsedInputValues(parsedData);
+      setParsedInputValues(parsedData);
     }
   }, [initialData]);
 
