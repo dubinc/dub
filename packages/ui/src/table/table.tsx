@@ -105,7 +105,7 @@ export function useTable<T extends any>(
               header: ({ table }: { table: TableType<T> }) => (
                 <div className="flex size-full items-center justify-center">
                   <Checkbox
-                    className="border-border-default size-4 rounded data-[state=checked]:bg-black"
+                    className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                     checked={
                       table.getIsAllRowsSelected()
                         ? true
@@ -121,7 +121,7 @@ export function useTable<T extends any>(
               cell: ({ row }: { row: Row<T> }) => (
                 <div className="flex size-full items-center justify-center">
                   <Checkbox
-                    className="border-border-default size-4 rounded data-[state=checked]:bg-black"
+                    className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                     checked={row.getIsSelected()}
                     onCheckedChange={row.getToggleSelectedHandler()}
                     title="Select"

@@ -261,6 +261,7 @@ export function ProgramPartnersApplicationsPageClient() {
         scroll: false,
       }),
 
+    getRowId: (row) => row.id,
     onRowSelectionChange: (rows) => {
       console.log(rows);
     },

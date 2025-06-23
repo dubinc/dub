@@ -147,6 +147,7 @@ export * from "./marketing-target";
 export * from "./menu3";
 export * from "./message-smile";
 export * from "./microphone-fill";
+export * from "./minus";
 export * from "./mobile-phone";
 export * from "./money-bill";
 export * from "./money-bill2";
