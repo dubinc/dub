@@ -1,14 +1,10 @@
 "use client";
 
-import { getFileContent } from "@/lib/actions/get-file-content.ts";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import { ExpandedLinkProps, QRProps, UserProps } from "@/lib/types";
 import QrCodeCardPlaceholder from "@/ui/qr-code/qr-code-card-placeholder.tsx";
 import { QrCodesDisplayContext } from "@/ui/qr-code/qr-codes-display-provider.tsx";
-import {
-  compressImage,
-  createCompressedImageFile,
-} from "@/ui/utils/compress-image.ts";
+import { compressImagesInBackground } from "@/ui/utils/qr-code-previews.ts";
 import { CardList, MaxWidthWrapper } from "@dub/ui";
 import { CursorRays, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
@@ -54,84 +50,13 @@ export default function QrCodesContainer({
 
     setQrsWithPreviews(qrs);
 
-    const timeoutId = setTimeout(() => {
-      compressImagesInBackground(qrs);
+    const timeoutId = setTimeout(async () => {
+      const updatedQrs = await compressImagesInBackground(qrs);
+      setQrsWithPreviews(updatedQrs);
     }, 100);
 
     return () => clearTimeout(timeoutId);
   }, [qrs]);
-
-  const compressImagesInBackground = async (qrs: ResponseQrCode[]) => {
-    try {
-      const updatedQrs = await Promise.all(
-        qrs.map(async (qr) => {
-          const { qrType, fileId, fileName } = qr;
-
-          if (!fileId || !fileName) return { ...qr };
-
-          if (qrType === "image") return await handleImageCompression(qr);
-          if (qrType === "pdf" || qrType === "video")
-            return handleMediaPlaceholder(qr);
-
-          return { ...qr };
-        }),
-      );
-
-      setQrsWithPreviews(updatedQrs);
-    } catch (error) {
-      console.error("Error compressing images:", error);
-    }
-  };
-
-  const handleImageCompression = async (qr: ResponseQrCode) => {
-    try {
-      const result = await getFileContent(qr.fileId!);
-      if (!result.success) return { ...qr };
-
-      const compressedBlob = await compressImage(result.data);
-      const compressedFile = createCompressedImageFile(
-        compressedBlob,
-        qr.fileName!,
-        qr.fileId!,
-        qr.fileSize || 0,
-      );
-
-      return {
-        ...qr,
-        initialInputValues: {
-          filesImage: [compressedFile],
-        },
-      };
-    } catch (error) {
-      console.warn(`Failed to compress image for QR ${qr.id}:`, error);
-      return { ...qr };
-    }
-  };
-
-  const handleMediaPlaceholder = (qr: ResponseQrCode) => {
-    const typeMap = {
-      pdf: "application/pdf",
-      video: "video/mp4",
-    };
-
-    const placeholderFile = new File([""], qr.fileName!, {
-      type: typeMap[qr.qrType],
-    });
-
-    Object.assign(placeholderFile, {
-      isThumbnail: true,
-      fileId: qr.fileId,
-      originalFileName: qr.fileName,
-      originalFileSize: qr.fileSize,
-    });
-
-    return {
-      ...qr,
-      initialInputValues: {
-        [qr.qrType === "pdf" ? "filesPDF" : "filesVideo"]: [placeholderFile],
-      },
-    };
-  };
 
   return (
     <MaxWidthWrapper className="grid gap-y-2">

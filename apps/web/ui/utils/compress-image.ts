@@ -49,20 +49,27 @@ export async function compressImage(
   });
 }
 
+export type TCompressedImageFile = File & {
+  isThumbnail: boolean;
+  fileId: string;
+  originalFileName: string;
+  originalFileSize: number;
+};
+
 export function createCompressedImageFile(
   blob: Blob,
   fileName: string,
   fileId: string,
   originalFileSize: number,
-): File {
+): TCompressedImageFile {
   const file = new File([blob], `${fileName}_preview.jpg`, {
     type: "image/jpeg",
   });
 
-  (file as any).isThumbnail = true;
-  (file as any).fileId = fileId;
-  (file as any).originalFileName = fileName;
-  (file as any).originalFileSize = originalFileSize;
-
-  return file;
+  return Object.assign(file, {
+    isThumbnail: true,
+    fileId: fileId,
+    originalFileName: fileName,
+    originalFileSize: originalFileSize,
+  }) as TCompressedImageFile;
 }

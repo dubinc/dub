@@ -4,9 +4,9 @@ import fox from "@/ui/landing/assets/svg/fox.svg";
 import globeAndMail from "@/ui/landing/assets/svg/globe-and-mail.svg";
 import msn from "@/ui/landing/assets/svg/msn.svg";
 import yahoo from "@/ui/landing/assets/svg/yahoo.svg";
+import { AuthType } from "@/ui/modals/auth-modal.tsx";
 import { ClientOnly } from "@dub/ui";
 import { ReactNode, Suspense } from "react";
-import { AuthType } from "../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { ConsentNotice } from "../../app/app.dub.co/(auth)/consent-notice.tsx";
 
 // const logos = [
