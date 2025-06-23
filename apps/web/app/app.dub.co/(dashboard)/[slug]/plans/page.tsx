@@ -19,16 +19,8 @@ const PlansPage: NextPage<Readonly<IPlansPageProps>> = ({ params }) => {
   const { data: res, isLoading, mutate } = useGetUserProfileQuery();
   const { data: cookieUser } = res as IUserProfileRes;
 
-  if (isLoading) {
+  if (isLoading || !user?.id) {
     return <LayoutLoader />;
-  }
-
-  if (!user?.id) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
   }
 
   return (

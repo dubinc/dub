@@ -7,7 +7,7 @@ import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
 import { constructMetadata } from "@dub/utils";
 import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ReactNode } from "react";
-import { AnalyticInitializerComponent } from "./analytic-initializer.component.ts";
+import { AnalyticInitializerComponent } from "./analytic-initializer.component.tsx";
 
 export const dynamic = "force-static";
 export const metadata = constructMetadata();
