@@ -1,3 +1,4 @@
+import useUser from "@/lib/swr/use-user.ts";
 import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
@@ -59,6 +60,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       { props, homepageDemo, handleSaveQR, isProcessing, isEdit, initialStep },
       ref,
     ) => {
+      const { user } = useUser();
+
       // ===== PROPS & CONSTANTS =====
       const { isMobile } = useMediaQuery();
 
@@ -220,8 +223,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             page_name: homepageDemo ? "landing" : "profile",
             content_value: type,
             content_group: "choose_type",
-            // TODO: add email and mixpanel_user_id
+            ...(user ? { email: user?.email } : {}),
           },
+          ...(user ? { sessionId: user?.id } : {}),
         });
 
         setSelectedQRType(type);
@@ -245,8 +249,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   ? "save"
                   : "create",
               content_group: "complete_content",
-              // TODO: add email and mixpanel_user_id
+              ...(user ? { email: user?.email } : {}),
             },
+            ...(user ? { sessionId: user?.id } : {}),
           });
 
           onSaveClick();
@@ -261,8 +266,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               page_name: homepageDemo ? "landing" : "profile",
               content_value: "continue",
               content_group: "complete_content",
-              // TODO: add email and mixpanel_user_id
+              ...(user ? { email: user?.email } : {}),
             },
+            ...(user ? { sessionId: user?.id } : {}),
           });
 
           handleNextStep();

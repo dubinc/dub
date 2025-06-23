@@ -1,4 +1,4 @@
-import mixpanel, { Dict } from 'mixpanel-browser';
+import mixpanel, { Dict } from "mixpanel-browser";
 
 // interface
 interface ITrackParams {
@@ -10,9 +10,9 @@ interface ITrackParams {
 class MixpanelClientService {
   constructor() {
     mixpanel.init(`${process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN}`, {
-      debug: process.env.NODE_ENV !== 'production',
+      debug: process.env.NODE_ENV !== "production",
       track_pageview: false,
-      persistence: 'localStorage',
+      persistence: "localStorage",
       // api_host: `${process.env.NEXT_PUBLIC_MIXPANEL_API_HOST}`,
     });
   }
@@ -37,6 +37,14 @@ class MixpanelClientService {
     const { eventName, props } = values;
 
     mixpanel.track(eventName, props);
+  }
+
+  peopleGetDistinctId() {
+    const distinctId = mixpanel.get_distinct_id();
+    if (distinctId) {
+      return distinctId.split(":").at(-1);
+    }
+    return "";
   }
 }
 

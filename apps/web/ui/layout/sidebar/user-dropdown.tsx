@@ -1,31 +1,71 @@
 "use client";
 
-import { Avatar, Gift, Icon, Popover } from "@dub/ui";
+import useUser from "@/lib/swr/use-user.ts";
+import { Avatar, Icon, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon as IconifyIcon } from "@iconify/react";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { LogOut } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ComponentPropsWithoutRef, ElementType, useState } from "react";
 
 export default function UserDropdown() {
-  const { data: session } = useSession();
+  const { user } = useUser();
   const [openPopover, setOpenPopover] = useState(false);
   const { slug } = useParams() as { slug?: string };
+
+  const handleAvatarClick = () => {
+    trackClientEvents({
+      event: EAnalyticEvents.PAGE_CLICKED,
+      params: {
+        page_name: "profile",
+        content_value: "account_details",
+        email: user?.email,
+      },
+      sessionId: user?.id,
+    });
+
+    if (!openPopover) {
+      trackClientEvents({
+        event: EAnalyticEvents.ELEMENT_OPENED,
+        params: {
+          page_name: "profile",
+          element_name: "account_details",
+          email: user?.email,
+        },
+        sessionId: user?.id,
+      });
+    }
+
+    setOpenPopover(!openPopover);
+  };
+
+  const handleUserOptionClick = (optionType: string) => {
+    trackClientEvents({
+      event: EAnalyticEvents.ELEMENT_CLICKED,
+      params: {
+        page_name: "profile",
+        element_name: "account_details",
+        email: user?.email,
+        content_value: optionType,
+      },
+      sessionId: user?.id,
+    });
+  };
 
   return (
     <Popover
       content={
         <div className="flex w-full flex-col space-y-px rounded-md bg-white p-2 sm:w-56">
-          {session?.user ? (
+          {user ? (
             <div className="p-2">
               <p className="truncate text-sm font-medium text-neutral-900">
-                {session.user.name || session.user.email?.split("@")[0]}
+                {user.name || user.email?.split("@")[0]}
               </p>
-              <p className="truncate text-sm text-neutral-500">
-                {session.user.email}
-              </p>
+              <p className="truncate text-sm text-neutral-500">{user.email}</p>
             </div>
           ) : (
             <div className="grid gap-2 px-2 py-3">
@@ -43,7 +83,10 @@ export default function UserDropdown() {
               />
             )}
             href="/account/settings"
-            onClick={() => setOpenPopover(false)}
+            onClick={() => {
+              handleUserOptionClick("account");
+              setOpenPopover(false);
+            }}
           />
           <UserOption
             as={Link}
@@ -55,27 +98,22 @@ export default function UserDropdown() {
               />
             )}
             href={`/${slug}/plans`}
-            onClick={() => setOpenPopover(false)}
+            onClick={() => {
+              handleUserOptionClick("plans_and_payments");
+              setOpenPopover(false);
+            }}
           />
-          {session?.user?.["dubPartnerId"] && (
-            <UserOption
-              as={Link}
-              label="Refer and earn"
-              icon={Gift}
-              href="/account/settings/referrals"
-              onClick={() => setOpenPopover(false)}
-            />
-          )}
           <UserOption
             as="button"
             type="button"
             label="Logout"
             icon={LogOut}
-            onClick={() =>
+            onClick={() => {
+              handleUserOptionClick("logout");
               signOut({
                 callbackUrl: "/",
-              })
-            }
+              });
+            }}
           />
         </div>
       }
@@ -84,15 +122,15 @@ export default function UserDropdown() {
       setOpenPopover={setOpenPopover}
     >
       <button
-        onClick={() => setOpenPopover(!openPopover)}
+        onClick={handleAvatarClick}
         className={cn(
           "group relative rounded-full ring-offset-1 ring-offset-neutral-100 transition-all hover:ring-2 hover:ring-black/10 active:ring-black/15 data-[state='open']:ring-black/15",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
         )}
       >
-        {session?.user ? (
+        {user ? (
           <Avatar
-            user={session.user}
+            user={user}
             className="size-6 border-none duration-75 sm:size-6"
           />
         ) : (

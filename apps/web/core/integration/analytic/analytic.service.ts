@@ -49,6 +49,11 @@ export const resetAnalyticSession = () => {
   mixpanelClient.reset();
 };
 
+// reset session
+export const getDistinctId = () => {
+  return mixpanelClient.peopleGetDistinctId();
+};
+
 // track events service
 export const trackClientEvents = <T extends Dict>(
   props: TrackClientEventsParams<T>,
@@ -71,7 +76,7 @@ export const trackClientEvents = <T extends Dict>(
 
   const values = {
     env: `${process.env.NEXT_PUBLIC_APP_ENV}`,
-    mixpanel_user_id: sessionId || user?.id,
+    mixpanel_user_id: sessionId || user?.id || getDistinctId(),
     ...utm,
     ...params,
   };

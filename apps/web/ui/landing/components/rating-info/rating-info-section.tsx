@@ -4,11 +4,11 @@ import { Button, Text } from "@radix-ui/themes";
 import { FC } from "react";
 
 interface IRatingInfoSection {
-  scrollToQRGenerationBlock: () => void;
+  handleScrollButtonClick: (type: "1" | "2") => void;
 }
 
 export const RatingInfoSection: FC<IRatingInfoSection> = ({
-  scrollToQRGenerationBlock,
+  handleScrollButtonClick,
 }) => {
   const { isMobile } = useMediaQuery();
 
@@ -21,7 +21,7 @@ export const RatingInfoSection: FC<IRatingInfoSection> = ({
         variant="solid"
         size="3"
         color="blue"
-        onClick={scrollToQRGenerationBlock}
+        onClick={() => handleScrollButtonClick("1")}
       >
         Create Your QR Code
       </Button>
