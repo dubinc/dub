@@ -42,7 +42,7 @@ export async function createQr(
     data: {
       id: createId({ prefix: "qr_" }),
       qrType,
-      data: data,
+      data: data, // @TODO: check with guys why it was a link.url and that we can use data as we need to display real data in. dashboard
       title,
       description,
       styles,
