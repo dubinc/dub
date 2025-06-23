@@ -285,6 +285,9 @@ importers:
       markdown-to-jsx:
         specifier: ^7.7.6
         version: 7.7.6(react@18.2.0)
+      mixpanel-browser:
+        specifier: ^2.65.0
+        version: 2.65.0
       nanoid:
         specifier: ^5.0.1
         version: 5.0.7
@@ -10625,6 +10628,14 @@ packages:
     requiresBuild: true
     optional: true
 
+  /@rrweb/types@2.0.0-alpha.18:
+    resolution: {integrity: sha512-iMH3amHthJZ9x3gGmBPmdfim7wLGygC2GciIkw2A6SO8giSn8PHYtRT8OKNH4V+k3SZ6RSnYHcTQxBA7pSWZ3Q==}
+    dev: false
+
+  /@rrweb/utils@2.0.0-alpha.18:
+    resolution: {integrity: sha512-qV8azQYo9RuwW4NGRtOiQfTBdHNL1B0Q//uRLMbCSjbaKqJYd88Js17Bdskj65a0Vgp2dwTLPIZ0gK47dfjfaA==}
+    dev: false
+
   /@selderee/plugin-htmlparser2@0.11.0:
     resolution: {integrity: sha512-P33hHGdldxGabLFjPPpaTxVolMrzrcegejx+0GxjrIb9Zv48D8yAIA/QTDR2dFl7Uz7urX8aX6+5bCZslr+gWQ==}
     dependencies:
@@ -11791,6 +11802,10 @@ packages:
       '@types/node': 18.11.9
     dev: false
 
+  /@types/css-font-loading-module@0.0.7:
+    resolution: {integrity: sha512-nl09VhutdjINdWyXxHWN/w9zlNCfr60JUqJbd24YXUuCwgeL0TpFSdElCwb6cxfB6ybE19Gjj4g0jsgkXxKv1Q==}
+    dev: false
+
   /@types/d3-array@3.0.3:
     resolution: {integrity: sha512-Reoy+pKnvsksN0lQUlcH6dOGjRZ/3WRwXR//m+/8lt1BXeI4xyaUZoqULNjyXXRuh0Mj4LNpkCvhUpQlY3X5xQ==}
     dev: false
@@ -12818,6 +12833,10 @@ packages:
     engines: {node: '>=10.0.0'}
     dev: false
 
+  /@xstate/fsm@1.6.5:
+    resolution: {integrity: sha512-b5o1I6aLNeYlU/3CPlj/Z91ybk1gUsKT+5NAJI+2W4UjvS5KLG28K9v5UvNoFVjHV8PajVZ00RH3vnjyQO7ZAw==}
+    dev: false
+
   /@xtuc/ieee754@1.2.0:
     resolution: {integrity: sha512-DX8nKgqcGwsc0eJSqYt5lwP4DH5FlHnmuWWBRy7X0NcaGR0ZtuyeESgMwTYVEtxmsNGY+qit4QYT/MIYTOTPeA==}
     dev: false
@@ -13426,6 +13445,11 @@ packages:
 
   /balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  /base64-arraybuffer@1.0.2:
+    resolution: {integrity: sha512-I3yl4r9QB5ZRY3XuJVEPfc2XhZO6YweFPI+UovAzn+8/hb3oJ6lnysaFcjVpkCPfVWFUDvoZ8kmVDP7WyRtYtQ==}
+    engines: {node: '>= 0.6.0'}
+    dev: false
 
   /base64-js@0.0.8:
     resolution: {integrity: sha512-3XSA2cR/h/73EzlXXdU6YNycmYI7+kicTxks4eJg2g39biHR84slg2+des+p7iHYhbRg/udIS4TD53WabcOUkw==}
@@ -19108,6 +19132,16 @@ packages:
     dev: false
     optional: true
 
+  /mitt@3.0.1:
+    resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
+    dev: false
+
+  /mixpanel-browser@2.65.0:
+    resolution: {integrity: sha512-BtrVYqilloAqx3TIhoIpNikHznTocEy/z3QIf6WEiz4PFxrgI6LgSMFIVKqLqGZJ8svrPlHbpp/CJp5wQYUZWw==}
+    dependencies:
+      rrweb: 2.0.0-alpha.18
+    dev: false
+
   /mixpanel@0.18.0:
     resolution: {integrity: sha512-VyUoiLB/S/7abYYHGD5x0LijeuJCUabG8Hb+FvYU3Y99xHf1Qh+s4/pH9lt50fRitAHncWbU1FE01EknUfVVjQ==}
     engines: {node: '>=10.0'}
@@ -21714,6 +21748,31 @@ packages:
       '@rollup/rollup-win32-ia32-msvc': 4.34.8
       '@rollup/rollup-win32-x64-msvc': 4.34.8
       fsevents: 2.3.3
+
+  /rrdom@2.0.0-alpha.18:
+    resolution: {integrity: sha512-fSFzFFxbqAViITyYVA4Z0o5G6p1nEqEr/N8vdgSKie9Rn0FJxDSNJgjV0yiCIzcDs0QR+hpvgFhpbdZ6JIr5Nw==}
+    dependencies:
+      rrweb-snapshot: 2.0.0-alpha.18
+    dev: false
+
+  /rrweb-snapshot@2.0.0-alpha.18:
+    resolution: {integrity: sha512-hBHZL/NfgQX6wO1D9mpwqFu1NJPpim+moIcKhFEjVTZVRUfCln+LOugRc4teVTCISYHN8Cw5e2iNTWCSm+SkoA==}
+    dependencies:
+      postcss: 8.5.2
+    dev: false
+
+  /rrweb@2.0.0-alpha.18:
+    resolution: {integrity: sha512-1mjZcB+LVoGSx1+i9E2ZdAP90fS3MghYVix2wvGlZvrgRuLCbTCCOZMztFCkKpgp7/EeCdYM4nIHJkKX5J1Nmg==}
+    dependencies:
+      '@rrweb/types': 2.0.0-alpha.18
+      '@rrweb/utils': 2.0.0-alpha.18
+      '@types/css-font-loading-module': 0.0.7
+      '@xstate/fsm': 1.6.5
+      base64-arraybuffer: 1.0.2
+      mitt: 3.0.1
+      rrdom: 2.0.0-alpha.18
+      rrweb-snapshot: 2.0.0-alpha.18
+    dev: false
 
   /run-applescript@7.0.0:
     resolution: {integrity: sha512-9by4Ij99JUr/MCFBUkDKLWK3G9HVXmabKz9U5MlIAIuvuzkiOicRYs8XJLxX+xahD+mLiiCYDqF9dKAgtzKP1A==}
