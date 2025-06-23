@@ -1,13 +1,8 @@
 import { cn, deepEqual, isClickOnInteractiveChild } from "@dub/utils";
 import {
-  Cell,
   Column,
-  ColumnDef,
-  ColumnPinningState,
-  ColumnResizeMode,
   flexRender,
   getCoreRowModel,
-  PaginationState,
   Row,
   RowSelectionState,
   Table as TableType,
@@ -17,19 +12,15 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CSSProperties,
-  Dispatch,
   HTMLAttributes,
   memo,
-  MouseEvent,
-  PropsWithChildren,
-  ReactNode,
-  SetStateAction,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import { Button } from "../button";
 import { LoadingSpinner, SortOrder } from "../icons";
+import { TableProps, UseTableProps } from "./types";
 
 const tableCellClassName = (columnId: string, clickable?: boolean) =>
   cn([
@@ -48,67 +39,6 @@ const resizingClassName = cn([
   "-mr-px",
   "after:absolute after:right-0 after:top-0 after:h-full after:w-4 after:translate-x-1/2",
 ]);
-
-type BaseTableProps<T> = {
-  columns: ColumnDef<T, any>[];
-  data: T[];
-  loading?: boolean;
-  error?: string;
-  emptyState?: ReactNode;
-  cellRight?: (cell: Cell<T, any>) => ReactNode;
-  defaultColumn?: Partial<ColumnDef<T, any>>;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  onSortChange?: (props: {
-    sortBy?: string;
-    sortOrder?: "asc" | "desc";
-  }) => void;
-  sortableColumns?: string[];
-  columnVisibility?: VisibilityState;
-  onColumnVisibilityChange?: (visibility: VisibilityState) => void;
-  columnPinning?: ColumnPinningState;
-  resourceName?: (plural: boolean) => string;
-  onRowClick?: (row: Row<T>, e: MouseEvent) => void;
-  rowProps?:
-    | HTMLAttributes<HTMLTableRowElement>
-    | ((row: Row<T>) => HTMLAttributes<HTMLTableRowElement>);
-  enableColumnResizing?: boolean;
-  columnResizeMode?: ColumnResizeMode;
-
-  // Row selection
-  getRowId?: (row: T) => string;
-  onRowSelectionChange?: (rows: Row<T>[]) => void;
-  selectedRows?: RowSelectionState;
-
-  // Table styles
-  className?: string;
-  containerClassName?: string;
-  scrollWrapperClassName?: string;
-  thClassName?: string | ((columnId: string) => string);
-  tdClassName?: string | ((columnId: string) => string);
-};
-
-type UseTableProps<T> = BaseTableProps<T> &
-  (
-    | {
-        pagination?: PaginationState;
-        onPaginationChange?: Dispatch<SetStateAction<PaginationState>>;
-        rowCount: number;
-      }
-    | { pagination?: never; onPaginationChange?: never; rowCount?: never }
-  );
-
-type TableProps<T> = BaseTableProps<T> &
-  PropsWithChildren<{
-    table: TableType<T>;
-  }> &
-  (
-    | {
-        pagination?: PaginationState;
-        rowCount: number;
-      }
-    | { pagination?: never; rowCount?: never }
-  );
 
 export function useTable<T extends any>(
   props: UseTableProps<T>,
@@ -195,6 +125,12 @@ export function useTable<T extends any>(
   };
 }
 
+type ResizableTableRowProps<T> = {
+  row: Row<T>;
+  rowProps?: HTMLAttributes<HTMLTableRowElement>;
+  table: TableType<T>;
+} & Pick<TableProps<T>, "cellRight" | "tdClassName" | "onRowClick">;
+
 // Memoized row component to prevent re-renders during column resizing
 const ResizableTableRow = memo(
   function ResizableTableRow<T>({
@@ -204,14 +140,7 @@ const ResizableTableRow = memo(
     cellRight,
     tdClassName,
     table,
-  }: {
-    row: Row<T>;
-    onRowClick?: (row: Row<T>, e: MouseEvent) => void;
-    rowProps?: HTMLAttributes<HTMLTableRowElement>;
-    cellRight?: (cell: Cell<T, any>) => ReactNode;
-    tdClassName?: string | ((columnId: string) => string);
-    table: TableType<T>;
-  }) {
+  }: ResizableTableRowProps<T>) {
     const { className, ...rest } = rowProps || {};
 
     return (
@@ -276,14 +205,7 @@ const ResizableTableRow = memo(
       prevRow.getIsSelected() === nextRow.getIsSelected()
     );
   },
-) as <T>(props: {
-  row: Row<T>;
-  onRowClick?: (row: Row<T>, e: MouseEvent) => void;
-  rowProps?: HTMLAttributes<HTMLTableRowElement>;
-  cellRight?: (cell: Cell<T, any>) => ReactNode;
-  tdClassName?: string | ((columnId: string) => string);
-  table: TableType<T>;
-}) => JSX.Element;
+) as <T>(props: ResizableTableRowProps<T>) => JSX.Element;
 
 export function Table<T>({
   data,
