@@ -1,5 +1,6 @@
 "use client";
 
+import { approvePartnersBulkAction } from "@/lib/actions/partners/approve-partners-bulk";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import { rejectPartnersBulkAction } from "@/lib/actions/partners/reject-partners-bulk";
 import usePartner from "@/lib/swr/use-partner";
@@ -100,6 +101,19 @@ export function ProgramPartnersApplicationsPageClient() {
       onSuccess: ({ input }) => {
         toast.success(
           `${pluralize("Partner", input.partnerIds.length)} rejected`,
+        );
+        mutate();
+      },
+    });
+
+  const { executeAsync: approvePartners, isPending: isApprovingPartners } =
+    useAction(approvePartnersBulkAction, {
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+      },
+      onSuccess: ({ input }) => {
+        toast.success(
+          `${pluralize("Partner", input.partnerIds.length)} approved`,
         );
         mutate();
       },
@@ -302,7 +316,24 @@ export function ProgramPartnersApplicationsPageClient() {
           variant="primary"
           text="Approve"
           className="h-7 w-fit rounded-lg px-2.5"
-          onClick={() => console.log(table.getSelectedRowModel().rows)}
+          loading={isApprovingPartners}
+          onClick={() => {
+            if (
+              !window.confirm(
+                "Are you sure you want to approve these applications?",
+              )
+            )
+              return;
+
+            const partnerIds = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original.id);
+
+            approvePartners({
+              workspaceId: workspaceId!,
+              partnerIds,
+            });
+          }}
         />
         <Button
           variant="secondary"

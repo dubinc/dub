@@ -116,7 +116,7 @@ export function useTable<T extends any>(
                           ? "indeterminate"
                           : false
                     }
-                    onCheckedChange={() => table.toggleAllPageRowsSelected()}
+                    onCheckedChange={() => table.toggleAllRowsSelected()}
                     title="Select all"
                   />
                 </div>

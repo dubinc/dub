@@ -135,8 +135,9 @@ export const approvePartnersBulkAction = authActionClient
               data: EnrolledPartnerSchema.parse({
                 ...enrollment,
                 ...partner,
+                status: enrollment.status,
                 id: partner.id,
-                links: partnerLinks.find(
+                links: partnerLinks.filter(
                   ({ partnerId }) => partnerId === partner.id,
                 ),
               }),
