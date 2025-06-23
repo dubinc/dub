@@ -55,6 +55,7 @@ export async function processLink<T extends Record<string, any>>({
   let {
     domain,
     key,
+    keyLength,
     url,
     image,
     proxy,
@@ -252,10 +253,11 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (!key) {
+    console.log("keyLength", keyLength, domain);
     key = await getRandomKey({
       domain,
       prefix: payload["prefix"],
-      long: domain === "loooooooo.ng",
+      length: keyLength || (domain === "loooooooo.ng" ? 69 : 7),
     });
   } else if (!skipKeyChecks) {
     const processedKey = processKey({ domain, key });
@@ -534,6 +536,7 @@ export async function processLink<T extends Record<string, any>>({
   // remove polyfill attributes from payload
   delete payload["shortLink"];
   delete payload["qrCode"];
+  delete payload["keyLength"];
   delete payload["prefix"];
   UTMTags.forEach((tag) => {
     delete payload[tag];
