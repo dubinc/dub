@@ -1,10 +1,11 @@
 "use client";
 
+import useUser from "@/lib/swr/use-user";
 import { useAuthTracking } from "@/ui/modals/auth-modal.tsx";
 import { Button, Github, Google } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -18,7 +19,7 @@ export const SignUpOAuth = ({
   const [clickedGoogle, setClickedGoogle] = useState(false);
   const [clickedGithub, setClickedGithub] = useState(false);
   const { trackAuthClick } = useAuthTracking("signup");
-  const { data: session } = useSession();
+  const { user } = useUser();
   const hasTrackedSuccess = useRef(false);
 
   useEffect(() => {
@@ -31,17 +32,17 @@ export const SignUpOAuth = ({
 
   // Track successful signup when session becomes available
   useEffect(() => {
-    if (session?.user?.email && !hasTrackedSuccess.current) {
+    if (user?.email && !hasTrackedSuccess.current) {
       hasTrackedSuccess.current = true;
       trackClientEvents({
         event: EAnalyticEvents.SIGNUP_SUCCESS,
         params: {
           method: "google",
-          email: session.user.email,
+          email: user.email,
         },
       });
     }
-  }, [session]);
+  }, [user]);
 
   return (
     <>
