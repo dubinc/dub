@@ -19,6 +19,7 @@ import {
   useState,
 } from "react";
 import { Button } from "../button";
+import { Checkbox } from "../checkbox";
 import { LoadingSpinner, SortOrder } from "../icons";
 import { TableProps, UseTableProps } from "./types";
 
@@ -26,6 +27,7 @@ const tableCellClassName = (columnId: string, clickable?: boolean) =>
   cn([
     "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-border-subtle px-4 relative",
     "border-l border-b",
+    columnId === "select" && "py-0 pr-0 pl-2",
     columnId === "menu" && "bg-bg-default border-l-transparent py-0 px-1",
     clickable && "group-hover/row:bg-bg-muted transition-colors duration-75",
   ]);
@@ -88,10 +90,38 @@ export function useTable<T extends any>(
     props.onColumnVisibilityChange?.(columnVisibility);
   }, [columnVisibility]);
 
+  const tableColumns = useMemo(
+    () => [
+      ...(props.onRowSelectionChange
+        ? [
+            {
+              id: "select",
+              enableHiding: false,
+              minSize: 32,
+              size: 32,
+              maxSize: 32,
+              cell: ({ row }: { row: Row<T> }) => (
+                <div className="flex size-full items-center justify-center">
+                  <Checkbox
+                    className="border-border-default size-4 rounded"
+                    checked={row.getIsSelected()}
+                    onCheckedChange={row.getToggleSelectedHandler()}
+                    title="Select"
+                  />
+                </div>
+              ),
+            },
+          ]
+        : []),
+      ...columns,
+    ],
+    [props.onRowSelectionChange, columns],
+  );
+
   const table = useReactTable({
     data,
     rowCount,
-    columns,
+    columns: tableColumns,
     defaultColumn: {
       minSize: 120,
       size: 0,
@@ -337,7 +367,7 @@ export function Table<T>({
                         </div>
                         {enableColumnResizing &&
                           header.column.getCanResize() &&
-                          header.column.id !== "menu" && (
+                          !["select", "menu"].includes(header.column.id) && (
                             <div
                               onMouseDown={header.getResizeHandler()}
                               onTouchStart={header.getResizeHandler()}

@@ -24,12 +24,9 @@ import { cn, COUNTRIES, fetcher, formatDate, getPrettyUrl } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
-import {
-  applicationsColumns,
-  useColumnVisibility,
-} from "./use-column-visibility";
+import { useColumnVisibility } from "./use-column-visibility";
 
 export function ProgramPartnersApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
@@ -80,9 +77,8 @@ export function ProgramPartnersApplicationsPageClient() {
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
   const { pagination, setPagination } = usePagination();
 
-  const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
-    data: partners || [],
-    columns: [
+  const columns = useMemo(
+    () => [
       {
         id: "partner",
         header: "Applicant",
@@ -218,12 +214,18 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 43,
         size: 43,
         maxSize: 43,
-        header: () => <EditColumnsButton table={table} />,
+        header: ({ table }) => <EditColumnsButton table={table} />,
         cell: ({ row }) => (
           <RowMenuButton row={row} workspaceId={workspaceId!} />
         ),
       },
-    ].filter((c) => c.id === "menu" || applicationsColumns.all.includes(c.id)),
+    ],
+    [workspaceId],
+  );
+
+  const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
+    data: partners || [],
+    columns,
     onRowClick: (row) => {
       queryParams({
         set: {
@@ -245,6 +247,7 @@ export function ProgramPartnersApplicationsPageClient() {
       "commissions",
       "netRevenue",
     ],
+
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -256,6 +259,11 @@ export function ProgramPartnersApplicationsPageClient() {
         del: "page",
         scroll: false,
       }),
+
+    onRowSelectionChange: (rows) => {
+      console.log(rows);
+    },
+
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `application${p ? "s" : ""}`,
