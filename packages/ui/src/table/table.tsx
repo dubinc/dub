@@ -71,6 +71,22 @@ export function useTable<T extends any>(
     props.selectedRows ?? {},
   );
 
+  // Manually unset row selection if the row is no longer in the data
+  // There doesn't seem to be a proper solution for this: https://github.com/TanStack/table/issues/4498
+  useEffect(() => {
+    if (!getRowId || !data) return;
+
+    const entries = Object.entries(rowSelection);
+    if (entries.length > 0) {
+      const newEntries = entries.filter(([key]) =>
+        data.find((row) => getRowId?.(row) === key),
+      );
+
+      if (newEntries.length !== entries.length)
+        setRowSelection(Object.fromEntries(newEntries));
+    }
+  }, [data, rowSelection, getRowId]);
+
   useEffect(() => {
     if (props.selectedRows && !deepEqual(props.selectedRows, rowSelection)) {
       setRowSelection(props.selectedRows ?? {});
