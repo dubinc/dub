@@ -7,6 +7,7 @@ import { SimpleLinkProps } from "@/lib/types";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
 import { useAddWorkspaceModal } from "@/ui/modals/add-workspace-modal";
+import { useAuthModal } from "@/ui/modals/auth-modal.tsx";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportCsvModal } from "@/ui/modals/import-csv-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
@@ -29,6 +30,7 @@ import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useImportRewardfulModal } from "./import-rewardful-modal";
 import { useLinkBuilder } from "./link-builder";
 import { useWelcomeModal } from "./welcome-modal";
+import { AuthType } from "./auth-modal";
 
 export const ModalContext = createContext<{
   setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
@@ -40,6 +42,7 @@ export const ModalContext = createContext<{
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportCsvModal: Dispatch<SetStateAction<boolean>>;
   setShowImportRewardfulModal: Dispatch<SetStateAction<boolean>>;
+  showAuthModal: (type: AuthType) => void;
 }>({
   setShowAddWorkspaceModal: () => {},
   setShowAddEditDomainModal: () => {},
@@ -50,6 +53,7 @@ export const ModalContext = createContext<{
   setShowImportRebrandlyModal: () => {},
   setShowImportCsvModal: () => {},
   setShowImportRewardfulModal: () => {},
+  showAuthModal: () => {},
 });
 
 export function ModalProvider({ children }: { children: ReactNode }) {
@@ -100,6 +104,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
   const { setShowImportRewardfulModal, ImportRewardfulModal } =
     useImportRewardfulModal();
+  const { AuthModal, showModal: showAuthModal } = useAuthModal();
 
   useEffect(
     () =>
@@ -179,6 +184,13 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     }
   }, [session]);
 
+  useEffect(() => {
+    const authType = searchParams.get("auth");
+    if (authType === "login" || authType === "signup") {
+      showAuthModal(authType);
+    }
+  }, [searchParams, showAuthModal]);
+
   return (
     <ModalContext.Provider
       value={{
@@ -191,6 +203,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         setShowImportRebrandlyModal,
         setShowImportCsvModal,
         setShowImportRewardfulModal,
+        showAuthModal,
       }}
     >
       <AddWorkspaceModal />
@@ -204,6 +217,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportCsvModal />
       <ImportRewardfulModal />
       <WelcomeModal />
+      <AuthModal />
       {children}
     </ModalContext.Provider>
   );

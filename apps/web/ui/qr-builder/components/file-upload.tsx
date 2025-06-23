@@ -1143,6 +1143,21 @@ const FileUploadItemMetadata = React.forwardRef<
 
   if (!itemContext.fileState) return null;
 
+  // Check if file is a thumbnail
+  const file = itemContext.fileState.file as any;
+  const isThumbnail = file?.isThumbnail;
+  const originalFileName = file?.originalFileName;
+  const originalFileSize = file?.originalFileSize;
+
+  const displayName =
+    isThumbnail && originalFileName
+      ? originalFileName
+      : itemContext.fileState.file.name;
+  const displaySize =
+    isThumbnail && originalFileSize
+      ? formatBytes(originalFileSize)
+      : formatBytes(itemContext.fileState.file.size);
+
   const ItemMetadataPrimitive = asChild ? Slot : "div";
 
   return (
@@ -1162,7 +1177,7 @@ const FileUploadItemMetadata = React.forwardRef<
               size === "sm" && "text-[13px] font-normal leading-snug",
             )}
           >
-            {itemContext.fileState.file.name}
+            {displayName}
           </span>
           <span
             id={itemContext.sizeId}
@@ -1171,7 +1186,7 @@ const FileUploadItemMetadata = React.forwardRef<
               size === "sm" && "text-[11px]",
             )}
           >
-            {formatBytes(itemContext.fileState.file.size)}
+            {displaySize}
           </span>
           {itemContext.fileState.error && (
             <span

@@ -39,11 +39,13 @@ export function useQrSave() {
       try {
         const file = data.files && data.files.length > 0 ? data.files[0] : null;
         const fileName = file ? file.name : undefined;
+        const fileSize = file ? file.size : undefined;
         const body = {
           ...data,
           data: data.styles.data,
           file: file ? await fileToBase64(file) : undefined,
           fileName,
+          fileSize,
           link: {
             url: data.styles.data,
             domain: SHORT_DOMAIN,
@@ -89,11 +91,13 @@ export function useQrSave() {
       try {
         const file = data.files && data.files.length > 0 ? data.files[0] : null;
         const fileName = file ? file.name : undefined;
+        const fileSize = file ? file.size : undefined;
         const body = {
           ...data,
           ...(data.styles && { data: data.styles.data }),
           ...(file && { file: await fileToBase64(file) }),
           ...(fileName && { fileName }),
+          ...(fileSize && { fileSize }),
           ...(data.data && {
             link: {
               url: data.data,

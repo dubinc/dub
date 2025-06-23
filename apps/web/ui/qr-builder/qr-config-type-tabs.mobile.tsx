@@ -27,7 +27,7 @@ interface QrConfigTypeTabsMobileProps {
   homepageDemo?: boolean;
   qrTypeActiveTab: QRType["id"];
   setQRTypeActiveTab: Dispatch<SetStateAction<QRType["id"]>>;
-  initialInputValues?: Record<string, string>;
+  initialInputValues?: Record<string, string | File[]>;
   onRegistrationClick?: () => void;
 }
 

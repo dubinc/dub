@@ -8,7 +8,17 @@ import { prisma } from "@dub/prisma";
 import { createId } from "../utils";
 
 export async function createQr(
-  { data, qrType, title, description, styles, frameOptions, file, fileName }: NewQrProps,
+  {
+    data,
+    qrType,
+    title,
+    description,
+    styles,
+    frameOptions,
+    file,
+    fileName,
+    fileSize,
+  }: NewQrProps,
   url: string,
   linkId: string,
   userId: string | null,
@@ -25,13 +35,14 @@ export async function createQr(
     frameOptions,
     file,
     fileName,
+    fileSize,
     homePageDemo,
   );
   const qr = await prisma.qr.create({
     data: {
       id: createId({ prefix: "qr_" }),
       qrType,
-      data: qrType === "wifi" ? data : url,
+      data: data, // @TODO: check with guys why it was a link url and that we can use data as we need to display real data in dashboard
       title,
       description,
       styles,
@@ -40,6 +51,7 @@ export async function createQr(
       userId,
       fileId,
       fileName,
+      fileSize,
     },
   });
 

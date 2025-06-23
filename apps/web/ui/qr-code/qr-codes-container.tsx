@@ -4,6 +4,7 @@ import useQrs from "@/lib/swr/use-qrs.ts";
 import { ExpandedLinkProps, QRProps, UserProps } from "@/lib/types";
 import QrCodeCardPlaceholder from "@/ui/qr-code/qr-code-card-placeholder.tsx";
 import { QrCodesDisplayContext } from "@/ui/qr-code/qr-codes-display-provider.tsx";
+import { compressImagesInBackground } from "@/ui/utils/qr-code-previews.ts";
 import { CardList, MaxWidthWrapper } from "@dub/ui";
 import { CursorRays, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
@@ -13,6 +14,7 @@ import {
   SetStateAction,
   createContext,
   useContext,
+  useEffect,
   useState,
 } from "react";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
@@ -38,12 +40,30 @@ export default function QrCodesContainer({
 
   const { qrs, isValidating } = useQrs({ sortBy, showArchived: true });
 
+  // State to hold QRs with preloaded previews
+  const [qrsWithPreviews, setQrsWithPreviews] = useState<
+    ResponseQrCode[] | undefined
+  >(undefined);
+
+  useEffect(() => {
+    if (!qrs) return;
+
+    setQrsWithPreviews(qrs);
+
+    const timeoutId = setTimeout(async () => {
+      const updatedQrs = await compressImagesInBackground(qrs);
+      setQrsWithPreviews(updatedQrs);
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [qrs]);
+
   return (
     <MaxWidthWrapper className="grid gap-y-2">
       <QrCodesList
         CreateQrCodeButton={CreateQrCodeButton}
-        qrCodes={qrs}
-        loading={isValidating}
+        qrCodes={qrsWithPreviews}
+        loading={isValidating || (qrs && !qrsWithPreviews)}
         compact={viewMode === "rows"}
         isTrialOver={isTrialOver}
       />

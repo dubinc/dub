@@ -34,6 +34,7 @@ type TProcessedQRData = {
   qrType: EQRType;
   file?: string | null;
   fileName?: string | null;
+  fileSize?: number | null;
 };
 
 export const VerifyEmailForm = ({
@@ -80,7 +81,12 @@ export const VerifyEmailForm = ({
         }
 
         const { fileId } = await response.json();
-        return { ...qrDataToCreate, file: fileId, fileName: firstFile.name };
+        return {
+          ...qrDataToCreate,
+          file: fileId,
+          fileName: firstFile.name,
+          fileSize: firstFile.size,
+        };
       } catch (error) {
         console.error("Error uploading file:", error);
         showMessage(

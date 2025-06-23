@@ -1,6 +1,6 @@
 "use client";
 
-import { EQRType, QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
@@ -64,9 +64,6 @@ export function QRContentEditorModal({
   setIsProcessing,
 }: QRContentEditorModalProps) {
   const selectedQRType = (qrCode?.qrType as EQRType) || EQRType.WEBSITE;
-  const currentQrTypeInfo = QR_TYPES.find(
-    (item) => item.id === selectedQRType,
-  )!;
 
   const { parsedInputValues } = useQrCustomization(qrCode);
   const { updateQr } = useQrSave();
@@ -93,7 +90,7 @@ export function QRContentEditorModal({
       console.log("Values with qrName:", valuesWithQrName);
       methods.reset(valuesWithQrName);
     }
-  }, [parsedInputValues, methods, qrCode?.data, selectedQRType, qrCode?.title]);
+  }, [parsedInputValues, methods, qrCode]);
 
   const [isHiddenNetwork, setIsHiddenNetwork] = useState(false);
 

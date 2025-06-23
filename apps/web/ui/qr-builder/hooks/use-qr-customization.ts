@@ -72,7 +72,10 @@ export function useQrCustomization(
     ...(initialData?.styles as Options),
   });
 
-  const parseQRData = (data: string, type: EQRType): Record<string, string> => {
+  const parseQRData = (
+    data: string,
+    type: EQRType,
+  ): Record<string, string | File[]> => {
     switch (type) {
       case EQRType.WHATSAPP:
         try {
@@ -140,17 +143,31 @@ export function useQrCustomization(
     return {};
   };
 
-  const [parsedInputValues, setIParsedInputValues] = useState<
-    Record<string, string>
+  const [parsedInputValues, setParsedInputValues] = useState<
+    Record<string, string | File[]>
   >({});
 
   useEffect(() => {
     if (initialData) {
-      const parsedData = parseQRData(
+      let parsedData = parseQRData(
         initialData.data,
         initialData.qrType as EQRType,
       );
-      setIParsedInputValues(parsedData);
+
+      // Merge in preloaded files for file QRs types if present on dashboard
+      if (
+        (initialData.qrType === EQRType.IMAGE ||
+          initialData.qrType === EQRType.VIDEO ||
+          initialData.qrType === EQRType.PDF) &&
+        (initialData as any).initialInputValues
+      ) {
+        parsedData = {
+          ...parsedData,
+          ...(initialData as any).initialInputValues,
+        };
+      }
+
+      setParsedInputValues(parsedData);
     }
   }, [initialData]);
 

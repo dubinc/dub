@@ -1,13 +1,10 @@
 "use client";
 
+import { AuthType, MessageType } from "@/ui/modals/auth-modal.tsx";
 import { cn, truncate } from "@dub/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect } from "react";
-import {
-  AuthType,
-  MessageType,
-} from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { ERegistrationStep } from "./constants";
 import { RegisterProvider, useRegisterContext } from "./context";
 import { SignUpForm } from "./signup-form";
