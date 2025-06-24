@@ -4,23 +4,23 @@ const { withAxiom } = require("next-axiom");
 /** @type {import('next').NextConfig} */
 module.exports = withAxiom({
   reactStrictMode: false,
-  optimizePackageImports: [
-    "@dub/email",
-    "@dub/ui",
-    "@dub/utils",
-    "@team-plain/typescript-sdk",
-  ],
   transpilePackages: [
     "shiki",
     "@dub/prisma",
     "@dub/email",
     "@boxyhq/saml-jackson",
   ],
-  ...(process.env.NODE_ENV === "production" && {
-    experimental: {
+  experimental: {
+    optimizePackageImports: [
+      "@dub/email",
+      "@dub/ui",
+      "@dub/utils",
+      "@team-plain/typescript-sdk",
+    ],
+    ...(process.env.NODE_ENV === "production" && {
       esmExternals: "loose",
-    },
-  }),
+    }),
+  },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
