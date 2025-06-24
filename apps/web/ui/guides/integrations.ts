@@ -147,12 +147,12 @@ export const guides: IntegrationGuide[] = [
     title: "Appwrite",
     icon: Appwrite,
   },
-  {
-    type: "track-leads",
-    key: "segment-track-leads",
-    title: "Segment",
-    icon: Segment,
-  },
+  // {
+  //   type: "track-leads",
+  //   key: "segment-track-leads",
+  //   title: "Segment",
+  //   icon: Segment,
+  // },
 
   // Track Sales
   {
