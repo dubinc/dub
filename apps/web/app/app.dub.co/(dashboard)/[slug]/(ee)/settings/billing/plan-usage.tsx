@@ -1,6 +1,5 @@
 "use client";
 
-import { PAYOUT_FEES } from "@/lib/partners/constants";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
@@ -44,6 +43,7 @@ export default function PlanUsage() {
     totalLinks,
     payoutsUsage,
     payoutsLimit,
+    payoutFee,
     domains,
     domainsLimit,
     foldersUsage,
@@ -58,10 +58,6 @@ export default function PlanUsage() {
     programId: defaultProgramId ?? undefined,
     status: "approved",
   });
-
-  const payoutFees = plan
-    ? PAYOUT_FEES[plan.toLowerCase()]?.direct_debit
-    : null;
 
   const { data: tags } = useTagsCount();
   const { users } = useUsers();
@@ -219,13 +215,7 @@ export default function PlanUsage() {
             <UsageCategory
               title="Payout fees"
               icon={CirclePercentage}
-              usage={
-                plan
-                  ? payoutFees
-                    ? `${Math.round(payoutFees * 100)}%`
-                    : "-"
-                  : undefined
-              }
+              usage={plan && payoutFee && `${payoutFee * 100}%`}
               href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
             />
           </div>
