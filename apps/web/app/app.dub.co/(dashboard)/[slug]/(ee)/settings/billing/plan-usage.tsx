@@ -215,13 +215,7 @@ export default function PlanUsage() {
             <UsageCategory
               title="Payout fees"
               icon={CirclePercentage}
-              usage={
-                plan
-                  ? payoutFee
-                    ? `${Math.round(payoutFee * 100)}%`
-                    : "-"
-                  : undefined
-              }
+              usage={plan && payoutFee && `${payoutFee * 100}%`}
               href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
             />
           </div>

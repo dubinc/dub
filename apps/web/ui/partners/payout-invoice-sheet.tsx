@@ -273,7 +273,7 @@ function PayoutInvoiceSheetContent() {
           ),
         tooltipContent: selectedPaymentMethod ? (
           <SimpleTooltipContent
-            title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
+            title={`${selectedPaymentMethod.fee * 100}% processing fee. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
             cta="Learn more"
             href="https://d.to/payouts"
           />
