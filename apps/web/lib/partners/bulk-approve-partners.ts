@@ -24,9 +24,6 @@ export async function bulkApprovePartners({
   programEnrollments: (ProgramEnrollment & { partner: Partner })[];
   userId: string;
 }) {
-  const { id: workspaceId } = workspace;
-  const { id: programId } = program;
-
   await prisma.programEnrollment.updateMany({
     where: {
       id: {

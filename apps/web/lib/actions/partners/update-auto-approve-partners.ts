@@ -43,7 +43,6 @@ export const updateAutoApprovePartnersAction = authActionClient
           where: {
             programId: programId,
             status: "pending",
-            partnerId: "asdf", // TODO: Remove
           },
           include: {
             partner: true,
