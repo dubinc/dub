@@ -460,7 +460,9 @@ export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
   image: z.union([base64ImageSchema, publicHostedImageSchema]).nullish(),
 });
 
-export const updateLinkBodySchema = createLinkBodySchemaAsync.partial();
+export const updateLinkBodySchema = createLinkBodySchemaAsync
+  .omit({ keyLength: true, prefix: true })
+  .partial();
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
@@ -489,6 +491,7 @@ export const bulkUpdateLinksBodySchema = z.object({
       domain: true,
       key: true,
       externalId: true,
+      keyLength: true,
       prefix: true,
     })
     .merge(
