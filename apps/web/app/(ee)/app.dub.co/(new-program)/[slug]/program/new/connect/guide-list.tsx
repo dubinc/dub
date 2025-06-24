@@ -112,7 +112,7 @@ export function GuideList() {
 
           return (
             <ProgramSheetAccordionItem key={section.type} value={section.type}>
-              <ProgramSheetAccordionTrigger className="bg-neutral-100">
+              <ProgramSheetAccordionTrigger className="bg-neutral-100 px-4 py-2.5">
                 <div className="flex items-center gap-2">
                   {isCompleted && !isOpen ? (
                     <div className="flex size-5 items-center justify-center rounded-full bg-black text-white">
