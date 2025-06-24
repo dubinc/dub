@@ -47,8 +47,7 @@ export function ApplicationsMenu() {
     setShowConfirmModal: setShowConfirmEnableAutoApproveModal,
   } = useConfirmModal({
     title: "Confirm auto-approve",
-    description:
-      "Current and future applications will be automatically approved.",
+    description: "New applications will be automatically approved.",
     onConfirm: async () => {
       await updateAutoApprove({
         workspaceId: workspaceId!,
