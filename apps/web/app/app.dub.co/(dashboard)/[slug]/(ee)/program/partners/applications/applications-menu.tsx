@@ -16,11 +16,14 @@ import {
 } from "@dub/ui";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export function ApplicationsMenu() {
-  const { id: workspaceId } = useWorkspace();
+  const router = useRouter();
+
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -82,7 +85,7 @@ export function ApplicationsMenu() {
               {program?.autoApprovePartners ? (
                 <MenuItem
                   as={Command.Item}
-                  icon={<UserXmark className="size-4 shrink-0 text-red-600" />}
+                  icon={<UserCheck className="size-4 shrink-0 text-red-600" />}
                   onSelect={() => {
                     setShowConfirmDisableAutoApproveModal(true);
                     setIsOpen(false);
@@ -104,6 +107,18 @@ export function ApplicationsMenu() {
                   Enable auto-approve
                 </MenuItem>
               )}
+              <MenuItem
+                as={Command.Item}
+                icon={UserXmark}
+                onSelect={() => {
+                  router.push(
+                    `/${workspaceSlug}/program/partners/applications/rejected`,
+                  );
+                  setIsOpen(false);
+                }}
+              >
+                View rejected partners
+              </MenuItem>
             </Command.List>
           </Command>
         }

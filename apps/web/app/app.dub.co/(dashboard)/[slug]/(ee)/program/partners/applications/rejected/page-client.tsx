@@ -43,9 +43,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { useColumnVisibility } from "./use-column-visibility";
+import { useColumnVisibility } from "../use-column-visibility";
 
-export function ProgramPartnersApplicationsPageClient() {
+export function ProgramPartnersRejectedApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
@@ -54,7 +54,7 @@ export function ProgramPartnersApplicationsPageClient() {
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
-    status: "pending",
+    status: "rejected",
   });
 
   const {
@@ -66,7 +66,7 @@ export function ProgramPartnersApplicationsPageClient() {
     `/api/partners${getQueryString(
       {
         workspaceId,
-        status: "pending",
+        status: "rejected",
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -300,58 +300,6 @@ export function ProgramPartnersApplicationsPageClient() {
         del: "page",
         scroll: false,
       }),
-
-    getRowId: (row) => row.id,
-    selectionControls: (table) => (
-      <>
-        <Button
-          variant="primary"
-          text="Approve"
-          className="h-7 w-fit rounded-lg px-2.5"
-          loading={isApprovingPartners}
-          onClick={() => {
-            if (
-              !window.confirm(
-                "Are you sure you want to approve these applications?",
-              )
-            )
-              return;
-
-            const partnerIds = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
-
-            approvePartners({
-              workspaceId: workspaceId!,
-              partnerIds,
-            });
-          }}
-        />
-        <Button
-          variant="secondary"
-          text="Reject"
-          className="h-7 w-fit rounded-lg px-2.5"
-          loading={isRejectingPartners}
-          onClick={() => {
-            if (
-              !window.confirm(
-                "Are you sure you want to reject these applications?",
-              )
-            )
-              return;
-
-            const partnerIds = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
-
-            rejectPartners({
-              workspaceId: workspaceId!,
-              partnerIds,
-            });
-          }}
-        />
-      </>
-    ),
 
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
