@@ -24,7 +24,7 @@ model Project {
   linksLimit   Int   @default(25)
   payoutsUsage Int   @default(0)
   payoutsLimit Int   @default(0)
-  payoutFee    Float @default(0.05) // payout fee for direct debit payments
+  payoutFee    Float @default(0.05) // processing fee (in decimals) for partner payouts
 
   domainsLimit Int @default(3)
   tagsLimit    Int @default(5)
