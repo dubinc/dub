@@ -1,6 +1,7 @@
 import { cn } from "@dub/utils";
 import { Table } from "@tanstack/react-table";
 import { ReactNode, useEffect, useState } from "react";
+import { useKeyboardShortcut } from "../hooks";
 
 export function SelectionToolbar<T>({
   table,
@@ -15,6 +16,12 @@ export function SelectionToolbar<T>({
   useEffect(() => {
     if (selectedCount !== 0) setLastSelectedCount(selectedCount);
   }, [selectedCount]);
+
+  useKeyboardShortcut("Escape", () => table.resetRowSelection(), {
+    enabled: selectedCount > 0,
+    priority: 2, // Take priority over clearing filters
+    modal: false,
+  });
 
   return (
     <tr
