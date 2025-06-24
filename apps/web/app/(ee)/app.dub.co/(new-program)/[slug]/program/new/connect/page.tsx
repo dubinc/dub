@@ -1,10 +1,11 @@
+import { Guide } from "@/ui/guides/guide";
+import { GuideList } from "@/ui/guides/guide-list";
 import { guides, IntegrationGuide } from "@/ui/guides/integrations";
 import { readFileSync } from "fs";
 import { notFound } from "next/navigation";
 import { join } from "path";
 import { Suspense } from "react";
 import { StepPage } from "../step-page";
-import { PageClient } from "./page-client";
 
 export default async function Page({
   searchParams,
@@ -34,7 +35,21 @@ export default async function Page({
   return (
     <StepPage title="Connecting Dub">
       <Suspense fallback={<div>Loading...</div>}>
-        <PageClient markdown={markdown} />
+        <div>
+          <p className="mb-6 text-sm text-neutral-600">
+            Ensure Dub is connected to your app, so you can track your clicks,
+            leads, and sales on your program. A developer might be required to
+            complete.
+          </p>
+
+          <div>
+            {selectedGuide ? (
+              <Guide markdown={markdown} />
+            ) : (
+              <GuideList showConnectLaterButton={false} />
+            )}
+          </div>
+        </div>
       </Suspense>
     </StepPage>
   );

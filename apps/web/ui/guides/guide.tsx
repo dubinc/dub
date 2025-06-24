@@ -1,13 +1,13 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
-import { Button } from "@dub/ui";
-import { useRouter } from "next/navigation";
-import { IntegrationGuide, IntegrationType } from "./integrations";
+import { buttonVariants } from "@dub/ui";
+import { cn } from "@dub/utils";
+import Link from "next/link";
+import { notFound, usePathname, useSearchParams } from "next/navigation";
+import { guides, IntegrationType } from "./integrations";
 import { Markdown } from "./markdown";
 
 interface GuideProps {
-  selectedGuide: IntegrationGuide;
   markdown: string | null;
 }
 
@@ -18,12 +18,27 @@ const integrationTypeToTitle: Record<IntegrationType, string> = {
   "track-sales": "tracking sale events",
 };
 
-export function Guide({ selectedGuide, markdown }: GuideProps) {
-  const router = useRouter();
-  const { slug: workspaceSlug } = useWorkspace();
+export function Guide({ markdown }: GuideProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const guide = searchParams.get("guide");
+
+  if (!guide) {
+    console.error("Guide not found");
+    notFound();
+  }
+
+  const selectedGuide = guides.find((g) => g.key === guide);
+
+  if (!selectedGuide) {
+    console.error(`Guide not found: ${guide}`);
+    notFound();
+  }
 
   if (!markdown) {
-    return null;
+    console.error(`Markdown not found: ${guide}`);
+    notFound();
   }
 
   const Icon = selectedGuide.icon;
@@ -34,13 +49,18 @@ export function Guide({ selectedGuide, markdown }: GuideProps) {
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="flex items-center justify-between">
           <Icon className="size-8" />
-          <Button
-            text="Select another method"
-            variant="secondary"
-            className="h-8 w-fit rounded-lg px-3"
-            type="button"
-            onClick={() => router.push(`/${workspaceSlug}/program/new/connect`)}
-          />
+
+          <Link
+            href={pathname}
+            className={cn(
+              buttonVariants({
+                variant: "secondary",
+              }),
+              "flex h-8 w-fit items-center justify-center rounded-lg border border-neutral-200 px-3 text-sm",
+            )}
+          >
+            Select another method
+          </Link>
         </div>
 
         <div className="flex flex-col">
@@ -55,12 +75,17 @@ export function Guide({ selectedGuide, markdown }: GuideProps) {
         <div className="space-y-6 rounded-2xl bg-white p-0 shadow-none">
           <Markdown>{markdown}</Markdown>
 
-          <Button
-            text="I've completed this"
-            className="w-full"
-            type="button"
-            onClick={() => router.back()}
-          />
+          <Link
+            href={pathname}
+            className={cn(
+              buttonVariants({
+                variant: "primary",
+              }),
+              "flex h-10 w-full items-center justify-center rounded-lg border border-neutral-200 px-4 text-sm",
+            )}
+          >
+            I've completed this
+          </Link>
         </div>
       </div>
     </>

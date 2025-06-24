@@ -12,46 +12,18 @@ import { Button, Copy, useCopyToClipboard } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Check } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { guides, IntegrationGuide, IntegrationType } from "./integrations";
-
-const sections: {
-  type: IntegrationType;
-  title: string;
-  description: string;
-}[] = [
-  {
-    type: "client-sdk",
-    title: "Set up client-side script",
-    description:
-      "The step allows Dub to track clicks, automatically fetch the partner and discount data for a given link. Select the guide for instructions.",
-  },
-  {
-    type: "server-sdk",
-    title: "Set up server-side SDK",
-    description:
-      "Install the server-side SDK of your choice and select the guide for instructions.",
-  },
-  {
-    type: "track-leads",
-    title: "Track lead events",
-    description:
-      "The step allows your app to send lead events to Dub. Select the guide for instructions.",
-  },
-  {
-    type: "track-sales",
-    title: "Track sale events",
-    description:
-      "The step allows your app to send sale events to Dub. Select the guide for instructions.",
-  },
-];
+import { sections } from "./sections";
 
 interface GuideListProps {
   showConnectLaterButton?: boolean;
 }
 
 export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
+  const pathname = usePathname();
   const { slug: workspaceSlug } = useWorkspace();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -141,7 +113,7 @@ export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
                     {(guidesByType[section.type] || []).map((guide) => (
                       <Link
                         prefetch={true}
-                        href={`/${workspaceSlug}/program/new/connect?guide=${guide.key}`}
+                        href={`${pathname}?guide=${guide.key}`}
                         key={guide.title}
                         className="group relative flex h-[140px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg bg-neutral-100 px-2 py-4 text-center"
                       >
