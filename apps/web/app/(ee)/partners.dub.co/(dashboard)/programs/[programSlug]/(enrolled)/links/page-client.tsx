@@ -126,11 +126,7 @@ export function ProgramLinksPageClient() {
               />
             ) : (
               links?.map((link) => (
-                <PartnerLinkCard
-                  key={link.id}
-                  link={link}
-                  isDefaultLink={link.id === defaultLinkId}
-                />
+                <PartnerLinkCard key={link.id} link={link} />
               ))
             )}
           </CardList>
