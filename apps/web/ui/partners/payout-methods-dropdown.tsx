@@ -19,12 +19,14 @@ import {
 } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { Stripe } from "stripe";
 import useSWR from "swr";
 
 export function PayoutMethodsDropdown() {
+  const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
   const { partner, loading: isPartnerLoading } = usePartnerProfile();
 
@@ -41,7 +43,7 @@ export function PayoutMethodsDropdown() {
           toast.error("Unable to create account link. Please contact support.");
           return;
         }
-        window.open(data.url, "_blank");
+        router.push(data.url);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
@@ -55,7 +57,7 @@ export function PayoutMethodsDropdown() {
           toast.error("Unable to redirect to Paypal. Please contact support.");
           return;
         }
-        window.open(data.url, "_blank");
+        router.push(data.url);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
