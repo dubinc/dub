@@ -4,7 +4,7 @@ import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { computePayoutFeeForMethod } from "@/lib/payment-methods";
+import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -131,7 +131,7 @@ function PayoutInvoiceSheetContent() {
         const base = {
           ...paymentMethod,
           id: pm.id,
-          fee: computePayoutFeeForMethod({
+          fee: calculatePayoutFeeForMethod({
             paymentMethod: pm.type,
             payoutFee,
           }),

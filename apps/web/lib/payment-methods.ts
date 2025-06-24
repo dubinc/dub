@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "./partners/constants";
 
-export const computePayoutFeeForMethod = ({
+export const calculatePayoutFeeForMethod = ({
   paymentMethod,
   payoutFee,
 }: {
