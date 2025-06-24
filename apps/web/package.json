@@ -124,6 +124,7 @@
     "react-pdf": "^7.5.1",
     "react-pdf-tailwind": "^2.3.0",
     "react-phone-number-input": "^3.4.12",
+    "react-remove-scroll": "^2.7.1",
     "react-spring": "^9.5.5",
     "react-textarea-autosize": "^8.4.0",
     "react-tweet": "^3.1.1",
