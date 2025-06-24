@@ -8,8 +8,8 @@ import { pollPaymentStatus } from "core/integration/payment/client/services/paym
 import { IGetPrimerClientPaymentInfoRes } from "core/integration/payment/server";
 import { FC, useState } from "react";
 import { toast } from "sonner";
-import { ICustomerBody } from "../../../core/integration/payment/config";
-import { generateTrackingUpsellEvent } from "../../../core/services/events/upsell-events.service.ts";
+import { ICustomerBody } from "core/integration/payment/config";
+import { generateTrackingUpsellEvent } from "core/services/events/upsell-events.service.ts";
 
 interface IUpdateSubscriptionProps {
   cookieUser: ICustomerBody;

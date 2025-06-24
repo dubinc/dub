@@ -43,6 +43,8 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
   homepageDemo = false,
   handlers,
 }) => {
+  console.log("selectedSuggestedLogo:", selectedSuggestedLogo);
+
   return isMobile || !homepageDemo ? (
     <Tabs.Root
       value={styleOptionActiveTab}
