@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@dub/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -27,7 +25,7 @@ export function Markdown({
         "prose-strong:text-gray-900 prose-strong:font-semibold",
         "prose-em:text-gray-700 prose-em:italic",
         "prose-code:text-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono",
-        "prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto",
+        "prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:rounded-lg prose-pre:p-3 prose-pre:overflow-x-auto",
         "prose-pre:code:bg-transparent prose-pre:code:p-0 prose-pre:code:text-sm",
         "prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600",
         "prose-ul:list-disc prose-ul:pl-6 prose-ul:text-gray-700",
