@@ -13,6 +13,7 @@ export * from "./dub-links";
 export * from "./dub-partners";
 export { default as ExpandingArrow } from "./expanding-arrow";
 export { default as Magic } from "./magic";
+export * from "./markdown";
 export * from "./matrix-lines";
 export { default as Photo } from "./photo";
 export { default as SortOrder } from "./sort-order";
