@@ -66,27 +66,28 @@ function PartnerApplicationSheetContent({
 
 function PendingPartnerSummary({ partner }: { partner: EnrolledPartnerProps }) {
   return (
-    <div className="grid grid-cols-1 gap-8 text-sm text-neutral-500">
+    <div className="grid grid-cols-1 gap-6 text-sm text-neutral-600">
       <div>
-        <h4 className="font-semibold text-neutral-900">Online presence</h4>
-        <OnlinePresenceSummary partner={partner} className="mt-2" />
-      </div>
-      <div>
-        <h4 className="font-semibold text-neutral-900">Description</h4>
-        <p className="mt-2">
+        <h4 className="text-content-emphasis font-semibold">Description</h4>
+        <p className="mt-1">
           {partner.description || (
-            <span className="italic text-neutral-400">
+            <span className="text-content-muted italic">
               No description provided
             </span>
           )}
         </p>
       </div>
+      <hr className="border-neutral-200" />
       {partner.applicationId && (
         <>
-          <hr className="border-neutral-200" />
           <PartnerApplication applicationId={partner.applicationId} />
+          <hr className="border-neutral-200" />
         </>
       )}
+      <div>
+        <h4 className="text-content-emphasis font-semibold">Online presence</h4>
+        <OnlinePresenceSummary partner={partner} className="mt-3" />
+      </div>
     </div>
   );
 }
@@ -114,11 +115,11 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-6">
+    <div className="grid grid-cols-1 gap-6 text-sm">
       {fields.map((field) => (
         <div key={field.title}>
-          <h4 className="font-semibold text-neutral-900">{field.title}</h4>
-          <div className="mt-1.5">
+          <h4 className="text-content-emphasis font-semibold">{field.title}</h4>
+          <div className="mt-1">
             {field.value || field.value === "" ? (
               <Linkify
                 as="p"
@@ -129,7 +130,11 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
                     "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
                 }}
               >
-                {field.value || "No response provided"}
+                {field.value || (
+                  <span className="text-content-muted italic">
+                    No response provided
+                  </span>
+                )}
               </Linkify>
             ) : (
               <div className="h-5 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />

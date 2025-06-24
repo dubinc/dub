@@ -126,6 +126,8 @@ export const PartnerOnlinePresenceSchema = z.object({
     .nullable()
     .describe("The partner's YouTube channel username (e.g. `johndoe`)."),
   youtubeVerifiedAt: z.date().nullable(),
+  youtubeSubscriberCount: z.number(),
+  youtubeViewCount: z.number(),
   twitter: z
     .string()
     .nullable()
