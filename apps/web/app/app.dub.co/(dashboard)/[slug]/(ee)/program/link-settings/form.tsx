@@ -16,10 +16,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { SettingsRow } from "../program-settings-row";
 
-type FormData = Pick<
-  ProgramProps,
-  "domain" | "url" | "cookieLength" | "defaultFolderId" | "linkStructure"
->;
+type FormData = Pick<ProgramProps, "domain" | "url" | "linkStructure">;
 
 export function LinksSettings() {
   const { program } = useProgram();
@@ -53,8 +50,6 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
     defaultValues: {
       domain: program.domain,
       url: program.url,
-      cookieLength: program.cookieLength,
-      defaultFolderId: program.defaultFolderId,
       linkStructure: program.linkStructure,
     },
   });
@@ -150,84 +145,6 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
                 </label>
               );
             })}
-          </div>
-          <div className="mt-6">
-            <label>
-              <span className="text-sm font-medium text-neutral-800">
-                Cookie length
-              </span>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <select
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("cookieLength", {
-                    required: true,
-                    valueAsNumber: true,
-                  })}
-                >
-                  {[7, 14, 30, 60, 90, 180].map((v) => (
-                    <option value={v} key={v}>
-                      {v} days
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </label>
-            <p className="mt-2 text-xs text-neutral-400">
-              Days your cookie will remain active and track referrals
-            </p>
-          </div>
-
-          <div className="mt-6">
-            <span className="text-sm font-medium text-neutral-800">
-              Installation
-            </span>
-            <p className="mt-2 text-sm text-neutral-500">
-              View our{" "}
-              <a
-                href="https://dub.co/docs/sdks/client-side/introduction"
-                target="_blank"
-                className="underline transition-colors duration-75 hover:text-neutral-600"
-              >
-                installation guides
-              </a>{" "}
-              to add our tracking script to your website.
-            </p>
-          </div>
-        </SettingsRow>
-
-        <SettingsRow heading="Folder for partner links">
-          <div className="flex flex-col gap-6">
-            <div>
-              <label
-                htmlFor="defaultFolderId"
-                className="text-sm font-medium text-neutral-800"
-              >
-                Default Folder
-              </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <select
-                  className={cn(
-                    "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    loadingFolders && "opacity-50",
-                  )}
-                  {...register("defaultFolderId", {
-                    // required: true,
-                  })}
-                  disabled={loadingFolders}
-                >
-                  <option value="">Select a folder</option>
-                  {folders?.map((folder) => (
-                    <option
-                      key={folder.id}
-                      value={folder.id}
-                      selected={folder.id === program.defaultFolderId}
-                    >
-                      {folder.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
           </div>
         </SettingsRow>
       </div>

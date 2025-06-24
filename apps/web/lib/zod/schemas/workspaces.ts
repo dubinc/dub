@@ -58,6 +58,11 @@ export const WorkspaceSchema = z
       .describe(
         "The max dollar amount of partner payouts that can be processed within a billing cycle (in cents).",
       ),
+    payoutFee: z
+      .number()
+      .describe(
+        "The processing fee (in decimals) for partner payouts. For card payments, an additional 0.03 is added to the fee. Learn more: https://d.to/payouts",
+      ),
     domainsLimit: z.number().describe("The domains limit of the workspace."),
     tagsLimit: z.number().describe("The tags limit of the workspace."),
     foldersUsage: z.number().describe("The folders usage of the workspace."),

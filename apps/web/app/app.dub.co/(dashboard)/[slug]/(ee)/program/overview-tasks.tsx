@@ -28,7 +28,7 @@ export function OverviewTasks() {
         icon: UserCheck,
         label: "Review new applications",
         count: partnersCount,
-        href: `/${slug}/program/partners?status=pending`,
+        href: `/${slug}/program/partners/applications`,
         loading: partnersCountLoading,
       },
       {
