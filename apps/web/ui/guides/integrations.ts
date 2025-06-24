@@ -171,7 +171,7 @@ export const guides: IntegrationGuide[] = [
   },
   {
     type: "track-sales",
-    key: "stripe",
+    key: "stripe-customers",
     title: "Stripe",
     description: "Customers",
     icon: Stripe,

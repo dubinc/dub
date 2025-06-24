@@ -120,8 +120,17 @@ export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
                         <div className="flex h-16 w-full items-center justify-center">
                           <guide.icon className="size-10" />
                         </div>
-                        <div className="w-full text-sm font-semibold leading-5 text-neutral-900">
-                          {guide.title}
+
+                        <div>
+                          <div className="w-full text-sm font-semibold leading-5 text-neutral-900">
+                            {guide.title}
+                          </div>
+
+                          {guide.description && (
+                            <div className="w-full text-sm font-medium leading-5 text-neutral-500">
+                              {guide.description}
+                            </div>
+                          )}
                         </div>
                       </Link>
                     ))}
