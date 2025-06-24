@@ -46,8 +46,9 @@ class DubEmbed {
     });
 
     const host = window.location.hostname;
+    const port = window.location.port;
     const embedUrlHost =
-      host === "localhost"
+      host === "localhost" && port === "8888"
         ? "http://localhost:8888"
         : host === "preview.dub.co"
           ? "https://preview.dub.co"
