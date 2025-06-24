@@ -1,5 +1,6 @@
 import {
   AnimatedSizeContainer,
+  BookOpen,
   ChevronLeft,
   ClientOnly,
   Icon,
@@ -168,22 +169,38 @@ export function SidebarNav<T extends Record<any, any>>({
                           </div>
                         ))}
                       </div>
-                      <AnimatePresence>
-                        {showNews && (
-                          <motion.div
-                            className="-mx-3 flex grow flex-col justify-end"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            transition={{
-                              duration: 0.1,
-                              ease: "easeInOut",
-                            }}
-                          >
-                            {newsContent}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+
+                      <div className="-mx-3 flex grow flex-col justify-end">
+                        <div className="flex flex-col gap-4 divide-y divide-red-100/90">
+                          <div className="flex w-full items-center justify-center">
+                            <Link
+                              href={`/${data.slug}/tracking-guide`}
+                              className="border-neutral-100/900 flex h-8 w-fit items-center gap-3 rounded-lg border bg-neutral-100 px-2.5 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200"
+                            >
+                              <BookOpen className="size-4" />
+                              View connection guides
+                            </Link>
+                          </div>
+
+                          <div>
+                            <AnimatePresence>
+                              {showNews && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: 10 }}
+                                  transition={{
+                                    duration: 0.1,
+                                    ease: "easeInOut",
+                                  }}
+                                >
+                                  {newsContent}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </div>
+                      </div>
                     </Area>
                   );
                 })}
