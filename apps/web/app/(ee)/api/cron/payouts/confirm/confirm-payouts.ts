@@ -95,6 +95,10 @@ export async function confirmPayouts({
       throw new Error("Failed to calculate payout fee.");
     }
 
+    console.info(
+      `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
+    );
+
     const totalFee = amount * payoutFee;
     const total = amount + totalFee;
 
@@ -183,6 +187,7 @@ export async function confirmPayouts({
       payouts.filter((payout) => payout.partner.email),
       100,
     );
+
     for (const payoutChunk of payoutChunks) {
       await resend.batch.send(
         payoutChunk.map((payout) => ({
