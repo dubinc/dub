@@ -1,8 +1,5 @@
 import { createId } from "@/lib/api/create-id";
-import {
-  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
-  PAYMENT_METHOD_TYPES,
-} from "@/lib/partners/constants";
+import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -130,7 +127,6 @@ export async function confirmPayouts({
     await stripe.paymentIntents.create({
       amount: invoice.total,
       customer: workspace.stripeId!,
-      payment_method_types: PAYMENT_METHOD_TYPES,
       payment_method: paymentMethod.id,
       currency: "usd",
       confirmation_method: "automatic",
