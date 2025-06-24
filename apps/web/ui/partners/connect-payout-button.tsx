@@ -10,10 +10,12 @@ import {
   PAYPAL_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 export function ConnectPayoutButton(props: ButtonProps) {
+  const router = useRouter();
   const { partner } = usePartnerProfile();
 
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
@@ -23,8 +25,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
           toast.error("Unable to create account link. Please contact support.");
           return;
         }
-
-        window.open(data.url, "_blank");
+        router.push(data.url);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
@@ -38,8 +39,7 @@ export function ConnectPayoutButton(props: ButtonProps) {
           toast.error("Unable to redirect to Paypal. Please contact support.");
           return;
         }
-
-        window.open(data.url, "_blank");
+        router.push(data.url);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
