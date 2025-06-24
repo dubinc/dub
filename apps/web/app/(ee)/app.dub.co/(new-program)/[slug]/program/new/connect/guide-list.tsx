@@ -99,10 +99,10 @@ export function GuideList() {
   return (
     <div className="space-y-10">
       <Accordion
-        type="multiple"
+        type="single"
         className="w-full space-y-4"
-        value={openSections}
-        onValueChange={setOpenSections}
+        value={openSections[0]}
+        onValueChange={(value) => setOpenSections(value ? [value] : [])}
       >
         {sections.map((section, index) => {
           const isCompleted = completedSections.has(section.type);
