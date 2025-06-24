@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-export function Markdown(props: SVGProps<SVGSVGElement>) {
+export function MarkdownIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg fill="none" viewBox="0 0 22 14" {...props}>
       <path
