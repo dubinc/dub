@@ -1,7 +1,6 @@
 "use client";
 
 import { approvePartnersBulkAction } from "@/lib/actions/partners/approve-partners-bulk";
-import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import { rejectPartnersBulkAction } from "@/lib/actions/partners/reject-partners-bulk";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -12,32 +11,21 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
-  Button,
   EditColumnsButton,
-  MenuItem,
-  Popover,
   Table,
   Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import {
-  BadgeCheck2Fill,
-  Dots,
-  LoadingSpinner,
-  Users,
-  UserXmark,
-} from "@dub/ui/icons";
+import { BadgeCheck2Fill, Users } from "@dub/ui/icons";
 import {
   COUNTRIES,
   fetcher,
   formatDate,
-  getPrettyUrl,
+  getDomainWithoutWWW,
   pluralize,
 } from "@dub/utils";
-import { Row } from "@tanstack/react-table";
-import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -174,7 +162,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         cell: ({ row }) => {
           return (
             <SocialColumn
-              value={getPrettyUrl(row.original.website)}
+              value={getDomainWithoutWWW(row.original.website) ?? "-"}
               verified={!!row.original.websiteVerifiedAt}
               href={row.original.website}
             />
@@ -264,9 +252,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         size: 43,
         maxSize: 43,
         header: ({ table }) => <EditColumnsButton table={table} />,
-        cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} mutate={mutate} />
-        ),
       },
     ],
     [workspaceId],
@@ -345,79 +330,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         />
       )}
     </div>
-  );
-}
-
-function RowMenuButton({
-  row,
-  workspaceId,
-  mutate,
-}: {
-  row: Row<EnrolledPartnerProps>;
-  workspaceId: string;
-  mutate: () => void;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const { executeAsync: rejectPartner, isPending: isRejectingPartner } =
-    useAction(rejectPartnerAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: () => {
-        toast.success(`Partner application rejected`);
-        mutate();
-      },
-    });
-
-  return (
-    <>
-      <Popover
-        openPopover={isOpen}
-        setOpenPopover={setIsOpen}
-        content={
-          <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-              <MenuItem
-                as={Command.Item}
-                icon={UserXmark}
-                variant="danger"
-                onSelect={() => {
-                  setIsOpen(false);
-                  if (
-                    !window.confirm(
-                      "Are you sure you want to reject this application?",
-                    )
-                  )
-                    return;
-
-                  rejectPartner({
-                    workspaceId: workspaceId!,
-                    partnerId: row.original.id,
-                  });
-                }}
-              >
-                Reject partner
-              </MenuItem>
-            </Command.List>
-          </Command>
-        }
-        align="end"
-      >
-        <Button
-          type="button"
-          className="h-8 whitespace-nowrap px-2"
-          variant="outline"
-          icon={
-            isRejectingPartner ? (
-              <LoadingSpinner className="size-4 shrink-0" />
-            ) : (
-              <Dots className="size-4 shrink-0" />
-            )
-          }
-        />
-      </Popover>
-    </>
   );
 }
 

@@ -33,7 +33,7 @@ import {
   COUNTRIES,
   fetcher,
   formatDate,
-  getPrettyUrl,
+  getDomainWithoutWWW,
   pluralize,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
@@ -174,7 +174,7 @@ export function ProgramPartnersApplicationsPageClient() {
         cell: ({ row }) => {
           return (
             <SocialColumn
-              value={getPrettyUrl(row.original.website)}
+              value={getDomainWithoutWWW(row.original.website) ?? "-"}
               verified={!!row.original.websiteVerifiedAt}
               href={row.original.website}
             />
