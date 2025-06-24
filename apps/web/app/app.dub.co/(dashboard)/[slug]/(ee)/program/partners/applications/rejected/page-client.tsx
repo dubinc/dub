@@ -1,7 +1,5 @@
 "use client";
 
-import { approvePartnersBulkAction } from "@/lib/actions/partners/approve-partners-bulk";
-import { rejectPartnersBulkAction } from "@/lib/actions/partners/reject-partners-bulk";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -24,12 +22,9 @@ import {
   fetcher,
   formatDate,
   getDomainWithoutWWW,
-  pluralize,
 } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import useSWR from "swr";
 import { useColumnVisibility } from "../use-column-visibility";
 
@@ -79,32 +74,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     useCurrentPartner({
       partners,
       partnerId: detailsSheetState.partnerId,
-    });
-
-  const { executeAsync: rejectPartners, isPending: isRejectingPartners } =
-    useAction(rejectPartnersBulkAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: ({ input }) => {
-        toast.success(
-          `${pluralize("Partner", input.partnerIds.length)} rejected`,
-        );
-        mutate();
-      },
-    });
-
-  const { executeAsync: approvePartners, isPending: isApprovingPartners } =
-    useAction(approvePartnersBulkAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: ({ input }) => {
-        toast.success(
-          `${pluralize("Partner", input.partnerIds.length)} approved`,
-        );
-        mutate();
-      },
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
