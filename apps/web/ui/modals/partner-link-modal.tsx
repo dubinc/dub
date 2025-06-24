@@ -11,7 +11,6 @@ import {
   Modal,
   ShimmerDots,
   SimpleTooltipContent,
-  Tooltip,
   useCopyToClipboard,
   useEnterSubmit,
   useLocalStorage,
@@ -26,7 +25,6 @@ import {
 import {
   cn,
   getDomainWithoutWWW,
-  getPrettyUrl,
   linkConstructor,
   regexEscape,
 } from "@dub/utils";
@@ -54,14 +52,12 @@ interface PartnerLinkFormData {
 
 interface PartnerLinkModalProps {
   link?: PartnerProfileLinkProps;
-  isDefaultLink?: boolean;
   showPartnerLinkModal: boolean;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }
 
 export function PartnerLinkModal({
   link,
-  isDefaultLink,
   showPartnerLinkModal,
   setShowPartnerLinkModal,
 }: PartnerLinkModalProps) {
@@ -73,7 +69,6 @@ export function PartnerLinkModal({
     >
       <PartnerLinkModalContent
         link={link}
-        isDefaultLink={isDefaultLink}
         setShowPartnerLinkModal={setShowPartnerLinkModal}
       />
     </Modal>
@@ -167,11 +162,9 @@ function QRCodePreview({
 
 function PartnerLinkModalContent({
   link,
-  isDefaultLink,
   setShowPartnerLinkModal,
 }: {
   link?: PartnerProfileLinkProps;
-  isDefaultLink?: boolean;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { programSlug } = useParams();
@@ -367,37 +360,29 @@ function PartnerLinkModalContent({
                 }
               />
             </div>
-            {isDefaultLink ? (
-              <Tooltip content="You cannot edit the default link destination">
-                <div className="mt-2 block w-full rounded-md border border-neutral-300 bg-neutral-50 px-3 py-2 text-neutral-500 sm:text-sm">
-                  {getPrettyUrl(link?.url)}
-                </div>
-              </Tooltip>
-            ) : (
-              <div className="mt-2 flex rounded-md">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                  {destinationDomain}
-                </span>
-                <input
-                  {...register("url", { required: false })}
-                  type="text"
-                  id="url"
-                  placeholder="(optional)"
-                  onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
-                    e.preventDefault();
-                    // if pasting in a URL, extract the pathname
-                    const text = e.clipboardData.getData("text/plain");
-                    try {
-                      const url = new URL(text);
-                      e.currentTarget.value = url.pathname.slice(1);
-                    } catch (err) {
-                      e.currentTarget.value = text;
-                    }
-                  }}
-                  className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                />
-              </div>
-            )}
+            <div className="mt-2 flex rounded-md">
+              <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                {destinationDomain}
+              </span>
+              <input
+                {...register("url", { required: false })}
+                type="text"
+                id="url"
+                placeholder="(optional)"
+                onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+                  e.preventDefault();
+                  // if pasting in a URL, extract the pathname
+                  const text = e.clipboardData.getData("text/plain");
+                  try {
+                    const url = new URL(text);
+                    e.currentTarget.value = url.pathname.slice(1);
+                  } catch (err) {
+                    e.currentTarget.value = text;
+                  }
+                }}
+                className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              />
+            </div>
           </div>
 
           <div>
