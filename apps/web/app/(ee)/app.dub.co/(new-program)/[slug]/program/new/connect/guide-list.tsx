@@ -3,10 +3,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
   Button,
 } from "@dub/ui";
 import { Check } from "lucide-react";
@@ -17,6 +13,12 @@ import {
   IntegrationGuide,
   IntegrationType,
 } from "./integration-guides";
+import {
+  ProgramSheetAccordion,
+  ProgramSheetAccordionContent,
+  ProgramSheetAccordionItem,
+  ProgramSheetAccordionTrigger,
+} from "@/ui/partners/program-sheet-accordion";
 
 const sections: {
   type: IntegrationType;
@@ -98,9 +100,8 @@ export function GuideList() {
 
   return (
     <div className="space-y-10">
-      <Accordion
+      <ProgramSheetAccordion
         type="single"
-        className="w-full space-y-4"
         value={openSections[0]}
         onValueChange={(value) => setOpenSections(value ? [value] : [])}
       >
@@ -109,33 +110,26 @@ export function GuideList() {
           const isOpen = openSections.includes(section.type);
 
           return (
-            <div
-              key={section.type}
-              className="overflow-hidden rounded-lg border border-neutral-200"
-            >
-              <AccordionItem
-                key={section.type}
-                value={section.type}
-                className="border-none bg-white p-0"
-              >
-                <AccordionTrigger className="w-full rounded-none bg-neutral-100 px-4 py-2.5 text-left">
-                  <div className="flex items-center gap-2">
-                    {isCompleted && !isOpen ? (
-                      <div className="flex size-5 items-center justify-center rounded-full bg-black text-white">
-                        <Check className="size-3" />
-                      </div>
-                    ) : (
-                      <div className="flex size-6 items-center justify-center rounded-full bg-white text-base font-semibold leading-6 text-neutral-900">
-                        {index + 1}
-                      </div>
-                    )}
-                    <h3 className="text-base font-semibold leading-6 text-neutral-900">
-                      {section.title}
-                    </h3>
-                  </div>
-                </AccordionTrigger>
+            <ProgramSheetAccordionItem key={section.type} value={section.type}>
+              <ProgramSheetAccordionTrigger>
+                <div className="flex items-center gap-2">
+                  {isCompleted && !isOpen ? (
+                    <div className="flex size-5 items-center justify-center rounded-full bg-black text-white">
+                      <Check className="size-3" />
+                    </div>
+                  ) : (
+                    <div className="flex size-6 items-center justify-center rounded-full bg-white text-base font-semibold leading-6 text-neutral-900">
+                      {index + 1}
+                    </div>
+                  )}
+                  <h3 className="text-base font-semibold leading-6 text-neutral-900">
+                    {section.title}
+                  </h3>
+                </div>
+              </ProgramSheetAccordionTrigger>
 
-                <AccordionContent className="space-y-6 p-4">
+              <ProgramSheetAccordionContent>
+                <div className="space-y-6">
                   <p className="text-sm font-medium leading-5 text-neutral-700">
                     {section.description}
                   </p>
@@ -182,12 +176,12 @@ export function GuideList() {
                       </p>
                     )}
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-            </div>
+                </div>
+              </ProgramSheetAccordionContent>
+            </ProgramSheetAccordionItem>
           );
         })}
-      </Accordion>
+      </ProgramSheetAccordion>
 
       <div className="flex items-center justify-between gap-4">
         <a
