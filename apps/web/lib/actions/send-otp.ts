@@ -1,8 +1,7 @@
 "use server";
 
 import { ratelimit, redis } from "@/lib/upstash";
-import { sendEmail, CUSTOMER_IO_TEMPLATES } from "@dub/email";
-import { VerifyEmail } from "@dub/email/templates/verify-email";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { get } from "@vercel/edge-config";
 import { flattenValidationErrors } from "next-safe-action";
@@ -71,7 +70,7 @@ export const sendOtpAction = actionClient
     }
 
     const code = generateOTP();
-
+    console.log("Verification code: ", code, " for email: ", email);
     await prisma.emailVerificationToken.deleteMany({
       where: {
         identifier: email,
