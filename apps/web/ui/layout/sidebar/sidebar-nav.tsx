@@ -26,7 +26,7 @@ export type NavItemCommon = {
   href: `/${string}`;
   exact?: boolean;
   isActive?: (pathname: string, href: string) => boolean;
-  badge?: string;
+  badge?: ReactNode;
 };
 
 export type NavSubItemType = NavItemCommon;
