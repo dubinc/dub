@@ -4,7 +4,7 @@ import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { calculatePayoutFee } from "@/lib/payment-methods";
+import { computePayoutFeeForMethod } from "@/lib/payment-methods";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -79,7 +79,13 @@ type SelectPaymentMethod =
 
 function PayoutInvoiceSheetContent() {
   const { queryParams } = useRouterStuff();
-  const { id: workspaceId, slug, plan, defaultProgramId } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug,
+    plan,
+    defaultProgramId,
+    payoutFee,
+  } = useWorkspace();
 
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
@@ -125,9 +131,9 @@ function PayoutInvoiceSheetContent() {
         const base = {
           ...paymentMethod,
           id: pm.id,
-          fee: calculatePayoutFee({
+          fee: computePayoutFeeForMethod({
             paymentMethod: pm.type,
-            plan,
+            payoutFee,
           }),
         };
 

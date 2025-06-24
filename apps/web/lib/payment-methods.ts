@@ -1,31 +1,22 @@
 import Stripe from "stripe";
-import {
-  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
-  PAYOUT_FEES,
-} from "./partners/constants";
+import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "./partners/constants";
 
-export const calculatePayoutFee = ({
+export const computePayoutFeeForMethod = ({
   paymentMethod,
-  plan,
+  payoutFee,
 }: {
   paymentMethod: Stripe.PaymentMethod.Type;
-  plan: string | undefined;
+  payoutFee: number | undefined;
 }) => {
-  if (!paymentMethod) {
-    return null;
-  }
-
-  const planType = plan?.split(" ")[0] ?? "business";
-
-  if (!Object.keys(PAYOUT_FEES).includes(planType)) {
-    return null;
+  if (!paymentMethod || !payoutFee) {
+    throw new Error("Invalid payment method or payout fee.");
   }
 
   if (["link", "card"].includes(paymentMethod)) {
-    return PAYOUT_FEES[planType].card;
+    return payoutFee + 0.03;
   }
 
   if (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod)) {
-    return PAYOUT_FEES[planType].direct_debit;
+    return payoutFee;
   }
 };
