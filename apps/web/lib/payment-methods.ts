@@ -8,7 +8,7 @@ export const computePayoutFeeForMethod = ({
   paymentMethod: Stripe.PaymentMethod.Type;
   payoutFee: number | undefined;
 }) => {
-  if (!paymentMethod || !payoutFee) {
+  if (!paymentMethod || payoutFee === undefined || payoutFee === null) {
     throw new Error("Invalid payment method or payout fee.");
   }
 
@@ -19,4 +19,6 @@ export const computePayoutFeeForMethod = ({
   if (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod)) {
     return payoutFee;
   }
+
+  throw new Error(`Unsupported payment method ${paymentMethod}.`);
 };
