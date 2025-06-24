@@ -27,7 +27,6 @@ export function ApplicationsMenu() {
   const { program } = useProgram();
 
   const [isOpen, setIsOpen] = useState(false);
-  const isLoading = false;
 
   const { executeAsync: updateAutoApprove, isPending: isUpdatingAutoApprove } =
     useAction(updateAutoApprovePartnersAction, {
@@ -127,9 +126,9 @@ export function ApplicationsMenu() {
           type="button"
           className="h-8 whitespace-nowrap px-2"
           variant="secondary"
-          disabled={isLoading || !program}
+          disabled={isUpdatingAutoApprove || !program}
           icon={
-            isLoading ? (
+            isUpdatingAutoApprove ? (
               <LoadingSpinner className="size-4 shrink-0" />
             ) : (
               <ThreeDots className="size-4 shrink-0" />
