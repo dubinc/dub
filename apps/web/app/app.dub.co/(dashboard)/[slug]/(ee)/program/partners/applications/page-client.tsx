@@ -7,6 +7,7 @@ import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -116,6 +117,45 @@ export function ProgramPartnersApplicationsPageClient() {
           `${pluralize("Partner", input.partnerIds.length)} approved`,
         );
         mutate();
+      },
+    });
+
+  // State for pending bulk actions
+  const [pendingApproveIds, setPendingApproveIds] = useState<string[]>([]);
+  const [pendingRejectIds, setPendingRejectIds] = useState<string[]>([]);
+
+  // Confirmation modals
+  const {
+    setShowConfirmModal: setShowApproveModal,
+    confirmModal: approveModal,
+  } = useConfirmModal({
+    title: "Approve Applications",
+    description: "Are you sure you want to approve these applications?",
+    confirmText: "Approve",
+    onConfirm: async () => {
+      if (pendingApproveIds.length > 0) {
+        await approvePartners({
+          workspaceId: workspaceId!,
+          partnerIds: pendingApproveIds,
+        });
+        setPendingApproveIds([]);
+      }
+    },
+  });
+
+  const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
+    useConfirmModal({
+      title: "Reject Applications",
+      description: "Are you sure you want to reject these applications?",
+      confirmText: "Reject",
+      onConfirm: async () => {
+        if (pendingRejectIds.length > 0) {
+          await rejectPartners({
+            workspaceId: workspaceId!,
+            partnerIds: pendingRejectIds,
+          });
+          setPendingRejectIds([]);
+        }
       },
     });
 
@@ -310,21 +350,12 @@ export function ProgramPartnersApplicationsPageClient() {
           className="h-7 w-fit rounded-lg px-2.5"
           loading={isApprovingPartners}
           onClick={() => {
-            if (
-              !window.confirm(
-                "Are you sure you want to approve these applications?",
-              )
-            )
-              return;
-
             const partnerIds = table
               .getSelectedRowModel()
               .rows.map((row) => row.original.id);
 
-            approvePartners({
-              workspaceId: workspaceId!,
-              partnerIds,
-            });
+            setPendingApproveIds(partnerIds);
+            setShowApproveModal(true);
           }}
         />
         <Button
@@ -333,21 +364,12 @@ export function ProgramPartnersApplicationsPageClient() {
           className="h-7 w-fit rounded-lg px-2.5"
           loading={isRejectingPartners}
           onClick={() => {
-            if (
-              !window.confirm(
-                "Are you sure you want to reject these applications?",
-              )
-            )
-              return;
-
             const partnerIds = table
               .getSelectedRowModel()
               .rows.map((row) => row.original.id);
 
-            rejectPartners({
-              workspaceId: workspaceId!,
-              partnerIds,
-            });
+            setPendingRejectIds(partnerIds);
+            setShowRejectModal(true);
           }}
         />
       </>
@@ -372,6 +394,8 @@ export function ProgramPartnersApplicationsPageClient() {
           partner={currentPartner}
         />
       )}
+      {approveModal}
+      {rejectModal}
       <div className="w-min">
         <SearchBoxPersisted
           placeholder="Search by name or email"
@@ -422,8 +446,22 @@ function RowMenuButton({
       },
     });
 
+  const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
+    useConfirmModal({
+      title: "Reject Application",
+      description: "Are you sure you want to reject this application?",
+      confirmText: "Reject",
+      onConfirm: async () => {
+        await rejectPartner({
+          workspaceId: workspaceId!,
+          partnerId: row.original.id,
+        });
+      },
+    });
+
   return (
     <>
+      {rejectModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -436,17 +474,7 @@ function RowMenuButton({
                 variant="danger"
                 onSelect={() => {
                   setIsOpen(false);
-                  if (
-                    !window.confirm(
-                      "Are you sure you want to reject this application?",
-                    )
-                  )
-                    return;
-
-                  rejectPartner({
-                    workspaceId: workspaceId!,
-                    partnerId: row.original.id,
-                  });
+                  setShowRejectModal(true);
                 }}
               >
                 Reject partner
