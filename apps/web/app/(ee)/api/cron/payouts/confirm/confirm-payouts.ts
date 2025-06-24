@@ -1,13 +1,10 @@
 import { createId } from "@/lib/api/create-id";
-import {
-  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
-  PAYMENT_METHOD_TYPES,
-} from "@/lib/partners/constants";
+import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { calculatePayoutFee } from "@/lib/payment-methods";
+import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
@@ -23,7 +20,10 @@ export async function confirmPayouts({
   paymentMethodId,
   cutoffPeriod,
 }: {
-  workspace: Pick<Project, "id" | "stripeId" | "plan" | "invoicePrefix">;
+  workspace: Pick<
+    Project,
+    "id" | "stripeId" | "plan" | "invoicePrefix" | "payoutFee"
+  >;
   program: Pick<Program, "id" | "name" | "logo" | "minPayoutAmount">;
   userId: string;
   paymentMethodId: string;
@@ -83,14 +83,21 @@ export async function confirmPayouts({
   const newInvoice = await prisma.$transaction(async (tx) => {
     const amount = payouts.reduce((total, payout) => total + payout.amount, 0);
 
-    const fee =
-      amount *
-      calculatePayoutFee({
-        paymentMethod: paymentMethod.type,
-        plan: workspace.plan,
-      });
+    const payoutFee = calculatePayoutFeeForMethod({
+      paymentMethod: paymentMethod.type,
+      payoutFee: workspace.payoutFee,
+    });
 
-    const total = amount + fee;
+    if (!payoutFee) {
+      throw new Error("Failed to calculate payout fee.");
+    }
+
+    console.info(
+      `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
+    );
+
+    const totalFee = amount * payoutFee;
+    const total = amount + totalFee;
 
     // Generate the next invoice number
     const totalInvoices = await tx.invoice.count({
@@ -108,7 +115,7 @@ export async function confirmPayouts({
         programId: program.id,
         workspaceId: workspace.id,
         amount,
-        fee,
+        fee: totalFee,
         total,
       },
     });
@@ -120,10 +127,12 @@ export async function confirmPayouts({
     await stripe.paymentIntents.create({
       amount: invoice.total,
       customer: workspace.stripeId!,
-      payment_method_types: PAYMENT_METHOD_TYPES,
       payment_method: paymentMethod.id,
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: "never",
+      },
       currency: "usd",
-      confirmation_method: "automatic",
       confirm: true,
       transfer_group: invoice.id,
       statement_descriptor: "Dub Partners",
@@ -177,6 +186,7 @@ export async function confirmPayouts({
       payouts.filter((payout) => payout.partner.email),
       100,
     );
+
     for (const payoutChunk of payoutChunks) {
       await resend.batch.send(
         payoutChunk.map((payout) => ({
