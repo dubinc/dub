@@ -9,7 +9,7 @@ export const computePayoutFeeForMethod = ({
   payoutFee: number | undefined;
 }) => {
   if (!paymentMethod || payoutFee === undefined || payoutFee === null) {
-    throw new Error("Invalid payment method or payout fee.");
+    return null;
   }
 
   if (["link", "card"].includes(paymentMethod)) {
