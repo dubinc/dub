@@ -103,12 +103,12 @@ export const guides: IntegrationGuide[] = [
     title: "PHP",
     icon: Php,
   },
-  {
-    type: "server-sdk",
-    key: "rest",
-    title: "REST API",
-    icon: SquareCode,
-  },
+  // {
+  //   type: "server-sdk",
+  //   key: "rest-api",
+  //   title: "REST API",
+  //   icon: SquareCode,
+  // },
 
   // Track Leads
   {
