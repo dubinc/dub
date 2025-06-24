@@ -1,4 +1,4 @@
-export default function Magic({ className }: { className: string }) {
+export function Magic({ className }: { className: string }) {
   return (
     <svg
       width="469"

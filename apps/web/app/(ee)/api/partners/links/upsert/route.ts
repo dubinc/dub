@@ -6,6 +6,7 @@ import {
   updateLink,
 } from "@/lib/api/links";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -21,7 +22,9 @@ import { NextResponse } from "next/server";
 // PUT /api/partners/links/upsert – update or create a partner link
 export const PUT = withWorkspace(
   async ({ req, headers, workspace, session }) => {
-    const { programId, partnerId, tenantId, url, key, linkProps } =
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { partnerId, tenantId, url, key, linkProps } =
       upsertPartnerLinkSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({

@@ -126,6 +126,8 @@ export const PartnerOnlinePresenceSchema = z.object({
     .nullable()
     .describe("The partner's YouTube channel username (e.g. `johndoe`)."),
   youtubeVerifiedAt: z.date().nullable(),
+  youtubeSubscriberCount: z.number(),
+  youtubeViewCount: z.number(),
   twitter: z
     .string()
     .nullable()
@@ -317,9 +319,6 @@ export const getPartnerCustomersQuerySchema = z
   );
 
 export const createPartnerSchema = z.object({
-  programId: z
-    .string()
-    .describe("The ID of the program to create a partner for."),
   name: z
     .string()
     .trim()
@@ -384,7 +383,6 @@ export const createPartnerSchema = z.object({
 
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
-    programId: true,
     username: true,
     email: true,
     linkProps: true,
@@ -417,9 +415,6 @@ export const onboardPartnerSchema = createPartnerSchema
 
 export const createPartnerLinkSchema = z
   .object({
-    programId: z
-      .string()
-      .describe("The ID of the program that the partner is enrolled in."),
     partnerId: z
       .string()
       .nullish()
@@ -478,9 +473,6 @@ export const partnerAnalyticsQuerySchema = analyticsQuerySchema
         .describe(
           "The parameter to group the analytics data points by. Defaults to `count` if undefined.",
         ),
-      programId: z
-        .string()
-        .describe("The ID of the program to retrieve analytics for."),
     }),
   );
 
@@ -544,6 +536,29 @@ export const approvePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   linkId: z.string().nullable(),
+});
+
+export const approvePartnersBulkSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
+});
+
+export const rejectPartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+});
+
+export const rejectPartnersBulkSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
 });
 
 export const retrievePartnerLinksSchema = z

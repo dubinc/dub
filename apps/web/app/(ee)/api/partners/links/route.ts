@@ -20,10 +20,10 @@ import { z } from "zod";
 // GET /api/partners/links - get the partner links
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     const { partnerId, tenantId } =
       retrievePartnerLinksSchema.parse(searchParams);
-
-    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: partnerId
@@ -63,7 +63,9 @@ export const GET = withWorkspace(
 // POST /api/partners/links - create a link for a partner
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    const { programId, partnerId, tenantId, url, key, linkProps } =
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { partnerId, tenantId, url, key, linkProps } =
       createPartnerLinkSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
