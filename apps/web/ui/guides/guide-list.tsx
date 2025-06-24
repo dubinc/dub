@@ -9,15 +9,12 @@ import {
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
 import { Button, Copy, useCopyToClipboard } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  guides,
-  IntegrationGuide,
-  IntegrationType,
-} from "./integration-guides";
+import { guides, IntegrationGuide, IntegrationType } from "./integrations";
 
 const sections: {
   type: IntegrationType;
@@ -50,7 +47,11 @@ const sections: {
   },
 ];
 
-export function GuideList() {
+interface GuideListProps {
+  showConnectLaterButton?: boolean;
+}
+
+export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
   const { slug: workspaceSlug } = useWorkspace();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -185,7 +186,12 @@ export function GuideList() {
         })}
       </ProgramSheetAccordion>
 
-      <div className="mt-10 flex items-center justify-between gap-4">
+      <div
+        className={cn(
+          "mt-6 flex items-center justify-between gap-4",
+          !showConnectLaterButton && "justify-center",
+        )}
+      >
         <Button
           text="Share with a developer"
           className="h-8 w-fit rounded-lg"
@@ -200,13 +206,15 @@ export function GuideList() {
           }}
         />
 
-        <Link href={`/${workspaceSlug}/program/new/overview`}>
-          <Button
-            text="I'll connect Dub later"
-            className="h-8 w-fit rounded-lg"
-            variant="secondary"
-          />
-        </Link>
+        {showConnectLaterButton && (
+          <Link href={`/${workspaceSlug}/program/new/overview`}>
+            <Button
+              text="I'll connect Dub later"
+              className="h-8 w-fit rounded-lg"
+              variant="secondary"
+            />
+          </Link>
+        )}
       </div>
     </div>
   );

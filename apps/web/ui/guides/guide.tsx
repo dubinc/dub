@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
 import { useRouter } from "next/navigation";
-import { IntegrationGuide, IntegrationType } from "./integration-guides";
+import { IntegrationGuide, IntegrationType } from "./integrations";
 import { Markdown } from "./markdown";
 
 interface GuideProps {

@@ -3,7 +3,6 @@ import { readFileSync } from "fs";
 import { notFound } from "next/navigation";
 import { join } from "path";
 import { Suspense } from "react";
-import { StepPage } from "../step-page";
 import { PageClient } from "./page-client";
 
 export default async function Page({
@@ -32,11 +31,9 @@ export default async function Page({
   }
 
   return (
-    <StepPage title="Connecting Dub">
-      <Suspense fallback={<div>Loading...</div>}>
-        <PageClient markdown={markdown} />
-      </Suspense>
-    </StepPage>
+    <Suspense fallback={<div>Loading...</div>}>
+      <PageClient markdown={markdown} />
+    </Suspense>
   );
 }
 
