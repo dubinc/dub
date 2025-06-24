@@ -99,11 +99,12 @@ export function GuideList() {
   };
 
   return (
-    <div className="space-y-10">
+    <div>
       <ProgramSheetAccordion
         type="single"
         value={openSections[0]}
         onValueChange={(value) => setOpenSections(value ? [value] : [])}
+        className="space-y-4"
       >
         {sections.map((section, index) => {
           const isCompleted = completedSections.has(section.type);
@@ -111,7 +112,7 @@ export function GuideList() {
 
           return (
             <ProgramSheetAccordionItem key={section.type} value={section.type}>
-              <ProgramSheetAccordionTrigger>
+              <ProgramSheetAccordionTrigger className="bg-neutral-100">
                 <div className="flex items-center gap-2">
                   {isCompleted && !isOpen ? (
                     <div className="flex size-5 items-center justify-center rounded-full bg-black text-white">
@@ -122,6 +123,7 @@ export function GuideList() {
                       {index + 1}
                     </div>
                   )}
+
                   <h3 className="text-base font-semibold leading-6 text-neutral-900">
                     {section.title}
                   </h3>
@@ -183,7 +185,7 @@ export function GuideList() {
         })}
       </ProgramSheetAccordion>
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="mt-10 flex items-center justify-between gap-4">
         <Button
           text="Share with a developer"
           className="h-8 w-fit rounded-lg"
