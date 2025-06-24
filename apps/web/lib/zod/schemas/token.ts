@@ -44,7 +44,7 @@ export const tokenSchema = z.object({
 
 export const createReferralsEmbedTokenSchema = z
   .object({
-    programId: z.string(),
+    programId: z.string().optional(),
     partnerId: z.string().optional(),
     tenantId: z.string().optional(),
     partner: createPartnerSchema.omit({ programId: true }).optional(),
