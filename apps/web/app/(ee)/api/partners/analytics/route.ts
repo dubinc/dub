@@ -1,6 +1,7 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import {
@@ -14,9 +15,10 @@ import { NextResponse } from "next/server";
 // GET /api/partners/analytics – get analytics for a partner
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     const {
       groupBy,
-      programId,
       partnerId,
       tenantId,
       interval = "all",
