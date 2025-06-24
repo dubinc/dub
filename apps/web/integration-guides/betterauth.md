@@ -1,67 +1,32 @@
-This guide will show you how to integrate Dub Analytics with your Better Auth application.
+Configure Better Auth to track lead conversion events when a new user signs up.
 
-### Step 1: Install package
-
-Using the package manager of your choice, add the `@dub/analytics` to your project.
-
-```bash
-npm install @dub/analytics
-```
-
-### Step 2: Initialize package in your code
-
-If you are using a React framework with Better Auth, you can use the `<Analytics />` component to track conversions on your website.
-
-E.g. if you're using Next.js with Better Auth, you can add the `<Analytics />` component to your root layout component or any other pages where you want to track conversions.
-
-You will also need to set up the `domainsConfig.refer` property to enable client-side click-tracking.
-
-```jsx
-import { Analytics as DubAnalytics } from '@dub/analytics/react';
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-      <DubAnalytics domainsConfig={{
-        refer: "yourcompany.link"
-      }} />
-    </html>
-  );
-}
-```
-
-### Step 3: Track authentication events
+## Step 1: Track authentication events
 
 You can track authentication events by calling the `track` function from the Dub Analytics package:
 
-```jsx
-import { track } from '@dub/analytics';
+```javascript 
+import { track } from "@dub/analytics";
 
 // Track user sign up
-track('user_signed_up', {
+track("user_signed_up", {
   userId: user.id,
   email: user.email,
-  provider: 'better-auth'
+  provider: "better-auth",
 });
 
 // Track user sign in
-track('user_signed_in', {
+track("user_signed_in", {
   userId: user.id,
   email: user.email,
-  provider: 'better-auth'
+  provider: "better-auth",
 });
 ```
 
-### Step 4: Integration with Better Auth hooks
+## Step 2: Integration with Better Auth hooks
 
 If you're using Better Auth's React hooks, you can integrate tracking directly into your authentication flow:
 
-```jsx
+```javascript
 import { useAuth } from 'better-auth/react';
 import { track } from '@dub/analytics';
 

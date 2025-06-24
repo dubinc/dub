@@ -1,6 +1,4 @@
-Configure NextAuth to track lead conversion events in your app.
-
-Here's how it works in a nutshell:
+Configure NextAuth to track lead conversion events when a new user signs up.
 
 1. Use NextAuth's [`signIn` event](https://next-auth.js.org/configuration/events#signin) to detect when there's a new sign up.
 2. If the user is a new sign up, check if the `dub_id` cookie is present.
@@ -9,7 +7,7 @@ Here's how it works in a nutshell:
 
 Under the hood, Dub records the user as a customer and associates them with the click event that they came from. The user's unique ID is now the source of truth for all future events – hence why we don't need the `dub_id` cookie anymore.
 
-```typescript
+```javascript
 // app/api/auth/[...nextauth]/options.ts
 import type { NextAuthOptions } from "next-auth";
 import { cookies } from "next/headers";

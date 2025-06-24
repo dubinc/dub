@@ -1,10 +1,6 @@
 Configure Clerk to track lead conversion events when a new user signs up.
 
-Here's a quick video showing how to do this:
-
-<iframe width="100%" height="469px" className="rounded-xl" src="https://www.loom.com/embed/7338589f0c0c4ee1b71c9f2aa28aac87?sid=04c67f3b-1bec-468a-b0c7-5b24d24cd96e" title="Loom video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen />
-
-### Step 1: Add environment variables
+## Step 1: Add environment variables
 
 Add the following environment variables to your app:
 
@@ -17,7 +13,7 @@ CLERK_SECRET_KEY=your_secret_key
 DUB_API_KEY=your_api_key
 ```
 
-### Step 2: Add a custom claim to your Clerk session token
+## Step 2: Add a custom claim to your Clerk session token
 
 Add the following JSON as a [custom claim](https://clerk.com/docs/references/nextjs/add-onboarding-flow#add-custom-claims-to-your-session-token) to your Clerk session token:
 
@@ -27,11 +23,11 @@ Add the following JSON as a [custom claim](https://clerk.com/docs/references/nex
 }
 ```
 
-### Step 3: Extend the `@dub/analytics` package with Clerk's `useUser` hook
+## Step 3: Extend the `@dub/analytics` package with Clerk's `useUser` hook
 
 Extend the `@dub/analytics` package to include a `trackLead` server action.
 
-```tsx
+```javascript
 "use client";
 
 import { trackLead } from "@/actions/track-lead";
@@ -79,7 +75,7 @@ export function DubAnalytics(props: AnalyticsProps) {
 
 Then, add the `DubAnalytics` component to your app's root layout component:
 
-```tsx
+```javascript
 import { DubAnalytics } from "@/components/dub-analytics";
 
 export default function RootLayout({
@@ -98,11 +94,11 @@ export default function RootLayout({
 }
 ```
 
-### Step 4: Implement the `trackLead` server action
+## Step 4: Implement the `trackLead` server action
 
 On the server side, implement the `trackLead` server action.
 
-```tsx /actions/track-lead.ts
+```javascript
 // This is a server action
 "use server";
 
@@ -159,7 +155,7 @@ export async function trackLead({
 
 Alternatively, you can also create an API route instead:
 
-```tsx
+```javascript
 // This is an API route
 import { NextRequest, NextResponse } from "next/server";
 

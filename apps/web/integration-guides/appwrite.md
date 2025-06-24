@@ -1,6 +1,6 @@
 Configure Appwrite to track lead conversion events during the sign up process.
 
-### Step 1
+## Step 1
 
 Head to [Appwrite Cloud](https://apwr.dev/appwrite-dub) and create a new project.
 
@@ -16,7 +16,7 @@ Then, in your Next.js app, install the Appwrite Node.js SDK.
 npm i node-appwrite
 ```
 
-### Step 2
+## Step 2
 
 Add the following environment variables to your app.
 
@@ -27,11 +27,11 @@ NEXT_APPWRITE_KEY=<APPWRITE_API_KEY>
 NEXT_DUB_API_KEY=<DUB_API_KEY>
 ```
 
-### Step 3
+## Step 3
 
 Add the `DubAnalytics` component from the `@dub/analytics` package to your app's root layout.
 
-```tsx src/app/layout.tsx
+```javascript
 import type { Metadata } from "next";
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 
@@ -54,11 +54,11 @@ export default function RootLayout({
 }
 ```
 
-### Step 4
+## Step 4
 
 Create the Appwrite Session and Admin client (necessary for SSR apps, as explained in the [Appwrite docs](https://appwrite.io/docs/products/auth/server-side-rendering)). Additionally, create a function to verify user login.
 
-```ts src/lib/server/appwrite.ts
+```javascript
 "use server";
 import { Client, Account } from "node-appwrite";
 import { cookies } from "next/headers";
@@ -96,11 +96,11 @@ export async function createAdminClient() {
 }
 ```
 
-### Step 5
+## Step 5
 
 Create the Dub client and send leads to Dub using the `dub.track.lead()` function.
 
-```ts src/lib/server/dub.ts
+```javascript
 import type { Models } from "node-appwrite";
 import { Dub } from "dub";
 
@@ -122,11 +122,11 @@ export function addDubLead(
 }
 ```
 
-### Step 6
+## Step 6
 
 In the `/auth` page, use the Appwrite Admin client to allow users to sign up. Post sign up, check if the `dub_id` cookie is present, send a lead event to Dub if found, and delete the `dub_id` cookie.
 
-```tsx src/app/auth/page.tsx
+```javascript
 import { ID } from "node-appwrite";
 import { createAdminClient, getLoggedInUser } from "@/lib/server/appwrite";
 import { cookies } from "next/headers";

@@ -7,7 +7,7 @@ Here's how it works in a nutshell:
 3. If the `dub_id` cookie is present, send a lead event to Dub using `dub.track.lead`
 4. Delete the `dub_id` cookie.
 
-```typescript
+```javascript
 import { handleAuth, handleCallback, type Session } from "@auth0/nextjs-auth0";
 import { cookies } from "next/headers";
 import { dub } from "@/lib/dub";

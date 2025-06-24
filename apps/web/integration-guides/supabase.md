@@ -8,7 +8,7 @@ Here's how it works in a nutshell:
 2. If the `dub_id` cookie is present and the user is a new sign up, send a lead event to Dub using `dub.track.lead`
 3. Delete the `dub_id` cookie.
 
-```typescript
+```javascript
 // app/api/auth/callback/route.ts
 import { dub } from "@/lib/dub";
 import { createClient } from "@/lib/supabase/server";
