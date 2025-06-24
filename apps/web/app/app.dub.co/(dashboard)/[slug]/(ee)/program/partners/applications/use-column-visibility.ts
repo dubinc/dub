@@ -13,7 +13,14 @@ export const applicationsColumns = {
     "instagram",
     "tiktok",
   ],
-  defaultVisible: ["partner", "createdAt", "location", "website"],
+  defaultVisible: [
+    "partner",
+    "createdAt",
+    "location",
+    "website",
+    "youtube",
+    "linkedin",
+  ],
 };
 
 export function useColumnVisibility() {
