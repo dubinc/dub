@@ -477,7 +477,7 @@ function RowMenuButton({
                   setShowRejectModal(true);
                 }}
               >
-                Reject partner
+                Reject application
               </MenuItem>
             </Command.List>
           </Command>

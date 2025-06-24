@@ -4,6 +4,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, useRouterStuff } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
@@ -322,30 +323,45 @@ function PartnerRejectButton({
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync, isPending } = useAction(rejectPartnerAction, {
-    onSuccess: async () => {
-      await mutatePrefix("/api/partners");
-      toast.success("Partner rejected successfully.");
-      setIsOpen(false);
+  const { executeAsync: rejectPartner, isPending } = useAction(
+    rejectPartnerAction,
+    {
+      onSuccess: async () => {
+        await mutatePrefix("/api/partners");
+        toast.success("Partner rejected successfully.");
+        setIsOpen(false);
+      },
+      onError({ error }) {
+        toast.error(error.serverError || "Failed to reject partner.");
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError || "Failed to reject partner.");
+  );
+
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Reject Application",
+    description: "Are you sure you want to reject this partner application?",
+    confirmText: "Reject",
+    onConfirm: async () => {
+      await rejectPartner({
+        workspaceId: workspaceId!,
+        partnerId: partner.id,
+      });
     },
   });
 
   return (
-    <Button
-      type="button"
-      variant="secondary"
-      text={isPending ? "" : "Reject"}
-      loading={isPending}
-      onClick={async () => {
-        await executeAsync({
-          workspaceId: workspaceId!,
-          partnerId: partner.id,
-        });
-      }}
-    />
+    <>
+      {confirmModal}
+      <Button
+        type="button"
+        variant="secondary"
+        text={isPending ? "" : "Reject"}
+        loading={isPending}
+        onClick={() => {
+          setShowConfirmModal(true);
+        }}
+      />
+    </>
   );
 }
 
