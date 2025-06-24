@@ -7,39 +7,27 @@ import {
 } from "@/lib/swr/use-folder-permissions";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useExportLinksModal } from "@/ui/modals/export-links-modal";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
+import { preloadAllFrames } from "@/ui/qr-builder/constants/customization/frames.ts";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
 import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
 import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.tsx";
 import { useQrCodeFilters } from "@/ui/qr-code/use-qr-code-filters.tsx";
-import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import {
-  Button,
-  Filter,
-  IconMenu,
-  MaxWidthWrapper,
-  Popover,
-  Switch,
-  Tooltip,
-  TooltipContent,
-} from "@dub/ui";
-import { Download, ShieldAlert, TableIcon } from "@dub/ui/icons";
+import { Button, Filter, MaxWidthWrapper, Switch } from "@dub/ui";
+import { ShieldAlert } from "@dub/ui/icons";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { useEffect } from "react";
 
-export default function WorkspaceLinksClient() {
+export default function WorkspaceQRsClient() {
   const { data: session } = useSession();
+
+  if (typeof window !== "undefined") {
+    preloadAllFrames();
+  }
 
   useEffect(() => {
     if (session?.user) {
@@ -52,12 +40,12 @@ export default function WorkspaceLinksClient() {
 
   return (
     <QrCodesDisplayProvider>
-      <WorkspaceLinks />
+      <WorkspaceQRs />
     </QrCodesDisplayProvider>
   );
 }
 
-function WorkspaceLinks() {
+function WorkspaceQRs() {
   const router = useRouter();
   const { isValidating } = useQrs();
   const searchParams = useSearchParams();
@@ -250,163 +238,5 @@ function WorkspaceLinks() {
         />
       </div>
     </>
-  );
-}
-
-const MoreLinkOptions = () => {
-  const router = useRouter();
-  const { slug } = useWorkspace();
-  const [openPopover, setOpenPopover] = useState(false);
-  const [_state, setState] = useState<"default" | "import">("default");
-  const { ExportLinksModal, setShowExportLinksModal } = useExportLinksModal();
-
-  useEffect(() => {
-    if (!openPopover) setState("default");
-  }, [openPopover]);
-
-  return (
-    <>
-      <ExportLinksModal />
-      <Popover
-        content={
-          <div className="w-full md:w-52">
-            <div className="grid gap-px p-2">
-              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
-                Import Links
-              </p>
-              <ImportOption
-                onClick={() => {
-                  setOpenPopover(false);
-                  router.push(`/${slug}?import=bitly`);
-                }}
-                setOpenPopover={setOpenPopover}
-              >
-                <IconMenu
-                  text="Import from Bitly"
-                  icon={
-                    <img
-                      src="https://assets.dub.co/misc/icons/bitly.svg"
-                      alt="Bitly logo"
-                      className="h-4 w-4"
-                    />
-                  }
-                />
-              </ImportOption>
-              <ImportOption
-                onClick={() => {
-                  setOpenPopover(false);
-                  router.push(`/${slug}?import=rebrandly`);
-                }}
-                setOpenPopover={setOpenPopover}
-              >
-                <IconMenu
-                  text="Import from Rebrandly"
-                  icon={
-                    <img
-                      src="https://assets.dub.co/misc/icons/rebrandly.svg"
-                      alt="Rebrandly logo"
-                      className="h-4 w-4"
-                    />
-                  }
-                />
-              </ImportOption>
-              <ImportOption
-                onClick={() => {
-                  setOpenPopover(false);
-                  router.push(`/${slug}?import=short`);
-                }}
-                setOpenPopover={setOpenPopover}
-              >
-                <IconMenu
-                  text="Import from Short.io"
-                  icon={
-                    <img
-                      src="https://assets.dub.co/misc/icons/short.svg"
-                      alt="Short.io logo"
-                      className="h-4 w-4"
-                    />
-                  }
-                />
-              </ImportOption>
-              <ImportOption
-                onClick={() => {
-                  setOpenPopover(false);
-                  router.push(`/${slug}?import=csv`);
-                }}
-                setOpenPopover={setOpenPopover}
-              >
-                <IconMenu
-                  text="Import from CSV"
-                  icon={<TableIcon className="size-4" />}
-                />
-              </ImportOption>
-            </div>
-            <div className="border-t border-neutral-200" />
-            <div className="grid gap-px p-2">
-              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
-                Export Links
-              </p>
-              <button
-                onClick={() => {
-                  setOpenPopover(false);
-                  setShowExportLinksModal(true);
-                }}
-                className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
-              >
-                <IconMenu
-                  text="Export as CSV"
-                  icon={<Download className="h-4 w-4" />}
-                />
-              </button>
-            </div>
-          </div>
-        }
-        openPopover={openPopover}
-        setOpenPopover={setOpenPopover}
-        align="end"
-      >
-        <Button
-          onClick={() => setOpenPopover(!openPopover)}
-          variant="secondary"
-          className="w-auto px-1.5"
-          icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
-        />
-      </Popover>
-    </>
-  );
-};
-
-function ImportOption({
-  children,
-  setOpenPopover,
-  onClick,
-}: {
-  children: ReactNode;
-  setOpenPopover: Dispatch<SetStateAction<boolean>>;
-  onClick: () => void;
-}) {
-  const { slug, exceededLinks, nextPlan } = useWorkspace();
-
-  return exceededLinks ? (
-    <Tooltip
-      content={
-        <TooltipContent
-          title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
-          cta={`Upgrade to ${nextPlan.name}`}
-          href={`/${slug}/upgrade`}
-        />
-      }
-    >
-      <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-neutral-400 [&_img]:grayscale">
-        {children}
-      </div>
-    </Tooltip>
-  ) : (
-    <button
-      onClick={onClick}
-      className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
-    >
-      {children}
-    </button>
   );
 }
