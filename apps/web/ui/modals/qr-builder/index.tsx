@@ -95,7 +95,7 @@ export function QRBuilderModal({
       <dialog
         ref={dialogRef}
         onClose={() => setShowQRBuilderModal(false)}
-        className="fixed inset-0 bottom-0 left-0 right-0 h-full w-full max-w-full overflow-hidden rounded-none bg-transparent p-0 opacity-0 transition-opacity duration-300 ease-in-out backdrop:bg-black backdrop:opacity-0 backdrop:transition-opacity backdrop:duration-300 open:opacity-100 open:backdrop:opacity-30 md:m-auto md:h-auto md:w-full md:max-w-screen-lg md:scale-95 md:rounded-lg md:transition-all open:md:scale-100"
+        className="fixed h-[100dvh] max-h-[100dvh] w-full max-w-full overflow-y-scroll rounded-none bg-transparent p-0 opacity-0 transition-opacity duration-300 ease-in-out backdrop:bg-black backdrop:opacity-0 backdrop:transition-opacity backdrop:duration-300 open:opacity-100 open:backdrop:opacity-30 md:m-auto md:h-auto md:w-full md:max-w-screen-lg md:scale-95 md:rounded-lg md:transition-all open:md:scale-100"
       >
         <div className="bg-background flex h-full flex-col gap-2 overflow-y-auto md:h-fit">
           {/* header */}
