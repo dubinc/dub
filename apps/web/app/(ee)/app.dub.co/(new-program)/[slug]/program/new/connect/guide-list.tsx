@@ -186,7 +186,7 @@ export function GuideList() {
       <div className="flex items-center justify-between gap-4">
         <Button
           text="Share with a developer"
-          className="h-8 w-fit"
+          className="h-8 w-fit rounded-lg"
           variant="outline"
           icon={
             copied ? <Check className="size-4" /> : <Copy className="size-4" />
