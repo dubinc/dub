@@ -1,5 +1,3 @@
-"use client";
-
 import { buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
@@ -25,19 +23,16 @@ export function Guide({ markdown }: GuideProps) {
   const guide = searchParams.get("guide");
 
   if (!guide) {
-    console.error("Guide not found");
     notFound();
   }
 
   const selectedGuide = guides.find((g) => g.key === guide);
 
   if (!selectedGuide) {
-    console.error(`Guide not found: ${guide}`);
     notFound();
   }
 
   if (!markdown) {
-    console.error(`Markdown not found: ${guide}`);
     notFound();
   }
 
