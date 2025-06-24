@@ -13,9 +13,10 @@ export default async function Page({
     guide: string;
   };
 }) {
-  let { guide } = searchParams;
-  let selectedGuide: IntegrationGuide | null = null;
+  const { guide } = searchParams;
+
   let markdown: string | null = null;
+  let selectedGuide: IntegrationGuide | null = null;
 
   if (guide) {
     selectedGuide = guides.find((g) => g.key === guide.toLowerCase()) ?? null;
