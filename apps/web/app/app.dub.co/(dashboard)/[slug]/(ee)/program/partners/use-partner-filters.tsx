@@ -103,6 +103,31 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
             })) ?? [],
       },
 
+      {
+        key: "status",
+        icon: CircleDotted,
+        label: "Status",
+        options:
+          statusCount
+            ?.filter(({ status }) => !["pending", "rejected"].includes(status))
+            ?.map(({ status, _count }) => {
+              const Icon = PartnerStatusBadges[status].icon;
+              return {
+                value: status,
+                label: PartnerStatusBadges[status].label,
+                icon: (
+                  <Icon
+                    className={cn(
+                      PartnerStatusBadges[status].className,
+                      "size-4 bg-transparent",
+                    )}
+                  />
+                ),
+                right: nFormatter(_count || 0, { full: true }),
+              };
+            }) ?? [],
+      },
+
       ...(saleRewardsCount && saleRewardsCount.length > 0
         ? [
             {
@@ -159,31 +184,6 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
             },
           ]
         : []),
-
-      {
-        key: "status",
-        icon: CircleDotted,
-        label: "Status",
-        options:
-          statusCount
-            ?.filter(({ status }) => status !== "pending")
-            ?.map(({ status, _count }) => {
-              const Icon = PartnerStatusBadges[status].icon;
-              return {
-                value: status,
-                label: PartnerStatusBadges[status].label,
-                icon: (
-                  <Icon
-                    className={cn(
-                      PartnerStatusBadges[status].className,
-                      "size-4 bg-transparent",
-                    )}
-                  />
-                ),
-                right: nFormatter(_count || 0, { full: true }),
-              };
-            }) ?? [],
-      },
     ],
     [
       countriesCount,

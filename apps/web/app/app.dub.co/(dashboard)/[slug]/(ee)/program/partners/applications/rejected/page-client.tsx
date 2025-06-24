@@ -372,7 +372,7 @@ function SocialColumn({
   verified: boolean;
   href: string;
 }) {
-  return value ? (
+  return value && href ? (
     <Link
       href={href}
       target="_blank"
