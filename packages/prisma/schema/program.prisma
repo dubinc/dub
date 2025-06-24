@@ -24,33 +24,33 @@ enum LinkStructure {
 }
 
 model Program {
-  id                  String        @id @default(cuid())
-  workspaceId         String
-  defaultFolderId     String?
-  name                String
-  slug                String        @unique
-  logo                String?
-  wordmark            String?
-  brandColor          String?
-  domain              String?
-  url                 String?
-  cookieLength        Int           @default(90)
-  holdingPeriodDays   Int           @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount     Int           @default(10000) // Default minimum payout amount of $100
-  defaultDiscountId   String?       @unique // default discount for the program
-  embedData           Json?         @db.Json
-  landerData          Json?         @db.Json
-  landerPublishedAt   DateTime?
-  resources           Json?         @db.Json
-  termsUrl            String?       @db.Text
-  helpUrl             String?       @db.Text
-  supportEmail        String?
-  ageVerification     Int?
-  linkStructure       LinkStructure @default(short)
-  linkParameter       String? // null for SHORT, "via" for QUERY, "refer" for PATH
-  autoApprovePartners Boolean       @default(false)
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  id                           String        @id @default(cuid())
+  workspaceId                  String
+  defaultFolderId              String?
+  name                         String
+  slug                         String        @unique
+  logo                         String?
+  wordmark                     String?
+  brandColor                   String?
+  domain                       String?
+  url                          String?
+  cookieLength                 Int           @default(90)
+  holdingPeriodDays            Int           @default(0) // number of days to wait before earnings are added to a payout
+  minPayoutAmount              Int           @default(10000) // Default minimum payout amount of $100
+  defaultDiscountId            String?       @unique // default discount for the program
+  embedData                    Json?         @db.Json
+  landerData                   Json?         @db.Json
+  landerPublishedAt            DateTime?
+  resources                    Json?         @db.Json
+  termsUrl                     String?       @db.Text
+  helpUrl                      String?       @db.Text
+  supportEmail                 String?
+  ageVerification              Int?
+  linkStructure                LinkStructure @default(short)
+  linkParameter                String? // null for SHORT, "via" for QUERY, "refer" for PATH
+  autoApprovePartnersEnabledAt DateTime?
+  createdAt                    DateTime      @default(now())
+  updatedAt                    DateTime      @updatedAt
 
   workspace       Project              @relation(fields: [workspaceId], references: [id])
   primaryDomain   Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)

@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       },
     });
 
-    if (!program.autoApprovePartners) {
+    if (!program.autoApprovePartnersEnabledAt) {
       return new Response(
         `Program ${programId} does not have auto-approval enabled. Skipping auto-approval.`,
       );

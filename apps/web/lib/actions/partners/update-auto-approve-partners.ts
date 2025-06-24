@@ -30,7 +30,7 @@ export const updateAutoApprovePartnersAction = authActionClient
         id: programId,
       },
       data: {
-        autoApprovePartners,
+        autoApprovePartnersEnabledAt: autoApprovePartners ? new Date() : null,
       },
     });
 

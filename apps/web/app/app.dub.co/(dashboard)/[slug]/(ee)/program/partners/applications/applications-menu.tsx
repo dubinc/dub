@@ -82,7 +82,7 @@ export function ApplicationsMenu() {
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-              {program?.autoApprovePartners ? (
+              {program?.autoApprovePartnersEnabledAt ? (
                 <MenuItem
                   as={Command.Item}
                   icon={<UserCheck className="size-4 shrink-0 text-red-600" />}
