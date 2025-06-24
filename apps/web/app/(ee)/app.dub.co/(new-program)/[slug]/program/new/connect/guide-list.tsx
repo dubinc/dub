@@ -3,22 +3,21 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import {
-  Button,
-} from "@dub/ui";
-import { Check } from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
-import {
-  guides,
-  IntegrationGuide,
-  IntegrationType,
-} from "./integration-guides";
-import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
   ProgramSheetAccordionItem,
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
+import { Button, Copy, useCopyToClipboard } from "@dub/ui";
+import { Check } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+  guides,
+  IntegrationGuide,
+  IntegrationType,
+} from "./integration-guides";
 
 const sections: {
   type: IntegrationType;
@@ -53,6 +52,7 @@ const sections: {
 
 export function GuideList() {
   const { slug: workspaceSlug } = useWorkspace();
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const [completedSections, setCompletedSections] = useState<
     Set<IntegrationType>
@@ -184,14 +184,19 @@ export function GuideList() {
       </ProgramSheetAccordion>
 
       <div className="flex items-center justify-between gap-4">
-        <a
-          href="https://dub.co/docs/partners/quickstart"
-          target="_blank"
-          rel="noreferrer"
-          className="text-sm font-medium leading-5 text-neutral-700 no-underline hover:underline"
-        >
-          View full documentation ↗
-        </a>
+        <Button
+          text="Share with a developer"
+          className="h-8 w-fit"
+          variant="outline"
+          icon={
+            copied ? <Check className="size-4" /> : <Copy className="size-4" />
+          }
+          type="button"
+          onClick={() => {
+            copyToClipboard("https://dub.co/docs/partners/quickstart");
+            toast.success("Developer link copied.");
+          }}
+        />
 
         <Link href={`/${workspaceSlug}/program/new/overview`}>
           <Button
