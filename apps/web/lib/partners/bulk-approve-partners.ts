@@ -32,6 +32,7 @@ export async function bulkApprovePartners({
     },
     data: {
       status: "approved",
+      createdAt: new Date(),
       ...(program.rewards &&
         program.rewards.length > 0 && {
           ...Object.fromEntries(

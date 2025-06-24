@@ -61,6 +61,7 @@ export async function approvePartnerEnrollment({
       },
       data: {
         status: "approved",
+        createdAt: new Date(),
         ...(defaultRewards.length > 0 && {
           ...Object.fromEntries(
             defaultRewards.map((r) => [
