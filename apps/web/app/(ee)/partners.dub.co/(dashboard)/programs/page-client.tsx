@@ -1,10 +1,10 @@
 "use client";
 
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
 import { ProgramInviteCard } from "@/ui/partners/program-invite-card";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { MaxWidthWrapper } from "@dub/ui";
 import { CircleDollar, GridIcon } from "@dub/ui/icons";
 
 export function PartnersDashboardPageClient() {
@@ -21,7 +21,7 @@ export function PartnersDashboardPageClient() {
   );
 
   return (
-    <MaxWidthWrapper>
+    <PageWidthWrapper className="pb-10">
       {programEnrollments?.length == 0 ? (
         <AnimatedEmptyState
           title="No programs found"
@@ -59,6 +59,6 @@ export function PartnersDashboardPageClient() {
           )}
         </div>
       )}
-    </MaxWidthWrapper>
+    </PageWidthWrapper>
   );
 }

@@ -1,12 +1,12 @@
 import { PageContent } from "@/ui/layout/page-content";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { MaxWidthWrapper } from "@dub/ui";
 import { Folder, Globe } from "@dub/ui/icons";
 
 export default function MarketplacePage() {
   return (
     <PageContent title="Marketplace">
-      <MaxWidthWrapper>
+      <PageWidthWrapper className="pb-10">
         <AnimatedEmptyState
           title="Marketplace"
           description="Explore and discover other partnerships with companies and products."
@@ -21,7 +21,7 @@ export default function MarketplacePage() {
           }
           pillContent="Coming soon"
         />
-      </MaxWidthWrapper>
+      </PageWidthWrapper>
     </PageContent>
   );
 }

@@ -4,6 +4,7 @@ import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partne
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps, PayoutsCount } from "@/lib/types";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import {
@@ -11,7 +12,6 @@ import {
   buttonVariants,
   FileUpload,
   LoadingSpinner,
-  MaxWidthWrapper,
   ToggleGroup,
   useEnterSubmit,
 } from "@dub/ui";
@@ -28,7 +28,7 @@ export function ProfileSettingsPageClient() {
   const { partner, error } = usePartnerProfile();
 
   return (
-    <MaxWidthWrapper className="mb-20 flex flex-col gap-8">
+    <PageWidthWrapper className="mb-20 flex flex-col gap-8">
       <div className="max-w-screen-md rounded-lg border border-neutral-200 bg-white">
         <div className="border-b border-neutral-200 p-6">
           <div className="flex items-center gap-2">
@@ -83,7 +83,7 @@ export function ProfileSettingsPageClient() {
           </div>
         )}
       </div>
-    </MaxWidthWrapper>
+    </PageWidthWrapper>
   );
 }
 
