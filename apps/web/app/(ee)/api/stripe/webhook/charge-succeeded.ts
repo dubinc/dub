@@ -6,7 +6,7 @@ import Stripe from "stripe";
 export async function chargeSucceeded(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Charge;
 
-  const { id: chargeId, receipt_url, transfer_group } = charge;
+  const { id: chargeId, receipt_url, transfer_group, payment_intent } = charge;
 
   if (!transfer_group) {
     console.log("No transfer group found, skipping...");
@@ -57,6 +57,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
       receiptUrl: receipt_url,
       status: "completed",
       paidAt: new Date(),
+      stripePaymentIntentId: payment_intent as string,
     },
   });
 

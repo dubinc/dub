@@ -6,12 +6,18 @@ import {
 } from "@/lib/partners/cutoff-period";
 import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
+import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { chunk, log } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
+
+const paymentMethodToCurrency = {
+  sepa_debit: "eur",
+  acss_debit: "cad",
+} as const;
 
 export async function confirmPayouts({
   workspace,
@@ -96,8 +102,29 @@ export async function confirmPayouts({
       `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
     );
 
+    const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
     const totalFee = amount * payoutFee;
     const total = amount + totalFee;
+    let convertedTotal = total;
+
+    // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
+    if (["sepa_debit", "acss_debit"].includes(paymentMethod.type)) {
+      const fxQuote = await createFxQuote({
+        fromCurrency: "usd",
+        toCurrency: currency,
+      });
+
+      const exchangeRate = fxQuote.rates[currency].exchange_rate;
+
+      if (exchangeRate === null) {
+        throw new Error(
+          `Failed to get exchange rate from Stripe for ${currency}.`,
+        );
+      }
+
+      // Add a 0.5% markup to the exchange rate to cover forex conversion spread
+      convertedTotal = total * exchangeRate * 1.005;
+    }
 
     // Generate the next invoice number
     const totalInvoices = await tx.invoice.count({
@@ -125,14 +152,14 @@ export async function confirmPayouts({
     }
 
     await stripe.paymentIntents.create({
-      amount: invoice.total,
+      amount: convertedTotal,
       customer: workspace.stripeId!,
       payment_method: paymentMethod.id,
       automatic_payment_methods: {
         enabled: true,
         allow_redirects: "never",
       },
-      currency: "usd",
+      currency,
       confirm: true,
       transfer_group: invoice.id,
       statement_descriptor: "Dub Partners",
