@@ -41,12 +41,15 @@ const schema = z.discriminatedUnion("step", [
 export const mergePartnerAccountsAction = authPartnerActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { user, partner } = ctx;
+    const { user } = ctx;
     const { step } = parsedInput;
 
     switch (step) {
       case "send-tokens":
-        return await sendTokens(parsedInput);
+        return await sendTokens({
+          ...parsedInput,
+          userId: user.id,
+        });
       case "verify-tokens":
         return await verifyTokens({
           ...parsedInput,
@@ -65,9 +68,11 @@ export const mergePartnerAccountsAction = authPartnerActionClient
 const sendTokens = async ({
   sourceEmail,
   targetEmail,
+  userId,
 }: {
   sourceEmail: string;
   targetEmail: string;
+  userId: string;
 }) => {
   if (sourceEmail === targetEmail) {
     throw new Error("Source and target emails cannot be the same.");
@@ -105,13 +110,17 @@ const sendTokens = async ({
     );
   }
 
-  await prisma.emailVerificationToken.deleteMany({
-    where: {
-      identifier: {
-        in: [sourceEmail, targetEmail],
+  await Promise.all([
+    prisma.emailVerificationToken.deleteMany({
+      where: {
+        identifier: {
+          in: [sourceEmail, targetEmail],
+        },
       },
-    },
-  });
+    }),
+
+    redis.del(`${CACHE_KEY_PREFIX}:${userId}`),
+  ]);
 
   const sourceEmailCode = generateOTP();
   const targetEmailCode = generateOTP();
