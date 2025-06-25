@@ -328,7 +328,7 @@ function PartnerRejectButton({
     {
       onSuccess: async () => {
         await mutatePrefix("/api/partners");
-        toast.success("Partner application rejected. They are unable to reapply for 30 days, and no email has been sent to them.");
+        toast.success("Application rejected. No email sent, and can they reapply in 30 days.");
         setIsOpen(false);
       },
       onError({ error }) {
