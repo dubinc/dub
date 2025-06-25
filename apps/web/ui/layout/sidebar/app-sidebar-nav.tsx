@@ -1,5 +1,6 @@
 "use client";
 
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -52,6 +53,7 @@ type SidebarNavData = {
   session?: Session | null;
   showNews?: boolean;
   applicationsCount?: number;
+  showConversionGuides?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -393,7 +395,7 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { defaultProgramId } = useWorkspace();
+  const { defaultProgramId, conversionEnabled } = useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -407,6 +409,10 @@ export function AppSidebarNav({
 
   const applicationsCount = useProgramApplicationsCount({
     enabled: currentArea === "program",
+  });
+
+  const { data: customersCount } = useCustomersCount({
+    enabled: conversionEnabled === true,
   });
 
   return (
@@ -424,6 +430,7 @@ export function AppSidebarNav({
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
         applicationsCount,
+        showConversionGuides: conversionEnabled && customersCount === 0,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

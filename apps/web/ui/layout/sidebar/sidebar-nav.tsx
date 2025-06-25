@@ -172,15 +172,19 @@ export function SidebarNav<T extends Record<any, any>>({
 
                       <div className="-mx-3 flex grow flex-col justify-end">
                         <div className="flex flex-col gap-4 divide-y divide-neutral-200">
-                          <div className="flex w-full items-center justify-center">
-                            <Link
-                              href={`/${data.slug}/tracking-guide`}
-                              className="flex h-8 items-center gap-3 rounded-lg bg-neutral-900/10 px-2.5 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-900/20"
-                            >
-                              <BookOpen className="size-4" />
-                              View connection guides
-                            </Link>
-                          </div>
+                          {data.showConversionGuides && (
+                            <div className="flex w-full items-center justify-center">
+                              <Link
+                                href={`/${data.slug}/tracking-guide`}
+                                className="flex h-8 items-center gap-3 rounded-lg bg-neutral-900/10 px-2.5 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-900/20"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <BookOpen className="size-4" />
+                                View connection guides
+                              </Link>
+                            </div>
+                          )}
 
                           <div>
                             <AnimatePresence>
