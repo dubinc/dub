@@ -123,7 +123,7 @@ export function QRBuilderModal({
       >
         <Drawer.Portal>
           <Drawer.Overlay className="bg-neutral/20 fixed inset-0 z-50" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 flex h-[95%] flex-col rounded-t-xl bg-white">
+          <Drawer.Content className="mx-h-[82vh] fixed inset-0 bottom-0 left-0 right-0 z-50 mt-24 flex flex-col rounded-t-xl bg-white">
             <div className="mx-auto mb-2 mt-4 h-1.5 w-12 flex-shrink-0 rounded-full bg-neutral-300" />
             {modalContent}
           </Drawer.Content>
