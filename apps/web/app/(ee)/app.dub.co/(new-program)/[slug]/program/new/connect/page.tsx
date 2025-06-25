@@ -43,11 +43,7 @@ export default async function Page({
           </p>
 
           <div>
-            {selectedGuide ? (
-              <Guide markdown={markdown} />
-            ) : (
-              <GuideList showConnectLaterButton={false} />
-            )}
+            {selectedGuide ? <Guide markdown={markdown} /> : <GuideList />}
           </div>
         </div>
       </Suspense>
