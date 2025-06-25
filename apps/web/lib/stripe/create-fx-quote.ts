@@ -35,7 +35,5 @@ export async function createFxQuote({
 
   const fxQuote = await fxQuoteResponse.json();
 
-  console.log(["/v1/fx_quotes"], fxQuote);
-
   return fxQuoteSchema.parse(fxQuote);
 }
