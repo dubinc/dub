@@ -1,4 +1,3 @@
-import { Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Crown } from "lucide-react";
 import { PropsWithChildren, ReactNode } from "react";
@@ -34,14 +33,6 @@ export function StepPage({
         {description}
       </div>
       <div className="mt-8 w-full">{children}</div>
-    </div>
-  );
-}
-
-function StepIcon({ icon: Icon }: { icon: Icon }) {
-  return (
-    <div className="rounded-full border border-neutral-200 bg-white p-2.5">
-      <Icon className="size-[18px]" />
     </div>
   );
 }
