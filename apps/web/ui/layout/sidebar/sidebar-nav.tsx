@@ -175,7 +175,7 @@ export function SidebarNav<T extends Record<any, any>>({
                           <div className="flex w-full items-center justify-center">
                             <Link
                               href={`/${data.slug}/tracking-guide`}
-                              className="border-neutral-100/900 flex h-8 w-fit items-center gap-3 rounded-lg border bg-neutral-100 px-2.5 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200"
+                              className="flex h-8 w-fit items-center gap-3 rounded-lg bg-neutral-900/10 px-2.5 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-900/20"
                             >
                               <BookOpen className="size-4" />
                               View connection guides
