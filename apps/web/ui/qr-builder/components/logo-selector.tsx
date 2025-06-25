@@ -1,6 +1,6 @@
 import { SUGGESTED_LOGOS } from "@/ui/qr-builder/constants/customization/logos.ts";
 import { EAcceptedFileType } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
-import { FC, useEffect } from "react";
+import { FC, useEffect, useRef } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import { FileCardContent } from "./file-card-content.tsx";
 import { StylePicker } from "./style-picker.tsx";
@@ -32,11 +32,18 @@ export const LogoSelector: FC<ILogoSelectorProps> = ({
 
   const { control, trigger } = methods;
   const uploadedLogoFiles = useWatch({ control, name: FILE_UPLOAD_FIELD_NAME });
+  const previousFilesRef = useRef<File[]>([]);
 
   useEffect(() => {
     const lastFile = uploadedLogoFiles?.[uploadedLogoFiles.length - 1] || null;
-    onUploadLogo(lastFile);
-  }, [uploadedLogoFiles]);
+    const previousLastFile = previousFilesRef.current?.[previousFilesRef.current.length - 1] || null;
+
+    if (lastFile !== previousLastFile) {
+      onUploadLogo(lastFile);
+    }
+    
+    previousFilesRef.current = uploadedLogoFiles || [];
+  }, [uploadedLogoFiles, onUploadLogo]);
 
   return (
     <div className="border-border-500 flex max-w-[540px] flex-col gap-4 rounded-lg border p-3">

@@ -1,4 +1,4 @@
-import { checkFeaturesAccess } from "@/lib/actions/check-features-access.ts";
+import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
 import { qstash } from "@/lib/cron";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -64,11 +64,10 @@ export async function createLink(link: ProcessedLinkProps) {
     //     throw new Error("Access restricted: Account age over 10 days or exceeded 30 total clicks limit.");
     //   }
     // }
-
     // TODO: CHECK
-    const result = await checkFeaturesAccess();
+    const result = await checkFeaturesAccessAuthLess(userId);
 
-    if (!result?.data?.featuresAccess) {
+    if (result && !result?.featuresAccess) {
       throw new Error("Access denied: Account have not subscription.");
     }
   }

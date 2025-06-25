@@ -299,7 +299,9 @@ export function useQrCustomization(
       }
     },
     setUploadedLogoFile: (file: File | null) => {
-      setSelectedSuggestedLogo("none");
+      if (file !== uploadedLogo) {
+        setSelectedSuggestedLogo("none");
+      }
 
       if (!file) {
         setUploadedLogo(null);
