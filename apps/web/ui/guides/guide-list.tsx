@@ -15,12 +15,27 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { guides, IntegrationGuide, IntegrationType } from "./integrations";
-import { sections } from "./sections";
+import {
+  guides,
+  IntegrationGuide,
+  IntegrationType,
+  sections,
+} from "./integrations";
 
 interface GuideListProps {
   showConnectLaterButton?: boolean;
 }
+
+const guidesByType = guides.reduce(
+  (acc, guide) => {
+    if (!acc[guide.type]) {
+      acc[guide.type] = [];
+    }
+    acc[guide.type].push(guide);
+    return acc;
+  },
+  {} as Record<IntegrationType, IntegrationGuide[]>,
+);
 
 export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
   const pathname = usePathname();
@@ -35,33 +50,18 @@ export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
     sections[0].type,
   ]);
 
-  const guidesByType = guides.reduce(
-    (acc, guide) => {
-      if (!acc[guide.type]) {
-        acc[guide.type] = [];
-      }
-      acc[guide.type].push(guide);
-      return acc;
-    },
-    {} as Record<IntegrationType, IntegrationGuide[]>,
-  );
-
-  const handleComplete = (sectionType: IntegrationType) => {
+  const handleComplete = (type: IntegrationType) => {
     setCompletedSections((prev) => {
       const newSet = new Set(prev);
-      newSet.add(sectionType);
+      newSet.add(type);
       return newSet;
     });
 
-    const completedSectionIndex = sections.findIndex(
-      (s) => s.type === sectionType,
-    );
+    const completedSectionIndex = sections.findIndex((s) => s.type === type);
 
     setOpenSections((prevOpenSections) => {
-      // close current section
-      const newOpenSections = prevOpenSections.filter((s) => s !== sectionType);
+      const newOpenSections = prevOpenSections.filter((s) => s !== type);
 
-      // open next section
       if (completedSectionIndex < sections.length - 1) {
         const nextSection = sections[completedSectionIndex + 1];
         newOpenSections.push(nextSection.type);
