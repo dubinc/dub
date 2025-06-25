@@ -3,24 +3,24 @@ export const GET_QR_FEATURES = [
     icon: "material-symbols:palette-outline",
     title: "Full Customization",
     content:
-      "Bring your QR codes to life with endless design options. Customize colors, layouts, and logos to create a unique and professional look that stands out.",
+      "Style your QR with custom colors, shapes, frames, and logos—pick a preset or make it yours.",
   },
   {
     icon: "hugeicons:settings-03",
-    title: "Dynamic & Editable QR Codes",
+    title: "Dynamic & Editable",
     content:
-      "Update your QR code’s content anytime—no need to reprint! Easily edit links, text, and files in real time to keep your information fresh and relevant.",
+      "Swap links, files, or content anytime—no reprints needed. Stay flexible, always.",
   },
   {
     icon: "streamline:money-graph-analytics-business-product-graph-data-chart-analysis",
-    title: "Advanced Analytics & Insights",
+    title: "Advanced Analytics",
     content:
-      "Track every scan with real-time data. See when, where, and how many times your QR codes are scanned to optimize engagement and marketing campaigns.",
+      "Track scans by code or account. See location, device, OS, browser, and more in real time.",
   },
   {
     icon: "tabler:photo-down",
-    title: "High-Quality Downloads & Easy Management",
+    title: "High-Quality Downloads",
     content:
-      "Ensure crisp, high-resolution QR codes for any medium—print or digital. Download in JPG, PNG, or SVG, and easily organize, edit, and share your codes anytime.",
+      "Export in JPG, PNG, or SVG. Easy to manage, edit, and use across any channel.",
   },
 ];
