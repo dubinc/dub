@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
-  FOREX_MARKUP_PERCENTAGE,
+  FOREX_MARKUP_RATE,
 } from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
@@ -126,7 +126,7 @@ export async function confirmPayouts({
       }
 
       convertedTotal = Math.round(
-        total * exchangeRate * (1 + FOREX_MARKUP_PERCENTAGE / 100),
+        total * exchangeRate * (1 + FOREX_MARKUP_RATE),
       );
 
       console.log(
