@@ -58,6 +58,9 @@ export async function notifyPartnerApplication({
             },
             program: {
               name: program.name,
+              autoApprovePartners: program.autoApprovePartnersEnabledAt
+                ? true
+                : false,
             },
             workspace: {
               slug: project.slug,
