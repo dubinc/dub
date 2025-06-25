@@ -119,7 +119,7 @@ export async function confirmPayouts({
 
       const exchangeRate = fxQuote.rates[currency].exchange_rate;
 
-      // if Stripe's FX rate is not available, use the cached rate from Redis
+      // if Stripe's FX rate is not available, throw an error
       if (!exchangeRate || exchangeRate <= 0) {
         throw new Error(
           `Failed to get exchange rate from Stripe for ${currency}.`,
