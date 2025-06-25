@@ -274,7 +274,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 gap={{ initial: "4", md: "6" }}
               >
                 <div className="flex w-full flex-col justify-between gap-4">
-                  <div className="flex h-full w-full flex-col items-center justify-between">
+                  <div className="flex h-full w-full flex-col items-start justify-between gap-4">
                     {isTypeStep && (
                       <Flex
                         gap="4"
@@ -311,6 +311,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                             isHiddenNetwork={isHiddenNetwork}
                             onHiddenNetworkChange={handleSetIsHiddenNetwork}
                             validateFields={handleValidationAndContentSubmit}
+                            homePageDemo
                           />
                         </FormProvider>
                       </Flex>
@@ -337,6 +338,19 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           handlers={handlers}
                         />
                       </Flex>
+                    )}
+
+                    {!isMobile && !isTypeStep && (
+                      <div className="w-full">
+                        <QrBuilderButtons
+                          step={step}
+                          onBack={handleBack}
+                          onContinue={handleContinue}
+                          isEdit={isEdit}
+                          isProcessing={isProcessing}
+                          homePageDemo={homepageDemo}
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
@@ -418,7 +432,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             </div>
           </div>
 
-          {!isTypeStep && (
+          {!isTypeStep && isMobile && (
             <div className="border-border-500 sticky bottom-0 z-10 mt-auto w-full border-t bg-white px-6 py-3">
               <QrBuilderButtons
                 step={step}

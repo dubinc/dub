@@ -17,7 +17,7 @@ interface IQRContentBuilderProps {
   isHiddenNetwork: boolean;
   onHiddenNetworkChange: (checked: boolean) => void;
   validateFields: () => void;
-  minimalFlow?: boolean;
+  homePageDemo?: boolean;
   hideNameField?: boolean;
 }
 
@@ -26,7 +26,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   isHiddenNetwork,
   onHiddenNetworkChange,
   validateFields,
-  minimalFlow = false,
+  homePageDemo = false,
   hideNameField = false,
 }) => {
   const { isMobile } = useMediaQuery();
@@ -44,7 +44,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
         >
           <InputWithLabel
             id={field.id}
-            minimalFlow={minimalFlow}
+            homePageDemo={homePageDemo}
             initFromPlaceholder={field.initFromPlaceholder}
             tooltip={field.tooltip}
             {...field}
@@ -136,7 +136,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
           "flex h-fit w-full flex-col items-center justify-center gap-6 p-0 md:max-w-[524px] md:p-0",
           {
             "border-border-100 rounded-lg border p-3 md:px-6 md:py-4":
-              !minimalFlow,
+              !homePageDemo,
           },
         )}
       >
