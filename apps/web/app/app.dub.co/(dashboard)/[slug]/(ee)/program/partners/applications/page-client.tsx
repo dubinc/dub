@@ -10,6 +10,7 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
+import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -18,18 +19,11 @@ import {
   MenuItem,
   Popover,
   Table,
-  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import {
-  BadgeCheck2Fill,
-  Dots,
-  LoadingSpinner,
-  Users,
-  UserXmark,
-} from "@dub/ui/icons";
+import { Dots, LoadingSpinner, Users, UserXmark } from "@dub/ui/icons";
 import {
   COUNTRIES,
   fetcher,
@@ -40,7 +34,6 @@ import {
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -213,7 +206,7 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }) => {
           return (
-            <SocialColumn
+            <PartnerSocialColumn
               value={getDomainWithoutWWW(row.original.website) ?? "-"}
               verified={!!row.original.websiteVerifiedAt}
               href={row.original.website}
@@ -227,7 +220,7 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }) => {
           return (
-            <SocialColumn
+            <PartnerSocialColumn
               at
               value={row.original.youtube}
               verified={!!row.original.youtubeVerifiedAt}
@@ -242,7 +235,7 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }) => {
           return (
-            <SocialColumn
+            <PartnerSocialColumn
               at
               value={row.original.twitter}
               verified={!!row.original.twitterVerifiedAt}
@@ -257,7 +250,7 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }) => {
           return (
-            <SocialColumn
+            <PartnerSocialColumn
               value={row.original.linkedin}
               verified={!!row.original.linkedinVerifiedAt}
               href={`https://linkedin.com/in/${row.original.linkedin}`}
@@ -271,7 +264,7 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }) => {
           return (
-            <SocialColumn
+            <PartnerSocialColumn
               at
               value={row.original.instagram}
               verified={!!row.original.instagramVerifiedAt}
@@ -286,7 +279,7 @@ export function ProgramPartnersApplicationsPageClient() {
         minSize: 150,
         cell: ({ row }) => {
           return (
-            <SocialColumn
+            <PartnerSocialColumn
               at
               value={row.original.tiktok}
               verified={!!row.original.tiktokVerifiedAt}
@@ -527,39 +520,4 @@ function useCurrentPartner({
   }
 
   return { currentPartner, isLoading };
-}
-
-function SocialColumn({
-  at,
-  value,
-  verified,
-  href,
-}: {
-  at?: boolean;
-  value: string;
-  verified: boolean;
-  href: string;
-}) {
-  return value ? (
-    <Link
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-2 hover:underline"
-    >
-      <span className="min-w-0 truncate">
-        {at && "@"}
-        {value}
-      </span>
-      {verified && (
-        <Tooltip content="Verified" disableHoverableContent>
-          <div>
-            <BadgeCheck2Fill className="size-4 text-green-600" />
-          </div>
-        </Tooltip>
-      )}
-    </Link>
-  ) : (
-    "-"
-  );
 }
