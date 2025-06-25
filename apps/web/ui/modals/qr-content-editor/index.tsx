@@ -12,6 +12,7 @@ import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { Button, Modal } from "@dub/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Theme } from "@radix-ui/themes";
+import { LoaderCircle } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -195,10 +196,18 @@ export function QRContentEditorModal({
     <Modal
       showModal={showQRContentEditorModal}
       setShowModal={setShowQRContentEditorModal}
+      drawerRootProps={{
+        dismissible: false,
+      }}
       className="border-border-500 h-fit transition-[height] duration-[300ms]"
     >
       <Theme>
         <div className="flex flex-col gap-2">
+          {isProcessing && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-white/50 backdrop-blur-sm">
+              <LoaderCircle className="text-secondary h-8 w-8 animate-spin" />
+            </div>
+          )}
           {/* Header */}
           <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
             <div className="flex items-center gap-2">
@@ -227,7 +236,7 @@ export function QRContentEditorModal({
                 isHiddenNetwork={isHiddenNetwork}
                 onHiddenNetworkChange={handleHiddenNetworkChange}
                 validateFields={validateFields}
-                minimalFlow={true}
+                homePageDemo={true}
                 hideNameField={true}
               />
 

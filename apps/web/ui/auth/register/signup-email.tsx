@@ -72,7 +72,7 @@ export const SignUpEmail = ({
         <Input
           type="email"
           placeholder="Your Email"
-          autoComplete="email"
+          autoComplete="off"
           required
           {...register("email")}
           error={errors.email?.message}
