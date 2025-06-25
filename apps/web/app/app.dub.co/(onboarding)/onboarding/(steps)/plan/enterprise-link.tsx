@@ -11,6 +11,7 @@ export function EnterpriseLink() {
     <a
       href="https://dub.co/enterprise"
       target="_blank"
+      rel="noopener noreferrer"
       className={cn(
         "flex items-center text-neutral-500 underline-offset-4 transition-colors hover:text-neutral-800 hover:underline",
         recommendedPlan === "enterprise" &&
