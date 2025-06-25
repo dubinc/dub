@@ -116,7 +116,7 @@ export function OnlinePresenceForm({
         >
           <div
             className={cn(
-              "flex w-full flex-col gap-4 text-left",
+              "flex w-full flex-col gap-6 text-left",
               variant === "settings" && "gap-0 divide-y divide-neutral-200 p-5",
             )}
           >
@@ -482,11 +482,13 @@ function FormRow({
     <div className={cn(variant === "settings" && "py-5")}>
       <label
         className={cn(
-          "flex flex-col gap-2",
+          "flex flex-col gap-1.5",
           variant === "settings" && "flex-row items-center justify-between",
         )}
       >
-        <span className="text-sm font-medium text-neutral-800">{label}</span>
+        <span className="text-content-emphasis text-sm font-medium">
+          {label}
+        </span>
         <div
           className={cn(
             "relative",

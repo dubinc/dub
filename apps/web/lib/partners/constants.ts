@@ -6,6 +6,7 @@ export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
 export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
 export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 10000;
 export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
+export const FOREX_MARKUP_RATE = 0.005; // 0.5%
 
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
@@ -14,6 +15,8 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
   title: string;
   icon: string;
   option: PaymentMethodOption;
+  recommended?: boolean;
+  enterpriseOnly?: boolean;
 }[] = [
   {
     type: "us_bank_account",
@@ -21,6 +24,7 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
     title: "ACH",
     icon: "https://hatscripts.github.io/circle-flags/flags/us.svg",
     option: {},
+    recommended: true,
   },
   {
     type: "acss_debit",
@@ -41,6 +45,7 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
     title: "SEPA Debit",
     icon: "https://hatscripts.github.io/circle-flags/flags/eu.svg",
     option: {},
+    enterpriseOnly: true,
   },
 ];
 

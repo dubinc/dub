@@ -3,6 +3,7 @@
 import { approvePartnersBulkAction } from "@/lib/actions/partners/approve-partners-bulk";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import { rejectPartnersBulkAction } from "@/lib/actions/partners/reject-partners-bulk";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -96,7 +97,7 @@ export function ProgramPartnersApplicationsPageClient() {
         toast.success(
           `${pluralize("Partner", input.partnerIds.length)} rejected`,
         );
-        mutate();
+        mutatePrefix(["/api/partners", "/api/partners/count"]);
       },
     });
 
@@ -109,7 +110,7 @@ export function ProgramPartnersApplicationsPageClient() {
         toast.success(
           `${pluralize("Partner", input.partnerIds.length)} approved`,
         );
-        mutate();
+        mutatePrefix(["/api/partners", "/api/partners/count"]);
       },
     });
 
@@ -435,7 +436,7 @@ function RowMenuButton({
       },
       onSuccess: () => {
         toast.success(`Partner application rejected`);
-        mutate();
+        mutatePrefix(["/api/partners", "/api/partners/count"]);
       },
     });
 
