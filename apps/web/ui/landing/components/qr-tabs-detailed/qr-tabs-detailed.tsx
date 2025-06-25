@@ -68,7 +68,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                     key={type.id}
                     value={type.id}
                     className={cn(
-                      "bg-primary-200 text-neutral group flex h-24 w-24 flex-col items-center justify-around gap-2 rounded-lg border border-transparent px-2 py-3 transition-colors md:h-[104px] md:w-[116px] md:gap-3",
+                      "bg-primary-200 text-neutral group flex h-24 w-24 flex-col items-center justify-center gap-2 rounded-lg border border-transparent px-2 py-3 transition-colors md:h-[104px] md:w-[116px] md:gap-3",
                       "hover:bg-secondary-100 hover:text-secondary",
                       "data-[state=active]:bg-secondary-100 data-[state=active]:text-secondary",
                     )}
