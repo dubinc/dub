@@ -47,6 +47,7 @@ export const GET = withSession(async ({ session, params }) => {
       status: true,
       number: true,
       createdAt: true,
+      stripePaymentIntentId: true,
       payouts: {
         select: {
           periodStart: true,
@@ -90,16 +91,20 @@ export const GET = withSession(async ({ session, params }) => {
   }
 
   let customer: Stripe.Customer | null = null;
+  let transaction: Stripe.PaymentIntent | null = null;
 
-  if (invoice.workspace.stripeId) {
-    try {
-      customer = (await stripe.customers.retrieve(invoice.workspace.stripeId!, {
-        expand: ["tax_ids"],
-      })) as Stripe.Customer;
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  [customer, transaction] = await Promise.all([
+    invoice.workspace.stripeId
+      ? (stripe.customers.retrieve(invoice.workspace.stripeId, {
+          expand: ["tax_ids"],
+        }) as Promise<Stripe.Customer | null>)
+      : Promise.resolve(null),
+
+    invoice.stripePaymentIntentId
+      ? stripe.paymentIntents.retrieve(invoice.stripePaymentIntentId)
+      : Promise.resolve(null),
+  ]);
+
   const earliestPeriodStart = invoice.payouts.reduce(
     (acc, payout) => {
       if (!acc) return payout.periodStart;
@@ -153,6 +158,18 @@ export const GET = withSession(async ({ session, params }) => {
   const AU_CUSTOMER =
     customer?.address?.country && customer.address.country === "AU";
 
+  const nonUsdTransactionDisplay =
+    transaction && transaction.currency !== "usd"
+      ? ` (${currencyFormatter(
+          transaction.amount / 100,
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          },
+          transaction.currency.toUpperCase(),
+        )})`
+      : "";
+
   const invoiceSummaryDetails = [
     {
       label: "Invoice amount",
@@ -170,10 +187,10 @@ export const GET = withSession(async ({ session, params }) => {
     },
     {
       label: "Invoice total",
-      value: currencyFormatter(invoice.total / 100, {
+      value: `${currencyFormatter(invoice.total / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }),
+      })}${nonUsdTransactionDisplay}`,
     },
     // if customer is in EU or AU, add VAT/GST reverse charge note
     ...(EU_CUSTOMER || AU_CUSTOMER
