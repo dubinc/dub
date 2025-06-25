@@ -434,7 +434,7 @@ function RowMenuButton({
       onError: ({ error }) => {
         toast.error(error.serverError);
       },
-      onSuccess: async () => {
+      onSuccess: () => {
         toast.success(`Partner application rejected`);
         mutatePrefix(["/api/partners", "/api/partners/count"]);
       },
