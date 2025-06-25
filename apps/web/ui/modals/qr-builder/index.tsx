@@ -7,13 +7,11 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
-import { RemoveScroll } from "react-remove-scroll";
 import { toast } from "sonner";
+import { Drawer } from "vaul";
 
 import useUser from "@/lib/swr/use-user.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
@@ -52,18 +50,6 @@ export function QRBuilderModal({
   const { createQr, updateQr } = useQrSave();
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    if (showQRBuilderModal) {
-      dialog.showModal();
-    } else {
-      dialog.close();
-    }
-  }, [showQRBuilderModal]);
 
   const handleSaveQR = async (data: QRBuilderData) => {
     setIsProcessing(true);
@@ -91,54 +77,60 @@ export function QRBuilderModal({
   };
 
   return (
-    <RemoveScroll enabled={showQRBuilderModal}>
-      <dialog
-        ref={dialogRef}
-        onClose={() => setShowQRBuilderModal(false)}
-        className="fixed h-[100dvh] max-h-[100dvh] w-full max-w-full overflow-y-scroll rounded-none bg-transparent p-0 opacity-0 transition-opacity duration-300 ease-in-out backdrop:bg-black backdrop:opacity-0 backdrop:transition-opacity backdrop:duration-300 open:opacity-100 open:backdrop:opacity-30 md:m-auto md:h-auto md:w-full md:max-w-screen-lg md:scale-95 md:rounded-lg md:transition-all open:md:scale-100"
-      >
-        <div className="bg-background flex h-full flex-col gap-2 overflow-y-auto md:h-fit">
-          {/* header */}
-          <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
-            <div className="flex items-center gap-2">
-              <QRIcon className="text-primary h-5 w-5" />
-              <h3 className="!mt-0 max-w-xs truncate text-lg font-medium">
-                {props ? `Edit QR - ${props.title ?? props.id}` : "New QR"}
-              </h3>
+    <Drawer.Root
+      open={showQRBuilderModal}
+      onOpenChange={setShowQRBuilderModal}
+      shouldScaleBackground
+      dismissible={false}
+    >
+      <Drawer.Portal>
+        <Drawer.Overlay className="bg-neutral/20 fixed inset-0 z-50" />
+        <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 mt-24 flex h-[95%] flex-col rounded-t-xl bg-white">
+          <div className="bg-background flex h-full flex-col gap-2 overflow-y-auto rounded-t-xl">
+            <div className="mx-auto mb-2 mt-4 h-1.5 w-12 flex-shrink-0 rounded-full bg-neutral-300" />
+            {/* header */}
+            <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
+              <div className="flex items-center gap-2">
+                <QRIcon className="text-primary h-5 w-5" />
+                <h3 className="!mt-0 max-w-xs truncate text-lg font-medium">
+                  {props ? `Edit QR - ${props.title ?? props.id}` : "New QR"}
+                </h3>
+              </div>
+              <Drawer.Close asChild>
+                <button
+                  disabled={isProcessing}
+                  type="button"
+                  className="group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:right-0 md:block"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </Drawer.Close>
             </div>
-            <button
-              disabled={isProcessing}
-              type="button"
-              onClick={() => setShowQRBuilderModal(false)}
-              className="group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:right-0 md:block"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
 
-          <Theme>
-            <QrBuilder
-              isEdit={!!props}
-              isProcessing={isProcessing}
-              props={props}
-              handleSaveQR={handleSaveQR}
-              initialStep={initialStep}
-            />
-          </Theme>
-        </div>
-      </dialog>
-    </RemoveScroll>
+            <Theme>
+              <QrBuilder
+                isEdit={!!props}
+                isProcessing={isProcessing}
+                props={props}
+                handleSaveQR={handleSaveQR}
+                initialStep={initialStep}
+              />
+            </Theme>
+          </div>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
   );
 }
 
-type CreateQRButtonProps = {
+function CreateQRButton({
+  setShowQRBuilderModal,
+}: {
   setShowQRBuilderModal: Dispatch<SetStateAction<boolean>>;
-};
-
-export function CreateQRButton(props: CreateQRButtonProps) {
+}) {
   const { user } = useUser();
 
-  useKeyboardShortcut("c", () => props.setShowQRBuilderModal(true));
+  useKeyboardShortcut("c", () => setShowQRBuilderModal(true));
 
   return (
     <Button
@@ -153,7 +145,7 @@ export function CreateQRButton(props: CreateQRButtonProps) {
           },
           sessionId: user?.id,
         });
-        props.setShowQRBuilderModal(true);
+        setShowQRBuilderModal(true);
       }}
     />
   );

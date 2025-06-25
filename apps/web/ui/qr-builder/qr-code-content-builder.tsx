@@ -6,7 +6,6 @@ import { Flex, Text } from "@radix-ui/themes";
 import { Info } from "lucide-react";
 import { FC } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { ButtonsWrapper } from "./components/buttons-wrapper.tsx";
 import { CheckboxWithLabel } from "./components/checkbox-with-label.tsx";
 import { InputWithLabel } from "./components/input-with-label.tsx";
 import { Select } from "./components/select.tsx";
@@ -150,14 +149,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
         >
           {renderCardContent()}
         </form>
-
-        {!minimalFlow && !isMobile && (
-          <ButtonsWrapper qrType={qrType} handleNext={validateFields} />
-        )}
       </div>
-      {!minimalFlow && isMobile && (
-        <ButtonsWrapper qrType={qrType} handleNext={validateFields} />
-      )}
     </div>
   );
 };

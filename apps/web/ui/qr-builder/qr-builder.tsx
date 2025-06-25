@@ -4,7 +4,6 @@ import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
-import { useIsInViewport } from "@/ui/qr-builder/hooks/use-is-in-viewport.ts";
 import { useQRBuilderSteps } from "@/ui/qr-builder/hooks/use-qr-builder-steps.ts";
 import { useQRContentForm } from "@/ui/qr-builder/hooks/use-qr-content-form.ts";
 import { useQRTypeDemo } from "@/ui/qr-builder/hooks/use-qr-type-demo.ts";
@@ -19,15 +18,7 @@ import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
 import { motion } from "framer-motion";
-import {
-  FC,
-  forwardRef,
-  Ref,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { FC, forwardRef, Ref, useCallback, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { trackClientEvents } from "../../core/integration/analytic";
 import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
@@ -83,6 +74,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         selectedQRType,
         setSelectedQRType,
       } = useQrCustomization(props, homepageDemo);
+
+      const qrBuilderContentWrapperRef = useRef<HTMLDivElement>(null);
 
       // ===== EVENT HANDLERS =====
       const handleScroll = () => {
@@ -166,36 +159,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         "Frame" | "Style" | "Shape" | "Logo"
       >("Frame");
 
-      // ===== REFS =====
-      const qrBuilderContentWrapperRef = useRef<HTMLDivElement>(null);
-      const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
-      const qrBuilderCustomizationButtonsWrapperRef =
-        useRef<HTMLDivElement>(null);
-
       // ===== COMPUTED VALUES =====
-      const scrollContainerRef = useMemo(() => {
-        if (qrBuilderContentWrapperRef.current) {
-          const scrollableContainer =
-            qrBuilderContentWrapperRef.current.closest(
-              '[class*="overflow-y-auto"]',
-            );
-          if (scrollableContainer) {
-            return { current: scrollableContainer as HTMLDivElement };
-          }
-        }
-        return null;
-      }, [qrBuilderContentWrapperRef.current]);
-
-      const currentButtonsRef = isContentStep
-        ? qrBuilderButtonsWrapperRef
-        : qrBuilderCustomizationButtonsWrapperRef;
-
-      const navigationButtonsInViewport = useIsInViewport(
-        currentButtonsRef,
-        0.6,
-        scrollContainerRef,
-      );
-
       const hideDemoPlaceholderOnMobile = isMobile && isTypeStep;
 
       // ===== EVENT HANDLERS =====
@@ -280,129 +244,109 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         <div
           ref={qrBuilderContentWrapperRef}
           className={cn(
-            "border-border-500 mx-auto h-full w-full rounded-lg border bg-white transition-[height] duration-[300ms]",
+            "border-border-500 mx-auto flex h-full w-full flex-col justify-between rounded-lg border bg-white",
             {
               "pointer-events-none": isProcessing,
             },
           )}
         >
-          <Flex align="center" justify="center" className="px-6 py-3">
-            <Stepper
-              currentStep={step}
-              steps={[
-                {
-                  number: 1,
-                  label: "Choose type",
-                },
-                { number: 2, label: "Complete Content" },
-                { number: 3, label: "Customize QR" },
-              ]}
-              onStepClick={handleChangeStep}
-            />
-          </Flex>
+          <div>
+            <Flex align="center" justify="center" className="px-6 py-3">
+              <Stepper
+                currentStep={step}
+                steps={[
+                  {
+                    number: 1,
+                    label: "Choose type",
+                  },
+                  { number: 2, label: "Complete Content" },
+                  { number: 3, label: "Customize QR" },
+                ]}
+                onStepClick={handleChangeStep}
+              />
+            </Flex>
 
-          <div className="border-t-border-500 flex w-full flex-col items-stretch justify-between gap-4 border-t p-6 md:gap-6">
-            <QrTabsStepTitle title={QRBuilderStepsTitles[step - 1]} />
+            <div className="border-t-border-500 flex w-full flex-col items-stretch justify-between gap-4 border-t p-6 md:gap-6">
+              <QrTabsStepTitle title={QRBuilderStepsTitles[step - 1]} />
 
-            <Flex
-              direction={{ initial: "column-reverse", md: "row" }}
-              gap={{ initial: "4", md: "6" }}
-            >
-              {isTypeStep && (
-                <Flex
-                  gap="4"
-                  direction="column"
-                  align="start"
-                  justify="start"
-                  className="w-full"
-                >
-                  <QrTypeSelection
-                    qrTypesList={filteredQrTypes}
-                    qrTypeActiveTab={selectedQRType}
-                    onSelect={handleSelectQRType}
-                    onHover={handleHoverQRType}
-                  />
-                  {typeSelectionError && (
-                    <div className="text-sm font-medium text-red-500">
-                      {typeSelectionError}
-                    </div>
-                  )}
-                </Flex>
-              )}
+              <Flex
+                direction={{ initial: "column-reverse", md: "row" }}
+                gap={{ initial: "4", md: "6" }}
+              >
+                <div className="flex w-full flex-col justify-between gap-4">
+                  <div className="flex h-full w-full flex-col items-center justify-between">
+                    {isTypeStep && (
+                      <Flex
+                        gap="4"
+                        direction="column"
+                        align="start"
+                        justify="start"
+                        className="w-full"
+                      >
+                        <QrTypeSelection
+                          qrTypesList={filteredQrTypes}
+                          qrTypeActiveTab={selectedQRType}
+                          onSelect={handleSelectQRType}
+                          onHover={handleHoverQRType}
+                        />
+                        {typeSelectionError && (
+                          <div className="text-sm font-medium text-red-500">
+                            {typeSelectionError}
+                          </div>
+                        )}
+                      </Flex>
+                    )}
 
-              {isContentStep && (
-                <Flex
-                  gap="4"
-                  direction="column"
-                  align="start"
-                  justify="start"
-                  className="w-full md:max-w-[524px]"
-                >
-                  <FormProvider {...form}>
-                    <QRCodeContentBuilder
-                      qrType={selectedQRType}
-                      isHiddenNetwork={isHiddenNetwork}
-                      onHiddenNetworkChange={handleSetIsHiddenNetwork}
-                      validateFields={handleValidationAndContentSubmit}
-                      minimalFlow
-                    />
-                    <div ref={qrBuilderButtonsWrapperRef} className="w-full">
-                      <QrBuilderButtons
-                        step={step}
-                        onBack={handleBack}
-                        onContinue={handleContinue}
-                        isEdit={isEdit}
-                        isProcessing={isProcessing}
-                        homePageDemo={homepageDemo}
-                      />
-                    </div>
-                  </FormProvider>
-                </Flex>
-              )}
+                    {isContentStep && (
+                      <Flex
+                        gap="4"
+                        direction="column"
+                        align="start"
+                        justify="start"
+                        className="w-full md:max-w-[524px]"
+                      >
+                        <FormProvider {...form}>
+                          <QRCodeContentBuilder
+                            qrType={selectedQRType}
+                            isHiddenNetwork={isHiddenNetwork}
+                            onHiddenNetworkChange={handleSetIsHiddenNetwork}
+                            validateFields={handleValidationAndContentSubmit}
+                          />
+                        </FormProvider>
+                      </Flex>
+                    )}
 
-              {isCustomizationStep && (
-                <Flex
-                  gap="4"
-                  direction="column"
-                  align="start"
-                  justify="between"
-                  className="w-full"
-                >
-                  <QrTabsCustomization
-                    styleOptionActiveTab={styleOptionActiveTab}
-                    setStyleOptionActiveTab={setStyleOptionActiveTab}
-                    selectedSuggestedFrame={selectedSuggestedFrame}
-                    selectedSuggestedLogo={selectedSuggestedLogo}
-                    uploadedLogo={uploadedLogo}
-                    isQrDisabled={isQrDisabled}
-                    isMobile={isMobile}
-                    options={options}
-                    homepageDemo={homepageDemo}
-                    handlers={handlers}
-                  />
-
-                  <div
-                    ref={qrBuilderCustomizationButtonsWrapperRef}
-                    className="w-full"
-                  >
-                    <QrBuilderButtons
-                      step={step}
-                      onBack={handleBack}
-                      onContinue={handleContinue}
-                      isEdit={isEdit}
-                      isProcessing={isProcessing}
-                      homePageDemo={homepageDemo}
-                    />
+                    {isCustomizationStep && (
+                      <Flex
+                        gap="4"
+                        direction="column"
+                        align="start"
+                        justify="between"
+                        className="w-full"
+                      >
+                        <QrTabsCustomization
+                          styleOptionActiveTab={styleOptionActiveTab}
+                          setStyleOptionActiveTab={setStyleOptionActiveTab}
+                          selectedSuggestedFrame={selectedSuggestedFrame}
+                          selectedSuggestedLogo={selectedSuggestedLogo}
+                          uploadedLogo={uploadedLogo}
+                          isQrDisabled={isQrDisabled}
+                          isMobile={isMobile}
+                          options={options}
+                          homepageDemo={homepageDemo}
+                          handlers={handlers}
+                        />
+                      </Flex>
+                    )}
                   </div>
-                </Flex>
-              )}
+                </div>
 
-              {!hideDemoPlaceholderOnMobile && (
                 <div
                   className={cn(
                     "bg-background relative flex h-auto shrink-0 basis-2/5 items-start justify-center rounded-lg px-6 pb-0 pt-3 md:p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
                     {
                       "items-start pb-3": isCustomizationStep,
+                      hidden: hideDemoPlaceholderOnMobile,
                     },
                   )}
                 >
@@ -461,23 +405,21 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           />
                         </div>
                       </motion.div>
-                      {homepageDemo &&
-                        !isMobile &&
-                        !navigationButtonsInViewport && (
-                          <QrTabsDownloadButton
-                            onRegistrationClick={onSaveClick}
-                            isQrDisabled={isQrDisabled}
-                          />
-                        )}
+                      {homepageDemo && !isMobile && (
+                        <QrTabsDownloadButton
+                          onRegistrationClick={onSaveClick}
+                          isQrDisabled={isQrDisabled}
+                        />
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </Flex>
+              </Flex>
+            </div>
           </div>
 
-          {isMobile && !navigationButtonsInViewport && !isTypeStep && (
-            <div className="border-border-500 sticky bottom-0 left-0 z-50 w-full border-t bg-white px-6 py-3 shadow-md">
+          {!isTypeStep && (
+            <div className="border-border-500 sticky bottom-0 z-10 mt-auto w-full border-t bg-white px-6 py-3">
               <QrBuilderButtons
                 step={step}
                 onBack={handleBack}

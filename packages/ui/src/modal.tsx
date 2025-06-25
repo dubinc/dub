@@ -17,7 +17,6 @@ export function Modal({
   desktopOnly,
   preventDefaultClose,
   drawerRootProps,
-  showFullScreenOnMobile = false,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -27,7 +26,6 @@ export function Modal({
   desktopOnly?: boolean;
   preventDefaultClose?: boolean;
   drawerRootProps?: ComponentProps<typeof Drawer.Root>;
-  showFullScreenOnMobile?: boolean;
 }) {
   const router = useRouter();
 
@@ -74,9 +72,6 @@ export function Modal({
             className={cn(
               "fixed bottom-0 left-0 right-0 z-50 flex flex-col",
               "rounded-t-[10px] border-t border-neutral-200 bg-white",
-              {
-                "inset-0": showFullScreenOnMobile,
-              },
               className,
             )}
           >
