@@ -29,7 +29,6 @@ export function MainNav({
   sidebar: Sidebar,
   toolContent,
   newsContent,
-  sidebarWidth,
 }: PropsWithChildren<{
   sidebar: ComponentType<{
     toolContent?: ReactNode;
@@ -37,7 +36,6 @@ export function MainNav({
   }>;
   toolContent?: ReactNode;
   newsContent?: ReactNode;
-  sidebarWidth?: number;
 }>) {
   const pathname = usePathname();
 
@@ -56,10 +54,10 @@ export function MainNav({
 
   return (
     <div
-      className="min-h-screen md:grid md:grid-cols-[var(--sidebar-width,240px)_minmax(0,1fr)]"
+      className="min-h-screen md:grid md:grid-cols-[var(--sidebar-width)_minmax(0,1fr)]"
       style={
         {
-          "--sidebar-width": sidebarWidth ? `${sidebarWidth}px` : "240px",
+          "--sidebar-width": "304px",
         } as React.CSSProperties
       }
     >

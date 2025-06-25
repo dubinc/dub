@@ -1,20 +1,16 @@
-import { PageContentOld } from "@/ui/layout/page-content";
-import { MaxWidthWrapper } from "@dub/ui";
+import { PageContent } from "@/ui/layout/page-content";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { InvoiceSettingsButton } from "./invoice-settings-button";
 import { PayoutStatsAndSettings } from "./payout-stats-and-settings";
 import { PayoutTable } from "./payout-table";
 
 export default function PartnersPayoutsSettings() {
   return (
-    <PageContentOld
-      title="Payouts"
-      showControls
-      titleControls={<InvoiceSettingsButton />}
-    >
-      <MaxWidthWrapper className="grid grid-cols-1 gap-4">
+    <PageContent title="Payouts" controls={<InvoiceSettingsButton />}>
+      <PageWidthWrapper className="grid grid-cols-1 gap-4 pb-10">
         <PayoutStatsAndSettings />
         <PayoutTable />
-      </MaxWidthWrapper>
-    </PageContentOld>
+      </PageWidthWrapper>
+    </PageContent>
   );
 }

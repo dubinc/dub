@@ -22,15 +22,37 @@ import { LinesY } from "./icons/lines-y";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { PayoutStats } from "./payout-stats";
 import { ProgramHelpSupport } from "./program-help-support";
-import { SidebarNavAreas, SidebarNavOld } from "./sidebar-nav-old";
+import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
 
-const NAV_AREAS: SidebarNavAreas<{
+type SidebarNavData = {
+  pathname: string;
   programSlug?: string;
   queryString?: string;
-}> = {
+};
+
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
+  pathname,
+  programSlug,
+  queryString,
+}) => [
+  {
+    name: "Programs",
+    description:
+      "View all your enrolled programs and review invitations to other programs.",
+    icon: GridIcon,
+    href: "/programs",
+    active: pathname.startsWith("/programs"),
+  },
+];
+
+const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
   default: () => ({
-    showSwitcher: true,
+    title: (
+      <div className="mb-3">
+        <PartnerProgramDropdown />
+      </div>
+    ),
     showNews: true,
     direction: "left",
     content: [
@@ -57,7 +79,11 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   program: ({ programSlug, queryString }) => ({
-    showSwitcher: true,
+    title: (
+      <div className="mb-3">
+        <PartnerProgramDropdown />
+      </div>
+    ),
     content: [
       {
         items: [
@@ -178,16 +204,17 @@ export function PartnersSidebarNav({
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
   return (
-    <SidebarNavOld
+    <SidebarNav
+      groups={NAV_GROUPS}
       areas={NAV_AREAS}
       currentArea={currentArea}
       data={{
+        pathname,
         programSlug: programSlug || "",
         queryString: getQueryString(),
       }}
       toolContent={toolContent}
       newsContent={newsContent}
-      switcher={<PartnerProgramDropdown />}
       bottom={
         <>
           {isEnrolledProgramPage && <ProgramHelpSupport />}

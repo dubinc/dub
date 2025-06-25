@@ -1,14 +1,13 @@
-import { PageContentOld } from "@/ui/layout/page-content";
+import { PageContent } from "@/ui/layout/page-content";
 import { ProfileSettingsPageClient } from "./page-client";
 
 export default function ProfileSettingsPage() {
   return (
-    <PageContentOld
+    <PageContent
       title="Profile"
-      description="This partner profile is shared with program owners when you apply to their programs."
-      showControls
+      // description="This partner profile is shared with program owners when you apply to their programs."
     >
       <ProfileSettingsPageClient />
-    </PageContentOld>
+    </PageContent>
   );
 }

@@ -1,12 +1,13 @@
-import { PageContentOld } from "@/ui/layout/page-content";
+import { PageContent } from "@/ui/layout/page-content";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { MaxWidthWrapper, UserCheck } from "@dub/ui";
+import { UserCheck } from "@dub/ui";
 
 export default function PeopleSettings() {
   return (
-    <PageContentOld title="People" showControls>
-      <MaxWidthWrapper>
+    <PageContent title="People">
+      <PageWidthWrapper className="pb-10">
         <AnimatedEmptyState
           title="People"
           description="Add and manage teammates to this partner profile"
@@ -18,7 +19,7 @@ export default function PeopleSettings() {
           }
           pillContent="Coming soon"
         />
-      </MaxWidthWrapper>
-    </PageContentOld>
+      </PageWidthWrapper>
+    </PageContent>
   );
 }

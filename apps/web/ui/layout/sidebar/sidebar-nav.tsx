@@ -57,7 +57,7 @@ export type SidebarNavGroups<T extends Record<any, any>> = (
 export type SidebarNavAreas<T extends Record<any, any>> = Record<
   string,
   (args: T) => {
-    title?: string;
+    title?: string | ReactNode;
     backHref?: string;
     showNews?: boolean; // show news segment – TODO: enable this for Partner Program too
     hideSwitcherIcons?: boolean; // hide workspace switcher + product icons for this area
@@ -133,27 +133,30 @@ export function SidebarNav<T extends Record<any, any>>({
                       visible={area === currentArea}
                       direction={direction ?? "right"}
                     >
-                      {title && (
-                        // @ts-ignore - TS can't handle the conditional Link+href
-                        <TitleContainer
-                          {...(backHref ? { href: backHref } : {})}
-                          className="group mb-2 flex items-center gap-3 px-3 py-2"
-                        >
-                          {backHref && (
-                            <div
-                              className={cn(
-                                "text-content-muted bg-bg-emphasis flex size-6 items-center justify-center rounded-lg",
-                                "group-hover:bg-bg-inverted/10 group-hover:text-content-subtle transition-[transform,background-color,color] duration-150 group-hover:-translate-x-0.5",
-                              )}
-                            >
-                              <ChevronLeft className="size-3 [&_*]:stroke-2" />
-                            </div>
-                          )}
-                          <span className="text-content-emphasis text-lg font-semibold">
-                            {title}
-                          </span>
-                        </TitleContainer>
-                      )}
+                      {title &&
+                        (typeof title === "string" ? (
+                          // @ts-ignore - TS can't handle the conditional Link+href
+                          <TitleContainer
+                            {...(backHref ? { href: backHref } : {})}
+                            className="group mb-2 flex items-center gap-3 px-3 py-2"
+                          >
+                            {backHref && (
+                              <div
+                                className={cn(
+                                  "text-content-muted bg-bg-emphasis flex size-6 items-center justify-center rounded-lg",
+                                  "group-hover:bg-bg-inverted/10 group-hover:text-content-subtle transition-[transform,background-color,color] duration-150 group-hover:-translate-x-0.5",
+                                )}
+                              >
+                                <ChevronLeft className="size-3 [&_*]:stroke-2" />
+                              </div>
+                            )}
+                            <span className="text-content-emphasis text-lg font-semibold">
+                              {title}
+                            </span>
+                          </TitleContainer>
+                        ) : (
+                          title
+                        ))}
                       <div className="flex flex-col gap-8">
                         {content.map(({ name, items }, idx) => (
                           <div key={idx} className="flex flex-col gap-0.5">
@@ -331,7 +334,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         className={cn(
-          "text-content-default group flex items-center justify-between rounded-lg h-8 p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
+          "text-content-default group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           isActive && !items
             ? "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100"
