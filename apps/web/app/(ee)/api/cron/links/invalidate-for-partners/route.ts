@@ -17,8 +17,7 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const body = schema.parse(JSON.parse(rawBody));
-    const { partnerId } = body;
+    const { partnerId } = schema.parse(JSON.parse(rawBody));
 
     const programs = await prisma.programEnrollment.findMany({
       where: {

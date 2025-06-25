@@ -1,12 +1,16 @@
 "use server";
 
+import { includeTags } from "@/lib/api/links/include-tags";
 import { EMAIL_OTP_EXPIRY_IN } from "@/lib/auth/constants";
 import { generateOTP } from "@/lib/auth/utils";
+import { qstash } from "@/lib/cron";
+import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
@@ -229,23 +233,148 @@ const verifyTokens = async ({
 
 // Step 3: Merge partner accounts
 const mergeAccounts = async ({ userId }: { userId: string }) => {
-  const accountInfo = await redis.get<{
+  const accounts = await redis.get<{
     sourceEmail: string;
     targetEmail: string;
   }>(`${CACHE_KEY_PREFIX}:${userId}`);
 
-  if (!accountInfo) {
+  if (!accounts) {
     throw new Error(
       "The verification process has been expired. Please restart the process again from the beginning.",
     );
   }
 
-  if (!accountInfo.sourceEmail || !accountInfo.targetEmail) {
+  if (!accounts.sourceEmail || !accounts.targetEmail) {
     throw new Error("Unknown error occurred. Please try again.");
   }
 
-  const { sourceEmail, targetEmail } = accountInfo;
+  const { sourceEmail, targetEmail } = accounts;
+
+  const partnerAccounts = await prisma.partner.findMany({
+    where: {
+      email: {
+        in: [sourceEmail, targetEmail],
+      },
+    },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
+
+  if (partnerAccounts.length === 0) {
+    throw new Error("One or both partner accounts not found.");
+  }
+
+  const sourceAccount = partnerAccounts.find(
+    (account) => account?.email === sourceEmail,
+  );
+
+  const targetAccount = partnerAccounts.find(
+    (account) => account?.email === targetEmail,
+  );
+
+  if (!sourceAccount || !targetAccount) {
+    throw new Error("One or both partner accounts not found.");
+  }
+
+  const sourcePartnerId = sourceAccount.id;
+  const targetPartnerId = targetAccount.id;
+
+  const programEnrollments = await prisma.programEnrollment.findMany({
+    where: {
+      partnerId: sourcePartnerId,
+    },
+    select: {
+      programId: true,
+    },
+  });
+
+  // Find program ids to transfer
+  const programIds = programEnrollments.map(
+    (enrollment) => enrollment.programId,
+  );
+
+  await prisma.programEnrollment.updateMany({
+    where: {
+      programId: {
+        in: programIds,
+      },
+      partnerId: sourcePartnerId,
+    },
+    data: {
+      partnerId: targetPartnerId,
+    },
+  });
+
+  await prisma.commission.updateMany({
+    where: {
+      programId: {
+        in: programIds,
+      },
+      partnerId: sourcePartnerId,
+    },
+    data: {
+      partnerId: targetPartnerId,
+    },
+  });
+
+  await prisma.payout.updateMany({
+    where: {
+      programId: {
+        in: programIds,
+      },
+      partnerId: sourcePartnerId,
+    },
+    data: {
+      partnerId: targetPartnerId,
+    },
+  });
+
+  await prisma.link.updateMany({
+    where: {
+      programId: {
+        in: programIds,
+      },
+      partnerId: sourcePartnerId,
+    },
+    data: {
+      partnerId: targetPartnerId,
+    },
+  });
+
+  const updatedLinks = await prisma.link.findMany({
+    where: {
+      programId: {
+        in: programIds,
+      },
+      partnerId: targetPartnerId,
+    },
+    include: includeTags,
+  });
 
   // TODO:
-  // Do the real work here
+  // Remove the source partner from the database
+  // Send email to the source & target accounts
+
+  await prisma.partner.delete({
+    where: {
+      id: sourcePartnerId,
+    },
+  });
+
+  await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
+
+  waitUntil(
+    Promise.all([
+      recordLink(updatedLinks),
+
+      qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+        body: {
+          partnerId: targetPartnerId,
+        },
+      }),
+    ]),
+  );
 };
