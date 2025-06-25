@@ -4,6 +4,7 @@ import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
+import { useIsInViewport } from "@/ui/qr-builder/hooks/use-is-in-viewport.ts";
 import { useQRBuilderSteps } from "@/ui/qr-builder/hooks/use-qr-builder-steps.ts";
 import { useQRContentForm } from "@/ui/qr-builder/hooks/use-qr-content-form.ts";
 import { useQRTypeDemo } from "@/ui/qr-builder/hooks/use-qr-type-demo.ts";
@@ -75,7 +76,14 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         setSelectedQRType,
       } = useQrCustomization(props, homepageDemo);
 
+      // ===== REFS =====
       const qrBuilderContentWrapperRef = useRef<HTMLDivElement>(null);
+      const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
+
+      const navigationButtonsInViewport = useIsInViewport(
+        qrBuilderButtonsWrapperRef,
+        0.6,
+      );
 
       // ===== EVENT HANDLERS =====
       const handleScroll = () => {
@@ -341,7 +349,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                     )}
 
                     {!isMobile && !isTypeStep && (
-                      <div className="w-full">
+                      <div className="w-full" ref={qrBuilderButtonsWrapperRef}>
                         <QrBuilderButtons
                           step={step}
                           onBack={handleBack}
@@ -419,12 +427,14 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           />
                         </div>
                       </motion.div>
-                      {homepageDemo && !isMobile && (
-                        <QrTabsDownloadButton
-                          onRegistrationClick={onSaveClick}
-                          isQrDisabled={isQrDisabled}
-                        />
-                      )}
+                      {homepageDemo &&
+                        !isMobile &&
+                        !navigationButtonsInViewport && (
+                          <QrTabsDownloadButton
+                            onRegistrationClick={onSaveClick}
+                            isQrDisabled={isQrDisabled}
+                          />
+                        )}
                     </div>
                   )}
                 </div>
