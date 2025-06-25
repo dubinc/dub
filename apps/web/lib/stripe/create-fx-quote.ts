@@ -17,6 +17,12 @@ export async function createFxQuote({
   fromCurrency: string;
   toCurrency: string;
 }) {
+  const body = new URLSearchParams();
+
+  body.append("from_currencies[]", fromCurrency);
+  body.append("to_currency", toCurrency);
+  body.append("lock_duration", "none");
+
   const fxQuoteResponse = await fetch("https://api.stripe.com/v1/fx_quotes", {
     method: "POST",
     headers: {
@@ -24,11 +30,7 @@ export async function createFxQuote({
       "Stripe-Version": "2025-05-28.basil;fx_quote_preview=v1",
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams({
-      from_currencies: fromCurrency,
-      to_currency: toCurrency,
-      lock_duration: "none",
-    }),
+    body,
   });
 
   const fxQuote = await fxQuoteResponse.json();

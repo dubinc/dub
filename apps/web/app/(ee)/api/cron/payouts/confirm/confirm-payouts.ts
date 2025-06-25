@@ -114,7 +114,7 @@ export async function confirmPayouts({
         toCurrency: currency,
       });
 
-      const exchangeRate = fxQuote.rates[currency].exchange_rate;
+      const exchangeRate = fxQuote.rates["usd"].exchange_rate;
 
       if (exchangeRate === null) {
         throw new Error(
@@ -123,7 +123,11 @@ export async function confirmPayouts({
       }
 
       // Add a 0.5% markup to the exchange rate to cover forex conversion spread
-      convertedTotal = total * exchangeRate * 1.005;
+      convertedTotal = Math.round(total * exchangeRate * 1.005);
+
+      console.log(
+        `Currency conversion: ${total} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
+      );
     }
 
     // Generate the next invoice number
