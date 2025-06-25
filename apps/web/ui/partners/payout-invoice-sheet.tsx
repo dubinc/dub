@@ -1,4 +1,5 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
+import { exceededLimitError } from "@/lib/api/errors";
 import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
@@ -8,7 +9,7 @@ import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutResponse } from "@/lib/types";
+import { PayoutResponse, PlanProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -20,6 +21,7 @@ import {
   Sheet,
   SimpleTooltipContent,
   Table,
+  TooltipContent,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
@@ -84,6 +86,8 @@ function PayoutInvoiceSheetContent() {
     slug,
     plan,
     defaultProgramId,
+    payoutsUsage,
+    payoutsLimit,
     payoutFee,
   } = useWorkspace();
 
@@ -411,9 +415,6 @@ function PayoutInvoiceSheetContent() {
           type="button"
           variant="primary"
           loading={isPending}
-          disabled={
-            eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
-          }
           onClick={async () => {
             if (!workspaceId || !selectedPaymentMethod) {
               return;
@@ -432,6 +433,25 @@ function PayoutInvoiceSheetContent() {
                   maximumFractionDigits: 2,
                 })} payout`
               : "Confirm payout"
+          }
+          disabled={
+            eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
+          }
+          disabledTooltip={
+            payoutsUsage &&
+            payoutsLimit &&
+            amount &&
+            payoutsUsage + amount > payoutsLimit && (
+              <TooltipContent
+                title={exceededLimitError({
+                  plan: plan as PlanProps,
+                  limit: payoutsLimit,
+                  type: "payouts",
+                })}
+                cta="Upgrade"
+                href={`/${slug}/settings/billing/upgrade`}
+              />
+            )
           }
         />
       </div>
