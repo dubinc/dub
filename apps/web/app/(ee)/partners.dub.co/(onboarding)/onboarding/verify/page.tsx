@@ -11,10 +11,9 @@ import { Suspense } from "react";
 
 export default function OnboardingVerificationPage() {
   return (
-    <div className="relative mx-auto my-10 flex w-full max-w-[416px] flex-col items-center md:mt-14">
-      <div className="absolute inset-0 bg-white/60 [mask-composite:intersect] [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent),linear-gradient(transparent,black_10%,black_90%,transparent)]" />
-      <h1 className="animate-slide-up-fade text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
-        Connect your bank account
+    <div className="relative mx-auto my-10 flex w-full max-w-[416px] flex-col items-center text-center md:mt-6">
+      <h1 className="animate-slide-up-fade text-content-emphasis text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+        Payout information
       </h1>
       <div className="animate-slide-up-fade relative mt-8 w-full [--offset:10px] [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
         <Suspense fallback={<PayoutSkeleton />}>
