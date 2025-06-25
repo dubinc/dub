@@ -6,6 +6,7 @@ export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
 export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
 export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 10000;
 export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
+export const FOREX_MARKUP_PERCENTAGE = 0.5;
 
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {

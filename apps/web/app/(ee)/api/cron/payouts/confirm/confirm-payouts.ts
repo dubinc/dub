@@ -1,5 +1,8 @@
 import { createId } from "@/lib/api/create-id";
-import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
+import {
+  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+  FOREX_MARKUP_PERCENTAGE,
+} from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -123,7 +126,9 @@ export async function confirmPayouts({
       }
 
       // Add a 0.5% markup to the exchange rate to cover forex conversion spread
-      convertedTotal = Math.round(total * exchangeRate * 1.005);
+      convertedTotal = Math.round(
+        total * exchangeRate * (1 + FOREX_MARKUP_PERCENTAGE / 100),
+      );
 
       console.log(
         `Currency conversion: ${total} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
