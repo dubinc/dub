@@ -103,7 +103,7 @@ export function Form() {
           )}
         />
 
-        <Controller
+        {/* <Controller
           control={control}
           name="partners"
           render={({ field }) => (
@@ -117,7 +117,7 @@ export function Form() {
               onSelect={field.onChange}
             />
           )}
-        />
+        /> */}
 
         <Button
           type="submit"
