@@ -1,17 +1,17 @@
 "use client";
 
 import { OnboardingStep } from "@/lib/onboarding/types";
-import useLinks from "@/lib/swr/use-links";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Image from "next/image";
-import { ReactNode, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { ReactNode } from "react";
 import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function DefaultDomainSelector() {
-  const { loading: isWorkspaceLoading } = useWorkspace();
+  const searchParams = useSearchParams();
+  const workspaceSlug = searchParams.get("workspace");
 
   return (
     <>
@@ -20,7 +20,7 @@ export function DefaultDomainSelector() {
           step="domain/custom"
           icon="https://assets.dub.co/icons/link.webp"
           title="Connect a custom domain"
-          description="Dedicate a domain exclusively to your short links"
+          description="Already have a domain? Connect it to Dub in just a few clicks"
           cta="Connect domain"
         />
         <DomainOption
@@ -35,7 +35,18 @@ export function DefaultDomainSelector() {
               domain
             </>
           }
-          description="Exclusively free for one year, requiring a paid plan"
+          description={
+            <>
+              Register a domain like{" "}
+              <span className="font-mono font-semibold text-neutral-900">
+                {workspaceSlug && workspaceSlug.length < 8
+                  ? workspaceSlug
+                  : "company"}
+                .link
+              </span>{" "}
+              – free for 1 year
+            </>
+          }
           cta="Claim .link domain"
         />
       </div>
@@ -60,25 +71,6 @@ function DomainOption({
   cta: string;
 }) {
   const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
-
-  const { links } = useLinks({ sort: "createdAt", pageSize: 1 });
-
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (links?.length) {
-      try {
-        const url = links[0].url;
-        fetch(`/api/metatags?url=${url}`).then(async (res) => {
-          if (res.ok) {
-            const results = await res.json();
-            setPreviewImage(results.image);
-          }
-        });
-      } catch (_) {}
-    }
-  }, [links]);
-
   return (
     <div
       className={cn(
