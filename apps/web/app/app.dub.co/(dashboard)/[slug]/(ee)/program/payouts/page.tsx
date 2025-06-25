@@ -9,7 +9,7 @@ export default function ProgramPayoutsPage() {
       titleInfo={{
         title:
           "Learn more about how you can send payouts to your affiliate partners globally with Dub.",
-        href: "https://dub.co/docs/partners/payouts",
+        href: "https://dub.co/help/article/partner-payouts",
       }}
     >
       <PageWidthWrapper>
