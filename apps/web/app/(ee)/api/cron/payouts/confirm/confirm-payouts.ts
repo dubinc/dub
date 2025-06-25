@@ -119,7 +119,7 @@ export async function confirmPayouts({
 
       const exchangeRate = fxQuote.rates["usd"].exchange_rate;
 
-      if (exchangeRate === null) {
+      if (!exchangeRate || exchangeRate <= 0) {
         throw new Error(
           `Failed to get exchange rate from Stripe for ${currency}.`,
         );
