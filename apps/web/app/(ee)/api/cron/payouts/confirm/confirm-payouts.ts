@@ -125,7 +125,6 @@ export async function confirmPayouts({
         );
       }
 
-      // Add a 0.5% markup to the exchange rate to cover forex conversion spread
       convertedTotal = Math.round(
         total * exchangeRate * (1 + FOREX_MARKUP_PERCENTAGE / 100),
       );
