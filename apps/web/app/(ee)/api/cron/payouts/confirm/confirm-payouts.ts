@@ -113,12 +113,13 @@ export async function confirmPayouts({
     // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
     if (["sepa_debit", "acss_debit"].includes(paymentMethod.type)) {
       const fxQuote = await createFxQuote({
-        fromCurrency: "usd",
-        toCurrency: currency,
+        fromCurrency: currency,
+        toCurrency: "usd",
       });
 
-      const exchangeRate = fxQuote.rates["usd"].exchange_rate;
+      const exchangeRate = fxQuote.rates[currency].exchange_rate;
 
+      // if Stripe's FX rate is not available, use the cached rate from Redis
       if (!exchangeRate || exchangeRate <= 0) {
         throw new Error(
           `Failed to get exchange rate from Stripe for ${currency}.`,
@@ -126,7 +127,7 @@ export async function confirmPayouts({
       }
 
       convertedTotal = Math.round(
-        total * exchangeRate * (1 + FOREX_MARKUP_RATE),
+        (total / exchangeRate) * (1 + FOREX_MARKUP_RATE),
       );
 
       console.log(

@@ -7,7 +7,6 @@ const fxQuoteSchema = z.object({
       exchange_rate: z.number(),
     }),
   ),
-  to_currency: z.string(),
 });
 
 export async function createFxQuote({
@@ -17,23 +16,29 @@ export async function createFxQuote({
   fromCurrency: string;
   toCurrency: string;
 }) {
-  const body = new URLSearchParams();
+  try {
+    const body = new URLSearchParams();
 
-  body.append("from_currencies[]", fromCurrency);
-  body.append("to_currency", toCurrency);
-  body.append("lock_duration", "none");
+    body.append("from_currencies[]", fromCurrency);
+    body.append("to_currency", toCurrency);
+    body.append("lock_duration", "none");
 
-  const fxQuoteResponse = await fetch("https://api.stripe.com/v1/fx_quotes", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
-      "Stripe-Version": "2025-05-28.basil;fx_quote_preview=v1",
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
-  });
+    const fxQuoteResponse = await fetch("https://api.stripe.com/v1/fx_quotes", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+        "Stripe-Version": "2025-05-28.basil;fx_quote_preview=v1",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+    });
 
-  const fxQuote = await fxQuoteResponse.json();
+    const fxQuote = await fxQuoteResponse.json();
 
-  return fxQuoteSchema.parse(fxQuote);
+    return fxQuoteSchema.parse(fxQuote);
+  } catch (error) {
+    throw new Error(
+      `Failed to create FX quote for ${fromCurrency} to ${toCurrency}. ${JSON.stringify(error, null, 2)}`,
+    );
+  }
 }
