@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { exceededLimitError } from "@/lib/api/errors";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   FOREX_MARKUP_RATE,
@@ -10,6 +11,7 @@ import {
 import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
+import { PlanProps } from "@/lib/types";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
@@ -31,7 +33,13 @@ export async function confirmPayouts({
 }: {
   workspace: Pick<
     Project,
-    "id" | "stripeId" | "plan" | "invoicePrefix" | "payoutFee"
+    | "id"
+    | "stripeId"
+    | "plan"
+    | "invoicePrefix"
+    | "payoutsUsage"
+    | "payoutsLimit"
+    | "payoutFee"
   >;
   program: Pick<Program, "id" | "name" | "logo" | "minPayoutAmount">;
   userId: string;
@@ -86,12 +94,25 @@ export async function confirmPayouts({
     return;
   }
 
+  const payoutAmount = payouts.reduce(
+    (total, payout) => total + payout.amount,
+    0,
+  );
+
+  if (workspace.payoutsUsage + payoutAmount > workspace.payoutsLimit) {
+    throw new Error(
+      exceededLimitError({
+        plan: workspace.plan as PlanProps,
+        limit: workspace.payoutsLimit,
+        type: "payouts",
+      }),
+    );
+  }
+
   const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
   // Create the invoice for the payouts
   const newInvoice = await prisma.$transaction(async (tx) => {
-    const amount = payouts.reduce((total, payout) => total + payout.amount, 0);
-
     const payoutFee = calculatePayoutFeeForMethod({
       paymentMethod: paymentMethod.type,
       payoutFee: workspace.payoutFee,
@@ -106,8 +127,8 @@ export async function confirmPayouts({
     );
 
     const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
-    const totalFee = amount * payoutFee;
-    const total = amount + totalFee;
+    const totalFee = payoutAmount * payoutFee;
+    const total = payoutAmount + totalFee;
     let convertedTotal = total;
 
     // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
@@ -150,7 +171,7 @@ export async function confirmPayouts({
         number: invoiceNumber,
         programId: program.id,
         workspaceId: workspace.id,
-        amount,
+        amount: payoutAmount,
         fee: totalFee,
         total,
       },
@@ -194,7 +215,7 @@ export async function confirmPayouts({
       },
       data: {
         payoutsUsage: {
-          increment: amount,
+          increment: payoutAmount,
         },
       },
     });
