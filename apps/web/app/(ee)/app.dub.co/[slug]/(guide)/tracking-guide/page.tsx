@@ -1,16 +1,15 @@
+import { getIntegrationGuideMarkdown } from "@/lib/get-integration-guide-markdown";
 import { Guide } from "@/ui/guides/guide";
 import { GuideList } from "@/ui/guides/guide-list";
 import { guides, IntegrationGuide } from "@/ui/guides/integrations";
-import { readFileSync } from "fs";
 import { notFound } from "next/navigation";
-import { join } from "path";
 import { Suspense } from "react";
 
 export default async function Page({
   searchParams,
 }: {
   searchParams: {
-    guide: string;
+    guide?: string;
   };
 }) {
   const { guide } = searchParams;
@@ -25,7 +24,7 @@ export default async function Page({
       notFound();
     }
 
-    markdown = getMarkdown(selectedGuide.key);
+    markdown = await getIntegrationGuideMarkdown(selectedGuide.key);
 
     if (!markdown) {
       notFound();
@@ -51,19 +50,4 @@ export default async function Page({
       </div>
     </Suspense>
   );
-}
-
-function getMarkdown(guideKey: string): string | null {
-  const markdownPath = join(
-    process.cwd(),
-    "integration-guides",
-    `${guideKey}.md`,
-  );
-
-  try {
-    return readFileSync(markdownPath, "utf-8");
-  } catch (error) {
-    console.warn(`Guide content not found for: ${guideKey}`);
-    return null;
-  }
 }
