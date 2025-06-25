@@ -11,12 +11,11 @@ export default function Plan() {
       description={
         <>
           <span className="inline-block">
-            Find a plan that fits your needs, or stay on the
+            Find a plan that fits your needs, or
           </span>{" "}
           <FreePlanButton className="text-base underline underline-offset-2">
-            free plan
+            stay on the free plan.
           </FreePlanButton>
-          .
         </>
       }
       className="max-w-screen-lg"

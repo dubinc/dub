@@ -7,13 +7,14 @@ export default function Domain() {
       title="Add a custom domain"
       description={
         <>
-          Brand your short links and{" "}
+          Make your links stand out and
+          <br />
           <a
             href="https://dub.co/blog/custom-domains"
             target="_blank"
-            className="underline transition-colors hover:text-neutral-700"
+            className="cursor-help font-medium underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-700"
           >
-            increase trust
+            boost click-through rates by 30%
           </a>
         </>
       }

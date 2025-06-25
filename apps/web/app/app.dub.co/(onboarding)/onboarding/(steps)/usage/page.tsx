@@ -5,7 +5,7 @@ export default function Usage() {
   return (
     <StepPage
       title="Monthly usage"
-      description="We'll help recommend the best plan"
+      description="Give us a few details about your usage and we'll help recommend the best plan"
     >
       <Form />
       <p className="mt-8 text-center text-sm font-medium text-neutral-500">

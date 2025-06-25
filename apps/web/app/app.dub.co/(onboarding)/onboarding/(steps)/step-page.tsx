@@ -29,7 +29,7 @@ export function StepPage({
         </div>
       )}
       <h1 className="text-center text-xl font-semibold">{title}</h1>
-      <div className="mt-1 text-center text-base font-medium text-neutral-500">
+      <div className="mt-2 text-balance text-center text-base text-neutral-500">
         {description}
       </div>
       <div className="mt-8 w-full">{children}</div>

@@ -20,7 +20,8 @@ export default function Welcome() {
             Welcome to Dub
           </h1>
           <p className="animate-slide-up-fade mt-2 text-balance text-base text-neutral-500 [--offset:10px] [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
-            Dub gives you the superpowers to connect marketing and revenue.
+            Dub gives you superpowers to track how your marketing efforts
+            convert to revenue.
           </p>
           <div className="animate-slide-up-fade mt-8 w-full [--offset:10px] [animation-delay:750ms] [animation-duration:1s] [animation-fill-mode:both]">
             <NextButton text="Get started" step="workspace" />

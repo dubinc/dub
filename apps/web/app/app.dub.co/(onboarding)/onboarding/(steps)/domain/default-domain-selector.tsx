@@ -1,8 +1,7 @@
 "use client";
 
 import { OnboardingStep } from "@/lib/onboarding/types";
-import { Button } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { Button, Crown } from "@dub/ui";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { ReactNode } from "react";
@@ -48,6 +47,7 @@ export function DefaultDomainSelector() {
             </>
           }
           cta="Claim .link domain"
+          paidPlanRequired
         />
       </div>
       <div className="mx-auto mt-8 w-full max-w-sm">
@@ -63,20 +63,24 @@ function DomainOption({
   title,
   description,
   cta,
+  paidPlanRequired,
 }: {
   step: OnboardingStep;
   icon: string;
   title: ReactNode;
   description: ReactNode;
   cta: string;
+  paidPlanRequired?: boolean;
 }) {
   const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
   return (
-    <div
-      className={cn(
-        "relative flex h-full flex-col items-center gap-6 rounded-xl border border-neutral-300 p-8 pt-10 transition-all",
+    <div className="relative flex h-full flex-col items-center gap-6 rounded-xl border border-neutral-300 p-8 pt-10 transition-all">
+      {paidPlanRequired && (
+        <div className="absolute right-2 top-2 flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600">
+          <Crown className="size-3" />
+          Paid plan required
+        </div>
       )}
-    >
       <div className="relative size-36">
         <Image
           src={icon}
