@@ -10,12 +10,12 @@ model Invoice {
   workspaceId           String
   number                String?       @unique // This starts with the customer’s unique invoicePrefix
   status                InvoiceStatus @default(processing)
-  amount                Int           @default(0)
-  fee                   Int           @default(0)
-  total                 Int           @default(0)
+  amount                Int           @default(0) // amount in usd cents
+  fee                   Int           @default(0) // fee in usd cents
+  total                 Int           @default(0) // amount + fee in usd cents
   receiptUrl            String?       @db.Text
   failedReason          String?       @db.Text
-  stripePaymentIntentId String?
+  stripeChargeMetadata  Json?         @db.Json // Stripe charge metadata
   createdAt             DateTime      @default(now())
   paidAt                DateTime?
 

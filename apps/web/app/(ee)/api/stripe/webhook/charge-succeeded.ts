@@ -57,7 +57,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
       receiptUrl: receipt_url,
       status: "completed",
       paidAt: new Date(),
-      stripePaymentIntentId: payment_intent as string,
+      stripeChargeMetadata: JSON.parse(JSON.stringify(charge)),
     },
   });
 

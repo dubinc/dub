@@ -39,15 +39,7 @@ export const GET = withSession(async ({ session, params }) => {
     where: {
       id: invoiceId,
     },
-    select: {
-      id: true,
-      amount: true,
-      fee: true,
-      total: true,
-      status: true,
-      number: true,
-      createdAt: true,
-      stripePaymentIntentId: true,
+    include: {
       payouts: {
         select: {
           periodStart: true,
@@ -90,20 +82,16 @@ export const GET = withSession(async ({ session, params }) => {
     });
   }
 
-  let customer: Stripe.Customer | null = null;
-  let transaction: Stripe.PaymentIntent | null = null;
+  const customer = invoice.workspace.stripeId
+    ? ((await stripe.customers.retrieve(invoice.workspace.stripeId, {
+        expand: ["tax_ids"],
+      })) as Stripe.Customer | null)
+    : null;
 
-  [customer, transaction] = await Promise.all([
-    invoice.workspace.stripeId
-      ? (stripe.customers.retrieve(invoice.workspace.stripeId, {
-          expand: ["tax_ids"],
-        }) as Promise<Stripe.Customer | null>)
-      : Promise.resolve(null),
-
-    invoice.stripePaymentIntentId
-      ? stripe.paymentIntents.retrieve(invoice.stripePaymentIntentId)
-      : Promise.resolve(null),
-  ]);
+  const { amount: chargeAmount, currency: chargeCurrency } =
+    invoice.stripeChargeMetadata
+      ? (invoice.stripeChargeMetadata as unknown as Stripe.Charge)
+      : {};
 
   const earliestPeriodStart = invoice.payouts.reduce(
     (acc, payout) => {
@@ -159,14 +147,14 @@ export const GET = withSession(async ({ session, params }) => {
     customer?.address?.country && customer.address.country === "AU";
 
   const nonUsdTransactionDisplay =
-    transaction && transaction.currency !== "usd"
+    chargeAmount && chargeCurrency && chargeCurrency !== "usd"
       ? ` (${currencyFormatter(
-          transaction.amount / 100,
+          chargeAmount / 100,
           {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           },
-          transaction.currency.toUpperCase(),
+          chargeCurrency.toUpperCase(),
         )})`
       : "";
 
