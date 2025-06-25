@@ -46,9 +46,9 @@ export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
     Set<IntegrationType>
   >(new Set());
 
-  const [openSections, setOpenSections] = useState<string[]>([
+  const [currentOpenSection, setCurrentOpenSection] = useState<string>(
     sections[0].type,
-  ]);
+  );
 
   const handleComplete = (type: IntegrationType) => {
     setCompletedSections((prev) => {
@@ -59,29 +59,28 @@ export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
 
     const completedSectionIndex = sections.findIndex((s) => s.type === type);
 
-    setOpenSections((prevOpenSections) => {
-      const newOpenSections = prevOpenSections.filter((s) => s !== type);
-
-      if (completedSectionIndex < sections.length - 1) {
-        const nextSection = sections[completedSectionIndex + 1];
-        newOpenSections.push(nextSection.type);
-      }
-
-      return newOpenSections;
-    });
+    // Auto-open next section if available
+    if (completedSectionIndex < sections.length - 1) {
+      const nextSection = sections[completedSectionIndex + 1];
+      setCurrentOpenSection(nextSection.type);
+    } else {
+      // If it's the last section, close the accordion
+      setCurrentOpenSection("");
+    }
   };
 
   return (
     <div>
       <ProgramSheetAccordion
         type="single"
-        value={openSections[0]}
-        onValueChange={(value) => setOpenSections(value ? [value] : [])}
+        collapsible
+        value={currentOpenSection}
+        onValueChange={setCurrentOpenSection}
         className="space-y-4"
       >
         {sections.map((section, index) => {
           const isCompleted = completedSections.has(section.type);
-          const isOpen = openSections.includes(section.type);
+          const isOpen = currentOpenSection === section.type;
 
           return (
             <ProgramSheetAccordionItem key={section.type} value={section.type}>
