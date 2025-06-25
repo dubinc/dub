@@ -1,4 +1,4 @@
-import { Heading } from "@radix-ui/themes";
+import { SectionTitle } from "@/ui/landing/components/section-title.tsx";
 import Image from "next/image";
 import { FC } from "react";
 import GetQEInfoCardOne from "../../assets/svg/get-qr-info-card-1.svg";
@@ -15,19 +15,12 @@ const GET_QR_CARDS_IMGS = [
 
 export const GetQRInfoCardsSection: FC = () => {
   return (
-    <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-between gap-4 px-3 py-6 lg:gap-8 lg:py-12">
-      <Heading
-        as="h2"
-        weight="bold"
-        size={{ initial: "7", md: "8" }}
-        className="text-neutral max-w-[280px] text-center md:max-w-none"
-      >
-        Create your{" "}
-        <span className="bg-qr-gradient inline-block bg-clip-text text-transparent">
-          QR Code
-        </span>{" "}
-        in three simple steps
-      </Heading>
+    <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-between gap-6 px-3 py-6 lg:gap-10 lg:py-12">
+      <SectionTitle
+        titleFirstPart={"Create your"}
+        highlightedTitlePart={"QR Code"}
+        titleSecondPart={"in three simple steps"}
+      />
       <div className="gap flex flex-col items-stretch justify-center gap-4 md:flex-row md:gap-6">
         {GET_QR_CARDS.map((card, idx) => (
           <InfoCard

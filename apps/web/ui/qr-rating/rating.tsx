@@ -12,7 +12,7 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-0.5",
+        "flex flex-col items-center justify-center gap-0.5 md:hidden",
         `items-${alignItems}`,
       )}
     >

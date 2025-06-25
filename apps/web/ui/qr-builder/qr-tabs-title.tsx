@@ -6,7 +6,7 @@ export const QrTabsTitle: FC = () => {
     <Heading
       as="h1"
       weight="bold"
-      size={{ initial: "7", sm: "8", md: "9" }}
+      size={{ initial: "8", md: "9" }}
       className="text-neutral text-center"
     >
       Create Your{" "}

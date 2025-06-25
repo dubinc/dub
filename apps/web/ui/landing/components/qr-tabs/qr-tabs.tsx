@@ -53,14 +53,14 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <section className="bg-primary-100 w-full px-3 pb-6 md:pb-12">
       <div
-        className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-4 md:gap-12"
+        className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-6 md:gap-12"
         ref={ref}
       >
         <QrTabsTitle />
 
         <QrBuilder handleSaveQR={handleSaveQR} homepageDemo />
 
-        {isMobile && <Rating />}
+        <Rating />
 
         {!isMobile && <LogoScrollingBanner />}
       </div>

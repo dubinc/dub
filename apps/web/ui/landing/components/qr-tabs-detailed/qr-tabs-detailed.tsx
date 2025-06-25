@@ -1,12 +1,12 @@
 "use client";
 
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { useMediaQuery } from "@dub/ui";
+import { Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Button, Heading, Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { FC, useState } from "react";
 import { trackClientEvents } from "../../../../core/integration/analytic";
 import { EAnalyticEvents } from "../../../../core/integration/analytic/interfaces/analytic.interface.ts";
@@ -39,7 +39,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
 
   return (
     <section className="bg-primary-100 w-full px-3 py-6 md:py-12">
-      <div className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-4 md:gap-8">
+      <div className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-6 lg:gap-10">
         <div className="flex flex-col items-center justify-center gap-4 md:gap-6">
           <QrTabsDetailedTitle />
           <Text
@@ -134,14 +134,10 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                     <Button
                       className="flex w-full flex-row items-center justify-center gap-2 md:max-w-[201px]"
                       size={{ initial: "4", md: "3" }}
-                      color={"blue"}
-                      variant="solid"
+                      color="blue"
                       onClick={() => handleScrollButtonClick("2")}
-                    >
-                      <Text size={{ initial: "3", md: "4" }}>
-                        Create QR code
-                      </Text>
-                    </Button>
+                      text="Create QR code"
+                    />
                   </div>
                 </div>
               </Tabs.Content>
