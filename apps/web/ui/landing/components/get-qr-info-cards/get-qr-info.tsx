@@ -17,9 +17,9 @@ export const GetQRInfoCardsSection: FC = () => {
   return (
     <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-between gap-6 px-3 py-6 lg:gap-10 lg:py-12">
       <SectionTitle
-        titleFirstPart={"Create your"}
+        titleFirstPart={"Create Your"}
         highlightedTitlePart={"QR Code"}
-        titleSecondPart={"in three simple steps"}
+        titleSecondPart={"in Three Simple Steps"}
       />
       <div className="gap flex flex-col items-stretch justify-center gap-4 md:flex-row md:gap-6">
         {GET_QR_CARDS.map((card, idx) => (
