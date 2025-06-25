@@ -65,6 +65,13 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     return NextResponse.json({ url });
   }
 
+  if (method === "sepa_debit" && workspace.plan !== "enterprise") {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "SEPA Debit is only available on the Enterprise plan.",
+    });
+  }
+
   const paymentMethodOption = DIRECT_DEBIT_PAYMENT_TYPES_INFO.find(
     (type) => type.type === method,
   )?.option;

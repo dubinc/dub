@@ -15,6 +15,8 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
   title: string;
   icon: string;
   option: PaymentMethodOption;
+  recommended?: boolean;
+  enterpriseOnly?: boolean;
 }[] = [
   {
     type: "us_bank_account",
@@ -22,6 +24,7 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
     title: "ACH",
     icon: "https://hatscripts.github.io/circle-flags/flags/us.svg",
     option: {},
+    recommended: true,
   },
   {
     type: "acss_debit",
@@ -42,6 +45,7 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
     title: "SEPA Debit",
     icon: "https://hatscripts.github.io/circle-flags/flags/eu.svg",
     option: {},
+    enterpriseOnly: true,
   },
 ];
 
