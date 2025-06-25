@@ -91,7 +91,7 @@ export const GET = withSession(async ({ session, params }) => {
   const { amount: chargeAmount, currency: chargeCurrency } =
     invoice.stripeChargeMetadata
       ? (invoice.stripeChargeMetadata as unknown as Stripe.Charge)
-      : {};
+      : { amount: undefined, currency: undefined };
 
   const earliestPeriodStart = invoice.payouts.reduce(
     (acc, payout) => {
