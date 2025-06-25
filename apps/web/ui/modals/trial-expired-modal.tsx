@@ -68,32 +68,32 @@ export function TrialExpiredModal({
             </h2>
           </div>
 
-          <div className="flex w-full justify-center gap-3 sm:gap-4">
-            <div className="border-secondary/20 bg-secondary-100 flex h-16 w-16 flex-col items-center justify-center rounded-2xl border sm:h-20 sm:w-20">
-              <span className="text-secondary text-2xl font-bold sm:text-4xl">
-                0
-              </span>
-              <span className="text-secondary text-xs font-semibold tracking-wide">
-                DAYS
-              </span>
-            </div>
-            <div className="border-secondary/20 bg-secondary-100 flex h-16 w-16 flex-col items-center justify-center rounded-2xl border sm:h-20 sm:w-20">
-              <span className="text-secondary text-2xl font-bold sm:text-4xl">
-                0
-              </span>
-              <span className="text-secondary text-xs font-semibold tracking-wide">
-                HOURS
-              </span>
-            </div>
-            <div className="border-secondary/20 bg-secondary-100 flex h-16 w-16 flex-col items-center justify-center rounded-2xl border sm:h-20 sm:w-20">
-              <span className="text-secondary text-2xl font-bold sm:text-4xl">
-                0
-              </span>
-              <span className="text-secondary text-xs font-semibold tracking-wide">
-                MIN
-              </span>
-            </div>
-          </div>
+          {/*<div className="flex w-full justify-center gap-3 sm:gap-4">*/}
+          {/*  <div className="border-secondary/20 bg-secondary-100 flex h-16 w-16 flex-col items-center justify-center rounded-2xl border sm:h-20 sm:w-20">*/}
+          {/*    <span className="text-secondary text-2xl font-bold sm:text-4xl">*/}
+          {/*      0*/}
+          {/*    </span>*/}
+          {/*    <span className="text-secondary text-xs font-semibold tracking-wide">*/}
+          {/*      DAYS*/}
+          {/*    </span>*/}
+          {/*  </div>*/}
+          {/*  <div className="border-secondary/20 bg-secondary-100 flex h-16 w-16 flex-col items-center justify-center rounded-2xl border sm:h-20 sm:w-20">*/}
+          {/*    <span className="text-secondary text-2xl font-bold sm:text-4xl">*/}
+          {/*      0*/}
+          {/*    </span>*/}
+          {/*    <span className="text-secondary text-xs font-semibold tracking-wide">*/}
+          {/*      HOURS*/}
+          {/*    </span>*/}
+          {/*  </div>*/}
+          {/*  <div className="border-secondary/20 bg-secondary-100 flex h-16 w-16 flex-col items-center justify-center rounded-2xl border sm:h-20 sm:w-20">*/}
+          {/*    <span className="text-secondary text-2xl font-bold sm:text-4xl">*/}
+          {/*      0*/}
+          {/*    </span>*/}
+          {/*    <span className="text-secondary text-xs font-semibold tracking-wide">*/}
+          {/*      MIN*/}
+          {/*    </span>*/}
+          {/*  </div>*/}
+          {/*</div>*/}
 
           <div className="w-full space-y-3 sm:space-y-4">
             <div className="text-left">
