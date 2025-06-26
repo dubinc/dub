@@ -1,4 +1,5 @@
 import { BadgeCheck2Fill, Tooltip } from "@dub/ui";
+import { getUrlFromString } from "@dub/utils";
 import Link from "next/link";
 
 export function PartnerSocialColumn({
@@ -14,7 +15,7 @@ export function PartnerSocialColumn({
 }) {
   return value && href ? (
     <Link
-      href={href}
+      href={getUrlFromString(href)}
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-center gap-2 hover:underline"
