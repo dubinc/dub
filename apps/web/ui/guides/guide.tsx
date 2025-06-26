@@ -71,7 +71,7 @@ export function Guide({ markdown }: { markdown: string }) {
             Set up {integrationTypeToTitle[selectedGuide.type]}
           </span>
           <span className="text-xl font-semibold leading-7 text-neutral-900">
-            Instructions for {selectedGuide.title}
+            Instructions for {selectedGuide.description || selectedGuide.title}
           </span>
         </div>
 
