@@ -1,7 +1,6 @@
 "use server";
 
 import { includeTags } from "@/lib/api/links/include-tags";
-import { EMAIL_OTP_EXPIRY_IN } from "@/lib/auth/constants";
 import { generateOTP } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
 import { recordLink } from "@/lib/tinybird";
@@ -9,6 +8,7 @@ import { redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import VerifyEmailForAccountMerge from "@dub/email/templates/verify-email-for-account-merge";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -16,7 +16,8 @@ import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
 const CACHE_KEY_PREFIX = "merge-partner-accounts";
-const CACHE_EXPIRY_IN = 10 * 60;
+const CACHE_EXPIRY_IN = 10 * 60; // 10 minutes
+const EMAIL_OTP_EXPIRY_IN = 5 * 60; // 5 minutes
 
 const sendTokensSchema = z.object({
   step: z.literal("send-tokens"),
@@ -155,13 +156,21 @@ const sendTokens = async ({
         from: VARIANT_TO_FROM_MAP.notifications,
         to: sourceEmail,
         subject: "Verify your email to merge your Dub Partners accounts",
-        react: "",
+        react: VerifyEmailForAccountMerge({
+          email: sourceEmail,
+          code: sourceEmailCode,
+          expiresInMinutes: EMAIL_OTP_EXPIRY_IN / 60,
+        }),
       },
       {
         from: VARIANT_TO_FROM_MAP.notifications,
         to: targetEmail,
         subject: "Connect your payout details on Dub Partners",
-        react: "",
+        react: VerifyEmailForAccountMerge({
+          email: targetEmail,
+          code: targetEmailCode,
+          expiresInMinutes: EMAIL_OTP_EXPIRY_IN / 60,
+        }),
       },
     ]),
   );
