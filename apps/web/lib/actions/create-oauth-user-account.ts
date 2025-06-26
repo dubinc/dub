@@ -4,13 +4,14 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors.ts";
 import { createLink, processLink } from "@/lib/api/links";
 import { createQr } from "@/lib/api/qrs/create-qr.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
+import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { generateRandomString, R2_URL } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { nanoid } from "nanoid";
 import { createId } from "../api/utils";
-import { actionClient } from "./safe-action";
 import z from "../zod";
+import { actionClient } from "./safe-action";
 
 const qrDataToCreateSchema = z.object({
   title: z.string(),
@@ -172,5 +173,7 @@ export const createOAuthUserAccountAction = actionClient
       }
     }
 
+    await redis.set(`onboarding-step:${generatedUserId}`, "completed");
+
     return { userId: generatedUserId, workspaceSlug: workspaceResponse.slug };
-  }); 
+  });
