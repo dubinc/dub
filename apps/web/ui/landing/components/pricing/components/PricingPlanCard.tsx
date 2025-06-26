@@ -28,27 +28,37 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
       )}
     >
       <Flex direction="column" align="start" justify="start" gap="3">
-        <Flex align="center" justify="between" className="w-full">
-          <Heading as="h3" size="3" weight="bold" className="text-neutral">
+        <Flex
+          direction={{ initial: "column", md: "row" }}
+          align={{ initial: "start", md: "center" }}
+          justify="between"
+          className="w-full"
+          gap="2"
+        >
+          <Heading as="h3" size="4" weight="bold" className="text-neutral">
             {title}
           </Heading>
           <Badge
             className={cn(
-              "bg-primary-100 text-primary px-2.5 py-1.5 font-semibold",
+              "bg-primary-100 text-primary min-w-[100px] items-center justify-center px-2.5 py-1.5 text-center text-sm font-semibold",
               isFree && "bg-primary border-primary text-white",
             )}
           >
             {badge}
           </Badge>
         </Flex>
-        <Text size="7" weight="bold" className="text-neutral">
+        <Text
+          size={{ initial: "6", md: "7" }}
+          weight="bold"
+          className="text-neutral"
+        >
           {plan}
         </Text>
         <ul className="flex flex-col gap-2">
           {planFeatures.map((feature, idx) => (
             <li key={idx} className="flex items-center gap-2">
               <Check className="text-primary h-4 w-4" />
-              <Text size="2" className="text-neutral-500">
+              <Text size="3" className="text-neutral-300">
                 {feature}
               </Text>
             </li>

@@ -1,5 +1,6 @@
 import { PricingPlanCard } from "@/ui/landing/components/pricing/components/PricingPlanCard.tsx";
 import { SectionTitle } from "@/ui/landing/components/section-title.tsx";
+import { Flex } from "@radix-ui/themes";
 import { FC } from "react";
 import { PRICING_PLANS } from "./config.ts";
 
@@ -17,7 +18,13 @@ export const PricingSection: FC<IPricingSectionProps> = ({
         highlightedTitlePart={"you need more"}
         className="lg:!leading-[52px]"
       />
-      <div className="justify-beetwen flex w-full flex-col items-stretch gap-4 md:flex-row">
+      <Flex
+        direction={{ initial: "column", md: "row" }}
+        justify="between"
+        align="stretch"
+        gap="4"
+        className="w-full"
+      >
         {PRICING_PLANS.map((card, idx) => (
           <PricingPlanCard
             key={idx}
@@ -28,7 +35,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
             handleScrollButtonClick={handleScrollButtonClick}
           />
         ))}
-      </div>
+      </Flex>
     </section>
   );
 };
