@@ -103,11 +103,11 @@ const sendTokens = async ({
   }
 
   const sourceAccount = partnerAccounts.find(
-    (account) => account?.email === sourceEmail,
+    ({ email }) => email === sourceEmail,
   );
 
   const targetAccount = partnerAccounts.find(
-    (account) => account?.email === targetEmail,
+    ({ email }) => email === targetEmail,
   );
 
   if (!sourceAccount || !targetAccount) {
