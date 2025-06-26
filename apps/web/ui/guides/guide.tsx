@@ -3,13 +3,9 @@
 import { buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { notFound, usePathname, useSearchParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { guides, IntegrationType } from "./integrations";
 import { Markdown } from "./markdown";
-
-interface GuideProps {
-  markdown: string | null;
-}
 
 const integrationTypeToTitle: Record<IntegrationType, string> = {
   "client-sdk": "client-side script",
@@ -18,25 +14,11 @@ const integrationTypeToTitle: Record<IntegrationType, string> = {
   "track-sales": "tracking sale events",
 };
 
-export function Guide({ markdown }: GuideProps) {
+export function Guide({ markdown }: { markdown: string }) {
+  const { guide } = useParams() as { guide: string[] };
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
-  const guide = searchParams.get("guide");
-
-  if (!guide) {
-    notFound();
-  }
-
-  const selectedGuide = guides.find((g) => g.key === guide);
-
-  if (!selectedGuide) {
-    notFound();
-  }
-
-  if (!markdown) {
-    notFound();
-  }
+  const selectedGuide = guides.find((g) => g.key === guide[0])!;
 
   const Icon = selectedGuide.icon;
 
@@ -48,7 +30,7 @@ export function Guide({ markdown }: GuideProps) {
           <Icon className="size-8" />
 
           <Link
-            href={pathname}
+            href={pathname.split("/").slice(0, -1).join("/")}
             className={cn(
               buttonVariants({
                 variant: "secondary",

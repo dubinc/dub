@@ -112,7 +112,7 @@ export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
                     {(guidesByType[section.type] || []).map((guide) => (
                       <Link
                         prefetch={true}
-                        href={`${pathname}?guide=${guide.key}`}
+                        href={`${pathname}/${guide.key}`}
                         key={guide.title}
                         className="group relative flex h-[140px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg bg-neutral-100 px-2 py-4 text-center"
                       >
