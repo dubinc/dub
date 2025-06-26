@@ -65,7 +65,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-wreath",
     type: "wreath",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Wreath, 0.5, 150, 110);
+      await embedQRIntoFrame(qr, options, Wreath, 0.69, 68, 30);
     },
     icon: WreathPreview,
   },
@@ -97,7 +97,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-scooter",
     type: "scooter",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Scooter, 0.4, 97, 99);
+      await embedQRIntoFrame(qr, options, Scooter, 0.48, 34, 35);
     },
     icon: ScooterPreview,
   },
@@ -152,6 +152,7 @@ async function embedQRIntoFrame(
   qrScale: number,
   qrTranslateX: number,
   qrTranslateY: number,
+  frameScale?: number,
 ) {
   const { src } = frame;
 
@@ -178,7 +179,23 @@ async function embedQRIntoFrame(
     );
 
     svg.appendChild(qrGroup);
-    svg.appendChild(frameClone);
+
+    if (frameScale) {
+      const frameGroup = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g",
+      );
+      const cx = options.width / 2;
+      const cy = options.height / 2;
+      frameGroup.setAttribute(
+        "transform",
+        `translate(${cx}, ${cy}) scale(${frameScale}) translate(${-cx}, ${-cy})`,
+      );
+      frameGroup.appendChild(frameClone);
+      svg.appendChild(frameGroup);
+    } else {
+      svg.appendChild(frameClone);
+    }
   } catch (err) {
     console.error("Failed to embed QR into frame:", err);
   }
