@@ -12,7 +12,7 @@ export const GetQRFeaturesCardsSection: FC = () => {
         highlightedTitlePart={"QR Code"}
         titleSecondPart={"Generator"}
       />
-      <div className="gap flex flex-col items-stretch justify-center gap-4 md:flex-row">
+      <div className="gap flex flex-col items-stretch justify-center gap-4 md:flex-row md:gap-6">
         {GET_QR_FEATURES.map((card, idx) => (
           <FeaturesCard
             key={idx}
