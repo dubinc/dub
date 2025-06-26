@@ -1,13 +1,15 @@
 "use client";
 
-import useUser from "@/lib/swr/use-user";
+import { showMessage } from "@/ui/auth/helpers.ts";
 import { useAuthTracking } from "@/ui/modals/auth-modal.tsx";
-import { Button, Github, Google } from "@dub/ui";
+import { QRBuilderData } from "@/ui/modals/qr-builder";
+import { processQrDataForServerAction } from "@/ui/qr-builder/helpers";
+import { Button, Github, Google, useLocalStorage } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export const SignUpOAuth = ({
   methods,
@@ -18,9 +20,12 @@ export const SignUpOAuth = ({
   const next = searchParams?.get("next");
   const [clickedGoogle, setClickedGoogle] = useState(false);
   const [clickedGithub, setClickedGithub] = useState(false);
+
+  const [isUploading, setIsUploading] = useState(false);
   const { trackAuthClick } = useAuthTracking("signup");
-  const { user } = useUser();
-  const hasTrackedSuccess = useRef(false);
+
+  const [qrDataToCreate, setQrDataToCreate] =
+    useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
 
   useEffect(() => {
     // when leave page, reset state
@@ -30,27 +35,24 @@ export const SignUpOAuth = ({
     };
   }, []);
 
-  // Track successful signup when session becomes available
-  useEffect(() => {
-    if (user?.email && !hasTrackedSuccess.current) {
-      hasTrackedSuccess.current = true;
-      trackClientEvents({
-        event: EAnalyticEvents.SIGNUP_SUCCESS,
-        params: {
-          method: "google",
-          email: user.email,
-        },
-      });
-    }
-  }, [user]);
-
   return (
     <>
       {methods.includes("google") && (
         <Button
           variant="secondary"
           text="Continue with Google"
-          onClick={() => {
+          onClick={async () => {
+            const processedQrDataToCreate = await processQrDataForServerAction(
+              qrDataToCreate,
+              {
+                onUploadStart: () => setIsUploading(true),
+                onUploadEnd: () => setIsUploading(false),
+                onError: (errorMessage) => {
+                  showMessage(errorMessage, "error");
+                },
+              },
+            );
+
             trackAuthClick("google");
             trackClientEvents({
               event: EAnalyticEvents.SIGNUP_ATTEMPT,
@@ -59,8 +61,12 @@ export const SignUpOAuth = ({
               },
             });
             setClickedGoogle(true);
+
             signIn("google", {
               ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+              state: JSON.stringify({
+                qrDataToCreate: processedQrDataToCreate,
+              }),
             });
           }}
           loading={clickedGoogle}
