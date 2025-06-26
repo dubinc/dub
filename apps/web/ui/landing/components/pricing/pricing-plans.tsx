@@ -1,10 +1,15 @@
+import { PricingPlanCard } from "@/ui/landing/components/pricing/components/PricingPlanCard.tsx";
 import { SectionTitle } from "@/ui/landing/components/section-title.tsx";
-import { Icon } from "@iconify/react";
 import { FC } from "react";
-import { FeaturesCard } from "./components/FeaturesCard.tsx";
 import { PRICING_PLANS } from "./config.ts";
 
-export const PricingSection: FC = () => {
+interface IPricingSectionProps {
+  handleScrollButtonClick: (type: "1" | "2") => void;
+}
+
+export const PricingSection: FC<IPricingSectionProps> = ({
+  handleScrollButtonClick,
+}) => {
   return (
     <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-6 px-3 py-6 lg:gap-10 lg:py-12">
       <SectionTitle
@@ -12,13 +17,15 @@ export const PricingSection: FC = () => {
         highlightedTitlePart={"you need more"}
         className="lg:!leading-[52px]"
       />
-      <div className="gap flex flex-col items-stretch justify-center gap-4 md:flex-row">
+      <div className="justify-beetwen flex w-full flex-col items-stretch gap-4 md:flex-row">
         {PRICING_PLANS.map((card, idx) => (
-          <FeaturesCard
+          <PricingPlanCard
             key={idx}
+            badge={card.badge}
             title={card.title}
-            content={card.content}
-            img={<Icon icon={card.icon} />}
+            plan={card.plan}
+            planFeatures={card.planFeatures}
+            handleScrollButtonClick={handleScrollButtonClick}
           />
         ))}
       </div>
