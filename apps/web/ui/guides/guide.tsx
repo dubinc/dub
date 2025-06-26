@@ -1,17 +1,9 @@
 "use client";
 
-import {
-  Button,
-  buttonVariants,
-  Check,
-  ChevronLeft,
-  Copy,
-  useCopyToClipboard,
-} from "@dub/ui";
+import { BookOpen, Button, buttonVariants, ChevronLeft } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { toast } from "sonner";
 import { guides, IntegrationType } from "./integrations";
 import { Markdown } from "./markdown";
 
@@ -25,7 +17,6 @@ const integrationTypeToTitle: Record<IntegrationType, string> = {
 export function Guide({ markdown }: { markdown: string }) {
   const pathname = usePathname();
   const { guide } = useParams() as { guide: string[] };
-  const [copiedGuideUrl, copyGuideUrl] = useCopyToClipboard();
 
   const guideKey = guide[0];
   const selectedGuide = guides.find((g) => g.key === guideKey)!;
@@ -44,22 +35,14 @@ export function Guide({ markdown }: { markdown: string }) {
             />
           </Link>
 
-          <Button
-            text="Copy guide link"
-            variant="secondary"
-            className="h-8 w-fit rounded-lg px-3"
-            icon={
-              copiedGuideUrl ? (
-                <Check className="size-3.5" />
-              ) : (
-                <Copy className="size-3.5" />
-              )
-            }
-            onClick={() => {
-              copyGuideUrl(selectedGuide.url);
-              toast.success("Link copied to clipboard.");
-            }}
-          />
+          <Link href={selectedGuide.url} target="_blank">
+            <Button
+              text="Read full guide"
+              variant="secondary"
+              className="h-8 w-fit rounded-lg px-3"
+              icon={<BookOpen className="size-3.5" />}
+            />
+          </Link>
         </div>
 
         <div>
