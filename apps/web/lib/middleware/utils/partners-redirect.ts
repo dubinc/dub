@@ -1,5 +1,6 @@
 const PARTNERS_REDIRECTS = {
   "/settings": "/profile",
+  "/settings/payouts": "/payouts",
 };
 
 export const partnersRedirect = (path: string) => {

@@ -53,14 +53,7 @@ export function MainNav({
   }, [pathname]);
 
   return (
-    <div
-      className="min-h-screen md:grid md:grid-cols-[var(--sidebar-width)_minmax(0,1fr)]"
-      style={
-        {
-          "--sidebar-width": "304px",
-        } as React.CSSProperties
-      }
-    >
+    <div className="min-h-screen md:grid md:grid-cols-[min-content_minmax(0,1fr)]">
       {/* Side nav backdrop */}
       <div
         className={cn(
@@ -79,7 +72,7 @@ export function MainNav({
         {/* Side nav */}
         <div
           className={cn(
-            "relative h-full w-[var(--sidebar-width,240px)] max-w-full bg-neutral-200 transition-transform md:translate-x-0",
+            "relative h-full w-min max-w-full bg-neutral-200 transition-transform md:translate-x-0",
             !isOpen && "-translate-x-full",
           )}
         >

@@ -8,6 +8,7 @@ import {
   Gauge6,
   Gear2,
   GridIcon,
+  MoneyBills2,
   ShieldCheck,
   SquareUserSparkle2,
 } from "@dub/ui/icons";
@@ -36,6 +37,14 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
     icon: GridIcon,
     href: "/programs",
     active: pathname.startsWith("/programs"),
+  },
+  {
+    name: "Payouts",
+    description:
+      "View all your upcoming and previous payouts for all your programs.",
+    icon: MoneyBills2,
+    href: "/payouts",
+    active: pathname.startsWith("/payouts"),
   },
   {
     name: "Partner profile",
@@ -123,6 +132,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Partner profile
   profile: () => ({
     title: "Partner profile",
+    direction: "left",
     content: [
       {
         items: [
@@ -137,6 +147,22 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           //   icon: MoneyBills2,
           //   href: "/settings/payouts",
           // },
+        ],
+      },
+    ],
+  }),
+
+  // Payouts
+  payouts: () => ({
+    title: "Payouts",
+    content: [
+      {
+        items: [
+          {
+            name: "Payouts",
+            icon: MoneyBills2,
+            href: "/payouts",
+          },
         ],
       },
     ],
@@ -189,9 +215,11 @@ export function PartnersSidebarNav({
       ? "userSettings"
       : pathname.startsWith("/profile")
         ? "profile"
-        : isEnrolledProgramPage
-          ? "program"
-          : "programs";
+        : pathname.startsWith("/payouts")
+          ? null
+          : isEnrolledProgramPage
+            ? "program"
+            : "programs";
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
   return (
