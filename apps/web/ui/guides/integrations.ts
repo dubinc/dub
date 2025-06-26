@@ -28,6 +28,7 @@ export type IntegrationGuide = {
   key: string;
   title: string;
   description?: string;
+  subDescription?: string;
   icon: any;
   recommended?: boolean;
   content?: string;
@@ -106,7 +107,7 @@ export const guides: IntegrationGuide[] = [
     type: "client-sdk",
     key: "manual-client-sdk",
     title: "Manual",
-    description: "manual installation",
+    description: "Manual Installation",
     icon: CodeEditor,
     url: "https://dub.co/docs/sdks/client-side/installation-guides/manual",
   },
@@ -202,7 +203,7 @@ export const guides: IntegrationGuide[] = [
     type: "track-leads",
     key: "manual-track-leads",
     title: "Manual",
-    description: "manual lead tracking",
+    description: "Manual Lead Tracking",
     icon: CodeEditor,
     url: "https://dub.co/docs/api-reference/endpoint/track-lead",
   },
@@ -218,7 +219,8 @@ export const guides: IntegrationGuide[] = [
     type: "track-sales",
     key: "stripe-checkout",
     title: "Stripe",
-    description: "Checkout",
+    subDescription: "Checkout",
+    description: "Stripe Checkout",
     icon: Stripe,
     url: "https://dub.co/docs/conversions/sales/stripe#option-2%3A-using-stripe-checkout-recommended",
   },
@@ -226,7 +228,8 @@ export const guides: IntegrationGuide[] = [
     type: "track-sales",
     key: "stripe-payment-links",
     title: "Stripe",
-    description: "Payment Links",
+    subDescription: "Payment Links",
+    description: "Stripe Payment Links",
     icon: Stripe,
     url: "https://dub.co/docs/conversions/sales/stripe#option-1%3A-using-stripe-payment-links",
   },
@@ -234,7 +237,8 @@ export const guides: IntegrationGuide[] = [
     type: "track-sales",
     key: "stripe-customers",
     title: "Stripe",
-    description: "Customers",
+    subDescription: "Customers",
+    description: "Stripe Customers",
     icon: Stripe,
     url: "https://dub.co/docs/conversions/sales/stripe#option-3%3A-using-stripe-customers",
   },
@@ -242,7 +246,7 @@ export const guides: IntegrationGuide[] = [
     type: "track-sales",
     key: "manual-track-sales",
     title: "Manual",
-    description: "manual sale tracking",
+    description: "Manual Sale Tracking",
     icon: CodeEditor,
     url: "https://dub.co/docs/api-reference/endpoint/track-sale",
   },

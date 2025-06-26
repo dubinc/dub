@@ -120,9 +120,9 @@ export function GuideList() {
                             {guide.title}
                           </div>
 
-                          {guide.description && (
+                          {guide.subDescription && (
                             <div className="w-full text-sm font-medium leading-5 text-neutral-500">
-                              {guide.description}
+                              {guide.subDescription}
                             </div>
                           )}
                         </div>
