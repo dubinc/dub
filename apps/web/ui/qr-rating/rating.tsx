@@ -1,14 +1,33 @@
 import RatingStars from "@/ui/landing/assets/svg/stars.svg";
 import { cn } from "@dub/utils";
+import NumberFlow from "@number-flow/react";
 import { Text } from "@radix-ui/themes";
 import Image from "next/image";
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 
 interface IRatingProps {
   alignItems?: "center" | "start" | "end";
 }
 
 export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
+  const [users, setUsers] = useState<number>(1151456);
+  const [scans, setScans] = useState<number>(33259893);
+
+  useEffect(() => {
+    const usersInterval = setInterval(() => {
+      setUsers((prevUsers) => prevUsers + 1);
+    }, 2000);
+
+    const scansInterval = setInterval(() => {
+      setScans((prevScans) => prevScans + 4);
+    }, 1000);
+
+    return () => {
+      clearInterval(usersInterval);
+      clearInterval(scansInterval);
+    };
+  }, []);
+
   return (
     <div
       className={cn(
@@ -19,21 +38,25 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
       <div className="flex flex-row gap-1">
         <Text
           as="span"
-          size={{ initial: "4", md: "3" }}
+          size="4"
           weight="regular"
           className="text-secondary-textMuted"
         >
-          Excellent user reviews
+          Join <NumberFlow value={users} /> users
         </Text>
         <Image width={95} height={17} src={RatingStars} alt="Rating" />
       </div>
       <Text
         as="span"
-        size={{ initial: "4", md: "3" }}
+        size="4"
         weight="regular"
-        className="text-secondary-textMuted"
+        className="text-secondary-textMuted max-w-[300px] text-center"
       >
-        <strong>3,318</strong> QR codes generated today!
+        Their QR codes have been scanned{" "}
+        <strong>
+          <NumberFlow value={scans} />
+        </strong>{" "}
+        times
       </Text>
     </div>
   );
