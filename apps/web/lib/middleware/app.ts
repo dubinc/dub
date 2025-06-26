@@ -75,39 +75,27 @@ export default async function AppMiddleware(
     } else if (
       new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
       !isWorkspaceInvite &&
-      !["/onboarding", "/account"].some((p) => path.startsWith(p))
+      !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
+      !(await getDefaultWorkspace(user)) &&
+      (await getOnboardingStep(user)) !== "completed"
     ) {
-      const defaultWorkspace = await getDefaultWorkspace(user);
-      const onboardingStep = await getOnboardingStep(user);
-      
-      console.log("Onboarding redirect check for user:", user.id);
-      console.log("User created at:", user.createdAt);
-      console.log("Default workspace:", defaultWorkspace);
-      console.log("Onboarding step:", onboardingStep);
-      
-      // If user has a workspace and onboarding is completed, redirect to workspace
-      if (defaultWorkspace && onboardingStep === "completed") {
+      let step = await getOnboardingStep(user);
+      if (!step) {
+        return NextResponse.redirect(new URL("/onboarding", req.url));
+      } else if (step === "completed") {
         return WorkspacesMiddleware(req, user);
       }
-      
-      // If user has no workspace or onboarding is not completed, redirect to onboarding
-      if (!defaultWorkspace || onboardingStep !== "completed") {
-        let step = onboardingStep;
-        if (!step) {
-          return NextResponse.redirect(new URL("/onboarding", req.url));
-        } else if (step === "completed") {
-          return WorkspacesMiddleware(req, user);
-        }
 
-        if (defaultWorkspace) {
-          // Skip workspace step if user already has a workspace
-          step = step === "workspace" ? "link" : step;
-          return NextResponse.redirect(
-            new URL(`/onboarding/${step}?workspace=${defaultWorkspace}`, req.url),
-          );
-        } else {
-          return NextResponse.redirect(new URL("/onboarding", req.url));
-        }
+      const defaultWorkspace = await getDefaultWorkspace(user);
+
+      if (defaultWorkspace) {
+        // Skip workspace step if user already has a workspace
+        step = step === "workspace" ? "link" : step;
+        return NextResponse.redirect(
+          new URL(`/onboarding/${step}?workspace=${defaultWorkspace}`, req.url),
+        );
+      } else {
+        return NextResponse.redirect(new URL("/onboarding", req.url));
       }
 
       // if the path is / or /login or /register, redirect to the default workspace
