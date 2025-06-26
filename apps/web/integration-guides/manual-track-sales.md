@@ -13,7 +13,7 @@ const response = await fetch("https://api.dub.co/track/sale", {
   },
   body: JSON.stringify({
     externalId: "cus_oFUYbZYqHFR0knk0MjsMC6b0",
-    amount: 3000,
+    amount: 3000, // sale amount in cents
     paymentProcessor: "custom",
     eventName: "Invoice paid",
     invoiceId: "INV_1234567890",
