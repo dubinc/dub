@@ -8,13 +8,12 @@ import {
   ProgramSheetAccordionItem,
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
-import { Button, Copy, useCopyToClipboard } from "@dub/ui";
+import { Button, useCopyToClipboard } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   guides,
   IntegrationGuide,
@@ -172,20 +171,6 @@ export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
           !showConnectLaterButton && "justify-center",
         )}
       >
-        <Button
-          text="Share with a developer"
-          className="h-8 w-fit rounded-lg"
-          variant="outline"
-          icon={
-            copied ? <Check className="size-4" /> : <Copy className="size-4" />
-          }
-          type="button"
-          onClick={() => {
-            copyToClipboard("https://dub.co/docs/partners/quickstart");
-            toast.success("Developer link copied.");
-          }}
-        />
-
         {showConnectLaterButton && (
           <Link href={`/${workspaceSlug}/program/new/overview`}>
             <Button

@@ -177,8 +177,6 @@ export function SidebarNav<T extends Record<any, any>>({
                               <Link
                                 href={`/${data.slug}/tracking-guide`}
                                 className="flex h-8 items-center gap-3 rounded-lg bg-neutral-900/10 px-2.5 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-900/20"
-                                target="_blank"
-                                rel="noopener noreferrer"
                               >
                                 <BookOpen className="size-4" />
                                 View connection guides
@@ -352,7 +350,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         className={cn(
-          "text-content-default group flex items-center justify-between rounded-lg h-8 p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
+          "text-content-default group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           isActive && !items
             ? "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100"

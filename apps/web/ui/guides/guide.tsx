@@ -1,9 +1,17 @@
 "use client";
 
-import { buttonVariants } from "@dub/ui";
+import {
+  Button,
+  buttonVariants,
+  Check,
+  ChevronLeft,
+  Copy,
+  useCopyToClipboard,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { toast } from "sonner";
 import { guides, IntegrationType } from "./integrations";
 import { Markdown } from "./markdown";
 
@@ -21,6 +29,8 @@ export function Guide({ markdown }: { markdown: string }) {
 
   const selectedGuide = guides.find((g) => g.key === guideKey)!;
 
+  const [copiedGuideUrl, copyGuideUrl] = useCopyToClipboard();
+
   const Icon = selectedGuide.icon;
 
   return (
@@ -30,17 +40,32 @@ export function Guide({ markdown }: { markdown: string }) {
         <div className="flex items-center justify-between">
           <Icon className="size-8" />
 
-          <Link
-            href={pathname.replace(`/${guideKey}`, "")}
-            className={cn(
-              buttonVariants({
-                variant: "secondary",
-              }),
-              "flex h-8 w-fit items-center justify-center rounded-lg border border-neutral-200 px-3 text-sm",
-            )}
-          >
-            Select another method
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href={pathname.replace(`/${guideKey}`, "")}>
+              <Button
+                text="Select another method"
+                variant="secondary"
+                className="h-8 w-fit px-3"
+                icon={<ChevronLeft className="size-3.5" />}
+              />
+            </Link>
+            <Button
+              text="Copy guide link"
+              variant="secondary"
+              className="h-8 w-fit px-3"
+              icon={
+                copiedGuideUrl ? (
+                  <Check className="size-3.5" />
+                ) : (
+                  <Copy className="size-3.5" />
+                )
+              }
+              onClick={() => {
+                copyGuideUrl(pathname);
+                toast.success("Copied to clipboard");
+              }}
+            />
+          </div>
         </div>
 
         <div className="flex flex-col">

@@ -1,5 +1,6 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
@@ -395,7 +396,8 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { defaultProgramId, conversionEnabled } = useWorkspace();
+  const { plan, defaultProgramId } = useWorkspace();
+  const { canTrackConversions } = getPlanCapabilities(plan);
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -412,7 +414,7 @@ export function AppSidebarNav({
   });
 
   const { data: customersCount } = useCustomersCount({
-    enabled: conversionEnabled === true,
+    enabled: canTrackConversions === true,
   });
 
   return (
@@ -430,7 +432,7 @@ export function AppSidebarNav({
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
         applicationsCount,
-        showConversionGuides: conversionEnabled && customersCount === 0,
+        showConversionGuides: canTrackConversions && customersCount === 0,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
