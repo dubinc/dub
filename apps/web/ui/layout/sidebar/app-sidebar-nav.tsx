@@ -432,7 +432,7 @@ export function AppSidebarNav({
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
         applicationsCount,
-        showConversionGuides: canTrackConversions,
+        showConversionGuides: canTrackConversions && customersCount === 0,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
