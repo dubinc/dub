@@ -16,7 +16,7 @@ export const FAQSection = () => {
   const { isMobile } = useMediaQuery();
 
   return (
-    <section className="mx-auto flex w-full max-w-[1172px] flex-col justify-between gap-2 px-3 pt-3 lg:flex-row lg:gap-6 lg:pt-8">
+    <section className="mx-auto flex w-full max-w-[1172px] flex-col items-center justify-between gap-2 px-3 pt-3 lg:flex-row lg:items-start lg:gap-6 lg:pt-8">
       <SectionTitle
         titleFirstPart={isMobile ? "FAQ" : "Frequently Asked Questions"}
         className="mb-4 text-center lg:max-w-64 lg:!text-left"
