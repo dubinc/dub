@@ -184,12 +184,10 @@ export async function confirmPayouts({
     await stripe.paymentIntents.create({
       amount: convertedTotal,
       customer: workspace.stripeId!,
+      payment_method_types: [paymentMethod.type],
       payment_method: paymentMethod.id,
-      automatic_payment_methods: {
-        enabled: true,
-        allow_redirects: "never",
-      },
       currency,
+      confirmation_method: "automatic",
       confirm: true,
       transfer_group: invoice.id,
       statement_descriptor: "Dub Partners",
