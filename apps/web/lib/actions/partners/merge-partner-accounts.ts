@@ -4,7 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { generateOTP } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
 import { recordLink } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
+import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
@@ -80,6 +80,16 @@ const sendTokens = async ({
   targetEmail: string;
   userId: string;
 }) => {
+  const { success } = await ratelimit(5, "24 h").limit(
+    `${CACHE_KEY_PREFIX}:step-1:${userId}`,
+  );
+
+  if (!success) {
+    throw new Error(
+      "You've reached the maximum number of attempts for the past 24 hours. Please wait and try again later.",
+    );
+  }
+
   if (sourceEmail === targetEmail) {
     throw new Error("Source and target emails cannot be the same.");
   }
@@ -185,13 +195,15 @@ const verifyTokens = async ({
   targetCode: string;
   userId: string;
 }) => {
-  console.info("data", {
-    sourceEmail,
-    targetEmail,
-    sourceCode,
-    targetCode,
-    userId,
-  });
+  const { success } = await ratelimit(5, "24 h").limit(
+    `${CACHE_KEY_PREFIX}:step-2:${userId}`,
+  );
+
+  if (!success) {
+    throw new Error(
+      "You've reached the maximum number of attempts for the past 24 hours. Please wait and try again later.",
+    );
+  }
 
   const [sourceToken, targetToken] = await Promise.all([
     prisma.emailVerificationToken.findUnique({
@@ -279,6 +291,16 @@ const verifyTokens = async ({
 
 // Step 3: Merge partner accounts
 const mergeAccounts = async ({ userId }: { userId: string }) => {
+  const { success } = await ratelimit(5, "24 h").limit(
+    `${CACHE_KEY_PREFIX}:step-3:${userId}`,
+  );
+
+  if (!success) {
+    throw new Error(
+      "You've reached the maximum number of attempts for the past 24 hours. Please wait and try again later.",
+    );
+  }
+
   const accounts = await redis.get<{
     sourceEmail: string;
     targetEmail: string;
