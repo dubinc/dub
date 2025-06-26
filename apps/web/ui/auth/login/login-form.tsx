@@ -1,5 +1,6 @@
 "use client";
 
+import { MessageType } from "@/ui/modals/auth-modal.tsx";
 import { AnimatedSizeContainer, useLocalStorage } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import {
@@ -12,7 +13,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { EmailSignIn } from "./email-sign-in";
 import { GoogleButton } from "./google-button";
 

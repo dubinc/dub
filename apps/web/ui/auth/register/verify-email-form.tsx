@@ -2,6 +2,7 @@
 
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
 import { showMessage } from "@/ui/auth/helpers";
+import { MessageType } from "@/ui/modals/auth-modal.tsx";
 import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { getFiles } from "@/ui/qr-builder/helpers/file-store.ts";
@@ -13,17 +14,16 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
+import { trackClientEvents } from "core/integration/analytic/analytic.service";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { OTPInput } from "input-otp";
 import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { Options } from "qr-code-styling";
 import { useState } from "react";
-import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 import { useRegisterContext } from "./context";
 import { ResendOtp } from "./resend-otp";
-import { trackClientEvents } from "core/integration/analytic/analytic.service";
-import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 
 type TProcessedQRData = {
   title: string;

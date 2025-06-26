@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
+import { MessageType } from "@/ui/modals/auth-modal.tsx";
 import { SignUpEmail } from "./signup-email";
 import { SignUpOAuth } from "./signup-oauth";
 
@@ -30,7 +30,12 @@ export const SignUpForm = ({
           <div className="border-border-500 grow basis-0 border-b" />
         </div>
       )}
-      {methods.includes("email") && <SignUpEmail authModal={authModal} setAuthModalMessage={setAuthModalMessage} />}
+      {methods.includes("email") && (
+        <SignUpEmail
+          authModal={authModal}
+          setAuthModalMessage={setAuthModalMessage}
+        />
+      )}
     </div>
   );
 };
