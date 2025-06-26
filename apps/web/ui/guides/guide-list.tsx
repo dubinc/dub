@@ -8,8 +8,7 @@ import {
   ProgramSheetAccordionItem,
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
-import { Button, useCopyToClipboard } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { Button } from "@dub/ui";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,10 +19,6 @@ import {
   IntegrationType,
   sections,
 } from "./integrations";
-
-interface GuideListProps {
-  showConnectLaterButton?: boolean;
-}
 
 const guidesByType = guides.reduce(
   (acc, guide) => {
@@ -36,10 +31,9 @@ const guidesByType = guides.reduce(
   {} as Record<IntegrationType, IntegrationGuide[]>,
 );
 
-export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
+export function GuideList() {
   const pathname = usePathname();
   const { slug: workspaceSlug } = useWorkspace();
-  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const [completedSections, setCompletedSections] = useState<
     Set<IntegrationType>
@@ -67,6 +61,8 @@ export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
       setCurrentOpenSection("");
     }
   };
+
+  const showConnectLaterButton = pathname.includes("connect");
 
   return (
     <div>
@@ -165,13 +161,8 @@ export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
         })}
       </ProgramSheetAccordion>
 
-      <div
-        className={cn(
-          "mt-6 flex items-center justify-between gap-4",
-          !showConnectLaterButton && "justify-center",
-        )}
-      >
-        {showConnectLaterButton && (
+      {showConnectLaterButton && (
+        <div className="mt-6 flex items-center justify-end gap-4">
           <Link href={`/${workspaceSlug}/program/new/overview`}>
             <Button
               text="I'll connect Dub later"
@@ -179,8 +170,8 @@ export function GuideList({ showConnectLaterButton = true }: GuideListProps) {
               variant="secondary"
             />
           </Link>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
