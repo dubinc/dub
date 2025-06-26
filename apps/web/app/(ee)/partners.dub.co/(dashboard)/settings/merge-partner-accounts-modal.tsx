@@ -2,6 +2,7 @@
 
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { inter } from "@/styles/fonts";
 import { Button, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -18,6 +19,11 @@ interface MergePartnerAccountsModalProps {
   showMergePartnerAccountsModal: boolean;
   setShowMergePartnerAccountsModal: Dispatch<SetStateAction<boolean>>;
 }
+
+interface EmailAccounts {
+  sourceEmail: string;
+  targetEmail: string;
+};
 
 function MergePartnerAccountsModal(props: MergePartnerAccountsModalProps) {
   const { showMergePartnerAccountsModal, setShowMergePartnerAccountsModal } =
@@ -36,11 +42,9 @@ function MergePartnerAccountsModal(props: MergePartnerAccountsModalProps) {
 function MergePartnerAccountsModalInner({
   setShowMergePartnerAccountsModal,
 }: MergePartnerAccountsModalProps) {
-  const [isPending, setIsPending] = useState(false);
-
-  const onSubmit = async (data: any) => {
-    //
-  };
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [sourceEmail, setSourceEmail] = useState<string>("");
+  const [targetEmail, setTargetEmail] = useState<string>("");
 
   return (
     <div>
@@ -49,38 +53,30 @@ function MergePartnerAccountsModalInner({
       </div>
 
       <div className="flex flex-col gap-2 bg-neutral-50 p-4 sm:p-6">
-        <SendVerificationCode />
-        {/* <VerifyCode />
-        <MergeAccounts /> */}
+        {step === 1 && (
+          <SendVerificationCode
+            onSuccess={({ sourceEmail, targetEmail }) => {
+              setSourceEmail(sourceEmail);
+              setTargetEmail(targetEmail);
+              setStep(2);
+            }}
+          />
+        )}
+
+        {step === 2 && <VerifyCode onSuccess={() => setStep(3)} />}
+
+        {step === 3 && <MergeAccounts />}
       </div>
     </div>
   );
 }
 
-export function useMergePartnerAccountsModal() {
-  const [showMergePartnerAccountsModal, setShowMergePartnerAccountsModal] =
-    useState(false);
-
-  const MergePartnerAccountsModalCallback = useCallback(() => {
-    return (
-      <MergePartnerAccountsModal
-        showMergePartnerAccountsModal={showMergePartnerAccountsModal}
-        setShowMergePartnerAccountsModal={setShowMergePartnerAccountsModal}
-      />
-    );
-  }, [showMergePartnerAccountsModal, setShowMergePartnerAccountsModal]);
-
-  return useMemo(
-    () => ({
-      setShowMergePartnerAccountsModal,
-      MergePartnerAccountsModal: MergePartnerAccountsModalCallback,
-    }),
-    [setShowMergePartnerAccountsModal, MergePartnerAccountsModalCallback],
-  );
-}
-
 // Step 1: Send verification code to both accounts
-function SendVerificationCode() {
+function SendVerificationCode({
+  onSuccess,
+}: {
+  onSuccess: (data: EmailAccounts) => void;
+}) {
   const { partner } = usePartnerProfile();
 
   const {
@@ -99,6 +95,11 @@ function SendVerificationCode() {
 
   const { executeAsync, isPending } = useAction(mergePartnerAccountsAction, {
     onSuccess: async () => {
+      onSuccess({
+        sourceEmail,
+        targetEmail,
+      });
+
       toast.success(
         "Verification codes sent successfully! Please check your email accounts.",
       );
@@ -187,11 +188,33 @@ function SendVerificationCode() {
 }
 
 // Step 2: Verify code
-function VerifyCode() {
+function VerifyCode({ onSuccess }: { onSuccess: () => void }) {
   return <div>VerifyCode</div>;
 }
 
 // Step 3: Merge accounts
 function MergeAccounts() {
   return <div>MergeAccounts</div>;
+}
+
+export function useMergePartnerAccountsModal() {
+  const [showMergePartnerAccountsModal, setShowMergePartnerAccountsModal] =
+    useState(false);
+
+  const MergePartnerAccountsModalCallback = useCallback(() => {
+    return (
+      <MergePartnerAccountsModal
+        showMergePartnerAccountsModal={showMergePartnerAccountsModal}
+        setShowMergePartnerAccountsModal={setShowMergePartnerAccountsModal}
+      />
+    );
+  }, [showMergePartnerAccountsModal, setShowMergePartnerAccountsModal]);
+
+  return useMemo(
+    () => ({
+      setShowMergePartnerAccountsModal,
+      MergePartnerAccountsModal: MergePartnerAccountsModalCallback,
+    }),
+    [setShowMergePartnerAccountsModal, MergePartnerAccountsModalCallback],
+  );
 }
