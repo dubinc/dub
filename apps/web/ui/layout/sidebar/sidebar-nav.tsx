@@ -179,7 +179,7 @@ export function SidebarNav<T extends Record<any, any>>({
                                 className="flex h-8 items-center gap-3 rounded-lg bg-neutral-900/10 px-2.5 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-900/20"
                               >
                                 <BookOpen className="size-4" />
-                                View connection guides
+                                Set up conversion tracking
                               </Link>
                             </div>
                           )}
