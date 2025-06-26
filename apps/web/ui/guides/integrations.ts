@@ -3,32 +3,23 @@ import { Auth0 } from "@/ui/layout/sidebar/conversions/icons/auth0";
 import { BetterAuth } from "@/ui/layout/sidebar/conversions/icons/better-auth";
 import { Clerk } from "@/ui/layout/sidebar/conversions/icons/clerk";
 import { Framer } from "@/ui/layout/sidebar/conversions/icons/framer";
-import { Go } from "@/ui/layout/sidebar/conversions/icons/go";
 import { NextAuth } from "@/ui/layout/sidebar/conversions/icons/next-auth";
-import { Php } from "@/ui/layout/sidebar/conversions/icons/php";
-import { Python } from "@/ui/layout/sidebar/conversions/icons/python";
 import { React } from "@/ui/layout/sidebar/conversions/icons/react";
-import { Ruby } from "@/ui/layout/sidebar/conversions/icons/ruby";
 import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
 import { Supabase } from "@/ui/layout/sidebar/conversions/icons/supabase";
-import { Typescript } from "@/ui/layout/sidebar/conversions/icons/typescript";
 import { Webflow } from "@/ui/layout/sidebar/conversions/icons/webflow";
 import { Wordpress } from "@/ui/layout/sidebar/conversions/icons/wordpress";
 import { CodeEditor } from "../layout/sidebar/conversions/icons/code-editor";
 
-export type IntegrationType =
-  | "client-sdk"
-  | "server-sdk"
-  | "track-leads"
-  | "track-sales";
+export type IntegrationType = "client-sdk" | "track-leads" | "track-sales";
 
 export type IntegrationGuide = {
   type: IntegrationType;
   key: string;
   title: string;
   description?: string;
-  subDescription?: string;
+  subtitle?: string;
   icon: any;
   recommended?: boolean;
   content?: string;
@@ -42,27 +33,21 @@ export const sections: {
 }[] = [
   {
     type: "client-sdk",
-    title: "Set up client-side script",
+    title: "Install client-side script",
     description:
-      "The step allows Dub to track clicks, automatically fetch the partner and discount data for a given link. Select the guide for instructions.",
-  },
-  {
-    type: "server-sdk",
-    title: "Set up server-side SDK",
-    description:
-      "Install the server-side SDK of your choice and select the guide for instructions.",
+      "First, you need to install Dub's client-side script, which enables Dub to track click events and store them as a first-party cookie on your site.",
   },
   {
     type: "track-leads",
     title: "Track lead events",
     description:
-      "The step allows your app to send lead events to Dub. Select the guide for instructions.",
+      "Then, you'll track a lead event (e.g. when a user signs up for an account on your application) using our server-side SDKs or REST API.",
   },
   {
     type: "track-sales",
     title: "Track sale events",
     description:
-      "The step allows your app to send sale events to Dub. Select the guide for instructions.",
+      "Finally, you can use our Stripe integration or server-side SDKs to track sale events (e.g. when a user purchases a product on your application).",
   },
 ];
 
@@ -106,54 +91,10 @@ export const guides: IntegrationGuide[] = [
   {
     type: "client-sdk",
     key: "manual-client-sdk",
-    title: "Manual",
+    title: "Manual Installation",
     description: "Manual Installation",
     icon: CodeEditor,
     url: "https://dub.co/docs/sdks/client-side/installation-guides/manual",
-  },
-
-  // Server SDK
-  {
-    type: "server-sdk",
-    key: "typescript",
-    title: "TypeScript",
-    icon: Typescript,
-    url: "https://dub.co/docs/sdks/typescript",
-  },
-  {
-    type: "server-sdk",
-    key: "golang",
-    title: "Go",
-    icon: Go,
-    url: "https://dub.co/docs/sdks/go",
-  },
-  {
-    type: "server-sdk",
-    key: "python",
-    title: "Python",
-    icon: Python,
-    url: "https://dub.co/docs/sdks/python",
-  },
-  {
-    type: "server-sdk",
-    key: "ruby",
-    title: "Ruby",
-    icon: Ruby,
-    url: "https://dub.co/docs/sdks/ruby",
-  },
-  {
-    type: "server-sdk",
-    key: "php",
-    title: "PHP",
-    icon: Php,
-    url: "https://dub.co/docs/sdks/php",
-  },
-  {
-    type: "server-sdk",
-    key: "rest-api",
-    title: "REST API",
-    icon: CodeEditor,
-    url: "https://dub.co/docs/api-reference/introduction",
   },
 
   // Track Leads
@@ -202,10 +143,10 @@ export const guides: IntegrationGuide[] = [
   {
     type: "track-leads",
     key: "manual-track-leads",
-    title: "Manual",
+    title: "Custom Integration",
     description: "Manual Lead Tracking",
     icon: CodeEditor,
-    url: "https://dub.co/docs/api-reference/endpoint/track-lead",
+    url: "https://dub.co/docs/conversions/leads/introduction",
   },
   // {
   //   type: "track-leads",
@@ -219,7 +160,7 @@ export const guides: IntegrationGuide[] = [
     type: "track-sales",
     key: "stripe-checkout",
     title: "Stripe",
-    subDescription: "Checkout",
+    subtitle: "Checkout",
     description: "Stripe Checkout",
     icon: Stripe,
     url: "https://dub.co/docs/conversions/sales/stripe#option-2%3A-using-stripe-checkout-recommended",
@@ -228,7 +169,7 @@ export const guides: IntegrationGuide[] = [
     type: "track-sales",
     key: "stripe-payment-links",
     title: "Stripe",
-    subDescription: "Payment Links",
+    subtitle: "Payment Links",
     description: "Stripe Payment Links",
     icon: Stripe,
     url: "https://dub.co/docs/conversions/sales/stripe#option-1%3A-using-stripe-payment-links",
@@ -237,7 +178,7 @@ export const guides: IntegrationGuide[] = [
     type: "track-sales",
     key: "stripe-customers",
     title: "Stripe",
-    subDescription: "Customers",
+    subtitle: "Customers",
     description: "Stripe Customers",
     icon: Stripe,
     url: "https://dub.co/docs/conversions/sales/stripe#option-3%3A-using-stripe-customers",
@@ -245,10 +186,10 @@ export const guides: IntegrationGuide[] = [
   {
     type: "track-sales",
     key: "manual-track-sales",
-    title: "Manual",
+    title: "Custom Integration",
     description: "Manual Sale Tracking",
     icon: CodeEditor,
-    url: "https://dub.co/docs/api-reference/endpoint/track-sale",
+    url: "https://dub.co/docs/conversions/sales/introduction",
   },
   // {
   //   type: "track-sales",

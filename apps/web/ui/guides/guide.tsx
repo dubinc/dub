@@ -8,10 +8,9 @@ import { guides, IntegrationType } from "./integrations";
 import { Markdown } from "./markdown";
 
 const integrationTypeToTitle: Record<IntegrationType, string> = {
-  "client-sdk": "Set up client-side script",
-  "server-sdk": "Set up server-side SDK",
-  "track-leads": "Tracking lead events",
-  "track-sales": "Tracking sale events",
+  "client-sdk": "Install client-side script",
+  "track-leads": "Track lead events",
+  "track-sales": "Track sale events",
 };
 
 export function Guide({ markdown }: { markdown: string }) {

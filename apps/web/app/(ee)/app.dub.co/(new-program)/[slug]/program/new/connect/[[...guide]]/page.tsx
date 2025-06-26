@@ -31,14 +31,12 @@ export default async function ConnectGuidesPage({
   }
 
   return (
-    <StepPage title="Connecting Dub">
+    <StepPage title="Set up conversion tracking">
       <div>
         <p className="mb-6 text-sm text-neutral-600">
-          Ensure Dub is connected to your app, so you can track your clicks,
-          leads, and sales on your program.{" "}
-          <span className="font-medium">
-            A developer might be required to complete.
-          </span>
+          Connect Dub to your application and start tracking lead and sale
+          conversion events.{" "}
+          <span className="font-medium">Estimated time: 1 hour</span>
         </p>
 
         {selectedGuide && markdownContent ? (

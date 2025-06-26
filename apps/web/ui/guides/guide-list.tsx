@@ -62,7 +62,7 @@ export function GuideList() {
     }
   };
 
-  const showConnectLaterButton = pathname.includes("connect");
+  const showConnectLaterButton = pathname.includes("/program/new/connect");
 
   return (
     <div>
@@ -99,17 +99,16 @@ export function GuideList() {
 
               <ProgramSheetAccordionContent>
                 <div className="space-y-6">
-                  <p className="text-sm font-medium leading-5 text-neutral-700">
+                  <p className="text-sm font-medium text-neutral-600">
                     {section.description}
                   </p>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                     {(guidesByType[section.type] || []).map((guide) => (
                       <Link
-                        prefetch={true}
-                        href={`${pathname}/${guide.key}`}
                         key={guide.title}
-                        className="group relative flex h-[140px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg bg-neutral-100 px-2 py-4 text-center"
+                        href={`${pathname}/${guide.key}`}
+                        className="group relative flex h-[140px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg bg-neutral-100 px-2 py-4 text-center transition-colors hover:bg-neutral-200/75"
                       >
                         <div className="flex h-16 w-full items-center justify-center">
                           <guide.icon className="size-10" />
@@ -120,9 +119,9 @@ export function GuideList() {
                             {guide.title}
                           </div>
 
-                          {guide.subDescription && (
+                          {guide.subtitle && (
                             <div className="w-full text-sm font-medium leading-5 text-neutral-500">
-                              {guide.subDescription}
+                              {guide.subtitle}
                             </div>
                           )}
                         </div>
@@ -137,9 +136,7 @@ export function GuideList() {
                       onClick={() => handleComplete(section.type)}
                     />
 
-                    {["server-sdk", "track-leads", "track-sales"].includes(
-                      section.type,
-                    ) && (
+                    {["track-leads", "track-sales"].includes(section.type) && (
                       <p className="flex items-center justify-center gap-2 text-center text-sm font-medium leading-5 text-neutral-500">
                         <Shopify className="inline size-4" />
                         If you're using Shopify, you can skip this step.{" "}
@@ -165,7 +162,7 @@ export function GuideList() {
         <div className="mt-6 flex items-center justify-end gap-4">
           <Link href={`/${workspaceSlug}/program/new/overview`}>
             <Button
-              text="I'll connect Dub later"
+              text="I'll set up conversion tracking later"
               className="h-8 w-fit rounded-lg"
               variant="secondary"
             />
