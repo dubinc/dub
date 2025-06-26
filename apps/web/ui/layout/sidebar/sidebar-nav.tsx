@@ -171,33 +171,31 @@ export function SidebarNav<T extends Record<any, any>>({
                       </div>
 
                       <div className="-mx-3 flex grow flex-col justify-end">
-                        <div>
-                          {data.showConversionGuides && (
-                            <Link
-                              href={`/${data.slug}/guides`}
-                              className="m-3 flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
-                            >
-                              <BookOpen className="size-4" />
-                              Set up conversion tracking
-                            </Link>
-                          )}
+                        {data.showConversionGuides && (
+                          <Link
+                            href={`/${data.slug}/guides`}
+                            className="m-3 flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
+                          >
+                            <BookOpen className="size-4" />
+                            Set up conversion tracking
+                          </Link>
+                        )}
 
-                          <AnimatePresence>
-                            {showNews && (
-                              <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                transition={{
-                                  duration: 0.1,
-                                  ease: "easeInOut",
-                                }}
-                              >
-                                {newsContent}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
+                        <AnimatePresence>
+                          {showNews && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 10 }}
+                              transition={{
+                                duration: 0.1,
+                                ease: "easeInOut",
+                              }}
+                            >
+                              {newsContent}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </Area>
                   );

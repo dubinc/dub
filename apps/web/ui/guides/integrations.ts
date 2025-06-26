@@ -117,7 +117,7 @@ export const guides: IntegrationGuide[] = [
     key: "nextauth",
     title: "NextAuth.js",
     icon: NextAuth,
-    url: "https://dub.co/docs/conversions/leads/nextauth",
+    url: "https://dub.co/docs/conversions/leads/next-auth",
   },
   {
     type: "track-leads",
