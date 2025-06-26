@@ -12,7 +12,6 @@ import CoffeeCupPreview from "@/ui/qr-builder/icons/frames/coffee-cup-preview.sv
 import CoffeeCup from "@/ui/qr-builder/icons/frames/coffee-cup.svg";
 import EnvelopePreview from "@/ui/qr-builder/icons/frames/envelope-preview.svg";
 import Envelope from "@/ui/qr-builder/icons/frames/envelope.svg";
-import GlassPreview from "@/ui/qr-builder/icons/frames/glass-preview.svg";
 import Glass from "@/ui/qr-builder/icons/frames/glass.svg";
 import ScooterPreview from "@/ui/qr-builder/icons/frames/scooter-preview.svg";
 import Scooter from "@/ui/qr-builder/icons/frames/scooter.svg";
@@ -110,14 +109,6 @@ export const FRAMES: TStyleOption[] = [
       await embedQRIntoFrame(qr, options, ClipboardFrame, 0.6, 100, 100);
     },
     icon: ClipboardFramePreview,
-  },
-  {
-    id: "frame-glass",
-    type: "glass",
-    extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Glass, 0.5, 150, 220);
-    },
-    icon: GlassPreview,
   },
 ];
 
