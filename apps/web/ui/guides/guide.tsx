@@ -8,10 +8,10 @@ import { guides, IntegrationType } from "./integrations";
 import { Markdown } from "./markdown";
 
 const integrationTypeToTitle: Record<IntegrationType, string> = {
-  "client-sdk": "client-side script",
-  "server-sdk": "server-side script",
-  "track-leads": "tracking lead events",
-  "track-sales": "tracking sale events",
+  "client-sdk": "Set up client-side script",
+  "server-sdk": "Set up server-side SDK",
+  "track-leads": "Tracking lead events",
+  "track-sales": "Tracking sale events",
 };
 
 export function Guide({ markdown }: { markdown: string }) {
@@ -51,7 +51,7 @@ export function Guide({ markdown }: { markdown: string }) {
 
         <div className="flex flex-col">
           <span className="text-sm font-medium leading-5 text-neutral-500">
-            Set up {integrationTypeToTitle[selectedGuide.type]}
+            {integrationTypeToTitle[selectedGuide.type]}
           </span>
           <span className="text-xl font-semibold leading-7 text-neutral-900">
             Instructions for {selectedGuide.description || selectedGuide.title}

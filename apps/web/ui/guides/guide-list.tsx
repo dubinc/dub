@@ -86,7 +86,7 @@ export function GuideList() {
                       <Check className="size-3" />
                     </div>
                   ) : (
-                    <div className="flex size-6 items-center justify-center rounded-full bg-white text-base font-semibold leading-6 text-neutral-900">
+                    <div className="flex size-5 items-center justify-center rounded-full bg-white text-sm font-semibold leading-6 text-neutral-900">
                       {index + 1}
                     </div>
                   )}
