@@ -15,7 +15,7 @@ import { Supabase } from "@/ui/layout/sidebar/conversions/icons/supabase";
 import { Typescript } from "@/ui/layout/sidebar/conversions/icons/typescript";
 import { Webflow } from "@/ui/layout/sidebar/conversions/icons/webflow";
 import { Wordpress } from "@/ui/layout/sidebar/conversions/icons/wordpress";
-import { SquareCode } from "lucide-react";
+import { CodeEditor } from "../layout/sidebar/conversions/icons/code-editor";
 
 export type IntegrationType =
   | "client-sdk"
@@ -106,7 +106,7 @@ export const guides: IntegrationGuide[] = [
     type: "client-sdk",
     key: "manual-client-sdk",
     title: "Manual",
-    icon: SquareCode,
+    icon: CodeEditor,
     url: "https://dub.co/docs/sdks/client-side/installation-guides/manual",
   },
 
@@ -150,7 +150,7 @@ export const guides: IntegrationGuide[] = [
     type: "server-sdk",
     key: "rest-api",
     title: "REST API",
-    icon: SquareCode,
+    icon: CodeEditor,
     url: "https://dub.co/docs/api-reference/introduction",
   },
 
@@ -201,8 +201,8 @@ export const guides: IntegrationGuide[] = [
     type: "track-leads",
     key: "manual-track-leads",
     title: "Manual",
-    icon: SquareCode,
-    url: "https://dub.co/docs/conversions/leads/manual", // fix this
+    icon: CodeEditor,
+    url: "https://dub.co/docs/api-reference/endpoint/track-lead",
   },
   // {
   //   type: "track-leads",
@@ -240,8 +240,8 @@ export const guides: IntegrationGuide[] = [
     type: "track-sales",
     key: "manual-track-sales",
     title: "Manual",
-    icon: SquareCode,
-    url: "https://dub.co/docs/conversions/sales/manual", // fix this
+    icon: CodeEditor,
+    url: "https://dub.co/docs/api-reference/endpoint/track-sale",
   },
   // {
   //   type: "track-sales",

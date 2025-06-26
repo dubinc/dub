@@ -26,5 +26,3 @@ const response = await fetch("https://api.dub.co/links", {
 
 const data = await response.json();
 ```
-
-You can see the full API reference [here](https://dub.co/docs/api-reference/introduction).
