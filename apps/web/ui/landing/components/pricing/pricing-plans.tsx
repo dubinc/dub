@@ -14,8 +14,8 @@ export const PricingSection: FC<IPricingSectionProps> = ({
   return (
     <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-6 px-3 py-6 lg:gap-10 lg:py-12">
       <SectionTitle
-        titleFirstPart={"Start free, upgrade when"}
-        highlightedTitlePart={"you need more"}
+        titleFirstPart={"Start Free, Upgrade when"}
+        highlightedTitlePart={"You Need"}
         className="lg:!leading-[52px]"
       />
       <Flex
