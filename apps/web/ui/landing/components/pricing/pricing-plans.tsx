@@ -15,7 +15,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
   const { isMobile } = useMediaQuery();
 
   return (
-    <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-6 px-3 py-6 lg:gap-10 lg:py-12">
+    <section className="mx-auto mb-[28px] flex max-w-[1172px] flex-col items-center justify-center gap-6 px-3 py-10 lg:mb-[24px] lg:gap-10 lg:py-14">
       <SectionTitle
         titleFirstPart={"Start Free, Upgrade when"}
         highlightedTitlePart={"You Need"}

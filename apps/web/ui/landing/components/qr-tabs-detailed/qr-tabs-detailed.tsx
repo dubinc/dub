@@ -38,7 +38,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
   };
 
   return (
-    <section className="bg-primary-100 w-full px-3 py-6 md:py-12">
+    <section className="bg-primary-100 w-full px-3 py-10 lg:py-14">
       <div className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-6 lg:gap-10">
         <div className="flex flex-col items-center justify-center gap-4 md:gap-6">
           <QrTabsDetailedTitle />

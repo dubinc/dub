@@ -51,9 +51,9 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <section className="bg-primary-100 w-full px-3 pb-6 md:pb-12">
+    <section className="bg-primary-100 w-full px-3 py-10 lg:py-14">
       <div
-        className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-6 md:gap-12"
+        className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-6 lg:gap-12"
         ref={ref}
       >
         <QrTabsTitle />

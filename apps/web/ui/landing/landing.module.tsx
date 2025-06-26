@@ -31,7 +31,7 @@ export const LandingModule = () => {
   };
 
   return (
-    <main className="relative mx-auto min-h-screen w-full py-6 md:py-12">
+    <main className="relative mx-auto min-h-screen w-full pb-6 md:pb-12">
       <QRTabs ref={qrGenerationBlockRef} />
       <GetQRInfoCardsSection />
       <QrTabsDetailed handleScrollButtonClick={handleScrollButtonClick} />

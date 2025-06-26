@@ -6,7 +6,7 @@ import { GET_QR_FEATURES } from "./config.ts";
 
 export const GetQRFeaturesCardsSection: FC = () => {
   return (
-    <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-6 px-3 py-6 lg:gap-10 lg:py-12">
+    <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-6 px-3 py-10 lg:gap-10 lg:py-14">
       <SectionTitle
         titleFirstPart={"More Than Just a"}
         highlightedTitlePart={"QR Code"}
