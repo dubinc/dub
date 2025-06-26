@@ -8,7 +8,6 @@ import { Php } from "@/ui/layout/sidebar/conversions/icons/php";
 import { Python } from "@/ui/layout/sidebar/conversions/icons/python";
 import { React } from "@/ui/layout/sidebar/conversions/icons/react";
 import { Ruby } from "@/ui/layout/sidebar/conversions/icons/ruby";
-import { Segment } from "@/ui/layout/sidebar/conversions/icons/segment";
 import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
 import { Supabase } from "@/ui/layout/sidebar/conversions/icons/supabase";
@@ -31,6 +30,7 @@ export type IntegrationGuide = {
   icon: any;
   recommended?: boolean;
   content?: string;
+  url: string;
 };
 
 export const sections: {
@@ -71,36 +71,42 @@ export const guides: IntegrationGuide[] = [
     key: "react",
     title: "React",
     icon: React,
+    url: "https://dub.co/docs/sdks/client-side/installation-guides/react",
   },
   {
     type: "client-sdk",
     key: "framer",
     title: "Framer",
     icon: Framer,
+    url: "https://dub.co/docs/sdks/client-side/installation-guides/framer",
   },
   {
     type: "client-sdk",
     key: "wordpress",
     title: "WordPress",
     icon: Wordpress,
+    url: "https://dub.co/docs/sdks/client-side/installation-guides/wordpress",
   },
   {
     type: "client-sdk",
     key: "webflow",
     title: "Webflow",
     icon: Webflow,
+    url: "https://dub.co/docs/sdks/client-side/installation-guides/webflow",
   },
   {
     type: "client-sdk",
     key: "shopify",
     title: "Shopify",
     icon: Shopify,
+    url: "https://dub.co/docs/sdks/client-side/installation-guides/shopify",
   },
   {
     type: "client-sdk",
     key: "manual",
     title: "Manual",
     icon: SquareCode,
+    url: "https://dub.co/docs/sdks/client-side/installation-guides/manual",
   },
 
   // Server SDK
@@ -109,30 +115,35 @@ export const guides: IntegrationGuide[] = [
     key: "typescript",
     title: "TypeScript",
     icon: Typescript,
+    url: "https://dub.co/docs/sdks/typescript",
   },
   {
     type: "server-sdk",
     key: "golang",
     title: "Go",
     icon: Go,
+    url: "https://dub.co/docs/sdks/go",
   },
   {
     type: "server-sdk",
     key: "python",
     title: "Python",
     icon: Python,
+    url: "https://dub.co/docs/sdks/python",
   },
   {
     type: "server-sdk",
     key: "ruby",
     title: "Ruby",
     icon: Ruby,
+    url: "https://dub.co/docs/sdks/ruby",
   },
   {
     type: "server-sdk",
     key: "php",
     title: "PHP",
     icon: Php,
+    url: "https://dub.co/docs/sdks/php",
   },
   // {
   //   type: "server-sdk",
@@ -147,36 +158,42 @@ export const guides: IntegrationGuide[] = [
     key: "clerk",
     title: "Clerk",
     icon: Clerk,
+    url: "https://dub.co/docs/conversions/leads/clerk",
   },
   {
     type: "track-leads",
     key: "betterauth",
     title: "Better Auth",
     icon: BetterAuth,
+    url: "https://dub.co/docs/conversions/leads/better-auth",
   },
   {
     type: "track-leads",
     key: "nextauth",
     title: "NextAuth.js",
     icon: NextAuth,
+    url: "https://dub.co/docs/conversions/leads/nextauth",
   },
   {
     type: "track-leads",
     key: "supabase",
     title: "Supabase",
     icon: Supabase,
+    url: "https://dub.co/docs/conversions/leads/supabase",
   },
   {
     type: "track-leads",
     key: "auth0",
     title: "Auth0",
     icon: Auth0,
+    url: "https://dub.co/docs/conversions/leads/auth0",
   },
   {
     type: "track-leads",
     key: "appwrite",
     title: "Appwrite",
     icon: Appwrite,
+    url: "https://dub.co/docs/conversions/leads/appwrite",
   },
   // {
   //   type: "track-leads",
@@ -192,6 +209,7 @@ export const guides: IntegrationGuide[] = [
     title: "Stripe",
     description: "Checkout",
     icon: Stripe,
+    url: "https://dub.co/docs/conversions/sales/stripe#option-2%3A-using-stripe-checkout-recommended",
   },
   {
     type: "track-sales",
@@ -199,6 +217,7 @@ export const guides: IntegrationGuide[] = [
     title: "Stripe",
     description: "Payment Links",
     icon: Stripe,
+    url: "https://dub.co/docs/conversions/sales/stripe#option-1%3A-using-stripe-payment-links",
   },
   {
     type: "track-sales",
@@ -206,6 +225,7 @@ export const guides: IntegrationGuide[] = [
     title: "Stripe",
     description: "Customers",
     icon: Stripe,
+    url: "https://dub.co/docs/conversions/sales/stripe#option-3%3A-using-stripe-customers",
   },
   // {
   //   type: "track-sales",

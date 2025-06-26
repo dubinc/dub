@@ -56,8 +56,8 @@ export function Guide({ markdown }: { markdown: string }) {
               )
             }
             onClick={() => {
-              copyGuideUrl(pathname);
-              toast.success("Copied to clipboard");
+              copyGuideUrl(selectedGuide.url);
+              toast.success("Copied guide link to clipboard.");
             }}
           />
         </div>
