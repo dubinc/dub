@@ -1,6 +1,5 @@
 "use client";
 
-import { mutatePrefix } from "@/lib/swr/mutate";
 import { Button, Modal } from "@dub/ui";
 import {
   Dispatch,
@@ -9,7 +8,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { toast } from "sonner";
 
 interface MergePartnerAccountsModalProps {
   showMergePartnerAccountsModal: boolean;
@@ -35,35 +33,31 @@ function MergePartnerAccountsModalInner({
 }: MergePartnerAccountsModalProps) {
   const [isPending, setIsPending] = useState(false);
 
-  const handleMerge = async () => {
-    setIsPending(true);
-    try {
-      // TODO: Add merge partner accounts action
-      // await mergePartnerAccountsAction();
-
-      toast.success("Partner accounts merged successfully!");
-      setShowMergePartnerAccountsModal(false);
-      mutatePrefix("/api/partner-profile");
-    } catch (error) {
-      toast.error("Failed to merge partner accounts");
-    } finally {
-      setIsPending(false);
-    }
+  const onSubmit = async (data: any) => {
+    //
   };
 
   return (
-    <div>
-      <div className="space-y-4 border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">
-          Merge Partner Accounts
-        </h3>
-        <p className="text-sm font-normal text-neutral-600">
-          Merge multiple partner accounts into a single account.
-        </p>
+    <form onSubmit={onSubmit}>
+      <div className="border-b border-neutral-200 p-4 sm:p-6">
+        <h3 className="text-lg font-medium leading-none">Merge accounts</h3>
       </div>
 
       <div className="flex flex-col gap-2 bg-neutral-50 p-4 sm:p-6">
-        {/* Empty body as requested */}
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium leading-5 text-neutral-900">
+              Business name
+            </label>
+            <div className="relative mt-2 rounded-md shadow-sm">
+              <input
+                required
+                autoFocus
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
@@ -72,17 +66,16 @@ function MergePartnerAccountsModalInner({
           text="Cancel"
           disabled={isPending}
           className="h-8 w-fit px-3"
-          onClick={() => setShowMergePartnerAccountsModal(false)}
         />
 
         <Button
-          text="Merge Accounts"
+          text="Save"
           className="h-8 w-fit px-3"
           loading={isPending}
-          onClick={handleMerge}
+          type="submit"
         />
       </div>
-    </div>
+    </form>
   );
 }
 

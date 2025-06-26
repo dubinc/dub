@@ -23,6 +23,7 @@ import { PropsWithChildren, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+import { useMergePartnerAccountsModal } from "./merge-partner-accounts-modal";
 
 export function ProfileSettingsPageClient() {
   const { partner, error } = usePartnerProfile();
@@ -120,6 +121,9 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
     groupBy: "status",
   });
 
+  const { MergePartnerAccountsModal, setShowMergePartnerAccountsModal } =
+    useMergePartnerAccountsModal();
+
   const completedPayoutsCount =
     payoutsCount?.find((payout) => payout.status === "completed")?.count ?? 0;
 
@@ -152,6 +156,13 @@ function ProfileForm({ partner }: { partner: PartnerProps }) {
       })}
     >
       <div className="px-5">
+        <MergePartnerAccountsModal />
+        <Button
+          type="button"
+          text="Invoice settings"
+          variant="secondary"
+          onClick={() => setShowMergePartnerAccountsModal(true)}
+        />
         <div className="grid grid-cols-1 items-center sm:grid-cols-2">
           <FormRow>
             <label className="contents">
