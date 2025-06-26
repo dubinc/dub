@@ -7,9 +7,12 @@ import { cn } from "@dub/utils";
 import { OTPInput } from "input-otp";
 import { useAction } from "next-safe-action/hooks";
 import {
+  createContext,
   Dispatch,
   SetStateAction,
   useCallback,
+  useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -25,6 +28,65 @@ interface EmailAccounts {
   sourceEmail: string;
   targetEmail: string;
 }
+
+interface Account {
+  name?: string;
+  email: string;
+  avatarUrl?: string;
+}
+
+export interface FormData {
+  sourceAccount: {
+    account: Account;
+  };
+  targetAccount: {
+    account: Account;
+  };
+}
+
+export interface FormContextType {
+  sourceAccount: Account;
+  targetAccount: Account;
+  setSourceAccount: Dispatch<SetStateAction<Account>>;
+  setTargetAccount: Dispatch<SetStateAction<Account>>;
+}
+
+const FormContext = createContext<FormContextType | undefined>(undefined);
+
+export const useAccountForm = () => {
+  const context = useContext(FormContext);
+
+  if (!context) {
+    throw new Error("useAccountForm must be used within a FormProvider");
+  }
+
+  return context;
+};
+
+export const FormProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [sourceAccount, setSourceAccount] = useState<Account>({
+    email: "",
+  });
+
+  const [targetAccount, setTargetAccount] = useState<Account>({
+    email: "",
+  });
+
+  return (
+    <FormContext.Provider
+      value={{
+        sourceAccount,
+        targetAccount,
+        setSourceAccount,
+        setTargetAccount,
+      }}
+    >
+      {children}
+    </FormContext.Provider>
+  );
+};
 
 function MergePartnerAccountsModal(props: MergePartnerAccountsModalProps) {
   const { showMergePartnerAccountsModal, setShowMergePartnerAccountsModal } =
@@ -43,9 +105,7 @@ function MergePartnerAccountsModal(props: MergePartnerAccountsModalProps) {
 function MergePartnerAccountsModalInner({
   setShowMergePartnerAccountsModal,
 }: MergePartnerAccountsModalProps) {
-  const [step, setStep] = useState<1 | 2 | 3>(2);
-  const [sourceEmail, setSourceEmail] = useState<string>("");
-  const [targetEmail, setTargetEmail] = useState<string>("");
+  const [step, setStep] = useState<1 | 2 | 3>(1);
 
   return (
     <div>
@@ -54,31 +114,20 @@ function MergePartnerAccountsModalInner({
       </div>
 
       <div className="flex flex-col gap-2 bg-neutral-50 p-4 sm:p-6">
-        {step === 1 && (
-          <SendVerificationCode
-            onSuccess={({ sourceEmail, targetEmail }) => {
-              setSourceEmail(sourceEmail);
-              setTargetEmail(targetEmail);
-              setStep(2);
-            }}
-          />
-        )}
-
-        {step === 2 && <VerifyCode onSuccess={() => setStep(3)} />}
-
-        {step === 3 && <MergeAccounts />}
+        <FormProvider>
+          {step === 1 && <SendVerificationCode setStep={() => setStep(2)} />}
+          {step === 2 && <VerifyCode setStep={() => setStep(3)} />}
+          {step === 3 && <MergeAccounts />}
+        </FormProvider>
       </div>
     </div>
   );
 }
 
 // Step 1: Send verification code to both accounts
-function SendVerificationCode({
-  onSuccess,
-}: {
-  onSuccess: (data: EmailAccounts) => void;
-}) {
+function SendVerificationCode({ setStep }: { setStep: () => void }) {
   const { partner } = usePartnerProfile();
+  const { setSourceAccount, setTargetAccount } = useAccountForm();
 
   const {
     watch,
@@ -96,19 +145,20 @@ function SendVerificationCode({
 
   const { executeAsync, isPending } = useAction(mergePartnerAccountsAction, {
     onSuccess: async () => {
-      onSuccess({
-        sourceEmail,
-        targetEmail,
-      });
-
-      toast.success(
-        "Verification codes sent successfully! Please check your email accounts.",
-      );
+      setStep();
     },
     onError({ error }) {
       toast.error(error.serverError);
     },
   });
+
+  useEffect(() => {
+    setSourceAccount((prev) => ({ ...prev, email: sourceEmail }));
+  }, [sourceEmail, setSourceAccount]);
+
+  useEffect(() => {
+    setTargetAccount((prev) => ({ ...prev, email: sourceEmail }));
+  }, [targetEmail, setTargetAccount]);
 
   const onSubmit = async () => {
     await executeAsync({
@@ -159,7 +209,6 @@ function SendVerificationCode({
               <input
                 type="email"
                 required
-                autoFocus
                 placeholder="Enter target account email"
                 className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 {...register("targetEmail")}
@@ -189,12 +238,11 @@ function SendVerificationCode({
 }
 
 // Step 2: Verify code
-function VerifyCode({ onSuccess }: { onSuccess: () => void }) {
-  const { partner } = usePartnerProfile();
+function VerifyCode({ setStep }: { setStep: () => void }) {
+  const { sourceAccount, targetAccount } = useAccountForm();
 
   const {
     watch,
-    register,
     handleSubmit,
     setValue,
     formState: { isSubmitting },
@@ -209,7 +257,7 @@ function VerifyCode({ onSuccess }: { onSuccess: () => void }) {
 
   const { executeAsync, isPending } = useAction(mergePartnerAccountsAction, {
     onSuccess: async () => {
-      onSuccess();
+      setStep();
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -219,8 +267,8 @@ function VerifyCode({ onSuccess }: { onSuccess: () => void }) {
   const onSubmit = async () => {
     await executeAsync({
       step: "verify-tokens",
-      sourceEmail: "", // TODO: get from context
-      targetEmail: "", // TODO: get from context
+      sourceEmail: sourceAccount.email,
+      targetEmail: targetAccount.email,
       sourceCode,
       targetCode,
     });
@@ -248,7 +296,7 @@ function VerifyCode({ onSuccess }: { onSuccess: () => void }) {
                 <input
                   disabled
                   className="block w-full rounded-md border-neutral-300 text-neutral-900 disabled:bg-neutral-100 sm:text-sm"
-                  defaultValue=""
+                  defaultValue={sourceAccount.email}
                 />
               </div>
             </div>
@@ -307,7 +355,7 @@ function VerifyCode({ onSuccess }: { onSuccess: () => void }) {
                 <input
                   disabled
                   className="block w-full rounded-md border-neutral-300 text-neutral-900 disabled:bg-neutral-100 sm:text-sm"
-                  defaultValue="kiran@dub.co"
+                  defaultValue={targetAccount.email}
                 />
               </div>
             </div>
