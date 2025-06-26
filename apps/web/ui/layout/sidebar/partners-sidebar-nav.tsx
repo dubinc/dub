@@ -3,15 +3,13 @@
 import { useRouterStuff } from "@dub/ui";
 import {
   CircleDollar,
+  CircleUser,
   ColorPalette2,
   Gauge6,
-  Gear,
   Gear2,
   GridIcon,
-  MoneyBills2,
   ShieldCheck,
-  User,
-  Users,
+  SquareUserSparkle2,
 } from "@dub/ui/icons";
 import { Store } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
@@ -30,11 +28,7 @@ type SidebarNavData = {
   queryString?: string;
 };
 
-const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
-  pathname,
-  programSlug,
-  queryString,
-}) => [
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
   {
     name: "Programs",
     description:
@@ -43,11 +37,19 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: "/programs",
     active: pathname.startsWith("/programs"),
   },
+  {
+    name: "Partner profile",
+    description:
+      "Build a great partner profile and get noticed in our partner network.",
+    icon: SquareUserSparkle2,
+    href: "/profile",
+    active: pathname.startsWith("/profile"),
+  },
 ];
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  default: () => ({
+  programs: () => ({
     title: (
       <div className="mb-3">
         <PartnerProgramDropdown />
@@ -67,11 +69,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Marketplace",
             icon: Store,
             href: "/marketplace",
-          },
-          {
-            name: "Settings",
-            icon: Gear,
-            href: "/settings",
           },
         ],
       },
@@ -123,29 +120,23 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
 
-  partnerSettings: () => ({
-    title: "Settings",
-    backHref: "/programs",
+  // Partner profile
+  profile: () => ({
+    title: "Partner profile",
     content: [
       {
-        name: "Partner",
         items: [
           {
-            name: "Profile",
-            icon: User,
-            href: "/settings",
+            name: "Profile info",
+            icon: CircleUser,
+            href: "/profile",
             exact: true,
           },
-          {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: "/settings/payouts",
-          },
-          {
-            name: "People",
-            icon: Users,
-            href: "/settings/people",
-          },
+          // {
+          //   name: "Payouts",
+          //   icon: MoneyBills2,
+          //   href: "/settings/payouts",
+          // },
         ],
       },
     ],
@@ -196,11 +187,11 @@ export function PartnersSidebarNav({
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
-      : pathname.startsWith("/settings")
-        ? "partnerSettings"
+      : pathname.startsWith("/profile")
+        ? "profile"
         : isEnrolledProgramPage
           ? "program"
-          : "default";
+          : "programs";
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
   return (
