@@ -23,14 +23,14 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
   return (
     <Card
       className={cn(
-        "border-border-100 relative flex w-full flex-col items-stretch justify-between gap-4 border p-3 lg:gap-6",
+        "border-border-100 relative flex min-w-[260px] shrink-0 flex-col items-stretch justify-between gap-4 border p-3 lg:gap-6",
         isFree && "!border-primary !bg-primary-100",
       )}
     >
       <Flex direction="column" align="start" justify="start" gap="3">
         <Flex
-          direction={{ initial: "column", md: "row" }}
-          align={{ initial: "start", md: "center" }}
+          direction="row"
+          align="center"
           justify="between"
           className="w-full"
           gap="2"
