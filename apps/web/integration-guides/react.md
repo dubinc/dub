@@ -2,7 +2,7 @@ This quick start guide will show you how to get started with Dub Analytics on yo
 
 ### Step 1: Install package
 
-Using the package manager of your choice, add the `@dub/analytics` to your project.
+Using the package manager of your choice, add the `@dub/analytics` package to your project.
 
 ```bash
 npm install @dub/analytics
