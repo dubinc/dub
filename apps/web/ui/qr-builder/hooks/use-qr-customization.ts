@@ -68,6 +68,7 @@ export function useQrCustomization(
       imageSize: 0.4,
       hideBackgroundDots: true,
       crossOrigin: "anonymous",
+      margin: 10,
     },
     ...(initialData?.styles as Options),
   });
