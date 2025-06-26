@@ -25,7 +25,6 @@ export default async function ConnectGuidesPage({
     }
 
     markdownContent = await getIntegrationGuideMarkdown(selectedGuide.key);
-    console.log("markdown", markdownContent?.slice(0, 100));
 
     if (!markdownContent) {
       notFound();
