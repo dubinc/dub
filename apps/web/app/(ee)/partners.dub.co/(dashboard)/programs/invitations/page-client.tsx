@@ -2,19 +2,16 @@
 
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
+import { ProgramCardSkeleton } from "@/ui/partners/program-card";
+import { ProgramInviteCard } from "@/ui/partners/program-invite-card";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CircleDollar, GridIcon } from "@dub/ui/icons";
 
-export function PartnersDashboardPageClient() {
-  const { programEnrollments: allProgramEnrollments, isLoading } =
-    useProgramEnrollments({
-      includeRewardsDiscounts: true,
-    });
-
-  const programEnrollments = allProgramEnrollments?.filter(
-    (programEnrollment) => programEnrollment.status !== "invited",
-  );
+export function ProgramInvitationsPageClient() {
+  const { programEnrollments, isLoading } = useProgramEnrollments({
+    includeRewardsDiscounts: true,
+    status: "invited",
+  });
 
   return (
     <PageWidthWrapper className="pb-10">
@@ -40,7 +37,10 @@ export function PartnersDashboardPageClient() {
                 <ProgramCardSkeleton key={idx} />
               ))
             : programEnrollments?.map((programEnrollment, idx) => (
-                <ProgramCard key={idx} programEnrollment={programEnrollment} />
+                <ProgramInviteCard
+                  key={idx}
+                  programEnrollment={programEnrollment}
+                />
               ))}
         </div>
       )}

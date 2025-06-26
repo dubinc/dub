@@ -2,7 +2,7 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import { CommissionType } from "@prisma/client";
+import { CommissionType, ProgramEnrollmentStatus } from "@prisma/client";
 import { z } from "zod";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
 import {
@@ -116,4 +116,9 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
   tagId: true,
   tagIds: true,
   folderId: true,
+});
+
+export const partnerProfileProgramsQuerySchema = z.object({
+  includeRewardsDiscounts: z.coerce.boolean().optional(),
+  status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
 });

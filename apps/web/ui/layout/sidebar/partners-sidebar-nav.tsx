@@ -11,8 +11,8 @@ import {
   MoneyBills2,
   ShieldCheck,
   SquareUserSparkle2,
+  UserCheck,
 } from "@dub/ui/icons";
-import { Store } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { CursorRays } from "./icons/cursor-rays";
@@ -73,11 +73,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Programs",
             icon: GridIcon,
             href: "/programs",
+            exact: true,
           },
           {
-            name: "Marketplace",
-            icon: Store,
-            href: "/marketplace",
+            name: "Invitations",
+            icon: UserCheck,
+            href: "/programs/invitations",
           },
         ],
       },

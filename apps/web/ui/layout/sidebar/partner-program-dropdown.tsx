@@ -58,7 +58,7 @@ export function PartnerProgramDropdown() {
     <div>
       <Popover
         content={
-          <div className="w-full sm:w-[208px]">
+          <div className="w-full sm:w-64">
             {programEnrollments &&
               programEnrollments.filter(
                 (programEnrollment) => programEnrollment.status === "approved",
