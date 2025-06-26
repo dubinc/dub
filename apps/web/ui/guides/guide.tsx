@@ -14,19 +14,20 @@ const integrationTypeToTitle: Record<IntegrationType, string> = {
 };
 
 export function Guide({ markdown }: { markdown: string }) {
-  const pathname = usePathname();
   const { guide } = useParams() as { guide: string[] };
-
   const guideKey = guide[0];
   const selectedGuide = guides.find((g) => g.key === guideKey)!;
   const Icon = selectedGuide.icon;
+
+  const pathname = usePathname();
+  const backHref = `${pathname.replace(`/${guideKey}`, "")}?step=${selectedGuide.type}`;
 
   return (
     <>
       <hr className="mb-6 border-neutral-200" />
       <div className="mx-auto max-w-2xl space-y-5">
         <div className="flex items-center justify-between">
-          <Link href={pathname.replace(`/${guideKey}`, "")}>
+          <Link href={backHref}>
             <Button
               variant="secondary"
               className="h-8 w-fit rounded-lg border-none bg-neutral-100 px-2"
@@ -61,7 +62,7 @@ export function Guide({ markdown }: { markdown: string }) {
           <Markdown>{markdown}</Markdown>
 
           <Link
-            href={pathname.replace(`/${guideKey}`, "")}
+            href={backHref}
             className={cn(
               buttonVariants({
                 variant: "primary",
