@@ -15,10 +15,11 @@ const integrationTypeToTitle: Record<IntegrationType, string> = {
 };
 
 export function Guide({ markdown }: { markdown: string }) {
-  const { guide } = useParams() as { guide: string[] };
   const pathname = usePathname();
+  const { guide } = useParams() as { guide: string[] };
+  const guideKey = guide[0];
 
-  const selectedGuide = guides.find((g) => g.key === guide[0])!;
+  const selectedGuide = guides.find((g) => g.key === guideKey)!;
 
   const Icon = selectedGuide.icon;
 
@@ -30,7 +31,7 @@ export function Guide({ markdown }: { markdown: string }) {
           <Icon className="size-8" />
 
           <Link
-            href={pathname.split("/").slice(0, -1).join("/")}
+            href={pathname.replace(`/${guideKey}`, "")}
             className={cn(
               buttonVariants({
                 variant: "secondary",
