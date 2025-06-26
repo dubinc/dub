@@ -13,7 +13,6 @@ export default async function ConnectGuidesPage({
   };
 }) {
   const { guide } = params;
-  console.log("guide", guide);
   let selectedGuide: IntegrationGuide | null = null;
   let markdownContent: string | null = null;
 
