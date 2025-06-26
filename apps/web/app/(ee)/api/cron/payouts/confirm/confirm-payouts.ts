@@ -127,7 +127,7 @@ export async function confirmPayouts({
     );
 
     const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
-    const totalFee = payoutAmount * payoutFee;
+    const totalFee = Math.round(payoutAmount * payoutFee);
     const total = payoutAmount + totalFee;
     let convertedTotal = total;
 
