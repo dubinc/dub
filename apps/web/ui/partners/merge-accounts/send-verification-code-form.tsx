@@ -9,7 +9,11 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-export function SendVerificationCodeForm({ setStep }: { setStep: () => void }) {
+export function SendVerificationCodeForm({
+  onSuccess,
+}: {
+  onSuccess: () => void;
+}) {
   const { partner } = usePartnerProfile();
   const { setSourceAccount, setTargetAccount } = useMergePartnerAccountsForm();
 
@@ -29,7 +33,7 @@ export function SendVerificationCodeForm({ setStep }: { setStep: () => void }) {
 
   const { executeAsync, isPending } = useAction(mergePartnerAccountsAction, {
     onSuccess: async () => {
-      setStep();
+      onSuccess();
     },
     onError({ error }) {
       toast.error(error.serverError);

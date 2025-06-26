@@ -1,6 +1,7 @@
 "use client";
 
 import { MergePartnerAccountsFormProvider } from "@/ui/partners/merge-accounts/form-context";
+import { MergeAccountForm } from "@/ui/partners/merge-accounts/merge-account-form";
 import { SendVerificationCodeForm } from "@/ui/partners/merge-accounts/send-verification-code-form";
 import { VerifyCodeForm } from "@/ui/partners/merge-accounts/verify-code-form";
 import { Modal } from "@dub/ui";
@@ -45,21 +46,16 @@ function MergePartnerAccountsModalInner({
       <div className="flex flex-col gap-2 bg-neutral-50 p-4 sm:p-6">
         <MergePartnerAccountsFormProvider>
           {step === 1 && (
-            <SendVerificationCodeForm setStep={() => setStep(2)} />
+            <SendVerificationCodeForm onSuccess={() => setStep(2)} />
           )}
 
-          {step === 2 && <VerifyCodeForm setStep={() => setStep(3)} />}
+          {step === 2 && <VerifyCodeForm onSuccess={() => setStep(3)} />}
 
-          {step === 3 && <MergeAccountsForm />}
+          {step === 3 && <MergeAccountForm />}
         </MergePartnerAccountsFormProvider>
       </div>
     </div>
   );
-}
-
-// Step 3: Merge accounts
-function MergeAccountsForm() {
-  return <div>MergeAccounts</div>;
 }
 
 export function useMergePartnerAccountsModal() {

@@ -9,7 +9,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-export function VerifyCodeForm({ setStep }: { setStep: () => void }) {
+export function VerifyCodeForm({ onSuccess }: { onSuccess: () => void }) {
   const { sourceAccount, targetAccount } = useMergePartnerAccountsForm();
 
   const {
@@ -28,7 +28,7 @@ export function VerifyCodeForm({ setStep }: { setStep: () => void }) {
 
   const { executeAsync, isPending } = useAction(mergePartnerAccountsAction, {
     onSuccess: async () => {
-      setStep();
+      onSuccess();
     },
     onError({ error }) {
       toast.error(error.serverError);
