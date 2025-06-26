@@ -2,6 +2,7 @@ import { Appwrite } from "@/ui/layout/sidebar/conversions/icons/appwrite";
 import { Auth0 } from "@/ui/layout/sidebar/conversions/icons/auth0";
 import { BetterAuth } from "@/ui/layout/sidebar/conversions/icons/better-auth";
 import { Clerk } from "@/ui/layout/sidebar/conversions/icons/clerk";
+import { Framer } from "@/ui/layout/sidebar/conversions/icons/framer";
 import { Go } from "@/ui/layout/sidebar/conversions/icons/go";
 import { NextAuth } from "@/ui/layout/sidebar/conversions/icons/next-auth";
 import { Php } from "@/ui/layout/sidebar/conversions/icons/php";
@@ -14,7 +15,7 @@ import { Supabase } from "@/ui/layout/sidebar/conversions/icons/supabase";
 import { Typescript } from "@/ui/layout/sidebar/conversions/icons/typescript";
 import { Webflow } from "@/ui/layout/sidebar/conversions/icons/webflow";
 import { Wordpress } from "@/ui/layout/sidebar/conversions/icons/wordpress";
-import { Framer, SquareCode } from "lucide-react";
+import { SquareCode } from "lucide-react";
 
 export type IntegrationType =
   | "client-sdk"
@@ -103,7 +104,7 @@ export const guides: IntegrationGuide[] = [
   },
   {
     type: "client-sdk",
-    key: "manual",
+    key: "manual-client-sdk",
     title: "Manual",
     icon: SquareCode,
     url: "https://dub.co/docs/sdks/client-side/installation-guides/manual",
@@ -145,12 +146,13 @@ export const guides: IntegrationGuide[] = [
     icon: Php,
     url: "https://dub.co/docs/sdks/php",
   },
-  // {
-  //   type: "server-sdk",
-  //   key: "rest-api",
-  //   title: "REST API",
-  //   icon: SquareCode,
-  // },
+  {
+    type: "server-sdk",
+    key: "rest-api",
+    title: "REST API",
+    icon: SquareCode,
+    url: "https://dub.co/docs/api-reference/introduction",
+  },
 
   // Track Leads
   {
@@ -195,6 +197,13 @@ export const guides: IntegrationGuide[] = [
     icon: Appwrite,
     url: "https://dub.co/docs/conversions/leads/appwrite",
   },
+  {
+    type: "track-leads",
+    key: "manual-track-leads",
+    title: "Manual",
+    icon: SquareCode,
+    url: "https://dub.co/docs/conversions/leads/manual", // fix this
+  },
   // {
   //   type: "track-leads",
   //   key: "segment-track-leads",
@@ -226,6 +235,13 @@ export const guides: IntegrationGuide[] = [
     description: "Customers",
     icon: Stripe,
     url: "https://dub.co/docs/conversions/sales/stripe#option-3%3A-using-stripe-customers",
+  },
+  {
+    type: "track-sales",
+    key: "manual-track-sales",
+    title: "Manual",
+    icon: SquareCode,
+    url: "https://dub.co/docs/conversions/sales/manual", // fix this
   },
   // {
   //   type: "track-sales",
