@@ -15,7 +15,7 @@ export function ProgramInvitationsPageClient() {
 
   return (
     <PageWidthWrapper className="pb-10">
-      {programEnrollments?.length == 1 ? (
+      {programEnrollments?.length == 0 ? (
         <SimpleEmptyState
           title="No program invitations"
           description="When a program sends you an invitation to join them, they will appear here."
@@ -26,7 +26,7 @@ export function ProgramInvitationsPageClient() {
                 <div className="bg-bg-emphasis h-2.5 w-8 rounded" />
                 <div className="bg-bg-emphasis h-2.5 w-16 rounded" />
               </div>
-              <div className="bg-bg-inverted h-5 w-40 max-w-full rounded bg-neutral-800"></div>
+              <div className="bg-bg-inverted h-5 w-40 max-w-full rounded bg-neutral-800" />
             </div>
           }
         />
