@@ -30,17 +30,25 @@ export function ProgramRewardDescription({
                   type: reward.type,
                 })}{" "}
               </strong>
-              for each {reward.event}
+              {reward.event === "sale" && reward.maxDuration === 0 ? (
+                <>for the first sale</>
+              ) : (
+                <>per {reward.event}</>
+              )}
               {reward.maxDuration === null ? (
+                <>
+                  {" "}for the{" "}
                 <strong className={cn("font-semibold", periodClassName)}>
-                  {" "}
-                  for the customer's lifetime.
+                  customer's lifetime.
                 </strong>
+                </>
               ) : reward.maxDuration && reward.maxDuration > 1 ? (
                 <>
-                  , and again{" "}
+                   {" "}for{" "}
                   <strong className={cn("font-semibold", periodClassName)}>
-                    every month for {reward.maxDuration} months
+                    {reward.maxDuration % 12 === 0
+                      ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? 's' : ''}`
+                      : `${reward.maxDuration} months`}
                   </strong>
                   .
                 </>
