@@ -211,12 +211,12 @@ export const EmailSignIn = ({
 
         <Button
           text={`Continue with ${password ? "Password" : "Email"}`}
-          variant="secondary"
+          variant="primary"
           icon={
             password ? (
               <InputPassword className="size-4 text-neutral-600" />
             ) : (
-              <Mail className="size-4 text-neutral-600" />
+              <Mail className="size-4 text-white" />
             )
           }
           type="submit"

@@ -25,7 +25,7 @@ function SignUpStep({ authModal = false }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
         className={cn(
-          "border-border-500 border-b bg-white pb-6 pt-8 text-center",
+          "border-border-500 border-b bg-white pb-4 pt-8 text-center",
           {
             "flex flex-col items-center justify-center border-none bg-neutral-50 pt-0":
               authModal,
