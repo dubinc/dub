@@ -410,7 +410,7 @@ export function AppSidebarNav({
   }, [slug, pathname]);
 
   const applicationsCount = useProgramApplicationsCount({
-    enabled: currentArea === "program",
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
   const { data: customersCount } = useCustomersCount({
