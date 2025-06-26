@@ -200,19 +200,12 @@ function VerifyCode({ onSuccess }: { onSuccess: () => void }) {
     formState: { isSubmitting },
   } = useForm({
     defaultValues: {
-      sourceEmail: "",
-      targetEmail: "",
       sourceCode: "",
       targetCode: "",
     },
   });
 
-  const [sourceEmail, targetEmail, sourceCode, targetCode] = watch([
-    "sourceEmail",
-    "targetEmail",
-    "sourceCode",
-    "targetCode",
-  ]);
+  const [sourceCode, targetCode] = watch(["sourceCode", "targetCode"]);
 
   const { executeAsync, isPending } = useAction(mergePartnerAccountsAction, {
     onSuccess: async () => {
@@ -226,8 +219,8 @@ function VerifyCode({ onSuccess }: { onSuccess: () => void }) {
   const onSubmit = async () => {
     await executeAsync({
       step: "verify-tokens",
-      sourceEmail,
-      targetEmail,
+      sourceEmail: "", // TODO: get from context
+      targetEmail: "", // TODO: get from context
       sourceCode,
       targetCode,
     });
@@ -253,12 +246,9 @@ function VerifyCode({ onSuccess }: { onSuccess: () => void }) {
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
                 <input
-                  type="email"
-                  required
-                  autoFocus
-                  placeholder="Enter source account email"
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("sourceEmail")}
+                  disabled
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 disabled:bg-neutral-100 sm:text-sm"
+                  defaultValue=""
                 />
               </div>
             </div>
@@ -315,12 +305,9 @@ function VerifyCode({ onSuccess }: { onSuccess: () => void }) {
               </label>
               <div className="relative mt-2 rounded-md shadow-sm">
                 <input
-                  type="email"
-                  required
-                  autoFocus
-                  placeholder="Enter target account email"
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("targetEmail")}
+                  disabled
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 disabled:bg-neutral-100 sm:text-sm"
+                  defaultValue="kiran@dub.co"
                 />
               </div>
             </div>
@@ -377,7 +364,7 @@ function VerifyCode({ onSuccess }: { onSuccess: () => void }) {
           text="Verify accounts"
           className="h-8 w-fit px-3"
           type="submit"
-          disabled={!sourceEmail || !targetEmail}
+          disabled={!sourceCode || !targetCode}
           loading={isPending || isSubmitting}
         />
       </div>
