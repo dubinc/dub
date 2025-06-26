@@ -1,6 +1,7 @@
 "use client";
 
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
+import { PricingSection } from "@/ui/landing/components/pricing/get-qr-features.tsx";
 import { ReviewsSection } from "@/ui/landing/components/reviews/reviews-section.tsx";
 import { useRef } from "react";
 import { trackClientEvents } from "../../core/integration/analytic";
@@ -36,6 +37,7 @@ export const LandingModule = () => {
       <QrTabsDetailed handleScrollButtonClick={handleScrollButtonClick} />
       <GetQRFeaturesCardsSection />
       <ReviewsSection />
+      <PricingSection />
       <FAQSection />
     </main>
   );
