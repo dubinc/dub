@@ -25,47 +25,45 @@ const integrationTypeToTitle: Record<IntegrationType, string> = {
 export function Guide({ markdown }: { markdown: string }) {
   const pathname = usePathname();
   const { guide } = useParams() as { guide: string[] };
-  const guideKey = guide[0];
-
-  const selectedGuide = guides.find((g) => g.key === guideKey)!;
-
   const [copiedGuideUrl, copyGuideUrl] = useCopyToClipboard();
 
+  const guideKey = guide[0];
+  const selectedGuide = guides.find((g) => g.key === guideKey)!;
   const Icon = selectedGuide.icon;
 
   return (
     <>
       <hr className="mb-6 border-neutral-200" />
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="mx-auto max-w-2xl space-y-5">
         <div className="flex items-center justify-between">
-          <Icon className="size-8" />
-
-          <div className="flex items-center gap-2">
-            <Link href={pathname.replace(`/${guideKey}`, "")}>
-              <Button
-                text="Select another method"
-                variant="secondary"
-                className="h-8 w-fit px-3"
-                icon={<ChevronLeft className="size-3.5" />}
-              />
-            </Link>
+          <Link href={pathname.replace(`/${guideKey}`, "")}>
             <Button
-              text="Copy guide link"
               variant="secondary"
-              className="h-8 w-fit px-3"
-              icon={
-                copiedGuideUrl ? (
-                  <Check className="size-3.5" />
-                ) : (
-                  <Copy className="size-3.5" />
-                )
-              }
-              onClick={() => {
-                copyGuideUrl(pathname);
-                toast.success("Copied to clipboard");
-              }}
+              className="h-8 w-fit rounded-lg border-none bg-neutral-100 px-2"
+              icon={<ChevronLeft className="size-3.5 text-neutral-900" />}
             />
-          </div>
+          </Link>
+
+          <Button
+            text="Copy guide link"
+            variant="secondary"
+            className="h-8 w-fit rounded-lg px-3"
+            icon={
+              copiedGuideUrl ? (
+                <Check className="size-3.5" />
+              ) : (
+                <Copy className="size-3.5" />
+              )
+            }
+            onClick={() => {
+              copyGuideUrl(pathname);
+              toast.success("Copied to clipboard");
+            }}
+          />
+        </div>
+
+        <div>
+          <Icon className="size-8" />
         </div>
 
         <div className="flex flex-col">
@@ -81,7 +79,7 @@ export function Guide({ markdown }: { markdown: string }) {
           <Markdown>{markdown}</Markdown>
 
           <Link
-            href={pathname}
+            href={pathname.replace(`/${guideKey}`, "")}
             className={cn(
               buttonVariants({
                 variant: "primary",

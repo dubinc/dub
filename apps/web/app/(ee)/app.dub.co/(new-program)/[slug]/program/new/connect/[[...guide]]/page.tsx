@@ -6,13 +6,12 @@ import { notFound } from "next/navigation";
 import { StepPage } from "../../step-page";
 
 export default async function ConnectGuidesPage({
-  params,
+  params: { guide },
 }: {
   params: {
     guide?: string[];
   };
 }) {
-  const { guide } = params;
   let selectedGuide: IntegrationGuide | null = null;
   let markdownContent: string | null = null;
 
@@ -36,8 +35,10 @@ export default async function ConnectGuidesPage({
       <div>
         <p className="mb-6 text-sm text-neutral-600">
           Ensure Dub is connected to your app, so you can track your clicks,
-          leads, and sales on your program. A developer might be required to
-          complete.
+          leads, and sales on your program.{" "}
+          <span className="font-medium">
+            A developer might be required to complete.
+          </span>
         </p>
 
         {selectedGuide && markdownContent ? (
