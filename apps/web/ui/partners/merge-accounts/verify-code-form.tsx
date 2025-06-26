@@ -2,6 +2,7 @@
 
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
 import { useMergePartnerAccountsForm } from "@/ui/partners/merge-accounts/form-context";
+import { AccountInputGroup } from "@/ui/partners/merge-accounts/account-input-group";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { OTPInput } from "input-otp";
@@ -61,17 +62,13 @@ export function VerifyCodeForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <p className="text-sm font-medium text-neutral-700">
-        We sent a 6-digit code to both emails. Didn’t receive them? Resend
+        We sent a 6-digit code to both emails. Didn't receive them? Resend
         codes.
       </p>
 
       <div className="flex flex-col gap-6">
-        <div className="rounded-xl border border-solid border-neutral-200 bg-neutral-100 p-1 pt-0">
-          <h3 className="px-1.5 py-2 text-xs font-medium leading-4 text-neutral-500">
-            Source account
-          </h3>
-
-          <div className="flex flex-col gap-4 rounded-lg border border-solid border-neutral-200 bg-white p-3">
+        <AccountInputGroup title="Source account">
+          <div className="flex flex-col gap-4">
             <div>
               <label className="text-sm font-medium leading-5 text-neutral-900">
                 Email
@@ -123,14 +120,10 @@ export function VerifyCodeForm({ onSuccess }: { onSuccess: () => void }) {
               </div>
             </div>
           </div>
-        </div>
+        </AccountInputGroup>
 
-        <div className="rounded-xl border border-solid border-neutral-200 bg-neutral-100 p-1 pt-0">
-          <h3 className="px-1.5 py-2 text-xs font-medium leading-4 text-neutral-500">
-            Target account
-          </h3>
-
-          <div className="flex flex-col gap-4 rounded-lg border border-solid border-neutral-200 bg-white p-3">
+        <AccountInputGroup title="Target account">
+          <div className="flex flex-col gap-4">
             <div>
               <label className="text-sm font-medium leading-5 text-neutral-900">
                 Email
@@ -182,7 +175,7 @@ export function VerifyCodeForm({ onSuccess }: { onSuccess: () => void }) {
               </div>
             </div>
           </div>
-        </div>
+        </AccountInputGroup>
       </div>
 
       <div className="flex items-center justify-end gap-2">

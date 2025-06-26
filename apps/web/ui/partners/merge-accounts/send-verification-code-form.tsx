@@ -3,6 +3,7 @@
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { useMergePartnerAccountsForm } from "@/ui/partners/merge-accounts/form-context";
+import { AccountInputGroup } from "@/ui/partners/merge-accounts/account-input-group";
 import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect } from "react";
@@ -64,46 +65,36 @@ export function SendVerificationCodeForm({
       </p>
 
       <div className="flex flex-col gap-6">
-        <div className="rounded-xl border border-solid border-neutral-200 bg-neutral-100 p-1 pt-0">
-          <h3 className="px-1.5 py-2 text-xs font-medium leading-4 text-neutral-500">
-            Source account
-          </h3>
-          <div className="rounded-lg border border-solid border-neutral-200 bg-white p-3">
-            <label className="text-sm font-medium leading-5 text-neutral-900">
-              Email
-            </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <input
-                type="email"
-                required
-                autoFocus
-                placeholder="Enter source account email"
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                {...register("sourceEmail")}
-              />
-            </div>
+        <AccountInputGroup title="Source account">
+          <label className="text-sm font-medium leading-5 text-neutral-900">
+            Email
+          </label>
+          <div className="relative mt-2 rounded-md shadow-sm">
+            <input
+              type="email"
+              required
+              autoFocus
+              placeholder="Enter source account email"
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              {...register("sourceEmail")}
+            />
           </div>
-        </div>
+        </AccountInputGroup>
 
-        <div className="rounded-xl border border-solid border-neutral-200 bg-neutral-100 p-1 pt-0">
-          <h3 className="px-1.5 py-2 text-xs font-medium leading-4 text-neutral-500">
-            Target account
-          </h3>
-          <div className="rounded-lg border border-solid border-neutral-200 bg-white p-3">
-            <label className="text-sm font-medium leading-5 text-neutral-900">
-              Email
-            </label>
-            <div className="relative mt-2 rounded-md shadow-sm">
-              <input
-                type="email"
-                required
-                placeholder="Enter target account email"
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                {...register("targetEmail")}
-              />
-            </div>
+        <AccountInputGroup title="Target account">
+          <label className="text-sm font-medium leading-5 text-neutral-900">
+            Email
+          </label>
+          <div className="relative mt-2 rounded-md shadow-sm">
+            <input
+              type="email"
+              required
+              placeholder="Enter target account email"
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              {...register("targetEmail")}
+            />
           </div>
-        </div>
+        </AccountInputGroup>
       </div>
 
       <div className="flex items-center justify-end gap-2">
