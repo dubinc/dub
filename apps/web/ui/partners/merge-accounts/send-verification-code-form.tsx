@@ -45,7 +45,7 @@ export function SendVerificationCodeForm({
   }, [sourceEmail, setSourceAccount]);
 
   useEffect(() => {
-    setTargetAccount((prev) => ({ ...prev, email: sourceEmail }));
+    setTargetAccount((prev) => ({ ...prev, email: targetEmail }));
   }, [targetEmail, setTargetAccount]);
 
   const onSubmit = async () => {

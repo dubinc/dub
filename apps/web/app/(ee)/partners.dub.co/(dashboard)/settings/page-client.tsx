@@ -5,6 +5,7 @@ import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps, PayoutsCount } from "@/lib/types";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
+import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge-partner-accounts-modal";
 import { OnlinePresenceForm } from "@/ui/partners/online-presence-form";
 import {
   Button,
@@ -23,7 +24,6 @@ import { PropsWithChildren, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
-import { useMergePartnerAccountsModal } from "./merge-partner-accounts-modal";
 
 export function ProfileSettingsPageClient() {
   const { partner, error } = usePartnerProfile();

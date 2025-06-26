@@ -185,33 +185,55 @@ const verifyTokens = async ({
   targetCode: string;
   userId: string;
 }) => {
-  const tokens = await prisma.emailVerificationToken.findMany({
-    where: {
-      identifier: {
-        in: [sourceEmail, targetEmail],
-      },
-    },
+  console.info("data", {
+    sourceEmail,
+    targetEmail,
+    sourceCode,
+    targetCode,
+    userId,
   });
 
-  if (tokens.length === 0) {
+  const [sourceToken, targetToken] = await Promise.all([
+    prisma.emailVerificationToken.findUnique({
+      where: {
+        identifier_token: {
+          identifier: sourceEmail,
+          token: sourceCode,
+        },
+      },
+    }),
+
+    prisma.emailVerificationToken.findUnique({
+      where: {
+        identifier_token: {
+          identifier: targetEmail,
+          token: targetCode,
+        },
+      },
+    }),
+  ]);
+
+  if (!sourceToken) {
     throw new Error(
-      "That code doesn’t match our records. Please double-check it and enter it again.",
+      `The code entered for ${sourceEmail} does not match. Please double-check it and enter it again.`,
     );
   }
 
-  const sourceToken = tokens.find((token) => token.identifier === sourceEmail);
-
-  if (sourceToken?.token !== sourceCode) {
+  if (sourceToken.expires < new Date()) {
     throw new Error(
-      "The code entered for the source email does not match. Please double-check it and enter it again.",
+      `The code entered for ${sourceEmail} has expired. Please request a new code.`,
     );
   }
 
-  const targetToken = tokens.find((token) => token.identifier === targetEmail);
-
-  if (targetToken?.token !== targetCode) {
+  if (!targetToken) {
     throw new Error(
-      "The code entered for the target email does not match. Please double-check it and enter it again.",
+      `The code entered for ${targetEmail} does not match. Please double-check it and enter it again.`,
+    );
+  }
+
+  if (targetToken.expires < new Date()) {
+    throw new Error(
+      `The code entered for ${targetEmail} has expired. Please request a new code.`,
     );
   }
 
@@ -223,6 +245,7 @@ const verifyTokens = async ({
     },
   });
 
+  // Make sure this is set before going to the next step
   await redis.set(
     `${CACHE_KEY_PREFIX}:${userId}`,
     {
@@ -233,6 +256,25 @@ const verifyTokens = async ({
       ex: CACHE_EXPIRY_IN,
     },
   );
+
+  const partnerAccounts = await prisma.partner.findMany({
+    where: {
+      email: {
+        in: [sourceEmail, targetEmail],
+      },
+    },
+    select: {
+      id: true,
+      email: true,
+      image: true,
+    },
+  });
+
+  if (partnerAccounts.length === 0) {
+    throw new Error("Could not find the partner accounts. Please try again.");
+  }
+
+  return partnerAccounts;
 };
 
 // Step 3: Merge partner accounts

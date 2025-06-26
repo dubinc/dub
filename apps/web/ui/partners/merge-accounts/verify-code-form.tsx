@@ -10,7 +10,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export function VerifyCodeForm({ onSuccess }: { onSuccess: () => void }) {
-  const { sourceAccount, targetAccount } = useMergePartnerAccountsForm();
+  const { sourceAccount, targetAccount, setSourceAccount, setTargetAccount } =
+    useMergePartnerAccountsForm();
 
   const {
     watch,
@@ -27,8 +28,20 @@ export function VerifyCodeForm({ onSuccess }: { onSuccess: () => void }) {
   const [sourceCode, targetCode] = watch(["sourceCode", "targetCode"]);
 
   const { executeAsync, isPending } = useAction(mergePartnerAccountsAction, {
-    onSuccess: async () => {
-      onSuccess();
+    onSuccess: async ({ data }) => {
+      if (data) {
+        setSourceAccount({
+          ...data[0],
+          email: data[0].email!,
+        });
+
+        setTargetAccount({
+          ...data[1],
+          email: data[1].email!,
+        });
+
+        onSuccess();
+      }
     },
     onError({ error }) {
       toast.error(error.serverError);
