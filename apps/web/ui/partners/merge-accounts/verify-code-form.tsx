@@ -1,11 +1,10 @@
 "use client";
 
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
-import { useMergePartnerAccountsForm } from "@/ui/partners/merge-accounts/form-context";
 import { AccountInputGroup } from "@/ui/partners/merge-accounts/account-input-group";
+import { useMergePartnerAccountsForm } from "@/ui/partners/merge-accounts/form-context";
+import { OTPInputField } from "@/ui/partners/merge-accounts/otp-input-field";
 import { Button } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { OTPInput } from "input-otp";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -82,43 +81,13 @@ export function VerifyCodeForm({ onSuccess }: { onSuccess: () => void }) {
               </div>
             </div>
 
-            <div>
-              <label className="text-sm font-medium leading-5 text-neutral-900">
-                Verification code
-              </label>
-              <div className="relative mt-2">
-                <OTPInput
-                  maxLength={6}
-                  value={sourceCode}
-                  onChange={(code) => {
-                    setValue("sourceCode", code);
-                  }}
-                  render={({ slots }) => (
-                    <div className="flex w-full items-center justify-between">
-                      {slots.map(({ char, isActive, hasFakeCaret }, idx) => (
-                        <div
-                          key={idx}
-                          className={cn(
-                            "relative flex h-14 w-12 items-center justify-center text-xl",
-                            "rounded-lg border border-neutral-200 bg-white ring-0 transition-all",
-                            isActive &&
-                              "z-10 border border-neutral-800 ring-2 ring-neutral-200",
-                            // isInvalidCode && "border-red-500 ring-red-200",
-                          )}
-                        >
-                          {char}
-                          {hasFakeCaret && (
-                            <div className="animate-caret-blink pointer-events-none absolute inset-0 flex items-center justify-center">
-                              <div className="h-5 w-px bg-black" />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                />
-              </div>
-            </div>
+            <OTPInputField
+              label="Verification code"
+              value={sourceCode}
+              onChange={(code) => {
+                setValue("sourceCode", code);
+              }}
+            />
           </div>
         </AccountInputGroup>
 
@@ -137,43 +106,13 @@ export function VerifyCodeForm({ onSuccess }: { onSuccess: () => void }) {
               </div>
             </div>
 
-            <div>
-              <label className="text-sm font-medium leading-5 text-neutral-900">
-                Verification code
-              </label>
-              <div className="relative mt-2">
-                <OTPInput
-                  maxLength={6}
-                  value={targetCode}
-                  onChange={(code) => {
-                    setValue("targetCode", code);
-                  }}
-                  render={({ slots }) => (
-                    <div className="flex w-full items-center justify-between">
-                      {slots.map(({ char, isActive, hasFakeCaret }, idx) => (
-                        <div
-                          key={idx}
-                          className={cn(
-                            "relative flex h-14 w-12 items-center justify-center text-xl",
-                            "rounded-lg border border-neutral-200 bg-white ring-0 transition-all",
-                            isActive &&
-                              "z-10 border border-neutral-800 ring-2 ring-neutral-200",
-                            // isInvalidCode && "border-red-500 ring-red-200",
-                          )}
-                        >
-                          {char}
-                          {hasFakeCaret && (
-                            <div className="animate-caret-blink pointer-events-none absolute inset-0 flex items-center justify-center">
-                              <div className="h-5 w-px bg-black" />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                />
-              </div>
-            </div>
+            <OTPInputField
+              label="Verification code"
+              value={targetCode}
+              onChange={(code) => {
+                setValue("targetCode", code);
+              }}
+            />
           </div>
         </AccountInputGroup>
       </div>
