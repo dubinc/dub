@@ -8,6 +8,7 @@ import { redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import VerifyEmailForAccountMerge from "@dub/email/templates/verify-email-for-account-merge";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -146,34 +147,28 @@ const sendTokens = async ({
     ],
   });
 
-  if (!resend) {
-    throw new Error("Resend is not configured.");
-  }
-
-  waitUntil(
-    resend.batch.send([
-      {
-        from: VARIANT_TO_FROM_MAP.notifications,
-        to: sourceEmail,
-        subject: "Verify your email to merge your Dub Partners accounts",
-        react: VerifyEmailForAccountMerge({
-          email: sourceEmail,
-          code: sourceEmailCode,
-          expiresInMinutes: EMAIL_OTP_EXPIRY_IN / 60,
-        }),
-      },
-      {
-        from: VARIANT_TO_FROM_MAP.notifications,
-        to: targetEmail,
-        subject: "Connect your payout details on Dub Partners",
-        react: VerifyEmailForAccountMerge({
-          email: targetEmail,
-          code: targetEmailCode,
-          expiresInMinutes: EMAIL_OTP_EXPIRY_IN / 60,
-        }),
-      },
-    ]),
-  );
+  await resend?.batch.send([
+    {
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: sourceEmail,
+      subject: "Verify your email to merge your Dub Partners accounts",
+      react: VerifyEmailForAccountMerge({
+        email: sourceEmail,
+        code: sourceEmailCode,
+        expiresInMinutes: EMAIL_OTP_EXPIRY_IN / 60,
+      }),
+    },
+    {
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: targetEmail,
+      subject: "Connect your payout details on Dub Partners",
+      react: VerifyEmailForAccountMerge({
+        email: targetEmail,
+        code: targetEmailCode,
+        expiresInMinutes: EMAIL_OTP_EXPIRY_IN / 60,
+      }),
+    },
+  ]);
 };
 
 // Step 2: Verify email verification tokens
@@ -364,7 +359,6 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
 
   // TODO:
   // Remove the source partner from the database
-  // Send email to the source & target accounts
 
   await prisma.partner.delete({
     where: {
@@ -384,6 +378,29 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
           partnerId: targetPartnerId,
         },
       }),
+
+      resend?.batch.send([
+        {
+          from: VARIANT_TO_FROM_MAP.notifications,
+          to: sourceEmail,
+          subject: "Your Dub partner accounts are now merged",
+          react: PartnerAccountMerged({
+            email: sourceEmail,
+            sourceEmail,
+            targetEmail,
+          }),
+        },
+        {
+          from: VARIANT_TO_FROM_MAP.notifications,
+          to: targetEmail,
+          subject: "Your Dub partner accounts are now merged",
+          react: PartnerAccountMerged({
+            email: targetEmail,
+            sourceEmail,
+            targetEmail,
+          }),
+        },
+      ]),
     ]),
   );
 };
