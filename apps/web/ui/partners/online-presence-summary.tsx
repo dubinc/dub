@@ -1,3 +1,4 @@
+import { sanitizeSocialHandle, SocialPlatform } from "@/lib/social-utils";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Tooltip } from "@dub/ui";
 import {
@@ -51,7 +52,7 @@ const fields: {
     }),
   },
   {
-    label: "X/Twitter",
+    label: "X",
     icon: Twitter,
     data: (partner) => ({
       value: partner.twitter ? `@${partner.twitter}` : null,
@@ -127,7 +128,12 @@ export function OnlinePresenceSummary({
                   </div>
                   <div>
                     <div className="flex items-center gap-1">
-                      <span className="min-w-0 truncate">{value}</span>
+                      <span className="min-w-0 truncate">
+                        {sanitizeSocialHandle(
+                          value,
+                          label.toLowerCase() as SocialPlatform,
+                        )}
+                      </span>
                       {verified && (
                         <Tooltip content="Verified" disableHoverableContent>
                           <div>

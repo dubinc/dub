@@ -45,7 +45,7 @@ const PLATFORM_CONFIGS: Record<SocialPlatform, SocialPlatformConfig> = {
   },
 };
 
-export const sanitizeHandle = (
+export const sanitizeSocialHandle = (
   input: string | null | undefined,
   platform: SocialPlatform,
 ) => {
@@ -74,7 +74,8 @@ export const sanitizeHandle = (
   handle = handle
     .replace(/\/.*$/, "")
     .replace(/\?.*$/, "")
-    .replace(allowedChars, "");
+    .replace(allowedChars, "")
+    .toLowerCase();
 
   if (maxLength) {
     handle = handle.substring(0, maxLength);

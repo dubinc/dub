@@ -4,7 +4,7 @@ import {
   generateCodeChallengeHash,
   generateCodeVerifier,
 } from "@/lib/api/oauth/utils";
-import { sanitizeHandle } from "@/lib/social-utils";
+import { sanitizeSocialHandle } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
 import { isValidUrl, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -19,23 +19,23 @@ const updateOnlinePresenceSchema = z.object({
   youtube: z
     .string()
     .nullish()
-    .transform((input) => sanitizeHandle(input, "youtube")),
+    .transform((input) => sanitizeSocialHandle(input, "youtube")),
   twitter: z
     .string()
     .nullish()
-    .transform((input) => sanitizeHandle(input, "twitter")),
+    .transform((input) => sanitizeSocialHandle(input, "twitter")),
   linkedin: z
     .string()
     .nullish()
-    .transform((input) => sanitizeHandle(input, "linkedin")),
+    .transform((input) => sanitizeSocialHandle(input, "linkedin")),
   instagram: z
     .string()
     .nullish()
-    .transform((input) => sanitizeHandle(input, "instagram")),
+    .transform((input) => sanitizeSocialHandle(input, "instagram")),
   tiktok: z
     .string()
     .nullish()
-    .transform((input) => sanitizeHandle(input, "tiktok")),
+    .transform((input) => sanitizeSocialHandle(input, "tiktok")),
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
 
