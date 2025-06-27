@@ -236,10 +236,7 @@ export function PartnersSidebarNav({
       toolContent={toolContent}
       newsContent={newsContent}
       bottom={
-        <>
-          {isEnrolledProgramPage && <ProgramHelpSupport />}
-          <PayoutStats />
-        </>
+        <>{isEnrolledProgramPage ? <ProgramHelpSupport /> : <PayoutStats />}</>
       }
     />
   );

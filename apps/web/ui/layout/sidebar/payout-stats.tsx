@@ -8,12 +8,12 @@ import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
+  ChevronRight,
   MoneyBills2,
   SimpleTooltipContent,
   Tooltip,
 } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
-import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { memo } from "react";
 
@@ -25,41 +25,66 @@ export const PayoutStats = memo(() => {
 
   return (
     <AnimatedSizeContainer height>
-      <div className="border-t border-neutral-300/80 p-3">
-        <Link
-          className="group flex items-center gap-1.5 text-sm font-normal text-neutral-500 transition-colors hover:text-neutral-700"
-          href="/settings/payouts"
-        >
-          <MoneyBills2 className="size-4" />
-          Payouts
-          <ChevronRight className="size-3 text-neutral-400 transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-neutral-500" />
-        </Link>
+      <div className="p-3">
+        <div className="border-border-default rounded-lg border p-2 pt-1">
+          <Link
+            className="group flex items-center justify-between gap-2 px-2 py-2"
+            href="/settings/payouts"
+          >
+            <div className="text-content-emphasis flex items-center gap-2 text-sm font-semibold">
+              <MoneyBills2 className="size-4" />
+              Payouts
+            </div>
+            <ChevronRight className="text-content-muted group-hover:text-content-default size-3 transition-[color,transform] group-hover:translate-x-0.5 [&_*]:stroke-2" />
+          </Link>
 
-        <div className="mt-4 flex flex-col gap-2">
-          <div className="grid gap-1 text-sm">
-            <p className="text-neutral-500">Upcoming payouts</p>
-            <div className="flex items-center gap-2">
-              {partner && !partner.payoutsEnabledAt && (
-                <Tooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in."
-                      cta="Learn more"
-                      href="https://dub.co/help/article/receiving-payouts"
-                    />
-                  }
-                  side="right"
-                >
-                  <div>
-                    <AlertCircleFill className="size-4 text-black" />
-                  </div>
-                </Tooltip>
-              )}
+          <div className="mt-2 flex flex-col gap-4 px-2">
+            <div className="grid gap-1 text-xs">
+              <p className="text-content-subtle font-medium">
+                Upcoming payouts
+              </p>
+              <div className="flex items-center gap-1">
+                {partner && !partner.payoutsEnabledAt && (
+                  <Tooltip
+                    content={
+                      <SimpleTooltipContent
+                        title="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in."
+                        cta="Learn more"
+                        href="https://dub.co/help/article/receiving-payouts"
+                      />
+                    }
+                    side="right"
+                  >
+                    <div>
+                      <AlertCircleFill className="text-content-default size-3" />
+                    </div>
+                  </Tooltip>
+                )}
+                {payoutsCount ? (
+                  <p className="text-content-default font-medium">
+                    {currencyFormatter(
+                      (payoutsCount?.find(
+                        (payout) => payout.status === PayoutStatus.pending,
+                      )?.amount || 0) / 100,
+                      {
+                        maximumFractionDigits: 2,
+                      },
+                    )}
+                  </p>
+                ) : (
+                  <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
+                )}
+              </div>
+            </div>
+            <div className="grid gap-1 text-xs">
+              <p className="text-content-subtle font-medium">Total payouts</p>
               {payoutsCount ? (
-                <p className="text-black">
+                <p className="text-content-default font-medium">
                   {currencyFormatter(
                     (payoutsCount?.find(
-                      (payout) => payout.status === PayoutStatus.pending,
+                      (payout) =>
+                        payout.status === PayoutStatus.completed ||
+                        payout.status === PayoutStatus.processing,
                     )?.amount || 0) / 100,
                     {
                       maximumFractionDigits: 2,
@@ -71,29 +96,10 @@ export const PayoutStats = memo(() => {
               )}
             </div>
           </div>
-          <div className="grid gap-1 text-sm">
-            <p className="text-neutral-500">Total payouts</p>
-            {payoutsCount ? (
-              <p className="text-black">
-                {currencyFormatter(
-                  (payoutsCount?.find(
-                    (payout) =>
-                      payout.status === PayoutStatus.completed ||
-                      payout.status === PayoutStatus.processing,
-                  )?.amount || 0) / 100,
-                  {
-                    maximumFractionDigits: 2,
-                  },
-                )}
-              </p>
-            ) : (
-              <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
-            )}
-          </div>
+          {partner && !partner.payoutsEnabledAt && (
+            <ConnectPayoutButton className="mt-4 h-8 w-full" />
+          )}
         </div>
-        {partner && !partner.payoutsEnabledAt && (
-          <ConnectPayoutButton className="mt-4 h-9 w-full" />
-        )}
       </div>
     </AnimatedSizeContainer>
   );
