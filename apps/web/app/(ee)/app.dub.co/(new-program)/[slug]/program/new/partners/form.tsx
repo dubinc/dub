@@ -48,11 +48,7 @@ export function Form() {
     control,
   });
 
-  const [rewardful, domain, partners] = watch([
-    "rewardful",
-    "domain",
-    "partners",
-  ]);
+  const [rewardful] = watch(["rewardful"]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -69,6 +65,9 @@ export function Form() {
     setHasSubmitted(true);
     await executeAsync({
       ...data,
+      // remove empty emails
+      partners:
+        data.partners?.filter((partner) => partner.email.trim()) || null,
       workspaceId,
       step: "invite-partners",
     });
