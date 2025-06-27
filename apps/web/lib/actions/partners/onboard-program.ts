@@ -70,6 +70,6 @@ const saveOnboardingProgress = async ({
   });
 
   if (data.step == "save-and-exit") {
-    redirect(`/${workspace.slug}`);
+    redirect(`/${workspace.slug}/program`);
   }
 };
