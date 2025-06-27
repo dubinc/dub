@@ -74,8 +74,7 @@ export const sanitizeSocialHandle = (
   handle = handle
     .replace(/\/.*$/, "")
     .replace(/\?.*$/, "")
-    .replace(allowedChars, "")
-    .toLowerCase();
+    .replace(allowedChars, "");
 
   if (maxLength) {
     handle = handle.substring(0, maxLength);
