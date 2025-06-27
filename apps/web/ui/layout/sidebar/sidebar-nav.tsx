@@ -195,44 +195,42 @@ export function SidebarNav<T extends Record<any, any>>({
                             </div>
                           ))}
                         </div>
-
-                        <div className="-mx-3 flex grow flex-col justify-end">
-                          {data.showConversionGuides && (
-                            <Link
-                              href={`/${data.slug}/guides`}
-                              className="m-3 flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
-                            >
-                              <BookOpen className="size-4" />
-                              Set up conversion tracking
-                            </Link>
-                          )}
-
-                          <AnimatePresence>
-                            {showNews && (
-                              <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                transition={{
-                                  duration: 0.1,
-                                  ease: "easeInOut",
-                                }}
-                              >
-                                {newsContent}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
                       </Area>
                     );
                   })}
                 </div>
               </div>
-              {bottom && (
-                <div className="relative flex flex-col justify-end">
-                  {bottom}
-                </div>
-              )}
+
+              {/* Fixed bottom sections */}
+              <div className="flex flex-col gap-2 p-3 pt-0">
+                {data.showConversionGuides && (
+                  <Link
+                    href={`/${data.slug}/guides`}
+                    className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
+                  >
+                    <BookOpen className="size-4" />
+                    Set up conversion tracking
+                  </Link>
+                )}
+
+                <AnimatePresence>
+                  {currentArea && areas[currentArea](data).showNews && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{
+                        duration: 0.1,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      {newsContent}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {bottom && <div className="flex flex-col">{bottom}</div>}
+              </div>
             </div>
           </div>
         </nav>
