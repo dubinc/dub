@@ -61,25 +61,19 @@ export const ColorPickerInput: FC<IColorPickerInputProps> = ({
           placeholder="#000000"
           disabled={disabled}
         />
-        <button
-          type="button"
-          className={cn("h-5 max-h-5 w-5 max-w-5 basis-1/4 rounded", {
-            "border-border-300 border": showBorder || !isValid,
-            "cursor-not-allowed": disabled,
-          })}
-          style={{
-            backgroundColor: color,
-          }}
-          onClick={() => document.getElementById(pickerId)?.click()}
-        />
-        <input
-          id={pickerId}
-          type="color"
-          value={color}
-          onChange={(e) => onColorChange(e.target.value.toUpperCase())}
-          className="absolute inset-0 cursor-pointer opacity-0"
-          disabled={disabled}
-        />
+        <div className="relative h-5 w-5">
+          <div
+            className="h-full w-full rounded border"
+            style={{ backgroundColor: color }}
+          />
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => onColorChange(e.target.value.toUpperCase())}
+            className="absolute inset-0 cursor-pointer opacity-0"
+            disabled={disabled}
+          />
+        </div>
       </div>
     </div>
   );
