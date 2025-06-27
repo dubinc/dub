@@ -1,5 +1,5 @@
 import { createId } from "@/lib/api/create-id";
-import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
+import { validateDomain } from "@/lib/api/domains";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
@@ -132,14 +132,14 @@ export const POST = withWorkspace(
       });
     }
 
-    const vercelResponse = await addDomainToVercel(slug);
+    // const vercelResponse = await addDomainToVercel(slug);
 
-    if (
-      vercelResponse.error &&
-      vercelResponse.error.code !== "domain_already_in_use" // ignore this error
-    ) {
-      return new Response(vercelResponse.error.message, { status: 422 });
-    }
+    // if (
+    //   vercelResponse.error &&
+    //   vercelResponse.error.code !== "domain_already_in_use" // ignore this error
+    // ) {
+    //   return new Response(vercelResponse.error.message, { status: 422 });
+    // }
 
     const domainId = createId({ prefix: "dom_" });
 
