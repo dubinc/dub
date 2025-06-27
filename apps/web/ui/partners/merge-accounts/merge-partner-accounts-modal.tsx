@@ -5,6 +5,7 @@ import { MergeAccountForm } from "@/ui/partners/merge-accounts/merge-account-for
 import { SendVerificationCodeForm } from "@/ui/partners/merge-accounts/send-verification-code-form";
 import { VerifyCodeForm } from "@/ui/partners/merge-accounts/verify-code-form";
 import { Modal } from "@dub/ui";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Dispatch,
   SetStateAction,
@@ -17,6 +18,36 @@ interface MergePartnerAccountsModalProps {
   showMergePartnerAccountsModal: boolean;
   setShowMergePartnerAccountsModal: Dispatch<SetStateAction<boolean>>;
 }
+
+const stepVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 300 : -300,
+    opacity: 0,
+  }),
+  center: {
+    zIndex: 1,
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    zIndex: 0,
+    x: direction < 0 ? 300 : -300,
+    opacity: 0,
+  }),
+};
+
+const stepTransition = {
+  x: {
+    type: "spring",
+    stiffness: 200,
+    damping: 25,
+    duration: 0.6,
+  },
+  opacity: {
+    duration: 0.4,
+    ease: "easeInOut",
+  },
+};
 
 function MergePartnerAccountsModal(props: MergePartnerAccountsModalProps) {
   const { showMergePartnerAccountsModal, setShowMergePartnerAccountsModal } =
@@ -35,7 +66,7 @@ function MergePartnerAccountsModal(props: MergePartnerAccountsModalProps) {
 function MergePartnerAccountsModalInner({
   setShowMergePartnerAccountsModal,
 }: MergePartnerAccountsModalProps) {
-  const [step, setStep] = useState<1 | 2 | 3>(3);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
 
   return (
     <div>
@@ -45,28 +76,65 @@ function MergePartnerAccountsModalInner({
 
       <div className="flex flex-col gap-2 bg-neutral-50 p-4 sm:p-6">
         <MergePartnerAccountsFormProvider>
-          {step === 1 && (
-            <SendVerificationCodeForm
-              onSuccess={() => setStep(2)}
-              onCancel={() => setShowMergePartnerAccountsModal(false)}
-            />
-          )}
+          <div className="relative overflow-hidden">
+            <AnimatePresence mode="popLayout" initial={false}>
+              {step === 1 && (
+                <motion.div
+                  key="step-1"
+                  custom={1}
+                  variants={stepVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={stepTransition}
+                  className="relative"
+                >
+                  <SendVerificationCodeForm
+                    onSuccess={() => setStep(2)}
+                    onCancel={() => setShowMergePartnerAccountsModal(false)}
+                  />
+                </motion.div>
+              )}
 
-          {step === 2 && (
-            <VerifyCodeForm
-              onSuccess={() => setStep(3)}
-              onCancel={() => setShowMergePartnerAccountsModal(false)}
-            />
-          )}
+              {step === 2 && (
+                <motion.div
+                  key="step-2"
+                  custom={1}
+                  variants={stepVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={stepTransition}
+                  className="relative"
+                >
+                  <VerifyCodeForm
+                    onSuccess={() => setStep(3)}
+                    onCancel={() => setShowMergePartnerAccountsModal(false)}
+                  />
+                </motion.div>
+              )}
 
-          {step === 3 && (
-            <MergeAccountForm
-              onSuccess={() => {
-                setShowMergePartnerAccountsModal(false);
-              }}
-              onCancel={() => setShowMergePartnerAccountsModal(false)}
-            />
-          )}
+              {step === 3 && (
+                <motion.div
+                  key="step-3"
+                  custom={-1}
+                  variants={stepVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={stepTransition}
+                  className="relative"
+                >
+                  <MergeAccountForm
+                    onSuccess={() => {
+                      setShowMergePartnerAccountsModal(false);
+                    }}
+                    onCancel={() => setShowMergePartnerAccountsModal(false)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </MergePartnerAccountsFormProvider>
       </div>
     </div>
