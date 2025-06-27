@@ -154,7 +154,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Website and socials",
             icon: Globe,
-            href: "/profile/social",
+            href: "/profile/sites",
           },
         ],
       },
