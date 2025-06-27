@@ -55,7 +55,7 @@ async function main() {
               ...p,
             };
           })
-          .filter((p) => p !== null);
+          .filter((p): p is NonNullable<typeof p> => p !== null);
 
         const manualCommissions = processedData.map((d) => {
           return {
