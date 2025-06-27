@@ -217,7 +217,7 @@ function ImportCsvModal({
                     if (!res.ok) throw new Error();
 
                     router.push(
-                      `/${slug}${folderId ? `?folderId=${folderId}` : ""}`,
+                      `/${slug}/links${folderId ? `?folderId=${folderId}` : ""}`,
                     );
                     await Promise.all([
                       mutatePrefix("/api/links"),

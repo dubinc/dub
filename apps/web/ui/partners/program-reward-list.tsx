@@ -31,11 +31,29 @@ export function ProgramRewardList({
                 amount: reward.amount,
                 type: reward.type,
               })}{" "}
-              per {reward.event}
+              {reward.event === "sale" && reward.maxDuration === 0 ? (
+                <>for the first sale</>
+              ) : (
+                <>per {reward.event}</>
+              )}
               {reward.maxDuration === null ? (
-                <> for the customer's lifetime</>
+                <>
+                  {" "}
+                  for the{" "}
+                  <strong className={cn("font-semibold")}>
+                    customer's lifetime
+                  </strong>
+                </>
               ) : reward.maxDuration && reward.maxDuration > 1 ? (
-                <>, and again every month for {reward.maxDuration} months</>
+                <>
+                  {" "}
+                  for{" "}
+                  <strong className={cn("font-semibold")}>
+                    {reward.maxDuration % 12 === 0
+                      ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
+                      : `${reward.maxDuration} months`}
+                  </strong>
+                </>
               ) : null}
             </>
           )}

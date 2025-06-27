@@ -1,5 +1,7 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -52,6 +54,7 @@ type SidebarNavData = {
   session?: Session | null;
   showNews?: boolean;
   applicationsCount?: number;
+  showConversionGuides?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -393,20 +396,27 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { defaultProgramId } = useWorkspace();
+  const { plan, defaultProgramId } = useWorkspace();
+  const { canTrackConversions } = getPlanCapabilities(plan);
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : pathname.startsWith(`/${slug}/program`)
-          ? "program"
-          : "default";
+        : pathname.startsWith(`/${slug}/guides`)
+          ? null
+          : pathname.startsWith(`/${slug}/program`)
+            ? "program"
+            : "default";
   }, [slug, pathname]);
 
   const applicationsCount = useProgramApplicationsCount({
-    enabled: currentArea === "program",
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
+  const { data: customersCount } = useCustomersCount({
+    enabled: canTrackConversions === true,
   });
 
   return (
@@ -424,6 +434,7 @@ export function AppSidebarNav({
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
         applicationsCount,
+        showConversionGuides: canTrackConversions && customersCount === 0,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
