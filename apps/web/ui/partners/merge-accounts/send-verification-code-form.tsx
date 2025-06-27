@@ -2,9 +2,10 @@
 
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { useMergePartnerAccountsForm } from "@/ui/partners/merge-accounts/form-context";
 import { AccountInputGroup } from "@/ui/partners/merge-accounts/account-input-group";
+import { useMergePartnerAccountsForm } from "@/ui/partners/merge-accounts/form-context";
 import { Button } from "@dub/ui";
+import { ArrowDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -66,7 +67,7 @@ export function SendVerificationCodeForm({
         verification code to both emails.
       </p>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <AccountInputGroup title="Source account">
           <label className="text-sm font-medium leading-5 text-neutral-900">
             Email
@@ -82,6 +83,10 @@ export function SendVerificationCodeForm({
             />
           </div>
         </AccountInputGroup>
+
+        <div className="flex items-start px-7">
+          <ArrowDown className="size-5" aria-hidden="true" />
+        </div>
 
         <AccountInputGroup title="Target account">
           <label className="text-sm font-medium leading-5 text-neutral-900">

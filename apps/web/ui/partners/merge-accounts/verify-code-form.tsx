@@ -5,6 +5,7 @@ import { AccountInputGroup } from "@/ui/partners/merge-accounts/account-input-gr
 import { useMergePartnerAccountsForm } from "@/ui/partners/merge-accounts/form-context";
 import { OTPInputField } from "@/ui/partners/merge-accounts/otp-input-field";
 import { Button } from "@dub/ui";
+import { ArrowDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -96,6 +97,10 @@ export function VerifyCodeForm({
             />
           </div>
         </AccountInputGroup>
+
+        <div className="flex items-start px-7">
+          <ArrowDown className="size-5" aria-hidden="true" />
+        </div>
 
         <AccountInputGroup title="Target account">
           <div className="flex flex-col gap-4">

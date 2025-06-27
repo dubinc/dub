@@ -1,5 +1,6 @@
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
 import { Button } from "@dub/ui";
+import { ArrowDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { AccountInputGroup } from "./account-input-group";
@@ -31,11 +32,14 @@ export function MergeAccountForm({
 
   return (
     <form className="space-y-6">
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <AccountInputGroup title="Source account">
           <div className="flex items-center gap-4">
             <img
-              src={sourceAccount.avatarUrl}
+              src={
+                sourceAccount.avatarUrl ||
+                `https://api.dub.co/og/avatar?seed=${sourceAccount.email}`
+              }
               alt={sourceAccount.name}
               className="size-12 rounded-full object-cover"
             />
@@ -50,10 +54,17 @@ export function MergeAccountForm({
           </div>
         </AccountInputGroup>
 
+        <div className="flex items-start px-7">
+          <ArrowDown className="size-5" aria-hidden="true" />
+        </div>
+
         <AccountInputGroup title="Target account">
           <div className="flex items-center gap-4">
             <img
-              src={targetAccount.avatarUrl}
+              src={
+                targetAccount.avatarUrl ||
+                `https://api.dub.co/og/avatar?seed=${targetAccount.email}`
+              }
               alt={targetAccount.name}
               className="size-12 rounded-full object-cover"
             />
@@ -68,6 +79,7 @@ export function MergeAccountForm({
           </div>
         </AccountInputGroup>
       </div>
+
       <div className="flex items-center justify-end gap-2">
         <Button
           variant="secondary"

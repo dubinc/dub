@@ -35,7 +35,7 @@ function MergePartnerAccountsModal(props: MergePartnerAccountsModalProps) {
 function MergePartnerAccountsModalInner({
   setShowMergePartnerAccountsModal,
 }: MergePartnerAccountsModalProps) {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(3);
 
   return (
     <div>

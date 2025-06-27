@@ -276,7 +276,7 @@ const verifyTokens = async ({
       },
     },
     select: {
-      id: true,
+      name: true,
       email: true,
       image: true,
     },
