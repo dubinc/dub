@@ -13,11 +13,11 @@ export async function getIntegrationGuideMarkdown(
   }
 
   // Use a more explicit path construction to satisfy the linter
-  const integrationGuidesDir = join(process.cwd(), "integration-guides");
-  const markdownPath = join(integrationGuidesDir, `${sanitizedKey}.md`);
+  const guidesDirectory = join(process.cwd(), "guides");
+  const markdownPath = join(guidesDirectory, `${sanitizedKey}.md`);
 
   // Additional security check: ensure the path is within the expected directory
-  if (!markdownPath.startsWith(integrationGuidesDir)) {
+  if (!markdownPath.startsWith(guidesDirectory)) {
     return null;
   }
 
