@@ -46,9 +46,7 @@ export function GuideList() {
         value={currentStep}
         onValueChange={(value) => {
           queryParams({
-            set: {
-              step: value,
-            },
+            ...(value ? { set: { step: value } } : { del: "step" }),
             scroll: false,
           });
         }}
@@ -117,7 +115,11 @@ export function GuideList() {
                     className="rounded-lg"
                     onClick={() => {
                       if (sections.length - 1 === index) {
-                        router.push(`/${workspaceSlug}/events`);
+                        router.push(
+                          showConnectLaterButton
+                            ? `/${workspaceSlug}/program/new/overview`
+                            : `/${workspaceSlug}/events`,
+                        );
                         return;
                       }
                       queryParams({
