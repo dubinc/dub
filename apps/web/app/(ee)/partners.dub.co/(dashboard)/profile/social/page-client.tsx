@@ -4,11 +4,17 @@ import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partne
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps, PayoutsCount } from "@/lib/types";
+import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import {
+  OnlinePresenceForm,
+  useOnlinePresenceForm,
+} from "@/ui/partners/online-presence-form";
+import {
   Button,
   buttonVariants,
+  DotsPattern,
   FileUpload,
   LoadingSpinner,
   ToggleGroup,
@@ -23,33 +29,65 @@ import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 
-export function ProfileSettingsPageClient() {
+export function ProfileSocialPageClient() {
   const { partner, error } = usePartnerProfile();
 
-  return (
-    <PageWidthWrapper className="mb-20 flex flex-col gap-8">
-      <div className="max-w-screen-md rounded-lg border border-neutral-200 bg-white">
-        <div className="border-b border-neutral-200 p-6">
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-medium text-neutral-800">About you</h2>
-          </div>
-        </div>
+  const form = useOnlinePresenceForm({ partner });
+  const formRef = useRef<HTMLFormElement>(null);
+  const {
+    formState: { isSubmitting },
+  } = form;
 
-        {partner ? (
-          <ProfileForm partner={partner} />
-        ) : (
-          <div className="flex h-32 w-full items-center justify-center">
-            {error ? (
-              <span className="text-sm text-neutral-500">
-                Failed to load profile data
-              </span>
+  return (
+    <PageContent
+      title="Website and socials"
+      controls={
+        <Button
+          text="Save changes"
+          className="h-8 w-fit px-2.5"
+          loading={isSubmitting}
+          onClick={() => formRef.current?.requestSubmit()}
+        />
+      }
+    >
+      <PageWidthWrapper className="flex flex-col gap-8">
+        <div className="relative m-1 mb-8">
+          <div
+            className="pointer-events-none absolute inset-0 rounded-2xl bg-neutral-100/50 [mask-image:linear-gradient(black,transparent_60%)]"
+            aria-hidden
+          >
+            <div className="absolute inset-4 overflow-hidden">
+              <div className="absolute inset-y-0 left-1/2 w-[1200px] -translate-x-1/2">
+                <DotsPattern className="text-neutral-200/80" />
+              </div>
+            </div>
+          </div>
+          <div className="relative mx-auto my-12 w-full max-w-[400px]">
+            {partner ? (
+              <OnlinePresenceForm
+                ref={formRef}
+                form={form}
+                partner={partner}
+                variant="settings"
+                onSubmitSuccessful={() => {
+                  toast.success("Online presence updated successfully.");
+                }}
+              />
             ) : (
-              <LoadingSpinner />
+              <div className="flex h-32 w-full items-center justify-center">
+                {error ? (
+                  <span className="text-sm text-neutral-500">
+                    Failed to load online presence data
+                  </span>
+                ) : (
+                  <LoadingSpinner />
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
-    </PageWidthWrapper>
+        </div>
+      </PageWidthWrapper>
+    </PageContent>
   );
 }
 

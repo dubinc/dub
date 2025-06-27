@@ -7,6 +7,7 @@ import {
   ColorPalette2,
   Gauge6,
   Gear2,
+  Globe,
   GridIcon,
   MoneyBills2,
   ShieldCheck,
@@ -142,6 +143,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: CircleUser,
             href: "/profile",
             exact: true,
+          },
+          {
+            name: "Website and socials",
+            icon: Globe,
+            href: "/profile/social",
           },
           // {
           //   name: "Payouts",
