@@ -1,10 +1,10 @@
 import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
-import { createLink, processLink } from "@/lib/api/links";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { isStored, storage } from "@/lib/storage";
-import { PlanProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { sendEmail } from "@dub/email";
 import { PartnerInvite } from "@dub/email/templates/partner-invite";
@@ -214,35 +214,22 @@ async function invitePartner({
   workspace: Pick<Project, "id" | "plan" | "webhookEnabled">;
   partner: {
     email: string;
-    key: string;
   };
   userId: string;
 }) {
-  const { link: partnerLink, error } = await processLink({
-    payload: {
-      url: program.url!,
-      domain: program.domain!,
-      key: partner.key,
-      programId: program.id,
-      trackConversion: true,
-    },
-    workspace: {
-      id: workspace.id,
-      plan: workspace.plan as PlanProps,
+  const partnerLink = await createPartnerLink({
+    workspace: workspace as WorkspaceProps,
+    program,
+    partner: {
+      name: partner.email.split("@")[0],
+      email: partner.email,
     },
     userId,
   });
 
-  if (error != null) {
-    console.log("Error creating partner link", error);
-    return;
-  }
-
-  const link = await createLink(partnerLink);
-
   await createAndEnrollPartner({
     program,
-    link,
+    link: partnerLink,
     workspace,
     partner: {
       name: partner.email.split("@")[0],

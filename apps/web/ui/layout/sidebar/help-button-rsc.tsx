@@ -1,16 +1,11 @@
 import { getContentAPI } from "@/lib/fetchers/get-content-api";
-import { HelpButton, HelpButtonVariant } from "./help-button";
+import { HelpButton } from "./help-button";
 
-export async function HelpButtonRSC({
-  variant,
-}: {
-  variant?: HelpButtonVariant;
-}) {
+export async function HelpButtonRSC() {
   const { popularHelpArticles, allHelpArticles } = await getContentAPI();
 
   return (
     <HelpButton
-      variant={variant}
       popularHelpArticles={popularHelpArticles}
       allHelpArticles={allHelpArticles}
     />
