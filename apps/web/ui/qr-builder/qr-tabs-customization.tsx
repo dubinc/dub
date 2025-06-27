@@ -29,6 +29,7 @@ interface QrTabsCustomizationProps {
     onCenterStyleChange: (type: CornerDotType) => void;
     onSuggestedLogoSelect: (type: string, src?: string) => void;
     setUploadedLogoFile: (file: File | null) => void;
+    onTransparentBackgroundToggle: (checked: boolean) => void;
   };
 }
 
@@ -88,6 +89,10 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               onDotsStyleChange={handlers.onDotsStyleChange}
               onBorderColorChange={handlers.onBorderColorChange}
               onBackgroundColorChange={handlers.onBackgroundColorChange}
+              onTransparentBackgroundToggle={
+                handlers.onTransparentBackgroundToggle
+              }
+              selectedSuggestedFrame={selectedSuggestedFrame}
             />
           )}
 
@@ -129,6 +134,10 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               onDotsStyleChange={handlers.onDotsStyleChange}
               onBorderColorChange={handlers.onBorderColorChange}
               onBackgroundColorChange={handlers.onBackgroundColorChange}
+              onTransparentBackgroundToggle={
+                handlers.onTransparentBackgroundToggle
+              }
+              selectedSuggestedFrame={selectedSuggestedFrame}
             />
           )}
           {tab.id === "shape" && (

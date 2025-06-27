@@ -154,7 +154,7 @@ export function AuthModal({
             )}
           </AnimatePresence>
 
-          <div className="p-6 pb-3 pt-0">
+          <div className="p-6 pb-4 pt-0">
             <AnimatePresence mode="wait">
               {authType === "login" ? (
                 <motion.div

@@ -1,12 +1,12 @@
 "use client";
 
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { useMediaQuery } from "@dub/ui";
+import { Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Button, Heading, Text } from "@radix-ui/themes";
+import { Heading, Text } from "@radix-ui/themes";
 import { FC, useState } from "react";
 import { trackClientEvents } from "../../../../core/integration/analytic";
 import { EAnalyticEvents } from "../../../../core/integration/analytic/interfaces/analytic.interface.ts";
@@ -38,8 +38,8 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
   };
 
   return (
-    <section className="bg-primary-100 w-full px-3 py-6 md:py-12">
-      <div className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-4 md:gap-8">
+    <section className="bg-primary-100 w-full px-3 py-10 lg:py-14">
+      <div className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-6 lg:gap-10">
         <div className="flex flex-col items-center justify-center gap-4 md:gap-6">
           <QrTabsDetailedTitle />
           <Text
@@ -68,7 +68,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                     key={type.id}
                     value={type.id}
                     className={cn(
-                      "bg-primary-200 text-neutral group flex h-24 w-24 flex-col items-center justify-around gap-2 rounded-lg border border-transparent px-2 py-3 transition-colors md:h-[104px] md:w-[116px] md:gap-3",
+                      "bg-primary-200 text-neutral group flex h-24 w-24 flex-col items-center justify-center gap-2 rounded-lg border border-transparent px-2 py-3 transition-colors md:h-[104px] md:w-[116px] md:gap-3",
                       "hover:bg-secondary-100 hover:text-secondary",
                       "data-[state=active]:bg-secondary-100 data-[state=active]:text-secondary",
                     )}
@@ -134,14 +134,10 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                     <Button
                       className="flex w-full flex-row items-center justify-center gap-2 md:max-w-[201px]"
                       size={{ initial: "4", md: "3" }}
-                      color={"blue"}
-                      variant="solid"
+                      color="blue"
                       onClick={() => handleScrollButtonClick("2")}
-                    >
-                      <Text size={{ initial: "3", md: "4" }}>
-                        Create QR code
-                      </Text>
-                    </Button>
+                      text="Create QR code"
+                    />
                   </div>
                 </div>
               </Tabs.Content>

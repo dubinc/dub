@@ -25,7 +25,7 @@ function SignUpStep({ authModal = false }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
         className={cn(
-          "border-border-500 border-b bg-white pb-6 pt-8 text-center",
+          "border-border-500 border-b bg-white pb-4 pt-8 text-center",
           {
             "flex flex-col items-center justify-center border-none bg-neutral-50 pt-0":
               authModal,
@@ -33,13 +33,10 @@ function SignUpStep({ authModal = false }) {
         )}
       >
         <h3 className="text-lg font-semibold">
-          {authModal ? "One last step" : "Get started with GetQR"}
+          {authModal
+            ? "Create your free account to download your QR code instantly."
+            : "Get started with GetQR"}
         </h3>
-        {authModal && (
-          <p className="max-w-[320px] text-base text-neutral-500">
-            Create your free account to download your QR code instantly.
-          </p>
-        )}
       </motion.div>
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -130,31 +127,24 @@ function RegisterContent({
           />
         )}
       </motion.div>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.3 }}
-        className={cn("mt-4 text-center text-sm text-neutral-500", {
-          "text-xs": authModal && step === ERegistrationStep.VERIFY,
-        })}
-      >
-        Already have an account?&nbsp;
-        {authModal ? (
-          <button
-            onClick={() => switchAuthType && switchAuthType("login")}
-            className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
-          >
-            Log in
-          </button>
-        ) : (
+      {!authModal && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className={cn("mt-4 text-center text-sm text-neutral-500", {
+            "text-xs": authModal && step === ERegistrationStep.VERIFY,
+          })}
+        >
+          Already have an account?&nbsp;
           <Link
             href="/login"
             className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
           >
             Log in
           </Link>
-        )}
-      </motion.p>
+        </motion.p>
+      )}
     </>
   );
 }

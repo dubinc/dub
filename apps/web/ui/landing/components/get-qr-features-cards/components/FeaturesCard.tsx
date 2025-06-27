@@ -13,12 +13,7 @@ export const FeaturesCard: FC<IGetInfoCardProps> = ({
 }) => {
   return (
     <Card className="border-border-100 border">
-      <Flex
-        direction="column"
-        align="start"
-        justify="start"
-        gap={{ initial: "3", md: "4" }}
-      >
+      <Flex direction="column" align="start" justify="start" gap="3">
         <Box className="[&_svg>path]:fill-primary [&_svg>g]:stroke-primary [&_svg]:h-8 [&_svg]:w-8">
           {img}
         </Box>

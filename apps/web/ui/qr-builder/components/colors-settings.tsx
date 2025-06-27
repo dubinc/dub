@@ -3,6 +3,8 @@ import {
   TRANSPARENT_COLOR,
   WHITE_COLOR,
 } from "@/ui/qr-builder/constants/customization/colors.ts";
+import * as ScrollArea from "@radix-ui/react-scroll-area";
+import { AnimatePresence } from "framer-motion";
 import { Options } from "qr-code-styling";
 import { FC, useState } from "react";
 import { isValidHex } from "../helpers/is-valid-hex.ts";
@@ -15,7 +17,7 @@ export interface IColorsSettingsProps {
   onBackgroundColorChange: (color: string) => void;
   onTransparentBackgroundToggle?: (checked: boolean) => void;
   isMobile?: boolean;
-  minimalFlow?: boolean;
+  selectedSuggestedFrame: string;
 }
 
 export const ColorsSettings: FC<IColorsSettingsProps> = ({
@@ -24,7 +26,7 @@ export const ColorsSettings: FC<IColorsSettingsProps> = ({
   onBackgroundColorChange,
   onTransparentBackgroundToggle,
   isMobile,
-  minimalFlow = false,
+  selectedSuggestedFrame,
 }) => {
   const initialBackground = options.backgroundOptions?.color ?? WHITE_COLOR;
   const isInitiallyTransparent = initialBackground === TRANSPARENT_COLOR;
@@ -76,43 +78,42 @@ export const ColorsSettings: FC<IColorsSettingsProps> = ({
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex flex-col items-start gap-4 text-sm xl:flex-row xl:items-end">
-        <ColorPickerInput
-          label="Border colour"
-          color={borderColor}
-          onColorChange={handleBorderColorChange}
-          pickerId="borderColorPicker"
-          isValid={borderColorValid}
-          setIsValid={setBorderColorValid}
-        />
-
-        {isMobile ? (
-          <div className="flex flex-row items-end gap-2">
-            <BackgroundSettings
-              backgroundColor={backgroundColor}
-              isTransparent={isTransparent}
-              optionsBackgroundColor={options.backgroundOptions?.color}
-              onColorChange={handleBackgroundColorChange}
-              onTransparentToggle={handleTransparentToggle}
-              backgroundColorValid={backgroundColorValid}
-              setBackgroundColorValid={setBackgroundColorValid}
-              label="Transparent"
-              minimalFlow={minimalFlow}
+      <ScrollArea.Root type="auto" className="relative w-full overflow-hidden">
+        <ScrollArea.Viewport className="overflow-x-auto">
+          <div className="flex w-full flex-row items-end gap-4 text-sm">
+            <ColorPickerInput
+              label="Border colour"
+              color={borderColor}
+              onColorChange={handleBorderColorChange}
+              pickerId="borderColorPicker"
+              isValid={borderColorValid}
+              setIsValid={setBorderColorValid}
             />
+
+            <AnimatePresence>
+              {selectedSuggestedFrame === "none" && (
+                <BackgroundSettings
+                  backgroundColor={backgroundColor}
+                  isTransparent={isTransparent}
+                  optionsBackgroundColor={options.backgroundOptions?.color}
+                  onColorChange={handleBackgroundColorChange}
+                  onTransparentToggle={handleTransparentToggle}
+                  backgroundColorValid={backgroundColorValid}
+                  setBackgroundColorValid={setBackgroundColorValid}
+                />
+              )}
+            </AnimatePresence>
           </div>
-        ) : (
-          <BackgroundSettings
-            backgroundColor={backgroundColor}
-            isTransparent={isTransparent}
-            optionsBackgroundColor={options.backgroundOptions?.color}
-            onColorChange={handleBackgroundColorChange}
-            onTransparentToggle={handleTransparentToggle}
-            backgroundColorValid={backgroundColorValid}
-            setBackgroundColorValid={setBackgroundColorValid}
-            minimalFlow={minimalFlow}
-          />
-        )}
-      </div>
+        </ScrollArea.Viewport>
+        <div className="mt-2">
+          <ScrollArea.Scrollbar
+            orientation="horizontal"
+            className="bg-border-100 h-1 rounded-[3px]"
+          >
+            <ScrollArea.Thumb className="!bg-primary !h-full rounded-lg" />
+          </ScrollArea.Scrollbar>
+        </div>
+      </ScrollArea.Root>
 
       {showError && (
         <p className="mt-1 text-sm text-red-500">The color is invalid.</p>

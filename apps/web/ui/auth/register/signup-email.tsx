@@ -92,6 +92,7 @@ export const SignUpEmail = ({
           text={isPending ? "Submitting..." : "Sign Up"}
           disabled={isPending}
           loading={isPending}
+          className="!mt-3"
         />
       </div>
     </form>

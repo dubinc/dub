@@ -12,8 +12,6 @@ import CoffeeCupPreview from "@/ui/qr-builder/icons/frames/coffee-cup-preview.sv
 import CoffeeCup from "@/ui/qr-builder/icons/frames/coffee-cup.svg";
 import EnvelopePreview from "@/ui/qr-builder/icons/frames/envelope-preview.svg";
 import Envelope from "@/ui/qr-builder/icons/frames/envelope.svg";
-import GlassPreview from "@/ui/qr-builder/icons/frames/glass-preview.svg";
-import Glass from "@/ui/qr-builder/icons/frames/glass.svg";
 import ScooterPreview from "@/ui/qr-builder/icons/frames/scooter-preview.svg";
 import Scooter from "@/ui/qr-builder/icons/frames/scooter.svg";
 import WaitressPreview from "@/ui/qr-builder/icons/frames/waitress-preview.svg";
@@ -35,7 +33,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card",
     type: "card",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Card, 0.6, 100, 45);
+      await embedQRIntoFrame(qr, options, Card, 0.78, 43, -2);
     },
     icon: CardPreview,
   },
@@ -43,7 +41,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card-1",
     type: "card-1",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CardFirst, 0.6, 100, 45);
+      await embedQRIntoFrame(qr, options, CardFirst, 0.78, 43, -2);
     },
     icon: CardFirstPreview,
   },
@@ -51,7 +49,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card-2",
     type: "card-2",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CardSecond, 0.6, 100, 45);
+      await embedQRIntoFrame(qr, options, CardSecond, 0.8, 37, -8);
     },
     icon: CardSecondPreview,
   },
@@ -59,7 +57,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card-3",
     type: "card-3",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CardThird, 0.6, 100, 45);
+      await embedQRIntoFrame(qr, options, CardThird, 0.8, 37, -6);
     },
     icon: CardThirdPreview,
   },
@@ -67,7 +65,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-wreath",
     type: "wreath",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Wreath, 0.45, 185, 140);
+      await embedQRIntoFrame(qr, options, Wreath, 0.69, 68, 30);
     },
     icon: WreathPreview,
   },
@@ -75,7 +73,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-envelope",
     type: "envelope",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Envelope, 0.45, 185, 70);
+      await embedQRIntoFrame(qr, options, Envelope, 0.55, 123, 20);
     },
     icon: EnvelopePreview,
   },
@@ -83,7 +81,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-waitress",
     type: "waitress",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Waitress, 0.45, 190, 110);
+      await embedQRIntoFrame(qr, options, Waitress, 0.55, 128, 62);
     },
     icon: WaitressPreview,
   },
@@ -91,7 +89,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-coffee-cup",
     type: "coffee-cup",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CoffeeCup, 0.47, 150, 160);
+      await embedQRIntoFrame(qr, options, CoffeeCup, 0.55, 105, 115);
     },
     icon: CoffeeCupPreview,
   },
@@ -99,7 +97,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-scooter",
     type: "scooter",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Scooter, 0.35, 130, 135);
+      await embedQRIntoFrame(qr, options, Scooter, 0.48, 34, 35);
     },
     icon: ScooterPreview,
   },
@@ -107,17 +105,9 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-clipboard",
     type: "clipboard",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, ClipboardFrame, 0.6, 100, 100);
+      await embedQRIntoFrame(qr, options, ClipboardFrame, 0.74, 53, 50);
     },
     icon: ClipboardFramePreview,
-  },
-  {
-    id: "frame-glass",
-    type: "glass",
-    extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Glass, 0.5, 150, 220);
-    },
-    icon: GlassPreview,
   },
 ];
 
@@ -133,7 +123,6 @@ export async function preloadAllFrames() {
     CoffeeCup,
     Scooter,
     ClipboardFrame,
-    Glass,
   ];
 
   await Promise.all(

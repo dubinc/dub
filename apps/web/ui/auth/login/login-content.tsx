@@ -1,10 +1,10 @@
 "use client";
 
 import LoginForm from "@/ui/auth/login/login-form.tsx";
+import { AuthType, MessageType } from "@/ui/modals/auth-modal.tsx";
 import { cn } from "@dub/utils/src";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { AuthType, MessageType } from "../../../app/app.dub.co/(auth)/auth.modal.tsx";
 
 type LoginContentProps = {
   authModal?: boolean;
