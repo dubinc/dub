@@ -2,7 +2,7 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
-import { sanitizeHandle, SocialPlatform } from "@/lib/social-utils";
+import { sanitizeSocialHandle, SocialPlatform } from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
@@ -103,7 +103,7 @@ export function OnlinePresenceForm({
   const onPasteSocial = useCallback(
     (e: React.ClipboardEvent<HTMLInputElement>, platform: SocialPlatform) => {
       const text = e.clipboardData.getData("text/plain");
-      const sanitized = sanitizeHandle(text, platform);
+      const sanitized = sanitizeSocialHandle(text, platform);
 
       if (sanitized) {
         setValue(platform, sanitized);
