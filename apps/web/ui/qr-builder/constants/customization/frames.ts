@@ -152,7 +152,6 @@ async function embedQRIntoFrame(
   qrScale: number,
   qrTranslateX: number,
   qrTranslateY: number,
-  frameScale?: number,
 ) {
   const { src } = frame;
 
@@ -179,23 +178,7 @@ async function embedQRIntoFrame(
     );
 
     svg.appendChild(qrGroup);
-
-    if (frameScale) {
-      const frameGroup = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "g",
-      );
-      const cx = options.width / 2;
-      const cy = options.height / 2;
-      frameGroup.setAttribute(
-        "transform",
-        `translate(${cx}, ${cy}) scale(${frameScale}) translate(${-cx}, ${-cy})`,
-      );
-      frameGroup.appendChild(frameClone);
-      svg.appendChild(frameGroup);
-    } else {
-      svg.appendChild(frameClone);
-    }
+    svg.appendChild(frameClone);
   } catch (err) {
     console.error("Failed to embed QR into frame:", err);
   }
