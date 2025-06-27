@@ -431,7 +431,7 @@ export function AppSidebarNav({
           include: ["folderId", "tagIds"],
         }),
         session: session || undefined,
-        showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
+        showNews: true,
         defaultProgramId: defaultProgramId || undefined,
         applicationsCount,
         showConversionGuides: canTrackConversions && customersCount === 0,
