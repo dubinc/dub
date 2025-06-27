@@ -5,6 +5,7 @@ import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { AccountInputGroup } from "./account-input-group";
 import { useMergePartnerAccountsForm } from "./form-context";
+import { StepProgressBar } from "./step-progress-bar";
 
 export function MergeAccountForm({
   onSuccess,
@@ -80,22 +81,26 @@ export function MergeAccountForm({
         </AccountInputGroup>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
-        <Button
-          variant="secondary"
-          text="Cancel"
-          className="h-8 w-fit px-3"
-          disabled={isPending}
-          onClick={onCancel}
-        />
-        <Button
-          text="Merge accounts"
-          className="h-8 w-fit px-3"
-          type="button"
-          onClick={onSubmit}
-          disabled={isPending}
-          loading={isPending}
-        />
+      <div className="flex items-center justify-between gap-4">
+        <StepProgressBar step={3} />
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+            disabled={isPending}
+            onClick={onCancel}
+          />
+          <Button
+            text="Merge accounts"
+            className="h-8 w-fit px-3"
+            type="button"
+            onClick={onSubmit}
+            disabled={isPending}
+            loading={isPending}
+          />
+        </div>
       </div>
     </form>
   );

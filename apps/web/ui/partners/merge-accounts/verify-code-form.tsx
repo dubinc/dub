@@ -9,6 +9,7 @@ import { ArrowDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { StepProgressBar } from "./step-progress-bar";
 
 export function VerifyCodeForm({
   onSuccess,
@@ -128,21 +129,25 @@ export function VerifyCodeForm({
         </AccountInputGroup>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
-        <Button
-          variant="secondary"
-          text="Cancel"
-          className="h-8 w-fit px-3"
-          disabled={isPending || isSubmitting}
-          onClick={onCancel}
-        />
-        <Button
-          text="Verify accounts"
-          className="h-8 w-fit px-3"
-          type="submit"
-          disabled={sourceCode.length !== 6 || targetCode.length !== 6}
-          loading={isPending || isSubmitting}
-        />
+      <div className="flex items-center justify-between gap-4">
+        <StepProgressBar step={2} />
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+            disabled={isPending || isSubmitting}
+            onClick={onCancel}
+          />
+          <Button
+            text="Verify accounts"
+            className="h-8 w-fit px-3"
+            type="submit"
+            disabled={sourceCode.length !== 6 || targetCode.length !== 6}
+            loading={isPending || isSubmitting}
+          />
+        </div>
       </div>
     </form>
   );
