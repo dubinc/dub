@@ -1,8 +1,7 @@
 import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
-import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { createLink, processLink } from "@/lib/api/links";
+import { DubApiError } from "@/lib/api/errors";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
-import { createQr } from "@/lib/api/qrs/create-qr";
+import { createQrWithLinkUniversal } from "@/lib/api/qrs/create-qr-with-link-universal";
 import { getQrs } from "@/lib/api/qrs/get-qrs";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -60,49 +59,28 @@ export const POST = withWorkspace(
       url: body.file ? `${R2_URL}/qrs-content/${fileId}` : body.link.url,
     };
 
-    const { link, error, code } = await processLink({
-      payload: linkData,
+    const { createdQr } = await createQrWithLinkUniversal({
+      qrData: body,
+      linkData,
       workspace,
-      ...(session && { userId: session.user.id }),
+      userId: session?.user?.id,
+      fileId,
+      onLinkCreated: async (createdLink) => {
+        if (createdLink.projectId && createdLink.userId) {
+          waitUntil(
+            sendWorkspaceWebhook({
+              trigger: "link.created",
+              workspace,
+              data: linkEventSchema.parse(createdLink),
+            }),
+          );
+        }
+      },
     });
 
-    if (error != null) {
-      throw new DubApiError({
-        code: code as ErrorCodes,
-        message: error,
-      });
-    }
-
-    try {
-      const createdLink = await createLink(link);
-
-      if (createdLink.projectId && createdLink.userId) {
-        waitUntil(
-          sendWorkspaceWebhook({
-            trigger: "link.created",
-            workspace,
-            data: linkEventSchema.parse(createdLink),
-          }),
-        );
-      }
-
-      const createdQr = await createQr(
-        body,
-        createdLink.shortLink,
-        createdLink.id,
-        createdLink.userId,
-        fileId,
-      );
-
-      return NextResponse.json(createdQr, {
-        headers,
-      });
-    } catch (error) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: error.message,
-      });
-    }
+    return NextResponse.json(createdQr, {
+      headers,
+    });
   },
   {
     requiredPermissions: ["links.write"],

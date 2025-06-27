@@ -12,7 +12,7 @@ import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
 export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
   const { AuthModal, showModal } = useAuthModal();
 
-  const [localQrDataToCreate, setLocalQrDataToCreate] =
+  const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>(`qr-data-to-create`, null);
 
   const { isMobile } = useMediaQuery();
@@ -46,7 +46,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
   }, [isMobile]);
 
   const handleSaveQR = async (data: QRBuilderData) => {
-    setLocalQrDataToCreate(data);
+    setQrDataToCreate(data);
     showModal("signup");
   };
 

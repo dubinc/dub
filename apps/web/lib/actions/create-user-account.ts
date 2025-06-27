@@ -1,8 +1,5 @@
 "use server";
 
-import { DubApiError, ErrorCodes } from "@/lib/api/errors.ts";
-import { createLink, processLink } from "@/lib/api/links";
-import { createQr } from "@/lib/api/qrs/create-qr.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit } from "@/lib/upstash";
 import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
@@ -15,6 +12,7 @@ import z from "../zod";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
+import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 
 const qrDataToCreateSchema = z.object({
   title: z.string(),
@@ -111,52 +109,34 @@ export const createUserAccountAction = actionClient
         email,
       });
 
-      if (qrDataToCreate !== null) {
-        const { link, error, code } = await processLink({
-          payload: {
-            url: qrDataToCreate?.file
-              ? `${R2_URL}/qrs-content/${qrDataToCreate.file}`
-              : (qrDataToCreate!.styles!.data! as string),
-          },
-          workspace: workspaceResponse as Pick<
-            WorkspaceProps,
-            "id" | "plan" | "flags"
-          >,
-          userId: generatedUserId,
-        });
+      if (qrDataToCreate) {
+        const linkUrl = qrDataToCreate?.file
+          ? `${R2_URL}/qrs-content/${qrDataToCreate.file}`
+          : (qrDataToCreate!.styles!.data! as string);
 
-        if (error != null) {
-          throw new DubApiError({
-            code: code as ErrorCodes,
-            message: error,
-          });
-        }
-
-        try {
-          const createdLink = await createLink(link);
-
-          await createQr(
-            {
-              ...qrDataToCreate,
-              // @ts-ignore
-              link: createdLink,
-              // @ts-ignore
-              data: qrDataToCreate.styles.data,
-              fileName: qrDataToCreate?.fileName,
-              fileSize: qrDataToCreate?.fileSize,
+        await createQrWithLinkUniversal({
+          qrData: {
+            data: qrDataToCreate.styles.data as string,
+            qrType: qrDataToCreate.qrType as any,
+            title: qrDataToCreate.title,
+            description: undefined,
+            styles: qrDataToCreate.styles,
+            frameOptions: qrDataToCreate.frameOptions,
+            file: qrDataToCreate.file,
+            fileName: qrDataToCreate.fileName,
+            fileSize: qrDataToCreate.fileSize,
+            link: {
+              url: linkUrl,
             },
-            createdLink.shortLink,
-            createdLink.id,
-            createdLink.userId,
-            qrDataToCreate?.file,
-            true,
-          );
-        } catch (error) {
-          throw new DubApiError({
-            code: "unprocessable_entity",
-            message: error.message,
-          });
-        }
+          },
+          linkData: {
+            url: linkUrl,
+          },
+          workspace: workspaceResponse as Pick<WorkspaceProps, "id" | "plan" | "flags">,
+          userId: generatedUserId,
+          fileId: qrDataToCreate.file || undefined,
+          homePageDemo: true,
+        });
       }
     }
   });
