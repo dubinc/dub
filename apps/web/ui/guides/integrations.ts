@@ -2,15 +2,16 @@ import { Appwrite } from "@/ui/layout/sidebar/conversions/icons/appwrite";
 import { Auth0 } from "@/ui/layout/sidebar/conversions/icons/auth0";
 import { BetterAuth } from "@/ui/layout/sidebar/conversions/icons/better-auth";
 import { Clerk } from "@/ui/layout/sidebar/conversions/icons/clerk";
+import { CodeEditor } from "@/ui/layout/sidebar/conversions/icons/code-editor";
 import { Framer } from "@/ui/layout/sidebar/conversions/icons/framer";
 import { NextAuth } from "@/ui/layout/sidebar/conversions/icons/next-auth";
 import { React } from "@/ui/layout/sidebar/conversions/icons/react";
+import { Segment } from "@/ui/layout/sidebar/conversions/icons/segment";
 import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
 import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
 import { Supabase } from "@/ui/layout/sidebar/conversions/icons/supabase";
 import { Webflow } from "@/ui/layout/sidebar/conversions/icons/webflow";
 import { Wordpress } from "@/ui/layout/sidebar/conversions/icons/wordpress";
-import { CodeEditor } from "../layout/sidebar/conversions/icons/code-editor";
 
 export type IntegrationType = "client-sdk" | "track-lead" | "track-sale";
 
@@ -148,12 +149,13 @@ export const guides: IntegrationGuide[] = [
     icon: CodeEditor,
     url: "https://dub.co/docs/conversions/leads/introduction",
   },
-  // {
-  //   type: "track-lead",
-  //   key: "segment-track-lead",
-  //   title: "Segment",
-  //   icon: Segment,
-  // },
+  {
+    type: "track-lead",
+    key: "segment-track-lead",
+    title: "Segment",
+    icon: Segment,
+    url: "https://dub.co/docs/conversions/leads/segment",
+  },
 
   // Track Sales
   {
@@ -192,10 +194,11 @@ export const guides: IntegrationGuide[] = [
     icon: CodeEditor,
     url: "https://dub.co/docs/conversions/sales/introduction",
   },
-  // {
-  //   type: "track-sale",
-  //   key: "segment-track-sale",
-  //   title: "Segment",
-  //   icon: Segment,
-  // },
+  {
+    type: "track-sale",
+    key: "segment-track-sale",
+    title: "Segment",
+    icon: Segment,
+    url: "https://dub.co/docs/conversions/sales/segment",
+  },
 ];
