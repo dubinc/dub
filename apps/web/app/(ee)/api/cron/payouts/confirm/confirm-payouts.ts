@@ -127,7 +127,7 @@ export async function confirmPayouts({
     );
 
     const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
-    const totalFee = payoutAmount * payoutFee;
+    const totalFee = Math.round(payoutAmount * payoutFee);
     const total = payoutAmount + totalFee;
     let convertedTotal = total;
 
@@ -140,7 +140,7 @@ export async function confirmPayouts({
 
       const exchangeRate = fxQuote.rates[currency].exchange_rate;
 
-      // if Stripe's FX rate is not available, use the cached rate from Redis
+      // if Stripe's FX rate is not available, throw an error
       if (!exchangeRate || exchangeRate <= 0) {
         throw new Error(
           `Failed to get exchange rate from Stripe for ${currency}.`,
@@ -184,12 +184,10 @@ export async function confirmPayouts({
     await stripe.paymentIntents.create({
       amount: convertedTotal,
       customer: workspace.stripeId!,
+      payment_method_types: [paymentMethod.type],
       payment_method: paymentMethod.id,
-      automatic_payment_methods: {
-        enabled: true,
-        allow_redirects: "never",
-      },
       currency,
+      confirmation_method: "automatic",
       confirm: true,
       transfer_group: invoice.id,
       statement_descriptor: "Dub Partners",

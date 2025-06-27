@@ -139,7 +139,13 @@ export const OnlinePresenceForm = forwardRef<
               if (result?.data?.success) onSubmitSuccessful?.();
             })}
           >
-            <div className={cn("flex w-full flex-col gap-4 text-left")}>
+            <div
+              className={cn(
+                "flex w-full flex-col gap-6 text-left",
+                variant === "settings" &&
+                  "gap-0 divide-y divide-neutral-200 p-5",
+              )}
+            >
               <FormRow
                 variant={variant}
                 label="Website"
@@ -494,10 +500,22 @@ function FormRow({
   button: ReactNode;
 }) {
   return (
-    <div>
-      <label className={cn("flex flex-col gap-2")}>
-        <span className="text-sm font-medium text-neutral-800">{label}</span>
-        <div className={cn("relative")}>
+    <div className={cn(variant === "settings" && "py-5")}>
+      <label
+        className={cn(
+          "flex flex-col gap-1.5",
+          variant === "settings" && "flex-row items-center justify-between",
+        )}
+      >
+        <span className="text-content-emphasis text-sm font-medium">
+          {label}
+        </span>
+        <div
+          className={cn(
+            "relative",
+            variant === "settings" && "max-w-[55%] grow",
+          )}
+        >
           {input}
           {button}
         </div>

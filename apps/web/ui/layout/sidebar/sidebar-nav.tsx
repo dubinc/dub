@@ -1,5 +1,6 @@
 import {
   AnimatedSizeContainer,
+  BookOpen,
   ChevronLeft,
   ClientOnly,
   Icon,
@@ -145,7 +146,7 @@ export function SidebarNav<T extends Record<any, any>>({
               <div className="relative flex grow flex-col p-3 text-neutral-500">
                 <div className="relative w-full grow">
                   {Object.entries(areas).map(([area, areaConfig]) => {
-                    const { title, backHref, content, showNews, direction } =
+                    const { title, backHref, content, direction } =
                       areaConfig(data);
 
                     const TitleContainer = backHref ? Link : "div";
@@ -158,9 +159,8 @@ export function SidebarNav<T extends Record<any, any>>({
                       >
                         {title &&
                           (typeof title === "string" ? (
-                            // @ts-ignore - TS can't handle the conditional Link+href
                             <TitleContainer
-                              {...(backHref ? { href: backHref } : {})}
+                              href={backHref ?? "#"}
                               className="group mb-2 flex items-center gap-3 px-3 py-2"
                             >
                               {backHref && (
@@ -194,32 +194,42 @@ export function SidebarNav<T extends Record<any, any>>({
                             </div>
                           ))}
                         </div>
-                        <AnimatePresence>
-                          {showNews && (
-                            <motion.div
-                              className="-mx-3 flex grow flex-col justify-end"
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 10 }}
-                              transition={{
-                                duration: 0.1,
-                                ease: "easeInOut",
-                              }}
-                            >
-                              {newsContent}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                       </Area>
                     );
                   })}
                 </div>
               </div>
-              {bottom && (
-                <div className="relative flex flex-col justify-end">
-                  {bottom}
-                </div>
-              )}
+
+              {/* Fixed bottom sections */}
+              <div className="flex flex-col gap-2 p-3 pt-0">
+                {data.showConversionGuides && (
+                  <Link
+                    href={`/${data.slug}/guides`}
+                    className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
+                  >
+                    <BookOpen className="size-4" />
+                    Set up conversion tracking
+                  </Link>
+                )}
+
+                <AnimatePresence>
+                  {currentArea && areas[currentArea](data).showNews && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{
+                        duration: 0.1,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      {newsContent}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {bottom && <div className="flex flex-col">{bottom}</div>}
+              </div>
             </div>
           </div>
         </nav>
