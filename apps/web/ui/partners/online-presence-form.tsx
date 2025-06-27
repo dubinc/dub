@@ -2,6 +2,7 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
+import { sanitizeSocialHandle, SocialPlatform } from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
@@ -95,6 +96,7 @@ export const OnlinePresenceForm = forwardRef<
       getValues,
       handleSubmit,
       reset,
+      setValue,
       formState: { errors, isSubmitting, isSubmitSuccessful },
     } = form;
 
@@ -121,6 +123,19 @@ export const OnlinePresenceForm = forwardRef<
     } | null>(null);
 
     const startVerification = useOAuthVerification(variant);
+
+    const onPasteSocial = useCallback(
+      (e: React.ClipboardEvent<HTMLInputElement>, platform: SocialPlatform) => {
+        const text = e.clipboardData.getData("text/plain");
+        const sanitized = sanitizeSocialHandle(text, platform);
+
+        if (sanitized) {
+          setValue(platform, sanitized);
+          e.preventDefault();
+        }
+      },
+      [setValue],
+    );
 
     return (
       <>
@@ -215,7 +230,7 @@ export const OnlinePresenceForm = forwardRef<
                           : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                       )}
                       placeholder="handle"
-                      onPaste={onPasteSocial}
+                      onPaste={(e) => onPasteSocial(e, "youtube")}
                       {...register("youtube")}
                     />
                   </div>
@@ -249,7 +264,7 @@ export const OnlinePresenceForm = forwardRef<
                           : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                       )}
                       placeholder="handle"
-                      onPaste={onPasteSocial}
+                      onPaste={(e) => onPasteSocial(e, "twitter")}
                       {...register("twitter")}
                     />
                   </div>
@@ -283,7 +298,7 @@ export const OnlinePresenceForm = forwardRef<
                           : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                       )}
                       placeholder="handle"
-                      onPaste={onPasteSocial}
+                      onPaste={(e) => onPasteSocial(e, "linkedin")}
                       {...register("linkedin")}
                     />
                   </div>
@@ -318,7 +333,7 @@ export const OnlinePresenceForm = forwardRef<
                           : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                       )}
                       placeholder="handle"
-                      onPaste={onPasteSocial}
+                      onPaste={(e) => onPasteSocial(e, "instagram")}
                       {...register("instagram")}
                     />
                   </div>
@@ -356,7 +371,7 @@ export const OnlinePresenceForm = forwardRef<
                           : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                       )}
                       placeholder="handle"
-                      onPaste={onPasteSocial}
+                      onPaste={(e) => onPasteSocial(e, "tiktok")}
                       {...register("tiktok")}
                     />
                   </div>
