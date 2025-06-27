@@ -1,6 +1,6 @@
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
 import { Button } from "@dub/ui";
-import { ArrowDown } from "lucide-react";
+import { AlertTriangle, ArrowDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { AccountInputGroup } from "./account-input-group";
@@ -19,6 +19,9 @@ export function MergeAccountForm({
   const { executeAsync, isPending } = useAction(mergePartnerAccountsAction, {
     onSuccess: async () => {
       onSuccess();
+      toast.success(
+        "Account merge process has started! We'll send you an email when it's complete. No action is required on your part.",
+      );
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -79,6 +82,18 @@ export function MergeAccountForm({
             </div>
           </div>
         </AccountInputGroup>
+
+        <div className="mt-2 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 px-5 py-4">
+          <AlertTriangle className="size-4 text-amber-500" />
+          <h3 className="text-sm font-semibold leading-5 text-amber-900">
+            This action can’t be undone
+          </h3>
+          <p className="text-sm font-normal leading-5 text-amber-900">
+            All data from {sourceAccount.email} will merge with{" "}
+            {targetAccount.email}. After merging, {sourceAccount.email} will be
+            permanently deleted.
+          </p>
+        </div>
       </div>
 
       <div className="flex items-center justify-between gap-4">
