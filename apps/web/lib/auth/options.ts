@@ -3,6 +3,7 @@ import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
+import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
 import { WelcomeEmail } from "@dub/email/templates/welcome-email";
@@ -33,12 +34,22 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
   return {
     ...PrismaAdapter(p),
     createUser: async (data: any) => {
-      return p.user.create({
+      const generatedUserId = createId({ prefix: "user_" });
+
+      const user = await p.user.create({
         data: {
           ...data,
-          id: createId({ prefix: "user_" }),
+          id: generatedUserId,
         },
       });
+
+      await createWorkspaceForUser({
+        prismaClient: p,
+        userId: generatedUserId,
+        email: data.email,
+      });
+
+      return user;
     },
   };
 };

@@ -4,11 +4,10 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors.ts";
 import { createLink, processLink } from "@/lib/api/links";
 import { createQr } from "@/lib/api/qrs/create-qr.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
-import { ratelimit, redis } from "@/lib/upstash";
+import { ratelimit } from "@/lib/upstash";
+import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
 import { prisma } from "@dub/prisma";
-import { generateRandomString, R2_URL } from "@dub/utils";
-import slugify from "@sindresorhus/slugify";
-import { nanoid } from "nanoid";
+import { R2_URL } from "@dub/utils";
 import { flattenValidationErrors } from "next-safe-action";
 import { createId, getIP } from "../api/utils";
 import { hashPassword } from "../auth/password";
@@ -106,51 +105,10 @@ export const createUserAccountAction = actionClient
       });
 
       // @CUSTOM_FEATURE: creation of a workspace immediately after registration to skip onboarding
-      const workspaceResponse = await prisma.project.create({
-        data: {
-          name: email,
-          slug: slugify(email),
-          users: {
-            create: {
-              userId: generatedUserId,
-              role: "owner",
-              notificationPreference: {
-                create: {},
-              },
-            },
-          },
-          billingCycleStart: new Date().getDate(),
-          invoicePrefix: generateRandomString(8),
-          inviteCode: nanoid(24),
-          defaultDomains: {
-            create: {},
-          },
-        },
-        include: {
-          users: {
-            where: {
-              userId: generatedUserId,
-            },
-            select: {
-              role: true,
-            },
-          },
-          domains: {
-            select: {
-              slug: true,
-              primary: true,
-            },
-          },
-        },
-      });
-
-      await prisma.user.update({
-        where: {
-          id: generatedUserId,
-        },
-        data: {
-          defaultWorkspace: workspaceResponse.slug,
-        },
+      const workspaceResponse = await createWorkspaceForUser({
+        prismaClient: prisma,
+        userId: generatedUserId,
+        email,
       });
 
       if (qrDataToCreate !== null) {
@@ -200,7 +158,5 @@ export const createUserAccountAction = actionClient
           });
         }
       }
-
-      await redis.set(`onboarding-step:${generatedUserId}`, "completed");
     }
   });

@@ -1,9 +1,7 @@
 "use client";
 
-import { showMessage } from "@/ui/auth/helpers.ts";
 import { useAuthTracking } from "@/ui/modals/auth-modal.tsx";
 import { QRBuilderData } from "@/ui/modals/qr-builder";
-import { processQrDataForServerAction } from "@/ui/qr-builder/helpers";
 import { Button, Github, Google, useLocalStorage } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
@@ -42,16 +40,16 @@ export const SignUpOAuth = ({
           variant="secondary"
           text="Continue with Google"
           onClick={async () => {
-            const processedQrDataToCreate = await processQrDataForServerAction(
-              qrDataToCreate,
-              {
-                onUploadStart: () => setIsUploading(true),
-                onUploadEnd: () => setIsUploading(false),
-                onError: (errorMessage) => {
-                  showMessage(errorMessage, "error");
-                },
-              },
-            );
+            // const processedQrDataToCreate = await processQrDataForServerAction(
+            //   qrDataToCreate,
+            //   {
+            //     onUploadStart: () => setIsUploading(true),
+            //     onUploadEnd: () => setIsUploading(false),
+            //     onError: (errorMessage) => {
+            //       showMessage(errorMessage, "error");
+            //     },
+            //   },
+            // );
 
             trackAuthClick("google");
             trackClientEvents({
