@@ -46,7 +46,9 @@ export function GuideList() {
         value={currentStep}
         onValueChange={(value) => {
           queryParams({
-            ...(value ? { set: { step: value } } : { del: "step" }),
+            set: {
+              step: value || "none",
+            },
             scroll: false,
           });
         }}
@@ -118,7 +120,7 @@ export function GuideList() {
                         router.push(
                           showConnectLaterButton
                             ? `/${workspaceSlug}/program/new/overview`
-                            : `/${workspaceSlug}/events`,
+                            : `/${workspaceSlug}/customers`,
                         );
                         return;
                       }

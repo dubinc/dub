@@ -69,6 +69,13 @@ export const guides: IntegrationGuide[] = [
   },
   {
     type: "client-sdk",
+    key: "shopify",
+    title: "Shopify",
+    icon: Shopify,
+    url: "https://dub.co/docs/sdks/client-side/installation-guides/shopify",
+  },
+  {
+    type: "client-sdk",
     key: "wordpress",
     title: "WordPress",
     icon: Wordpress,
@@ -80,13 +87,6 @@ export const guides: IntegrationGuide[] = [
     title: "Webflow",
     icon: Webflow,
     url: "https://dub.co/docs/sdks/client-side/installation-guides/webflow",
-  },
-  {
-    type: "client-sdk",
-    key: "shopify",
-    title: "Shopify",
-    icon: Shopify,
-    url: "https://dub.co/docs/sdks/client-side/installation-guides/shopify",
   },
   {
     type: "client-sdk",
