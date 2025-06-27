@@ -486,3 +486,8 @@ export type PaymentMethodOption = {
     transaction_type?: string;
   };
 };
+
+export interface FolderLinkCount {
+  folderId: string;
+  _count: number;
+}
