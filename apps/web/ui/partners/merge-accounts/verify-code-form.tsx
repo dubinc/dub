@@ -69,9 +69,10 @@ export function VerifyCodeForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <p className="text-sm font-medium text-neutral-700">
-        We sent a 6-digit code to both emails. Didn't receive them? Resend
-        codes.
+        We sent a 6-digit code to both emails.
       </p>
+
+      {/* Didn't receive them? Resend codes. */}
 
       <div className="flex flex-col gap-6">
         <AccountInputGroup title="Source account">
