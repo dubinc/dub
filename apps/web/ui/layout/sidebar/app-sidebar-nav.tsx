@@ -404,9 +404,11 @@ export function AppSidebarNav({
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : pathname.startsWith(`/${slug}/program`)
-          ? "program"
-          : "default";
+        : pathname.startsWith(`/${slug}/guides`)
+          ? null
+          : pathname.startsWith(`/${slug}/program`)
+            ? "program"
+            : "default";
   }, [slug, pathname]);
 
   const applicationsCount = useProgramApplicationsCount({
