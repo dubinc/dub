@@ -74,7 +74,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Programs",
             icon: GridIcon,
             href: "/programs",
-            exact: true,
+            isActive: (pathname, href) =>
+              pathname.startsWith(href) &&
+              !pathname.startsWith(`${href}/invitations`),
           },
           {
             name: "Invitations",
@@ -102,14 +104,24 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             exact: true,
           },
           {
-            name: "Earnings",
-            icon: CircleDollar,
-            href: `/programs/${programSlug}/earnings${queryString}`,
-          },
-          {
             name: "Links",
             icon: Hyperlink,
             href: `/programs/${programSlug}/links`,
+          },
+          {
+            name: "Resources",
+            icon: ColorPalette2,
+            href: `/programs/${programSlug}/resources`,
+          },
+        ],
+      },
+      {
+        name: "Insights",
+        items: [
+          {
+            name: "Earnings",
+            icon: CircleDollar,
+            href: `/programs/${programSlug}/earnings${queryString}`,
           },
           {
             name: "Analytics",
@@ -120,11 +132,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Events",
             icon: CursorRays,
             href: `/programs/${programSlug}/events`,
-          },
-          {
-            name: "Resources",
-            icon: ColorPalette2,
-            href: `/programs/${programSlug}/resources`,
           },
         ],
       },
@@ -149,11 +156,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: Globe,
             href: "/profile/social",
           },
-          // {
-          //   name: "Payouts",
-          //   icon: MoneyBills2,
-          //   href: "/settings/payouts",
-          // },
         ],
       },
     ],
