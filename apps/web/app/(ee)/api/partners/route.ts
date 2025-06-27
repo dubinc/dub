@@ -31,9 +31,9 @@ export const GET = withWorkspace(
   {
     requiredPlan: [
       "business",
+      "business plus",
       "business extra",
       "business max",
-      "business plus",
       "advanced",
       "enterprise",
     ],
