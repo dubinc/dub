@@ -1,5 +1,6 @@
 import {
   AnimatedSizeContainer,
+  BookOpen,
   ChevronLeft,
   ClientOnly,
   Icon,
@@ -13,6 +14,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ComponentType,
+  CSSProperties,
   PropsWithChildren,
   ReactNode,
   Suspense,
@@ -57,7 +59,7 @@ export type SidebarNavGroups<T extends Record<any, any>> = (
 export type SidebarNavAreas<T extends Record<any, any>> = Record<
   string,
   (args: T) => {
-    title?: string;
+    title?: string | ReactNode;
     backHref?: string;
     showNews?: boolean; // show news segment – TODO: enable this for Partner Program too
     hideSwitcherIcons?: boolean; // hide workspace switcher + product icons for this area
@@ -68,6 +70,10 @@ export type SidebarNavAreas<T extends Record<any, any>> = Record<
     }[];
   }
 >;
+
+const SIDEBAR_WIDTH = 304;
+const SIDEBAR_GROUPS_WIDTH = 64;
+const SIDEBAR_AREAS_WIDTH = SIDEBAR_WIDTH - SIDEBAR_GROUPS_WIDTH;
 
 export function SidebarNav<T extends Record<any, any>>({
   groups,
@@ -81,7 +87,7 @@ export function SidebarNav<T extends Record<any, any>>({
 }: {
   groups: SidebarNavGroups<T>;
   areas: SidebarNavAreas<T>;
-  currentArea: string;
+  currentArea: string | null;
   data: T;
   toolContent?: ReactNode;
   newsContent?: ReactNode;
@@ -89,113 +95,146 @@ export function SidebarNav<T extends Record<any, any>>({
   bottom?: ReactNode;
 }) {
   return (
-    <ClientOnly className="size-full">
-      <nav className="grid size-full grid-cols-[64px_1fr]">
-        <div className="flex flex-col items-center justify-between">
-          <div className="flex flex-col items-center p-2">
-            <div className="pb-1 pt-2">
-              <Link
-                href="/"
-                className="block rounded-lg px-1 py-4 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
-              >
-                <NavWordmark className="h-5" isInApp />
-              </Link>
-            </div>
-            {!areas[currentArea](data).hideSwitcherIcons && (
-              <div className="flex flex-col gap-3">
-                {switcher}
-                {groups(data).map((group) => (
-                  <NavGroupItem key={group.name} group={group} />
-                ))}
+    <div
+      className={cn(
+        "h-full w-[var(--sidebar-width)] transition-[width] duration-300",
+      )}
+      style={
+        {
+          "--sidebar-width": `${currentArea === null ? SIDEBAR_GROUPS_WIDTH : SIDEBAR_WIDTH}px`,
+          "--sidebar-groups-width": `${SIDEBAR_GROUPS_WIDTH}px`,
+          "--sidebar-areas-width": `${SIDEBAR_AREAS_WIDTH}px`,
+        } as CSSProperties
+      }
+    >
+      <ClientOnly className="size-full">
+        <nav className="grid size-full grid-cols-[var(--sidebar-groups-width)_1fr]">
+          <div className="flex flex-col items-center justify-between">
+            <div className="flex flex-col items-center p-2">
+              <div className="pb-1 pt-2">
+                <Link
+                  href="/"
+                  className="block rounded-lg px-1 py-4 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
+                >
+                  <NavWordmark className="h-5" isInApp />
+                </Link>
               </div>
-            )}
-          </div>
-          <div className="flex flex-col items-center gap-3 py-3">
-            <Suspense fallback={null}>{toolContent}</Suspense>
-            <div className="flex size-12 items-center justify-center">
-              <UserDropdown />
+              {(!currentArea ||
+                !areas[currentArea](data).hideSwitcherIcons) && (
+                <div className="flex flex-col gap-3">
+                  {switcher}
+                  {groups(data).map((group) => (
+                    <NavGroupItem key={group.name} group={group} />
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col items-center gap-3 py-3">
+              <Suspense fallback={null}>{toolContent}</Suspense>
+              <div className="flex size-12 items-center justify-center">
+                <UserDropdown />
+              </div>
             </div>
           </div>
-        </div>
-        <div className="size-full overflow-hidden py-2 pr-2">
-          <div className="scrollbar-hide relative flex size-full flex-col overflow-y-auto overflow-x-hidden rounded-xl bg-neutral-100">
-            <div className="relative flex grow flex-col p-3 text-neutral-500">
-              <div className="relative w-full grow">
-                {Object.entries(areas).map(([area, areaConfig]) => {
-                  const { title, backHref, content, showNews, direction } =
-                    areaConfig(data);
+          <div
+            className={cn(
+              "size-full overflow-hidden py-2 pr-2 transition-opacity duration-300",
+              currentArea === null && "opacity-0",
+            )}
+          >
+            <div className="scrollbar-hide relative flex h-full w-[calc(var(--sidebar-areas-width)-0.5rem)] flex-col overflow-y-auto overflow-x-hidden rounded-xl bg-neutral-100">
+              <div className="relative flex grow flex-col p-3 text-neutral-500">
+                <div className="relative w-full grow">
+                  {Object.entries(areas).map(([area, areaConfig]) => {
+                    const { title, backHref, content, direction } =
+                      areaConfig(data);
 
-                  const TitleContainer = backHref ? Link : "div";
+                    const TitleContainer = backHref ? Link : "div";
 
-                  return (
-                    <Area
-                      key={area}
-                      visible={area === currentArea}
-                      direction={direction ?? "right"}
-                    >
-                      {title && (
-                        // @ts-ignore - TS can't handle the conditional Link+href
-                        <TitleContainer
-                          {...(backHref ? { href: backHref } : {})}
-                          className="group mb-2 flex items-center gap-3 px-3 py-2"
-                        >
-                          {backHref && (
-                            <div
-                              className={cn(
-                                "text-content-muted bg-bg-emphasis flex size-6 items-center justify-center rounded-lg",
-                                "group-hover:bg-bg-inverted/10 group-hover:text-content-subtle transition-[transform,background-color,color] duration-150 group-hover:-translate-x-0.5",
-                              )}
+                    return (
+                      <Area
+                        key={area}
+                        visible={area === currentArea}
+                        direction={direction ?? "right"}
+                      >
+                        {title &&
+                          (typeof title === "string" ? (
+                            <TitleContainer
+                              href={backHref ?? "#"}
+                              className="group mb-2 flex items-center gap-3 px-3 py-2"
                             >
-                              <ChevronLeft className="size-3 [&_*]:stroke-2" />
+                              {backHref && (
+                                <div
+                                  className={cn(
+                                    "text-content-muted bg-bg-emphasis flex size-6 items-center justify-center rounded-lg",
+                                    "group-hover:bg-bg-inverted/10 group-hover:text-content-subtle transition-[transform,background-color,color] duration-150 group-hover:-translate-x-0.5",
+                                  )}
+                                >
+                                  <ChevronLeft className="size-3 [&_*]:stroke-2" />
+                                </div>
+                              )}
+                              <span className="text-content-emphasis text-lg font-semibold">
+                                {title}
+                              </span>
+                            </TitleContainer>
+                          ) : (
+                            title
+                          ))}
+                        <div className="flex flex-col gap-8">
+                          {content.map(({ name, items }, idx) => (
+                            <div key={idx} className="flex flex-col gap-0.5">
+                              {name && (
+                                <div className="mb-2 pl-3 text-sm text-neutral-500">
+                                  {name}
+                                </div>
+                              )}
+                              {items.map((item) => (
+                                <NavItem key={item.name} item={item} />
+                              ))}
                             </div>
-                          )}
-                          <span className="text-content-emphasis text-lg font-semibold">
-                            {title}
-                          </span>
-                        </TitleContainer>
-                      )}
-                      <div className="flex flex-col gap-8">
-                        {content.map(({ name, items }, idx) => (
-                          <div key={idx} className="flex flex-col gap-0.5">
-                            {name && (
-                              <div className="mb-2 pl-3 text-sm text-neutral-500">
-                                {name}
-                              </div>
-                            )}
-                            {items.map((item) => (
-                              <NavItem key={item.name} item={item} />
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                      <AnimatePresence>
-                        {showNews && (
-                          <motion.div
-                            className="-mx-3 flex grow flex-col justify-end"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            transition={{
-                              duration: 0.1,
-                              ease: "easeInOut",
-                            }}
-                          >
-                            {newsContent}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </Area>
-                  );
-                })}
+                          ))}
+                        </div>
+                      </Area>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Fixed bottom sections */}
+              <div className="flex flex-col gap-2 p-3 pt-0">
+                {data.showConversionGuides && (
+                  <Link
+                    href={`/${data.slug}/guides`}
+                    className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
+                  >
+                    <BookOpen className="size-4" />
+                    Set up conversion tracking
+                  </Link>
+                )}
+
+                <AnimatePresence>
+                  {currentArea && areas[currentArea](data).showNews && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{
+                        duration: 0.1,
+                        ease: "easeInOut",
+                      }}
+                    >
+                      {newsContent}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {bottom && <div className="flex flex-col">{bottom}</div>}
               </div>
             </div>
-            {bottom && (
-              <div className="relative flex flex-col justify-end">{bottom}</div>
-            )}
           </div>
-        </div>
-      </nav>
-    </ClientOnly>
+        </nav>
+      </ClientOnly>
+    </div>
   );
 }
 
@@ -331,7 +370,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
         className={cn(
-          "text-content-default group flex items-center justify-between rounded-lg h-8 p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
+          "text-content-default group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           isActive && !items
             ? "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100"
