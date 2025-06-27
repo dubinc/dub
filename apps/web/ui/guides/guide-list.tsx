@@ -129,7 +129,7 @@ export function GuideList() {
                     }}
                   />
 
-                  {["track-leads", "track-sales"].includes(section.type) && (
+                  {["track-lead", "track-sale"].includes(section.type) && (
                     <p className="flex items-center justify-center gap-2 text-center text-sm font-medium leading-5 text-neutral-500">
                       <Shopify className="inline size-4" />
                       If you're using Shopify, you can skip this step.{" "}
