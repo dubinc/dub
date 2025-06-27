@@ -34,7 +34,6 @@ export const BackgroundSettings: FC<IBackgroundSettingsProps> = ({
         label="Background colour"
         color={backgroundColor}
         onColorChange={onColorChange}
-        pickerId="backgroundColorPicker"
         isValid={backgroundColorValid}
         setIsValid={setBackgroundColorValid}
         disabled={isTransparent}

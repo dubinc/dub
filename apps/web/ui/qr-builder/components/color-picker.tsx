@@ -7,7 +7,6 @@ interface IColorPickerInputProps {
   label: string;
   color: string;
   onColorChange: (color: string) => void;
-  pickerId: string;
   isValid: boolean;
   setIsValid: (isValid: boolean) => void;
   disabled?: boolean;
@@ -17,7 +16,6 @@ export const ColorPickerInput: FC<IColorPickerInputProps> = ({
   label,
   color,
   onColorChange,
-  pickerId,
   isValid,
   setIsValid,
   disabled = false,

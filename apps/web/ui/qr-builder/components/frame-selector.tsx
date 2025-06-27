@@ -1,41 +1,73 @@
+import { ColorPickerInput } from "@/ui/qr-builder/components/color-picker.tsx";
+import { BLACK_COLOR } from "@/ui/qr-builder/constants/customization/colors.ts";
 import {
   FRAMES,
   preloadAllFrames,
 } from "@/ui/qr-builder/constants/customization/frames.ts";
-import { FC, useEffect } from "react";
+import { isValidHex } from "@/ui/qr-builder/helpers/is-valid-hex.ts";
+import { cn } from "@dub/utils/src";
+import { FC, useEffect, useState } from "react";
 import { StylePicker } from "./style-picker.tsx";
 
 interface IFrameSelectorProps {
   selectedSuggestedFrame: string;
   isQrDisabled: boolean;
   onFrameSelect: (type: string) => void;
+  onFrameColorChange: (color: string) => void;
+  isMobile: boolean;
 }
 
 export const FrameSelector: FC<IFrameSelectorProps> = ({
   selectedSuggestedFrame,
   isQrDisabled,
   onFrameSelect,
+  onFrameColorChange,
+  isMobile,
 }) => {
   useEffect(() => {
     preloadAllFrames();
   }, []);
 
+  const [frameColor, setFrameColor] = useState<string>(BLACK_COLOR);
+
+  const [frameColorValid, setFrameColorValid] = useState<boolean>(true);
+
+  const handleFrameColorChange = (color: string) => {
+    setFrameColor(color);
+    const valid = isValidHex(color);
+    setFrameColorValid(valid);
+    onFrameColorChange(frameColor);
+  };
+
   return (
-    <StylePicker
-      label="Frame around QR code"
-      styleOptions={FRAMES}
-      selectedStyle={selectedSuggestedFrame}
-      onSelect={(type) => {
-        if (!isQrDisabled) {
-          onFrameSelect(type);
-        }
-      }}
-      stylePickerWrapperClassName="border h-full border-border-500 p-3 rounded-lg"
-      optionsWrapperClassName={`gap-2 ${
-        isQrDisabled ? "pointer-events-none cursor-not-allowed" : ""
-      }`}
-      styleButtonClassName="[&_img]:h-[60px] [&_img]:w-[60px] p-2"
-      minimalFlow
-    />
+    <div
+      className={cn("flex max-w-[680px] flex-col gap-4", {
+        "border-border-500 rounded-lg border p-3": !isMobile,
+      })}
+    >
+      <StylePicker
+        label="Frame around QR code"
+        styleOptions={FRAMES}
+        selectedStyle={selectedSuggestedFrame}
+        onSelect={(type) => {
+          if (!isQrDisabled) {
+            onFrameSelect(type);
+          }
+        }}
+        optionsWrapperClassName={`gap-2 ${
+          isQrDisabled ? "pointer-events-none cursor-not-allowed" : ""
+        }`}
+        styleButtonClassName="[&_img]:h-[60px] [&_img]:w-[60px] p-2"
+        minimalFlow
+      />
+      <ColorPickerInput
+        label="Frame colour"
+        color={frameColor}
+        onColorChange={handleFrameColorChange}
+        isValid={frameColorValid}
+        setIsValid={setFrameColorValid}
+        disabled={selectedSuggestedFrame === "none"}
+      />
+    </div>
   );
 };

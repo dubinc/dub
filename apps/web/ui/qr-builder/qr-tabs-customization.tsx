@@ -22,6 +22,7 @@ interface QrTabsCustomizationProps {
   homepageDemo?: boolean;
   handlers: {
     onSuggestedFrameSelect: (type: string) => void;
+    onFrameColorChange: (color: string) => void;
     onDotsStyleChange: (type: DotType) => void;
     onBorderColorChange: (color: string) => void;
     onBackgroundColorChange: (color: string) => void;
@@ -79,6 +80,8 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               selectedSuggestedFrame={selectedSuggestedFrame}
               isQrDisabled={isQrDisabled}
               onFrameSelect={handlers.onSuggestedFrameSelect}
+              onFrameColorChange={handlers.onFrameColorChange}
+              isMobile={isMobile}
             />
           )}
 
@@ -125,6 +128,8 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               selectedSuggestedFrame={selectedSuggestedFrame}
               isQrDisabled={isQrDisabled}
               onFrameSelect={handlers.onSuggestedFrameSelect}
+              onFrameColorChange={handlers.onFrameColorChange}
+              isMobile={isMobile}
             />
           )}
           {tab.id === "style" && (

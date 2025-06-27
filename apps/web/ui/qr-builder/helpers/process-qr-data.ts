@@ -14,6 +14,7 @@ export type TProcessedQRData = {
   styles: Options;
   frameOptions: {
     id: string;
+    color?: string;
   };
   qrType: EQRType;
   file?: string | null;
@@ -23,7 +24,7 @@ export type TProcessedQRData = {
 
 export const processQrDataForServerAction = async (
   qrDataToCreate: QRBuilderData | null,
-  options: ProcessQrDataOptions = {}
+  options: ProcessQrDataOptions = {},
 ): Promise<TProcessedQRData | null> => {
   const { onUploadStart, onUploadEnd, onError } = options;
 
@@ -61,9 +62,9 @@ export const processQrDataForServerAction = async (
     console.error("Error uploading file:", error);
     const errorMessage = "Failed to upload file. Please try again.";
     onError?.(errorMessage);
-    
+
     return { ...qrDataToCreate, file: null };
   } finally {
     onUploadEnd?.();
   }
-}; 
+};

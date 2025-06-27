@@ -85,7 +85,6 @@ export const ColorsSettings: FC<IColorsSettingsProps> = ({
               label="Border colour"
               color={borderColor}
               onColorChange={handleBorderColorChange}
-              pickerId="borderColorPicker"
               isValid={borderColorValid}
               setIsValid={setBorderColorValid}
             />

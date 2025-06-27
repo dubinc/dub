@@ -22,8 +22,11 @@ export function useQrCustomization(
 ) {
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
-  const [selectedSuggestedLogo, setSelectedSuggestedLogo] = useState("none");
-  const [selectedSuggestedFrame, setSelectedSuggestedFrame] = useState("none");
+  const [selectedSuggestedLogo, setSelectedSuggestedLogo] =
+    useState<string>("none");
+  const [selectedSuggestedFrame, setSelectedSuggestedFrame] =
+    useState<string>("none");
+  const [frameColor, setFrameColor] = useState<string>(BLACK_COLOR);
 
   const [selectedQRType, setSelectedQRType] = useState<EQRType>(
     initialData?.qrType as EQRType,
@@ -185,13 +188,21 @@ export function useQrCustomization(
       data,
     }));
 
-    if (selectedSuggestedFrame !== "none") {
-      const extensionFn = FRAMES[selectedSuggestedFrame];
-      if (extensionFn) qrCode.applyExtension(extensionFn);
-    } else {
+    const frame = FRAMES.find((f) => f.type === selectedSuggestedFrame);
+
+    if (selectedSuggestedFrame === "none" || !frame?.extension) {
       qrCode.deleteExtension?.();
+      return;
     }
-  }, [qrCode, data, selectedSuggestedFrame, isQrDisabled]);
+
+    qrCode.applyExtension?.((qr, opts) =>
+      frame.extension!(qr as SVGSVGElement, {
+        width: opts.width!,
+        height: opts.height!,
+        frameColor,
+      }),
+    );
+  }, [qrCode, data, selectedSuggestedFrame, isQrDisabled, frameColor]);
 
   useEffect(() => {
     if (!qrCode || isQrDisabled) return;
@@ -212,6 +223,16 @@ export function useQrCustomization(
         const frameId = initialData.frameOptions.id as string;
         setSelectedSuggestedFrame(frameId);
         handlers.onSuggestedFrameSelect(frameId);
+      }
+
+      if (
+        initialData.frameOptions &&
+        typeof initialData?.frameOptions === "object" &&
+        "color" in initialData.frameOptions
+      ) {
+        const frameColor = initialData.frameOptions.color as string;
+        setFrameColor(frameColor);
+        handlers.onFrameColorChange(frameColor);
       }
       setSelectedQRType(initialData.qrType as EQRType);
     }
@@ -252,6 +273,9 @@ export function useQrCustomization(
         ...prevOptions,
         backgroundOptions: { color },
       }));
+    },
+    onFrameColorChange: (color: string) => {
+      setFrameColor(color);
     },
     onTransparentBackgroundToggle: (checked: boolean) => {
       setOptions((prevOptions) => ({
@@ -336,6 +360,7 @@ export function useQrCustomization(
     uploadedLogo,
     selectedSuggestedLogo,
     selectedSuggestedFrame,
+    frameColor,
     setOptions,
     handlers,
     isQrDisabled,

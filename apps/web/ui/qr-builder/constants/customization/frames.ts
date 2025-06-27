@@ -65,7 +65,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-wreath",
     type: "wreath",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Wreath, 0.69, 68, 30);
+      await embedQRIntoFrame(qr, options, Wreath, 0.74, 53, 50);
     },
     icon: WreathPreview,
   },
@@ -147,7 +147,7 @@ export async function preloadAllFrames() {
 
 async function embedQRIntoFrame(
   svg: SVGSVGElement,
-  options: { width: number; height: number },
+  options: { width: number; height: number; frameColor: string },
   frame: StaticImageData,
   qrScale: number,
   qrTranslateX: number,
@@ -165,6 +165,7 @@ async function embedQRIntoFrame(
 
     frameClone.setAttribute("width", String(options.width));
     frameClone.setAttribute("height", String(options.height));
+    frameClone.setAttribute("color", String(options.frameColor));
 
     const qrGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
 

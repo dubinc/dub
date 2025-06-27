@@ -30,6 +30,7 @@ export type QRBuilderData = {
   styles: Options;
   frameOptions: {
     id: string;
+    color?: string;
   };
   qrType: EQRType;
   files: File[];

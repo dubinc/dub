@@ -24,6 +24,7 @@ export interface FullQrCreateData extends QrUpdateData {
   styles: any;
   frameOptions: {
     id: string;
+    color?: string;
   };
   qrType: string;
   files: File[];

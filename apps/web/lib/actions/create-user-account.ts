@@ -21,6 +21,7 @@ const qrDataToCreateSchema = z.object({
   styles: z.object({}).passthrough(),
   frameOptions: z.object({
     id: z.string(),
+    color: z.string().optional(),
   }),
   qrType: z.enum([
     "website",
