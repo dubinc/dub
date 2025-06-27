@@ -81,6 +81,17 @@ export function GuideList() {
                       href={`${pathname}/${guide.key}`}
                       className="group relative flex h-[140px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg bg-neutral-100 px-2 py-4 text-center transition-colors hover:bg-neutral-200/75"
                     >
+                      {guide.recommended && (
+                        <div className="absolute -top-2 left-1/2 z-10 -translate-x-1/2">
+                          <div className="relative">
+                            <div className="rotate-1 transform rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-3 py-1 text-xs font-semibold text-white shadow-lg">
+                              Recommended
+                            </div>
+                            <div className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 transform bg-gradient-to-r from-blue-500 to-purple-600"></div>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex h-16 w-full items-center justify-center">
                         <guide.icon className="size-10" />
                       </div>

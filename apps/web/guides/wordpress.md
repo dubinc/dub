@@ -1,4 +1,4 @@
-Follow these steps to add the `@dub/analytics` script to your WordPress site:
+Follow these steps to add the Dub client-side script to your WordPress site:
 
 - On your WordPress dashboard, navigate to the **Theme Editor** section under the **Appearance** menu.
 - Open the **Theme Header (header.php)** file on the right column.

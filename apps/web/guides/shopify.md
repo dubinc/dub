@@ -1,8 +1,8 @@
-You can add the `@dub/analytics` script to your Shopify store simply by installing the [Dub Shopify App](https://d.to/shopify/app) from the App Store.
+You can add the Dub client-side script to your Shopify store simply by installing the [Dub Shopify App](https://d.to/shopify/app) from the App Store.
 
 ![The connection status in the Dub Conversions app](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/shopify/shopify-app.png)
 
-Then, make sure to activate the `@dub/analytics` script by following these steps:
+Then, make sure to activate the script by following these steps:
 
 1. Navigate to your Shopify admin panel.
 2. Go to **Online Store** > **Themes**.
@@ -14,6 +14,6 @@ Then, make sure to activate the `@dub/analytics` script by following these steps
 
 ### Installation video
 
-Here's a video showing how to install and activate the `@dub/analytics` script in your Shopify store:
+Here's a video showing how to install and activate the Dub client-side script in your Shopify store:
 
 [Watch the installation video](https://www.loom.com/embed/936970b8db5b41488657fa92ffec384a?sid=04030975-6d7e-4126-8487-a1d9a3095efc)

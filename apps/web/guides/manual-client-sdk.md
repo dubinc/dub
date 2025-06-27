@@ -1,4 +1,4 @@
-You can add the `@dub/analytics` script to your website same way you would add Google Analytics script or any other JavaScript code – by adding the `@dub/analytics` script in the `<head>` section of your HTML file.
+You can add the Dub client-side script to your website same way you would add Google Analytics script or any other JavaScript code – by adding it in the `<head>` section of your HTML file.
 
 ```html
 <script src="https://www.dubcdn.com/analytics/script.js" defer></script>

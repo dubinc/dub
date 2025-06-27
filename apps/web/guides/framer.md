@@ -1,4 +1,4 @@
-Follow these steps to add `@dub/analytics` script to your Framer site:
+Follow these steps to add Dub client-side script to your Framer site:
 
 - Go to your Framer project and open the **Project Settings** menu.
 - Open the **General** tab and scroll down to the **Custom Code** section.

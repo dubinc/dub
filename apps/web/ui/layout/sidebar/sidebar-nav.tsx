@@ -146,7 +146,7 @@ export function SidebarNav<T extends Record<any, any>>({
               <div className="relative flex grow flex-col p-3 text-neutral-500">
                 <div className="relative w-full grow">
                   {Object.entries(areas).map(([area, areaConfig]) => {
-                    const { title, backHref, content, showNews, direction } =
+                    const { title, backHref, content, direction } =
                       areaConfig(data);
 
                     const TitleContainer = backHref ? Link : "div";
@@ -159,9 +159,8 @@ export function SidebarNav<T extends Record<any, any>>({
                       >
                         {title &&
                           (typeof title === "string" ? (
-                            // @ts-ignore - TS can't handle the conditional Link+href
                             <TitleContainer
-                              {...(backHref ? { href: backHref } : {})}
+                              href={backHref ?? "#"}
                               className="group mb-2 flex items-center gap-3 px-3 py-2"
                             >
                               {backHref && (
