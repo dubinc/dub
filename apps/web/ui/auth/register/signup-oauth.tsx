@@ -64,9 +64,6 @@ export const SignUpOAuth = ({
 
             signIn("google", {
               ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-              state: JSON.stringify({
-                qrDataToCreate: processedQrDataToCreate,
-              }),
             });
           }}
           loading={clickedGoogle}
