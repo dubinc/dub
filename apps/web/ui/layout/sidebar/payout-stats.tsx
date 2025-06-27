@@ -25,66 +25,43 @@ export const PayoutStats = memo(() => {
 
   return (
     <AnimatedSizeContainer height>
-      <div className="p-3">
-        <div className="border-border-default rounded-lg border p-2 pt-1">
-          <Link
-            className="group flex items-center justify-between gap-2 px-2 py-2"
-            href="/settings/payouts"
-          >
-            <div className="text-content-emphasis flex items-center gap-2 text-sm font-semibold">
-              <MoneyBills2 className="size-4" />
-              Payouts
-            </div>
-            <ChevronRight className="text-content-muted group-hover:text-content-default size-3 transition-[color,transform] group-hover:translate-x-0.5 [&_*]:stroke-2" />
-          </Link>
+      <div className="border-border-default rounded-lg border p-2 pt-1">
+        <Link
+          className="group flex items-center justify-between gap-2 px-2 py-2"
+          href="/settings/payouts"
+        >
+          <div className="text-content-emphasis flex items-center gap-2 text-sm font-semibold">
+            <MoneyBills2 className="size-4" />
+            Payouts
+          </div>
+          <ChevronRight className="text-content-muted group-hover:text-content-default size-3 transition-[color,transform] group-hover:translate-x-0.5 [&_*]:stroke-2" />
+        </Link>
 
-          <div className="mt-2 flex flex-col gap-4 px-2">
-            <div className="grid gap-1 text-xs">
-              <p className="text-content-subtle font-medium">
-                Upcoming payouts
-              </p>
-              <div className="flex items-center gap-1">
-                {partner && !partner.payoutsEnabledAt && (
-                  <Tooltip
-                    content={
-                      <SimpleTooltipContent
-                        title="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in."
-                        cta="Learn more"
-                        href="https://dub.co/help/article/receiving-payouts"
-                      />
-                    }
-                    side="right"
-                  >
-                    <div>
-                      <AlertCircleFill className="text-content-default size-3" />
-                    </div>
-                  </Tooltip>
-                )}
-                {payoutsCount ? (
-                  <p className="text-content-default font-medium">
-                    {currencyFormatter(
-                      (payoutsCount?.find(
-                        (payout) => payout.status === PayoutStatus.pending,
-                      )?.amount || 0) / 100,
-                      {
-                        maximumFractionDigits: 2,
-                      },
-                    )}
-                  </p>
-                ) : (
-                  <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
-                )}
-              </div>
-            </div>
-            <div className="grid gap-1 text-xs">
-              <p className="text-content-subtle font-medium">Total payouts</p>
+        <div className="mt-2 flex flex-col gap-4 px-2">
+          <div className="grid gap-1 text-xs">
+            <p className="text-content-subtle font-medium">Upcoming payouts</p>
+            <div className="flex items-center gap-1">
+              {partner && !partner.payoutsEnabledAt && (
+                <Tooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in."
+                      cta="Learn more"
+                      href="https://dub.co/help/article/receiving-payouts"
+                    />
+                  }
+                  side="right"
+                >
+                  <div>
+                    <AlertCircleFill className="text-content-default size-3" />
+                  </div>
+                </Tooltip>
+              )}
               {payoutsCount ? (
                 <p className="text-content-default font-medium">
                   {currencyFormatter(
                     (payoutsCount?.find(
-                      (payout) =>
-                        payout.status === PayoutStatus.completed ||
-                        payout.status === PayoutStatus.processing,
+                      (payout) => payout.status === PayoutStatus.pending,
                     )?.amount || 0) / 100,
                     {
                       maximumFractionDigits: 2,
@@ -96,10 +73,29 @@ export const PayoutStats = memo(() => {
               )}
             </div>
           </div>
-          {partner && !partner.payoutsEnabledAt && (
-            <ConnectPayoutButton className="mt-4 h-8 w-full" />
-          )}
+          <div className="grid gap-1 text-xs">
+            <p className="text-content-subtle font-medium">Total payouts</p>
+            {payoutsCount ? (
+              <p className="text-content-default font-medium">
+                {currencyFormatter(
+                  (payoutsCount?.find(
+                    (payout) =>
+                      payout.status === PayoutStatus.completed ||
+                      payout.status === PayoutStatus.processing,
+                  )?.amount || 0) / 100,
+                  {
+                    maximumFractionDigits: 2,
+                  },
+                )}
+              </p>
+            ) : (
+              <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
+            )}
+          </div>
         </div>
+        {partner && !partner.payoutsEnabledAt && (
+          <ConnectPayoutButton className="mt-4 h-8 w-full" />
+        )}
       </div>
     </AnimatedSizeContainer>
   );
