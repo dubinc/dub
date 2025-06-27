@@ -7,7 +7,6 @@ export function ProgramRewardDescription({
   discount,
   amountClassName,
   periodClassName,
-  hideIfZero = true,
 }: {
   reward?: Pick<
     RewardProps,
@@ -16,11 +15,10 @@ export function ProgramRewardDescription({
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
-  hideIfZero?: boolean; // if true, don't display the reward description if the reward amount is 0
 }) {
   return (
     <>
-      {reward && (reward.amount > 0 || !hideIfZero)
+      {reward
         ? reward.description || (
             <>
               Earn{" "}
@@ -37,24 +35,23 @@ export function ProgramRewardDescription({
               )}
               {reward.maxDuration === null ? (
                 <>
-                  {" "}for the{" "}
-                <strong className={cn("font-semibold", periodClassName)}>
-                  customer's lifetime.
-                </strong>
+                  {" "}
+                  for the{" "}
+                  <strong className={cn("font-semibold", periodClassName)}>
+                    customer's lifetime
+                  </strong>
                 </>
               ) : reward.maxDuration && reward.maxDuration > 1 ? (
                 <>
-                   {" "}for{" "}
+                  {" "}
+                  for{" "}
                   <strong className={cn("font-semibold", periodClassName)}>
                     {reward.maxDuration % 12 === 0
-                      ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? 's' : ''}`
+                      ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
                       : `${reward.maxDuration} months`}
                   </strong>
-                  .
                 </>
-              ) : (
-                "."
-              )}
+              ) : null}
             </>
           )
         : null}
@@ -83,7 +80,6 @@ export function ProgramRewardDescription({
             ) : (
               " for their first purchase"
             )}
-            .
           </strong>
         </>
       ) : null}

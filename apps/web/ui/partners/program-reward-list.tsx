@@ -38,18 +38,21 @@ export function ProgramRewardList({
               )}
               {reward.maxDuration === null ? (
                 <>
-                  {" "}for the{" "}
-                  <strong className={cn("font-semibold")}>customer's lifetime.</strong>
+                  {" "}
+                  for the{" "}
+                  <strong className={cn("font-semibold")}>
+                    customer's lifetime
+                  </strong>
                 </>
               ) : reward.maxDuration && reward.maxDuration > 1 ? (
                 <>
-                  {" "}for{" "}
+                  {" "}
+                  for{" "}
                   <strong className={cn("font-semibold")}>
                     {reward.maxDuration % 12 === 0
-                      ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? 's' : ''}`
+                      ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
                       : `${reward.maxDuration} months`}
                   </strong>
-                  .
                 </>
               ) : null}
             </>
