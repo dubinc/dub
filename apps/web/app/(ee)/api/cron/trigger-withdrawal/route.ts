@@ -27,9 +27,20 @@ export async function GET(req: Request) {
     ]);
 
     const currentAvailableBalance = stripeBalanceData.available[0].amount;
+    const currentPendingBalance = stripeBalanceData.pending[0].amount;
+
+    // if the pending balance is negative, add it to the available balance
+    // this only happens when we have a connected account transfer that hasn't fully settled yet
+    // x-slack-ref: https://dub.slack.com/archives/C074P7LMV9C/p1750185638973479
+    const currentNetBalance =
+      currentPendingBalance < 0
+        ? currentAvailableBalance + currentPendingBalance
+        : currentAvailableBalance;
 
     console.log({
       currentAvailableBalance,
+      currentPendingBalance,
+      currentNetBalance,
       dubProcessingPayouts,
       stripeBalanceData,
     });
@@ -43,7 +54,7 @@ export async function GET(req: Request) {
       reservedBalance += totalProcessingPayouts;
     }
 
-    const balanceToWithdraw = currentAvailableBalance - reservedBalance;
+    const balanceToWithdraw = currentNetBalance - reservedBalance;
 
     if (balanceToWithdraw <= 10000) {
       return NextResponse.json({
@@ -58,6 +69,8 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       currentAvailableBalance,
+      currentPendingBalance,
+      currentNetBalance,
       reservedBalance,
       balanceToWithdraw,
       createdPayout,
