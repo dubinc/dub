@@ -16,7 +16,7 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
       type: "percentage",
       amount: null,
       maxDuration: 12,
-      partners: [{ email: "", key: "" }],
+      partners: [{ email: "" }],
     },
     values: programOnboarding
       ? {
