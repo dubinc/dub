@@ -12,8 +12,10 @@ import { toast } from "sonner";
 
 export function SendVerificationCodeForm({
   onSuccess,
+  onCancel,
 }: {
   onSuccess: () => void;
+  onCancel: () => void;
 }) {
   const { partner } = usePartnerProfile();
   const { setSourceAccount, setTargetAccount } = useMergePartnerAccountsForm();
@@ -103,6 +105,7 @@ export function SendVerificationCodeForm({
           text="Cancel"
           className="h-8 w-fit px-3"
           disabled={isPending || isSubmitting}
+          onClick={onCancel}
         />
         <Button
           text="Send codes"

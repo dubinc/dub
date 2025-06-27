@@ -46,12 +46,27 @@ function MergePartnerAccountsModalInner({
       <div className="flex flex-col gap-2 bg-neutral-50 p-4 sm:p-6">
         <MergePartnerAccountsFormProvider>
           {step === 1 && (
-            <SendVerificationCodeForm onSuccess={() => setStep(2)} />
+            <SendVerificationCodeForm
+              onSuccess={() => setStep(2)}
+              onCancel={() => setShowMergePartnerAccountsModal(false)}
+            />
           )}
 
-          {step === 2 && <VerifyCodeForm onSuccess={() => setStep(3)} />}
+          {step === 2 && (
+            <VerifyCodeForm
+              onSuccess={() => setStep(3)}
+              onCancel={() => setShowMergePartnerAccountsModal(false)}
+            />
+          )}
 
-          {step === 3 && <MergeAccountForm />}
+          {step === 3 && (
+            <MergeAccountForm
+              onSuccess={() => {
+                setShowMergePartnerAccountsModal(false);
+              }}
+              onCancel={() => setShowMergePartnerAccountsModal(false)}
+            />
+          )}
         </MergePartnerAccountsFormProvider>
       </div>
     </div>

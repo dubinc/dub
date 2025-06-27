@@ -9,7 +9,13 @@ import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-export function VerifyCodeForm({ onSuccess }: { onSuccess: () => void }) {
+export function VerifyCodeForm({
+  onSuccess,
+  onCancel,
+}: {
+  onSuccess: () => void;
+  onCancel: () => void;
+}) {
   const { sourceAccount, targetAccount, setSourceAccount, setTargetAccount } =
     useMergePartnerAccountsForm();
 
@@ -123,6 +129,7 @@ export function VerifyCodeForm({ onSuccess }: { onSuccess: () => void }) {
           text="Cancel"
           className="h-8 w-fit px-3"
           disabled={isPending || isSubmitting}
+          onClick={onCancel}
         />
         <Button
           text="Verify accounts"
