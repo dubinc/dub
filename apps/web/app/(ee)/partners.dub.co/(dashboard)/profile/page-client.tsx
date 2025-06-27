@@ -7,6 +7,7 @@ import { PartnerProps, PayoutsCount } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
+import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge-partner-accounts-modal";
 import {
   Button,
   buttonVariants,
@@ -114,17 +115,29 @@ function FormProvider({
 }
 
 function Controls({ formRef }: { formRef: RefObject<HTMLFormElement> }) {
+  const { MergePartnerAccountsModal, setShowMergePartnerAccountsModal } =
+    useMergePartnerAccountsModal();
+
   const {
     formState: { isSubmitting },
   } = useFormContext();
 
   return (
-    <Button
-      text="Save changes"
-      className="h-8 w-fit px-2.5"
-      loading={isSubmitting}
-      onClick={() => formRef.current?.requestSubmit()}
-    />
+    <>
+      <MergePartnerAccountsModal />
+      <Button
+        text="Merge accounts"
+        variant="secondary"
+        className="h-8 w-fit px-2.5"
+        onClick={() => setShowMergePartnerAccountsModal(true)}
+      />
+      <Button
+        text="Save changes"
+        className="h-8 w-fit px-2.5"
+        loading={isSubmitting}
+        onClick={() => formRef.current?.requestSubmit()}
+      />
+    </>
   );
 }
 
