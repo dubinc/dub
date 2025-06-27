@@ -3,9 +3,8 @@ import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
-import { sendEmail, CUSTOMER_IO_TEMPLATES } from "@dub/email";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
-import { LoginLink } from "@dub/email/templates/login-link";
 import { WelcomeEmail } from "@dub/email/templates/welcome-email";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
@@ -18,9 +17,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { createOAuthUserAccountAction } from "../actions/create-oauth-user-account";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
-import { createOAuthUserAccountAction } from "../actions/create-oauth-user-account";
 import { FRAMER_API_HOST } from "./constants";
 import {
   exceededLoginAttemptsThreshold,
@@ -34,10 +33,13 @@ const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 const CustomPrismaAdapter = (p: PrismaClient) => {
   return {
     ...PrismaAdapter(p),
-    createUser: async (data: any) => {
-      // Don't create users automatically - we'll handle this in signIn callback
-      // This prevents duplicate user creation for OAuth providers
-      return data;
+    createUser: async (data: AdapterUser) => {
+      return p.user.create({
+        data: {
+          ...data,
+          id: createId({ prefix: "user_" }),
+        },
+      });
     },
   };
 };
@@ -136,7 +138,7 @@ export const authOptions: NextAuthOptions = {
 
         const { code } = credentials;
 
-        console.log('credentials');
+        console.log("credentials");
         console.log(credentials);
 
         if (!code) {
@@ -318,9 +320,7 @@ export const authOptions: NextAuthOptions = {
         // domain: VERCEL_DEPLOYMENT
         //   ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
         //   : undefined,
-        domain: VERCEL_DEPLOYMENT
-          ? `.getqr.com`
-          : undefined,
+        domain: VERCEL_DEPLOYMENT ? `.getqr.com` : undefined,
         secure: VERCEL_DEPLOYMENT,
       },
     },
@@ -344,7 +344,7 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "google" || account?.provider === "github") {
         // Parse state data for QR creation
         let stateData: any = null;
-        if (account.state && typeof account.state === 'string') {
+        if (account.state && typeof account.state === "string") {
           try {
             stateData = JSON.parse(account.state);
             console.log("State data received in signIn callback:", stateData);
@@ -357,7 +357,7 @@ export const authOptions: NextAuthOptions = {
           where: { email: user.email },
           select: { id: true, name: true, image: true },
         });
-        
+
         if (!userExists) {
           // User doesn't exist, create new user with workspace and QR code
           if (stateData?.qrDataToCreate) {
@@ -387,11 +387,11 @@ export const authOptions: NextAuthOptions = {
           }
           return true;
         }
-        
+
         if (!profile) {
           return true;
         }
-        
+
         // if the user already exists via email,
         // update the user with their name and image
         if (userExists && profile) {
