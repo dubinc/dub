@@ -286,8 +286,15 @@ const verifyTokens = async ({
     throw new Error("Could not find the partner accounts. Please try again.");
   }
 
-  return partnerAccounts;
+  return partnerAccounts.sort((a, b) => {
+    if (a.email === sourceEmail) return -1;
+    if (b.email === sourceEmail) return 1;
+    return 0;
+  });
 };
+
+// TODO:
+// Should we move step 3 to a background job?
 
 // Step 3: Merge partner accounts
 const mergeAccounts = async ({ userId }: { userId: string }) => {
@@ -349,48 +356,41 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
   const sourcePartnerId = sourceAccount.id;
   const targetPartnerId = targetAccount.id;
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
+  const enrollments = await prisma.programEnrollment.findMany({
     where: {
-      partnerId: sourcePartnerId,
+      partnerId: {
+        in: [sourcePartnerId, targetPartnerId],
+      },
     },
     select: {
+      partnerId: true,
       programId: true,
     },
   });
 
-  // Find program ids to transfer
-  const programIds = programEnrollments.map(
-    (enrollment) => enrollment.programId,
+  const sourcePartnerEnrollments = enrollments.filter(
+    ({ partnerId }) => partnerId === sourcePartnerId,
+  );
+
+  const targetPartnerEnrollments = enrollments.filter(
+    ({ partnerId }) => partnerId === targetPartnerId,
+  );
+
+  const sourcePartnerProgramIds = sourcePartnerEnrollments.map(
+    ({ programId }) => programId,
+  );
+
+  const newEnrollments = sourcePartnerEnrollments.filter(
+    ({ programId }) =>
+      !targetPartnerEnrollments.some(
+        ({ programId: targetProgramId }) => programId === targetProgramId,
+      ),
   );
 
   await prisma.programEnrollment.updateMany({
     where: {
       programId: {
-        in: programIds,
-      },
-      partnerId: sourcePartnerId,
-    },
-    data: {
-      partnerId: targetPartnerId,
-    },
-  });
-
-  await prisma.commission.updateMany({
-    where: {
-      programId: {
-        in: programIds,
-      },
-      partnerId: sourcePartnerId,
-    },
-    data: {
-      partnerId: targetPartnerId,
-    },
-  });
-
-  await prisma.payout.updateMany({
-    where: {
-      programId: {
-        in: programIds,
+        in: newEnrollments.map(({ programId }) => programId),
       },
       partnerId: sourcePartnerId,
     },
@@ -402,7 +402,7 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
   await prisma.link.updateMany({
     where: {
       programId: {
-        in: programIds,
+        in: sourcePartnerProgramIds,
       },
       partnerId: sourcePartnerId,
     },
@@ -411,18 +411,29 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
     },
   });
 
-  const updatedLinks = await prisma.link.findMany({
+  await prisma.commission.updateMany({
     where: {
       programId: {
-        in: programIds,
+        in: sourcePartnerProgramIds,
       },
+      partnerId: sourcePartnerId,
+    },
+    data: {
       partnerId: targetPartnerId,
     },
-    include: includeTags,
   });
 
-  // TODO:
-  // Remove the source partner from the database
+  await prisma.payout.updateMany({
+    where: {
+      programId: {
+        in: sourcePartnerProgramIds,
+      },
+      partnerId: sourcePartnerId,
+    },
+    data: {
+      partnerId: targetPartnerId,
+    },
+  });
 
   await prisma.partner.delete({
     where: {
@@ -430,41 +441,56 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
     },
   });
 
+  // TODO:
+  // Remove the source user from the database
+
   await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
   waitUntil(
-    Promise.all([
-      recordLink(updatedLinks),
-
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-        body: {
+    (async () => {
+      const updatedLinks = await prisma.link.findMany({
+        where: {
+          programId: {
+            in: sourcePartnerProgramIds,
+          },
           partnerId: targetPartnerId,
         },
-      }),
+        include: includeTags,
+      });
 
-      resend?.batch.send([
-        {
-          from: VARIANT_TO_FROM_MAP.notifications,
-          to: sourceEmail,
-          subject: "Your Dub partner accounts are now merged",
-          react: PartnerAccountMerged({
-            email: sourceEmail,
-            sourceEmail,
-            targetEmail,
-          }),
-        },
-        {
-          from: VARIANT_TO_FROM_MAP.notifications,
-          to: targetEmail,
-          subject: "Your Dub partner accounts are now merged",
-          react: PartnerAccountMerged({
-            email: targetEmail,
-            sourceEmail,
-            targetEmail,
-          }),
-        },
-      ]),
-    ]),
+      Promise.all([
+        recordLink(updatedLinks),
+
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+          body: {
+            partnerId: targetPartnerId,
+          },
+        }),
+
+        resend?.batch.send([
+          {
+            from: VARIANT_TO_FROM_MAP.notifications,
+            to: sourceEmail,
+            subject: "Your Dub partner accounts are now merged",
+            react: PartnerAccountMerged({
+              email: sourceEmail,
+              sourceEmail,
+              targetEmail,
+            }),
+          },
+          {
+            from: VARIANT_TO_FROM_MAP.notifications,
+            to: targetEmail,
+            subject: "Your Dub partner accounts are now merged",
+            react: PartnerAccountMerged({
+              email: targetEmail,
+              sourceEmail,
+              targetEmail,
+            }),
+          },
+        ]),
+      ]);
+    })(),
   );
 };
