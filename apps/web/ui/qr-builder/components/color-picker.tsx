@@ -40,7 +40,7 @@ export const ColorPickerInput: FC<IColorPickerInputProps> = ({
       <label className="font-medium">{label}</label>
       <div
         className={cn(
-          "border-border-300 relative flex h-11 items-center gap-2 rounded-md border p-3",
+          "border-border-300 relative flex h-11 max-w-[130px] items-center gap-2 rounded-md border p-3 lg:min-w-[130px]",
           {
             "border-red-600": !isValid,
             "bg-border-200 cursor-not-allowed text-neutral-200": disabled,

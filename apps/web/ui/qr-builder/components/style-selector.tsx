@@ -12,6 +12,7 @@ interface IStyleSelectorProps {
   onDotsStyleChange: (type: DotType) => void;
   onBorderColorChange: (color: string) => void;
   onBackgroundColorChange: (color: string) => void;
+  selectedSuggestedFrame: string;
 }
 
 export const StyleSelector: FC<IStyleSelectorProps> = ({
@@ -20,6 +21,7 @@ export const StyleSelector: FC<IStyleSelectorProps> = ({
   onDotsStyleChange,
   onBorderColorChange,
   onBackgroundColorChange,
+  selectedSuggestedFrame,
 }) => {
   return (
     <div
@@ -48,7 +50,7 @@ export const StyleSelector: FC<IStyleSelectorProps> = ({
           onBorderColorChange={onBorderColorChange}
           onBackgroundColorChange={onBackgroundColorChange}
           isMobile={isMobile}
-          minimalFlow
+          selectedSuggestedFrame={selectedSuggestedFrame}
         />
       </div>
     </div>

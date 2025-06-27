@@ -88,6 +88,7 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               onDotsStyleChange={handlers.onDotsStyleChange}
               onBorderColorChange={handlers.onBorderColorChange}
               onBackgroundColorChange={handlers.onBackgroundColorChange}
+              selectedSuggestedFrame={selectedSuggestedFrame}
             />
           )}
 
@@ -129,6 +130,7 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               onDotsStyleChange={handlers.onDotsStyleChange}
               onBorderColorChange={handlers.onBorderColorChange}
               onBackgroundColorChange={handlers.onBackgroundColorChange}
+              selectedSuggestedFrame={selectedSuggestedFrame}
             />
           )}
           {tab.id === "shape" && (
