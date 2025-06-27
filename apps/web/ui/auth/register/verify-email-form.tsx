@@ -4,8 +4,7 @@ import { createUserAccountAction } from "@/lib/actions/create-user-account";
 import { showMessage } from "@/ui/auth/helpers";
 import { MessageType } from "@/ui/modals/auth-modal.tsx";
 import { QRBuilderData } from "@/ui/modals/qr-builder";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { getFiles } from "@/ui/qr-builder/helpers/file-store.ts";
+import { processQrDataForServerAction } from "@/ui/qr-builder/helpers/process-qr-data.ts";
 import {
   AnimatedSizeContainer,
   Button,
@@ -20,22 +19,9 @@ import { OTPInput } from "input-otp";
 import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { Options } from "qr-code-styling";
 import { useState } from "react";
 import { useRegisterContext } from "./context";
 import { ResendOtp } from "./resend-otp";
-
-type TProcessedQRData = {
-  title: string;
-  styles: Options;
-  frameOptions: {
-    id: string;
-  };
-  qrType: EQRType;
-  file?: string | null;
-  fileName?: string | null;
-  fileSize?: number | null;
-};
 
 export const VerifyEmailForm = ({
   authModal = false,
@@ -54,52 +40,6 @@ export const VerifyEmailForm = ({
 
   const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
-
-  const processQrDataForServerAction =
-    async (): Promise<TProcessedQRData | null> => {
-      if (!qrDataToCreate) return null;
-
-      const files = getFiles();
-      if (!files || files.length === 0) {
-        return { ...qrDataToCreate, file: null };
-      }
-
-      try {
-        setIsUploading(true);
-        const firstFile = files[0];
-
-        const formData = new FormData();
-        formData.append("file", firstFile);
-
-        const response = await fetch("/api/qrs/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to upload file");
-        }
-
-        const { fileId } = await response.json();
-        return {
-          ...qrDataToCreate,
-          file: fileId,
-          fileName: firstFile.name,
-          fileSize: firstFile.size,
-        };
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        showMessage(
-          "Failed to upload file. Please try again.",
-          "error",
-          authModal,
-          setAuthModalMessage,
-        );
-        return { ...qrDataToCreate, file: null };
-      } finally {
-        setIsUploading(false);
-      }
-    };
 
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
@@ -150,7 +90,16 @@ export const VerifyEmailForm = ({
   }
 
   const handleSubmit = async () => {
-    const processedQrDataToCreate = await processQrDataForServerAction();
+    const processedQrDataToCreate = await processQrDataForServerAction(
+      qrDataToCreate,
+      {
+        onUploadStart: () => setIsUploading(true),
+        onUploadEnd: () => setIsUploading(false),
+        onError: (errorMessage) => {
+          showMessage(errorMessage, "error", authModal, setAuthModalMessage);
+        },
+      },
+    );
 
     await executeAsync({
       email,

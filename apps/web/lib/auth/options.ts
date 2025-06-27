@@ -20,6 +20,7 @@ import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
+import { createOAuthUserAccountAction } from "../actions/create-oauth-user-account";
 import { FRAMER_API_HOST } from "./constants";
 import {
   exceededLoginAttemptsThreshold,
@@ -34,12 +35,9 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
   return {
     ...PrismaAdapter(p),
     createUser: async (data: any) => {
-      return p.user.create({
-        data: {
-          ...data,
-          id: createId({ prefix: "user_" }),
-        },
-      });
+      // Don't create users automatically - we'll handle this in signIn callback
+      // This prevents duplicate user creation for OAuth providers
+      return data;
     },
   };
 };
@@ -344,13 +342,56 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (account?.provider === "google" || account?.provider === "github") {
+        // Parse state data for QR creation
+        let stateData: any = null;
+        if (account.state && typeof account.state === 'string') {
+          try {
+            stateData = JSON.parse(account.state);
+            console.log("State data received in signIn callback:", stateData);
+          } catch (error) {
+            console.error("Failed to parse state data:", error);
+          }
+        }
+
         const userExists = await prisma.user.findUnique({
           where: { email: user.email },
           select: { id: true, name: true, image: true },
         });
-        if (!userExists || !profile) {
+        
+        if (!userExists) {
+          // User doesn't exist, create new user with workspace and QR code
+          if (stateData?.qrDataToCreate) {
+            try {
+              await createOAuthUserAccountAction({
+                email: user.email,
+                name: user.name || undefined,
+                image: user.image || undefined,
+                qrDataToCreate: stateData.qrDataToCreate,
+              });
+            } catch (error) {
+              console.error("Failed to create OAuth user account:", error);
+              return false;
+            }
+          } else {
+            // Create user without QR code
+            const generatedUserId = createId({ prefix: "user_" });
+            await prisma.user.create({
+              data: {
+                id: generatedUserId,
+                email: user.email,
+                name: user.name,
+                image: user.image,
+                emailVerified: new Date(),
+              },
+            });
+          }
           return true;
         }
+        
+        if (!profile) {
+          return true;
+        }
+        
         // if the user already exists via email,
         // update the user with their name and image
         if (userExists && profile) {
@@ -456,6 +497,7 @@ export const authOptions: NextAuthOptions = {
 
         return true;
       }
+
       return true;
     },
     jwt: async ({
@@ -511,6 +553,7 @@ export const authOptions: NextAuthOptions = {
         if (!user) {
           return;
         }
+
         // only send the welcome email if the user was created in the last 10s
         // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
         if (
