@@ -77,11 +77,10 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [programType, rewardful, amount, maxDuration] = watch([
+  const [programType, rewardful, amount] = watch([
     "programType",
     "rewardful",
     "amount",
-    "maxDuration",
   ]);
 
   useEffect(() => {
@@ -113,6 +112,8 @@ export function Form() {
 
     await executeAsync({
       ...data,
+      amount:
+        data.amount && data.type === "flat" ? data.amount * 100 : data.amount,
       workspaceId,
       step: "configure-reward",
     });

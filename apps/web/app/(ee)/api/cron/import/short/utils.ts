@@ -153,6 +153,7 @@ export const importLinksFromShort = async ({
         }),
       };
     }),
+    skipRedisCache: true,
   });
 
   count += importedLinks.length;

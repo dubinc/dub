@@ -14,13 +14,7 @@ export const onboardProgramAction = authActionClient
   .action(async ({ ctx, parsedInput: data }) => {
     const { workspace, user } = ctx;
 
-    const programsCount = await prisma.program.count({
-      where: {
-        workspaceId: workspace.id,
-      },
-    });
-
-    if (programsCount > 0 || !workspace.partnersEnabled) {
+    if (workspace.defaultProgramId || !workspace.partnersEnabled) {
       throw new Error("You are not allowed to create a new program.");
     }
 
@@ -76,6 +70,6 @@ const saveOnboardingProgress = async ({
   });
 
   if (data.step == "save-and-exit") {
-    redirect(`/${workspace.slug}`);
+    redirect(`/${workspace.slug}/program`);
   }
 };

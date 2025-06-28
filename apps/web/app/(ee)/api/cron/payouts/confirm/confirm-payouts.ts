@@ -1,17 +1,28 @@
 import { createId } from "@/lib/api/create-id";
-import { limiter } from "@/lib/cron/limiter";
-import { PAYOUT_FEES } from "@/lib/partners/constants";
+import { exceededLimitError } from "@/lib/api/errors";
+import {
+  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+  FOREX_MARKUP_RATE,
+} from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
+import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
-import { sendEmail } from "@dub/email";
+import { createFxQuote } from "@/lib/stripe/create-fx-quote";
+import { PlanProps } from "@/lib/types";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
+import { chunk, log } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
 
-const allowedPaymentMethods = ["us_bank_account", "card", "link"];
+const paymentMethodToCurrency = {
+  sepa_debit: "eur",
+  acss_debit: "cad",
+} as const;
 
 export async function confirmPayouts({
   workspace,
@@ -20,7 +31,16 @@ export async function confirmPayouts({
   paymentMethodId,
   cutoffPeriod,
 }: {
-  workspace: Pick<Project, "id" | "stripeId" | "plan" | "invoicePrefix">;
+  workspace: Pick<
+    Project,
+    | "id"
+    | "stripeId"
+    | "plan"
+    | "invoicePrefix"
+    | "payoutsUsage"
+    | "payoutsLimit"
+    | "payoutFee"
+  >;
   program: Pick<Program, "id" | "name" | "logo" | "minPayoutAmount">;
   userId: string;
   paymentMethodId: string;
@@ -74,19 +94,67 @@ export async function confirmPayouts({
     return;
   }
 
+  const payoutAmount = payouts.reduce(
+    (total, payout) => total + payout.amount,
+    0,
+  );
+
+  if (workspace.payoutsUsage + payoutAmount > workspace.payoutsLimit) {
+    throw new Error(
+      exceededLimitError({
+        plan: workspace.plan as PlanProps,
+        limit: workspace.payoutsLimit,
+        type: "payouts",
+      }),
+    );
+  }
+
   const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
   // Create the invoice for the payouts
   const newInvoice = await prisma.$transaction(async (tx) => {
-    const amount = payouts.reduce((total, payout) => total + payout.amount, 0);
+    const payoutFee = calculatePayoutFeeForMethod({
+      paymentMethod: paymentMethod.type,
+      payoutFee: workspace.payoutFee,
+    });
 
-    const fee =
-      amount *
-      PAYOUT_FEES[workspace.plan?.split(" ")[0] ?? "business"][
-        paymentMethod.type === "us_bank_account" ? "ach" : "card"
-      ];
+    if (!payoutFee) {
+      throw new Error("Failed to calculate payout fee.");
+    }
 
-    const total = amount + fee;
+    console.info(
+      `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
+    );
+
+    const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
+    const totalFee = Math.round(payoutAmount * payoutFee);
+    const total = payoutAmount + totalFee;
+    let convertedTotal = total;
+
+    // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
+    if (["sepa_debit", "acss_debit"].includes(paymentMethod.type)) {
+      const fxQuote = await createFxQuote({
+        fromCurrency: currency,
+        toCurrency: "usd",
+      });
+
+      const exchangeRate = fxQuote.rates[currency].exchange_rate;
+
+      // if Stripe's FX rate is not available, throw an error
+      if (!exchangeRate || exchangeRate <= 0) {
+        throw new Error(
+          `Failed to get exchange rate from Stripe for ${currency}.`,
+        );
+      }
+
+      convertedTotal = Math.round(
+        (total / exchangeRate) * (1 + FOREX_MARKUP_RATE),
+      );
+
+      console.log(
+        `Currency conversion: ${total} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
+      );
+    }
 
     // Generate the next invoice number
     const totalInvoices = await tx.invoice.count({
@@ -103,8 +171,8 @@ export async function confirmPayouts({
         number: invoiceNumber,
         programId: program.id,
         workspaceId: workspace.id,
-        amount,
-        fee,
+        amount: payoutAmount,
+        fee: totalFee,
         total,
       },
     });
@@ -114,11 +182,11 @@ export async function confirmPayouts({
     }
 
     await stripe.paymentIntents.create({
-      amount: invoice.total,
+      amount: convertedTotal,
       customer: workspace.stripeId!,
-      payment_method_types: allowedPaymentMethods,
+      payment_method_types: [paymentMethod.type],
       payment_method: paymentMethod.id,
-      currency: "usd",
+      currency,
       confirmation_method: "automatic",
       confirm: true,
       transfer_group: invoice.id,
@@ -145,7 +213,7 @@ export async function confirmPayouts({
       },
       data: {
         payoutsUsage: {
-          increment: amount,
+          increment: payoutAmount,
         },
       },
     });
@@ -153,31 +221,45 @@ export async function confirmPayouts({
     return invoice;
   });
 
-  // Send emails to all the partners involved in the payouts if the payout method is ACH
-  // This is because ACH takes 4 business days to process, so we want to give partners a heads up
-  if (newInvoice && paymentMethod.type === "us_bank_account") {
-    await Promise.allSettled(
-      payouts
-        .filter((payout) => payout.partner.email)
-        .map((payout) =>
-          limiter.schedule(() =>
-            sendEmail({
-              subject: "You've got money coming your way!",
-              email: payout.partner.email!,
-              react: PartnerPayoutConfirmed({
-                email: payout.partner.email!,
-                program,
-                payout: {
-                  id: payout.id,
-                  amount: payout.amount,
-                  startDate: payout.periodStart,
-                  endDate: payout.periodEnd,
-                },
-              }),
-              variant: "notifications",
-            }),
-          ),
-        ),
+  // Send emails to all the partners involved in the payouts if the payout method is Direct Debit
+  // This is because Direct Debit takes 4 business days to process, so we want to give partners a heads up
+  if (
+    newInvoice &&
+    DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
+  ) {
+    if (!resend) {
+      // this should never happen, but just in case
+      await log({
+        message: "Resend is not configured, skipping email sending.",
+        type: "errors",
+      });
+      console.log("Resend is not configured, skipping email sending.");
+      return;
+    }
+
+    const payoutChunks = chunk(
+      payouts.filter((payout) => payout.partner.email),
+      100,
     );
+
+    for (const payoutChunk of payoutChunks) {
+      await resend.batch.send(
+        payoutChunk.map((payout) => ({
+          from: VARIANT_TO_FROM_MAP.notifications,
+          to: payout.partner.email!,
+          subject: "You've got money coming your way!",
+          react: PartnerPayoutConfirmed({
+            email: payout.partner.email!,
+            program,
+            payout: {
+              id: payout.id,
+              amount: payout.amount,
+              startDate: payout.periodStart,
+              endDate: payout.periodEnd,
+            },
+          }),
+        })),
+      );
+    }
   }
 }

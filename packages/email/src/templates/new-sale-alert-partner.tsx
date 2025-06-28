@@ -23,6 +23,7 @@ export default function NewSaleAlertPartner({
     name: "Acme",
     slug: "acme",
     logo: DUB_WORDMARK,
+    holdingPeriodDays: 30,
   },
   sale = {
     amount: 4900,
@@ -37,6 +38,7 @@ export default function NewSaleAlertPartner({
     name: string;
     slug: string;
     logo: string | null;
+    holdingPeriodDays: number;
   };
   sale: {
     amount: number;
@@ -90,11 +92,22 @@ export default function NewSaleAlertPartner({
               </a>
               ).
             </Text>
+
             <Text className="text-sm leading-6 text-neutral-600">
               You received{" "}
               <strong className="text-black">{earningsInDollars}</strong> in
-              commission for this sale and it will be included in your next
-              payout.
+              commission for this sale and it will be eligible for payout after
+              the program's {program.holdingPeriodDays}-day holding period (
+              <strong>
+                {new Date(
+                  Date.now() + program.holdingPeriodDays * 24 * 60 * 60 * 1000,
+                ).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </strong>
+              ).
             </Text>
 
             <Section className="mb-12 mt-8">

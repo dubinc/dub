@@ -360,8 +360,9 @@ export function CustomerTable() {
               : "No customers have been recorded for your workspace yet. Learn how to track your first customer."
           }
           {...(!isFiltered && {
-            learnMoreHref: "https://dub.co/help/article/customer-insights",
-            learnMoreText: "Read the guide",
+            learnMoreHref: `/${workspaceSlug}/guides`,
+            learnMoreTarget: "_self",
+            learnMoreText: "Read the guides",
           })}
           cardContent={() => (
             <>

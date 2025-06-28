@@ -52,6 +52,9 @@ export const banPartnerAction = authActionClient
           status: "banned",
           bannedAt: new Date(),
           bannedReason: parsedInput.reason,
+          clickRewardId: null,
+          leadRewardId: null,
+          saleRewardId: null,
         },
       }),
 

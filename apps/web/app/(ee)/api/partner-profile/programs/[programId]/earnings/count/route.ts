@@ -34,7 +34,7 @@ export const GET = withPartnerProfile(
 
     const where: Prisma.CommissionWhereInput = {
       earnings: {
-        gt: 0,
+        not: 0,
       },
       programId: program.id,
       partnerId: partner.id,
@@ -66,7 +66,9 @@ export const GET = withPartnerProfile(
         const links = await prisma.link.findMany({
           where: {
             id: {
-              in: counts.map(({ linkId }) => linkId),
+              in: counts
+                .map(({ linkId }) => linkId)
+                .filter((id): id is string => id !== null),
             },
           },
         });

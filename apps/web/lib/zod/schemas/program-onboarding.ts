@@ -1,4 +1,4 @@
-import { CommissionType, LinkStructure } from "@dub/prisma/client";
+import { LinkStructure, RewardStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
 import { updateProgramSchema } from "./programs";
@@ -33,7 +33,7 @@ export const programRewardSchema = z
   .merge(
     z.object({
       defaultRewardType: z.enum(["lead", "sale"]).default("lead"),
-      type: z.nativeEnum(CommissionType).nullish(),
+      type: z.nativeEnum(RewardStructure).nullish(),
       amount: z.number().min(0).nullish(),
       maxDuration: maxDurationSchema,
     }),
@@ -45,16 +45,12 @@ export const programInvitePartnersSchema = z.object({
     .array(
       z.object({
         email: z.string().email("Please enter a valid email"),
-        key: z.string().min(1, "Please enter a referral key"),
       }),
     )
     .max(10, "You can only invite up to 10 partners.")
     .nullable()
     .transform(
-      (partners) =>
-        partners?.filter(
-          (partner) => partner.email.trim() && partner.key.trim(),
-        ) || null,
+      (partners) => partners?.filter((partner) => partner.email.trim()) || null,
     ),
 });
 

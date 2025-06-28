@@ -3,6 +3,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
 import WelcomeEmail from "@dub/email/templates/welcome-email";
+import WelcomeEmailPartner from "@dub/email/templates/welcome-email-partner";
 import { prisma } from "@dub/prisma";
 
 export const dynamic = "force-dynamic";
@@ -46,19 +47,21 @@ export async function POST(req: Request) {
         name: user.name || undefined,
         audience: isPartner ? "partners.dub.co" : "app.dub.co",
       }),
-      // TODO: Add partners.dub.co welcome email
-      isPartner
-        ? undefined
-        : sendEmail({
-            email: user.email,
-            replyTo: "steven.tey@dub.co",
-            subject: "Welcome to Dub!",
-            react: WelcomeEmail({
+      sendEmail({
+        email: user.email,
+        replyTo: "steven.tey@dub.co",
+        subject: `Welcome to Dub${isPartner ? " Partners" : ""}!`,
+        react: isPartner
+          ? WelcomeEmailPartner({
+              email: user.email,
+              name: user.name,
+            })
+          : WelcomeEmail({
               email: user.email,
               name: user.name,
             }),
-            variant: "marketing",
-          }),
+        variant: "marketing",
+      }),
     ]);
 
     return new Response("Welcome email sent and user subscribed.", {

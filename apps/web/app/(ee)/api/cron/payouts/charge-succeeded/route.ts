@@ -4,7 +4,7 @@ import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
 import { sendStripePayouts } from "./send-stripe-payouts";
-import { payloadSchema } from "./utils";
+import { payloadSchema, Payouts } from "./utils";
 
 export const dynamic = "force-dynamic";
 
@@ -69,15 +69,16 @@ export async function POST(req: Request) {
       },
     });
 
-    // we default to paypal if it's connected
-    const paypalPayouts = payouts.filter(
-      (payout) => payout.partner.paypalEmail,
-    );
+    let stripePayouts: Payouts[] = [];
+    let paypalPayouts: Payouts[] = [];
 
-    // if paypal is not connected, we use stripe
-    const stripePayouts = payouts.filter(
-      (payout) => payout.partner.stripeConnectId && !payout.partner.paypalEmail,
-    );
+    payouts.forEach((payout) => {
+      if (payout.partner.stripeConnectId) {
+        stripePayouts.push(payout);
+      } else if (payout.partner.paypalEmail) {
+        paypalPayouts.push(payout);
+      }
+    });
 
     await Promise.allSettled([
       sendStripePayouts({

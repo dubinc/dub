@@ -60,7 +60,7 @@ export default function UpgradeEmail({
             </Text>
             {planDetails.features?.map((feature) => (
               <Text className="ml-1 text-sm leading-4 text-black">
-                ◆{" "}
+                ✦{" "}
                 {feature.tooltip?.href ? (
                   <Link href={feature.tooltip.href}>{feature.text}</Link>
                 ) : (

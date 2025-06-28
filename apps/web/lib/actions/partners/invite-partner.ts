@@ -22,7 +22,7 @@ export const invitePartnerAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    let [program, link, , ,] = await Promise.all([
+    let [program, link, reward] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -102,7 +102,7 @@ export const invitePartnerAction = authActionClient
       },
       skipEnrollmentCheck: true,
       status: "invited",
-      ...(rewardId && { rewardId }),
+      ...(reward && { reward }),
       ...(discountId && { discountId }),
     });
 

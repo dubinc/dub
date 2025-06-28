@@ -1,7 +1,7 @@
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { EventType, Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
 // update commissions for a program
@@ -20,7 +20,7 @@ async function main() {
   const updatedCommissions = await Promise.all(
     commissions.map(async (commission) => {
       const reward = await determinePartnerReward({
-        event: commission.type,
+        event: commission.type as EventType,
         partnerId: commission.partnerId,
         programId: commission.programId,
       });
