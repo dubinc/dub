@@ -1,9 +1,9 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
 import { approvePartnerSchema } from "@/lib/zod/schemas/partners";
-import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 
 // Approve a partner application
