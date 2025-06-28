@@ -14,7 +14,13 @@ export default function useLink(
       linkIdOrLink &&
       (typeof linkIdOrLink === "string"
         ? `/api/links/${linkIdOrLink}?workspaceId=${workspaceId}`
-        : `/api/links/info?domain=${linkIdOrLink.domain}&key=${linkIdOrLink.slug}&workspaceId=${workspaceId}`),
+        : `/api/links/info?${new URLSearchParams({
+            workspaceId,
+            domain: linkIdOrLink.domain,
+            key: linkIdOrLink.slug,
+            includeUser: "true",
+            includeWebhooks: "true",
+          })}`),
     fetcher,
     swrOptions,
   );

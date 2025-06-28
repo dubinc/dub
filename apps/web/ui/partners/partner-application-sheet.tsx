@@ -4,6 +4,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, useRouterStuff } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
@@ -66,27 +67,28 @@ function PartnerApplicationSheetContent({
 
 function PendingPartnerSummary({ partner }: { partner: EnrolledPartnerProps }) {
   return (
-    <div className="grid grid-cols-1 gap-8 text-sm text-neutral-500">
+    <div className="grid grid-cols-1 gap-6 text-sm text-neutral-600">
       <div>
-        <h4 className="font-semibold text-neutral-900">Online presence</h4>
-        <OnlinePresenceSummary partner={partner} className="mt-2" />
-      </div>
-      <div>
-        <h4 className="font-semibold text-neutral-900">Description</h4>
-        <p className="mt-2">
+        <h4 className="text-content-emphasis font-semibold">Description</h4>
+        <p className="mt-1">
           {partner.description || (
-            <span className="italic text-neutral-400">
+            <span className="text-content-muted italic">
               No description provided
             </span>
           )}
         </p>
       </div>
+      <hr className="border-neutral-200" />
       {partner.applicationId && (
         <>
-          <hr className="border-neutral-200" />
           <PartnerApplication applicationId={partner.applicationId} />
+          <hr className="border-neutral-200" />
         </>
       )}
+      <div>
+        <h4 className="text-content-emphasis font-semibold">Online presence</h4>
+        <OnlinePresenceSummary partner={partner} className="mt-3" />
+      </div>
     </div>
   );
 }
@@ -114,11 +116,11 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-6">
+    <div className="grid grid-cols-1 gap-6 text-sm">
       {fields.map((field) => (
         <div key={field.title}>
-          <h4 className="font-semibold text-neutral-900">{field.title}</h4>
-          <div className="mt-1.5">
+          <h4 className="text-content-emphasis font-semibold">{field.title}</h4>
+          <div className="mt-1">
             {field.value || field.value === "" ? (
               <Linkify
                 as="p"
@@ -129,7 +131,11 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
                     "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
                 }}
               >
-                {field.value || "No response provided"}
+                {field.value || (
+                  <span className="text-content-muted italic">
+                    No response provided
+                  </span>
+                )}
               </Linkify>
             ) : (
               <div className="h-5 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
@@ -169,6 +175,7 @@ function PartnerApproval({
   partner: EnrolledPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
@@ -182,10 +189,10 @@ function PartnerApproval({
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess: async () => {
-      await mutatePrefix("/api/partners");
-
-      toast.success("Approved the partner successfully.");
+      queryParams({ del: "partnerId" });
       setIsOpen(false);
+      await mutatePrefix("/api/partners");
+      toast.success("Approved the partner successfully.");
     },
     onError({ error }) {
       toast.error(error.serverError || "Failed to approve partner.");
@@ -271,6 +278,7 @@ function PartnerApproval({
                 return false;
               }}
               error={linkError}
+              optional
             />
           </div>
         </div>
@@ -282,18 +290,13 @@ function PartnerApproval({
             text="Approve"
             loading={isPending}
             onClick={async () => {
+              if (!program || !workspaceId) {
+                return;
+              }
+
               if (!isApproving) {
                 setIsApproving(true);
                 setLinkError(false);
-                return;
-              }
-
-              if (!selectedLinkId) {
-                setLinkError(true);
-                return;
-              }
-
-              if (!program) {
                 return;
               }
 
@@ -301,7 +304,6 @@ function PartnerApproval({
               await executeAsync({
                 workspaceId: workspaceId!,
                 partnerId: partner.id,
-                programId: program.id,
                 linkId: selectedLinkId,
               });
             }}
@@ -320,36 +322,46 @@ function PartnerRejectButton({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: workspaceId } = useWorkspace();
-  const { program } = useProgram();
 
-  const { executeAsync, isPending } = useAction(rejectPartnerAction, {
-    onSuccess: async () => {
-      await mutatePrefix(
-        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
-      );
-
-      toast.success("Partner rejected successfully.");
-      setIsOpen(false);
+  const { executeAsync: rejectPartner, isPending } = useAction(
+    rejectPartnerAction,
+    {
+      onSuccess: async () => {
+        await mutatePrefix("/api/partners");
+        toast.success("Application rejected. No email sent, and can they reapply in 30 days.");
+        setIsOpen(false);
+      },
+      onError({ error }) {
+        toast.error(error.serverError || "Failed to reject partner.");
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError || "Failed to reject partner.");
+  );
+
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Reject Application",
+    description: "Are you sure you want to reject this partner application?",
+    confirmText: "Reject",
+    onConfirm: async () => {
+      await rejectPartner({
+        workspaceId: workspaceId!,
+        partnerId: partner.id,
+      });
     },
   });
 
   return (
-    <Button
-      type="button"
-      variant="secondary"
-      text={isPending ? "" : "Reject"}
-      loading={isPending}
-      onClick={async () => {
-        await executeAsync({
-          workspaceId: workspaceId!,
-          partnerId: partner.id,
-          programId: program!.id,
-        });
-      }}
-    />
+    <>
+      {confirmModal}
+      <Button
+        type="button"
+        variant="secondary"
+        text={isPending ? "" : "Reject"}
+        loading={isPending}
+        onClick={() => {
+          setShowConfirmModal(true);
+        }}
+      />
+    </>
   );
 }
 

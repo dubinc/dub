@@ -60,11 +60,17 @@ export default function ConnectPayoutReminder({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You have pending rewards on Dub Partners, but you need to connect
-              your payout details (bank account) to receive them.
+              You have pending rewards on Dub Partners, but you need to{" "}
+              <Link
+                href="https://dub.co/help/article/receiving-payouts"
+                className="font-semibold text-black underline"
+              >
+                connect your payout details (bank account)
+              </Link>{" "}
+              to receive them.
             </Text>
 
-            <Section className="mt-10 text-base">
+            <Section className="mt-6 text-base">
               <Row className="mb-1 text-sm text-neutral-600">
                 <Column>Program</Column>
                 <Column className="text-right">Pending payouts</Column>
@@ -98,6 +104,12 @@ export default function ConnectPayoutReminder({
                 </Row>
               ))}
             </Section>
+
+            <Text className="text-sm leading-6 text-neutral-600">
+              If you haven't already, please create a partner account on Dub
+              with your <strong className="underline">{email}</strong> email and
+              set up your payout details.
+            </Text>
 
             <Section className="mt-8 text-center">
               <Link

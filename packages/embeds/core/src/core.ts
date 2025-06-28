@@ -1,4 +1,4 @@
-import { DUB_CONTAINER_ID, EMBED_REFERRALS_URL } from "./constants";
+import { DUB_CONTAINER_ID } from "./constants";
 import { EmbedError } from "./error";
 import { DubEmbedOptions, DubInitResult, IframeMessage } from "./types";
 
@@ -45,7 +45,17 @@ class DubEmbed {
       ...containerStyles,
     });
 
-    const iframeUrl = data === "referrals" ? EMBED_REFERRALS_URL : "";
+    const host = window.location.hostname;
+    const port = window.location.port;
+    const embedUrlHost =
+      host === "localhost" && port === "8888"
+        ? "http://localhost:8888"
+        : host === "preview.dub.co"
+          ? "https://preview.dub.co"
+          : "https://app.dub.co";
+
+    const iframeUrl =
+      data === "referrals" ? `${embedUrlHost}/embed/referrals` : "";
 
     if (!iframeUrl) {
       console.error("[Dub] Invalid embed data type.");

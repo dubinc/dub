@@ -118,4 +118,29 @@ describe("POST /track/sale", async () => {
 
     expectValidSaleResponse(response4, newSale);
   });
+
+  test("track a sale with JPY currency (zero decimal currency)", async () => {
+    const jpySale = {
+      ...sale,
+      eventName: "Payment in JPY",
+      invoiceId: `INV_${randomId()}`,
+      amount: 1437, // approximately 1000 USD cents
+      currency: "jpy",
+    };
+
+    const response = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...jpySale,
+        externalId: E2E_CUSTOMER_EXTERNAL_ID,
+      },
+    });
+
+    // Check if the converted amount is within an acceptable range
+    // 1437 JPY should be around 1000 USD cents (±100)
+    expect(response.status).toEqual(200);
+    expect(response.data.sale?.currency).toEqual("usd");
+    expect(response.data.sale?.amount).toBeGreaterThanOrEqual(900); // 900 cents
+    expect(response.data.sale?.amount).toBeLessThanOrEqual(1100); // 1100 cents
+  });
 });

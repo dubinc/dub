@@ -27,7 +27,14 @@ export const navItems = [
     name: "Product",
     content: ProductContent,
     childItems: FEATURES_LIST,
-    segments: ["/home", "/analytics", "/features", "/compare", "/integrations"],
+    segments: [
+      "/home",
+      "/partners",
+      "/analytics",
+      "/features",
+      "/compare",
+      "/integrations",
+    ],
   },
   {
     name: "Solutions",
@@ -39,12 +46,26 @@ export const navItems = [
     name: "Resources",
     content: ResourcesContent,
     childItems: RESOURCES,
-    segments: ["/docs", "/help", "/brand", "/blog", "/changelog", "/customers"],
+    segments: [
+      "/help",
+      "/docs",
+      "/about",
+      "/careers",
+      "/brand",
+      "/blog",
+      "/changelog",
+      "/contact",
+    ],
   },
   {
     name: "Enterprise",
     href: "/enterprise",
     segments: ["/enterprise"],
+  },
+  {
+    name: "Customers",
+    href: "/customers",
+    segments: ["/customers"],
   },
   {
     name: "Pricing",

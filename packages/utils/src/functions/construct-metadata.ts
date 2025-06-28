@@ -3,7 +3,7 @@ import { Metadata } from "next";
 export function constructMetadata({
   title,
   fullTitle,
-  description = "Dub.co is the open-source link management platform for modern marketing teams to create marketing campaigns, link sharing features, and referral programs.",
+  description = "Dub is the modern link attribution platform for short links, conversion tracking, and affiliate programs.",
   image = "https://assets.dub.co/thumbnail.jpg",
   video,
   icons = [
@@ -44,9 +44,7 @@ export function constructMetadata({
   return {
     title:
       fullTitle ||
-      (title
-        ? `${title} | Dub.co`
-        : "Dub.co - Link Management for Modern Marketing Teams"),
+      (title ? `${title} | Dub` : "Dub - The Modern Link Attribution Platform"),
     description,
     openGraph: {
       title,

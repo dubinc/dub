@@ -36,7 +36,13 @@ export default function Analytics({
               className={cn("pb-10", dashboardProps && "bg-neutral-50 pt-10")}
             >
               <Toggle />
-              <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">
+              <div
+                className={cn(
+                  "mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10",
+                  // TODO: [PageContent] Remove once all pages are migrated to the new PageContent
+                  !dashboardProps && !adminPage && "lg:px-6",
+                )}
+              >
                 <Main />
                 <StatsGrid />
               </div>
@@ -49,8 +55,7 @@ export default function Analytics({
 }
 
 function StatsGrid() {
-  const { dashboardProps, partnerPage, selectedTab, view } =
-    useContext(AnalyticsContext);
+  const { dashboardProps, selectedTab, view } = useContext(AnalyticsContext);
   const { plan } = useWorkspace();
 
   const hide =
@@ -60,9 +65,9 @@ function StatsGrid() {
   return hide ? null : (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       {!dashboardProps && <TopLinks />}
+      <Referer />
       <Locations />
       <Devices />
-      <Referer />
       {/* <Feedback /> */}
     </div>
   );

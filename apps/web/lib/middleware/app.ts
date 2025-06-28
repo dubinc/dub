@@ -86,11 +86,13 @@ export default async function AppMiddleware(req: NextRequest) {
         "/links",
         "/analytics",
         "/events",
+        "/customers",
         "/programs",
         "/settings",
         "/upgrade",
         "/wrapped",
       ].includes(path) ||
+      path.startsWith("/program") ||
       path.startsWith("/settings/") ||
       isTopLevelSettingsRedirect(path)
     ) {

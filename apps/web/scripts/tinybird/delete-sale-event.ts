@@ -2,21 +2,21 @@ import "dotenv-flow/config";
 
 // update tinybird sale event
 async function main() {
-  const eventId = "xxx";
+  const deleteCondition = "event_id = 'PBsBVOHgVrBcs68F'";
 
   //  delete data from tinybird
   const deleteRes = await Promise.allSettled([
     deleteData({
       dataSource: "dub_sale_events",
-      eventId,
+      deleteCondition,
     }),
     deleteData({
       dataSource: "dub_sale_events_mv",
-      eventId,
+      deleteCondition,
     }),
     deleteData({
       dataSource: "dub_sale_events_id",
-      eventId,
+      deleteCondition,
     }),
   ]);
   console.log(deleteRes);
@@ -24,10 +24,10 @@ async function main() {
 
 const deleteData = async ({
   dataSource,
-  eventId,
+  deleteCondition,
 }: {
   dataSource: string;
-  eventId: string;
+  deleteCondition: string;
 }) => {
   return fetch(
     `https://api.us-east.tinybird.co/v0/datasources/${dataSource}/delete`,
@@ -37,7 +37,7 @@ const deleteData = async ({
         Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: `delete_condition=event_id='${eventId}'`,
+      body: `delete_condition=${deleteCondition}`,
     },
   ).then((res) => res.json());
 };

@@ -1,17 +1,21 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import {
   CreatePartnerProps,
   ProgramPartnerLinkProps,
   ProgramProps,
+  RewardProps,
   WorkspaceProps,
 } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { linkCache } from "../links/cache";
@@ -23,27 +27,26 @@ export const createAndEnrollPartner = async ({
   workspace,
   link,
   partner,
-  rewardId,
+  reward,
   discountId,
   tenantId,
   status = "approved",
   skipEnrollmentCheck = false,
+  enrolledAt,
 }: {
-  program: Pick<
-    ProgramProps,
-    "id" | "defaultFolderId" | "defaultRewardId" | "defaultDiscountId"
-  >;
+  program: Pick<ProgramProps, "id" | "defaultFolderId" | "defaultDiscountId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
     CreatePartnerProps,
     "email" | "name" | "image" | "country" | "description"
   >;
-  rewardId?: string;
+  reward?: Pick<RewardProps, "id" | "event">;
   discountId?: string;
   tenantId?: string;
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
+  enrolledAt?: Date;
 }) => {
   if (!skipEnrollmentCheck && partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
@@ -82,6 +85,28 @@ export const createAndEnrollPartner = async ({
     }
   }
 
+  const defaultRewards = await prisma.reward.findMany({
+    where: {
+      programId: program.id,
+      // if a specific reward is provided, exclude it from the default rewards because it'll be added below
+      ...(reward && {
+        event: {
+          not: reward.event,
+        },
+      }),
+      default: true,
+    },
+  });
+
+  const finalAssignedRewards = {
+    ...Object.fromEntries(
+      defaultRewards.map((r) => [REWARD_EVENT_COLUMN_MAPPING[r.event], r.id]),
+    ),
+    ...(reward && {
+      [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
+    }),
+  };
+
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
       create: {
@@ -93,18 +118,14 @@ export const createAndEnrollPartner = async ({
             id: link.id,
           },
         },
-        ...(rewardId &&
-          rewardId !== program.defaultRewardId && {
-            rewards: {
-              create: {
-                rewardId,
-              },
-            },
-          }),
+        ...finalAssignedRewards,
         ...(discountId &&
           discountId !== program.defaultDiscountId && {
             discountId,
           }),
+        ...(enrolledAt && {
+          createdAt: enrolledAt,
+        }),
       },
     },
   };
@@ -119,7 +140,7 @@ export const createAndEnrollPartner = async ({
       id: createId({ prefix: "pn_" }),
       name: partner.name,
       email: partner.email,
-      image: partner.image,
+      image: partner.image && !isStored(partner.image) ? null : partner.image,
       country: partner.country,
       description: partner.description,
     },
@@ -173,6 +194,26 @@ export const createAndEnrollPartner = async ({
           ]),
         ),
 
+      // upload partner image to R2
+      partner.image &&
+        !isStored(partner.image) &&
+        storage
+          .upload(
+            `partners/${upsertedPartner.id}/image_${nanoid(7)}`,
+            partner.image,
+          )
+          .then(async ({ url }) => {
+            await prisma.partner.update({
+              where: {
+                id: upsertedPartner.id,
+              },
+              data: {
+                image: url,
+              },
+            });
+          }),
+
+      // send partner.enrolled webhook
       sendWorkspaceWebhook({
         workspace,
         trigger: "partner.enrolled",

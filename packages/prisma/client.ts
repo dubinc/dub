@@ -7,6 +7,7 @@ export {
   FolderType,
   FolderUserRole,
   InvoiceStatus,
+  LinkStructure,
   PartnerBannedReason,
   PartnerProfileType,
   PartnerRole,
@@ -14,7 +15,7 @@ export {
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
-  ProgramType,
+  RewardStructure,
   Role,
   WebhookReceiver,
 } from "@prisma/client";

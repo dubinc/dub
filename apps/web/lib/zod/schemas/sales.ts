@@ -152,12 +152,17 @@ export const saleEventResponseSchema = z
     payment_processor: z
       .string()
       .describe("Deprecated. Use `sale.paymentProcessor` instead."),
+  })
+  .merge(commonDeprecatedEventFields)
+  .openapi({ ref: "SaleEvent", title: "SaleEvent" });
+
+export const saleEventResponseSchemaExtended = saleEventResponseSchema.merge(
+  z.object({
     metadata: z
       .string()
       .nullish()
       .transform((val) => (val === "" ? null : val))
       .default(null)
       .openapi({ type: "string" }),
-  })
-  .merge(commonDeprecatedEventFields)
-  .openapi({ ref: "SaleEvent" });
+  }),
+);

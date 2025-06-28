@@ -17,7 +17,6 @@ import { Footer } from "../components/footer";
 export function PartnerPayoutSent({
   email = "panic@thedis.co",
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
     logo: DUB_WORDMARK,
   },
@@ -30,7 +29,6 @@ export function PartnerPayoutSent({
 }: {
   email: string;
   program: {
-    id: string;
     name: string;
     logo: string | null;
   };
@@ -51,6 +49,7 @@ export function PartnerPayoutSent({
         year: "numeric",
         month: "short",
         day: "numeric",
+        timeZone: "UTC",
       })
     : null;
 
@@ -59,6 +58,7 @@ export function PartnerPayoutSent({
         year: "numeric",
         month: "short",
         day: "numeric",
+        timeZone: "UTC",
       })
     : null;
 

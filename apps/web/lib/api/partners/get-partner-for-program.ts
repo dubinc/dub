@@ -23,12 +23,33 @@ export async function getPartnerForProgram({
       COALESCE(metrics.totalLeads, 0) as totalLeads,
       COALESCE(metrics.totalSales, 0) as totalSales,
       COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
-      COALESCE(commissions.totalCommissions, 0) as totalCommissions,
-      COALESCE(metrics.totalSaleAmount, 0) - COALESCE(commissions.totalCommissions, 0) as netRevenue
+      COALESCE(pe.totalCommissions, 0) as totalCommissions,
+      COALESCE(metrics.totalSaleAmount, 0) - COALESCE(pe.totalCommissions, 0) as netRevenue,
+      COALESCE(
+        JSON_ARRAYAGG(
+          IF(l.id IS NOT NULL,
+            JSON_OBJECT(
+              'id', l.id,
+              'domain', l.domain,
+              'key', l.\`key\`,
+              'shortLink', l.shortLink,
+              'url', l.url,
+              'clicks', CAST(l.clicks AS SIGNED),
+              'leads', CAST(l.leads AS SIGNED),
+              'sales', CAST(l.sales AS SIGNED),
+              'saleAmount', CAST(l.saleAmount AS SIGNED)
+            ),
+            NULL
+          )
+        ),
+        JSON_ARRAY()
+      ) as links
     FROM 
       ProgramEnrollment pe 
     INNER JOIN 
       Partner p ON p.id = pe.partnerId 
+    LEFT JOIN Link l ON l.programId = pe.programId 
+      AND l.partnerId = pe.partnerId
     LEFT JOIN (
       SELECT 
         partnerId,
@@ -41,21 +62,11 @@ export async function getPartnerForProgram({
         AND partnerId = ${partnerId}
       GROUP BY partnerId
     ) metrics ON metrics.partnerId = pe.partnerId
-    LEFT JOIN (
-      SELECT 
-        partnerId,
-        SUM(earnings) as totalCommissions
-      FROM Commission
-      WHERE earnings > 0
-        AND programId = ${programId}
-        AND partnerId = ${partnerId}
-        AND status IN ('pending', 'processed', 'paid')
-      GROUP BY partnerId
-    ) commissions ON commissions.partnerId = pe.partnerId
     WHERE 
       pe.partnerId = ${partnerId}
       AND pe.programId = ${programId}
-      AND pe.status NOT IN ('rejected', 'banned')
+    GROUP BY 
+      p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions
   `;
 
   if (!partner?.[0]) return null;
@@ -67,7 +78,7 @@ export async function getPartnerForProgram({
     leads: Number(partner[0].totalLeads),
     sales: Number(partner[0].totalSales),
     saleAmount: Number(partner[0].totalSaleAmount),
-    commissions: Number(partner[0].totalCommissions),
+    totalCommissions: Number(partner[0].totalCommissions),
     netRevenue: Number(partner[0].netRevenue),
   };
 }

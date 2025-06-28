@@ -1,11 +1,12 @@
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
+import { getPlanCapabilities } from "../plan-capabilities";
 import { CustomerProps } from "../types";
-import { customersQuerySchema } from "../zod/schemas/customers";
+import { getCustomersQuerySchemaExtended } from "../zod/schemas/customers";
 import useWorkspace from "./use-workspace";
 
-const partialQuerySchema = customersQuerySchema.partial();
+const partialQuerySchema = getCustomersQuerySchemaExtended.partial();
 
 export default function useCustomers({
   query,
@@ -14,10 +15,11 @@ export default function useCustomers({
   query?: z.infer<typeof partialQuerySchema>;
   enabled?: boolean;
 } = {}) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, plan } = useWorkspace();
+  const { canManageCustomers } = getPlanCapabilities(plan);
 
   const { data: customers, error } = useSWR<CustomerProps[]>(
-    enabled && workspaceId
+    enabled && workspaceId && canManageCustomers
       ? `/api/customers?${new URLSearchParams({
           workspaceId: workspaceId,
           ...query,

@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { cache } from "react";
-import { reorderTopProgramRewards } from "../partners/reorder-top-program-rewards";
+import { sortRewardsByEventOrder } from "../partners/sort-rewards-by-event-order";
 
 export const getProgram = cache(
   async ({
@@ -8,19 +8,17 @@ export const getProgram = cache(
     include,
   }: {
     slug: string;
-    include?: ("rewards" | "defaultDiscount")[];
+    include?: ("defaultRewards" | "defaultDiscount")[];
   }) => {
     const program = await prisma.program.findUnique({
       where: {
         slug,
       },
       include: {
-        ...(include?.includes("rewards") && {
+        ...(include?.includes("defaultRewards") && {
           rewards: {
             where: {
-              partners: {
-                none: {}, // program-wide rewards only
-              },
+              default: true, // program-wide rewards only
             },
           },
         }),
@@ -30,8 +28,13 @@ export const getProgram = cache(
       },
     });
 
-    if (program && include?.includes("rewards"))
-      program.rewards = reorderTopProgramRewards(program.rewards);
+    if (!program) {
+      return null;
+    }
+
+    if (include?.includes("defaultRewards")) {
+      program.rewards = sortRewardsByEventOrder(program.rewards);
+    }
 
     return program;
   },

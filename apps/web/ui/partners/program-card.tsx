@@ -1,15 +1,10 @@
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
-import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
+import { ProgramEnrollmentProps } from "@/lib/types";
 import { BlurImage, Link4, MiniAreaChart } from "@dub/ui";
-import {
-  cn,
-  currencyFormatter,
-  formatDate,
-  getPrettyUrl,
-  nFormatter,
-  OG_AVATAR_URL,
-} from "@dub/utils";
+import { cn, formatDate, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
+import NumberFlow from "@number-flow/react";
 import { addDays } from "date-fns";
+import Linkify from "linkify-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -47,7 +42,7 @@ export function ProgramCard({
   const card = (
     <div
       className={cn(
-        "block flex h-full flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5",
+        "flex h-full flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5",
         clickable && "hover:drop-shadow-card-hover transition-[filter]",
       )}
     >
@@ -76,16 +71,31 @@ export function ProgramCard({
         </div>
       </div>
       {status === "approved" ? (
-        <ProgramCardEarnings program={program} />
+        <ProgramCardEarnings programEnrollment={programEnrollment} />
       ) : (
-        <div className="mt-4 flex h-24 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
-          {status === "pending"
-            ? `Applied ${formatDate(createdAt)}`
-            : status === "banned"
-              ? `You're banned from this program`
-              : `You will be able to apply again after ${formatDate(
-                  addDays(createdAt, 30),
-                )}`}
+        <div className="mt-4 flex h-20 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
+          {status === "pending" ? (
+            `Applied ${formatDate(createdAt)}`
+          ) : status === "banned" ? (
+            <Linkify
+              as="p"
+              options={{
+                target: "_blank",
+                rel: "noopener noreferrer nofollow",
+                className:
+                  "underline underline-offset-2 decoration-dotted text-neutral-400 hover:text-neutral-700",
+              }}
+            >
+              You're banned from this program.
+              {program.supportEmail
+                ? ` Contact ${program.supportEmail} to appeal.`
+                : ""}
+            </Linkify>
+          ) : (
+            `You will be able to apply again after ${formatDate(
+              addDays(createdAt, 30),
+            )}`
+          )}
         </div>
       )}
     </div>
@@ -98,16 +108,16 @@ export function ProgramCard({
   );
 }
 
-function ProgramCardEarnings({ program }: { program: ProgramProps }) {
+function ProgramCardEarnings({
+  programEnrollment,
+}: {
+  programEnrollment: ProgramEnrollmentProps;
+}) {
+  const { program, totalCommissions } = programEnrollment;
   const { data: timeseries } = usePartnerEarningsTimeseries({
     programId: program.id,
     interval: "1y",
   });
-
-  const total = useMemo(
-    () => timeseries?.reduce((acc, { earnings }) => acc + earnings, 0) || 0,
-    [timeseries],
-  );
 
   const chartData = useMemo(
     () =>
@@ -124,18 +134,17 @@ function ProgramCardEarnings({ program }: { program: ProgramProps }) {
         <div className="whitespace-nowrap text-sm text-neutral-500">
           Earnings
         </div>
-        {total !== undefined ? (
-          <div className="text-xl font-medium text-neutral-800">
-            {total < 1000_00
-              ? currencyFormatter(total / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })
-              : "$" + nFormatter(total / 100)}
-          </div>
-        ) : (
-          <div className="mt-1 h-6 w-20 animate-pulse rounded-md bg-neutral-200" />
-        )}
+        <NumberFlow
+          className="text-xl font-medium text-neutral-800"
+          value={totalCommissions / 100}
+          format={{
+            notation: totalCommissions > 100000 ? "compact" : "standard",
+            style: "currency",
+            currency: "USD",
+            // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+            trailingZeroDisplay: "stripIfInteger",
+          }}
+        />
       </div>
       {chartData && (
         <div className="relative h-full px-3">

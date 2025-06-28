@@ -1,6 +1,9 @@
-import { reorderTopProgramRewards } from "@/lib/partners/reorder-top-program-rewards";
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { DiscountProps, ProgramProps } from "@/lib/types";
-import { ProgramSchema } from "@/lib/zod/schemas/programs";
+import {
+  ProgramSchema,
+  ProgramWithLanderDataSchema,
+} from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
@@ -14,12 +17,12 @@ export const getProgramOrThrow = async (
   },
   {
     includeDefaultDiscount = false,
-    includeDefaultReward = false,
-    includeRewards = false,
+    includeDefaultRewards = false,
+    includeLanderData = false,
   }: {
     includeDefaultDiscount?: boolean;
-    includeDefaultReward?: boolean;
-    includeRewards?: boolean;
+    includeDefaultRewards?: boolean;
+    includeLanderData?: boolean;
   } = {},
 ) => {
   const program = (await prisma.program.findUnique({
@@ -27,20 +30,14 @@ export const getProgramOrThrow = async (
       id: programId,
       workspaceId,
     },
-
     include: {
       ...(includeDefaultDiscount && {
         defaultDiscount: true,
       }),
-      ...(includeDefaultReward && {
-        defaultReward: true,
-      }),
-      ...(includeRewards && {
+      ...(includeDefaultRewards && {
         rewards: {
           where: {
-            partners: {
-              none: {}, // program-wide rewards only
-            },
+            default: true,
           },
         },
       }),
@@ -54,10 +51,12 @@ export const getProgramOrThrow = async (
     });
   }
 
-  return ProgramSchema.parse({
+  return (
+    includeLanderData ? ProgramWithLanderDataSchema : ProgramSchema
+  ).parse({
     ...program,
-    ...(includeRewards && program.rewards?.length
-      ? { rewards: reorderTopProgramRewards(program.rewards as any) }
+    ...(includeDefaultRewards && program.rewards?.length
+      ? { rewards: sortRewardsByEventOrder(program.rewards) }
       : {}),
     ...(includeDefaultDiscount && program.defaultDiscount
       ? { discounts: [program.defaultDiscount] }

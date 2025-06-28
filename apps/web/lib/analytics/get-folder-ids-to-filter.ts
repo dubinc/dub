@@ -1,3 +1,4 @@
+import { prisma } from "@dub/prisma";
 import { Project } from "@prisma/client";
 import { getFolders } from "../folder/get-folders";
 import { getPlanCapabilities } from "../plan-capabilities";
@@ -18,12 +19,22 @@ export const getFolderIdsToFilter = async ({
 
   const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
 
+  // if rbac is enabled, we need to get all folders the user has access to
   if (canManageFolderPermissions) {
     const folders = await getFolders({
       workspaceId: workspace.id,
       userId,
-      excludeBulkFolders: true,
+      type: "default",
       pageSize: 1000, // TODO: might need to handle this if folks have > 1000 folders in the future
+    });
+
+    folderIds = folders.map((folder) => folder.id).concat("");
+    // else, just get all folders for the workspace
+  } else {
+    const folders = await prisma.folder.findMany({
+      where: {
+        projectId: workspace.id,
+      },
     });
 
     folderIds = folders.map((folder) => folder.id).concat("");

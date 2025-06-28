@@ -22,7 +22,7 @@ export function LinkPartnerDetails({
   return (
     <div>
       <Link
-        href={`/${slug}/programs/${link.programId}/partners?partnerId=${link.partnerId}`}
+        href={`/${slug}/program/partners?partnerId=${link.partnerId}`}
         className="border-border-subtle group flex items-center justify-between overflow-hidden rounded-t-lg border bg-neutral-100 px-4 py-3"
         target="_blank"
       >
@@ -63,7 +63,7 @@ export function LinkPartnerDetails({
           ["Revenue", partner ? formatCurrency(partner.saleAmount) : undefined],
           [
             "Commissions",
-            partner ? formatCurrency(partner.commissions) : undefined,
+            partner ? formatCurrency(partner.totalCommissions) : undefined,
           ],
           [
             "Net revenue",

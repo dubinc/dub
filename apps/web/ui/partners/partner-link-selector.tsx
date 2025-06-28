@@ -5,7 +5,7 @@ import { LinkProps } from "@/lib/types";
 import { Combobox, LinkLogo, Tooltip } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
-import { useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 const getLinkOption = (link: LinkProps) => ({
@@ -25,15 +25,21 @@ const getLinkOption = (link: LinkProps) => ({
 export function PartnerLinkSelector({
   selectedLinkId,
   setSelectedLinkId,
+  partnerId,
   showDestinationUrl = true,
   onCreate,
   error,
+  optional = false,
+  disabledTooltip,
 }: {
   selectedLinkId: string | null;
   setSelectedLinkId: (id: string) => void;
+  partnerId?: string | null;
   showDestinationUrl?: boolean;
   onCreate?: (search: string) => Promise<boolean>;
   error?: boolean;
+  optional?: boolean;
+  disabledTooltip?: string | ReactNode;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -41,9 +47,13 @@ export function PartnerLinkSelector({
 
   const { links } = useLinks(
     {
+      folderId: program?.defaultFolderId ?? undefined,
       domain: program?.domain ?? undefined,
       search: debouncedSearch,
-      sort: "clicks", // need to specify this to avoid the ?sort= param in the URL overriding the default
+      ...(partnerId && { partnerId }),
+      includeDashboard: false,
+      includeWebhooks: false,
+      includeUser: false,
     },
     {
       keepPreviousData: false,
@@ -75,7 +85,9 @@ export function PartnerLinkSelector({
           selectedLinkId && !selectedLink ? (
             <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
           ) : (
-            `Select${onCreate ? " or create" : ""} referral link`
+            `Select${onCreate ? " or create" : ""} referral link${
+              optional ? " (optional)" : ""
+            }`
           )
         }
         searchPlaceholder={onCreate ? "Search or create link..." : "Search..."}
@@ -90,6 +102,7 @@ export function PartnerLinkSelector({
             error &&
               "border-red-500 focus:border-red-500 focus:ring-red-500 data-[state=open]:ring-red-500 data-[state=open]:border-red-500",
           ),
+          disabledTooltip,
         }}
         shouldFilter={false}
         onCreate={onCreate}

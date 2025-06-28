@@ -155,8 +155,17 @@ function ImportCsvModal({
         </div>
         <h3 className="text-lg font-medium">Import Links From a CSV File</h3>
         <p className="text-balance text-center text-sm text-neutral-500">
-          Easily import all your links into {process.env.NEXT_PUBLIC_APP_NAME}{" "}
-          with just a few clicks.
+          Easily import your links into Dub with just a few clicks.
+          <br />
+          Make sure your CSV file matches the{" "}
+          <a
+            href="https://dub.co/help/article/how-to-import-csv"
+            target="_blank"
+            className="cursor-help font-medium underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-800"
+          >
+            required format
+          </a>
+          .
         </p>
       </div>
 
@@ -208,7 +217,7 @@ function ImportCsvModal({
                     if (!res.ok) throw new Error();
 
                     router.push(
-                      `/${slug}${folderId ? `?folderId=${folderId}` : ""}`,
+                      `/${slug}/links${folderId ? `?folderId=${folderId}` : ""}`,
                     );
                     await Promise.all([
                       mutatePrefix("/api/links"),

@@ -324,15 +324,6 @@ export const withWorkspace = (
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
             permissions.includes(p),
           );
-
-          // Prevent integration tokens from accessing API endpoints without explicit permissions
-          if (token.installationId && requiredPermissions.length === 0) {
-            throw new DubApiError({
-              code: "forbidden",
-              message:
-                "You don't have the necessary permissions to complete this request.",
-            });
-          }
         }
 
         // Check user has permission to make the action
@@ -350,12 +341,6 @@ export const withWorkspace = (
           let flags = await getFeatureFlags({
             workspaceId: workspace.id,
           });
-
-          // TODO: Remove this once Folders goes GA
-          flags = {
-            ...flags,
-            linkFolders: flags.linkFolders || workspace.partnersEnabled,
-          };
 
           if (!flags[featureFlag]) {
             throw new DubApiError({

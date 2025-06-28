@@ -1,4 +1,5 @@
 import {
+  BoxArchive,
   CircleCheck,
   CircleHalfDottedClock,
   CircleXmark,
@@ -34,8 +35,8 @@ export const PartnerStatusBadges = {
   },
   declined: {
     label: "Declined",
-    variant: "error",
-    className: "text-gray-600 bg-gray-100",
+    variant: "neutral",
+    className: "text-neutral-500 bg-neutral-100",
     icon: EnvelopeAlert,
   },
   banned: {
@@ -43,5 +44,11 @@ export const PartnerStatusBadges = {
     variant: "error",
     className: "text-red-600 bg-red-100",
     icon: UserDelete,
+  },
+  archived: {
+    label: "Archived",
+    variant: "neutral",
+    className: "text-neutral-500 bg-neutral-100",
+    icon: BoxArchive,
   },
 };

@@ -7,12 +7,15 @@ import {
 import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
 import { useLinkFilters } from "@/ui/links/use-link-filters";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
+import { useDotLinkOfferModal } from "@/ui/modals/dot-link-offer-modal";
 import { useExportLinksModal } from "@/ui/modals/export-links-modal";
 import { useLinkBuilder } from "@/ui/modals/link-builder";
 import { ThreeDots } from "@/ui/shared/icons";
@@ -21,7 +24,6 @@ import {
   Button,
   Filter,
   IconMenu,
-  MaxWidthWrapper,
   Popover,
   Tooltip,
   TooltipContent,
@@ -52,11 +54,24 @@ export default function WorkspaceLinksClient() {
   );
 }
 
+export function WorkspaceLinksPageControls() {
+  const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
+
+  return (
+    <>
+      <LinkBuilder />
+      <div className="hidden sm:block">
+        <CreateLinkButton />
+      </div>
+    </>
+  );
+}
+
 function WorkspaceLinks() {
   const router = useRouter();
   const { isValidating } = useLinks();
   const searchParams = useSearchParams();
-  const { id: workspaceId, slug } = useWorkspace();
+  const workspace = useWorkspace();
   const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
 
@@ -79,13 +94,51 @@ function WorkspaceLinks() {
     "folders.links.write",
   );
 
+  const [dotLinkOfferDismissed, _, { loading: loadingDotLinkOfferDismissed }] =
+    useWorkspaceStore<string>("dotLinkOfferDismissed");
+
+  const [showedDotLinkModal, setShowedDotLinkModal] = useState(false);
+  const { setShowDotLinkOfferModal, DotLinkOfferModal } =
+    useDotLinkOfferModal();
+
+  useEffect(() => {
+    if (showedDotLinkModal) return;
+
+    // We show the .link offer modal if:
+    // - The upgraded modal is not open
+    // - The user has a paid plan (and valid stripe ID)
+    // - The user has no custom domains
+    // - The user has not claimed their .link domain
+    // - The user has not dismissed the .link offer modal
+    if (
+      !searchParams.has("upgraded") &&
+      workspace.stripeId &&
+      workspace.plan &&
+      workspace.plan !== "free" &&
+      workspace.domains?.length === 0 &&
+      !workspace.dotLinkClaimed &&
+      !loadingDotLinkOfferDismissed &&
+      dotLinkOfferDismissed === undefined
+    ) {
+      setShowDotLinkOfferModal(true);
+      setShowedDotLinkModal(true);
+    }
+  }, [
+    showedDotLinkModal,
+    searchParams,
+    workspace,
+    loadingDotLinkOfferDismissed,
+    dotLinkOfferDismissed,
+  ]);
+
   return (
     <>
+      <DotLinkOfferModal />
       <LinkBuilder />
       <AddEditTagModal />
-      <div className="flex w-full items-center pt-2">
-        <MaxWidthWrapper className="flex flex-col gap-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
+      <div className="flex w-full items-center">
+        <PageWidthWrapper className="flex flex-col gap-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex w-full grow gap-2 md:w-auto">
               {!isMegaFolder && (
                 <div className="grow basis-0 md:grow-0">
@@ -133,7 +186,9 @@ function WorkspaceLinks() {
                             <Button
                               className="mt-1 h-8"
                               onClick={() =>
-                                router.push(`/${slug}/settings/domains`)
+                                router.push(
+                                  `/${workspace.slug}/settings/domains`,
+                                )
                               }
                               text="Add domain"
                             />
@@ -149,10 +204,15 @@ function WorkspaceLinks() {
               </div>
             </div>
             <div className="flex gap-x-2 max-md:w-full">
-              <div className="w-full md:w-56 lg:w-64">
+              <div className="w-full md:w-56 xl:w-64">
                 <SearchBoxPersisted
                   loading={isValidating}
                   inputClassName="h-10"
+                  placeholder={
+                    isMegaFolder
+                      ? "Search by short link"
+                      : "Search by short link or URL"
+                  }
                 />
               </div>
 
@@ -162,17 +222,12 @@ function WorkspaceLinks() {
                   <div className="h-10 w-10 rounded-md bg-neutral-200" />
                 </div>
               ) : canCreateLinks ? (
-                <>
-                  <div className="hidden grow-0 sm:block">
-                    <CreateLinkButton />
-                  </div>
-                  <MoreLinkOptions />
-                </>
+                <MoreLinkOptions />
               ) : (
                 <div className="w-fit">
                   <RequestFolderEditAccessButton
                     folderId={folderId!}
-                    workspaceId={workspaceId!}
+                    workspaceId={workspace.id!}
                     variant="primary"
                   />
                 </div>
@@ -185,7 +240,7 @@ function WorkspaceLinks() {
             onRemove={onRemove}
             onRemoveAll={onRemoveAll}
           />
-        </MaxWidthWrapper>
+        </PageWidthWrapper>
       </div>
 
       <div className="mt-3">

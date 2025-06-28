@@ -149,7 +149,11 @@ export const analyticsResponse = {
       country: z
         .enum(COUNTRY_CODES)
         .describe("The 2-letter country code of the city: https://d.to/geo"),
-      region: z.literal("*").default("*"),
+      region: z
+        .string()
+        .describe(
+          "The 2-letter ISO 3166-2 region code representing the region associated with the location of the user.",
+        ),
       city: z.string().describe("The name of the city"),
       clicks: z
         .number()
@@ -456,4 +460,28 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsUTMContents" }),
+  top_partners: z
+    .object({
+      partnerId: z.string().describe("The ID of the partner"),
+      partner: z.object({
+        id: z.string().describe("The ID of the partner"),
+        name: z.string().describe("The name of the partner"),
+        image: z.string().nullable().describe("The image of the partner"),
+        payoutsEnabledAt: z
+          .string()
+          .nullable()
+          .describe("The date the partner enabled payouts"),
+        country: z.string().nullable().describe("The country of the partner"),
+      }),
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe(
+          "The total amount of sales from this partner for this program, in cents",
+        )
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsPartners" }),
 } as const;

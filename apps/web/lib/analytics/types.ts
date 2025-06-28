@@ -3,16 +3,17 @@ import {
   analyticsQuerySchema,
   eventsQuerySchema,
 } from "../zod/schemas/analytics";
+import { analyticsResponse } from "../zod/schemas/analytics-response";
 import { getPartnerEarningsTimeseriesSchema } from "../zod/schemas/partner-profile";
 import {
   ANALYTICS_SALE_UNIT,
   ANALYTICS_VIEWS,
+  DATE_RANGE_INTERVAL_PRESETS,
   EVENT_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
-  intervals,
 } from "./constants";
 
-export type IntervalOptions = (typeof intervals)[number];
+export type IntervalOptions = (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
 
 export type AnalyticsGroupByOptions =
   (typeof VALID_ANALYTICS_ENDPOINTS)[number];
@@ -22,6 +23,10 @@ export type AnalyticsResponseOptions =
   | "leads"
   | "sales"
   | "saleAmount";
+
+export type AnalyticsResponse = {
+  [K in keyof typeof analyticsResponse]: z.infer<(typeof analyticsResponse)[K]>;
+};
 
 export type EventType = (typeof EVENT_TYPES)[number];
 

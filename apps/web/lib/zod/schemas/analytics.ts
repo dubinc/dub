@@ -1,11 +1,10 @@
 import {
+  DATE_RANGE_INTERVAL_PRESETS,
   EVENT_TYPES,
   OLD_ANALYTICS_ENDPOINTS,
   OLD_TO_NEW_ANALYTICS_ENDPOINTS,
   TRIGGER_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
-  eventIntervals,
-  intervals,
 } from "@/lib/analytics/constants";
 import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
@@ -67,7 +66,7 @@ export const analyticsPathParamsSchema = z.object({
   endpoint: oldAnalyticsEndpoints.optional(),
 });
 
-// Query schema for /api/analytics endpoint
+// Query schema for GET /analytics and GET /events endpoints
 export const analyticsQuerySchema = z
   .object({
     event: analyticsEvents,
@@ -76,16 +75,23 @@ export const analyticsQuerySchema = z
       .string()
       .optional()
       .describe("The domain to filter analytics for."),
-    key: z.string().optional().describe("The short link slug."),
+    key: z
+      .string()
+      .optional()
+      .describe(
+        "The slug of the short link to retrieve analytics for. Must be used along with the corresponding `domain` of the short link to fetch analytics for a specific short link.",
+      ),
     linkId: z
       .string()
       .optional()
-      .describe("The unique ID of the short link on Dub."),
+      .describe(
+        "The unique ID of the short link on Dub to retrieve analytics for.",
+      ),
     externalId: z
       .string()
       .optional()
       .describe(
-        "This is the ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
+        "The ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
       ),
     tenantId: z
       .string()
@@ -106,7 +112,7 @@ export const analyticsQuerySchema = z
       .optional()
       .describe("The ID of the customer to retrieve analytics for."),
     interval: z
-      .enum(intervals)
+      .enum(DATE_RANGE_INTERVAL_PRESETS)
       .optional()
       .describe(
         "The interval to retrieve analytics for. If undefined, defaults to 24h.",
@@ -117,12 +123,12 @@ export const analyticsQuerySchema = z
       })
       .optional()
       .describe(
-        "The start date and time when to retrieve analytics from. Takes precedence over `interval`.",
+        "The start date and time when to retrieve analytics from. If set, takes precedence over `interval`.",
       ),
     end: parseDateSchema
       .optional()
       .describe(
-        "The end date and time when to retrieve analytics from. If not provided, defaults to the current date. Takes precedence over `interval`.",
+        "The end date and time when to retrieve analytics from. If not provided, defaults to the current date. If set along with `start`, takes precedence over `interval`.",
       ),
     timezone: z
       .string()
@@ -271,11 +277,12 @@ export const analyticsFilterTB = z
       partnerId: true,
       tenantId: true,
       folderId: true,
+      sortBy: true,
     }),
   );
 
 export const eventsFilterTB = analyticsFilterTB
-  .omit({ granularity: true, timezone: true, page: true })
+  .omit({ granularity: true, timezone: true, page: true, sortBy: true })
   .and(
     z.object({
       offset: z.coerce.number().default(0),
@@ -292,19 +299,13 @@ const sortOrder = z
   .describe("The sort order. The default is `desc`.");
 
 export const eventsQuerySchema = analyticsQuerySchema
-  .omit({ groupBy: true })
+  .omit({ groupBy: true, sortBy: true })
   .extend({
     event: z
       .enum(EVENT_TYPES)
       .default("clicks")
       .describe(
         "The type of event to retrieve analytics for. Defaults to 'clicks'.",
-      ),
-    interval: z
-      .enum(eventIntervals)
-      .default("24h")
-      .describe(
-        "The interval to retrieve events for. Takes precedence over start and end. If undefined, defaults to 24h.",
       ),
     page: z.coerce.number().default(1),
     limit: z.coerce.number().default(PAGINATION_LIMIT),

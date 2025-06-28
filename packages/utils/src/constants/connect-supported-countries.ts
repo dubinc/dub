@@ -1,3 +1,4 @@
+// @see: https://docs.stripe.com/connect/cross-border-payouts#supported-countries
 export const CONNECT_SUPPORTED_COUNTRIES = [
   "AL", // Albania
   "DZ", // Algeria

@@ -1,5 +1,4 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "../analytics/constants";
 import { PartnerAnalyticsFilters } from "../analytics/types";
@@ -13,7 +12,6 @@ interface Commission {
 export default function useCommissionsTimeseries(
   params?: PartnerAnalyticsFilters & { enabled: boolean },
 ) {
-  const { programId } = useParams();
   const { id: workspaceId } = useWorkspace();
 
   const searchParams = new URLSearchParams({
@@ -31,7 +29,7 @@ export default function useCommissionsTimeseries(
 
   const { data, error } = useSWR<Commission[]>(
     params?.enabled
-      ? `/api/programs/${programId}/commissions/timeseries?${searchParams.toString()}`
+      ? `/api/commissions/timeseries?${searchParams.toString()}`
       : null,
     fetcher,
     {
@@ -42,6 +40,6 @@ export default function useCommissionsTimeseries(
   return {
     data,
     error,
-    loading: programId && !data && !error ? true : false,
+    loading: !data && !error ? true : false,
   };
 }

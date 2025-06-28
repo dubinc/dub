@@ -4,7 +4,7 @@ import {
   CardList,
   ExpandingArrow,
   useIntersectionObserver,
-  useMediaQuery,
+  useRouterStuff,
 } from "@dub/ui";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -47,20 +47,26 @@ export const LinkCard = memo(({ link }: { link: ResponseLink }) => {
 });
 
 const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
-  const { variant } = useContext(CardList.Context);
-  const { isMobile } = useMediaQuery();
+  const { variant, loading } = useContext(CardList.Context);
   const ref = useRef<HTMLDivElement>(null);
 
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedFolderId = searchParams.get("folderId");
   const { slug, defaultFolderId } = useWorkspace();
+  const { queryParams } = useRouterStuff();
 
-  const entry = useIntersectionObserver(ref);
-  const isInView = entry?.isIntersecting;
+  const showFolderIcon = useMemo(() => {
+    return Boolean(
+      !loading &&
+        link.folderId &&
+        ![defaultFolderId, selectedFolderId].includes(link.folderId),
+    );
+  }, [loading, link.folderId, defaultFolderId, selectedFolderId]);
 
   const { folder } = useFolder({
     folderId: link.folderId,
-    enabled: isInView,
+    enabled: showFolderIcon,
   });
 
   const editUrl = useMemo(
@@ -68,35 +74,36 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
     [slug, link.domain, link.key],
   );
 
+  const entry = useIntersectionObserver(ref);
+  const isInView = entry?.isIntersecting;
+
   useEffect(() => {
     if (isInView) router.prefetch(editUrl);
-  }, [isInView, editUrl]);
+  }, [isInView]);
 
   return (
     <>
       <CardList.Card
         key={link.id}
-        onClick={
-          !isMobile
-            ? (e) => {
-                if (e.metaKey || e.ctrlKey) window.open(editUrl, "_blank");
-                else router.push(editUrl);
-              }
-            : undefined
-        }
-        onAuxClick={
-          !isMobile ? () => window.open(editUrl, "_blank") : undefined
-        }
+        onClick={(e) => {
+          if (e.metaKey || e.ctrlKey) window.open(editUrl, "_blank");
+          else router.push(editUrl);
+        }}
+        onAuxClick={() => window.open(editUrl, "_blank")}
         outerClassName="overflow-hidden"
         innerClassName="p-0"
         {...(variant === "loose" &&
-          link.folderId &&
-          ![defaultFolderId, searchParams.get("folderId")].includes(
-            link.folderId,
-          ) && {
+          showFolderIcon && {
             banner: (
               <Link
-                href={`/${slug}/links?folderId=${folder?.id}`}
+                href={
+                  folder
+                    ? (queryParams({
+                        set: { folderId: folder?.id || "" },
+                        getNewPath: true,
+                      }) as string)
+                    : "#"
+                }
                 className="group flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs"
               >
                 <div className="flex items-center gap-1.5">
