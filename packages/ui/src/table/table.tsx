@@ -1,13 +1,8 @@
 import { cn, deepEqual, isClickOnInteractiveChild } from "@dub/utils";
 import {
-  Cell,
   Column,
-  ColumnDef,
-  ColumnPinningState,
-  ColumnResizeMode,
   flexRender,
   getCoreRowModel,
-  PaginationState,
   Row,
   RowSelectionState,
   Table as TableType,
@@ -17,26 +12,26 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CSSProperties,
-  Dispatch,
   HTMLAttributes,
   memo,
-  MouseEvent,
-  PropsWithChildren,
-  ReactNode,
-  SetStateAction,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import { Button } from "../button";
+import { Checkbox } from "../checkbox";
 import { LoadingSpinner, SortOrder } from "../icons";
+import { SelectionToolbar } from "./selection-toolbar";
+import { TableProps, UseTableProps } from "./types";
 
 const tableCellClassName = (columnId: string, clickable?: boolean) =>
   cn([
     "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-border-subtle px-4 relative",
     "border-l border-b",
+    columnId === "select" && "py-0 pr-0 pl-2",
     columnId === "menu" && "bg-bg-default border-l-transparent py-0 px-1",
     clickable && "group-hover/row:bg-bg-muted transition-colors duration-75",
+    "group-data-[selected=true]/row:bg-blue-50",
   ]);
 
 const resizingClassName = cn([
@@ -48,67 +43,6 @@ const resizingClassName = cn([
   "-mr-px",
   "after:absolute after:right-0 after:top-0 after:h-full after:w-4 after:translate-x-1/2",
 ]);
-
-type BaseTableProps<T> = {
-  columns: ColumnDef<T, any>[];
-  data: T[];
-  loading?: boolean;
-  error?: string;
-  emptyState?: ReactNode;
-  cellRight?: (cell: Cell<T, any>) => ReactNode;
-  defaultColumn?: Partial<ColumnDef<T, any>>;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  onSortChange?: (props: {
-    sortBy?: string;
-    sortOrder?: "asc" | "desc";
-  }) => void;
-  sortableColumns?: string[];
-  columnVisibility?: VisibilityState;
-  onColumnVisibilityChange?: (visibility: VisibilityState) => void;
-  columnPinning?: ColumnPinningState;
-  resourceName?: (plural: boolean) => string;
-  onRowClick?: (row: Row<T>, e: MouseEvent) => void;
-  rowProps?:
-    | HTMLAttributes<HTMLTableRowElement>
-    | ((row: Row<T>) => HTMLAttributes<HTMLTableRowElement>);
-  enableColumnResizing?: boolean;
-  columnResizeMode?: ColumnResizeMode;
-
-  // Row selection
-  getRowId?: (row: T) => string;
-  onRowSelectionChange?: (rows: Row<T>[]) => void;
-  selectedRows?: RowSelectionState;
-
-  // Table styles
-  className?: string;
-  containerClassName?: string;
-  scrollWrapperClassName?: string;
-  thClassName?: string | ((columnId: string) => string);
-  tdClassName?: string | ((columnId: string) => string);
-};
-
-type UseTableProps<T> = BaseTableProps<T> &
-  (
-    | {
-        pagination?: PaginationState;
-        onPaginationChange?: Dispatch<SetStateAction<PaginationState>>;
-        rowCount: number;
-      }
-    | { pagination?: never; onPaginationChange?: never; rowCount?: never }
-  );
-
-type TableProps<T> = BaseTableProps<T> &
-  PropsWithChildren<{
-    table: TableType<T>;
-  }> &
-  (
-    | {
-        pagination?: PaginationState;
-        rowCount: number;
-      }
-    | { pagination?: never; rowCount?: never }
-  );
 
 export function useTable<T extends any>(
   props: UseTableProps<T>,
@@ -126,6 +60,9 @@ export function useTable<T extends any>(
     columnResizeMode = "onChange",
   } = props;
 
+  const selectionEnabled =
+    !!props.onRowSelectionChange || !!props.selectionControls;
+
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     props.columnVisibility ?? {},
   );
@@ -133,6 +70,22 @@ export function useTable<T extends any>(
   const [rowSelection, setRowSelection] = useState<RowSelectionState>(
     props.selectedRows ?? {},
   );
+
+  // Manually unset row selection if the row is no longer in the data
+  // There doesn't seem to be a proper solution for this: https://github.com/TanStack/table/issues/4498
+  useEffect(() => {
+    if (!getRowId || !data) return;
+
+    const entries = Object.entries(rowSelection);
+    if (entries.length > 0) {
+      const newEntries = entries.filter(([key]) =>
+        data.find((row) => getRowId?.(row) === key),
+      );
+
+      if (newEntries.length !== entries.length)
+        setRowSelection(Object.fromEntries(newEntries));
+    }
+  }, [data, rowSelection, getRowId]);
 
   useEffect(() => {
     if (props.selectedRows && !deepEqual(props.selectedRows, rowSelection)) {
@@ -158,10 +111,54 @@ export function useTable<T extends any>(
     props.onColumnVisibilityChange?.(columnVisibility);
   }, [columnVisibility]);
 
+  const tableColumns = useMemo(
+    () => [
+      ...(selectionEnabled
+        ? [
+            {
+              id: "select",
+              enableHiding: false,
+              minSize: 30,
+              size: 30,
+              maxSize: 30,
+              header: ({ table }: { table: TableType<T> }) => (
+                <div className="flex size-full items-center justify-center">
+                  <Checkbox
+                    className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                    checked={
+                      table.getIsAllRowsSelected()
+                        ? true
+                        : table.getIsSomeRowsSelected()
+                          ? "indeterminate"
+                          : false
+                    }
+                    onCheckedChange={() => table.toggleAllRowsSelected()}
+                    title="Select all"
+                  />
+                </div>
+              ),
+              cell: ({ row }: { row: Row<T> }) => (
+                <div className="flex size-full items-center justify-center">
+                  <Checkbox
+                    className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                    checked={row.getIsSelected()}
+                    onCheckedChange={row.getToggleSelectedHandler()}
+                    title="Select"
+                  />
+                </div>
+              ),
+            },
+          ]
+        : []),
+      ...columns,
+    ],
+    [selectionEnabled, columns],
+  );
+
   const table = useReactTable({
     data,
     rowCount,
-    columns,
+    columns: tableColumns,
     defaultColumn: {
       minSize: 120,
       size: 0,
@@ -195,6 +192,12 @@ export function useTable<T extends any>(
   };
 }
 
+type ResizableTableRowProps<T> = {
+  row: Row<T>;
+  rowProps?: HTMLAttributes<HTMLTableRowElement>;
+  table: TableType<T>;
+} & Pick<TableProps<T>, "cellRight" | "tdClassName" | "onRowClick">;
+
 // Memoized row component to prevent re-renders during column resizing
 const ResizableTableRow = memo(
   function ResizableTableRow<T>({
@@ -204,14 +207,7 @@ const ResizableTableRow = memo(
     cellRight,
     tdClassName,
     table,
-  }: {
-    row: Row<T>;
-    onRowClick?: (row: Row<T>, e: MouseEvent) => void;
-    rowProps?: HTMLAttributes<HTMLTableRowElement>;
-    cellRight?: (cell: Cell<T, any>) => ReactNode;
-    tdClassName?: string | ((columnId: string) => string);
-    table: TableType<T>;
-  }) {
+  }: ResizableTableRowProps<T>) {
     const { className, ...rest } = rowProps || {};
 
     return (
@@ -235,6 +231,7 @@ const ResizableTableRow = memo(
               }
             : undefined
         }
+        data-selected={row.getIsSelected()}
         {...rest}
       >
         {row.getVisibleCells().map((cell) => (
@@ -276,17 +273,9 @@ const ResizableTableRow = memo(
       prevRow.getIsSelected() === nextRow.getIsSelected()
     );
   },
-) as <T>(props: {
-  row: Row<T>;
-  onRowClick?: (row: Row<T>, e: MouseEvent) => void;
-  rowProps?: HTMLAttributes<HTMLTableRowElement>;
-  cellRight?: (cell: Cell<T, any>) => ReactNode;
-  tdClassName?: string | ((columnId: string) => string);
-  table: TableType<T>;
-}) => JSX.Element;
+) as <T>(props: ResizableTableRowProps<T>) => JSX.Element;
 
 export function Table<T>({
-  columns,
   data,
   loading,
   error,
@@ -305,11 +294,15 @@ export function Table<T>({
   pagination,
   resourceName,
   onRowClick,
+  onRowSelectionChange,
+  selectionControls,
   rowProps,
   rowCount,
   children,
   enableColumnResizing = false,
 }: TableProps<T>) {
+  const selectionEnabled = !!onRowSelectionChange || !!selectionControls;
+
   // Memoize table width calculation
   const tableWidth = useMemo(() => {
     if (!enableColumnResizing) return "100%";
@@ -350,7 +343,7 @@ export function Table<T>({
               minWidth: tableWidth,
             }}
           >
-            <thead>
+            <thead className="relative">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
@@ -382,7 +375,10 @@ export function Table<T>({
                       >
                         <div className="flex items-center justify-between gap-6 !pr-0">
                           <ButtonOrDiv
-                            className="flex items-center gap-2"
+                            className={cn(
+                              "flex items-center gap-2",
+                              header.column.id === "select" && "size-full",
+                            )}
                             {...(isSortableColumn && {
                               type: "button",
                               disabled: !isSortableColumn,
@@ -416,7 +412,7 @@ export function Table<T>({
                         </div>
                         {enableColumnResizing &&
                           header.column.getCanResize() &&
-                          header.column.id !== "menu" && (
+                          !["select", "menu"].includes(header.column.id) && (
                             <div
                               onMouseDown={header.getResizeHandler()}
                               onTouchStart={header.getResizeHandler()}
@@ -429,6 +425,9 @@ export function Table<T>({
                   })}
                 </tr>
               ))}
+              {selectionEnabled && (
+                <SelectionToolbar table={table} controls={selectionControls} />
+              )}
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => {
@@ -468,6 +467,7 @@ export function Table<T>({
                           }
                         : undefined
                     }
+                    data-selected={row.getIsSelected()}
                     {...rest}
                   >
                     {row.getVisibleCells().map((cell) => (

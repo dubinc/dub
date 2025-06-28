@@ -1,6 +1,5 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
 import { PartnersCount } from "../types";
@@ -9,7 +8,6 @@ import useWorkspace from "./use-workspace";
 
 export default function usePartnersCount<T>({
   ignoreParams,
-  programId: programIdArg,
   enabled,
   ...params
 }: z.infer<typeof partnersCountQuerySchema> & {
@@ -17,24 +15,20 @@ export default function usePartnersCount<T>({
   ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {
-  const { programId: programIdParam } = useParams();
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
-
-  const programId = programIdArg || programIdParam;
 
   const queryString = ignoreParams
     ? // @ts-ignore
       `?${new URLSearchParams({
         ...(params.groupBy && { groupBy: params.groupBy }),
+        ...(params.status && { status: params.status }),
         workspaceId,
-        programId,
       }).toString()}`
     : getQueryString(
         {
           ...params,
           workspaceId,
-          programId,
         },
         {
           exclude: ["partnerId"],
@@ -42,7 +36,7 @@ export default function usePartnersCount<T>({
       );
 
   const { data: partnersCount, error } = useSWR<PartnersCount>(
-    enabled !== false && programId ? `/api/partners/count${queryString}` : null,
+    enabled !== false ? `/api/partners/count${queryString}` : null,
     fetcher,
     {
       keepPreviousData: true,
@@ -52,5 +46,6 @@ export default function usePartnersCount<T>({
   return {
     partnersCount: partnersCount as T,
     error,
+    loading: enabled !== false && !error && partnersCount === undefined,
   };
 }

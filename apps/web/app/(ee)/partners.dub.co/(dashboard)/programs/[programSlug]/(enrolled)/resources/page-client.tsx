@@ -1,22 +1,17 @@
 "use client";
 
 import useProgramResources from "@/lib/swr/use-program-resources";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ResourceCard } from "@/ui/partners/resources/resource-card";
 import { ResourceSection } from "@/ui/partners/resources/resource-section";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { MaxWidthWrapper } from "@dub/ui";
 import { FileContent, FileZip2, Palette2, Post } from "@dub/ui/icons";
 import { formatFileSize } from "@dub/utils";
-import { useParams } from "next/navigation";
 
 const emptyStateIcons = [Post, Palette2, FileZip2];
 
 export function ResourcesPageClient() {
-  const { programSlug } = useParams();
-
-  const { resources, isLoading, isValidating } = useProgramResources({
-    programId: programSlug as string,
-  });
+  const { resources, isLoading, isValidating } = useProgramResources();
 
   const isEmpty =
     !isLoading &&
@@ -25,7 +20,7 @@ export function ResourcesPageClient() {
     );
 
   return (
-    <MaxWidthWrapper>
+    <PageWidthWrapper className="pb-10">
       {isLoading || !isEmpty ? (
         <div className="flex flex-col gap-10">
           {(isLoading || !!resources?.logos?.length) && (
@@ -118,6 +113,6 @@ export function ResourcesPageClient() {
           }}
         />
       )}
-    </MaxWidthWrapper>
+    </PageWidthWrapper>
   );
 }

@@ -104,7 +104,7 @@ export async function GET(req: Request) {
       },
     });
 
-    const isVerified = await verify({
+    const { verified: isVerified, metadata } = await verify({
       partner,
       accessToken: result.access_token,
     });
@@ -117,6 +117,16 @@ export async function GET(req: Request) {
         data: {
           [provider]: partner[provider],
           [verifiedColumn]: new Date(),
+          ...(provider === "youtube" &&
+            metadata && {
+              youtubeChannelId: metadata.channelId,
+              youtubeSubscriberCount: parseInt(
+                metadata.subscriberCount || "0",
+                10,
+              ),
+              youtubeVideoCount: parseInt(metadata.videoCount || "0", 10),
+              youtubeViewCount: parseInt(metadata.viewCount || "0", 10),
+            }),
         },
       });
     }
@@ -131,4 +141,4 @@ export async function GET(req: Request) {
 const getRedirectUrl = (source: string) =>
   source === "onboarding"
     ? `${PARTNERS_DOMAIN}/onboarding/online-presence`
-    : `${PARTNERS_DOMAIN}/settings#online-presence`;
+    : `${PARTNERS_DOMAIN}/profile/sites`;

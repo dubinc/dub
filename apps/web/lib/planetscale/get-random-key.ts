@@ -3,15 +3,15 @@ import { checkIfKeyExists } from "./check-if-key-exists";
 
 export async function getRandomKey({
   domain,
+  length = 7,
   prefix,
-  long,
 }: {
   domain: string;
+  length?: number;
   prefix?: string;
-  long?: boolean;
 }): Promise<string> {
   /* recursively get random key till it gets one that's available */
-  let key = long ? nanoid(69) : nanoid();
+  let key = nanoid(length);
   if (prefix) {
     key = `${prefix.replace(/^\/|\/$/g, "")}/${key}`;
   }
@@ -20,7 +20,7 @@ export async function getRandomKey({
 
   if (exists) {
     // by the off chance that key already exists
-    return getRandomKey({ domain, prefix, long });
+    return getRandomKey({ domain, length, prefix });
   } else {
     return key;
   }

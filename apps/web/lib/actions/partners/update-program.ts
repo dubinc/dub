@@ -2,6 +2,7 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
+import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { isStored, storage } from "@/lib/storage";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
@@ -81,6 +82,7 @@ export const updateProgramAction = authActionClient
         wordmark: wordmarkUrl ?? undefined,
         brandColor,
         landerData: landerData === null ? Prisma.JsonNull : landerData,
+        landerPublishedAt: landerData ? new Date() : undefined,
         domain,
         url,
         linkStructure,
@@ -89,7 +91,10 @@ export const updateProgramAction = authActionClient
         termsUrl,
         cookieLength,
         holdingPeriodDays,
-        minPayoutAmount,
+        minPayoutAmount:
+          workspace.plan === "enterprise"
+            ? minPayoutAmount
+            : DUB_MIN_PAYOUT_AMOUNT_CENTS,
         defaultFolderId,
       },
     });

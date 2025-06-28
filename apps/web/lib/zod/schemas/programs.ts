@@ -22,13 +22,14 @@ export const ProgramSchema = z.object({
   domain: z.string().nullable(),
   url: z.string().nullable(),
   cookieLength: z.number(),
-  defaultRewardId: z.string().nullable(),
   defaultDiscountId: z.string().nullable(),
   rewards: z.array(RewardSchema).nullish(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
   linkStructure: z.nativeEnum(LinkStructure),
   linkParameter: z.string().nullish(),
+  landerPublishedAt: z.date().nullish(),
+  autoApprovePartnersEnabledAt: z.date().nullish(),
 
   // Discounts (for dual-sided incentives)
   discounts: z.array(DiscountSchema).nullish(),
@@ -37,14 +38,16 @@ export const ProgramSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 
-  // Help & Support
+  // Help & support
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
+  ageVerification: z.number().nullish(),
 });
 
 export const ProgramWithLanderDataSchema = ProgramSchema.extend({
   landerData: programLanderSchema.nullish(),
+  landerPublishedAt: z.date().nullish(),
 });
 
 export const updateProgramSchema = z.object({
@@ -71,7 +74,7 @@ export const updateProgramSchema = z.object({
     }),
   linkStructure: z.nativeEnum(LinkStructure),
 
-  // Help & Support
+  // Help & support
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),
@@ -106,6 +109,7 @@ export const ProgramEnrollmentSchema = z.object({
     .array(ProgramPartnerLinkSchema)
     .nullable()
     .describe("The partner's referral links in this program."),
+  totalCommissions: z.number().default(0),
   rewards: z.array(RewardSchema).nullish(),
   discount: DiscountSchema.nullish(),
   createdAt: z.date(),

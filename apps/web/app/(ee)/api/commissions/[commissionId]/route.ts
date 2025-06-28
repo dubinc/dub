@@ -1,5 +1,6 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { DubApiError } from "@/lib/api/errors";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -22,13 +23,14 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
   const commission = await prisma.commission.findUnique({
     where: {
       id: commissionId,
+      programId,
     },
     include: {
       partner: true,
     },
   });
 
-  if (!commission || commission.programId !== programId) {
+  if (!commission) {
     throw new DubApiError({
       code: "not_found",
       message: `Commission ${commissionId} not found.`,
@@ -148,6 +150,13 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
       }),
     );
   }
+
+  waitUntil(
+    syncTotalCommissions({
+      partnerId: commission.partnerId,
+      programId: commission.programId,
+    }),
+  );
 
   return NextResponse.json(CommissionSchema.parse(updatedCommission));
 });

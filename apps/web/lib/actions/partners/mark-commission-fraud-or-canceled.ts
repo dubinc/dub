@@ -1,7 +1,9 @@
 "use server";
 
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -28,6 +30,12 @@ export const markCommissionFraudOrCanceledAction = authActionClient
 
     if (commission.programId !== programId) {
       throw new Error("Commission not found.");
+    }
+
+    if (commission.type === "custom") {
+      throw new Error(
+        "You cannot mark a custom commission as fraud or canceled.",
+      );
     }
 
     const { partnerId, customerId } = commission;
@@ -102,4 +110,11 @@ export const markCommissionFraudOrCanceledAction = authActionClient
         payoutId: null,
       },
     });
+
+    waitUntil(
+      syncTotalCommissions({
+        partnerId: commission.partnerId,
+        programId,
+      }),
+    );
   });

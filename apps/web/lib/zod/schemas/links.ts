@@ -246,6 +246,14 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The short link slug. If not provided, a random 7-character slug will be generated.",
     ),
+  keyLength: z
+    .number()
+    .min(3)
+    .max(190)
+    .optional()
+    .describe(
+      "The length of the short link slug. Defaults to 7 if not provided. When used with `prefix`, the total length of the key will be `prefix.length + keyLength`.",
+    ),
   externalId: z
     .string()
     .min(1)
@@ -340,31 +348,31 @@ export const createLinkBodySchema = z.object({
     .boolean()
     .optional()
     .describe(
-      "Whether the short link uses Custom Social Media Cards feature. Defaults to `false` if not provided.",
+      "Whether the short link uses Custom Link Previews feature. Defaults to `false` if not provided.",
     ),
   title: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview title (og:title). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview title (og:title). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   description: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview description (og:description). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview description (og:description). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   image: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview image (og:image). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview image (og:image). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   video: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview video (og:video). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview video (og:video). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   rewrite: z
     .boolean()
@@ -452,7 +460,9 @@ export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
   image: z.union([base64ImageSchema, publicHostedImageSchema]).nullish(),
 });
 
-export const updateLinkBodySchema = createLinkBodySchemaAsync.partial();
+export const updateLinkBodySchema = createLinkBodySchemaAsync
+  .omit({ keyLength: true, prefix: true })
+  .partial();
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
@@ -481,6 +491,7 @@ export const bulkUpdateLinksBodySchema = z.object({
       domain: true,
       key: true,
       externalId: true,
+      keyLength: true,
       prefix: true,
     })
     .merge(
@@ -557,32 +568,30 @@ export const LinkSchema = z
     proxy: z
       .boolean()
       .default(false)
-      .describe(
-        "Whether the short link uses Custom Social Media Cards feature.",
-      ),
+      .describe("Whether the short link uses Custom Link Previews feature."),
     title: z
       .string()
       .nullable()
       .describe(
-        "The title of the short link. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The title of the short link. Will be used for Custom Link Previews if `proxy` is true.",
       ),
     description: z
       .string()
       .nullable()
       .describe(
-        "The description of the short link. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The description of the short link. Will be used for Custom Link Previews if `proxy` is true.",
       ),
     image: z
       .string()
       .nullable()
       .describe(
-        "The image of the short link. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The image of the short link. Will be used for Custom Link Previews if `proxy` is true.",
       ),
     video: z
       .string()
       .nullable()
       .describe(
-        "The custom link preview video (og:video). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+        "The custom link preview video (og:video). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
       ),
     rewrite: z
       .boolean()
