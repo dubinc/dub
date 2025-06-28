@@ -30,16 +30,23 @@ export function useOnboardingProgress() {
   const continueTo = useCallback(
     async (
       step: OnboardingStep,
-      { slug: providedSlug }: { slug?: string } = {},
+      {
+        slug: providedSlug,
+        params,
+      }: { slug?: string; params?: Record<string, string> } = {},
     ) => {
       execute({
         onboardingStep: step,
       });
 
-      const queryParams = PRE_WORKSPACE_STEPS.includes(step)
-        ? ""
-        : `?workspace=${providedSlug || slug}`;
-      router.push(`/onboarding/${step}${queryParams}`);
+      const queryParams = new URLSearchParams({
+        ...(params || {}),
+        ...(PRE_WORKSPACE_STEPS.includes(step)
+          ? {}
+          : { workspace: (providedSlug || slug)! }),
+      });
+
+      router.push(`/onboarding/${step}?${queryParams}`);
     },
     [execute, router, slug],
   );

@@ -14,14 +14,7 @@ import { DubApiError } from "../errors";
 import { createLink } from "../links/create-link";
 import { processLink } from "../links/process-link";
 
-// create a partner link
-export const createPartnerLink = async ({
-  workspace,
-  program,
-  partner,
-  userId,
-  partnerId,
-}: {
+type PartnerLinkArgs = {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: Pick<ProgramProps, "defaultFolderId" | "domain" | "url" | "id">;
   partner: Pick<
@@ -30,7 +23,39 @@ export const createPartnerLink = async ({
   >;
   userId: string;
   partnerId?: string;
-}) => {
+};
+
+/**
+ * Create a partner link
+ */
+export const createPartnerLink = async (args: PartnerLinkArgs) => {
+  const { workspace } = args;
+
+  const link = await generatePartnerLink(args);
+
+  const partnerLink = await createLink(link);
+
+  waitUntil(
+    sendWorkspaceWebhook({
+      trigger: "link.created",
+      workspace,
+      data: linkEventSchema.parse(partnerLink),
+    }),
+  );
+
+  return partnerLink;
+};
+
+/**
+ * Generates and processes a partner link without creating it
+ */
+export const generatePartnerLink = async ({
+  workspace,
+  program,
+  partner,
+  userId,
+  partnerId,
+}: PartnerLinkArgs) => {
   if (!program.domain || !program.url) {
     throw new DubApiError({
       code: "bad_request",
@@ -94,15 +119,5 @@ export const createPartnerLink = async ({
     });
   }
 
-  const partnerLink = await createLink(link);
-
-  waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "link.created",
-      workspace,
-      data: linkEventSchema.parse(partnerLink),
-    }),
-  );
-
-  return partnerLink;
+  return link;
 };

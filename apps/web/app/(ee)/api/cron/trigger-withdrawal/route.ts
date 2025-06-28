@@ -28,7 +28,14 @@ export async function GET(req: Request) {
 
     const currentAvailableBalance = stripeBalanceData.available[0].amount;
     const currentPendingBalance = stripeBalanceData.pending[0].amount;
-    const currentNetBalance = currentAvailableBalance + currentPendingBalance;
+
+    // if the pending balance is negative, add it to the available balance
+    // this only happens when we have a connected account transfer that hasn't fully settled yet
+    // x-slack-ref: https://dub.slack.com/archives/C074P7LMV9C/p1750185638973479
+    const currentNetBalance =
+      currentPendingBalance < 0
+        ? currentAvailableBalance + currentPendingBalance
+        : currentAvailableBalance;
 
     console.log({
       currentAvailableBalance,
@@ -42,15 +49,9 @@ export async function GET(req: Request) {
 
     const totalProcessingPayouts = dubProcessingPayouts._sum.amount;
     if (totalProcessingPayouts) {
-      // add the pending payouts to the reserved balance (to make sure we have enough balance
+      // add the processing payouts to the reserved balance (to make sure we have enough balance
       // to pay out partners when chargeSucceeded webhook is triggered)
       reservedBalance += totalProcessingPayouts;
-    }
-
-    if (reservedBalance > currentNetBalance) {
-      return NextResponse.json({
-        message: "Insufficient balance to trigger withdrawal, skipping...",
-      });
     }
 
     const balanceToWithdraw = currentNetBalance - reservedBalance;
@@ -67,6 +68,8 @@ export async function GET(req: Request) {
     });
 
     return NextResponse.json({
+      currentAvailableBalance,
+      currentPendingBalance,
       currentNetBalance,
       reservedBalance,
       balanceToWithdraw,

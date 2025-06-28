@@ -478,3 +478,16 @@ export type ProgramData = z.infer<typeof programDataSchema>;
 export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
 
 export type PayoutMethod = "stripe" | "paypal";
+
+export type PaymentMethodOption = {
+  currency?: string;
+  mandate_options?: {
+    payment_schedule?: string;
+    transaction_type?: string;
+  };
+};
+
+export interface FolderLinkCount {
+  folderId: string;
+  _count: number;
+}

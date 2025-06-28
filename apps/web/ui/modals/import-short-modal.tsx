@@ -137,7 +137,7 @@ function ImportShortModal({
                     if (res.ok) {
                       await mutate();
                       router.push(
-                        `/${slug}${folderId ? `?folderId=${folderId}` : ""}`,
+                        `/${slug}/links${folderId ? `?folderId=${folderId}` : ""}`,
                       );
                     } else {
                       setImporting(false);
