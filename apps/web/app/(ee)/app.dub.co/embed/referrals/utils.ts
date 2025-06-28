@@ -1,9 +1,9 @@
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
-import { determinePartnerRewards } from "@/lib/partners/determine-partner-rewards";
-import { RewardProps } from "@/lib/types";
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
+import { Reward } from "@prisma/client";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
@@ -24,6 +24,9 @@ export const getReferralsEmbedData = async (token: string) => {
     include: {
       links: true,
       program: true,
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
     },
   });
 
@@ -31,12 +34,7 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const [rewards, discount, commissions] = await Promise.all([
-    determinePartnerRewards({
-      partnerId,
-      programId,
-    }),
-
+  const [discount, commissions] = await Promise.all([
     determinePartnerDiscount({
       programId,
       partnerId,
@@ -62,7 +60,13 @@ export const getReferralsEmbedData = async (token: string) => {
   return {
     program,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: rewards as RewardProps[],
+    rewards: sortRewardsByEventOrder(
+      [
+        programEnrollment.clickReward,
+        programEnrollment.leadReward,
+        programEnrollment.saleReward,
+      ].filter((r): r is Reward => r !== null),
+    ),
     discount,
     earnings: {
       upcoming: commissions.reduce((acc, c) => {

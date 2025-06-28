@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
-import Success from "../icons/success";
+import { Success } from "../icons/success";
 
 function ToastWithUndo({
   id,

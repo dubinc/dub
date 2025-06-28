@@ -4,11 +4,7 @@ import ProgramPageClient from "./page-client";
 
 export default function ProgramPage() {
   return (
-    <PageContent
-      title="Overview"
-      hideReferButton
-      titleControls={<HideProgramDetailsButton />}
-    >
+    <PageContent title="Overview" controls={<HideProgramDetailsButton />}>
       <ProgramPageClient />
     </PageContent>
   );

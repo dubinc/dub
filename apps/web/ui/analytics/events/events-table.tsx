@@ -25,6 +25,7 @@ import {
   cn,
   currencyFormatter,
   fetcher,
+  formatDateTimeSmart,
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
@@ -97,13 +98,7 @@ export default function EventsTable({
               })}
             >
               <div className="w-full truncate">
-                {getValue().toLocaleTimeString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                  hour12: true,
-                })}
+                {formatDateTimeSmart(getValue())}
               </div>
             </Tooltip>
           ),

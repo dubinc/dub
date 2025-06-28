@@ -1,6 +1,5 @@
-import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import { isBlacklistedDomain } from "@/lib/edge-config";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { isStored } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
@@ -14,7 +13,6 @@ import {
   getUrlFromString,
   isDubDomain,
   isValidUrl,
-  log,
   parseDateTime,
   pluralize,
 } from "@dub/utils";
@@ -57,6 +55,7 @@ export async function processLink<T extends Record<string, any>>({
   let {
     domain,
     key,
+    keyLength,
     url,
     image,
     proxy,
@@ -257,7 +256,7 @@ export async function processLink<T extends Record<string, any>>({
     key = await getRandomKey({
       domain,
       prefix: payload["prefix"],
-      long: domain === "loooooooo.ng",
+      length: keyLength,
     });
   } else if (!skipKeyChecks) {
     const processedKey = processKey({ domain, key });
@@ -536,6 +535,7 @@ export async function processLink<T extends Record<string, any>>({
   // remove polyfill attributes from payload
   delete payload["shortLink"];
   delete payload["qrCode"];
+  delete payload["keyLength"];
   delete payload["prefix"];
   UTMTags.forEach((tag) => {
     delete payload[tag];
@@ -570,7 +570,7 @@ export async function processLink<T extends Record<string, any>>({
 }
 
 async function maliciousLinkCheck(url: string) {
-  const [domain, apexDomain] = [getDomainWithoutWWW(url), getApexDomain(url)];
+  const domain = getDomainWithoutWWW(url);
 
   if (!domain) {
     return false;
@@ -579,38 +579,6 @@ async function maliciousLinkCheck(url: string) {
   const domainBlacklisted = await isBlacklistedDomain(domain);
   if (domainBlacklisted === true) {
     return true;
-  } else if (domainBlacklisted === "whitelisted") {
-    return false;
-  }
-
-  // Check with Pangea for domain reputation
-  if (process.env.PANGEA_API_KEY) {
-    try {
-      const response = await getPangeaDomainIntel(domain);
-
-      const verdict = response.result.data[apexDomain].verdict;
-      console.log("Pangea verdict for domain", apexDomain, verdict);
-
-      if (verdict === "benign") {
-        return false;
-      } else if (verdict === "malicious" || verdict === "suspicious") {
-        await Promise.all([
-          updateConfig({
-            key: "domains",
-            value: domain,
-          }),
-          log({
-            message: `Suspicious link detected via Pangea → ${url}`,
-            type: "links",
-            mention: true,
-          }),
-        ]);
-
-        return true;
-      }
-    } catch (e) {
-      console.error("Error checking domain with Pangea", e);
-    }
   }
 
   return false;

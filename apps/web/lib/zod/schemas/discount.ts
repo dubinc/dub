@@ -1,11 +1,11 @@
-import { CommissionType } from "@dub/prisma/client";
+import { RewardStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 
 export const DiscountSchema = z.object({
   id: z.string(),
   amount: z.number(),
-  type: z.nativeEnum(CommissionType),
+  type: z.nativeEnum(RewardStructure),
   maxDuration: z.number().nullable(),
   description: z.string().nullish(),
   couponId: z.string().nullable(),
@@ -25,7 +25,7 @@ export const createDiscountSchema = z.object({
   workspaceId: z.string(),
   partnerIds: z.array(z.string()).nullish(),
   amount: z.number().min(0),
-  type: z.nativeEnum(CommissionType).default("flat"),
+  type: z.nativeEnum(RewardStructure).default("flat"),
   maxDuration: maxDurationSchema,
   couponId: z.string(),
   couponTestId: z.string().nullish(),

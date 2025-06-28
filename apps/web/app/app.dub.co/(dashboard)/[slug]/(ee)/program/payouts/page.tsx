@@ -1,21 +1,20 @@
 import { PageContent } from "@/ui/layout/page-content";
-import { MaxWidthWrapper } from "@dub/ui";
-import { CreatePayoutButton } from "./create-payout-button";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramPayoutsPageClient } from "./page-client";
 
 export default function ProgramPayoutsPage() {
   return (
     <PageContent
       title="Payouts"
-      titleControls={
-        <div className="flex items-center gap-2">
-          <CreatePayoutButton />
-        </div>
-      }
+      titleInfo={{
+        title:
+          "Learn more about how you can send payouts to your affiliate partners globally with Dub.",
+        href: "https://dub.co/help/article/partner-payouts",
+      }}
     >
-      <MaxWidthWrapper>
+      <PageWidthWrapper>
         <ProgramPayoutsPageClient />
-      </MaxWidthWrapper>
+      </PageWidthWrapper>
     </PageContent>
   );
 }

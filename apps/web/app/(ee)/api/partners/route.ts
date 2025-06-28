@@ -43,8 +43,9 @@ export const GET = withWorkspace(
 // POST /api/partners - add a partner for a program
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     const {
-      programId,
       name,
       email,
       username,

@@ -9,6 +9,7 @@ import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
 import { LinksDisplayProvider } from "@/ui/links/links-display-provider";
@@ -23,7 +24,6 @@ import {
   Button,
   Filter,
   IconMenu,
-  MaxWidthWrapper,
   Popover,
   Tooltip,
   TooltipContent,
@@ -51,6 +51,19 @@ export default function WorkspaceLinksClient() {
     <LinksDisplayProvider>
       <WorkspaceLinks />
     </LinksDisplayProvider>
+  );
+}
+
+export function WorkspaceLinksPageControls() {
+  const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
+
+  return (
+    <>
+      <LinkBuilder />
+      <div className="hidden sm:block">
+        <CreateLinkButton />
+      </div>
+    </>
   );
 }
 
@@ -123,9 +136,9 @@ function WorkspaceLinks() {
       <DotLinkOfferModal />
       <LinkBuilder />
       <AddEditTagModal />
-      <div className="flex w-full items-center pt-2">
-        <MaxWidthWrapper className="flex flex-col gap-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
+      <div className="flex w-full items-center">
+        <PageWidthWrapper className="flex flex-col gap-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex w-full grow gap-2 md:w-auto">
               {!isMegaFolder && (
                 <div className="grow basis-0 md:grow-0">
@@ -191,10 +204,15 @@ function WorkspaceLinks() {
               </div>
             </div>
             <div className="flex gap-x-2 max-md:w-full">
-              <div className="w-full md:w-56 lg:w-64">
+              <div className="w-full md:w-56 xl:w-64">
                 <SearchBoxPersisted
                   loading={isValidating}
                   inputClassName="h-10"
+                  placeholder={
+                    isMegaFolder
+                      ? "Search by short link"
+                      : "Search by short link or URL"
+                  }
                 />
               </div>
 
@@ -204,12 +222,7 @@ function WorkspaceLinks() {
                   <div className="h-10 w-10 rounded-md bg-neutral-200" />
                 </div>
               ) : canCreateLinks ? (
-                <>
-                  <div className="hidden grow-0 sm:block">
-                    <CreateLinkButton />
-                  </div>
-                  <MoreLinkOptions />
-                </>
+                <MoreLinkOptions />
               ) : (
                 <div className="w-fit">
                   <RequestFolderEditAccessButton
@@ -227,7 +240,7 @@ function WorkspaceLinks() {
             onRemove={onRemove}
             onRemoveAll={onRemoveAll}
           />
-        </MaxWidthWrapper>
+        </PageWidthWrapper>
       </div>
 
       <div className="mt-3">

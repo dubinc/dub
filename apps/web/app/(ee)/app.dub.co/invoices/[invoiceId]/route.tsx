@@ -39,14 +39,7 @@ export const GET = withSession(async ({ session, params }) => {
     where: {
       id: invoiceId,
     },
-    select: {
-      id: true,
-      amount: true,
-      fee: true,
-      total: true,
-      status: true,
-      number: true,
-      createdAt: true,
+    include: {
       payouts: {
         select: {
           periodStart: true,
@@ -60,7 +53,7 @@ export const GET = withSession(async ({ session, params }) => {
           },
         },
         orderBy: {
-          periodStart: "desc",
+          amount: "desc",
         },
       },
       workspace: {
@@ -89,17 +82,34 @@ export const GET = withSession(async ({ session, params }) => {
     });
   }
 
-  let customer: Stripe.Customer | null = null;
+  const customer = invoice.workspace.stripeId
+    ? ((await stripe.customers.retrieve(invoice.workspace.stripeId, {
+        expand: ["tax_ids"],
+      })) as Stripe.Customer | null)
+    : null;
 
-  if (invoice.workspace.stripeId) {
-    try {
-      customer = (await stripe.customers.retrieve(
-        invoice.workspace.stripeId!,
-      )) as Stripe.Customer;
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  const { amount: chargeAmount, currency: chargeCurrency } =
+    invoice.stripeChargeMetadata
+      ? (invoice.stripeChargeMetadata as unknown as Stripe.Charge)
+      : { amount: undefined, currency: undefined };
+
+  const earliestPeriodStart = invoice.payouts.reduce(
+    (acc, payout) => {
+      if (!acc) return payout.periodStart;
+      if (!payout.periodStart) return acc;
+      return payout.periodStart < (acc as Date) ? payout.periodStart : acc;
+    },
+    null as Date | null,
+  );
+
+  const latestPeriodEnd = invoice.payouts.reduce(
+    (acc, payout) => {
+      if (!acc) return payout.periodEnd;
+      if (!payout.periodEnd) return acc;
+      return payout.periodEnd > (acc as Date) ? payout.periodEnd : acc;
+    },
+    null as Date | null,
+  );
 
   const invoiceMetadata = [
     {
@@ -117,15 +127,36 @@ export const GET = withSession(async ({ session, params }) => {
     },
     {
       label: "Payout period",
-      value: `${formatDate(startOfMonth(invoice.createdAt), {
-        month: "short",
-        year: "numeric",
-      })} - ${formatDate(endOfMonth(invoice.createdAt), {
+      value: `${formatDate(
+        startOfMonth(earliestPeriodStart || invoice.createdAt),
+        {
+          month: "short",
+          year: "numeric",
+        },
+      )} - ${formatDate(endOfMonth(latestPeriodEnd || invoice.createdAt), {
         month: "short",
         year: "numeric",
       })}`,
     },
   ];
+
+  const EU_CUSTOMER =
+    customer?.address?.country &&
+    EU_COUNTRY_CODES.includes(customer.address.country);
+  const AU_CUSTOMER =
+    customer?.address?.country && customer.address.country === "AU";
+
+  const nonUsdTransactionDisplay =
+    chargeAmount && chargeCurrency && chargeCurrency !== "usd"
+      ? ` (${currencyFormatter(
+          chargeAmount / 100,
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          },
+          chargeCurrency.toUpperCase(),
+        )})`
+      : "";
 
   const invoiceSummaryDetails = [
     {
@@ -144,23 +175,24 @@ export const GET = withSession(async ({ session, params }) => {
     },
     {
       label: "Invoice total",
-      value: currencyFormatter(invoice.total / 100, {
+      value: `${currencyFormatter(invoice.total / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }),
+      })}${nonUsdTransactionDisplay}`,
     },
-    // if customer is in EU, add VAT reverse charge note:
-    // Reverse charge: VAT to be accounted for by the recipient under Article 196 of Directive 2006/112/EC.
-    ...(customer?.address?.country &&
-    EU_COUNTRY_CODES.includes(customer.address.country)
+    // if customer is in EU or AU, add VAT/GST reverse charge note
+    ...(EU_CUSTOMER || AU_CUSTOMER
       ? [
           {
-            label: "VAT reverse charge",
+            label: `${AU_CUSTOMER ? "GST" : "VAT"} reverse charge`,
             value: "Tax to be paid on reverse charge basis.",
           },
         ]
       : []),
   ];
+
+  // Get the first tax ID if available
+  const primaryTaxId = customer?.tax_ids?.data?.[0];
 
   const addresses = [
     {
@@ -185,6 +217,7 @@ export const GET = withSession(async ({ session, params }) => {
         state: customer?.shipping?.address?.state,
         postalCode: customer?.shipping?.address?.postal_code,
         email: customer?.email,
+        taxId: primaryTaxId ? `Tax ID: ${primaryTaxId.value}` : undefined,
       },
     },
   ];
@@ -227,6 +260,7 @@ export const GET = withSession(async ({ session, params }) => {
               address.line1,
               address.line2,
               cityStatePostal,
+              address.taxId,
               address.email,
             ].filter((record) => record && record.length > 0);
 
