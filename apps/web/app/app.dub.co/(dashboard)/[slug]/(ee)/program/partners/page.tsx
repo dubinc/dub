@@ -8,6 +8,11 @@ export default function ProgramPartners() {
   return (
     <PageContent
       title="Partners"
+      titleInfo={{
+        title:
+          "Invite influencers, affiliates, and users to your program, or enroll them automatically.",
+        href: "https://dub.co/help/article/inviting-partners",
+      }}
       controls={
         <>
           <InvitePartnerButton />

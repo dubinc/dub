@@ -1,13 +1,8 @@
-import useProgram from "@/lib/swr/use-program";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, useRouterStuff } from "@dub/ui";
-import { COUNTRIES, OG_AVATAR_URL, fetcher } from "@dub/utils";
-import { ProgramApplication } from "@prisma/client";
-import Linkify from "linkify-react";
+import { COUNTRIES, OG_AVATAR_URL } from "@dub/utils";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import useSWRImmutable from "swr/immutable";
 import { OnlinePresenceSummary } from "./online-presence-summary";
 
 type PartnerProfileSheetProps = {
@@ -109,56 +104,6 @@ function PartnerProfileSheetContent({
         </div>
       </div>
     </>
-  );
-}
-
-function PartnerApplication({ applicationId }: { applicationId: string }) {
-  const { id: workspaceId } = useWorkspace();
-  const { program } = useProgram();
-
-  const { data: application } = useSWRImmutable<ProgramApplication>(
-    program &&
-      workspaceId &&
-      `/api/programs/${program.id}/applications/${applicationId}?workspaceId=${workspaceId}`,
-    fetcher,
-  );
-
-  const fields = [
-    {
-      title: `How do you plan to promote ${program?.name}?`,
-      value: application?.proposal,
-    },
-    {
-      title: "Any additional questions or comments?",
-      value: application?.comments,
-    },
-  ];
-
-  return (
-    <div className="grid gap-6">
-      {fields.map((field) => (
-        <div key={field.title}>
-          <h4 className="font-semibold text-neutral-900">{field.title}</h4>
-          <div className="mt-1.5">
-            {field.value || field.value === "" ? (
-              <Linkify
-                as="p"
-                options={{
-                  target: "_blank",
-                  rel: "noopener noreferrer nofollow",
-                  className:
-                    "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
-                }}
-              >
-                {field.value || "No response provided"}
-              </Linkify>
-            ) : (
-              <div className="h-5 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
   );
 }
 

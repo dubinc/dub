@@ -9,7 +9,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
-import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -170,51 +169,44 @@ export function PartnerTable() {
       {
         id: "clicks",
         header: "Clicks",
-        accessorFn: (d) =>
-          d.status !== "pending" ? nFormatter(d.clicks) : "-",
+        accessorFn: (d) => nFormatter(d.clicks),
       },
       {
         id: "leads",
         header: "Leads",
-        accessorFn: (d) => (d.status !== "pending" ? nFormatter(d.leads) : "-"),
+        accessorFn: (d) => nFormatter(d.leads),
       },
       {
         id: "sales",
         header: "Sales",
-        accessorFn: (d) => (d.status !== "pending" ? nFormatter(d.sales) : "-"),
+        accessorFn: (d) => nFormatter(d.sales),
       },
       {
         id: "saleAmount",
         header: "Revenue",
         accessorFn: (d) =>
-          d.status !== "pending"
-            ? currencyFormatter(d.saleAmount / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
-            : "-",
+          currencyFormatter(d.saleAmount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
       },
       {
         id: "totalCommissions",
         header: "Commissions",
         accessorFn: (d) =>
-          d.status !== "pending"
-            ? currencyFormatter(d.totalCommissions / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
-            : "-",
+          currencyFormatter(d.totalCommissions / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
       },
       {
         id: "netRevenue",
         header: "Net Revenue",
         accessorFn: (d) =>
-          d.status !== "pending"
-            ? currencyFormatter(d.netRevenue / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
-            : "-",
+          currencyFormatter(d.netRevenue / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
       },
       // Menu
       {
@@ -270,26 +262,16 @@ export function PartnerTable() {
   });
 
   return (
-    <div className="flex flex-col gap-3">
-      {detailsSheetState.partnerId &&
-        currentPartner &&
-        (currentPartner.status === "pending" ? (
-          <PartnerApplicationSheet
-            isOpen={detailsSheetState.open}
-            setIsOpen={(open) =>
-              setDetailsSheetState((s) => ({ ...s, open }) as any)
-            }
-            partner={currentPartner}
-          />
-        ) : (
-          <PartnerDetailsSheet
-            isOpen={detailsSheetState.open}
-            setIsOpen={(open) =>
-              setDetailsSheetState((s) => ({ ...s, open }) as any)
-            }
-            partner={currentPartner}
-          />
-        ))}
+    <div className="flex flex-col gap-6">
+      {detailsSheetState.partnerId && currentPartner && (
+        <PartnerDetailsSheet
+          isOpen={detailsSheetState.open}
+          setIsOpen={(open) =>
+            setDetailsSheetState((s) => ({ ...s, open }) as any)
+          }
+          partner={currentPartner}
+        />
+      )}
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select

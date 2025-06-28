@@ -13,9 +13,8 @@ export const onboardProgramAction = authActionClient
   .schema(onboardProgramSchema)
   .action(async ({ ctx, parsedInput: data }) => {
     const { workspace, user } = ctx;
-    const { defaultProgramId } = workspace;
 
-    if (defaultProgramId || !workspace.partnersEnabled) {
+    if (workspace.defaultProgramId || !workspace.partnersEnabled) {
       throw new Error("You are not allowed to create a new program.");
     }
 
@@ -71,6 +70,6 @@ const saveOnboardingProgress = async ({
   });
 
   if (data.step == "save-and-exit") {
-    redirect(`/${workspace.slug}`);
+    redirect(`/${workspace.slug}/program`);
   }
 };

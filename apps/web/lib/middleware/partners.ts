@@ -2,17 +2,19 @@ import { isValidInternalRedirect, parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultPartnerId } from "./utils/get-default-partner";
 import { getUserViaToken } from "./utils/get-user-via-token";
+import { partnersRedirect } from "./utils/partners-redirect";
 
 const AUTHENTICATED_PATHS = [
   "/programs",
   "/marketplace",
   "/onboarding",
   "/settings",
+  "/profile",
   "/account",
 ];
 
 export default async function PartnersMiddleware(req: NextRequest) {
-  const { path, fullPath, searchParamsObj } = parse(req);
+  const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
 
   const user = await getUserViaToken(req);
 
@@ -61,6 +63,10 @@ export default async function PartnersMiddleware(req: NextRequest) {
         return NextResponse.redirect(new URL(`/programs/${match[1]}`, req.url));
       }
       return NextResponse.redirect(new URL("/", req.url)); // Redirect authenticated users to dashboard
+    } else if (partnersRedirect(path)) {
+      return NextResponse.redirect(
+        new URL(`${partnersRedirect(path)}${searchParamsString}`, req.url),
+      );
     }
   }
 

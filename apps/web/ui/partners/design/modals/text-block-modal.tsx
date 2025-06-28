@@ -1,7 +1,13 @@
 "use client";
 
 import { programLanderTextBlockSchema } from "@/lib/zod/schemas/program-lander";
-import { Button, Modal, useEnterSubmit, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  MarkdownIcon,
+  Modal,
+  useEnterSubmit,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useId } from "react";
 import { useForm } from "react-hook-form";
@@ -91,7 +97,7 @@ function TextBlockModalInner({
                 rows={12}
                 maxLength={10000}
                 onKeyDown={handleKeyDown}
-                placeholder="Start typing (markdown supported)"
+                placeholder="Start typing..."
                 className={cn(
                   "block max-h-64 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.content &&
@@ -100,6 +106,15 @@ function TextBlockModalInner({
                 {...register("content", { required: "Content is required" })}
               />
             </div>
+            <a
+              href="https://www.markdownguide.org/basic-syntax/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-content-subtle mt-1 flex items-center gap-1 text-xs"
+            >
+              <MarkdownIcon role="presentation" className="h-3 w-auto" />
+              <span className="sr-only">MarkdownIcon</span> supported
+            </a>
           </div>
 
           <div className="flex items-center justify-end gap-2">

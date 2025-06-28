@@ -30,6 +30,6 @@ export default function usePayoutsCount<T>(
   return {
     payoutsCount: payoutsCount as T,
     error,
-    loading: !payoutsCount && !error,
+    loading: payoutsCount === undefined && !error,
   };
 }

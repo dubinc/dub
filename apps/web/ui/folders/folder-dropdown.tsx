@@ -1,10 +1,12 @@
+"use client";
+
 import { unsortedLinks } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useFolder from "@/lib/swr/use-folder";
 import useFolders from "@/lib/swr/use-folders";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FolderSummary } from "@/lib/types";
+import { FolderLinkCount, FolderSummary } from "@/lib/types";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { Button, Combobox, TooltipContent, useRouterStuff } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
@@ -64,12 +66,12 @@ export const FolderDropdown = ({
       setUseAsync(true);
   }, [folders, useAsync]);
 
-  const { data: folderLinksCount } = useLinksCount<
-    {
-      folderId: string;
-      _count: number;
-    }[]
-  >({ query: { groupBy: "folderId" }, ignoreParams: true });
+  const { data: folderLinksCount } = useLinksCount<FolderLinkCount[]>({
+    query: {
+      groupBy: "folderId",
+    },
+    ignoreParams: true,
+  });
 
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -176,7 +178,7 @@ export const FolderDropdown = ({
 
   if (folderId && folderId !== "unsorted" && !selectedFolderData) {
     // if (true) {
-    return loadingPlaceholder ?? <FolderSwitcherPlaceholder />;
+    return loadingPlaceholder ?? <FolderDropdownPlaceholder />;
   }
 
   return (
@@ -286,6 +288,6 @@ export const FolderDropdown = ({
   );
 };
 
-const FolderSwitcherPlaceholder = () => {
+const FolderDropdownPlaceholder = () => {
   return <div className="h-10 w-40 animate-pulse rounded-lg bg-neutral-200" />;
 };

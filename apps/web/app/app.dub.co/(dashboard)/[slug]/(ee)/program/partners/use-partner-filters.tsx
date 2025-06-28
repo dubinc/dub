@@ -1,11 +1,17 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
+import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardProps } from "@/lib/types";
-import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, FlagWavy, Gift } from "@dub/ui/icons";
+import {
+  CircleDotted,
+  CursorRays,
+  FlagWavy,
+  InvoiceDollar,
+  UserPlus,
+} from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
 
@@ -33,13 +39,44 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     groupBy: "status",
   });
 
-  const { partnersCount: rewardsCount } = usePartnersCount<
+  const { rewards } = useRewards();
+
+  const { hasClickRewards, hasLeadRewards, hasSaleRewards } = useMemo(() => {
+    return {
+      hasClickRewards: rewards?.some((r) => r.event === "click") ?? false,
+      hasLeadRewards: rewards?.some((r) => r.event === "lead") ?? false,
+      hasSaleRewards: rewards?.some((r) => r.event === "sale") ?? false,
+    };
+  }, [rewards]);
+
+  const { partnersCount: clickRewardsCount } = usePartnersCount<
     | (RewardProps & {
         partnersCount: number;
       })[]
     | undefined
   >({
-    groupBy: "rewardId",
+    groupBy: "clickRewardId",
+    enabled: hasClickRewards,
+  });
+
+  const { partnersCount: leadRewardsCount } = usePartnersCount<
+    | (RewardProps & {
+        partnersCount: number;
+      })[]
+    | undefined
+  >({
+    groupBy: "leadRewardId",
+    enabled: hasLeadRewards,
+  });
+
+  const { partnersCount: saleRewardsCount } = usePartnersCount<
+    | (RewardProps & {
+        partnersCount: number;
+      })[]
+    | undefined
+  >({
+    groupBy: "saleRewardId",
+    enabled: hasSaleRewards,
   });
 
   const filters = useMemo(
@@ -65,54 +102,110 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
               right: nFormatter(_count, { full: true }),
             })) ?? [],
       },
-      {
-        key: "rewardId",
-        icon: Gift,
-        label: "Reward",
-        options:
-          rewardsCount?.map((reward) => {
-            const Icon = REWARD_EVENTS[reward.event].icon;
-            return {
-              value: reward.id,
-              label: reward.name || formatRewardDescription({ reward }),
-              icon: <Icon className="size-4 bg-transparent" />,
-              right: nFormatter(reward.partnersCount, { full: true }),
-            };
-          }) ?? [],
-      },
+
       {
         key: "status",
         icon: CircleDotted,
         label: "Status",
         options:
-          statusCount?.map(({ status, _count }) => {
-            const Icon = PartnerStatusBadges[status].icon;
-            return {
-              value: status,
-              label: PartnerStatusBadges[status].label,
-              icon: (
-                <Icon
-                  className={cn(
-                    PartnerStatusBadges[status].className,
-                    "size-4 bg-transparent",
-                  )}
-                />
-              ),
-              right: nFormatter(_count || 0, { full: true }),
-            };
-          }) ?? [],
+          statusCount
+            ?.filter(({ status }) => !["pending", "rejected"].includes(status))
+            ?.map(({ status, _count }) => {
+              const Icon = PartnerStatusBadges[status].icon;
+              return {
+                value: status,
+                label: PartnerStatusBadges[status].label,
+                icon: (
+                  <Icon
+                    className={cn(
+                      PartnerStatusBadges[status].className,
+                      "size-4 bg-transparent",
+                    )}
+                  />
+                ),
+                right: nFormatter(_count || 0, { full: true }),
+              };
+            }) ?? [],
       },
+
+      ...(saleRewardsCount && saleRewardsCount.length > 0
+        ? [
+            {
+              key: "saleRewardId",
+              icon: InvoiceDollar,
+              label: "Sale reward",
+              options:
+                saleRewardsCount?.map((reward) => {
+                  return {
+                    value: reward.id,
+                    label: reward.name || formatRewardDescription({ reward }),
+                    icon: <InvoiceDollar className="size-4 bg-transparent" />,
+                    right: nFormatter(reward.partnersCount, { full: true }),
+                  };
+                }) ?? [],
+            },
+          ]
+        : []),
+
+      ...(leadRewardsCount && leadRewardsCount.length > 0
+        ? [
+            {
+              key: "leadRewardId",
+              icon: UserPlus,
+              label: "Lead reward",
+              options:
+                leadRewardsCount?.map((reward) => {
+                  return {
+                    value: reward.id,
+                    label: reward.name || formatRewardDescription({ reward }),
+                    icon: <UserPlus className="size-4 bg-transparent" />,
+                    right: nFormatter(reward.partnersCount, { full: true }),
+                  };
+                }) ?? [],
+            },
+          ]
+        : []),
+
+      ...(clickRewardsCount && clickRewardsCount.length > 0
+        ? [
+            {
+              key: "clickRewardId",
+              icon: CursorRays,
+              label: "Click reward",
+              options:
+                clickRewardsCount?.map((reward) => {
+                  return {
+                    value: reward.id,
+                    label: reward.name || formatRewardDescription({ reward }),
+                    icon: <CursorRays className="size-4 bg-transparent" />,
+                    right: nFormatter(reward.partnersCount, { full: true }),
+                  };
+                }) ?? [],
+            },
+          ]
+        : []),
     ],
-    [countriesCount, statusCount, rewardsCount],
+    [
+      countriesCount,
+      statusCount,
+      clickRewardsCount,
+      leadRewardsCount,
+      saleRewardsCount,
+    ],
   );
 
   const activeFilters = useMemo(() => {
-    const { status, country, rewardId } = searchParamsObj;
+    const { status, country, clickRewardId, leadRewardId, saleRewardId } =
+      searchParamsObj;
 
     return [
       ...(status ? [{ key: "status", value: status }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
-      ...(rewardId ? [{ key: "rewardId", value: rewardId }] : []),
+      ...(clickRewardId
+        ? [{ key: "clickRewardId", value: clickRewardId }]
+        : []),
+      ...(leadRewardId ? [{ key: "leadRewardId", value: leadRewardId }] : []),
+      ...(saleRewardId ? [{ key: "saleRewardId", value: saleRewardId }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -131,7 +224,14 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "country", "rewardId", "search"],
+      del: [
+        "status",
+        "country",
+        "clickRewardId",
+        "leadRewardId",
+        "saleRewardId",
+        "search",
+      ],
     });
 
   const searchQuery = useMemo(

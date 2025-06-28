@@ -33,11 +33,7 @@ export function ProgramInviteCard({
     },
   });
 
-  const reward =
-    program.rewards && program.rewards.length > 0
-      ? program.rewards.find((r) => r.id !== program.defaultRewardId) ||
-        program.rewards[0]
-      : null;
+  const reward = programEnrollment.rewards?.[0];
 
   const discount =
     program.discounts && program.discounts.length > 0

@@ -22,13 +22,14 @@ export const ProgramSchema = z.object({
   domain: z.string().nullable(),
   url: z.string().nullable(),
   cookieLength: z.number(),
-  defaultRewardId: z.string().nullable(),
   defaultDiscountId: z.string().nullable(),
   rewards: z.array(RewardSchema).nullish(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
   linkStructure: z.nativeEnum(LinkStructure),
   linkParameter: z.string().nullish(),
+  landerPublishedAt: z.date().nullish(),
+  autoApprovePartnersEnabledAt: z.date().nullish(),
 
   // Discounts (for dual-sided incentives)
   discounts: z.array(DiscountSchema).nullish(),

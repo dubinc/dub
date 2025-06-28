@@ -29,7 +29,6 @@ export function MainNav({
   sidebar: Sidebar,
   toolContent,
   newsContent,
-  sidebarWidth,
 }: PropsWithChildren<{
   sidebar: ComponentType<{
     toolContent?: ReactNode;
@@ -37,7 +36,6 @@ export function MainNav({
   }>;
   toolContent?: ReactNode;
   newsContent?: ReactNode;
-  sidebarWidth?: number;
 }>) {
   const pathname = usePathname();
 
@@ -55,14 +53,7 @@ export function MainNav({
   }, [pathname]);
 
   return (
-    <div
-      className="min-h-screen md:grid md:grid-cols-[var(--sidebar-width,240px)_minmax(0,1fr)]"
-      style={
-        {
-          "--sidebar-width": sidebarWidth ? `${sidebarWidth}px` : "240px",
-        } as React.CSSProperties
-      }
-    >
+    <div className="min-h-screen md:grid md:grid-cols-[min-content_minmax(0,1fr)]">
       {/* Side nav backdrop */}
       <div
         className={cn(
@@ -81,15 +72,15 @@ export function MainNav({
         {/* Side nav */}
         <div
           className={cn(
-            "relative h-full w-[var(--sidebar-width,240px)] max-w-full bg-neutral-200 transition-transform md:translate-x-0",
+            "relative h-full w-min max-w-full bg-neutral-200 transition-transform md:translate-x-0",
             !isOpen && "-translate-x-full",
           )}
         >
           <Sidebar toolContent={toolContent} newsContent={newsContent} />
         </div>
       </div>
-      <div className="bg-neutral-200 md:pt-1.5">
-        <div className="relative min-h-full bg-neutral-100 pt-px md:rounded-tl-2xl md:bg-white">
+      <div className="bg-neutral-200 md:pt-2">
+        <div className="relative min-h-full bg-neutral-100 pt-px md:rounded-tl-xl md:bg-white">
           <SideNavContext.Provider value={{ isOpen, setIsOpen }}>
             {children}
           </SideNavContext.Provider>
