@@ -27,7 +27,7 @@ export function useQrCustomization(
   const [selectedSuggestedFrame, setSelectedSuggestedFrame] =
     useState<string>("none");
   const [frameColor, setFrameColor] = useState<string>(BLACK_COLOR);
-
+  const [frameText, setFrameText] = useState<string>("Scan Me!");
   const [selectedQRType, setSelectedQRType] = useState<EQRType>(
     initialData?.qrType as EQRType,
   );
@@ -195,14 +195,23 @@ export function useQrCustomization(
       return;
     }
 
+    console.log("FRAME frameText", frameText);
     qrCode.applyExtension?.((qr, opts) =>
       frame.extension!(qr as SVGSVGElement, {
         width: opts.width!,
         height: opts.height!,
         frameColor,
+        frameText,
       }),
     );
-  }, [qrCode, data, selectedSuggestedFrame, isQrDisabled, frameColor]);
+  }, [
+    qrCode,
+    data,
+    selectedSuggestedFrame,
+    isQrDisabled,
+    frameColor,
+    frameText,
+  ]);
 
   useEffect(() => {
     if (!qrCode || isQrDisabled) return;
@@ -234,6 +243,17 @@ export function useQrCustomization(
         setFrameColor(frameColor);
         handlers.onFrameColorChange(frameColor);
       }
+
+      if (
+        initialData.frameOptions &&
+        typeof initialData?.frameOptions === "object" &&
+        "text" in initialData.frameOptions
+      ) {
+        const frameText = initialData.frameOptions.text as string;
+        setFrameText(frameText);
+        handlers.onFrameTextChange(frameText);
+      }
+
       setSelectedQRType(initialData.qrType as EQRType);
     }
   }, [initialData, qrCode]);
@@ -277,6 +297,9 @@ export function useQrCustomization(
     onFrameColorChange: (color: string) => {
       setFrameColor(color);
     },
+    onFrameTextChange: (text: string) => {
+      setFrameText(text);
+    },
     onTransparentBackgroundToggle: (checked: boolean) => {
       setOptions((prevOptions) => ({
         ...prevOptions,
@@ -310,6 +333,9 @@ export function useQrCustomization(
 
       qrCode.update({
         ...options,
+        backgroundOptions: {
+          color: WHITE_COLOR,
+        },
         data: homepageDemo
           ? `${window.location.origin}/qr-complete-setup`
           : data,
@@ -361,6 +387,7 @@ export function useQrCustomization(
     selectedSuggestedLogo,
     selectedSuggestedFrame,
     frameColor,
+    frameText,
     setOptions,
     handlers,
     isQrDisabled,

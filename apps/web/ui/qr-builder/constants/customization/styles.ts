@@ -23,7 +23,12 @@ export type TStyleOption = {
   type: CornerSquareType | CornerDotType | DotType | string;
   extension?: (
     svg: SVGSVGElement,
-    options: { width: number; height: number; frameColor: string },
+    options: {
+      width: number;
+      height: number;
+      frameColor: string;
+      frameText: string;
+    },
   ) => void;
 };
 

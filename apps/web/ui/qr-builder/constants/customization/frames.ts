@@ -21,6 +21,14 @@ import Wreath from "@/ui/qr-builder/icons/frames/wreath.svg";
 import NoLogoIcon from "@/ui/qr-builder/icons/no-logo.svg";
 import { StaticImageData } from "next/image";
 import { TStyleOption } from "./styles.ts";
+
+function measureTextWidth(text: string, font = "30px Inter"): number {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d")!;
+  ctx.font = font;
+  return ctx.measureText(text).width;
+}
+
 const frameCache = new Map<string, HTMLElement>();
 
 export const FRAMES: TStyleOption[] = [
@@ -147,7 +155,13 @@ export async function preloadAllFrames() {
 
 async function embedQRIntoFrame(
   svg: SVGSVGElement,
-  options: { width: number; height: number; frameColor: string },
+  options: {
+    width: number;
+    height: number;
+    frameColor: string;
+    frameText: string;
+    onTextNodeFound?: (node: SVGTextElement) => void;
+  },
   frame: StaticImageData,
   qrScale: number,
   qrTranslateX: number,
@@ -167,8 +181,38 @@ async function embedQRIntoFrame(
     frameClone.setAttribute("height", String(options.height));
     frameClone.setAttribute("color", String(options.frameColor));
 
-    const qrGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    console.log("FRAME TEXT OPTION", options.frameText);
+    const textNode = frameClone.querySelector(
+      "#qr-frame-text",
+    ) as SVGTextElement | null;
 
+    if (textNode) {
+      textNode.textContent = options.frameText || " ";
+
+      const maxWidth = 150;
+      let currentFontSize = 30;
+
+      if (options.frameText) {
+        let width = measureTextWidth(
+          options.frameText,
+          `${currentFontSize}px Inter`,
+        );
+
+        console.log("FRAME text initial width", width);
+        while (width > maxWidth && currentFontSize > 12) {
+          currentFontSize -= 1;
+          width = measureTextWidth(
+            options.frameText,
+            `${currentFontSize}px Inter`,
+          );
+        }
+
+        textNode.textContent = options.frameText;
+        textNode.setAttribute("font-size", `${currentFontSize}px`);
+      }
+    }
+
+    const qrGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
     while (svg.firstChild) {
       qrGroup.appendChild(svg.firstChild);
     }
