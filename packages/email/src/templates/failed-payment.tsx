@@ -15,7 +15,7 @@ import {
 import { Footer } from "../components/footer";
 import { WorkspaceProps } from "../types";
 
-export function FailedPayment({
+export default function FailedPayment({
   user = { name: "Brendon Urie", email: "panic@thedis.co" },
   workspace = { name: "Dub", slug: "dub" },
   amountDue = 2400,
@@ -80,5 +80,3 @@ export function FailedPayment({
     </Html>
   );
 }
-
-export default FailedPayment;

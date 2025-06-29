@@ -7,7 +7,7 @@ import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import { PartnerInvite } from "@dub/email/templates/partner-invite";
+import PartnerInvite from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
