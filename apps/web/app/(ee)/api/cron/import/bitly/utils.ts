@@ -1,7 +1,7 @@
 import { bulkCreateLinks } from "@/lib/api/links";
 import { redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
-import { LinksImported } from "@dub/email/templates/links-imported";
+import LinksImported from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
 import { getUrlFromStringIfValid, linkConstructorSimple } from "@dub/utils";
 import { fetchBitlyLinks } from "./fetch-utils";

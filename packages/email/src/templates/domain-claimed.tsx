@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function DomainClaimed({
+export default function DomainClaimed({
   email = "panic@thedis.co",
   domain = "dub.link",
   workspaceSlug = "dub",
@@ -71,5 +71,3 @@ export function DomainClaimed({
     </Html>
   );
 }
-
-export default DomainClaimed;

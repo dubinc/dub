@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function ConfirmEmailChange({
+export default function ConfirmEmailChange({
   email = "panic@thedis.co",
   newEmail = "panic+1@thedis.co",
   confirmUrl = "https://dub.co/auth/confirm-email-change",
@@ -63,5 +63,3 @@ export function ConfirmEmailChange({
     </Html>
   );
 }
-
-export default ConfirmEmailChange;
