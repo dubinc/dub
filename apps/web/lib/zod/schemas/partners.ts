@@ -397,6 +397,7 @@ export const onboardPartnerSchema = createPartnerSchema
   })
   .merge(
     z.object({
+      name: z.string(),
       image: z.string(),
       country: z.enum(COUNTRY_CODES),
       profileType: z.enum(["individual", "company"]).default("individual"),
