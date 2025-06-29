@@ -325,7 +325,7 @@ export const createPartnerSchema = z.object({
     .max(100)
     .nullish()
     .describe(
-      "The partner's full legal name. If undefined, the partner's name will be generated from the email address (e.g. `john@acme.com` -> `John`).",
+      "The partner's full name. If undefined, the partner's email will be used in lieu of their name (e.g. `john@acme.com`)",
     ),
   email: z
     .string()
@@ -334,7 +334,7 @@ export const createPartnerSchema = z.object({
     .max(190)
     .email()
     .describe(
-      "The partner's email address in your system. Partners will be able to claim their profile by signing up at partners.dub.co with this email.",
+      "The partner's email address. Partners will be able to claim their profile by signing up at `partners.dub.co` with this email.",
     ),
   username: z
     .string()
@@ -349,6 +349,12 @@ export const createPartnerSchema = z.object({
     .describe(
       "The partner's avatar image. If not provided, a default avatar will be used.",
     ),
+  tenantId: z
+    .string()
+    .optional()
+    .describe(
+      "The partner's unique ID in your system. Useful for retrieving the partner's links and stats later on. If not provided, the partner will be created as a standalone partner.",
+    ),
   country: z
     .enum(COUNTRY_CODES)
     .nullish()
@@ -361,12 +367,6 @@ export const createPartnerSchema = z.object({
     .nullish()
     .describe(
       "A brief description of the partner and their background. Max 5,000 characters.",
-    ),
-  tenantId: z
-    .string()
-    .optional()
-    .describe(
-      "The partner's unique ID in your system. Useful for retrieving the partner's links and stats later on. If not provided, the partner will be created as a standalone partner.",
     ),
   linkProps: createLinkBodySchema
     .omit({

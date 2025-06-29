@@ -138,7 +138,7 @@ export const createAndEnrollPartner = async ({
     create: {
       ...payload,
       id: createId({ prefix: "pn_" }),
-      name: partner.name,
+      name: partner.name || partner.email,
       email: partner.email,
       image: partner.image && !isStored(partner.image) ? null : partner.image,
       country: partner.country,
