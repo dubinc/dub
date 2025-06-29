@@ -243,9 +243,7 @@ export function PartnersSidebarNav({
       }}
       toolContent={toolContent}
       newsContent={newsContent}
-      bottom={
-        <>{isEnrolledProgramPage ? <ProgramHelpSupport /> : <PayoutStats />}</>
-      }
+      bottom={isEnrolledProgramPage ? <ProgramHelpSupport /> : <PayoutStats />}
     />
   );
 }
