@@ -26,7 +26,7 @@ export function ProgramEnrollmentAuth({
   }
 
   if (programEnrollment && programEnrollment.status !== "approved") {
-    return <UnapprovedProgramPage />;
+    return <UnapprovedProgramPage programEnrollment={programEnrollment} />;
   }
 
   // Redirect to /links if no links found for a program enrollment
