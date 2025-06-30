@@ -2,14 +2,14 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { resend } from "@dub/email/resend";
+import { resend, unsubscribe } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
+import { APP_DOMAIN_WITH_NGROK, log, R2_URL } from "@dub/utils";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
 
     const {
       id: sourcePartnerId,
-      users: sourcePartnerUsers,
+      users: partnerUsers,
       programs: sourcePartnerEnrollments,
     } = sourceAccount;
 
@@ -180,43 +180,68 @@ export async function POST(req: Request) {
         include: includeTags,
       });
 
-      waitUntil(
-        Promise.all([
-          recordLink(updatedLinks),
+      Promise.all([
+        recordLink(updatedLinks),
 
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-            body: {
-              partnerId: targetPartnerId,
-            },
-          }),
-        ]),
-      );
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+          body: {
+            partnerId: targetPartnerId,
+          },
+        }),
+      ]);
     }
 
-    // decide if we should delete the actual user account
-    const sourcePartnerUser = sourcePartnerUsers[0];
+    // Remove the user if there are no workspaces left
+    const partnerUser = partnerUsers[0];
 
     const workspaceCount = await prisma.projectUsers.count({
       where: {
-        userId: sourcePartnerUser.userId,
+        userId: partnerUser.userId,
       },
     });
 
     if (workspaceCount === 0) {
-      await prisma.user.delete({
+      const deletedUser = await prisma.user.delete({
         where: {
-          id: sourcePartnerUser.userId,
+          id: partnerUser.userId,
+        },
+        select: {
+          image: true,
+          email: true,
         },
       });
+
+      await Promise.all([
+        deletedUser.image
+          ? storage.delete(deletedUser.image.replace(`${R2_URL}/`, ""))
+          : Promise.resolve(),
+
+        unsubscribe({
+          email: deletedUser.email!,
+        }),
+      ]);
     }
 
-    await prisma.partner.delete({
+    // Finally, delete the partner account
+    const deletedPartner = await prisma.partner.delete({
       where: {
         id: sourcePartnerId,
       },
     });
 
+    await Promise.all([
+      deletedPartner.image
+        ? storage.delete(deletedPartner.image.replace(`${R2_URL}/`, ""))
+        : Promise.resolve(),
+
+      unsubscribe({
+        email: sourceEmail,
+        audience: "partners.dub.co",
+      }),
+    ]);
+
+    // Make sure the cache is cleared
     await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
     await resend?.batch.send([
