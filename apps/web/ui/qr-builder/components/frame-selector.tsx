@@ -8,10 +8,11 @@ import {
   preloadAllFrames,
 } from "@/ui/qr-builder/constants/customization/frames.ts";
 import { isValidHex } from "@/ui/qr-builder/helpers/is-valid-hex.ts";
-import { Input } from "@dub/ui";
+import { Button, Input } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { Flex, Text } from "@radix-ui/themes";
 import { AnimatePresence, motion } from "framer-motion";
+import { RotateCcw } from "lucide-react";
 import { FC, useEffect, useState } from "react";
 import { StylePicker } from "./style-picker.tsx";
 
@@ -113,7 +114,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
             animate="open"
             exit="closed"
           >
-            <Flex direction="column" gap="2">
+            <Flex direction="column" gap="2" className="grow">
               <Text as="p" className="text-sm font-medium">
                 Text
               </Text>
@@ -131,7 +132,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
                 maxLength={16}
               />
             </Flex>
-            <Flex direction="row" gap="4" className="text-sm">
+            <Flex direction="row" gap="2" className="items-end text-sm">
               <ColorPickerInput
                 label="Frame colour"
                 color={frameColor}
@@ -139,12 +140,26 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
                 isValid={frameColorValid}
                 setIsValid={setFrameColorValid}
               />
+              <Button
+                variant="secondary"
+                className="border-border-500 h-11 p-3"
+                onClick={() => handleFrameColorChange(BLACK_COLOR)}
+                icon={<RotateCcw className="text-neutral h-5 w-5" />}
+              />
+            </Flex>
+            <Flex direction="row" gap="2" className="items-end text-sm">
               <ColorPickerInput
                 label="Text Colour"
                 color={frameTextColor}
                 onColorChange={handleFrameTextColorChange}
                 isValid={frameTextColorValid}
                 setIsValid={setFrameTextColorValid}
+              />
+              <Button
+                variant="secondary"
+                className="border-border-500 h-11 p-3"
+                onClick={() => handleFrameTextColorChange(WHITE_COLOR)}
+                icon={<RotateCcw className="text-neutral h-5 w-5" />}
               />
             </Flex>
           </motion.div>

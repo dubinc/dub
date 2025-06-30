@@ -68,7 +68,7 @@ export const ColorPickerInput: FC<IColorPickerInputProps> = ({
             type="color"
             value={color}
             onChange={(e) => onColorChange(e.target.value.toUpperCase())}
-            className="absolute inset-0 cursor-pointer opacity-0"
+            className="absolute inset-0 w-full cursor-pointer opacity-0"
             disabled={disabled}
           />
         </div>
