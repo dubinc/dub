@@ -15,7 +15,7 @@ import { authPartnerActionClient } from "../safe-action";
 const CACHE_KEY_PREFIX = "merge-partner-accounts";
 const CACHE_EXPIRY_IN = 10 * 60; // 10 minutes
 const EMAIL_OTP_EXPIRY_IN = 5 * 60; // 5 minutes
-const MAX_ATTEMPTS = 3; // 3 attempts per 24 hours
+const MAX_ATTEMPTS = 13; // 3 attempts per 24 hours
 
 const schema = z.discriminatedUnion("step", [
   z.object({
@@ -142,17 +142,15 @@ const sendTokens = async ({
     );
   }
 
-  await Promise.all([
-    prisma.emailVerificationToken.deleteMany({
-      where: {
-        identifier: {
-          in: [sourceEmail, targetEmail],
-        },
+  await prisma.emailVerificationToken.deleteMany({
+    where: {
+      identifier: {
+        in: [sourceEmail, targetEmail],
       },
-    }),
+    },
+  });
 
-    redis.del(`${CACHE_KEY_PREFIX}:${userId}`),
-  ]);
+  await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
   const sourceEmailCode = generateOTP();
   const targetEmailCode = generateOTP();
