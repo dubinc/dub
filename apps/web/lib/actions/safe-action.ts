@@ -68,14 +68,12 @@ export const authActionClient = actionClient.use(
       throw new Error("Workspace not found.");
     }
 
-    const { role } = workspace.users[0];
-
     return next({
       ctx: {
         user: session.user,
         workspace: {
           ...workspace,
-          role,
+          role: workspace.users[0].role,
           plan: workspace.plan as PlanProps,
         },
       },
