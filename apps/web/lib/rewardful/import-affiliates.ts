@@ -44,6 +44,8 @@ export async function importAffiliates({
     },
   });
 
+  return;
+
   while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
     const affiliates = await rewardfulApi.listAffiliates({
       campaignId,
