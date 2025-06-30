@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ClientOnly,
   Icon,
+  Lock,
   NavWordmark,
   Tooltip,
 } from "@dub/ui";
@@ -29,6 +30,7 @@ export type NavItemCommon = {
   exact?: boolean;
   isActive?: (pathname: string, href: string) => boolean;
   badge?: ReactNode;
+  locked?: boolean;
 };
 
 export type NavSubItemType = NavItemCommon;
@@ -342,7 +344,7 @@ function NavGroupItem({
 }
 
 function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
-  const { name, href, exact, isActive: customIsActive } = item;
+  const { name, href, exact, isActive: customIsActive, locked } = item;
 
   const Icon = "icon" in item ? item.icon : undefined;
   const items = "items" in item ? item.items : undefined;
@@ -365,7 +367,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
   return (
     <div>
       <Link
-        href={href}
+        href={locked ? "#" : href}
         data-active={isActive}
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
@@ -375,17 +377,24 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
           isActive && !items
             ? "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100"
             : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
+
+          locked && "pointer-events-none",
         )}
+        aria-disabled={locked}
       >
         <span className="flex items-center gap-2.5">
-          {Icon && (
-            <Icon
-              className={cn(
-                "size-4",
-                !items && "group-data-[active=true]:text-blue-600",
-              )}
-              data-hovered={hovered}
-            />
+          {locked ? (
+            <Lock className="size-4" />
+          ) : (
+            Icon && (
+              <Icon
+                className={cn(
+                  "size-4",
+                  !items && "group-data-[active=true]:text-blue-600",
+                )}
+                data-hovered={hovered}
+              />
+            )
           )}
           {name}
         </span>
