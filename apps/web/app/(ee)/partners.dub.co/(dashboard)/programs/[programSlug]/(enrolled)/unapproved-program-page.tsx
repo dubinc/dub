@@ -37,7 +37,6 @@ export function UnapprovedProgramPage({
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
-  programEnrollment.status = "banned";
   const { title, description } = (
     states?.[programEnrollment.status] ?? states.pending
   )(programEnrollment);
