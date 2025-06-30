@@ -117,7 +117,7 @@ function MergePartnerAccountsModalInner({
               {step === 3 && (
                 <motion.div
                   key="step-3"
-                  custom={-1}
+                  custom={1}
                   variants={stepVariants}
                   initial="enter"
                   animate="center"
