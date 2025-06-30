@@ -97,7 +97,7 @@ export async function POST(req: Request) {
 
     const {
       id: sourcePartnerId,
-      users: partnerUsers,
+      users: sourcePartnerUsers,
       programs: sourcePartnerEnrollments,
     } = sourceAccount;
 
@@ -193,18 +193,18 @@ export async function POST(req: Request) {
     }
 
     // Remove the user if there are no workspaces left
-    const partnerUser = partnerUsers[0];
+    const sourcePartnerUser = sourcePartnerUsers[0];
 
     const workspaceCount = await prisma.projectUsers.count({
       where: {
-        userId: partnerUser.userId,
+        userId: sourcePartnerUser.userId,
       },
     });
 
     if (workspaceCount === 0) {
       const deletedUser = await prisma.user.delete({
         where: {
-          id: partnerUser.userId,
+          id: sourcePartnerUser.userId,
         },
         select: {
           image: true,
