@@ -7,7 +7,7 @@ import { isStored, storage } from "@/lib/storage";
 import { WorkspaceProps } from "@/lib/types";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { sendEmail } from "@dub/email";
-import { PartnerInvite } from "@dub/email/templates/partner-invite";
+import PartnerInvite from "@dub/email/templates/partner-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
 import { generateRandomString, nanoid, R2_URL } from "@dub/utils";

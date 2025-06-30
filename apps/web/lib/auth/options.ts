@@ -4,7 +4,7 @@ import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
-import { LoginLink } from "@dub/email/templates/login-link";
+import LoginLink from "@dub/email/templates/login-link";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";

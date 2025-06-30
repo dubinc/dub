@@ -4,7 +4,7 @@ import EmptyState from "@/ui/shared/empty-state";
 import { sendEmail } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
-import { EmailUpdated } from "@dub/email/templates/email-updated";
+import EmailUpdated from "@dub/email/templates/email-updated";
 import { prisma } from "@dub/prisma";
 import { VerificationToken } from "@dub/prisma/client";
 import { InputPassword, LoadingSpinner } from "@dub/ui";

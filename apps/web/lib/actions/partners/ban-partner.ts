@@ -8,7 +8,7 @@ import {
   banPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import { PartnerBanned } from "@dub/email/templates/partner-banned";
+import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";

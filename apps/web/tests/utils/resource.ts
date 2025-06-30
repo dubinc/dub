@@ -57,7 +57,7 @@ export const E2E_DISCOUNT = {
 export const E2E_PROGRAM = {
   id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
   domain: "getacme.link",
-  url: "https://acme.com",
+  url: "https://acme.dub.sh",
 };
 
 export const E2E_PARTNER = {

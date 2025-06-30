@@ -39,6 +39,7 @@ export const RESERVED_SLUGS = [
   "workspaces",
   "settings",
   "analytics",
+  "guides",
   "invites",
   "new",
   "domains",

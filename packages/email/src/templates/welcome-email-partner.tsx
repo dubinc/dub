@@ -15,7 +15,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function WelcomeEmailPartner({
+export default function WelcomeEmailPartner({
   name = "Brendon Urie",
   email = "panic@thedis.co",
 }: {
@@ -106,5 +106,3 @@ export function WelcomeEmailPartner({
     </Html>
   );
 }
-
-export default WelcomeEmailPartner;

@@ -1,5 +1,5 @@
 import { sendEmail } from "@dub/email";
-import { FailedPayment } from "@dub/email/templates/failed-payment";
+import FailedPayment from "@dub/email/templates/failed-payment";
 import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
 
