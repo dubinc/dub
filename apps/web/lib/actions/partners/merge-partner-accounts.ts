@@ -83,6 +83,16 @@ const sendTokens = async ({
     );
   }
 
+  const anotherRequestExists = await redis.exists(
+    `${CACHE_KEY_PREFIX}:${userId}`,
+  );
+
+  if (anotherRequestExists) {
+    throw new Error(
+      "Another verification process is already in progress. Please wait for it to complete before starting a new one.",
+    );
+  }
+
   if (sourceEmail === targetEmail) {
     throw new Error("Source and target emails cannot be the same.");
   }

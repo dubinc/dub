@@ -9,6 +9,7 @@ import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,8 @@ const CACHE_KEY_PREFIX = "merge-partner-accounts";
 // POST /api/cron/merge-partner-accounts
 // This route is used to merge a partner account into another account
 export async function POST(req: Request) {
+  let userId: string | null = null;
+
   try {
     const rawBody = await req.text();
 
@@ -32,9 +35,13 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { userId, sourceEmail, targetEmail } = schema.parse(
-      JSON.parse(rawBody),
-    );
+    const {
+      userId: parsedUserId,
+      sourceEmail,
+      targetEmail,
+    } = schema.parse(JSON.parse(rawBody));
+
+    userId = parsedUserId;
 
     console.log({
       userId,
@@ -51,6 +58,16 @@ export async function POST(req: Request) {
       select: {
         id: true,
         email: true,
+        programs: {
+          select: {
+            programId: true,
+          },
+        },
+        users: {
+          select: {
+            userId: true,
+          },
+        },
       },
     });
 
@@ -78,35 +95,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const sourcePartnerId = sourceAccount.id;
-    const targetPartnerId = targetAccount.id;
+    const {
+      id: sourcePartnerId,
+      users: sourcePartnerUsers,
+      programs: sourcePartnerEnrollments,
+    } = sourceAccount;
 
-    const [sourcePartnerEnrollments, targetPartnerEnrollments] =
-      await Promise.all([
-        prisma.programEnrollment.findMany({
-          where: {
-            partnerId: sourcePartnerId,
-          },
-          select: {
-            id: true,
-            programId: true,
-          },
-        }),
-
-        prisma.programEnrollment.findMany({
-          where: {
-            partnerId: targetPartnerId,
-          },
-          select: {
-            id: true,
-            programId: true,
-          },
-        }),
-      ]);
-
-    const programIdsToTransfer = sourcePartnerEnrollments.map(
-      ({ programId }) => programId,
-    );
+    const { id: targetPartnerId, programs: targetPartnerEnrollments } =
+      targetAccount;
 
     // Find new enrollments that are not in the target partner enrollments
     const newEnrollments = sourcePartnerEnrollments.filter(
@@ -117,58 +113,103 @@ export async function POST(req: Request) {
     );
 
     // Update program enrollments
-    await prisma.programEnrollment.updateMany({
-      where: {
-        programId: {
-          in: newEnrollments.map(({ programId }) => programId),
+    if (newEnrollments.length > 0) {
+      await prisma.programEnrollment.updateMany({
+        where: {
+          programId: {
+            in: newEnrollments.map(({ programId }) => programId),
+          },
+          partnerId: sourcePartnerId,
         },
-        partnerId: sourcePartnerId,
-      },
-      data: {
-        partnerId: targetPartnerId,
+        data: {
+          partnerId: targetPartnerId,
+        },
+      });
+    }
+
+    const programIdsToTransfer = sourcePartnerEnrollments.map(
+      ({ programId }) => programId,
+    );
+
+    if (programIdsToTransfer.length > 0) {
+      await Promise.all([
+        prisma.link.updateMany({
+          where: {
+            programId: {
+              in: programIdsToTransfer,
+            },
+            partnerId: sourcePartnerId,
+          },
+          data: {
+            partnerId: targetPartnerId,
+          },
+        }),
+
+        prisma.commission.updateMany({
+          where: {
+            programId: {
+              in: programIdsToTransfer,
+            },
+            partnerId: sourcePartnerId,
+          },
+          data: {
+            partnerId: targetPartnerId,
+          },
+        }),
+
+        prisma.payout.updateMany({
+          where: {
+            programId: {
+              in: programIdsToTransfer,
+            },
+            partnerId: sourcePartnerId,
+          },
+          data: {
+            partnerId: targetPartnerId,
+          },
+        }),
+      ]);
+
+      const updatedLinks = await prisma.link.findMany({
+        where: {
+          programId: {
+            in: programIdsToTransfer,
+          },
+          partnerId: targetPartnerId,
+        },
+        include: includeTags,
+      });
+
+      waitUntil(
+        Promise.all([
+          recordLink(updatedLinks),
+
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+            body: {
+              partnerId: targetPartnerId,
+            },
+          }),
+        ]),
+      );
+    }
+
+    const sourcePartnerUser = sourcePartnerUsers[0];
+
+    const workspaceCount = await prisma.projectUsers.count({
+      where: {
+        userId: sourcePartnerUser.userId,
       },
     });
 
-    // Update partner links
-    await prisma.link.updateMany({
-      where: {
-        programId: {
-          in: programIdsToTransfer,
+    if (workspaceCount === 0) {
+      await prisma.user.delete({
+        where: {
+          id: sourcePartnerUser.userId,
         },
-        partnerId: sourcePartnerId,
-      },
-      data: {
-        partnerId: targetPartnerId,
-      },
-    });
+      });
+    }
 
-    // Update partner commissions
-    await prisma.commission.updateMany({
-      where: {
-        programId: {
-          in: programIdsToTransfer,
-        },
-        partnerId: sourcePartnerId,
-      },
-      data: {
-        partnerId: targetPartnerId,
-      },
-    });
-
-    // Update partner payouts
-    await prisma.payout.updateMany({
-      where: {
-        programId: {
-          in: programIdsToTransfer,
-        },
-        partnerId: sourcePartnerId,
-      },
-      data: {
-        partnerId: targetPartnerId,
-      },
-    });
-
-    // Delete source partner
     await prisma.partner.delete({
       where: {
         id: sourcePartnerId,
@@ -177,29 +218,6 @@ export async function POST(req: Request) {
 
     await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
-    // Invalidate links
-    const updatedLinks = await prisma.link.findMany({
-      where: {
-        programId: {
-          in: programIdsToTransfer,
-        },
-        partnerId: targetPartnerId,
-      },
-      include: includeTags,
-    });
-
-    // Record the updatedlinks
-    await recordLink(updatedLinks);
-
-    // Invalidate links for target partner
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-      body: {
-        partnerId: targetPartnerId,
-      },
-    });
-
-    // Send email to source and target partners
     await resend?.batch.send([
       {
         from: VARIANT_TO_FROM_MAP.notifications,
@@ -223,8 +241,12 @@ export async function POST(req: Request) {
       },
     ]);
 
-    return new Response("Partner accounts merged.");
+    return new Response(
+      `Partner account ${sourceEmail} merged into ${targetEmail}.`,
+    );
   } catch (error) {
+    await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
+
     await log({
       message: `Error merging partner accounts: ${error.message}`,
       type: "alerts",

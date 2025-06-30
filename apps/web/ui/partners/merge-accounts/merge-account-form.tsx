@@ -86,12 +86,15 @@ export function MergeAccountForm({
         <div className="mt-2 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 px-5 py-4">
           <AlertTriangle className="size-4 text-amber-500" />
           <h3 className="text-sm font-semibold leading-5 text-amber-900">
-            This action can’t be undone
+            This action can’t be undone.
           </h3>
           <p className="text-sm font-normal leading-5 text-amber-900">
-            All data from {sourceAccount.email} will merge with{" "}
-            {targetAccount.email}. After merging, {sourceAccount.email} will be
-            permanently deleted.
+            All data — including links, commissions, and payouts from{" "}
+            {sourceAccount.email} will be merged into {targetAccount.email}.
+            <br />
+            <br />
+            After the merge, {sourceAccount.email} will be permanently deleted.
+            If you’re unsure, please contact our support team before proceeding.
           </p>
         </div>
       </div>
