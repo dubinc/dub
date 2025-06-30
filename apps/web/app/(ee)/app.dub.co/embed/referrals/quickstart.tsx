@@ -92,7 +92,7 @@ export function ReferralsEmbedQuickstart({
     {
       title: "Receive earnings",
       description:
-        "After you payouts are connected, you'll get paid out automatically for all your sales.",
+        "After your payouts are connected, you'll get paid out automatically for all your sales.",
       illustration: <ConnectPayouts logo={program.logo ?? DUB_LOGO} />,
       cta: (
         <Button
