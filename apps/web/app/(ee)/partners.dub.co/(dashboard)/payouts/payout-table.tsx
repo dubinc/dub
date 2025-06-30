@@ -4,15 +4,13 @@ import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
-import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
-  DynamicTooltipWrapper,
   Filter,
   SimpleTooltipContent,
-  StatusBadge,
   Table,
   Tooltip,
   usePagination,
@@ -87,37 +85,12 @@ export function PayoutTable() {
       },
       {
         header: "Status",
-        cell: ({ row }) => {
-          const badge = PayoutStatusBadges[row.original.status];
-          const tooltip = (() => {
-            if (
-              row.original.status === "failed" &&
-              row.original.failureReason
-            ) {
-              return row.original.failureReason;
-            }
-            if (row.original.status === "pending") {
-              return row.original.amount >= row.original.program.minPayoutAmount
-                ? "This payout will be processed depends on your program's payment schedule, which is usually at the beginning or the end of the month."
-                : `This program's minimum payout amount is ${currencyFormatter(
-                    row.original.program.minPayoutAmount / 100,
-                  )}. This payout will be accrued and processed during the next payout period.`;
-            }
-            return undefined;
-          })();
-
-          return badge ? (
-            <StatusBadge icon={badge.icon} variant={badge.variant}>
-              <DynamicTooltipWrapper
-                tooltipProps={tooltip ? { content: tooltip } : undefined}
-              >
-                {badge.label}
-              </DynamicTooltipWrapper>
-            </StatusBadge>
-          ) : (
-            "-"
-          );
-        },
+        cell: ({ row }) => (
+          <PayoutStatusBadgePartner
+            payout={row.original}
+            program={row.original.program}
+          />
+        ),
       },
       {
         id: "paidAt",
