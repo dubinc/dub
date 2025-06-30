@@ -1,5 +1,5 @@
 import { sendEmail } from "@dub/email";
-import { IntegrationInstalled } from "@dub/email/templates/integration-installed";
+import IntegrationInstalled from "@dub/email/templates/integration-installed";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 

@@ -63,6 +63,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         limit ? { pageSize: limit } : {},
       )}`,
     fetcher,
+    { keepPreviousData: true },
   );
 
   const { pagination, setPagination } = usePagination(limit);

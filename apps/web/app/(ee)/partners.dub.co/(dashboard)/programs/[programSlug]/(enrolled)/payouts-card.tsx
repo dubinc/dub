@@ -8,7 +8,7 @@ import { CircleWarning, MoneyBills2, StatusBadge } from "@dub/ui";
 import { currencyFormatter, formatPeriod } from "@dub/utils";
 import Link from "next/link";
 import { useState } from "react";
-import { PayoutDetailsSheet } from "../../../settings/payouts/payout-details-sheet";
+import { PayoutDetailsSheet } from "../../../payouts/payout-details-sheet";
 
 export function PayoutsCard({ programId }: { programId?: string }) {
   const { payouts, error } = usePartnerPayouts({

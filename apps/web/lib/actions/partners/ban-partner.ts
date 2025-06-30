@@ -1,6 +1,7 @@
 "use server";
 
 import { linkCache } from "@/lib/api/links/cache";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
@@ -8,7 +9,7 @@ import {
   banPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import { PartnerBanned } from "@dub/email/templates/partner-banned";
+import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
@@ -75,6 +76,9 @@ export const banPartnerAction = authActionClient
 
     waitUntil(
       (async () => {
+        // sync total commissions
+        await syncTotalCommissions({ partnerId, programId });
+
         // Send email to partner
         const partner = await prisma.partner.findUniqueOrThrow({
           where: {

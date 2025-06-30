@@ -10,7 +10,7 @@ export default async function ProgramSettingsRewardsPage() {
       titleInfo={{
         title:
           "Create click, lead, and sale-based rewards to incentivize your partners to drive more traffic and conversions.",
-        href: "https://dub.co/docs/partners/rewards",
+        href: "https://dub.co/help/article/partner-rewards",
       }}
     >
       <PageWidthWrapper>
