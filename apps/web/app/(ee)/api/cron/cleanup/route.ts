@@ -95,6 +95,9 @@ export async function GET(req: Request) {
           email: {
             endsWith: "@dub-internal-test.com",
           },
+          createdAt: {
+            lt: oneHourAgo,
+          },
         },
       }),
     ]);
@@ -138,10 +141,9 @@ export async function GET(req: Request) {
     // Delete the partners
     if (partners.length > 0) {
       for (const partner of partners) {
-        const res = await deletePartner({
+        await deletePartner({
           partnerId: partner.id,
         });
-        console.log("Deleted partner", partner.id, res);
       }
     }
 
@@ -156,8 +158,9 @@ export async function GET(req: Request) {
 
       for (const user of users) {
         if (user.email) {
-          const res = await unsubscribe({ email: user.email });
-          console.log("Unsubscribed user", user.email, res);
+          await unsubscribe({
+            email: user.email,
+          });
         }
       }
     }
