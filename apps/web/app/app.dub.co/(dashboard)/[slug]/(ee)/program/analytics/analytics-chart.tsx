@@ -26,7 +26,7 @@ export function AnalyticsChart() {
     }[]
   >(
     `/api/analytics?${editQueryString(queryString ?? "", {
-      event: "composite",
+      event: selectedTab,
       groupBy: "timeseries",
     })}`,
     fetcher,
