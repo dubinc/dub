@@ -180,7 +180,7 @@ export async function POST(req: Request) {
         include: includeTags,
       });
 
-      Promise.all([
+      await Promise.all([
         recordLink(updatedLinks),
 
         qstash.publishJSON({
