@@ -14,10 +14,7 @@ export function PartnerSocialColumn({
   href: string;
 }) {
   return value && href ? (
-    <LinkIfValid
-      href={getUrlFromString(href)}
-      className="flex items-center gap-2 hover:underline"
-    >
+    <LinkIfValid href={getUrlFromString(href)}>
       <span className="min-w-0 truncate">
         {at && "@"}
         {value}
@@ -37,19 +34,18 @@ export function PartnerSocialColumn({
 
 const LinkIfValid = ({
   href,
-  className,
   children,
-}: PropsWithChildren<{ href: string; className?: string }>) => {
+}: PropsWithChildren<{ href: string }>) => {
   return isValidUrl(href) ? (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={className}
+      className="flex items-center gap-2 hover:underline"
     >
       {children}
     </a>
   ) : (
-    <span className={className}>{children}</span>
+    <span className="flex items-center gap-2">{children}</span>
   );
 };
