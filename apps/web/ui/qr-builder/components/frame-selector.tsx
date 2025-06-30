@@ -108,7 +108,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
       <AnimatePresence>
         {selectedSuggestedFrame !== "none" && (
           <motion.div
-            className="flex w-full flex-row items-end gap-4 overflow-hidden"
+            className="flex w-full flex-col gap-4 overflow-hidden md:flex-row"
             variants={animationVariants}
             initial="closed"
             animate="open"
@@ -142,7 +142,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
               />
               <Button
                 variant="secondary"
-                className="border-border-500 h-11 p-3"
+                className="border-border-500 h-11 max-w-11 p-3"
                 onClick={() => handleFrameColorChange(BLACK_COLOR)}
                 icon={<RotateCcw className="text-neutral h-5 w-5" />}
               />
@@ -157,7 +157,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
               />
               <Button
                 variant="secondary"
-                className="border-border-500 h-11 p-3"
+                className="border-border-500 h-11 max-w-11 p-3"
                 onClick={() => handleFrameTextColorChange(WHITE_COLOR)}
                 icon={<RotateCcw className="text-neutral h-5 w-5" />}
               />
