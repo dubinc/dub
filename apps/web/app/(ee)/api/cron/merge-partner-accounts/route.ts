@@ -195,32 +195,34 @@ export async function POST(req: Request) {
     // Remove the user if there are no workspaces left
     const sourcePartnerUser = sourcePartnerUsers[0];
 
-    const workspaceCount = await prisma.projectUsers.count({
-      where: {
-        userId: sourcePartnerUser.userId,
-      },
-    });
-
-    if (workspaceCount === 0) {
-      const deletedUser = await prisma.user.delete({
+    if (sourcePartnerUser) {
+      const workspaceCount = await prisma.projectUsers.count({
         where: {
-          id: sourcePartnerUser.userId,
-        },
-        select: {
-          image: true,
-          email: true,
+          userId: sourcePartnerUser.userId,
         },
       });
 
-      await Promise.all([
-        deletedUser.image
-          ? storage.delete(deletedUser.image.replace(`${R2_URL}/`, ""))
-          : Promise.resolve(),
+      if (workspaceCount === 0) {
+        const deletedUser = await prisma.user.delete({
+          where: {
+            id: sourcePartnerUser.userId,
+          },
+          select: {
+            image: true,
+            email: true,
+          },
+        });
 
-        unsubscribe({
-          email: deletedUser.email!,
-        }),
-      ]);
+        await Promise.all([
+          deletedUser.image
+            ? storage.delete(deletedUser.image.replace(`${R2_URL}/`, ""))
+            : Promise.resolve(),
+
+          unsubscribe({
+            email: deletedUser.email!,
+          }),
+        ]);
+      }
     }
 
     // Finally, delete the partner account
