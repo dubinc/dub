@@ -143,18 +143,18 @@ export const guides: IntegrationGuide[] = [
   },
   {
     type: "track-lead",
+    key: "segment-track-lead",
+    title: "Segment",
+    icon: Segment,
+    url: "https://dub.co/docs/conversions/leads/segment",
+  },
+  {
+    type: "track-lead",
     key: "manual-track-lead",
     title: "Custom Integration",
     description: "Manual Lead Tracking",
     icon: CodeEditor,
     url: "https://dub.co/docs/conversions/leads/introduction",
-  },
-  {
-    type: "track-lead",
-    key: "segment-track-lead",
-    title: "Segment",
-    icon: Segment,
-    url: "https://dub.co/docs/conversions/leads/segment",
   },
 
   // Track Sales
@@ -188,17 +188,17 @@ export const guides: IntegrationGuide[] = [
   },
   {
     type: "track-sale",
+    key: "segment-track-sale",
+    title: "Segment",
+    icon: Segment,
+    url: "https://dub.co/docs/conversions/sales/segment",
+  },
+  {
+    type: "track-sale",
     key: "manual-track-sale",
     title: "Custom Integration",
     description: "Manual Sale Tracking",
     icon: CodeEditor,
     url: "https://dub.co/docs/conversions/sales/introduction",
-  },
-  {
-    type: "track-sale",
-    key: "segment-track-sale",
-    title: "Segment",
-    icon: Segment,
-    url: "https://dub.co/docs/conversions/sales/segment",
   },
 ];
