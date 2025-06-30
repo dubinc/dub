@@ -1,5 +1,6 @@
 "use client";
 
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { useRouterStuff } from "@dub/ui";
 import {
   CircleDollar,
@@ -26,8 +27,9 @@ import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
 
 type SidebarNavData = {
   pathname: string;
-  programSlug?: string;
   queryString?: string;
+  programSlug?: string;
+  isUnapproved: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
@@ -88,7 +90,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
 
-  program: ({ programSlug, queryString }) => ({
+  program: ({ programSlug, isUnapproved, queryString }) => ({
     title: (
       <div className="mb-3">
         <PartnerProgramDropdown />
@@ -98,7 +100,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
       {
         items: [
           {
-            name: "Overview",
+            name: isUnapproved ? "Application" : "Overview",
             icon: Gauge6,
             href: `/programs/${programSlug}`,
             exact: true,
@@ -107,11 +109,13 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Links",
             icon: Hyperlink,
             href: `/programs/${programSlug}/links`,
+            locked: isUnapproved,
           },
           {
             name: "Resources",
             icon: ColorPalette2,
             href: `/programs/${programSlug}/resources`,
+            locked: isUnapproved,
           },
         ],
       },
@@ -122,16 +126,19 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Earnings",
             icon: CircleDollar,
             href: `/programs/${programSlug}/earnings${queryString}`,
+            locked: isUnapproved,
           },
           {
             name: "Analytics",
             icon: LinesY,
             href: `/programs/${programSlug}/analytics`,
+            locked: isUnapproved,
           },
           {
             name: "Events",
             icon: CursorRays,
             href: `/programs/${programSlug}/events`,
+            locked: isUnapproved,
           },
         ],
       },
@@ -212,6 +219,7 @@ export function PartnersSidebarNav({
   const { programSlug } = useParams() as {
     programSlug?: string;
   };
+  const { programEnrollment } = useProgramEnrollment();
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
 
@@ -238,8 +246,10 @@ export function PartnersSidebarNav({
       currentArea={currentArea}
       data={{
         pathname,
-        programSlug: programSlug || "",
         queryString: getQueryString(),
+        programSlug: programSlug || "",
+        isUnapproved:
+          !!programEnrollment && programEnrollment.status !== "approved",
       }}
       toolContent={toolContent}
       newsContent={newsContent}
