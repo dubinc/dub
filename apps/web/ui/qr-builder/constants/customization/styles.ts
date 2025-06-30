@@ -28,6 +28,7 @@ export type TStyleOption = {
       height: number;
       frameColor: string;
       frameText: string;
+      frameTextColor: string;
     },
   ) => void;
 };

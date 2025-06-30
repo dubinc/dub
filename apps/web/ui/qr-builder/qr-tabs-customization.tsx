@@ -23,6 +23,7 @@ interface QrTabsCustomizationProps {
   handlers: {
     onSuggestedFrameSelect: (type: string) => void;
     onFrameColorChange: (color: string) => void;
+    onFrameTextColorChange: (color: string) => void;
     onFrameTextChange: (text: string) => void;
     onDotsStyleChange: (type: DotType) => void;
     onBorderColorChange: (color: string) => void;
@@ -83,6 +84,7 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               onFrameSelect={handlers.onSuggestedFrameSelect}
               onFrameTextChange={handlers.onFrameTextChange}
               onFrameColorChange={handlers.onFrameColorChange}
+              onFrameTextColorChange={handlers.onFrameTextColorChange}
               isMobile={isMobile}
             />
           )}
@@ -132,6 +134,7 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               onFrameSelect={handlers.onSuggestedFrameSelect}
               onFrameColorChange={handlers.onFrameColorChange}
               onFrameTextChange={handlers.onFrameTextChange}
+              onFrameTextColorChange={handlers.onFrameTextColorChange}
               isMobile={isMobile}
             />
           )}

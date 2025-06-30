@@ -160,6 +160,7 @@ async function embedQRIntoFrame(
     height: number;
     frameColor: string;
     frameText: string;
+    frameTextColor: string;
     onTextNodeFound?: (node: SVGTextElement) => void;
   },
   frame: StaticImageData,
@@ -187,6 +188,7 @@ async function embedQRIntoFrame(
     ) as SVGTextElement | null;
 
     if (textNode) {
+      textNode.style.fill = options.frameTextColor;
       textNode.textContent = options.frameText || " ";
 
       const maxWidth = 150;

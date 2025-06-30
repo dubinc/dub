@@ -1,5 +1,8 @@
 import { ColorPickerInput } from "@/ui/qr-builder/components/color-picker.tsx";
-import { BLACK_COLOR } from "@/ui/qr-builder/constants/customization/colors.ts";
+import {
+  BLACK_COLOR,
+  WHITE_COLOR,
+} from "@/ui/qr-builder/constants/customization/colors.ts";
 import {
   FRAMES,
   preloadAllFrames,
@@ -7,14 +10,36 @@ import {
 import { isValidHex } from "@/ui/qr-builder/helpers/is-valid-hex.ts";
 import { Input } from "@dub/ui";
 import { cn } from "@dub/utils/src";
+import { Flex, Text } from "@radix-ui/themes";
+import { AnimatePresence, motion } from "framer-motion";
 import { FC, useEffect, useState } from "react";
 import { StylePicker } from "./style-picker.tsx";
+
+const animationVariants = {
+  open: {
+    height: "auto",
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 40,
+    },
+  },
+  closed: {
+    height: 0,
+    transition: {
+      type: "tween",
+      duration: 0.3,
+      ease: "easeInOut",
+    },
+  },
+};
 
 interface IFrameSelectorProps {
   selectedSuggestedFrame: string;
   isQrDisabled: boolean;
   onFrameSelect: (type: string) => void;
   onFrameColorChange: (color: string) => void;
+  onFrameTextColorChange: (color: string) => void;
   onFrameTextChange: (text: string) => void;
   isMobile: boolean;
 }
@@ -24,6 +49,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
   isQrDisabled,
   onFrameSelect,
   onFrameColorChange,
+  onFrameTextColorChange,
   onFrameTextChange,
   isMobile,
 }) => {
@@ -33,13 +59,22 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
 
   const [frameColor, setFrameColor] = useState<string>(BLACK_COLOR);
   const [frameColorValid, setFrameColorValid] = useState<boolean>(true);
+  const [frameTextColor, setFrameTextColor] = useState<string>(WHITE_COLOR);
+  const [frameTextColorValid, setFrameTextColorValid] = useState<boolean>(true);
   const [frameText, setFrameText] = useState<string>("Scan Me!");
 
   const handleFrameColorChange = (color: string) => {
     setFrameColor(color);
     const valid = isValidHex(color);
     setFrameColorValid(valid);
-    onFrameColorChange(frameColor);
+    onFrameColorChange(color);
+  };
+
+  const handleFrameTextColorChange = (color: string) => {
+    setFrameTextColor(color);
+    const valid = isValidHex(color);
+    setFrameTextColorValid(valid);
+    onFrameTextColorChange(color);
   };
 
   const handleFrameTextChange = (text: string) => {
@@ -48,7 +83,8 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
   };
 
   return (
-    <div
+    <motion.div
+      layout
       className={cn("flex max-w-[680px] flex-col gap-4", {
         "border-border-500 rounded-lg border p-3": !isMobile,
       })}
@@ -68,27 +104,52 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
         styleButtonClassName="[&_img]:h-[60px] [&_img]:w-[60px] p-2"
         minimalFlow
       />
-      <Input
-        type="text"
-        className={cn(
-          "border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base",
-          {
-            "border-red-500": false,
-          },
+      <AnimatePresence>
+        {selectedSuggestedFrame !== "none" && (
+          <motion.div
+            className="flex w-full flex-row items-end gap-4 overflow-hidden"
+            variants={animationVariants}
+            initial="closed"
+            animate="open"
+            exit="closed"
+          >
+            <Flex direction="column" gap="2">
+              <Text as="p" className="text-sm font-medium">
+                Text
+              </Text>
+              <Input
+                type="text"
+                className={cn(
+                  "border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base",
+                  {
+                    "border-red-500": false,
+                  },
+                )}
+                placeholder={"Frame Text"}
+                value={frameText}
+                onChange={(e) => handleFrameTextChange(e.target.value)}
+                maxLength={16}
+              />
+            </Flex>
+            <Flex direction="row" gap="4" className="text-sm">
+              <ColorPickerInput
+                label="Frame colour"
+                color={frameColor}
+                onColorChange={handleFrameColorChange}
+                isValid={frameColorValid}
+                setIsValid={setFrameColorValid}
+              />
+              <ColorPickerInput
+                label="Text Colour"
+                color={frameTextColor}
+                onColorChange={handleFrameTextColorChange}
+                isValid={frameTextColorValid}
+                setIsValid={setFrameTextColorValid}
+              />
+            </Flex>
+          </motion.div>
         )}
-        placeholder={"Frame Text"}
-        value={frameText}
-        onChange={(e) => handleFrameTextChange(e.target.value)}
-        maxLength={16}
-      />
-      <ColorPickerInput
-        label="Frame colour"
-        color={frameColor}
-        onColorChange={handleFrameColorChange}
-        isValid={frameColorValid}
-        setIsValid={setFrameColorValid}
-        disabled={selectedSuggestedFrame === "none"}
-      />
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 };

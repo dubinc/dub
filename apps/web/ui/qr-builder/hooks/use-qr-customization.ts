@@ -27,6 +27,7 @@ export function useQrCustomization(
   const [selectedSuggestedFrame, setSelectedSuggestedFrame] =
     useState<string>("none");
   const [frameColor, setFrameColor] = useState<string>(BLACK_COLOR);
+  const [frameTextColor, setFrameTextColor] = useState<string>(WHITE_COLOR);
   const [frameText, setFrameText] = useState<string>("Scan Me!");
   const [selectedQRType, setSelectedQRType] = useState<EQRType>(
     initialData?.qrType as EQRType,
@@ -202,6 +203,7 @@ export function useQrCustomization(
         height: opts.height!,
         frameColor,
         frameText,
+        frameTextColor,
       }),
     );
   }, [
@@ -211,6 +213,7 @@ export function useQrCustomization(
     isQrDisabled,
     frameColor,
     frameText,
+    frameTextColor,
   ]);
 
   useEffect(() => {
@@ -242,6 +245,16 @@ export function useQrCustomization(
         const frameColor = initialData.frameOptions.color as string;
         setFrameColor(frameColor);
         handlers.onFrameColorChange(frameColor);
+      }
+
+      if (
+        initialData.frameOptions &&
+        typeof initialData?.frameOptions === "object" &&
+        "textColor" in initialData.frameOptions
+      ) {
+        const frameTextColor = initialData.frameOptions.textColor as string;
+        setFrameTextColor(frameTextColor);
+        handlers.onFrameTextColorChange(frameTextColor);
       }
 
       if (
@@ -296,6 +309,9 @@ export function useQrCustomization(
     },
     onFrameColorChange: (color: string) => {
       setFrameColor(color);
+    },
+    onFrameTextColorChange: (color: string) => {
+      setFrameTextColor(color);
     },
     onFrameTextChange: (text: string) => {
       setFrameText(text);
@@ -387,6 +403,7 @@ export function useQrCustomization(
     selectedSuggestedLogo,
     selectedSuggestedFrame,
     frameColor,
+    frameTextColor,
     frameText,
     setOptions,
     handlers,
