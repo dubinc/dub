@@ -56,7 +56,6 @@ export async function importReferrals({
       ),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
     currentPage++;
     processedBatches++;
   }
