@@ -1,47 +1,40 @@
 "use server";
 
-import { includeTags } from "@/lib/api/links/include-tags";
 import { generateOTP } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
-import { recordLink } from "@/lib/tinybird";
 import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
-import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import VerifyEmailForAccountMerge from "@dub/email/templates/verify-email-for-account-merge";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
 const CACHE_KEY_PREFIX = "merge-partner-accounts";
 const CACHE_EXPIRY_IN = 10 * 60; // 10 minutes
 const EMAIL_OTP_EXPIRY_IN = 5 * 60; // 5 minutes
-
-const sendTokensSchema = z.object({
-  step: z.literal("send-tokens"),
-  sourceEmail: emailSchema,
-  targetEmail: emailSchema,
-});
-
-const verifyTokensSchema = z.object({
-  step: z.literal("verify-tokens"),
-  sourceEmail: emailSchema,
-  targetEmail: emailSchema,
-  sourceCode: z.string().min(1),
-  targetCode: z.string().min(1),
-});
-
-const mergeAccountsSchema = z.object({
-  step: z.literal("merge-accounts"),
-});
+const MAX_ATTEMPTS = 5; // 5 attempts per 24 hours
 
 const schema = z.discriminatedUnion("step", [
-  sendTokensSchema,
-  verifyTokensSchema,
-  mergeAccountsSchema,
+  z.object({
+    step: z.literal("send-tokens"),
+    sourceEmail: emailSchema,
+    targetEmail: emailSchema,
+  }),
+
+  z.object({
+    step: z.literal("verify-tokens"),
+    sourceEmail: emailSchema,
+    targetEmail: emailSchema,
+    sourceCode: z.string().min(1),
+    targetCode: z.string().min(1),
+  }),
+
+  z.object({
+    step: z.literal("merge-accounts"),
+  }),
 ]);
 
 export const mergePartnerAccountsAction = authPartnerActionClient
@@ -66,7 +59,7 @@ export const mergePartnerAccountsAction = authPartnerActionClient
           userId: user.id,
         });
       default:
-        throw new Error(`Unknown step: ${step}.`);
+        throw new Error("Unknown step.");
     }
   });
 
@@ -80,7 +73,7 @@ const sendTokens = async ({
   targetEmail: string;
   userId: string;
 }) => {
-  const { success } = await ratelimit(5, "24 h").limit(
+  const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
     `${CACHE_KEY_PREFIX}:step-1:${userId}`,
   );
 
@@ -103,12 +96,13 @@ const sendTokens = async ({
     select: {
       id: true,
       email: true,
+      payoutsEnabledAt: true,
     },
   });
 
   if (partnerAccounts.length === 0) {
     throw new Error(
-      "One or both partner accounts not found. Please check the emails you entered.",
+      "Partner accounts not found. Please check the emails you entered.",
     );
   }
 
@@ -120,9 +114,21 @@ const sendTokens = async ({
     ({ email }) => email === targetEmail,
   );
 
-  if (!sourceAccount || !targetAccount) {
+  if (!sourceAccount) {
     throw new Error(
-      "One or both partner accounts not found. Please check the emails you entered.",
+      `Source partner account ${sourceEmail} not found. Please check the email you entered.`,
+    );
+  }
+
+  if (!targetAccount) {
+    throw new Error(
+      `Target partner account ${targetEmail} not found. Please check the email you entered.`,
+    );
+  }
+
+  if (sourceAccount.payoutsEnabledAt || targetAccount.payoutsEnabledAt) {
+    throw new Error(
+      "Account merging is not available if payouts are enabled on either account. Please contact our support for assistance.",
     );
   }
 
@@ -171,7 +177,7 @@ const sendTokens = async ({
     {
       from: VARIANT_TO_FROM_MAP.notifications,
       to: targetEmail,
-      subject: "Connect your payout details on Dub Partners",
+      subject: "Verify your email to merge your Dub Partners accounts",
       react: VerifyEmailForAccountMerge({
         email: targetEmail,
         code: targetEmailCode,
@@ -195,7 +201,7 @@ const verifyTokens = async ({
   targetCode: string;
   userId: string;
 }) => {
-  const { success } = await ratelimit(5, "24 h").limit(
+  const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
     `${CACHE_KEY_PREFIX}:step-2:${userId}`,
   );
 
@@ -263,6 +269,7 @@ const verifyTokens = async ({
     {
       sourceEmail,
       targetEmail,
+      status: "verified",
     },
     {
       ex: CACHE_EXPIRY_IN,
@@ -293,12 +300,9 @@ const verifyTokens = async ({
   });
 };
 
-// TODO:
-// Should we move step 3 to a background job?
-
 // Step 3: Merge partner accounts
 const mergeAccounts = async ({ userId }: { userId: string }) => {
-  const { success } = await ratelimit(5, "24 h").limit(
+  const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
     `${CACHE_KEY_PREFIX}:step-3:${userId}`,
   );
 
@@ -325,172 +329,12 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
 
   const { sourceEmail, targetEmail } = accounts;
 
-  const partnerAccounts = await prisma.partner.findMany({
-    where: {
-      email: {
-        in: [sourceEmail, targetEmail],
-      },
-    },
-    select: {
-      id: true,
-      email: true,
+  await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/merge-partner-accounts`,
+    body: {
+      userId,
+      sourceEmail,
+      targetEmail,
     },
   });
-
-  if (partnerAccounts.length === 0) {
-    throw new Error("One or both partner accounts not found.");
-  }
-
-  const sourceAccount = partnerAccounts.find(
-    ({ email }) => email === sourceEmail,
-  );
-
-  const targetAccount = partnerAccounts.find(
-    ({ email }) => email === targetEmail,
-  );
-
-  if (!sourceAccount || !targetAccount) {
-    throw new Error("One or both partner accounts not found.");
-  }
-
-  const sourcePartnerId = sourceAccount.id;
-  const targetPartnerId = targetAccount.id;
-
-  const enrollments = await prisma.programEnrollment.findMany({
-    where: {
-      partnerId: {
-        in: [sourcePartnerId, targetPartnerId],
-      },
-    },
-    select: {
-      partnerId: true,
-      programId: true,
-    },
-  });
-
-  const sourcePartnerEnrollments = enrollments.filter(
-    ({ partnerId }) => partnerId === sourcePartnerId,
-  );
-
-  const targetPartnerEnrollments = enrollments.filter(
-    ({ partnerId }) => partnerId === targetPartnerId,
-  );
-
-  const sourcePartnerProgramIds = sourcePartnerEnrollments.map(
-    ({ programId }) => programId,
-  );
-
-  const newEnrollments = sourcePartnerEnrollments.filter(
-    ({ programId }) =>
-      !targetPartnerEnrollments.some(
-        ({ programId: targetProgramId }) => programId === targetProgramId,
-      ),
-  );
-
-  await prisma.programEnrollment.updateMany({
-    where: {
-      programId: {
-        in: newEnrollments.map(({ programId }) => programId),
-      },
-      partnerId: sourcePartnerId,
-    },
-    data: {
-      partnerId: targetPartnerId,
-    },
-  });
-
-  await prisma.link.updateMany({
-    where: {
-      programId: {
-        in: sourcePartnerProgramIds,
-      },
-      partnerId: sourcePartnerId,
-    },
-    data: {
-      partnerId: targetPartnerId,
-    },
-  });
-
-  await prisma.commission.updateMany({
-    where: {
-      programId: {
-        in: sourcePartnerProgramIds,
-      },
-      partnerId: sourcePartnerId,
-    },
-    data: {
-      partnerId: targetPartnerId,
-    },
-  });
-
-  await prisma.payout.updateMany({
-    where: {
-      programId: {
-        in: sourcePartnerProgramIds,
-      },
-      partnerId: sourcePartnerId,
-    },
-    data: {
-      partnerId: targetPartnerId,
-    },
-  });
-
-  await prisma.partner.delete({
-    where: {
-      id: sourcePartnerId,
-    },
-  });
-
-  // TODO:
-  // Remove the source user from the database
-
-  await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
-
-  waitUntil(
-    (async () => {
-      const updatedLinks = await prisma.link.findMany({
-        where: {
-          programId: {
-            in: sourcePartnerProgramIds,
-          },
-          partnerId: targetPartnerId,
-        },
-        include: includeTags,
-      });
-
-      Promise.all([
-        recordLink(updatedLinks),
-
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-          body: {
-            partnerId: targetPartnerId,
-          },
-        }),
-
-        resend?.batch.send([
-          {
-            from: VARIANT_TO_FROM_MAP.notifications,
-            to: sourceEmail,
-            subject: "Your Dub partner accounts are now merged",
-            react: PartnerAccountMerged({
-              email: sourceEmail,
-              sourceEmail,
-              targetEmail,
-            }),
-          },
-          {
-            from: VARIANT_TO_FROM_MAP.notifications,
-            to: targetEmail,
-            subject: "Your Dub partner accounts are now merged",
-            react: PartnerAccountMerged({
-              email: targetEmail,
-              sourceEmail,
-              targetEmail,
-            }),
-          },
-        ]),
-      ]);
-    })(),
-  );
 };
