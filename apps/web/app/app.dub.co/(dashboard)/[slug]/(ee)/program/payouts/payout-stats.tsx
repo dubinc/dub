@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutsCount } from "@/lib/types";
@@ -10,7 +11,7 @@ import { cn, currencyFormatter } from "@dub/utils";
 import Link from "next/link";
 
 export function PayoutStats() {
-  const { slug } = useWorkspace();
+  const { slug, role } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const { payoutsCount, loading } = usePayoutsCount<PayoutsCount[]>({
@@ -51,6 +52,12 @@ export function PayoutStats() {
   const totalPaid =
     (completedPayouts?.amount || 0) + (processingPayouts?.amount || 0);
 
+  const { error: permissionsError } = clientAccessCheck({
+    role,
+    action: "payouts.write",
+    customPermissionDescription: "confirm payouts.",
+  });
+
   return (
     <>
       <PayoutInvoiceSheet />
@@ -71,11 +78,15 @@ export function PayoutStats() {
                   scroll: false,
                 });
               }}
-              disabled={eligiblePayoutsLoading || confirmButtonDisabled}
+              disabled={
+                eligiblePayoutsLoading ||
+                confirmButtonDisabled ||
+                permissionsError !== false
+              }
               disabledTooltip={
                 confirmButtonDisabled
                   ? "You have no pending payouts that match the minimum payout requirement for partners that have payouts enabled."
-                  : undefined
+                  : permissionsError || undefined
               }
             />
           </div>
