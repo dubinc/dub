@@ -194,6 +194,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // decide if we should delete the actual user account
     const sourcePartnerUser = sourcePartnerUsers[0];
 
     const workspaceCount = await prisma.projectUsers.count({
