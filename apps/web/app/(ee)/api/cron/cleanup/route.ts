@@ -147,6 +147,7 @@ export async function GET(req: Request) {
       }
     }
 
+    // Delete the users
     if (users.length > 0) {
       await prisma.user.deleteMany({
         where: {
@@ -165,16 +166,20 @@ export async function GET(req: Request) {
       }
     }
 
-    console.log("Removed the following items.", {
+    const response = {
       links: links.length,
       domains: domains.length,
       tags: tags.length,
       partners: partners.length,
       users: users.length,
-    });
+    };
 
-    return NextResponse.json({ status: "OK" });
+    console.log("Removed the following items.", response);
+
+    return NextResponse.json(response);
   } catch (error) {
+    console.error(error);
+
     await log({
       message: `Links and domain cleanup failed - ${error.message}`,
       type: "errors",
