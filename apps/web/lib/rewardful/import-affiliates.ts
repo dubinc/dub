@@ -74,7 +74,6 @@ export async function importAffiliates({
       );
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
     currentPage++;
     processedBatches++;
   }
