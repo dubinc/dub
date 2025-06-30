@@ -1,15 +1,15 @@
-import { PageContentOld } from "@/ui/layout/page-content";
-import { MaxWidthWrapper } from "@dub/ui";
+import { PageContent } from "@/ui/layout/page-content";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { EarningsCompositeChart } from "./earnings-composite-chart";
 import { EarningsTablePartner } from "./earnings-table";
 
 export default function ProgramEarning() {
   return (
-    <PageContentOld title="Earnings" showControls>
-      <MaxWidthWrapper className="flex flex-col gap-6">
+    <PageContent title="Earnings">
+      <PageWidthWrapper className="flex flex-col gap-6 pb-10">
         <EarningsCompositeChart />
         <EarningsTablePartner />
-      </MaxWidthWrapper>
-    </PageContentOld>
+      </PageWidthWrapper>
+    </PageContent>
   );
 }

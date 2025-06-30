@@ -1,14 +1,15 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
+import { exceededLimitError } from "@/lib/api/errors";
 import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { calculatePayoutFee } from "@/lib/payment-methods";
+import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutResponse } from "@/lib/types";
+import { PayoutResponse, PlanProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -20,6 +21,7 @@ import {
   Sheet,
   SimpleTooltipContent,
   Table,
+  TooltipContent,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
@@ -79,7 +81,15 @@ type SelectPaymentMethod =
 
 function PayoutInvoiceSheetContent() {
   const { queryParams } = useRouterStuff();
-  const { id: workspaceId, slug, plan, defaultProgramId } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug,
+    plan,
+    defaultProgramId,
+    payoutsUsage,
+    payoutsLimit,
+    payoutFee,
+  } = useWorkspace();
 
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
@@ -125,9 +135,9 @@ function PayoutInvoiceSheetContent() {
         const base = {
           ...paymentMethod,
           id: pm.id,
-          fee: calculatePayoutFee({
+          fee: calculatePayoutFeeForMethod({
             paymentMethod: pm.type,
-            plan,
+            payoutFee,
           }),
         };
 
@@ -267,7 +277,7 @@ function PayoutInvoiceSheetContent() {
           ),
         tooltipContent: selectedPaymentMethod ? (
           <SimpleTooltipContent
-            title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
+            title={`${selectedPaymentMethod.fee * 100}% processing fee. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
             cta="Learn more"
             href="https://d.to/payouts"
           />
@@ -405,9 +415,6 @@ function PayoutInvoiceSheetContent() {
           type="button"
           variant="primary"
           loading={isPending}
-          disabled={
-            eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
-          }
           onClick={async () => {
             if (!workspaceId || !selectedPaymentMethod) {
               return;
@@ -426,6 +433,25 @@ function PayoutInvoiceSheetContent() {
                   maximumFractionDigits: 2,
                 })} payout`
               : "Confirm payout"
+          }
+          disabled={
+            eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
+          }
+          disabledTooltip={
+            payoutsUsage &&
+            payoutsLimit &&
+            amount &&
+            payoutsUsage + amount > payoutsLimit && (
+              <TooltipContent
+                title={exceededLimitError({
+                  plan: plan as PlanProps,
+                  limit: payoutsLimit,
+                  type: "payouts",
+                })}
+                cta="Upgrade"
+                href={`/${slug}/settings/billing/upgrade`}
+              />
+            )
           }
         />
       </div>

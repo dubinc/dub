@@ -4,24 +4,9 @@ import { PaymentMethodOption } from "../types";
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
 export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
 export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
-
-export const PAYOUT_FEES = {
-  business: {
-    direct_debit: 0.05,
-    card: 0.1,
-  },
-  advanced: {
-    direct_debit: 0.05,
-    card: 0.08,
-  },
-  enterprise: {
-    direct_debit: 0.03,
-    card: 0.06,
-  },
-} as const;
-
 export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 10000;
 export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
+export const FOREX_MARKUP_RATE = 0.005; // 0.5%
 
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
@@ -30,6 +15,8 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
   title: string;
   icon: string;
   option: PaymentMethodOption;
+  recommended?: boolean;
+  enterpriseOnly?: boolean;
 }[] = [
   {
     type: "us_bank_account",
@@ -37,6 +24,7 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
     title: "ACH",
     icon: "https://hatscripts.github.io/circle-flags/flags/us.svg",
     option: {},
+    recommended: true,
   },
   {
     type: "acss_debit",
@@ -57,6 +45,7 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
     title: "SEPA Debit",
     icon: "https://hatscripts.github.io/circle-flags/flags/eu.svg",
     option: {},
+    enterpriseOnly: true,
   },
 ];
 

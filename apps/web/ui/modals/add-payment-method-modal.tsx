@@ -4,6 +4,7 @@ import { DIRECT_DEBIT_PAYMENT_TYPES_INFO } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, GreekTemple, Modal } from "@dub/ui";
+import { cn, COUNTRIES } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { CSSProperties, Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
@@ -35,7 +36,7 @@ function AddPaymentMethodModalInner({
   setShowAddPaymentMethodModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const router = useRouter();
-  const { slug } = useWorkspace();
+  const { slug, plan } = useWorkspace();
   const [isLoading, setIsLoading] = useState(false);
 
   const addPaymentMethod = async (type: Stripe.PaymentMethod.Type) => {
@@ -86,7 +87,7 @@ function AddPaymentMethodModalInner({
               Connect your bank account
             </h3>
             <p className="mt-1 text-base text-neutral-500">
-              Select your bank’s location to connect your bank account.
+              Select your bank's location to connect your bank account.
             </p>
           </div>
 
@@ -99,14 +100,39 @@ function AddPaymentMethodModalInner({
             }
           >
             {DIRECT_DEBIT_PAYMENT_TYPES_INFO.map(
-              ({ type, location, title, icon: Icon }, index) => (
+              (
+                {
+                  type,
+                  location,
+                  title,
+                  icon: Icon,
+                  recommended,
+                  enterpriseOnly,
+                },
+                index,
+              ) => (
                 <button
                   key={index}
                   type="button"
-                  className="group flex flex-col items-center gap-4 rounded-lg bg-neutral-200/40 p-8 px-2 py-4 transition-colors duration-100 hover:bg-neutral-200/60"
+                  className="group flex flex-col items-center justify-end gap-4 rounded-lg bg-neutral-200/40 p-8 px-2 py-4 transition-colors duration-100 hover:bg-neutral-200/60 disabled:cursor-not-allowed disabled:opacity-50"
                   onClick={() => addPaymentMethod(type)}
-                  disabled={isLoading}
+                  disabled={
+                    isLoading || (enterpriseOnly && plan !== "enterprise")
+                  }
                 >
+                  <span
+                    className={cn(
+                      "rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-semibold text-neutral-600",
+                      recommended && "bg-blue-100 text-blue-700",
+                      enterpriseOnly && "bg-violet-100 text-violet-700",
+                    )}
+                  >
+                    {recommended
+                      ? "Recommended"
+                      : enterpriseOnly
+                        ? "Enterprise only"
+                        : `${COUNTRIES[location]} only`}
+                  </span>
                   <img
                     src={Icon}
                     alt={location}

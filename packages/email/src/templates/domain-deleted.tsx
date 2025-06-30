@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function DomainDeleted({
+export default function DomainDeleted({
   email = "panic@thedis.co",
   domain = "dub.sh",
   workspaceSlug = "dub",
@@ -74,5 +74,3 @@ export function DomainDeleted({
     </Html>
   );
 }
-
-export default DomainDeleted;

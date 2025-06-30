@@ -4,7 +4,7 @@ import { qstash } from "@/lib/cron";
 import { registerDomain } from "@/lib/dynadot/register-domain";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { sendEmail } from "@dub/email";
-import { DomainClaimed } from "@dub/email/templates/domain-claimed";
+import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, DEFAULT_LINK_PROPS } from "@dub/utils";
 import { get } from "@vercel/edge-config";

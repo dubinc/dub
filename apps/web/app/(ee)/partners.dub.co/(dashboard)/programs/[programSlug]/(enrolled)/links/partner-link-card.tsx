@@ -6,7 +6,6 @@ import { CommentsBadge } from "@/ui/links/comments-badge";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import {
   ArrowTurnRight2,
-  BlurImage,
   CardList,
   CopyButton,
   CursorRays,
@@ -18,7 +17,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
-import { cn, getApexDomain, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
+import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { ComponentProps, useMemo, useRef } from "react";
@@ -46,19 +45,12 @@ const CHARTS = [
   },
 ];
 
-export function PartnerLinkCard({
-  link,
-  isDefaultLink,
-}: {
-  link: PartnerProfileLinkProps;
-  isDefaultLink?: boolean;
-}) {
+export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = usePartnerLinksContext();
   const { programEnrollment } = useProgramEnrollment();
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal({
     link,
-    isDefaultLink,
   });
 
   const ref = useRef<HTMLDivElement>(null);
@@ -141,34 +133,6 @@ export function PartnerLinkCard({
       onClick={() => setShowPartnerLinkModal(true)}
     >
       <PartnerLinkModal />
-      {isDefaultLink && (
-        <div className="flex items-center justify-between gap-4 rounded-t-[11px] border-b border-neutral-200 bg-neutral-100 px-5 py-2">
-          <div className="flex items-center gap-1.5">
-            {programEnrollment && (
-              <BlurImage
-                src={
-                  programEnrollment.program.logo ||
-                  `${OG_AVATAR_URL}${programEnrollment.program.name}`
-                }
-                width={16}
-                height={16}
-                alt={programEnrollment?.program.name}
-                className="size-4 shrink-0 overflow-hidden rounded-full"
-              />
-            )}
-            <span className="text-xs font-medium text-neutral-700">
-              Default program link
-            </span>
-          </div>
-          <a
-            href="https://dub.co/help/category/partners" // TODO: Update link
-            target="_blank"
-            className="text-xs font-medium text-neutral-600 underline hover:text-neutral-800"
-          >
-            Learn more
-          </a>
-        </div>
-      )}
       <div className="p-4" ref={ref}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">

@@ -126,6 +126,8 @@ export const PartnerOnlinePresenceSchema = z.object({
     .nullable()
     .describe("The partner's YouTube channel username (e.g. `johndoe`)."),
   youtubeVerifiedAt: z.date().nullable(),
+  youtubeSubscriberCount: z.number(),
+  youtubeViewCount: z.number(),
   twitter: z
     .string()
     .nullable()
@@ -317,15 +319,14 @@ export const getPartnerCustomersQuerySchema = z
   );
 
 export const createPartnerSchema = z.object({
-  programId: z
-    .string()
-    .describe("The ID of the program to create a partner for."),
   name: z
     .string()
     .trim()
-    .min(1)
     .max(100)
-    .describe("Full legal name of the partner."),
+    .nullish()
+    .describe(
+      "The partner's full name. If undefined, the partner's email will be used in lieu of their name (e.g. `john@acme.com`)",
+    ),
   email: z
     .string()
     .trim()
@@ -333,34 +334,40 @@ export const createPartnerSchema = z.object({
     .max(190)
     .email()
     .describe(
-      "Email for the partner in your system. Partners will be able to claim their profile by signing up to Dub Partners with this email.",
+      "The partner's email address. Partners will be able to claim their profile by signing up at `partners.dub.co` with this email.",
     ),
   username: z
     .string()
     .max(100)
     .nullish()
     .describe(
-      "A unique username for the partner in your system (max 100 characters). This will be used to create a short link for the partner using your program's default domain. If not provided, Dub will try to generate a username from the partner's name or email.",
+      "The partner's unique username in your system (max 100 characters). This will be used to create a short link for the partner using your program's default domain. If not provided, Dub will try to generate a username from the partner's name or email.",
     ),
   image: z
     .string()
     .nullish()
     .describe(
-      "Avatar image for the partner – if not provided, a default avatar will be used.",
+      "The partner's avatar image. If not provided, a default avatar will be used.",
+    ),
+  tenantId: z
+    .string()
+    .optional()
+    .describe(
+      "The partner's unique ID in your system. Useful for retrieving the partner's links and stats later on. If not provided, the partner will be created as a standalone partner.",
     ),
   country: z
     .enum(COUNTRY_CODES)
     .nullish()
-    .describe("Country where the partner is based."),
+    .describe(
+      "The partner's country of residence. Must be passed as a 2-letter ISO 3166-1 country code. Learn more: https://d.to/geo",
+    ),
   description: z
     .string()
     .max(5000)
     .nullish()
-    .describe("A brief description of the partner and their background."),
-  tenantId: z
-    .string()
-    .optional()
-    .describe("The ID of the partner in your system."),
+    .describe(
+      "A brief description of the partner and their background. Max 5,000 characters.",
+    ),
   linkProps: createLinkBodySchema
     .omit({
       url: true,
@@ -384,13 +391,13 @@ export const createPartnerSchema = z.object({
 
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
-    programId: true,
     username: true,
     email: true,
     linkProps: true,
   })
   .merge(
     z.object({
+      name: z.string(),
       image: z.string(),
       country: z.enum(COUNTRY_CODES),
       profileType: z.enum(["individual", "company"]).default("individual"),
@@ -417,9 +424,6 @@ export const onboardPartnerSchema = createPartnerSchema
 
 export const createPartnerLinkSchema = z
   .object({
-    programId: z
-      .string()
-      .describe("The ID of the program that the partner is enrolled in."),
     partnerId: z
       .string()
       .nullish()
@@ -478,9 +482,6 @@ export const partnerAnalyticsQuerySchema = analyticsQuerySchema
         .describe(
           "The parameter to group the analytics data points by. Defaults to `count` if undefined.",
         ),
-      programId: z
-        .string()
-        .describe("The ID of the program to retrieve analytics for."),
     }),
   );
 
@@ -544,6 +545,29 @@ export const approvePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   linkId: z.string().nullable(),
+});
+
+export const approvePartnersBulkSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
+});
+
+export const rejectPartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+});
+
+export const rejectPartnersBulkSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
 });
 
 export const retrievePartnerLinksSchema = z

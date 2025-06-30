@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function APIKeyCreated({
+export default function APIKeyCreated({
   email = "panic@thedis.co",
   workspace = {
     name: "Acme, Inc",
@@ -85,5 +85,3 @@ export function APIKeyCreated({
     </Html>
   );
 }
-
-export default APIKeyCreated;

@@ -264,7 +264,6 @@ const RewardItem = ({
               {reward ? (
                 <ProgramRewardDescription
                   reward={reward}
-                  hideIfZero={false}
                   amountClassName="text-blue-600"
                 />
               ) : (

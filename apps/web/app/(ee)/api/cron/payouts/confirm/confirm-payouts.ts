@@ -1,20 +1,28 @@
 import { createId } from "@/lib/api/create-id";
+import { exceededLimitError } from "@/lib/api/errors";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
-  PAYMENT_METHOD_TYPES,
+  FOREX_MARKUP_RATE,
 } from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { calculatePayoutFee } from "@/lib/payment-methods";
+import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
+import { createFxQuote } from "@/lib/stripe/create-fx-quote";
+import { PlanProps } from "@/lib/types";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { chunk, log } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
+
+const paymentMethodToCurrency = {
+  sepa_debit: "eur",
+  acss_debit: "cad",
+} as const;
 
 export async function confirmPayouts({
   workspace,
@@ -23,7 +31,16 @@ export async function confirmPayouts({
   paymentMethodId,
   cutoffPeriod,
 }: {
-  workspace: Pick<Project, "id" | "stripeId" | "plan" | "invoicePrefix">;
+  workspace: Pick<
+    Project,
+    | "id"
+    | "stripeId"
+    | "plan"
+    | "invoicePrefix"
+    | "payoutsUsage"
+    | "payoutsLimit"
+    | "payoutFee"
+  >;
   program: Pick<Program, "id" | "name" | "logo" | "minPayoutAmount">;
   userId: string;
   paymentMethodId: string;
@@ -77,20 +94,67 @@ export async function confirmPayouts({
     return;
   }
 
+  const payoutAmount = payouts.reduce(
+    (total, payout) => total + payout.amount,
+    0,
+  );
+
+  if (workspace.payoutsUsage + payoutAmount > workspace.payoutsLimit) {
+    throw new Error(
+      exceededLimitError({
+        plan: workspace.plan as PlanProps,
+        limit: workspace.payoutsLimit,
+        type: "payouts",
+      }),
+    );
+  }
+
   const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
   // Create the invoice for the payouts
   const newInvoice = await prisma.$transaction(async (tx) => {
-    const amount = payouts.reduce((total, payout) => total + payout.amount, 0);
+    const payoutFee = calculatePayoutFeeForMethod({
+      paymentMethod: paymentMethod.type,
+      payoutFee: workspace.payoutFee,
+    });
 
-    const fee =
-      amount *
-      calculatePayoutFee({
-        paymentMethod: paymentMethod.type,
-        plan: workspace.plan,
+    if (!payoutFee) {
+      throw new Error("Failed to calculate payout fee.");
+    }
+
+    console.info(
+      `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
+    );
+
+    const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
+    const totalFee = Math.round(payoutAmount * payoutFee);
+    const total = payoutAmount + totalFee;
+    let convertedTotal = total;
+
+    // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
+    if (["sepa_debit", "acss_debit"].includes(paymentMethod.type)) {
+      const fxQuote = await createFxQuote({
+        fromCurrency: currency,
+        toCurrency: "usd",
       });
 
-    const total = amount + fee;
+      const exchangeRate = fxQuote.rates[currency].exchange_rate;
+
+      // if Stripe's FX rate is not available, throw an error
+      if (!exchangeRate || exchangeRate <= 0) {
+        throw new Error(
+          `Failed to get exchange rate from Stripe for ${currency}.`,
+        );
+      }
+
+      convertedTotal = Math.round(
+        (total / exchangeRate) * (1 + FOREX_MARKUP_RATE),
+      );
+
+      console.log(
+        `Currency conversion: ${total} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
+      );
+    }
 
     // Generate the next invoice number
     const totalInvoices = await tx.invoice.count({
@@ -107,8 +171,8 @@ export async function confirmPayouts({
         number: invoiceNumber,
         programId: program.id,
         workspaceId: workspace.id,
-        amount,
-        fee,
+        amount: payoutAmount,
+        fee: totalFee,
         total,
       },
     });
@@ -118,11 +182,11 @@ export async function confirmPayouts({
     }
 
     await stripe.paymentIntents.create({
-      amount: invoice.total,
+      amount: convertedTotal,
       customer: workspace.stripeId!,
-      payment_method_types: PAYMENT_METHOD_TYPES,
+      payment_method_types: [paymentMethod.type],
       payment_method: paymentMethod.id,
-      currency: "usd",
+      currency,
       confirmation_method: "automatic",
       confirm: true,
       transfer_group: invoice.id,
@@ -149,7 +213,7 @@ export async function confirmPayouts({
       },
       data: {
         payoutsUsage: {
-          increment: amount,
+          increment: payoutAmount,
         },
       },
     });
@@ -177,6 +241,7 @@ export async function confirmPayouts({
       payouts.filter((payout) => payout.partner.email),
       100,
     );
+
     for (const payoutChunk of payoutChunks) {
       await resend.batch.send(
         payoutChunk.map((payout) => ({

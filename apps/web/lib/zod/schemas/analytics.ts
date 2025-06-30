@@ -140,7 +140,9 @@ export const analyticsQuerySchema = z
     country: z
       .enum(COUNTRY_CODES)
       .optional()
-      .describe("The country to retrieve analytics for.")
+      .describe(
+        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. Learn more: https://d.to/geo",
+      )
       .openapi({ ref: "countryCode" }),
     city: z
       .string()
