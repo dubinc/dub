@@ -10,7 +10,7 @@ import { cn, currencyFormatter } from "@dub/utils";
 import Link from "next/link";
 
 export function PayoutStats() {
-  const { slug } = useWorkspace();
+  const { slug, role } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const { payoutsCount, loading } = usePayoutsCount<PayoutsCount[]>({
