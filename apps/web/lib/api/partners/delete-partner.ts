@@ -47,13 +47,13 @@ export async function deletePartner({ partnerId }: { partnerId: string }) {
     });
   }
 
-  await prisma.payout.deleteMany({
+  await prisma.commission.deleteMany({
     where: {
       partnerId: partner.id,
     },
   });
 
-  await prisma.commission.deleteMany({
+  await prisma.payout.deleteMany({
     where: {
       partnerId: partner.id,
     },
