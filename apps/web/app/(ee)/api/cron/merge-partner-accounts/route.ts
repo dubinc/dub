@@ -271,7 +271,9 @@ export async function POST(req: Request) {
       `Partner account ${sourceEmail} merged into ${targetEmail}.`,
     );
   } catch (error) {
-    await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
+    if (userId) {
+      await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
+    }
 
     await log({
       message: `Error merging partner accounts: ${error.message}`,
