@@ -1,6 +1,6 @@
 import { BadgeCheck2Fill, Tooltip } from "@dub/ui";
-import { getUrlFromString } from "@dub/utils";
-import Link from "next/link";
+import { getUrlFromString, isValidUrl } from "@dub/utils";
+import { PropsWithChildren } from "react";
 
 export function PartnerSocialColumn({
   at,
@@ -14,12 +14,7 @@ export function PartnerSocialColumn({
   href: string;
 }) {
   return value && href ? (
-    <Link
-      href={getUrlFromString(href)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-2 hover:underline"
-    >
+    <LinkIfValid href={getUrlFromString(href)}>
       <span className="min-w-0 truncate">
         {at && "@"}
         {value}
@@ -31,8 +26,26 @@ export function PartnerSocialColumn({
           </div>
         </Tooltip>
       )}
-    </Link>
+    </LinkIfValid>
   ) : (
     "-"
   );
 }
+
+const LinkIfValid = ({
+  href,
+  children,
+}: PropsWithChildren<{ href: string }>) => {
+  return isValidUrl(href) ? (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 hover:underline"
+    >
+      {children}
+    </a>
+  ) : (
+    <span className="flex items-center gap-2">{children}</span>
+  );
+};
