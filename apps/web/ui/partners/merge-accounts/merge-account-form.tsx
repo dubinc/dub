@@ -1,6 +1,8 @@
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
+import useUser from "@/lib/swr/use-user";
 import { Button } from "@dub/ui";
 import { AlertTriangle, ArrowDown } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { AccountInputGroup } from "./account-input-group";
@@ -14,11 +16,25 @@ export function MergeAccountForm({
   onSuccess: () => void;
   onCancel: () => void;
 }) {
+  const { user } = useUser();
   const { sourceAccount, targetAccount } = useMergePartnerAccountsForm();
 
   const { executeAsync, isPending } = useAction(mergePartnerAccountsAction, {
     onSuccess: async () => {
       onSuccess();
+
+      if (sourceAccount.email === user?.email) {
+        toast.success(
+          "Account merge process has started! We'll send you an email when it's complete. You'll be logged out automatically.",
+        );
+
+        await signOut({
+          callbackUrl: "/login",
+        });
+
+        return;
+      }
+
       toast.success(
         "Account merge process has started! We'll send you an email when it's complete. No action is required on your part.",
       );
