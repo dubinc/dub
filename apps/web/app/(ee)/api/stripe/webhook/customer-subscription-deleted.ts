@@ -184,7 +184,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
     }),
 
-    // expire restricted tokens cache
+    // expire tokens cache
     tokenCache.expireMany({
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),

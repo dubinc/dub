@@ -89,6 +89,7 @@ export const PATCH = withWorkspace(
       },
     });
 
+    // update tokens cache
     waitUntil(
       tokenCache.set({
         hashedKey: token.hashedKey,
@@ -131,6 +132,7 @@ export const DELETE = withWorkspace(
       });
     }
 
+    // delete tokens cache
     waitUntil(
       tokenCache.delete({
         hashedKey: token.hashedKey,

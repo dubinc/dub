@@ -136,8 +136,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         dublink: true,
       },
     }),
-
-    // expire restricted tokens cache
+    // expire tokens cache
     tokenCache.expireMany({
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),

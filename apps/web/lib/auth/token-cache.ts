@@ -20,7 +20,7 @@ const tokenCacheItemSchema = z.object({
 
 type TokenCacheItem = z.infer<typeof tokenCacheItemSchema>;
 
-// Cache for the restricted tokens
+// Cache for restricted tokens (and legacy personal tokens)
 class TokenCache {
   async set({
     hashedKey,
