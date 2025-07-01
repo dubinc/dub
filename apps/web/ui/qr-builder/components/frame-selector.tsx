@@ -141,7 +141,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
                 placeholder={"Frame Text"}
                 value={frameText}
                 onChange={(e) => handleFrameTextChange(e.target.value)}
-                maxLength={16}
+                maxLength={10}
               />
             </Flex>
             <Flex direction="row" gap="2" className="items-end text-sm">
