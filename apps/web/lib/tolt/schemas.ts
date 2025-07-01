@@ -5,7 +5,6 @@ export const ToltProgramSchema = z.object({
   name: z.string(),
   subdomain: z.string(),
   payout_term: z.string(),
-  total_affiliates: z.number(), // custom property doesn't exist in the API response
 });
 
 export const ToltAffiliateSchema = z.object({
@@ -16,7 +15,12 @@ export const ToltAffiliateSchema = z.object({
   company_name: z.string().nullable(),
   country_code: z.string().nullable(),
   status: z.enum(["active", "inactive"]).default("active"),
-  program: ToltProgramSchema.omit({
-    total_affiliates: true,
-  }).optional(),
+  program: ToltProgramSchema.optional(),
+});
+
+export const ToltLinkSchema = z.object({
+  id: z.string(),
+  param: z.string(),
+  value: z.string(),
+  partner: ToltAffiliateSchema,
 });

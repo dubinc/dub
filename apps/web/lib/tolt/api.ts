@@ -1,8 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
-import { ToltAffiliateSchema, ToltProgramSchema } from "./schemas";
+import {
+  ToltAffiliateSchema,
+  ToltLinkSchema,
+  ToltProgramSchema,
+} from "./schemas";
 import {
   RewardfulCommission,
-  RewardfulReferral,
   ToltAffiliate,
   ToltLink,
   ToltListResponse,
@@ -61,16 +64,18 @@ export class ToltApi {
       throw new Error("No partners found to import.");
     }
 
-    const firstPartner = partners[0];
+    const partner = partners[0];
 
-    if (!firstPartner.program) {
+    if (!partner.program) {
       throw new Error("No program found for the first partner.");
     }
 
-    return ToltProgramSchema.parse({
-      ...firstPartner.program,
+    return {
+      ...ToltProgramSchema.parse({
+        ...partner.program,
+      }),
       total_affiliates: total_count,
-    });
+    };
   }
 
   async listAffiliates({
@@ -99,34 +104,50 @@ export class ToltApi {
 
   async listLinks({
     programId,
-    partnerId,
+    startingAfter,
   }: {
     programId: string;
-    partnerId: string;
+    startingAfter?: string;
   }) {
     const searchParams = new URLSearchParams();
     searchParams.append("program_id", programId);
-    searchParams.append("partner_id", partnerId);
+    searchParams.append("expand[]", "partner");
+    searchParams.append("starting_after", startingAfter || "");
     searchParams.append("limit", PAGE_LIMIT.toString());
 
-    return await this.fetch<ToltListResponse<ToltLink>>(
-      `${this.baseUrl}/links?${searchParams.toString()}`,
-    );
+    const { data, has_more, total_count } = await this.fetch<
+      ToltListResponse<ToltLink>
+    >(`${this.baseUrl}/links?${searchParams.toString()}`);
+
+    return {
+      has_more,
+      total_count,
+      data: ToltLinkSchema.array().parse(data),
+    };
   }
 
-  async listReferrals({ page = 1 }: { page?: number }) {
+  async listReferrals({
+    programId,
+    startingAfter,
+  }: {
+    programId: string;
+    startingAfter?: string;
+  }) {
     const searchParams = new URLSearchParams();
-    searchParams.append("expand[]", "affiliate");
-    searchParams.append("conversion_state[]", "lead");
-    searchParams.append("conversion_state[]", "conversion");
-    searchParams.append("page", page.toString());
+    searchParams.append("program_id", programId);
+    searchParams.append("expand[]", "partner");
+    searchParams.append("starting_after", startingAfter || "");
     searchParams.append("limit", PAGE_LIMIT.toString());
 
-    const { data } = await this.fetch<{ data: RewardfulReferral[] }>(
-      `${this.baseUrl}/referrals?${searchParams.toString()}`,
-    );
+    const { data, has_more, total_count } = await this.fetch<
+      ToltListResponse<ToltLink>
+    >(`${this.baseUrl}/links?${searchParams.toString()}`);
 
-    return data;
+    return {
+      has_more,
+      total_count,
+      data: ToltLinkSchema.array().parse(data),
+    };
   }
 
   async listCommissions({ page = 1 }: { page?: number }) {

@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { ToltAffiliateSchema, ToltProgramSchema } from "./schemas";
+import {
+  ToltAffiliateSchema,
+  ToltLinkSchema,
+  ToltProgramSchema,
+} from "./schemas";
 
 export interface ToltConfig {
   token: string;
@@ -7,11 +11,22 @@ export interface ToltConfig {
   toltProgramId: string;
 }
 
+export interface ToltListResponse<T> {
+  success: true;
+  has_more: boolean;
+  total_count: number;
+  data: T[];
+}
+
 export interface ToltProgram extends z.infer<typeof ToltProgramSchema> {
-  //
+  total_affiliates: number;
 }
 
 export interface ToltAffiliate extends z.infer<typeof ToltAffiliateSchema> {
+  //
+}
+
+export interface ToltLink extends z.infer<typeof ToltLinkSchema> {
   //
 }
 
@@ -30,22 +45,9 @@ export interface RewardfulCampaign {
   updated_at: string;
 }
 
-export interface ToltListResponse<T> {
-  success: true;
-  has_more: boolean;
-  total_count: number;
-  data: T[];
-}
-
 export interface ToltGroup {
   id: string;
   name: string;
-}
-
-export interface ToltLink {
-  id: string;
-  value: string;
-  partner_id: string;
 }
 
 export interface RewardfulCustomer {

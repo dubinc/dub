@@ -30,6 +30,14 @@ export const startToltImportAction = authActionClient
       throw new Error("Program URL is not set.");
     }
 
+    const credentials = await toltImporter.getCredentials(workspace.id);
+
+    if (!credentials) {
+      throw new Error(
+        "Tolt credentials not found. Please restart the import process.",
+      );
+    }
+
     await toltImporter.queue({
       action: "import-affiliates",
       programId,

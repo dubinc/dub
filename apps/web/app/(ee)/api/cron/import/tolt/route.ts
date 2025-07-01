@@ -1,6 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { importAffiliates } from "@/lib/tolt/import-affiliates";
+import { importLinks } from "@/lib/tolt/import-links";
+import { importReferrals } from "@/lib/tolt/import-referrals";
 import { importSteps } from "@/lib/tolt/importer";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -22,18 +24,17 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { programId, action, startingAfter } = schema.parse(
-      JSON.parse(rawBody),
-    );
-
-    console.log("Request body", { programId, action, startingAfter });
+    const { action, ...payload } = schema.parse(JSON.parse(rawBody));
 
     switch (action) {
       case "import-affiliates":
-        await importAffiliates({
-          programId,
-          startingAfter,
-        });
+        await importAffiliates(payload);
+        break;
+      case "import-links":
+        await importLinks(payload);
+        break;
+      case "import-referrals":
+        await importReferrals(payload);
         break;
     }
 
