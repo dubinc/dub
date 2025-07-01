@@ -1,3 +1,5 @@
+import { lightenHexColor } from "@/ui/qr-builder/helpers/lighten-hex-color.ts";
+import { measureTextWidth } from "@/ui/qr-builder/helpers/measure-text-width.ts";
 import CardFirstPreview from "@/ui/qr-builder/icons/frames/card-1-preview.svg";
 import CardFirst from "@/ui/qr-builder/icons/frames/card-1.svg";
 import CardSecondPreview from "@/ui/qr-builder/icons/frames/card-2-preview.svg";
@@ -20,8 +22,12 @@ import WreathPreview from "@/ui/qr-builder/icons/frames/wreath-preview.svg";
 import Wreath from "@/ui/qr-builder/icons/frames/wreath.svg";
 import NoLogoIcon from "@/ui/qr-builder/icons/no-logo.svg";
 import { StaticImageData } from "next/image";
+import { BLACK_COLOR } from "./colors.ts";
 import { TStyleOption } from "./styles.ts";
+
 const frameCache = new Map<string, HTMLElement>();
+
+export const FRAME_TEXT = "Scan Me!";
 
 export const FRAMES: TStyleOption[] = [
   {
@@ -33,7 +39,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card",
     type: "card",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Card, 0.78, 43, -2);
+      await embedQRIntoFrame(qr, options, Card, 0.75, 50, 5);
     },
     icon: CardPreview,
   },
@@ -41,7 +47,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card-1",
     type: "card-1",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CardFirst, 0.78, 43, -2);
+      await embedQRIntoFrame(qr, options, CardFirst, 0.75, 50, 5);
     },
     icon: CardFirstPreview,
   },
@@ -49,23 +55,25 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card-2",
     type: "card-2",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CardSecond, 0.8, 37, -8);
+      await embedQRIntoFrame(qr, options, CardSecond, 0.77, 45, -3.5);
     },
     icon: CardSecondPreview,
+    defaultTextColor: BLACK_COLOR,
   },
   {
     id: "frame-card-3",
     type: "card-3",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CardThird, 0.8, 37, -6);
+      await embedQRIntoFrame(qr, options, CardThird, 0.77, 45, -2.5);
     },
     icon: CardThirdPreview,
+    defaultTextColor: BLACK_COLOR,
   },
   {
     id: "frame-wreath",
     type: "wreath",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Wreath, 0.69, 68, 30);
+      await embedQRIntoFrame(qr, options, Wreath, 0.65, 81, 40);
     },
     icon: WreathPreview,
   },
@@ -73,31 +81,34 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-envelope",
     type: "envelope",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Envelope, 0.55, 123, 20);
+      await embedQRIntoFrame(qr, options, Envelope, 0.52, 138, 25);
     },
     icon: EnvelopePreview,
+    defaultTextColor: BLACK_COLOR,
   },
   {
     id: "frame-waitress",
     type: "waitress",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Waitress, 0.55, 128, 62);
+      await embedQRIntoFrame(qr, options, Waitress, 0.52, 142, 72);
     },
     icon: WaitressPreview,
+    defaultTextColor: BLACK_COLOR,
   },
   {
     id: "frame-coffee-cup",
     type: "coffee-cup",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CoffeeCup, 0.55, 105, 115);
+      await embedQRIntoFrame(qr, options, CoffeeCup, 0.52, 120, 130);
     },
     icon: CoffeeCupPreview,
+    defaultTextColor: BLACK_COLOR,
   },
   {
     id: "frame-scooter",
     type: "scooter",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Scooter, 0.48, 34, 35);
+      await embedQRIntoFrame(qr, options, Scooter, 0.46, 42, 45);
     },
     icon: ScooterPreview,
   },
@@ -105,7 +116,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-clipboard",
     type: "clipboard",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, ClipboardFrame, 0.74, 53, 50);
+      await embedQRIntoFrame(qr, options, ClipboardFrame, 0.72, 60, 55);
     },
     icon: ClipboardFramePreview,
   },
@@ -147,7 +158,14 @@ export async function preloadAllFrames() {
 
 async function embedQRIntoFrame(
   svg: SVGSVGElement,
-  options: { width: number; height: number },
+  options: {
+    width: number;
+    height: number;
+    frameColor: string;
+    frameTextColor: string;
+    frameText: string;
+    onTextNodeFound?: (node: SVGTextElement) => void;
+  },
   frame: StaticImageData,
   qrScale: number,
   qrTranslateX: number,
@@ -165,9 +183,53 @@ async function embedQRIntoFrame(
 
     frameClone.setAttribute("width", String(options.width));
     frameClone.setAttribute("height", String(options.height));
+    frameClone.setAttribute("color", String(options.frameColor));
+
+    const secondaryColorElement = frameClone.querySelector(
+      "#qr-frame-secondary-color",
+    ) as SVGElement | null;
+    if (secondaryColorElement) {
+      secondaryColorElement.setAttribute(
+        "fill",
+        lightenHexColor(options.frameColor, 20),
+      );
+    }
+
+    const textNode = frameClone.querySelector(
+      "#qr-frame-text",
+    ) as SVGTextElement | null;
+
+    if (textNode) {
+      textNode.style.fill = options.frameTextColor;
+      textNode.textContent = options.frameText || " ";
+
+      const maxWidth = 150;
+      const initialFontSizeAttr = textNode.getAttribute("font-size");
+      let currentFontSize = initialFontSizeAttr
+        ? parseFloat(initialFontSizeAttr)
+        : 30;
+
+      if (options.frameText) {
+        let width = measureTextWidth(
+          options.frameText,
+          `${currentFontSize}px Inter`,
+        );
+
+        while (width > maxWidth && currentFontSize > 12) {
+          currentFontSize -= 1;
+          width = measureTextWidth(
+            options.frameText,
+            `${currentFontSize}px Inter`,
+          );
+        }
+
+        textNode.textContent = options.frameText;
+        textNode.setAttribute("font-size", `${currentFontSize}px`);
+        textNode.setAttribute("font-family", "Inter, sans-serif");
+      }
+    }
 
     const qrGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-
     while (svg.firstChild) {
       qrGroup.appendChild(svg.firstChild);
     }

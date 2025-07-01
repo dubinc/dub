@@ -22,6 +22,9 @@ interface QrTabsCustomizationProps {
   homepageDemo?: boolean;
   handlers: {
     onSuggestedFrameSelect: (type: string) => void;
+    onFrameColorChange: (color: string) => void;
+    onFrameTextColorChange: (color: string) => void;
+    onFrameTextChange: (text: string) => void;
     onDotsStyleChange: (type: DotType) => void;
     onBorderColorChange: (color: string) => void;
     onBackgroundColorChange: (color: string) => void;
@@ -29,7 +32,6 @@ interface QrTabsCustomizationProps {
     onCenterStyleChange: (type: CornerDotType) => void;
     onSuggestedLogoSelect: (type: string, src?: string) => void;
     setUploadedLogoFile: (file: File | null) => void;
-    onTransparentBackgroundToggle: (checked: boolean) => void;
   };
 }
 
@@ -79,6 +81,10 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               selectedSuggestedFrame={selectedSuggestedFrame}
               isQrDisabled={isQrDisabled}
               onFrameSelect={handlers.onSuggestedFrameSelect}
+              onFrameColorChange={handlers.onFrameColorChange}
+              onFrameTextColorChange={handlers.onFrameTextColorChange}
+              onFrameTextChange={handlers.onFrameTextChange}
+              isMobile={isMobile}
             />
           )}
 
@@ -89,9 +95,6 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               onDotsStyleChange={handlers.onDotsStyleChange}
               onBorderColorChange={handlers.onBorderColorChange}
               onBackgroundColorChange={handlers.onBackgroundColorChange}
-              onTransparentBackgroundToggle={
-                handlers.onTransparentBackgroundToggle
-              }
               selectedSuggestedFrame={selectedSuggestedFrame}
             />
           )}
@@ -125,6 +128,10 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               selectedSuggestedFrame={selectedSuggestedFrame}
               isQrDisabled={isQrDisabled}
               onFrameSelect={handlers.onSuggestedFrameSelect}
+              onFrameColorChange={handlers.onFrameColorChange}
+              onFrameTextColorChange={handlers.onFrameTextColorChange}
+              onFrameTextChange={handlers.onFrameTextChange}
+              isMobile={isMobile}
             />
           )}
           {tab.id === "style" && (
@@ -134,9 +141,6 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               onDotsStyleChange={handlers.onDotsStyleChange}
               onBorderColorChange={handlers.onBorderColorChange}
               onBackgroundColorChange={handlers.onBackgroundColorChange}
-              onTransparentBackgroundToggle={
-                handlers.onTransparentBackgroundToggle
-              }
               selectedSuggestedFrame={selectedSuggestedFrame}
             />
           )}

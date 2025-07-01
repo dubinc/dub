@@ -68,6 +68,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         uploadedLogo,
         selectedSuggestedLogo,
         selectedSuggestedFrame,
+        frameColor,
+        frameTextColor,
+        frameText,
         handlers,
         setData,
         isQrDisabled,
@@ -187,11 +190,12 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           styles: options,
           frameOptions: {
             id: selectedSuggestedFrame,
+            color: frameColor,
+            textColor: frameTextColor,
+            text: frameText,
           },
           qrType: selectedQRType,
           files: files || [],
-        }).then(() => {
-          // setFiles(null);
         });
       };
 

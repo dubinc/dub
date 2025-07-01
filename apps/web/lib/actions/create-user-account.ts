@@ -6,19 +6,22 @@ import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { flattenValidationErrors } from "next-safe-action";
+import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId, getIP } from "../api/utils";
 import { hashPassword } from "../auth/password";
 import z from "../zod";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
-import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 
 const qrDataToCreateSchema = z.object({
   title: z.string(),
   styles: z.object({}).passthrough(),
   frameOptions: z.object({
     id: z.string(),
+    color: z.string().optional(),
+    textColor: z.string().optional(),
+    text: z.string().optional(),
   }),
   qrType: z.enum([
     "website",
@@ -132,7 +135,10 @@ export const createUserAccountAction = actionClient
           linkData: {
             url: linkUrl,
           },
-          workspace: workspaceResponse as Pick<WorkspaceProps, "id" | "plan" | "flags">,
+          workspace: workspaceResponse as Pick<
+            WorkspaceProps,
+            "id" | "plan" | "flags"
+          >,
           userId: generatedUserId,
           fileId: qrDataToCreate.file || undefined,
           homePageDemo: true,

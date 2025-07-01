@@ -1,5 +1,6 @@
 "use client";
 
+import { FAQ_ITEMS_HOMEPAGE } from "@/ui/landing/components/faq-section/config.ts";
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PricingSection } from "@/ui/landing/components/pricing/pricing-plans.tsx";
 import { ReviewsSection } from "@/ui/landing/components/reviews/reviews-section.tsx";
@@ -38,7 +39,7 @@ export const LandingModule = () => {
       <GetQRFeaturesCardsSection />
       <ReviewsSection />
       <PricingSection handleScrollButtonClick={handleScrollButtonClick} />
-      <FAQSection />
+      <FAQSection faqItems={FAQ_ITEMS_HOMEPAGE} />
     </main>
   );
 };
