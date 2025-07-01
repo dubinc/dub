@@ -147,6 +147,7 @@ export const POST = withSession(
         },
       });
 
+      console.log('subscription here');
       console.log(body.paymentPlan);
       console.log(price);
       console.log(user.currency?.currencyForPay);
