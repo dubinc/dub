@@ -8,7 +8,6 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
 });
 
 export const uploadLanderImageAction = authActionClient

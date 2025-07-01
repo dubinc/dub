@@ -508,30 +508,6 @@ export const partnerAnalyticsResponseSchema = {
   }),
 } as const;
 
-// TODO: remove this
-export const updatePartnerSaleSchema = z.object({
-  programId: z.string(),
-  invoiceId: z.string(),
-  amount: z
-    .number()
-    .min(0)
-    .describe("The new absolute amount for the sale.")
-    .optional(),
-  modifyAmount: z
-    .number()
-    .describe(
-      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it.",
-    )
-    .optional(),
-  currency: z
-    .string()
-    .default("usd")
-    .transform((val) => val.toLowerCase())
-    .describe(
-      "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
-    ),
-});
-
 export const invitePartnerSchema = z.object({
   workspaceId: z.string(),
   name: z.string().trim().min(1).max(100),
@@ -572,7 +548,6 @@ export const rejectPartnersBulkSchema = z.object({
 
 export const retrievePartnerLinksSchema = z
   .object({
-    programId: z.string(),
     partnerId: z.string().optional(),
     tenantId: z.string().optional(),
   })
