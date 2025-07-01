@@ -1,7 +1,7 @@
 "use client";
 
 import { QrStorageData, convertQrStorageDataToBuilder } from "@/lib/qr-types.ts";
-import { useQrSave } from "@/ui/qr-code/hooks/use-qr-save";
+import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr";
 import { Button, Input, Modal } from "@dub/ui";
@@ -28,7 +28,7 @@ function QRRenameModal({
 }: QRRenameModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [name, setName] = useState(qrCode.title || "");
-  const { updateQrWithOriginal } = useQrSave();
+  const { updateQrWithOriginal } = useQrOperations();
 
   const handleSave = async () => {
     if (!qrCode?.id) {
@@ -36,7 +36,10 @@ function QRRenameModal({
       return;
     }
 
-
+    if (name === qrCode.title) {
+      setShowQRRenameModal(false);
+      return;
+    }
 
     setIsProcessing(true);
 

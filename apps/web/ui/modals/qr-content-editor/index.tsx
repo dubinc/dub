@@ -10,7 +10,7 @@ import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handler
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
 import { getQRValidationSchema } from "@/ui/qr-builder/qr-validation-schema.ts";
-import { useQrSave } from "@/ui/qr-code/hooks/use-qr-save.ts";
+import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { Button, Modal } from "@dub/ui";
@@ -71,7 +71,7 @@ export function QRContentEditorModal({
   const selectedQRType = (qrCode?.qrType as EQRType) || EQRType.WEBSITE;
 
   const { parsedInputValues } = useQrCustomization(qrCode);
-  const { updateQrWithOriginal } = useQrSave();
+  const { updateQrWithOriginal } = useQrOperations();
 
   const validationSchema = getQRValidationSchema(selectedQRType);
 

@@ -16,7 +16,7 @@ import { QRBuilderData, QrStorageData } from "@/lib/qr-types.ts";
 import useUser from "@/lib/swr/use-user.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
-import { useQrSave } from "@/ui/qr-code/hooks/use-qr-save";
+import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { trackClientEvents } from "core/integration/analytic";
@@ -36,7 +36,7 @@ export function QRBuilderModal({
   setShowQRBuilderModal,
   initialStep,
 }: QRBuilderModalProps) {
-  const { createQr, updateQrWithOriginal } = useQrSave();
+  const { createQr, updateQrWithOriginal } = useQrOperations();
   const { isMobile } = useMediaQuery();
 
   const [isProcessing, setIsProcessing] = useState(false);

@@ -1,7 +1,6 @@
-import { mutatePrefix } from "@/lib/swr/mutate";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkProps, QRProps } from "@/lib/types";
-import { Button, Modal, useToastWithUndo } from "@dub/ui";
+import { QrStorageData } from "@/lib/qr-types.ts";
+import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
+import { Button, Modal } from "@dub/ui";
 import {
   Dispatch,
   MouseEvent,
@@ -10,32 +9,11 @@ import {
   useMemo,
   useState,
 } from "react";
-import { toast } from "sonner";
-
-export const sendArchiveRequest = ({
-  qrId,
-  archive,
-  workspaceId,
-}: {
-  qrId: string;
-  archive: boolean;
-  workspaceId?: string;
-}) => {
-  return fetch(`/api/qrs/${qrId}?workspaceId=${workspaceId}`, {
-    method: "PUT",
-    body: JSON.stringify({ archived: archive }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-};
 
 type ArchiveQRModalProps = {
   showArchiveQRModal: boolean;
   setShowArchiveQRModal: Dispatch<SetStateAction<boolean>>;
-  props: QRProps & {
-    link: LinkProps;
-  };
+  props: QrStorageData;
 };
 
 function ArchiveQRModal(props: ArchiveQRModalProps) {
@@ -53,61 +31,26 @@ function ArchiveQRModalInner({
   setShowArchiveQRModal,
   props,
 }: ArchiveQRModalProps) {
-  const toastWithUndo = useToastWithUndo();
-
-  const { id: workspaceId } = useWorkspace();
+  const { archiveQr } = useQrOperations();
   const [archiving, setArchiving] = useState(false);
 
   const handleArchiveRequest = async (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
 
     setArchiving(true);
-    const res = await sendArchiveRequest({
-      qrId: props.id,
-      archive: !props.link.archived,
-      workspaceId,
-    });
+    const success = await archiveQr(props.id, !props.archived);
     setArchiving(false);
 
-    if (!res.ok) {
-      const { error } = await res.json();
-      toast.error(error.message);
-      return;
+    if (success) {
+      setShowArchiveQRModal(false);
     }
-
-    mutatePrefix(["/api/qrs", "/api/links"]);
-    setShowArchiveQRModal(false);
-    toastWithUndo({
-      id: "qr-archive-undo-toast",
-      message: `Successfully ${props.link.archived ? "unpaused" : "paused"} QR!`,
-      undo: undoAction,
-      duration: 5000,
-    });
-  };
-
-  const undoAction = () => {
-    toast.promise(
-      sendArchiveRequest({
-        qrId: props.id,
-        archive: props.link.archived,
-        workspaceId,
-      }),
-      {
-        loading: "Undo in progress...",
-        error: "Failed to roll back changes. An error occurred.",
-        success: () => {
-          mutatePrefix(["/api/qrs", "/api/links"]);
-          return "Undo successful! Changes reverted.";
-        },
-      },
-    );
   };
 
   return (
     <>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
         <h3 className="text-lg font-medium">
-          {props.link.archived ? "Unpause" : "Pause"} {props.id}
+          {props.archived ? "Unpause" : "Pause"} {props.id}
         </h3>
         {/*<p className="text-sm text-neutral-500">*/}
         {/*  {props.archived*/}
@@ -121,20 +64,14 @@ function ArchiveQRModalInner({
           onClick={handleArchiveRequest}
           autoFocus
           loading={archiving}
-          text={`Confirm ${props.link.archived ? "unpause" : "pause"}`}
+          text={`Confirm ${props.archived ? "unpause" : "pause"}`}
         />
       </div>
     </>
   );
 }
 
-export function useArchiveQRModal({
-  props,
-}: {
-  props: QRProps & {
-    link: LinkProps;
-  };
-}) {
+export function useArchiveQRModal({ props }: { props: QrStorageData }) {
   const [showArchiveQRModal, setShowArchiveQRModal] = useState(false);
 
   const ArchiveQRModalCallback = useCallback(() => {

@@ -45,7 +45,7 @@ export function useQRContentForm({
     initialIsHiddenNetwork,
   );
 
-  // Устанавливаем начальные значения формы при изменении initialInputValues
+  // Set initial values of the form when initialInputValue changes
   useEffect(() => {
     if (initialInputValues && Object.keys(initialInputValues).length > 0) {
       const valuesWithQrName = {
@@ -56,7 +56,7 @@ export function useQRContentForm({
     }
   }, [initialInputValues, reset, qrType, qrTitle]);
 
-  // Устанавливаем isHiddenNetwork при изменении initialIsHiddenNetwork
+  // Set isHiddenNetwork when initialIsHiddenNetwork changes
   useEffect(() => {
     setIsHiddenNetwork(initialIsHiddenNetwork);
   }, [initialIsHiddenNetwork]);

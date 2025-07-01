@@ -1,11 +1,7 @@
 import { QrStorageData } from "@/lib/qr-types.ts";
-import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
-import {
-  sendArchiveRequest,
-  useArchiveQRModal,
-} from "@/ui/modals/archive-qr-modal.tsx";
+import { useArchiveQRModal } from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
@@ -17,7 +13,6 @@ import { cn } from "@dub/utils";
 import { Delete, Palette, RefreshCw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { PropsWithChildren, RefObject, useContext, useState } from "react";
-import { toast } from "sonner";
 import { ThreeDots } from "../shared/icons";
 
 interface QrCodeControlsProps {
@@ -66,8 +61,6 @@ export function QrCodeControls({
     props: qrCode,
     initialStep: 3, // design customization
   });
-
-  const [archiving, setArchiving] = useState<boolean>(false);
 
   const folderId = qrCode.link.folderId || searchParams.get("folderId");
 
@@ -168,33 +161,15 @@ export function QrCodeControls({
               <Button
                 text={qrCode.archived ? "Unpause" : "Pause"}
                 variant="outline"
-                onClick={async () => {
+                onClick={() => {
                   if (isTrialOver) {
                     setShowTrialExpiredModal?.(true);
                     setOpenPopover(false);
                     return;
                   }
 
-                  setArchiving(true);
-                  const res = await sendArchiveRequest({
-                    qrId: qrCode.id,
-                    archive: !qrCode.archived,
-                    workspaceId,
-                  });
-
-                  if (!res.ok) {
-                    const { error } = await res.json();
-                    toast.error(error.message);
-                    setArchiving(false);
-                    return;
-                  }
-
-                  mutatePrefix(["/api/qrs", "/api/links"]);
-                  toast.success(
-                    `Successfully ${qrCode.archived ? "unpaused" : "paused"} QR code!`,
-                  );
                   setOpenPopover(false);
-                  setArchiving(false);
+                  setShowArchiveQRModal(true);
                 }}
                 icon={<BoxArchive className="size-4" />}
                 shortcut="A"
@@ -204,7 +179,6 @@ export function QrCodeControls({
                     ? "You don't have permission to archive this link."
                     : undefined
                 }
-                loading={archiving}
               />
 
               <Button

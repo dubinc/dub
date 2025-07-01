@@ -10,11 +10,13 @@ import { SHORT_DOMAIN } from "@dub/utils/src";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
+import { useToastWithUndo } from "@dub/ui";
 
-export const useQrSave = () => {
+export const useQrOperations = () => {
   const params = useParams() as { slug?: string };
   const { slug } = params;
   const { id: workspaceId } = useWorkspace();
+  const toastWithUndo = useToastWithUndo();
 
   const createQr = useCallback(
     async (qrBuilderData: QRBuilderData) => {
@@ -120,8 +122,89 @@ export const useQrSave = () => {
     [workspaceId, slug],
   );
 
+  const archiveQr = useCallback(
+    async (qrId: string, archive: boolean) => {
+      try {
+        if (!workspaceId) {
+          toast.error("Workspace ID not found");
+          return false;
+        }
+
+        const res = await fetch(`/api/qrs/${qrId}?workspaceId=${workspaceId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ archived: archive }),
+        });
+
+        if (res.status === 200) {
+          await mutatePrefix(["/api/qrs", "/api/links"]);
+          
+          toastWithUndo({
+            id: "qr-archive-undo-toast",
+            message: `Successfully ${archive ? "paused" : "unpaused"} QR!`,
+            undo: () => {
+              toast.promise(archiveQr(qrId, !archive), {
+                loading: "Undo in progress...",
+                error: "Failed to roll back changes. An error occurred.",
+                success: () => {
+                  return "Undo successful! Changes reverted.";
+                },
+              });
+            },
+            duration: 5000,
+          });
+          
+          return true;
+        } else {
+          const { error } = await res.json();
+          toast.error(error?.message || "Failed to archive QR");
+          return false;
+        }
+      } catch (e) {
+        console.error("Failed to archive QR", e);
+        toast.error("Failed to archive QR");
+        return false;
+      }
+    },
+    [workspaceId, toastWithUndo],
+  );
+
+  const deleteQr = useCallback(
+    async (qrId: string) => {
+      try {
+        if (!workspaceId) {
+          toast.error("Workspace ID not found");
+          return false;
+        }
+
+        const res = await fetch(`/api/qrs/${qrId}?workspaceId=${workspaceId}`, {
+          method: "DELETE",
+        });
+
+        if (res.status === 200) {
+          await mutatePrefix(["/api/qrs", "/api/links"]);
+          toast.success("Successfully deleted QR!");
+          return true;
+        } else {
+          const { error } = await res.json();
+          toast.error(error?.message || "Failed to delete QR");
+          return false;
+        }
+      } catch (e) {
+        console.error("Failed to delete QR", e);
+        toast.error("Failed to delete QR");
+        return false;
+      }
+    },
+    [workspaceId],
+  );
+
   return {
     createQr,
     updateQrWithOriginal,
+    archiveQr,
+    deleteQr,
   };
 };
