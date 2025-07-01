@@ -28,7 +28,7 @@ function QRRenameModal({
 }: QRRenameModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [name, setName] = useState(qrCode.title || "");
-  const { updateQr } = useQrSave();
+  const { updateQrWithOriginal } = useQrSave();
 
   const handleSave = async () => {
     if (!qrCode?.id) {
@@ -36,10 +36,7 @@ function QRRenameModal({
       return;
     }
 
-    if (name === qrCode.title) {
-      setShowQRRenameModal(false);
-      return;
-    }
+
 
     setIsProcessing(true);
 
@@ -47,7 +44,7 @@ function QRRenameModal({
       const qrBuilderData = convertQrStorageDataToBuilder(qrCode);
       qrBuilderData.title = name;
       
-      const success = await updateQr(qrCode.id, qrBuilderData);
+      const success = await updateQrWithOriginal(qrCode, qrBuilderData);
 
       if (success) {
         setShowQRRenameModal(false);

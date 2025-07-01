@@ -1,7 +1,7 @@
 import {
   QRBuilderData,
   convertQRBuilderDataToServer,
-  convertQRBuilderDataToUpdate,
+  convertQRForUpdate,
 } from "@/lib/qr-types.ts";
 import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
@@ -59,8 +59,8 @@ export const useQrSave = () => {
     [workspaceId, slug],
   );
 
-  const updateQr = useCallback(
-    async (qrId: string, qrBuilderData: QRBuilderData) => {
+  const updateQrWithOriginal = useCallback(
+    async (originalQR: any, qrBuilderData: QRBuilderData) => {
       try {
         if (!workspaceId) {
           toast.error("Workspace ID not found");
@@ -69,21 +69,33 @@ export const useQrSave = () => {
 
         const domain = SHORT_DOMAIN || "dub.sh";
 
-        const serverData = await convertQRBuilderDataToUpdate(qrBuilderData, {
-          domain,
-          fileToBase64: async (file: File) => {
-            const result = await fileToBase64(file);
-            return typeof result === "string" ? result : "";
+        const updateResult = await convertQRForUpdate(
+          originalQR,
+          qrBuilderData,
+          {
+            domain,
+            fileToBase64: async (file: File) => {
+              const result = await fileToBase64(file);
+              return typeof result === "string" ? result : "";
+            },
           },
-        });
+        );
 
-        const res = await fetch(`/api/qrs/${qrId}?workspaceId=${workspaceId}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
+        if (!updateResult.hasChanges) {
+          toast.info("No changes to save");
+          return true;
+        }
+
+        const res = await fetch(
+          `/api/qrs/${originalQR.id}?workspaceId=${workspaceId}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updateResult.updateData),
           },
-          body: JSON.stringify(serverData),
-        });
+        );
 
         if (res.status === 200) {
           await mutatePrefix([
@@ -110,6 +122,6 @@ export const useQrSave = () => {
 
   return {
     createQr,
-    updateQr,
+    updateQrWithOriginal,
   };
 };

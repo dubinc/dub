@@ -183,33 +183,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
 
         const files = getFiles() as File[];
 
-        let dataChanged = false;
-        let titleChanged = false;
-        let qrTypeChanged = false;
-        let frameOptionsChanged = false;
-
-        if (props && isEdit) {
-          titleChanged = title !== props.title;
-
-          qrTypeChanged = selectedQRType !== props.qrType;
-
-          const currentFrameId = (props.frameOptions as any)?.id || "none";
-          frameOptionsChanged = selectedSuggestedFrame !== currentFrameId;
-
-          const { qrName, ...filteredFormValues } = formValues;
-          const currentDataString = qrTypeDataHandlers[selectedQRType]?.(
-            filteredFormValues as Record<string, string>,
-            isHiddenNetwork,
-          );
-          const originalData = (props.styles as any)?.data || "";
-          dataChanged = currentDataString !== originalData;
-        }
-
-        if (props && isEdit && !titleChanged && !dataChanged && !qrTypeChanged && !frameOptionsChanged && files.length === 0) {
-          toast.info("No changes to save");
-          return;
-        }
-
         handleSaveQR?.({
           title,
           styles: options,

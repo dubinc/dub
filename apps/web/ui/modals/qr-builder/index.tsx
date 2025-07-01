@@ -36,7 +36,7 @@ export function QRBuilderModal({
   setShowQRBuilderModal,
   initialStep,
 }: QRBuilderModalProps) {
-  const { createQr, updateQr } = useQrSave();
+  const { createQr, updateQrWithOriginal } = useQrSave();
   const { isMobile } = useMediaQuery();
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -51,7 +51,7 @@ export function QRBuilderModal({
     }
 
     if (props) {
-      await updateQr(props.id, data);
+      await updateQrWithOriginal(props, data);
     } else {
       await createQr(data);
     }

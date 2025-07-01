@@ -71,7 +71,7 @@ export function QRContentEditorModal({
   const selectedQRType = (qrCode?.qrType as EQRType) || EQRType.WEBSITE;
 
   const { parsedInputValues } = useQrCustomization(qrCode);
-  const { updateQr } = useQrSave();
+  const { updateQrWithOriginal } = useQrSave();
 
   const validationSchema = getQRValidationSchema(selectedQRType);
 
@@ -128,10 +128,6 @@ export function QRContentEditorModal({
         return;
       }
 
-      const currentData = (qrCode.styles as any)?.data || "";
-      const dataChanged = qrDataString !== currentData;
-      const titleChanged = formData.qrName !== qrCode.title;
-
       const files = [
         ...(formData.filesImage ? (formData.filesImage as File[]) : []),
         ...(formData.filesPDF ? (formData.filesPDF as File[]) : []),
@@ -139,25 +135,17 @@ export function QRContentEditorModal({
       ];
 
       const partialUpdate: QRPartialUpdateData = {
-        title: titleChanged ? (formData.qrName as string) : undefined,
-        data: dataChanged ? qrDataString : undefined,
+        title: formData.qrName as string,
+        data: qrDataString,
         files: files.length > 0 ? files : undefined,
       };
-
-      const hasChanges = titleChanged || dataChanged || files.length > 0;
-
-      if (!hasChanges) {
-        toast.info("No changes to save");
-        setShowQRContentEditorModal(false);
-        return;
-      }
 
       const qrBuilderData = convertQrStorageDataToBuilderWithPartialUpdate(
         qrCode,
         partialUpdate,
       );
 
-      const success = await updateQr(qrCode.id, qrBuilderData);
+      const success = await updateQrWithOriginal(qrCode, qrBuilderData);
 
       if (success) {
         setShowQRContentEditorModal(false);

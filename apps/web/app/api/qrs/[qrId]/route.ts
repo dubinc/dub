@@ -44,12 +44,26 @@ export const PATCH = withWorkspace(
 
     const body = updateQrBodySchema.parse(await parseRequestBody(req)) || {};
 
-    const fileId = crypto.randomUUID();
+    // Создаем новый fileId только если есть новый файл
+    const fileId = body.file ? crypto.randomUUID() : (qr.fileId || "");
 
     try {
+      // Определяем правильный URL для link
+      let linkUrl: string;
+      if (body.file) {
+        // Есть новый файл - используем новый URL
+        linkUrl = `${R2_URL}/qrs-content/${fileId}`;
+      } else if (qr.fileId) {
+        // Нет нового файла, но есть существующий файл - используем существующий URL
+        linkUrl = `${R2_URL}/qrs-content/${qr.fileId}`;
+      } else {
+        // Нет файлов - используем data из QR кода или существующий URL
+        linkUrl = body.link?.url || qr.link!.url;
+      }
+
       const updatedLink = {
         ...qr.link!,
-        url: body.file ? `${R2_URL}/qrs-content/${fileId}` : body.link!.url,
+        url: linkUrl,
         geo: qr.link!.geo as Record<string, string> | null,
       };
 
