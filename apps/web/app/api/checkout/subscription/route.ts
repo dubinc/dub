@@ -86,6 +86,11 @@ export const POST = withSession(
     };
 
     try {
+      const period = getChargePeriodDaysIdByPlan({
+        paymentPlan: body.paymentPlan,
+        user,
+      });
+
       const { tokenOnboardingData, paymentMethodToken } =
         await paymentService.createClientSubscription({
           user: {
@@ -101,10 +106,7 @@ export const POST = withSession(
               trialPrice: 0,
               trialPeriodDays: 0,
               price,
-              chargePeriodDays: getChargePeriodDaysIdByPlan({
-                paymentPlan: body.paymentPlan,
-                user,
-              }),
+              chargePeriodDays: period,
               secondary: false,
               twoSteps: false,
             },
@@ -151,6 +153,7 @@ export const POST = withSession(
       console.log(body.paymentPlan);
       console.log(price);
       console.log(user.currency?.currencyForPay);
+      console.log(period);
 
       await Promise.all([
         prisma.user.update({
