@@ -39,7 +39,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card",
     type: "card",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Card, 0.78, 43, -2);
+      await embedQRIntoFrame(qr, options, Card, 0.75, 50, 5);
     },
     icon: CardPreview,
   },
@@ -47,7 +47,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card-1",
     type: "card-1",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CardFirst, 0.78, 43, -2);
+      await embedQRIntoFrame(qr, options, CardFirst, 0.75, 50, 5);
     },
     icon: CardFirstPreview,
   },
@@ -55,7 +55,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card-2",
     type: "card-2",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CardSecond, 0.8, 37, -8);
+      await embedQRIntoFrame(qr, options, CardSecond, 0.77, 45, -3.5);
     },
     icon: CardSecondPreview,
     defaultTextColor: BLACK_COLOR,
@@ -64,7 +64,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card-3",
     type: "card-3",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CardThird, 0.8, 37, -6);
+      await embedQRIntoFrame(qr, options, CardThird, 0.77, 45, -2.5);
     },
     icon: CardThirdPreview,
     defaultTextColor: BLACK_COLOR,
@@ -73,7 +73,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-wreath",
     type: "wreath",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Wreath, 0.68, 70, 30);
+      await embedQRIntoFrame(qr, options, Wreath, 0.65, 81, 40);
     },
     icon: WreathPreview,
   },
@@ -81,7 +81,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-envelope",
     type: "envelope",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Envelope, 0.55, 123, 20);
+      await embedQRIntoFrame(qr, options, Envelope, 0.52, 138, 25);
     },
     icon: EnvelopePreview,
     defaultTextColor: BLACK_COLOR,
@@ -90,7 +90,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-waitress",
     type: "waitress",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Waitress, 0.55, 128, 62);
+      await embedQRIntoFrame(qr, options, Waitress, 0.52, 142, 72);
     },
     icon: WaitressPreview,
     defaultTextColor: BLACK_COLOR,
@@ -99,7 +99,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-coffee-cup",
     type: "coffee-cup",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CoffeeCup, 0.55, 105, 115);
+      await embedQRIntoFrame(qr, options, CoffeeCup, 0.52, 120, 130);
     },
     icon: CoffeeCupPreview,
     defaultTextColor: BLACK_COLOR,
@@ -108,7 +108,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-scooter",
     type: "scooter",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Scooter, 0.48, 34, 35);
+      await embedQRIntoFrame(qr, options, Scooter, 0.46, 42, 45);
     },
     icon: ScooterPreview,
   },
@@ -116,7 +116,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-clipboard",
     type: "clipboard",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, ClipboardFrame, 0.74, 53, 50);
+      await embedQRIntoFrame(qr, options, ClipboardFrame, 0.72, 60, 55);
     },
     icon: ClipboardFramePreview,
   },
