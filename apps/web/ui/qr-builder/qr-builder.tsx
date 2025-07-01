@@ -1,5 +1,4 @@
 import useUser from "@/lib/swr/use-user.ts";
-import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
@@ -14,15 +13,15 @@ import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
 import { QrTabsDownloadButton } from "@/ui/qr-builder/qr-tabs-download-button.tsx";
 import { QrTabsStepTitle } from "@/ui/qr-builder/qr-tabs-step-title.tsx";
 import { QrTypeSelection } from "@/ui/qr-builder/qr-type-selection.tsx";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { QRBuilderData, QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { motion } from "framer-motion";
 import { FC, forwardRef, Ref, useCallback, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
-import { trackClientEvents } from "../../core/integration/analytic";
-import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 import {
   EQRType,
   LINKED_QR_TYPES,
@@ -32,7 +31,7 @@ import { getFiles, setFiles } from "./helpers/file-store.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
 
 interface IQRBuilderProps {
-  props?: ResponseQrCode;
+  props?: QrStorageData;
   homepageDemo?: boolean;
   handleSaveQR?: (data: QRBuilderData) => Promise<void>;
   isProcessing?: boolean;
@@ -77,6 +76,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         isQrDisabled,
         selectedQRType,
         setSelectedQRType,
+        parsedInputValues,
       } = useQrCustomization(props, homepageDemo);
 
       // ===== REFS =====
@@ -140,6 +140,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       } = useQRContentForm({
         qrType: selectedQRType,
         minimalFlow: true,
+        initialInputValues: parsedInputValues || {},
+        initialIsHiddenNetwork: parsedInputValues?.isHiddenNetwork === "true",
+        qrTitle: props?.title || undefined,
         handleContent,
       });
 
@@ -177,9 +180,13 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const onSaveClick = () => {
         const formValues = form.getValues();
         const qrNameFieldId = `qrName-${selectedQRType}`;
+        const title =
+          (formValues[qrNameFieldId] as string) || props?.title || "QR Code";
+
+        const files = getFiles() as File[];
 
         handleSaveQR?.({
-          title: formValues[qrNameFieldId] as string,
+          title,
           styles: options,
           frameOptions: {
             id: selectedSuggestedFrame,
@@ -188,7 +195,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             text: frameText,
           },
           qrType: selectedQRType,
-          files: getFiles() as File[],
+          files: files || [],
         });
       };
 

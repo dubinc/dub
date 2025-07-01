@@ -28,7 +28,6 @@ export const GET = withWorkspace(
 // PATCH /api/qrs/[qrId] – update a qr
 export const PATCH = withWorkspace(
   async ({ req, headers, workspace, params, session }) => {
-    // TODO: CHECK
     if (session?.user?.id) {
       const { featuresAccess } = await checkFeaturesAccessAuthLess(
         session?.user?.id,
@@ -45,12 +44,26 @@ export const PATCH = withWorkspace(
 
     const body = updateQrBodySchema.parse(await parseRequestBody(req)) || {};
 
-    const fileId = crypto.randomUUID();
+    // Create a new fileId only if there is a new file
+    const fileId = body.file ? crypto.randomUUID() : (qr.fileId || "");
 
     try {
+      // Define the correct URL for the link
+      let linkUrl: string;
+      if (body.file) {
+        // There is a new file - use the new URL
+        linkUrl = `${R2_URL}/qrs-content/${fileId}`;
+      } else if (qr.fileId) {
+        // There is no new file, but there is an existing file - use the existing URL
+        linkUrl = `${R2_URL}/qrs-content/${qr.fileId}`;
+      } else {
+        // There is no file - use the data from the QR code or the existing URL
+        linkUrl = body.link?.url || qr.link!.url;
+      }
+
       const updatedLink = {
         ...qr.link!,
-        url: body.file ? `${R2_URL}/qrs-content/${fileId}` : body.link!.url,
+        url: linkUrl,
         geo: qr.link!.geo as Record<string, string> | null,
       };
 
@@ -76,7 +89,7 @@ export const PATCH = withWorkspace(
         });
       }
 
-      const response = await updateLink({
+      await updateLink({
         oldLink: {
           domain: qr.link!.domain,
           key: qr.link!.key,
@@ -85,19 +98,14 @@ export const PATCH = withWorkspace(
         updatedLink: processedLink,
       });
 
-      // waitUntil(
-      //   sendWorkspaceWebhook({
-      //     trigger: "link.updated",
-      //     workspace,
-      //     data: linkEventSchema.parse(response),
-      //   }),
-      // );
-
       const updatedQr = await updateQr(params.qrId, body, fileId, qr.fileId);
 
-      return NextResponse.json(updatedQr, {
-        headers,
-      });
+      return NextResponse.json(
+        { qr: updatedQr },
+        {
+          headers,
+        },
+      );
     } catch (error) {
       throw new DubApiError({
         code: "unprocessable_entity",
@@ -113,7 +121,6 @@ export const PATCH = withWorkspace(
 // PUT /api/qrs/[qrId] – archive a qr
 export const PUT = withWorkspace(
   async ({ req, headers, params, workspace, session }) => {
-    // TODO: CHECK
     if (session?.user?.id) {
       const { featuresAccess } = await checkFeaturesAccessAuthLess(
         session?.user?.id,
@@ -155,12 +162,7 @@ export const PUT = withWorkspace(
       },
     });
 
-    return NextResponse.json(
-      {
-        qr: updatedQr,
-      },
-      { headers },
-    );
+    return NextResponse.json({ qr: updatedQr }, { headers });
   },
   {
     requiredPermissions: ["links.write"],
@@ -196,10 +198,7 @@ export const DELETE = withWorkspace(
       },
     });
 
-    return NextResponse.json(
-      { linkId: removedLink.id, qrId: removedQr.id },
-      { headers },
-    );
+    return NextResponse.json({ link: removedLink, qr: removedQr }, { headers });
   },
   {
     requiredPermissions: ["links.write"],

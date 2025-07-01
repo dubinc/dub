@@ -2,7 +2,6 @@
 
 import { Button, Modal, useKeyboardShortcut, useMediaQuery } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
-import { Options } from "qr-code-styling";
 import {
   Dispatch,
   SetStateAction,
@@ -14,32 +13,18 @@ import { toast } from "sonner";
 import { Drawer } from "vaul";
 
 import useUser from "@/lib/swr/use-user.ts";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
-import { FullQrCreateData, useQrSave } from "@/ui/qr-code/hooks/use-qr-save";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { QRBuilderData, QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { LoaderCircle } from "lucide-react";
-import { trackClientEvents } from "../../../core/integration/analytic";
-import { EAnalyticEvents } from "../../../core/integration/analytic/interfaces/analytic.interface.ts";
-
-export type QRBuilderData = {
-  title: string;
-  styles: Options;
-  frameOptions: {
-    id: string;
-    color?: string;
-    textColor?: string;
-    text?: string;
-  };
-  qrType: EQRType;
-  files: File[];
-};
 
 type QRBuilderModalProps = {
-  props?: ResponseQrCode;
+  props?: QrStorageData;
   showQRBuilderModal: boolean;
   setShowQRBuilderModal: Dispatch<SetStateAction<boolean>>;
   initialStep?: number;
@@ -51,7 +36,7 @@ export function QRBuilderModal({
   setShowQRBuilderModal,
   initialStep,
 }: QRBuilderModalProps) {
-  const { createQr, updateQr } = useQrSave();
+  const { createQr, updateQrWithOriginal } = useQrOperations();
   const { isMobile } = useMediaQuery();
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -66,15 +51,9 @@ export function QRBuilderModal({
     }
 
     if (props) {
-      await updateQr(props.id, {
-        data: data.styles.data,
-        styles: data.styles,
-        frameOptions: data.frameOptions,
-        qrType: data.qrType,
-        files: data.files,
-      });
+      await updateQrWithOriginal(props, data);
     } else {
-      await createQr(data as FullQrCreateData);
+      await createQr(data);
     }
 
     setIsProcessing(false);
@@ -107,28 +86,33 @@ export function QRBuilderModal({
       <Theme>
         <QrBuilder
           isEdit={!!props}
-          isProcessing={isProcessing}
           props={props}
           handleSaveQR={handleSaveQR}
+          isProcessing={isProcessing}
           initialStep={initialStep}
         />
       </Theme>
     </div>
   );
 
+  const handleClose = useCallback(() => {
+    if (!isProcessing) {
+      setShowQRBuilderModal(false);
+    }
+  }, [isProcessing, setShowQRBuilderModal]);
+
+  useKeyboardShortcut("Escape", handleClose);
+
   if (isMobile) {
     return (
       <Drawer.Root
         open={showQRBuilderModal}
         onOpenChange={setShowQRBuilderModal}
-        shouldScaleBackground
-        dismissible={false}
       >
         <Drawer.Portal>
-          <Drawer.Overlay className="bg-neutral/20 fixed inset-0 z-50" />
-          <Drawer.Content className="mx-h-[82vh] fixed inset-0 bottom-0 left-0 right-0 z-50 mt-24 flex flex-col rounded-t-xl bg-white">
-            <div className="mx-auto mb-2 mt-4 h-1.5 w-12 flex-shrink-0 rounded-full bg-neutral-300" />
-            {modalContent}
+          <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex h-[96%] flex-col rounded-t-[10px] bg-white">
+            <div className="flex-1 overflow-y-auto">{modalContent}</div>
           </Drawer.Content>
         </Drawer.Portal>
       </Drawer.Root>
@@ -139,8 +123,7 @@ export function QRBuilderModal({
     <Modal
       showModal={showQRBuilderModal}
       setShowModal={setShowQRBuilderModal}
-      desktopOnly
-      className="border-border-500 max-w-screen-lg"
+      className="h-[90vh] max-h-[90vh] w-full max-w-6xl overflow-hidden"
     >
       {modalContent}
     </Modal>
@@ -176,7 +159,7 @@ function CreateQRButton({
 }
 
 export function useQRBuilder(data?: {
-  props?: ResponseQrCode;
+  props?: QrStorageData;
   initialStep?: number;
 }) {
   const { props, initialStep } = data ?? {};
