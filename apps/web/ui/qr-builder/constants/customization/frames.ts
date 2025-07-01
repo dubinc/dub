@@ -1,3 +1,5 @@
+import { lightenHexColor } from "@/ui/qr-builder/helpers/lighten-hex-color.ts";
+import { measureTextWidth } from "@/ui/qr-builder/helpers/measure-text-width.ts";
 import CardFirstPreview from "@/ui/qr-builder/icons/frames/card-1-preview.svg";
 import CardFirst from "@/ui/qr-builder/icons/frames/card-1.svg";
 import CardSecondPreview from "@/ui/qr-builder/icons/frames/card-2-preview.svg";
@@ -22,13 +24,6 @@ import NoLogoIcon from "@/ui/qr-builder/icons/no-logo.svg";
 import { StaticImageData } from "next/image";
 import { BLACK_COLOR } from "./colors.ts";
 import { TStyleOption } from "./styles.ts";
-
-function measureTextWidth(text: string, font = "30px Inter"): number {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d")!;
-  ctx.font = font;
-  return ctx.measureText(text).width;
-}
 
 const frameCache = new Map<string, HTMLElement>();
 
@@ -188,7 +183,16 @@ async function embedQRIntoFrame(
     frameClone.setAttribute("height", String(options.height));
     frameClone.setAttribute("color", String(options.frameColor));
 
-    console.log("FRAME TEXT OPTION", options.frameText);
+    const secondaryColorElement = frameClone.querySelector(
+      "#qr-frame-secondary-color",
+    ) as SVGElement | null;
+    if (secondaryColorElement) {
+      secondaryColorElement.setAttribute(
+        "fill",
+        lightenHexColor(options.frameColor, 20),
+      );
+    }
+
     const textNode = frameClone.querySelector(
       "#qr-frame-text",
     ) as SVGTextElement | null;
@@ -209,7 +213,6 @@ async function embedQRIntoFrame(
           `${currentFontSize}px Inter`,
         );
 
-        console.log("FRAME text initial width", width);
         while (width > maxWidth && currentFontSize > 12) {
           currentFontSize -= 1;
           width = measureTextWidth(
