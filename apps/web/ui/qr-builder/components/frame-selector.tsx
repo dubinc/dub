@@ -4,6 +4,7 @@ import {
   WHITE_COLOR,
 } from "@/ui/qr-builder/constants/customization/colors.ts";
 import {
+  FRAME_TEXT,
   FRAMES,
   preloadAllFrames,
 } from "@/ui/qr-builder/constants/customization/frames.ts";
@@ -62,7 +63,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
   const [frameColorValid, setFrameColorValid] = useState<boolean>(true);
   const [frameTextColor, setFrameTextColor] = useState<string>(WHITE_COLOR);
   const [frameTextColorValid, setFrameTextColorValid] = useState<boolean>(true);
-  const [frameText, setFrameText] = useState<string>("Scan Me!");
+  const [frameText, setFrameText] = useState<string>(FRAME_TEXT);
 
   const handleFrameColorChange = (color: string) => {
     setFrameColor(color);

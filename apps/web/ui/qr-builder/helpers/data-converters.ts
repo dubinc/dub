@@ -1,6 +1,12 @@
 import { NewQrProps, UpdateQrProps } from "@/lib/types.ts";
+import {
+  BLACK_COLOR,
+  WHITE_COLOR,
+} from "@/ui/qr-builder/constants/customization/colors.ts";
+import { FRAME_TEXT } from "@/ui/qr-builder/constants/customization/frames.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import {
+  FrameOptions,
   QRBuilderData,
   QRPartialUpdateData,
   QrStorageData,
@@ -57,8 +63,11 @@ export const convertQrStorageDataToBuilder = (
   return {
     title: qrStorageData.title || "",
     styles: (qrStorageData.styles as Options) || {},
-    frameOptions: (qrStorageData.frameOptions as { id: string }) || {
+    frameOptions: (qrStorageData.frameOptions as FrameOptions) || {
       id: "none",
+      color: BLACK_COLOR,
+      textColor: WHITE_COLOR,
+      text: FRAME_TEXT,
     },
     qrType: qrStorageData.qrType as EQRType,
     files: [], // Files are not transferred when updating via rename
@@ -78,8 +87,11 @@ export const convertQrStorageDataToBuilderWithPartialUpdate = (
   return {
     title: partialUpdate.title ?? qrStorageData.title ?? "",
     styles: updatedStyles,
-    frameOptions: (qrStorageData.frameOptions as { id: string }) || {
+    frameOptions: (qrStorageData.frameOptions as FrameOptions) || {
       id: "none",
+      color: BLACK_COLOR,
+      textColor: WHITE_COLOR,
+      text: FRAME_TEXT,
     },
     qrType: qrStorageData.qrType as EQRType,
     files: partialUpdate.files || [],

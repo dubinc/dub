@@ -27,6 +27,8 @@ import { TStyleOption } from "./styles.ts";
 
 const frameCache = new Map<string, HTMLElement>();
 
+export const FRAME_TEXT = "Scan Me!";
+
 export const FRAMES: TStyleOption[] = [
   {
     id: "frame-none",
@@ -160,8 +162,8 @@ async function embedQRIntoFrame(
     width: number;
     height: number;
     frameColor: string;
-    frameText: string;
     frameTextColor: string;
+    frameText: string;
     onTextNodeFound?: (node: SVGTextElement) => void;
   },
   frame: StaticImageData,

@@ -2,12 +2,17 @@ import { LinkProps, QRProps, UpdateQrProps, UserProps } from "@/lib/types.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { Options } from "qr-code-styling";
 
+export type FrameOptions = {
+  id: string;
+  color: string;
+  textColor: string;
+  text: string;
+};
+
 export type QRBuilderData = {
   title: string;
   styles: Options;
-  frameOptions: {
-    id: string;
-  };
+  frameOptions: FrameOptions;
   qrType: EQRType;
   files: File[];
 };

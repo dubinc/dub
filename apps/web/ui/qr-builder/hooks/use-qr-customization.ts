@@ -3,7 +3,10 @@ import {
   TRANSPARENT_COLOR,
   WHITE_COLOR,
 } from "@/ui/qr-builder/constants/customization/colors.ts";
-import { FRAMES } from "@/ui/qr-builder/constants/customization/frames.ts";
+import {
+  FRAME_TEXT,
+  FRAMES,
+} from "@/ui/qr-builder/constants/customization/frames.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
@@ -28,7 +31,7 @@ export function useQrCustomization(
     useState<string>("none");
   const [frameColor, setFrameColor] = useState<string>(BLACK_COLOR);
   const [frameTextColor, setFrameTextColor] = useState<string>(WHITE_COLOR);
-  const [frameText, setFrameText] = useState<string>("Scan Me!");
+  const [frameText, setFrameText] = useState<string>(FRAME_TEXT);
   const [selectedQRType, setSelectedQRType] = useState<EQRType>(
     initialData?.qrType as EQRType,
   );
@@ -359,12 +362,6 @@ export function useQrCustomization(
           ? `${window.location.origin}/qr-complete-setup`
           : data,
       });
-
-      if (selected?.extension) {
-        qrCode.applyExtension(selected.extension);
-      } else {
-        qrCode.deleteExtension();
-      }
     },
     setUploadedLogoFile: (file: File | null) => {
       if (file !== uploadedLogo) {

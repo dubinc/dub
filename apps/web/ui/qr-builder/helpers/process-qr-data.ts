@@ -1,6 +1,6 @@
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { getFiles } from "@/ui/qr-builder/helpers/file-store.ts";
-import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
+import { FrameOptions, QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { Options } from "qr-code-styling";
 
 export type ProcessQrDataOptions = {
@@ -12,12 +12,7 @@ export type ProcessQrDataOptions = {
 export type TProcessedQRData = {
   title: string;
   styles: Options;
-  frameOptions: {
-    id: string;
-    color?: string;
-    textColor?: string;
-    text?: string;
-  };
+  frameOptions: FrameOptions;
   qrType: EQRType;
   file?: string | null;
   fileName?: string | null;
