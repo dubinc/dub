@@ -1,6 +1,5 @@
 import {
   BLACK_COLOR,
-  TRANSPARENT_COLOR,
   WHITE_COLOR,
 } from "@/ui/qr-builder/constants/customization/colors.ts";
 import {
@@ -318,14 +317,6 @@ export function useQrCustomization(
     },
     onFrameTextChange: (text: string) => {
       setFrameText(text);
-    },
-    onTransparentBackgroundToggle: (checked: boolean) => {
-      setOptions((prevOptions) => ({
-        ...prevOptions,
-        backgroundOptions: {
-          color: checked ? TRANSPARENT_COLOR : WHITE_COLOR,
-        },
-      }));
     },
     onSuggestedLogoSelect: async (logoType: string, logoUrl?: string) => {
       if (selectedSuggestedLogo === logoType) return;
