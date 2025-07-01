@@ -28,9 +28,9 @@ import {
   useState,
 } from "react";
 import { useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import { useBrandingFormContext } from "../branding-form";
 import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
+import { useEditRewardsModal } from "../modals/edit-rewards-modal";
 
 export function LanderPreview({
   program,
@@ -67,6 +67,7 @@ export function LanderPreview({
   );
 
   const { setShowEditHeroModal, EditHeroModal } = useEditHeroModal();
+  const { setShowEditRewardsModal, EditRewardsModal } = useEditRewardsModal();
 
   const [addBlockIndex, setAddBlockIndex] = useState<number | null>(null);
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
@@ -103,6 +104,7 @@ export function LanderPreview({
         />
       )}
       <EditHeroModal />
+      <EditRewardsModal />
       <AddBlockModal
         addIndex={addBlockIndex ?? 0}
         showAddBlockModal={addBlockIndex !== null}
@@ -187,7 +189,7 @@ export function LanderPreview({
               onClick={() => isMobile && setTouchedBlockId("hero")}
             >
               <EditIndicatorGrid />
-              <EditToolbar onEdit={() => toast.info("WIP")} />
+              <EditToolbar onEdit={() => setShowEditRewardsModal(true)} />
               <div className="relative mx-auto max-w-screen-sm py-4">
                 <div className="px-6">
                   <LanderRewards
