@@ -61,9 +61,20 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
 
   const [frameColor, setFrameColor] = useState<string>(BLACK_COLOR);
   const [frameColorValid, setFrameColorValid] = useState<boolean>(true);
-  const [frameTextColor, setFrameTextColor] = useState<string>(WHITE_COLOR);
+  const [frameTextColor, setFrameTextColor] = useState<string | null>(null);
   const [frameTextColorValid, setFrameTextColorValid] = useState<boolean>(true);
   const [frameText, setFrameText] = useState<string>(FRAME_TEXT);
+
+  const selectedFrame = FRAMES.find((f) => f.type === selectedSuggestedFrame);
+  const defaultTextColor = selectedFrame?.defaultTextColor || WHITE_COLOR;
+
+  const currentFrameTextColor = frameTextColor || defaultTextColor;
+
+  // Reset text color when frame changes as frame can have different text color
+  useEffect(() => {
+    setFrameTextColor(null);
+    onFrameTextColorChange(defaultTextColor);
+  }, [selectedSuggestedFrame, defaultTextColor, onFrameTextColorChange]);
 
   const handleFrameColorChange = (color: string) => {
     setFrameColor(color);
@@ -141,27 +152,51 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
                 isValid={frameColorValid}
                 setIsValid={setFrameColorValid}
               />
-              <Button
-                variant="secondary"
-                className="border-border-500 h-11 max-w-11 p-3"
-                onClick={() => handleFrameColorChange(BLACK_COLOR)}
-                icon={<RotateCcw className="text-neutral h-5 w-5" />}
-              />
+              <AnimatePresence>
+                {frameColor !== BLACK_COLOR && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Button
+                      variant="secondary"
+                      className="border-border-500 h-11 max-w-11 p-3"
+                      onClick={() => handleFrameColorChange(BLACK_COLOR)}
+                      icon={<RotateCcw className="text-neutral h-5 w-5" />}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Flex>
             <Flex direction="row" gap="2" className="items-end text-sm">
               <ColorPickerInput
                 label="Text Colour"
-                color={frameTextColor}
+                color={currentFrameTextColor}
                 onColorChange={handleFrameTextColorChange}
                 isValid={frameTextColorValid}
                 setIsValid={setFrameTextColorValid}
               />
-              <Button
-                variant="secondary"
-                className="border-border-500 h-11 max-w-11 p-3"
-                onClick={() => handleFrameTextColorChange(WHITE_COLOR)}
-                icon={<RotateCcw className="text-neutral h-5 w-5" />}
-              />
+              <AnimatePresence>
+                {frameTextColor !== null && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Button
+                      variant="secondary"
+                      className="border-border-500 h-11 max-w-11 p-3"
+                      onClick={() =>
+                        handleFrameTextColorChange(defaultTextColor)
+                      }
+                      icon={<RotateCcw className="text-neutral h-5 w-5" />}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Flex>
           </motion.div>
         )}
