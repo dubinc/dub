@@ -46,8 +46,19 @@ class TokenCache {
     return await redis.del(this._createKey({ hashedKey }));
   }
 
-  // TODO:
-  // Delete the cache when the plan is updated, workspace is deleted, etc.
+  async expireMany({ hashedKeys }: { hashedKeys: string[] }) {
+    if (hashedKeys.length === 0) {
+      return;
+    }
+
+    const pipeline = redis.pipeline();
+
+    hashedKeys.forEach((hashedKey) => {
+      pipeline.expire(this._createKey({ hashedKey }), 1);
+    });
+
+    return await pipeline.exec();
+  }
 
   _createKey({ hashedKey }: { hashedKey: string }) {
     return `${CACHE_KEY_PREFIX}:${hashedKey}`;
