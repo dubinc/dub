@@ -3,6 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useExportPartnersModal } from "@/ui/modals/export-partners-modal";
 import { useImportRewardfulModal } from "@/ui/modals/import-rewardful-modal";
+import { useImportToltModal } from "@/ui/modals/import-tolt-modal";
 import { Download, ThreeDots } from "@/ui/shared/icons";
 import { Button, IconMenu, Popover } from "@dub/ui";
 import { useRouter } from "next/navigation";
@@ -13,12 +14,15 @@ export function ImportExportButtons() {
   const { slug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
 
+  const { ImportToltModal } = useImportToltModal();
   const { ImportRewardfulModal } = useImportRewardfulModal();
+
   const { ExportPartnersModal, setShowExportPartnersModal } =
     useExportPartnersModal();
 
   return (
     <>
+      <ImportToltModal />
       <ImportRewardfulModal />
       <ExportPartnersModal />
       <Popover
@@ -40,6 +44,24 @@ export function ImportExportButtons() {
                     <img
                       src="https://assets.dub.co/misc/icons/rewardful.svg"
                       alt="Rewardful logo"
+                      className="h-4 w-4"
+                    />
+                  }
+                />
+              </ImportOption>
+
+              <ImportOption
+                onClick={() => {
+                  setOpenPopover(false);
+                  router.push(`/${slug}/program/partners?import=tolt`);
+                }}
+              >
+                <IconMenu
+                  text="Import from Tolt"
+                  icon={
+                    <img
+                      src="https://assets.dub.co/misc/icons/tolt.svg"
+                      alt="Tolt logo"
                       className="h-4 w-4"
                     />
                   }

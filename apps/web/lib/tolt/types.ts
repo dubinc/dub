@@ -1,7 +1,14 @@
+import { z } from "zod";
+import { ToltProgramSchema } from "./schemas";
+
 export interface ToltConfig {
   token: string;
   userId: string;
   programId: string;
+}
+
+export interface ToltProgram extends z.infer<typeof ToltProgramSchema> {
+  //
 }
 
 export interface RewardfulCampaign {
@@ -26,12 +33,6 @@ export interface ToltListResponse<T> {
   data: T[];
 }
 
-export interface ToltProgram {
-  id: string;
-  name: string;
-  subdomain: string;
-}
-
 export interface ToltGroup {
   id: string;
   name: string;
@@ -46,6 +47,7 @@ export interface ToltAffiliate {
   company_name: string;
   country_code: string;
   status: "active" | "inactive";
+  program?: ToltProgram;
 }
 
 export interface ToltLink {

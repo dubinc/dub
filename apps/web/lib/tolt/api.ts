@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { ToltProgramSchema } from "./schemas";
 import {
   RewardfulCommission,
   RewardfulReferral,
@@ -47,6 +48,34 @@ export class ToltApi {
     });
 
     return data as T;
+  }
+
+  // Since there's no endpoint to fetch a program by ID directly,
+  // we'll use the "GET /partners" endpoint with `expand=program`
+  async getProgram({ programId }: { programId: string }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("program_id", programId);
+    searchParams.append("expand[]", "program");
+    searchParams.append("limit", "1");
+
+    const { data: partners, total_count } = await this.fetch<
+      ToltListResponse<ToltAffiliate>
+    >(`${this.baseUrl}/partners?${searchParams.toString()}`);
+
+    if (partners.length === 0) {
+      throw new Error("No partners found to import.");
+    }
+
+    const firstPartner = partners[0];
+
+    if (!firstPartner.program) {
+      throw new Error("No program found for the first partner.");
+    }
+
+    return ToltProgramSchema.parse({
+      ...firstPartner.program,
+      total_affiliates: total_count,
+    });
   }
 
   async listAffiliates({
