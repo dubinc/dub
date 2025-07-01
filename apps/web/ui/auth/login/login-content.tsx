@@ -54,31 +54,33 @@ export function LoginContent({
           />
         </motion.div>
       </motion.div>
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.3 }}
-        className={cn("mt-4 text-center text-sm text-neutral-500", {
-          "mt-0": authModal,
-        })}
-      >
-        Don't have an account?&nbsp;
-        {authModal ? (
-          <button
-            onClick={() => switchAuthType && switchAuthType("signup")}
-            className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
-          >
-            Sign up
-          </button>
-        ) : (
-          <Link
-            href="/register"
-            className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
-          >
-            Sign up
-          </Link>
-        )}
-      </motion.p>
+      {!authModal && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className={cn("mt-4 text-center text-sm text-neutral-500", {
+            "mt-0": authModal,
+          })}
+        >
+          Don't have an account?&nbsp;
+          {authModal ? (
+            <button
+              onClick={() => switchAuthType && switchAuthType("signup")}
+              className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
+            >
+              Sign up
+            </button>
+          ) : (
+            <Link
+              href="/register"
+              className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
+            >
+              Sign up
+            </Link>
+          )}
+        </motion.p>
+      )}
     </>
   );
 }
