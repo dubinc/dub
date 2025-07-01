@@ -1,5 +1,6 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { exceededLimitError } from "@/lib/api/errors";
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
@@ -85,6 +86,7 @@ function PayoutInvoiceSheetContent() {
     id: workspaceId,
     slug,
     plan,
+    role,
     defaultProgramId,
     payoutsUsage,
     payoutsLimit,
@@ -355,6 +357,12 @@ function PayoutInvoiceSheetContent() {
     }
   }, [eligiblePayouts]);
 
+  const { error: permissionsError } = clientAccessCheck({
+    role,
+    action: "payouts.write",
+    customPermissionDescription: "confirm payouts",
+  });
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-start justify-between border-b border-neutral-200 p-6">
@@ -441,7 +449,7 @@ function PayoutInvoiceSheetContent() {
             payoutsUsage &&
             payoutsLimit &&
             amount &&
-            payoutsUsage + amount > payoutsLimit && (
+            payoutsUsage + amount > payoutsLimit ? (
               <TooltipContent
                 title={exceededLimitError({
                   plan: plan as PlanProps,
@@ -451,6 +459,8 @@ function PayoutInvoiceSheetContent() {
                 cta="Upgrade"
                 href={`/${slug}/settings/billing/upgrade`}
               />
+            ) : (
+              permissionsError || undefined
             )
           }
         />
