@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { importCommissions } from "@/lib/rewardful/import-commissions";
 import { importAffiliates } from "@/lib/tolt/import-affiliates";
 import { importLinks } from "@/lib/tolt/import-links";
 import { importReferrals } from "@/lib/tolt/import-referrals";
@@ -35,6 +36,9 @@ export async function POST(req: Request) {
         break;
       case "import-referrals":
         await importReferrals(payload);
+        break;
+      case "import-commissions":
+        await importCommissions(payload);
         break;
     }
 
