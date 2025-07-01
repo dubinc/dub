@@ -1,4 +1,5 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
+import { tokenCache } from "@/lib/auth/token-cache";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import { getPlanFromPriceId } from "@dub/utils";
@@ -45,6 +46,11 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           user: {
             isMachine: false,
           },
+        },
+      },
+      restrictedTokens: {
+        select: {
+          hashedKey: true,
         },
       },
     },
@@ -96,6 +102,13 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
         data: {
           rateLimit: plan.limits.api,
         },
+      }),
+
+      // expire tokens cache
+      tokenCache.expireMany({
+        hashedKeys: workspace.restrictedTokens.map(
+          ({ hashedKey }) => hashedKey,
+        ),
       }),
     ]);
 
