@@ -28,7 +28,6 @@ export const GET = withWorkspace(
 // PATCH /api/qrs/[qrId] – update a qr
 export const PATCH = withWorkspace(
   async ({ req, headers, workspace, params, session }) => {
-    // TODO: CHECK
     if (session?.user?.id) {
       const { featuresAccess } = await checkFeaturesAccessAuthLess(
         session?.user?.id,
@@ -76,7 +75,7 @@ export const PATCH = withWorkspace(
         });
       }
 
-      const response = await updateLink({
+      await updateLink({
         oldLink: {
           domain: qr.link!.domain,
           key: qr.link!.key,
@@ -85,19 +84,14 @@ export const PATCH = withWorkspace(
         updatedLink: processedLink,
       });
 
-      // waitUntil(
-      //   sendWorkspaceWebhook({
-      //     trigger: "link.updated",
-      //     workspace,
-      //     data: linkEventSchema.parse(response),
-      //   }),
-      // );
-
       const updatedQr = await updateQr(params.qrId, body, fileId, qr.fileId);
 
-      return NextResponse.json(updatedQr, {
-        headers,
-      });
+      return NextResponse.json(
+        { qr: updatedQr },
+        {
+          headers,
+        },
+      );
     } catch (error) {
       throw new DubApiError({
         code: "unprocessable_entity",
@@ -113,7 +107,6 @@ export const PATCH = withWorkspace(
 // PUT /api/qrs/[qrId] – archive a qr
 export const PUT = withWorkspace(
   async ({ req, headers, params, workspace, session }) => {
-    // TODO: CHECK
     if (session?.user?.id) {
       const { featuresAccess } = await checkFeaturesAccessAuthLess(
         session?.user?.id,
@@ -155,12 +148,7 @@ export const PUT = withWorkspace(
       },
     });
 
-    return NextResponse.json(
-      {
-        qr: updatedQr,
-      },
-      { headers },
-    );
+    return NextResponse.json({ qr: updatedQr }, { headers });
   },
   {
     requiredPermissions: ["links.write"],
@@ -196,10 +184,7 @@ export const DELETE = withWorkspace(
       },
     });
 
-    return NextResponse.json(
-      { linkId: removedLink.id, qrId: removedQr.id },
-      { headers },
-    );
+    return NextResponse.json({ link: removedLink, qr: removedQr }, { headers });
   },
   {
     requiredPermissions: ["links.write"],

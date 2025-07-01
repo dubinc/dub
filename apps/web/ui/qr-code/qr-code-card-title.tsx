@@ -1,12 +1,12 @@
+import { QrStorageData } from "@/lib/qr-types.ts";
 import { Tooltip } from "@dub/ui";
 import { Icon } from "@iconify/react";
 import { Flex } from "@radix-ui/themes";
 import { FC } from "react";
 import { useQRRenameModal } from "../modals/qr-rename-modal";
-import { ResponseQrCode } from "./qr-codes-container";
 
 interface IQRCardTitle {
-  qrCode: ResponseQrCode;
+  qrCode: QrStorageData;
   isTrialOver?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
 }

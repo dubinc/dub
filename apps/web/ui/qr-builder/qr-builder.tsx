@@ -1,5 +1,5 @@
+import { QRBuilderData, QrStorageData } from "@/lib/qr-types.ts";
 import useUser from "@/lib/swr/use-user.ts";
-import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
@@ -14,15 +14,14 @@ import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
 import { QrTabsDownloadButton } from "@/ui/qr-builder/qr-tabs-download-button.tsx";
 import { QrTabsStepTitle } from "@/ui/qr-builder/qr-tabs-step-title.tsx";
 import { QrTypeSelection } from "@/ui/qr-builder/qr-type-selection.tsx";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { motion } from "framer-motion";
 import { FC, forwardRef, Ref, useCallback, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
-import { trackClientEvents } from "../../core/integration/analytic";
-import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 import {
   EQRType,
   LINKED_QR_TYPES,
@@ -32,7 +31,7 @@ import { getFiles, setFiles } from "./helpers/file-store.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
 
 interface IQRBuilderProps {
-  props?: ResponseQrCode;
+  props?: QrStorageData;
   homepageDemo?: boolean;
   handleSaveQR?: (data: QRBuilderData) => Promise<void>;
   isProcessing?: boolean;

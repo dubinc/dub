@@ -1,9 +1,9 @@
 "use client";
 
 import { saveQrDataToCookieAction } from "@/lib/actions/save-qr-data-to-cookie";
+import { QRBuilderData } from "@/lib/qr-types.ts";
 import { showMessage } from "@/ui/auth/helpers.ts";
 import { useAuthTracking } from "@/ui/modals/auth-modal.tsx";
-import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { processQrDataForServerAction } from "@/ui/qr-builder/helpers";
 import { Button, Github, Google, useLocalStorage } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";

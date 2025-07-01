@@ -1,13 +1,13 @@
+import { QrStorageData } from "@/lib/qr-types.ts";
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QRCardAnalyticsBadge } from "@/ui/qr-code/qr-code-card-analytics-badge.tsx";
 import { QRCardStatus } from "@/ui/qr-code/qr-code-card-status.tsx";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
 import { QrCodeControls } from "@/ui/qr-code/qr-code-controls.tsx";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { RefObject, useRef } from "react";
 
 interface QrCodeDetailsColumnProps {
-  qrCode: ResponseQrCode;
+  qrCode: QrStorageData;
   canvasRef: RefObject<HTMLCanvasElement>;
   currentQrTypeInfo: QRType;
   isTrialOver?: boolean;

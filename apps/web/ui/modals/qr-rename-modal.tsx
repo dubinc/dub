@@ -1,7 +1,7 @@
 "use client";
 
+import { QrStorageData, convertQrStorageDataToBuilder } from "@/lib/qr-types.ts";
 import { useQrSave } from "@/ui/qr-code/hooks/use-qr-save";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr";
 import { Button, Input, Modal } from "@dub/ui";
@@ -16,7 +16,7 @@ import {
 import { toast } from "sonner";
 
 interface QRRenameModalProps {
-  qrCode: ResponseQrCode;
+  qrCode: QrStorageData;
   showQRRenameModal: boolean;
   setShowQRRenameModal: Dispatch<SetStateAction<boolean>>;
 }
@@ -44,10 +44,10 @@ function QRRenameModal({
     setIsProcessing(true);
 
     try {
-      const success = await updateQr(qrCode.id, {
-        title: name,
-        data: qrCode.data,
-      });
+      const qrBuilderData = convertQrStorageDataToBuilder(qrCode);
+      qrBuilderData.title = name;
+      
+      const success = await updateQr(qrCode.id, qrBuilderData);
 
       if (success) {
         setShowQRRenameModal(false);
@@ -130,7 +130,7 @@ function QRRenameModal({
   );
 }
 
-export function useQRRenameModal(data: { qrCode: ResponseQrCode }) {
+export function useQRRenameModal(data: { qrCode: QrStorageData }) {
   const { qrCode } = data;
   const [showQRRenameModal, setShowQRRenameModal] = useState(false);
 

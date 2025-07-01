@@ -1,7 +1,7 @@
 "use client";
 
+import { QrStorageData } from "@/lib/qr-types.ts";
 import useQrs from "@/lib/swr/use-qrs.ts";
-import { ExpandedLinkProps, QRProps, UserProps } from "@/lib/types";
 import QrCodeCardPlaceholder from "@/ui/qr-code/qr-code-card-placeholder.tsx";
 import { QrCodesDisplayContext } from "@/ui/qr-code/qr-codes-display-provider.tsx";
 import { compressImagesInBackground } from "@/ui/utils/qr-code-previews.ts";
@@ -20,11 +20,6 @@ import {
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { QrCodeCard } from "./qr-code-card.tsx";
 
-export type ResponseQrCode = QRProps & {
-  user: UserProps;
-  link: ExpandedLinkProps;
-};
-
 export default function QrCodesContainer({
   CreateQrCodeButton,
   isTrialOver = false,
@@ -42,7 +37,7 @@ export default function QrCodesContainer({
 
   // State to hold QRs with preloaded previews
   const [qrsWithPreviews, setQrsWithPreviews] = useState<
-    ResponseQrCode[] | undefined
+    QrStorageData[] | undefined
   >(undefined);
 
   useEffect(() => {
@@ -90,7 +85,7 @@ function QrCodesList({
   isTrialOver = false,
 }: {
   CreateQrCodeButton: () => ReactNode;
-  qrCodes?: ResponseQrCode[];
+  qrCodes?: QrStorageData[];
   count?: number;
   loading?: boolean;
   compact: boolean;

@@ -1,5 +1,6 @@
 "use client";
 
+import { QrStorageData } from "@/lib/qr-types.ts";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
@@ -13,10 +14,9 @@ import { cn, formatDateTime, timeAgo } from "@dub/utils";
 import { Text } from "@radix-ui/themes";
 import QRCodeStyling from "qr-code-styling";
 import { RefObject, useRef } from "react";
-import { ResponseQrCode } from "./qr-codes-container";
 
 interface QrCodeTitleColumnProps {
-  qrCode: ResponseQrCode;
+  qrCode: QrStorageData;
   canvasRef: RefObject<HTMLCanvasElement>;
   builtQrCodeObject: QRCodeStyling | null;
   currentQrTypeInfo: QRType;

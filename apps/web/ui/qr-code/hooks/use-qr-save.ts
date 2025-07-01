@@ -1,3 +1,8 @@
+import {
+  QRBuilderData,
+  convertQRBuilderDataToServer,
+  convertQRBuilderDataToUpdate,
+} from "@/lib/qr-types.ts";
 import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { fileToBase64 } from "@/ui/utils/file-to-base64";
@@ -6,69 +11,37 @@ import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
-export interface QrUpdateData {
-  title?: string;
-  description?: string;
-  data?: string;
-  styles?: any;
-  frameOptions?: {
-    id: string;
-  };
-  qrType?: string;
-  files?: File[];
-  archived?: boolean;
-}
-
-export interface FullQrCreateData extends QrUpdateData {
-  data: string;
-  styles: any;
-  frameOptions: {
-    id: string;
-  };
-  qrType: string;
-  files: File[];
-}
-
-export function useQrSave() {
+export const useQrSave = () => {
   const params = useParams() as { slug?: string };
   const { slug } = params;
   const { id: workspaceId } = useWorkspace();
 
   const createQr = useCallback(
-    async (data: FullQrCreateData) => {
+    async (qrBuilderData: QRBuilderData) => {
       try {
-        const file = data.files && data.files.length > 0 ? data.files[0] : null;
-        const fileName = file ? file.name : undefined;
-        const fileSize = file ? file.size : undefined;
-        const body = {
-          ...data,
-          data: data.styles.data,
-          file: file ? await fileToBase64(file) : undefined,
-          fileName,
-          fileSize,
-          link: {
-            url: data.styles.data,
-            domain: SHORT_DOMAIN,
-            tagId: null,
-            tags: [],
-            webhookIds: [],
+        if (!workspaceId) {
+          toast.error("Workspace ID not found");
+          return false;
+        }
+
+        const serverData = await convertQRBuilderDataToServer(qrBuilderData, {
+          domain: SHORT_DOMAIN!,
+          fileToBase64: async (file: File) => {
+            const result = await fileToBase64(file);
+            return typeof result === "string" ? result : "";
           },
-        };
+        });
 
         const res = await fetch(`/api/qrs?workspaceId=${workspaceId}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify(serverData),
         });
 
         if (res.status === 200) {
-          await mutatePrefix([
-            "/api/qrs",
-            "/api/links",
-            `/api/workspaces/${slug}`,
-          ]);
+          await mutatePrefix(["/api/qrs", "/api/links"]);
 
           toast.success("Successfully created QR!");
           return true;
@@ -87,34 +60,29 @@ export function useQrSave() {
   );
 
   const updateQr = useCallback(
-    async (qrId: string, data: QrUpdateData) => {
+    async (qrId: string, qrBuilderData: QRBuilderData) => {
       try {
-        const file = data.files && data.files.length > 0 ? data.files[0] : null;
-        const fileName = file ? file.name : undefined;
-        const fileSize = file ? file.size : undefined;
-        const body = {
-          ...data,
-          ...(data.styles && { data: data.styles.data }),
-          ...(file && { file: await fileToBase64(file) }),
-          ...(fileName && { fileName }),
-          ...(fileSize && { fileSize }),
-          ...(data.data && {
-            link: {
-              url: data.data,
-              domain: SHORT_DOMAIN,
-              tagId: null,
-              tags: [],
-              webhookIds: [],
-            },
-          }),
-        };
+        if (!workspaceId) {
+          toast.error("Workspace ID not found");
+          return false;
+        }
+
+        const domain = SHORT_DOMAIN || "dub.sh";
+
+        const serverData = await convertQRBuilderDataToUpdate(qrBuilderData, {
+          domain,
+          fileToBase64: async (file: File) => {
+            const result = await fileToBase64(file);
+            return typeof result === "string" ? result : "";
+          },
+        });
 
         const res = await fetch(`/api/qrs/${qrId}?workspaceId=${workspaceId}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify(serverData),
         });
 
         if (res.status === 200) {
@@ -144,4 +112,4 @@ export function useQrSave() {
     createQr,
     updateQr,
   };
-}
+};

@@ -1,11 +1,11 @@
 import { getFileContent } from "@/lib/actions/get-file-content.ts";
+import { QrStorageData } from "@/lib/qr-types.ts";
 import {
   compressImage,
   createCompressedImageFile,
 } from "@/ui/utils/compress-image.ts";
-import { ResponseQrCode } from "../qr-code/qr-codes-container";
 
-export const compressImagesInBackground = async (qrs: ResponseQrCode[]) => {
+export const compressImagesInBackground = async (qrs: QrStorageData[]) => {
   try {
     const updatedQrs = await Promise.all(
       qrs.map(async (qr) => {
@@ -27,7 +27,7 @@ export const compressImagesInBackground = async (qrs: ResponseQrCode[]) => {
   }
 };
 
-const handleImageCompression = async (qr: ResponseQrCode) => {
+const handleImageCompression = async (qr: QrStorageData) => {
   try {
     const result = await getFileContent(qr.fileId!);
     if (!result.success) return { ...qr };
@@ -52,7 +52,7 @@ const handleImageCompression = async (qr: ResponseQrCode) => {
   }
 };
 
-const handleMediaPlaceholder = (qr: ResponseQrCode) => {
+const handleMediaPlaceholder = (qr: QrStorageData) => {
   const typeMap = {
     pdf: "application/pdf",
     video: "video/mp4",
@@ -75,4 +75,4 @@ const handleMediaPlaceholder = (qr: ResponseQrCode) => {
       [qr.qrType === "pdf" ? "filesPDF" : "filesVideo"]: [placeholderFile],
     },
   };
-}; 
+};

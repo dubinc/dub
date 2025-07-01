@@ -1,3 +1,4 @@
+import { QrStorageData } from "@/lib/qr-types.ts";
 import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
@@ -8,10 +9,7 @@ import {
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
-import {
-  QrCodesListContext,
-  ResponseQrCode,
-} from "@/ui/qr-code/qr-codes-container.tsx";
+import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
 import { useQrDownload } from "@/ui/qr-code/use-qr-download";
 import { Button, CardList, Photo, Popover, useKeyboardShortcut } from "@dub/ui";
 import { BoxArchive, Download } from "@dub/ui/icons";
@@ -23,7 +21,7 @@ import { toast } from "sonner";
 import { ThreeDots } from "../shared/icons";
 
 interface QrCodeControlsProps {
-  qrCode: ResponseQrCode;
+  qrCode: QrStorageData;
   canvasRef?: RefObject<HTMLCanvasElement>;
   isTrialOver?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
@@ -284,7 +282,7 @@ function DownloadPopover({
   setShowTrialExpiredModal,
   children,
 }: PropsWithChildren<{
-  qrCode: ResponseQrCode;
+  qrCode: QrStorageData;
   canvasRef: RefObject<HTMLCanvasElement>;
   isTrialOver?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;

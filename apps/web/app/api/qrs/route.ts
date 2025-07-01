@@ -17,6 +17,22 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 const crypto = require("crypto");
 
+// GET /api/qrs – get all qrs for a workspace
+export const GET = withWorkspace(
+  async ({ headers, searchParams, workspace, session }) => {
+    const params = getLinksQuerySchemaBase.parse(searchParams);
+
+    const response = await getQrs(params);
+
+    return NextResponse.json(response, {
+      headers,
+    });
+  },
+  {
+    requiredPermissions: ["links.read"],
+  },
+);
+
 // POST /api/qrs – create a new qr
 export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
@@ -24,7 +40,6 @@ export const POST = withWorkspace(
       throwIfLinksUsageExceeded(workspace);
     }
 
-    // TODO: CHECK
     if (session?.user?.id) {
       const { featuresAccess } = await checkFeaturesAccessAuthLess(
         session?.user?.id,
@@ -35,10 +50,8 @@ export const POST = withWorkspace(
       }
     }
 
-    console.log("here create qr");
-
     const body = createQrBodySchema.parse(await parseRequestBody(req));
-    console.log("POST /api/qrs body:", body);
+
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
       const { success } = await ratelimit(10, "1 d").limit(ip);
@@ -84,21 +97,5 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["links.write"],
-  },
-);
-
-// GET /api/qrs – get all qrs for a workspace
-export const GET = withWorkspace(
-  async ({ headers, searchParams, workspace, session }) => {
-    const params = getLinksQuerySchemaBase.parse(searchParams);
-
-    const response = await getQrs(params);
-
-    return NextResponse.json(response, {
-      headers,
-    });
-  },
-  {
-    requiredPermissions: ["links.read"],
   },
 );

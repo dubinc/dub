@@ -1,7 +1,7 @@
+import { QrStorageData } from "@/lib/qr-types.ts";
 import { UserProps } from "@/lib/types.ts";
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { capitalizeFirstLetter } from "@/ui/plans/utils.ts";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { Flex, Heading, Text } from "@radix-ui/themes";
@@ -10,7 +10,7 @@ import { FC } from "react";
 interface IPopularQrInfo {
   qrCodeDemo: any;
   demoProps: any;
-  mostScannedQR: ResponseQrCode | null;
+  mostScannedQR: QrStorageData | null;
   isTrialOver: boolean;
   handleScroll: () => void;
   authUser: UserProps;

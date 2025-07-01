@@ -1,7 +1,7 @@
 "use client";
 
+import { QRBuilderData } from "@/lib/qr-types.ts";
 import { useAuthModal } from "@/ui/modals/auth-modal.tsx";
-import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder.tsx";
 import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
 import { Rating } from "@/ui/qr-rating/rating.tsx";

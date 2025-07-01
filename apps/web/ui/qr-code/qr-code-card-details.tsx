@@ -1,15 +1,15 @@
+import { QrStorageData } from "@/lib/qr-types.ts";
 import { useQRContentEditor } from "@/ui/modals/qr-content-editor";
 import {
   EQRType,
   LINKED_QR_TYPES,
 } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
 import { Tooltip } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils/src";
 import { Icon } from "@iconify/react";
 import { memo } from "react";
 
-const getDisplayContent = (qrCode: ResponseQrCode): string => {
+const getDisplayContent = (qrCode: QrStorageData): string => {
   const { data, qrType } = qrCode;
 
   switch (qrType as EQRType) {
@@ -81,7 +81,7 @@ export const QRCardDetails = memo(
     isTrialOver,
     setShowTrialExpiredModal,
   }: {
-    qrCode: ResponseQrCode;
+    qrCode: QrStorageData;
     compact?: boolean;
     isTrialOver?: boolean;
     setShowTrialExpiredModal?: (show: boolean) => void;
