@@ -16,6 +16,17 @@ import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { updateUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
+import { addDays, format } from 'date-fns';
+
+const getPeriod = (paymentPlan: string) => {
+  const periodMap = {
+    'PRICE_MONTH_PLAN': '1 month',
+    'PRICE_QUARTER_PLAN': '3 months',
+    'PRICE_YEAR_PLAN': '12 months',
+  };
+  
+  return periodMap[paymentPlan];
+}
 
 const paymentService = new PaymentService();
 
@@ -149,12 +160,6 @@ export const POST = withSession(
         },
       });
 
-      console.log('subscription here');
-      console.log(body.paymentPlan);
-      console.log(price);
-      console.log(user.currency?.currencyForPay);
-      console.log(period);
-
       await Promise.all([
         prisma.user.update({
           where: {
@@ -173,10 +178,10 @@ export const POST = withSession(
           subject: "Welcome to GetQR",
           template: CUSTOMER_IO_TEMPLATES.SUBSCRIPTION_ACTIVE,
           messageData: {
-            period: '1 month',
-            price: '100',
-            currency: 'USD',
-            next_billing_date: '2025-07-01',
+            period: getPeriod(body.paymentPlan),
+            price: (price / 100).toFixed(2),
+            currency: user.currency?.currencyForPay as string,
+            next_billing_date: format(addDays(new Date(), period), 'yyyy-MM-dd'),
           },
         }),
       ]);
