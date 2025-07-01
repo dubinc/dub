@@ -53,7 +53,7 @@ export const StylePicker: FC<IStylePickerProps> = ({
         <div className="mt-2">
           <ScrollArea.Scrollbar
             orientation="horizontal"
-            className="bg-border-100 h-1 rounded-[3px]"
+            className="bg-border-100 h-1 cursor-pointer rounded-[3px]"
           >
             <ScrollArea.Thumb className="!bg-primary !h-full rounded-lg" />
           </ScrollArea.Scrollbar>
