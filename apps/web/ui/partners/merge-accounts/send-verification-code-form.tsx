@@ -64,7 +64,7 @@ export function SendVerificationCodeForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <p className="text-sm font-medium text-neutral-700">
-        Enter the email of the account you'd like to merge. We'll send a
+        Enter the emails of the accounts you'd like to merge. We'll send a
         verification code to both emails.
       </p>
 

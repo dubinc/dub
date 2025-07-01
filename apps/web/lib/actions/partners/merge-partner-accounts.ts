@@ -136,9 +136,9 @@ const sendTokens = async ({
     );
   }
 
-  if (sourceAccount.payoutsEnabledAt || targetAccount.payoutsEnabledAt) {
+  if (sourceAccount.payoutsEnabledAt) {
     throw new Error(
-      "Account merging is not available if payouts are enabled on either account. Please contact our support for assistance.",
+      "Account merging is not available if payouts are enabled on the source account. Please contact our support for assistance.",
     );
   }
 
