@@ -78,7 +78,16 @@ function EditRewardsModalInner({
 
   const form = useForm<Pick<BrandingFormData, "landerData">>({
     values: {
-      landerData: getValuesParent("landerData"),
+      landerData: {
+        ...getValuesParent("landerData"),
+        rewards: {
+          saleRewardId: "none",
+          leadRewardId: "none",
+          clickRewardId: "none",
+          discountId: "none",
+          ...getValuesParent("landerData")?.rewards,
+        },
+      },
     },
   });
 
@@ -91,37 +100,57 @@ function EditRewardsModalInner({
   } = form;
 
   // Set default reward selections
-  useEffect(() => {
-    if (!rewards?.length) return;
+  const setDefaultRewards = useCallback(
+    (override?: boolean) => {
+      if (!rewards?.length) return;
 
-    const landerDataRewards = getValues("landerData.rewards") || {};
+      const landerDataRewards = getValues("landerData.rewards") || {};
 
-    REWARD_EVENTS.forEach(({ event }) => {
-      if (landerDataRewards[event]) return;
+      REWARD_EVENTS.forEach(({ event }) => {
+        if (
+          !override &&
+          landerDataRewards[event] &&
+          landerDataRewards[event] !== "none"
+        )
+          return;
 
-      const defaultReward = rewards?.find(
-        (r) => r.event === event && r.default,
-      );
-      if (defaultReward)
-        setValue(`landerData.rewards.${event}RewardId`, defaultReward.id);
-    });
-  }, [rewards, getValues, setValue]);
+        const defaultReward = rewards?.find(
+          (r) => r.event === event && r.default,
+        );
+        if (defaultReward)
+          setValue(`landerData.rewards.${event}RewardId`, defaultReward.id);
+      });
+    },
+    [rewards, getValues, setValue],
+  );
 
   // Set default discount selection
-  useEffect(() => {
-    if (!discounts?.length) return;
+  const setDefaultDiscount = useCallback(
+    (override?: boolean) => {
+      if (!discounts?.length) return;
 
-    const landerDataRewards = getValues("landerData.rewards") || {};
+      const landerDataRewards = getValues("landerData.rewards") || {};
 
-    if (landerDataRewards.discountId || !program?.defaultDiscountId) return;
+      if (
+        (!override &&
+          landerDataRewards.discountId &&
+          landerDataRewards.discountId !== "none") ||
+        !program?.defaultDiscountId
+      )
+        return;
 
-    const defaultDiscount = discounts?.find(
-      (d) => d.id === program?.defaultDiscountId,
-    );
+      const defaultDiscount = discounts?.find(
+        (d) => d.id === program?.defaultDiscountId,
+      );
 
-    if (defaultDiscount)
-      setValue(`landerData.rewards.discountId`, defaultDiscount.id);
-  }, [discounts, program, getValues, setValue]);
+      if (defaultDiscount)
+        setValue(`landerData.rewards.discountId`, defaultDiscount.id);
+    },
+    [discounts, program, getValues, setValue],
+  );
+
+  useEffect(() => setDefaultRewards(), [setDefaultRewards]);
+  useEffect(() => setDefaultDiscount(), [setDefaultDiscount]);
 
   return (
     <>
@@ -233,15 +262,39 @@ function EditRewardsModalInner({
             </div>
           </AnimatedSizeContainer>
 
-          <div className="mt-4 flex items-center justify-end gap-2">
-            <Button
+          <div className="mt-4 flex items-center justify-between gap-2">
+            <button
               type="button"
-              variant="secondary"
-              text="Cancel"
-              className="h-9 w-fit"
-              onClick={() => setShowEditRewardsModal(false)}
-            />
-            <SaveButton />
+              className="px-2 text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
+              onClick={() => {
+                setValue(
+                  "landerData.rewards",
+                  {
+                    saleRewardId: "none",
+                    leadRewardId: "none",
+                    clickRewardId: "none",
+                    discountId: "none",
+                  },
+                  {
+                    shouldDirty: isDirty,
+                  },
+                );
+                setDefaultRewards(true);
+                setDefaultDiscount(true);
+              }}
+            >
+              Reset to default
+            </button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                text="Cancel"
+                className="h-9 w-fit"
+                onClick={() => setShowEditRewardsModal(false)}
+              />
+              <SaveButton />
+            </div>
           </div>
         </FormProvider>
       </form>
