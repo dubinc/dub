@@ -1,45 +1,44 @@
 import { prisma } from "@dub/prisma";
-import { Program } from "@dub/prisma/client";
+import { Program, Reward } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
+import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
 import { ToltAffiliate } from "./types";
 
 export async function importAffiliates({
   programId,
-  rewardId,
   startingAfter,
 }: {
   programId: string;
-  rewardId?: string; // not using this for now
   startingAfter?: string;
 }) {
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
+    include: {
+      rewards: true,
+    },
   });
 
-  const { token } = await toltImporter.getCredentials(program.workspaceId);
+  const { token, toltProgramId } = await toltImporter.getCredentials(
+    program.workspaceId,
+  );
 
   const toltApi = new ToltApi({ token });
 
   let hasMoreAffiliates = true;
   let processedBatches = 0;
 
-  // const reward = await prisma.reward.findUniqueOrThrow({
-  //   where: {
-  //     id: rewardId,
-  //   },
-  //   select: {
-  //     id: true,
-  //     event: true,
-  //   },
-  // });
+  const saleReward = program.rewards.find((r) => r.event === "sale");
+  const leadReward = program.rewards.find((r) => r.event === "lead");
+  const clickReward = program.rewards.find((r) => r.event === "click");
+  const reward = saleReward || leadReward || clickReward;
 
   while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
     const { data: affiliates, has_more } = await toltApi.listAffiliates({
-      programId,
+      programId: toltProgramId,
       startingAfter,
     });
 
@@ -60,6 +59,7 @@ export async function importAffiliates({
           createPartner({
             program,
             affiliate,
+            reward,
           }),
         ),
       );
@@ -67,13 +67,12 @@ export async function importAffiliates({
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
     processedBatches++;
+    startingAfter = affiliates[affiliates.length - 1].id;
   }
 
-  const action = hasMoreAffiliates ? "import-affiliates" : "import-referrals";
-
   await toltImporter.queue({
-    programId: program.id,
-    action,
+    programId,
+    action: hasMoreAffiliates ? "import-affiliates" : "import-referrals",
     ...(hasMoreAffiliates && { startingAfter }),
   });
 }
@@ -82,9 +81,11 @@ export async function importAffiliates({
 async function createPartner({
   program,
   affiliate,
+  reward,
 }: {
   program: Program;
   affiliate: ToltAffiliate;
+  reward?: Pick<Reward, "id" | "event">;
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -97,7 +98,9 @@ async function createPartner({
       companyName: affiliate.company_name,
       country: affiliate.country_code,
     },
-    update: {},
+    update: {
+      // do nothing
+    },
   });
 
   await prisma.programEnrollment.upsert({
@@ -111,12 +114,10 @@ async function createPartner({
       programId: program.id,
       partnerId: partner.id,
       status: "approved",
+      ...(reward && { [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id }),
     },
     update: {
       status: "approved",
-    },
-    include: {
-      links: true,
     },
   });
 }

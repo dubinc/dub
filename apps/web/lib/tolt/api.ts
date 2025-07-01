@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { ToltProgramSchema } from "./schemas";
+import { ToltAffiliateSchema, ToltProgramSchema } from "./schemas";
 import {
   RewardfulCommission,
   RewardfulReferral,
@@ -8,7 +8,7 @@ import {
   ToltListResponse,
 } from "./types";
 
-const PAGE_LIMIT = 100;
+const PAGE_LIMIT = 10;
 
 class ToltApiError extends DubApiError {
   constructor(message: string) {
@@ -36,16 +36,11 @@ export class ToltApi {
 
     if (!response.ok) {
       const error = await response.json();
-      console.log("Tolt API Error:", error);
+      console.error("Tolt API Error:", error);
       throw new ToltApiError(error);
     }
 
     const data = await response.json();
-
-    console.debug("Tolt API Response:", {
-      url,
-      data: JSON.stringify(data, null, 2),
-    });
 
     return data as T;
   }
@@ -87,12 +82,19 @@ export class ToltApi {
   }) {
     const searchParams = new URLSearchParams();
     searchParams.append("program_id", programId);
+    searchParams.append("expand[]", "program");
     searchParams.append("starting_after", startingAfter || "");
     searchParams.append("limit", PAGE_LIMIT.toString());
 
-    return await this.fetch<ToltListResponse<ToltAffiliate>>(
-      `${this.baseUrl}/partners?${searchParams.toString()}`,
-    );
+    const { data, has_more, total_count } = await this.fetch<
+      ToltListResponse<ToltAffiliate>
+    >(`${this.baseUrl}/partners?${searchParams.toString()}`);
+
+    return {
+      has_more,
+      total_count,
+      data: ToltAffiliateSchema.array().parse(data),
+    };
   }
 
   async listLinks({

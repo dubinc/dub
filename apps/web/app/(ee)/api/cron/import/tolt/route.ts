@@ -26,6 +26,8 @@ export async function POST(req: Request) {
       JSON.parse(rawBody),
     );
 
+    console.log("Request body", { programId, action, startingAfter });
+
     switch (action) {
       case "import-affiliates":
         await importAffiliates({

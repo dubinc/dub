@@ -86,7 +86,15 @@ function ImportToltModal({
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
             >
-              <ProgramInfo toltProgram={toltProgram!} />
+              <ProgramInfo
+                toltProgram={toltProgram!}
+                onClose={() => {
+                  setShowImportToltModal(false);
+                  queryParams({
+                    del: "import",
+                  });
+                }}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -202,12 +210,19 @@ function TokenForm({
   );
 }
 
-function ProgramInfo({ toltProgram }: { toltProgram: ToltProgram }) {
+function ProgramInfo({
+  toltProgram,
+  onClose,
+}: {
+  toltProgram: ToltProgram;
+  onClose: () => void;
+}) {
   const router = useRouter();
   const { id: workspaceId, slug } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(startToltImportAction, {
     onSuccess: () => {
+      onClose();
       toast.success(
         "Successfully added program to import queue! We will send you an email when your program has been fully imported.",
       );
@@ -264,6 +279,7 @@ function ProgramInfo({ toltProgram }: { toltProgram: ToltProgram }) {
 
       <Button
         text="Import program"
+        disabled={!toltProgram || toltProgram.total_affiliates === 0}
         loading={isPending}
         className="w-full justify-center"
       />
