@@ -1,16 +1,31 @@
 "use client";
 
+import useDiscounts from "@/lib/swr/use-discounts";
 import useProgram from "@/lib/swr/use-program";
-import { Button, Modal, useEnterSubmit, useMediaQuery } from "@dub/ui";
+import useRewards from "@/lib/swr/use-rewards";
+import {
+  Button,
+  CursorRays,
+  Gift,
+  InvoiceDollar,
+  LoadingSpinner,
+  Modal,
+  useMediaQuery,
+  UserPlus,
+} from "@dub/ui";
+import { cn } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useState,
 } from "react";
 import { useForm } from "react-hook-form";
+import { formatDiscountDescription } from "../../format-discount-description";
+import { formatRewardDescription } from "../../format-reward-description";
 import { BrandingFormData, useBrandingFormContext } from "../branding-form";
 
 type EditRewardsModalProps = {
@@ -29,6 +44,12 @@ function EditRewardsModal(props: EditRewardsModalProps) {
   );
 }
 
+const REWARD_EVENTS = [
+  { event: "sale", label: "Sale", icon: InvoiceDollar },
+  { event: "lead", label: "Lead", icon: UserPlus },
+  { event: "click", label: "Click", icon: CursorRays },
+] as const;
+
 function EditRewardsModalInner({
   setShowEditRewardsModal,
 }: EditRewardsModalProps) {
@@ -36,11 +57,27 @@ function EditRewardsModalInner({
   const { isMobile } = useMediaQuery();
   const { program } = useProgram();
 
+  const {
+    rewards,
+    loading: rewardsLoading,
+    error: rewardsError,
+  } = useRewards();
+  const {
+    discounts,
+    loading: discountsLoading,
+    error: discountsError,
+  } = useDiscounts();
+
+  const isLoading = rewardsLoading || discountsLoading;
+  const error = rewardsError || discountsError;
+
   const { getValues: getValuesParent, setValue: setValueParent } =
     useBrandingFormContext();
 
   const {
     register,
+    setValue,
+    getValues,
     handleSubmit,
     formState: { isDirty },
   } = useForm<Pick<BrandingFormData, "landerData">>({
@@ -49,7 +86,38 @@ function EditRewardsModalInner({
     },
   });
 
-  const { handleKeyDown } = useEnterSubmit();
+  // Set default reward selections
+  useEffect(() => {
+    if (!rewards?.length) return;
+
+    const landerDataRewards = getValues("landerData.rewards") || {};
+
+    REWARD_EVENTS.forEach(({ event }) => {
+      if (landerDataRewards[event]) return;
+
+      const defaultReward = rewards?.find(
+        (r) => r.event === event && r.default,
+      );
+      if (defaultReward)
+        setValue(`landerData.rewards.${event}RewardId`, defaultReward.id);
+    });
+  }, [rewards, getValues, setValue]);
+
+  // Set default discount selection
+  useEffect(() => {
+    if (!discounts?.length) return;
+
+    const landerDataRewards = getValues("landerData.rewards") || {};
+
+    if (landerDataRewards.discountId || !program?.defaultDiscountId) return;
+
+    const defaultDiscount = discounts?.find(
+      (d) => d.id === program?.defaultDiscountId,
+    );
+
+    if (defaultDiscount)
+      setValue(`landerData.rewards.discountId`, defaultDiscount.id);
+  }, [discounts, program, getValues, setValue]);
 
   return (
     <>
@@ -74,25 +142,75 @@ function EditRewardsModalInner({
         </p>
 
         <div className="mt-4 flex flex-col gap-6">
-          {/* Title */}
-          {/* <div>
-            <label
-              htmlFor={`${id}-title`}
-              className="flex items-center gap-2 text-sm font-medium text-neutral-700"
-            >
-              Title
-            </label>
-            <div className="mt-2 rounded-md shadow-sm">
-              <input
-                id={`${id}-title`}
-                type="text"
-                placeholder={`Join the ${program?.name} affiliate program`}
-                autoFocus={!isMobile}
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                {...register("landerData.title")}
-              />
+          {isLoading ? (
+            <div className="flex items-center justify-center">
+              <LoadingSpinner className="size-4" />
             </div>
-          </div> */}
+          ) : error ? (
+            <p className="text-content-subtle py-4 text-center text-sm">
+              Failed to load rewards
+            </p>
+          ) : (
+            <>
+              {/* Sale/click/lead rewards */}
+              {REWARD_EVENTS.map(({ event, label, icon: Icon }) => {
+                const eventRewards = rewards?.filter((r) => r.event === event);
+                if (!eventRewards?.length) return null;
+
+                return (
+                  <label key={event}>
+                    <span className="text-content-emphasis flex items-center gap-1.5 text-sm font-medium">
+                      <Icon className="size-3.5" />
+                      {label}
+                    </span>
+                    <div className="mt-2 rounded-md shadow-sm">
+                      <select
+                        className={cn(
+                          "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                        )}
+                        {...register(`landerData.rewards.${event}RewardId`)}
+                      >
+                        <option value="none">None</option>
+                        {eventRewards?.map((reward) => (
+                          <option value={reward.id} key={reward.id}>
+                            {reward.name || formatRewardDescription({ reward })}{" "}
+                            {reward.default && "(Default)"}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </label>
+                );
+              })}
+
+              {/* Discount */}
+              {Boolean(discounts?.length) && (
+                <label>
+                  <span className="text-content-emphasis flex items-center gap-1.5 text-sm font-medium">
+                    <Gift className="size-3.5" />
+                    Discount
+                  </span>
+                  <div className="mt-2 rounded-md shadow-sm">
+                    <select
+                      className={cn(
+                        "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                      )}
+                      {...register(`landerData.rewards.discountId`)}
+                    >
+                      <option value="none">None</option>
+                      {discounts?.map((discount) => (
+                        <option value={discount.id} key={discount.id}>
+                          {formatDiscountDescription({ discount })}{" "}
+                          {program?.defaultDiscountId === discount.id &&
+                            "(Default)"}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </label>
+              )}
+            </>
+          )}
         </div>
 
         <div className="mt-4 flex items-center justify-end gap-2">
