@@ -28,6 +28,7 @@ import {
   useState,
 } from "react";
 import { useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import { useBrandingFormContext } from "../branding-form";
 import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
 
@@ -80,9 +81,9 @@ export function LanderPreview({
     return [block, DESIGNER_BLOCKS.find((b) => b.id === block?.type)];
   }, [landerData, editingBlockId]);
 
-  const [touchedBlockId, setTouchedBlockId] = useState<string | "hero" | null>(
-    null,
-  );
+  const [touchedBlockId, setTouchedBlockId] = useState<
+    string | "hero" | "rewards" | null
+  >(null);
 
   return (
     <>
@@ -163,6 +164,8 @@ export function LanderPreview({
                 </div>
               </div>
             </header>
+
+            {/* Hero */}
             <div
               className="group relative mt-6"
               data-touched={touchedBlockId === "hero"}
@@ -176,22 +179,35 @@ export function LanderPreview({
                 </div>
               </div>
             </div>
+
+            {/* Program rewards */}
+            <div
+              className="group relative"
+              data-touched={touchedBlockId === "hero"}
+              onClick={() => isMobile && setTouchedBlockId("hero")}
+            >
+              <EditIndicatorGrid />
+              <EditToolbar onEdit={() => toast.info("WIP")} />
+              <div className="relative mx-auto max-w-screen-sm py-4">
+                <div className="px-6">
+                  <LanderRewards
+                    program={{
+                      rewards: program.rewards ?? [],
+                      defaultDiscount:
+                        program.discounts?.find(
+                          (d) => d.id === program.defaultDiscountId,
+                        ) || null,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Buttons */}
             <div className="mx-auto max-w-screen-sm">
               <div className="px-6">
-                {/* Program details grid */}
-                <LanderRewards
-                  program={{
-                    rewards: program.rewards ?? [],
-                    defaultDiscount:
-                      program.discounts?.find(
-                        (d) => d.id === program.defaultDiscountId,
-                      ) || null,
-                  }}
-                />
-
-                {/* Buttons */}
                 <div
-                  className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
+                  className="animate-scale-in-fade mt-6 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
                   {...{ inert: "" }}
                 >
                   <Button

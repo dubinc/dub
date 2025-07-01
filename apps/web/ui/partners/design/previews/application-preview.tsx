@@ -89,6 +89,7 @@ export function ApplicationPreview({
             <div className="px-6">
               {/* Program details grid */}
               <LanderRewards
+                className="mt-4"
                 program={{
                   rewards: program.rewards ?? [],
                   defaultDiscount:
