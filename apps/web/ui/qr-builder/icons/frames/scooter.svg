@@ -11,5 +11,5 @@
 <path d="M158.3 62.4C161.4 62.4 163.9 64.9 163.9 68V214.6H11.8V68C11.8 64.9 14.3 62.4 17.4 62.4H158.3ZM158.3 55.6H17.3C10.4 55.6 4.9 61.2 4.9 68V221.4H170.7V68C170.7 61.1 165.2 55.6 158.3 55.6Z" fill="currentColor"/>
 <path d="M158.3 256.5H17.3C10.4 256.5 4.9 250.9 4.9 244.1V215.1H170.7V244.1C170.7 250.9 165.2 256.5 158.3 256.5Z" fill="currentColor"/>
 
-<text id="qr-frame-text" x="87" y="245" font-size="30px" font-family="Inter, sans-serif" fill="white" text-anchor="middle">Scan Me !</text>
+<text id="qr-frame-text" x="87" y="245" font-size="30px" font-weight="600" font-family="Inter, sans-serif" fill="white" text-anchor="middle">Scan Me !</text>
 </svg>

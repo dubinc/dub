@@ -31,6 +31,7 @@ export type TStyleOption = {
       frameTextColor: string;
     },
   ) => void;
+  defaultTextColor?: string;
 };
 
 export const BORDER_STYLES: TStyleOption[] = [

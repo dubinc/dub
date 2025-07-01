@@ -345,6 +345,9 @@ export function useQrCustomization(
     onSuggestedFrameSelect: (frameId: string) => {
       setSelectedSuggestedFrame(frameId);
 
+      const selected = FRAMES.find((f) => f.type === frameId);
+      setFrameTextColor(selected?.defaultTextColor || WHITE_COLOR);
+
       if (!qrCode) return;
 
       qrCode.update({
@@ -356,8 +359,6 @@ export function useQrCustomization(
           ? `${window.location.origin}/qr-complete-setup`
           : data,
       });
-
-      const selected = FRAMES.find((f) => f.type === frameId);
 
       if (selected?.extension) {
         qrCode.applyExtension(selected.extension);

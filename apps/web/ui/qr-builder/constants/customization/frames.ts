@@ -20,6 +20,7 @@ import WreathPreview from "@/ui/qr-builder/icons/frames/wreath-preview.svg";
 import Wreath from "@/ui/qr-builder/icons/frames/wreath.svg";
 import NoLogoIcon from "@/ui/qr-builder/icons/no-logo.svg";
 import { StaticImageData } from "next/image";
+import { BLACK_COLOR } from "./colors.ts";
 import { TStyleOption } from "./styles.ts";
 
 function measureTextWidth(text: string, font = "30px Inter"): number {
@@ -60,6 +61,7 @@ export const FRAMES: TStyleOption[] = [
       await embedQRIntoFrame(qr, options, CardSecond, 0.8, 37, -8);
     },
     icon: CardSecondPreview,
+    defaultTextColor: BLACK_COLOR,
   },
   {
     id: "frame-card-3",
@@ -68,12 +70,13 @@ export const FRAMES: TStyleOption[] = [
       await embedQRIntoFrame(qr, options, CardThird, 0.8, 37, -6);
     },
     icon: CardThirdPreview,
+    defaultTextColor: BLACK_COLOR,
   },
   {
     id: "frame-wreath",
     type: "wreath",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Wreath, 0.74, 53, 50);
+      await embedQRIntoFrame(qr, options, Wreath, 0.68, 70, 30);
     },
     icon: WreathPreview,
   },
@@ -84,6 +87,7 @@ export const FRAMES: TStyleOption[] = [
       await embedQRIntoFrame(qr, options, Envelope, 0.55, 123, 20);
     },
     icon: EnvelopePreview,
+    defaultTextColor: BLACK_COLOR,
   },
   {
     id: "frame-waitress",
@@ -92,6 +96,7 @@ export const FRAMES: TStyleOption[] = [
       await embedQRIntoFrame(qr, options, Waitress, 0.55, 128, 62);
     },
     icon: WaitressPreview,
+    defaultTextColor: BLACK_COLOR,
   },
   {
     id: "frame-coffee-cup",
@@ -100,6 +105,7 @@ export const FRAMES: TStyleOption[] = [
       await embedQRIntoFrame(qr, options, CoffeeCup, 0.55, 105, 115);
     },
     icon: CoffeeCupPreview,
+    defaultTextColor: BLACK_COLOR,
   },
   {
     id: "frame-scooter",
@@ -192,7 +198,10 @@ async function embedQRIntoFrame(
       textNode.textContent = options.frameText || " ";
 
       const maxWidth = 150;
-      let currentFontSize = 30;
+      const initialFontSizeAttr = textNode.getAttribute("font-size");
+      let currentFontSize = initialFontSizeAttr
+        ? parseFloat(initialFontSizeAttr)
+        : 30;
 
       if (options.frameText) {
         let width = measureTextWidth(
@@ -211,6 +220,7 @@ async function embedQRIntoFrame(
 
         textNode.textContent = options.frameText;
         textNode.setAttribute("font-size", `${currentFontSize}px`);
+        textNode.setAttribute("font-family", "Inter, sans-serif");
       }
     }
 
