@@ -155,7 +155,7 @@ function EditRewardsModalInner({
   return (
     <>
       <form
-        className="p-4 pt-3"
+        className="scrollbar-hide max-h-[calc(100dvh-100px)] overflow-y-auto p-4 pt-3"
         onSubmit={(e) => {
           e.stopPropagation();
           handleSubmit(({ landerData }) => {
