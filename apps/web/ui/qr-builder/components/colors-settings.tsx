@@ -51,8 +51,8 @@ export const ColorsSettings: FC<IColorsSettingsProps> = ({
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex w-full flex-row items-end gap-4 text-sm">
-        <div className="flex flex-row items-end gap-2">
+      <div className="flex w-full flex-col items-start gap-4 text-sm md:flex-row">
+        <div className="flex w-full flex-row items-end gap-2">
           <ColorPickerInput
             label="Border colour"
             color={borderColor}
@@ -67,18 +67,18 @@ export const ColorsSettings: FC<IColorsSettingsProps> = ({
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
             >
-                              <Button
-                  variant="secondary"
-                  className="border-border-500 h-11 max-w-11 p-3"
-                  onClick={() => handleBorderColorChange(BLACK_COLOR)}
-                  icon={<RotateCcw className="text-neutral h-5 w-5" />}
-                />
+              <Button
+                variant="secondary"
+                className="border-border-500 h-11 max-w-11 p-3"
+                onClick={() => handleBorderColorChange(BLACK_COLOR)}
+                icon={<RotateCcw className="text-neutral h-5 w-5" />}
+              />
             </motion.div>
           )}
         </div>
 
         {selectedSuggestedFrame === "none" && (
-          <div className="flex flex-row items-end gap-2">
+          <div className="flex w-full flex-row items-end gap-2">
             <ColorPickerInput
               label="Background colour"
               color={backgroundColor}

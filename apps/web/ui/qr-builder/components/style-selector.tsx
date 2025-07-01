@@ -41,7 +41,7 @@ export const StyleSelector: FC<IStyleSelectorProps> = ({
         styleButtonClassName="[&_img]:h-12 [&_img]:w-12 p-3.5"
       />
       <div
-        className={cn("[&>div>div:first-child]:!flex-row", {
+        className={cn("", {
           "border-border-500 rounded-lg border p-3": isMobile,
         })}
       >
