@@ -129,7 +129,6 @@ export const convertQRForUpdate = async (
 ): Promise<QRUpdateResult> => {
   const { domain, fileToBase64 } = options;
 
-  // Анализируем изменения
   const titleChanged = newQRData.title !== originalQR.title;
   const qrTypeChanged = newQRData.qrType !== originalQR.qrType;
   const frameOptionsChanged =
@@ -150,14 +149,12 @@ export const convertQRForUpdate = async (
     frameOptionsChanged ||
     filesChanged;
 
-  // Подготавливаем данные для обновления
   let file: string | null = null;
   let fileName: string | null = null;
   let fileSize: number | null = null;
   let existingFileInfo: QRUpdateResult["existingFileInfo"] | undefined;
 
   if (hasNewFiles) {
-    // Есть новые файлы - обрабатываем их
     const firstFile = newQRData.files[0];
     fileName = firstFile.name;
     fileSize = firstFile.size;
@@ -166,7 +163,6 @@ export const convertQRForUpdate = async (
       file = await fileToBase64(firstFile);
     }
   } else if (hasExistingFiles) {
-    // Нет новых файлов, но есть существующие - сохраняем информацию о них
     fileName = originalQR.fileName;
     fileSize = originalQR.fileSize;
     existingFileInfo = {
@@ -176,8 +172,6 @@ export const convertQRForUpdate = async (
     };
   }
 
-  // Определяем правильный URL для link
-  // Для файловых QR кодов URL будет установлен в API роуте
   const linkUrl = hasNewFiles || hasExistingFiles ? "" : newData;
 
   const updateData: UpdateQrProps = {
