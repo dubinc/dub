@@ -3,8 +3,8 @@
 import { saveQrDataToCookieAction } from "@/lib/actions/save-qr-data-to-cookie";
 import { showMessage } from "@/ui/auth/helpers.ts";
 import { useAuthTracking } from "@/ui/modals/auth-modal.tsx";
-import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { processQrDataForServerAction } from "@/ui/qr-builder/helpers";
+import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { Button, Github, Google, useLocalStorage } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";

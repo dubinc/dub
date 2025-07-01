@@ -6,7 +6,7 @@ import {
 import { FRAMES } from "@/ui/qr-builder/constants/customization/frames.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QRCodeStyling, {
   CornerDotType,
   CornerSquareType,
@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { convertSvgUrlToBase64 } from "../helpers/convert-svg-url-to-base64.ts";
 
 export function useQrCustomization(
-  initialData?: ResponseQrCode,
+  initialData?: QrStorageData,
   homepageDemo?: boolean,
 ) {
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
