@@ -15,6 +15,7 @@ import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { updateUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
 
 const paymentService = new PaymentService();
 
@@ -159,32 +160,17 @@ export const POST = withSession(
             },
           },
         }),
-        // sendEmail(emailTemplates.SUBSCRIPTION_CREATE, user.email as string, [
-        //   {
-        //     name: 'trial_period',
-        //     content: `${TRIAL_PERIOD_DAYS}`,
-        //   },
-        //   {
-        //     name: 'trial_price',
-        //     content: (trialPrice / 100).toFixed(2),
-        //   },
-        //   {
-        //     name: 'price',
-        //     content: (price / 100).toFixed(2),
-        //   },
-        //   {
-        //     name: 'currency_symbol',
-        //     content: user.currency?.currencyForPay as string,
-        //   },
-        //   {
-        //     name: 'period',
-        //     content: `${chargePeriodDays}`,
-        //   },
-        //   {
-        //     name: 'trial_end_date',
-        //     content: getTrialEndDate(),
-        //   },
-        // ]),
+        await sendEmail({
+          email: user.email || authSession.user.email,
+          subject: "Welcome to GetQR",
+          template: CUSTOMER_IO_TEMPLATES.SUBSCRIPTION_ACTIVE,
+          messageData: {
+            period: '',
+            price: '',
+            currency: '',
+            next_billing_date: '',
+          },
+        }),
       ]);
 
       return NextResponse.json({

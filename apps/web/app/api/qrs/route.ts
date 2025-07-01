@@ -12,10 +12,12 @@ import {
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
 import { createQrBodySchema } from "@/lib/zod/schemas/qrs";
-import { LOCALHOST_IP, R2_URL } from "@dub/utils";
+import { HOME_DOMAIN, LOCALHOST_IP, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-const crypto = require("crypto");
+import crypto from "crypto";
+import { prisma } from "@dub/prisma";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
 
 // GET /api/qrs – get all qrs for a workspace
 export const GET = withWorkspace(
@@ -90,6 +92,27 @@ export const POST = withWorkspace(
         }
       },
     });
+
+    const existingQrCount = await prisma.qr.count({
+      where: {
+        userId: session.user.id,
+      },
+    });
+
+    if (existingQrCount === 1) {
+      // const referer = req.headers.get('referer') || req.headers.get('referrer');
+      // const origin = new URL(referer || '').origin;
+      await sendEmail({
+        email: session?.user?.email,
+        subject: "Welcome to GetQR",
+        template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+        messageData: {
+          qr_name: createdQr.title || "Untitled QR",
+          qr_type: createdQr.qrType,
+          url: HOME_DOMAIN,
+        },
+      });
+    }
 
     return NextResponse.json(createdQr, {
       headers,
