@@ -6,9 +6,19 @@ import "dotenv-flow/config";
 async function main() {
   const partners = await prisma.partner.findMany({
     where: {
-      OR: [
-        { website: { not: { contains: "http" } } },
-        { website: { contains: "?" } },
+      AND: [
+        {
+          website: { not: "" },
+        },
+        {
+          website: { not: null },
+        },
+        {
+          OR: [
+            { website: { not: { contains: "http" } } },
+            { website: { contains: "?" } },
+          ],
+        },
       ],
     },
     select: {
@@ -19,7 +29,7 @@ async function main() {
   });
 
   if (partners.length === 0) {
-    console.log("No partners found processing.");
+    console.log("No partners found.");
     return;
   }
 
