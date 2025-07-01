@@ -3,6 +3,7 @@
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import { UserProps } from "@/lib/types";
+import { FAQ_ITEMS_PAYWALL } from "@/ui/landing/components/faq-section/config.ts";
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PaymentComponent } from "@/ui/plans/components/payment-component.tsx";
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
@@ -89,7 +90,7 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
         </div>
       </div>
 
-      <FAQSection />
+      <FAQSection faqItems={FAQ_ITEMS_PAYWALL} />
     </div>
   );
 };
