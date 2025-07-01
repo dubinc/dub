@@ -1,5 +1,6 @@
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { inviteUser } from "@/lib/api/users";
+import { tokenCache } from "@/lib/auth/token-cache";
 import { limiter } from "@/lib/cron/limiter";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
@@ -86,6 +87,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           },
         },
       },
+      restrictedTokens: {
+        select: {
+          hashedKey: true,
+        },
+      },
     },
   });
 
@@ -129,6 +135,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       data: {
         dublink: true,
       },
+    }),
+    // expire tokens cache
+    tokenCache.expireMany({
+      hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
   ]);
 }
