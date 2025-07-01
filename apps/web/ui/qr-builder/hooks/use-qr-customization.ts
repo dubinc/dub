@@ -198,14 +198,13 @@ export function useQrCustomization(
       return;
     }
 
-    console.log("FRAME frameText", frameText);
     qrCode.applyExtension?.((qr, opts) =>
       frame.extension!(qr as SVGSVGElement, {
         width: opts.width!,
         height: opts.height!,
         frameColor,
-        frameText,
         frameTextColor,
+        frameText,
       }),
     );
   }, [

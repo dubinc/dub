@@ -81,9 +81,9 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               selectedSuggestedFrame={selectedSuggestedFrame}
               isQrDisabled={isQrDisabled}
               onFrameSelect={handlers.onSuggestedFrameSelect}
-              onFrameTextChange={handlers.onFrameTextChange}
               onFrameColorChange={handlers.onFrameColorChange}
               onFrameTextColorChange={handlers.onFrameTextColorChange}
+              onFrameTextChange={handlers.onFrameTextChange}
               isMobile={isMobile}
             />
           )}
@@ -129,8 +129,8 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
               isQrDisabled={isQrDisabled}
               onFrameSelect={handlers.onSuggestedFrameSelect}
               onFrameColorChange={handlers.onFrameColorChange}
-              onFrameTextChange={handlers.onFrameTextChange}
               onFrameTextColorChange={handlers.onFrameTextColorChange}
+              onFrameTextChange={handlers.onFrameTextChange}
               isMobile={isMobile}
             />
           )}

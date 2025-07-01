@@ -74,7 +74,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
   useEffect(() => {
     setFrameTextColor(null);
     onFrameTextColorChange(defaultTextColor);
-  }, [selectedSuggestedFrame, defaultTextColor, onFrameTextColorChange]);
+  }, [selectedSuggestedFrame, defaultTextColor]);
 
   const handleFrameColorChange = (color: string) => {
     setFrameColor(color);
