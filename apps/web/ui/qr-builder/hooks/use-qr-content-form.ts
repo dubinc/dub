@@ -1,7 +1,7 @@
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { getQRValidationSchema } from "@/ui/qr-builder/qr-validation-schema.ts";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 type TQRFormValues = Record<string, string | File[] | undefined>;
@@ -11,6 +11,7 @@ interface UseQRContentFormParams {
   minimalFlow?: boolean;
   initialInputValues?: TQRFormValues;
   initialIsHiddenNetwork?: boolean;
+  qrTitle?: string;
   handleContent: (content: {
     inputValues: TQRFormValues;
     isHiddenNetwork: boolean;
@@ -23,17 +24,18 @@ export function useQRContentForm({
   minimalFlow = false,
   initialInputValues = {},
   initialIsHiddenNetwork = false,
+  qrTitle,
   handleContent,
 }: UseQRContentFormParams) {
   const schema = getQRValidationSchema(qrType);
 
   const form = useForm<TQRFormValues>({
-    defaultValues: initialInputValues,
+    defaultValues: {},
     resolver: zodResolver(schema),
     mode: "onBlur",
   });
 
-  const { watch, getValues, trigger } = form;
+  const { watch, getValues, trigger, reset } = form;
 
   const inputValues = watch();
 
@@ -42,6 +44,22 @@ export function useQRContentForm({
   const [isHiddenNetwork, setIsHiddenNetwork] = useState<boolean>(
     initialIsHiddenNetwork,
   );
+
+  // Устанавливаем начальные значения формы при изменении initialInputValues
+  useEffect(() => {
+    if (initialInputValues && Object.keys(initialInputValues).length > 0) {
+      const valuesWithQrName = {
+        ...initialInputValues,
+        [`qrName-${qrType}`]: qrTitle || "QR Code",
+      };
+      reset(valuesWithQrName);
+    }
+  }, [initialInputValues, reset, qrType, qrTitle]);
+
+  // Устанавливаем isHiddenNetwork при изменении initialIsHiddenNetwork
+  useEffect(() => {
+    setIsHiddenNetwork(initialIsHiddenNetwork);
+  }, [initialIsHiddenNetwork]);
 
   const handleValidationAndContentSubmit = async () => {
     const valid = await trigger();

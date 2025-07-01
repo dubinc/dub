@@ -83,16 +83,11 @@ export function QRContentEditorModal({
 
   useEffect(() => {
     if (parsedInputValues && Object.keys(parsedInputValues).length > 0) {
-      console.log("Setting initial values:", parsedInputValues);
-      console.log("QR Code data:", qrCode?.data);
-      console.log("QR Code type:", selectedQRType);
-
       const valuesWithQrName = {
         ...parsedInputValues,
         [`qrName-${selectedQRType}`]: qrCode?.title || "QR Code",
       };
 
-      console.log("Values with qrName:", valuesWithQrName);
       methods.reset(valuesWithQrName);
     }
   }, [parsedInputValues, methods, qrCode]);
@@ -251,8 +246,8 @@ export function QRContentEditorModal({
                 isHiddenNetwork={isHiddenNetwork}
                 onHiddenNetworkChange={handleHiddenNetworkChange}
                 validateFields={validateFields}
-                homePageDemo={true}
-                hideNameField={true}
+                homePageDemo
+                hideNameField
               />
 
               {/* Actions */}

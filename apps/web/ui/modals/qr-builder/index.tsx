@@ -51,8 +51,7 @@ export function QRBuilderModal({
     }
 
     if (props) {
-      // await updateQr(props.id, data);
-      console.log("update qr: ", props.id, data);
+      await updateQr(props.id, data);
     } else {
       await createQr(data);
     }

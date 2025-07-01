@@ -29,6 +29,7 @@ import {
 } from "./constants/get-qr-config.ts";
 import { getFiles, setFiles } from "./helpers/file-store.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
+import { toast } from "sonner";
 
 interface IQRBuilderProps {
   props?: QrStorageData;
@@ -73,6 +74,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         isQrDisabled,
         selectedQRType,
         setSelectedQRType,
+        parsedInputValues,
       } = useQrCustomization(props, homepageDemo);
 
       // ===== REFS =====
@@ -136,6 +138,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       } = useQRContentForm({
         qrType: selectedQRType,
         minimalFlow: true,
+        initialInputValues: parsedInputValues || {},
+        initialIsHiddenNetwork: parsedInputValues?.isHiddenNetwork === "true",
+        qrTitle: props?.title || undefined,
         handleContent,
       });
 
@@ -173,15 +178,46 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       const onSaveClick = () => {
         const formValues = form.getValues();
         const qrNameFieldId = `qrName-${selectedQRType}`;
+        const title =
+          (formValues[qrNameFieldId] as string) || props?.title || "QR Code";
+
+        const files = getFiles() as File[];
+
+        let dataChanged = false;
+        let titleChanged = false;
+        let qrTypeChanged = false;
+        let frameOptionsChanged = false;
+
+        if (props && isEdit) {
+          titleChanged = title !== props.title;
+
+          qrTypeChanged = selectedQRType !== props.qrType;
+
+          const currentFrameId = (props.frameOptions as any)?.id || "none";
+          frameOptionsChanged = selectedSuggestedFrame !== currentFrameId;
+
+          const { qrName, ...filteredFormValues } = formValues;
+          const currentDataString = qrTypeDataHandlers[selectedQRType]?.(
+            filteredFormValues as Record<string, string>,
+            isHiddenNetwork,
+          );
+          const originalData = (props.styles as any)?.data || "";
+          dataChanged = currentDataString !== originalData;
+        }
+
+        if (props && isEdit && !titleChanged && !dataChanged && !qrTypeChanged && !frameOptionsChanged && files.length === 0) {
+          toast.info("No changes to save");
+          return;
+        }
 
         handleSaveQR?.({
-          title: formValues[qrNameFieldId] as string,
+          title,
           styles: options,
           frameOptions: {
             id: selectedSuggestedFrame,
           },
           qrType: selectedQRType,
-          files: getFiles() as File[],
+          files: files || [],
         }).then(() => {
           // setFiles(null);
         });

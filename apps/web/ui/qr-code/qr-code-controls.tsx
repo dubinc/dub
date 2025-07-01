@@ -52,18 +52,11 @@ export function QrCodeControls({
   });
 
   const {
-    setShowQRBuilderModal: setShowQREditModal,
-    QRBuilderModal: QREditModal,
-  } = useQRBuilder({
-    props: qrCode,
-  });
-
-  const {
     setShowQRBuilderModal: setShowQRTypeModal,
-    QRBuilderModal: QRTypeModal,
+    QRBuilderModal: QRChangeTypeModal,
   } = useQRBuilder({
     props: qrCode,
-    initialStep: 1, // Этап выбора типа QR кода
+    initialStep: 1, // choosing the type of QR code
   });
 
   const {
@@ -71,7 +64,7 @@ export function QrCodeControls({
     QRBuilderModal: QRCustomizeModal,
   } = useQRBuilder({
     props: qrCode,
-    initialStep: 3, // Этап кастомизации дизайна
+    initialStep: 3, // design customization
   });
 
   const [archiving, setArchiving] = useState<boolean>(false);
@@ -88,9 +81,6 @@ export function QrCodeControls({
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
-        case "e":
-          canManageLink && setShowQREditModal(true);
-          break;
         case "a":
           canManageLink && setShowArchiveQRModal(true);
           break;
@@ -106,8 +96,7 @@ export function QrCodeControls({
 
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
-      <QREditModal />
-      <QRTypeModal />
+      <QRChangeTypeModal />
       <QRCustomizeModal />
       <ArchiveQRModal />
       <DeleteLinkModal />
@@ -133,22 +122,6 @@ export function QrCodeControls({
         content={
           <div className="w-full sm:w-48">
             <div className="grid gap-1 p-2">
-              {/*<Button*/}
-              {/*  text="Edit"*/}
-              {/*  variant="outline"*/}
-              {/*  onClick={() => {*/}
-              {/*    setOpenPopover(false);*/}
-              {/*    setShowQREditModal(true);*/}
-              {/*  }}*/}
-              {/*  icon={<PenWriting className="size-4" />}*/}
-              {/*  shortcut="E"*/}
-              {/*  className="h-9 px-2 font-medium justify-start w-full"*/}
-              {/*  disabledTooltip={*/}
-              {/*    !canManageLink*/}
-              {/*      ? "You don't have permission to update this link."*/}
-              {/*      : undefined*/}
-              {/*  }*/}
-              {/*/>*/}
               <Button
                 text="Change QR Type"
                 variant="outline"
