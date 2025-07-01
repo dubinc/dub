@@ -1,12 +1,13 @@
 import { DubApiError } from "@/lib/api/errors";
 import {
   ToltAffiliateSchema,
+  ToltCustomerSchema,
   ToltLinkSchema,
   ToltProgramSchema,
 } from "./schemas";
 import {
-  RewardfulCommission,
   ToltAffiliate,
+  ToltCustomer,
   ToltLink,
   ToltListResponse,
 } from "./types";
@@ -126,7 +127,7 @@ export class ToltApi {
     };
   }
 
-  async listReferrals({
+  async listCustomers({
     programId,
     startingAfter,
   }: {
@@ -139,28 +140,11 @@ export class ToltApi {
     searchParams.append("starting_after", startingAfter || "");
     searchParams.append("limit", PAGE_LIMIT.toString());
 
-    const { data, has_more, total_count } = await this.fetch<
-      ToltListResponse<ToltLink>
-    >(`${this.baseUrl}/links?${searchParams.toString()}`);
-
-    return {
-      has_more,
-      total_count,
-      data: ToltLinkSchema.array().parse(data),
-    };
-  }
-
-  async listCommissions({ page = 1 }: { page?: number }) {
-    const searchParams = new URLSearchParams();
-    searchParams.append("expand[]", "sale");
-    searchParams.append("expand[]", "campaign");
-    searchParams.append("page", page.toString());
-    searchParams.append("limit", PAGE_LIMIT.toString());
-
-    const { data } = await this.fetch<{ data: RewardfulCommission[] }>(
-      `${this.baseUrl}/commissions?${searchParams.toString()}`,
+    // This might be an issue with the Tolt response, it is within data.data for this endpoint
+    const { data } = await this.fetch<{ data: { data: ToltCustomer[] } }>(
+      `${this.baseUrl}/customers?${searchParams.toString()}`,
     );
 
-    return data;
+    return ToltCustomerSchema.array().parse(data.data);
   }
 }

@@ -24,3 +24,16 @@ export const ToltLinkSchema = z.object({
   value: z.string(),
   partner: ToltAffiliateSchema,
 });
+
+export const ToltCustomerSchema = z.object({
+  id: z.string(),
+  customer_id: z
+    .string()
+    .describe("Internal customer identifier in client's app."),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  status: z.enum(["lead", "trialing", "active", "canceled"]),
+  created_at: z.string(),
+  updated_at: z.string(),
+  partner: ToltAffiliateSchema,
+});
