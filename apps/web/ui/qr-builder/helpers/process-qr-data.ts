@@ -15,6 +15,8 @@ export type TProcessedQRData = {
   frameOptions: {
     id: string;
     color?: string;
+    textColor?: string;
+    text?: string;
   };
   qrType: EQRType;
   file?: string | null;

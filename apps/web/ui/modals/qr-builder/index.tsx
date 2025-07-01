@@ -31,6 +31,8 @@ export type QRBuilderData = {
   frameOptions: {
     id: string;
     color?: string;
+    textColor?: string;
+    text?: string;
   };
   qrType: EQRType;
   files: File[];

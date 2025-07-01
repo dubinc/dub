@@ -13,6 +13,9 @@ export interface QrUpdateData {
   styles?: any;
   frameOptions?: {
     id: string;
+    color?: string;
+    textColor?: string;
+    text?: string;
   };
   qrType?: string;
   files?: File[];
@@ -25,6 +28,8 @@ export interface FullQrCreateData extends QrUpdateData {
   frameOptions: {
     id: string;
     color?: string;
+    textColor?: string;
+    text?: string;
   };
   qrType: string;
   files: File[];
