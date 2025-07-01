@@ -199,7 +199,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           onPaymentMethodSelected={onPaymentMethodTypeClick}
           onBeforePaymentCreate={onPaymentMethodTypeOpen}
           submitBtn={{
-            text: `Subscribe to ${selectedPlan.name}`,
+            text: "Subscribe",
           }}
         />
       )}
