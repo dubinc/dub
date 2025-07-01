@@ -12,10 +12,10 @@ import {
 import { toast } from "sonner";
 import { Drawer } from "vaul";
 
-import { QRBuilderData, QrStorageData } from "@/lib/qr-types.ts";
 import useUser from "@/lib/swr/use-user.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
+import { QRBuilderData, QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";

@@ -1,4 +1,3 @@
-import { QRBuilderData, QrStorageData } from "@/lib/qr-types.ts";
 import useUser from "@/lib/swr/use-user.ts";
 import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
@@ -14,6 +13,7 @@ import { QrTabsCustomization } from "@/ui/qr-builder/qr-tabs-customization.tsx";
 import { QrTabsDownloadButton } from "@/ui/qr-builder/qr-tabs-download-button.tsx";
 import { QrTabsStepTitle } from "@/ui/qr-builder/qr-tabs-step-title.tsx";
 import { QrTypeSelection } from "@/ui/qr-builder/qr-type-selection.tsx";
+import { QRBuilderData, QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
@@ -29,7 +29,6 @@ import {
 } from "./constants/get-qr-config.ts";
 import { getFiles, setFiles } from "./helpers/file-store.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
-import { toast } from "sonner";
 
 interface IQRBuilderProps {
   props?: QrStorageData;

@@ -1,9 +1,9 @@
-import { QrStorageData } from "@/lib/qr-types.ts";
 import { useQRContentEditor } from "@/ui/modals/qr-content-editor";
 import {
   EQRType,
   LINKED_QR_TYPES,
 } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { Tooltip } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils/src";
 import { Icon } from "@iconify/react";

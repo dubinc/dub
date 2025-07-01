@@ -1,7 +1,7 @@
 import { useTrialExpiredModal } from "@/lib/hooks/use-trial-expired-modal.tsx";
-import { QrStorageData } from "@/lib/qr-types.ts";
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
 import { CardList } from "@dub/ui";
 import { useContext, useRef } from "react";

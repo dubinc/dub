@@ -1,7 +1,7 @@
 "use client";
 
-import { QrStorageData } from "@/lib/qr-types.ts";
 import useQrs from "@/lib/swr/use-qrs.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QrCodeCardPlaceholder from "@/ui/qr-code/qr-code-card-placeholder.tsx";
 import { QrCodesDisplayContext } from "@/ui/qr-code/qr-codes-display-provider.tsx";
 import { compressImagesInBackground } from "@/ui/utils/qr-code-previews.ts";

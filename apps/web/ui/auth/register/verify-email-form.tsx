@@ -1,10 +1,10 @@
 "use client";
 
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
-import { QRBuilderData } from "@/lib/qr-types.ts";
 import { showMessage } from "@/ui/auth/helpers";
 import { MessageType } from "@/ui/modals/auth-modal.tsx";
 import { processQrDataForServerAction } from "@/ui/qr-builder/helpers/process-qr-data.ts";
+import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import {
   AnimatedSizeContainer,
   Button,

@@ -1,6 +1,6 @@
-import { QrStorageData } from "@/lib/qr-types.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { useShareDashboardModal } from "@/ui/modals/share-dashboard-modal.tsx";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { CardList, CursorRays, useMediaQuery } from "@dub/ui";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { Icon } from "@iconify/react";

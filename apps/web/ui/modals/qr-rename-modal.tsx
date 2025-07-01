@@ -1,6 +1,7 @@
 "use client";
 
-import { QrStorageData, convertQrStorageDataToBuilder } from "@/lib/qr-types.ts";
+import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr";
@@ -46,7 +47,7 @@ function QRRenameModal({
     try {
       const qrBuilderData = convertQrStorageDataToBuilder(qrCode);
       qrBuilderData.title = name;
-      
+
       const success = await updateQrWithOriginal(qrCode, qrBuilderData);
 
       if (success) {

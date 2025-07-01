@@ -1,5 +1,5 @@
 import { getFileContent } from "@/lib/actions/get-file-content.ts";
-import { QrStorageData } from "@/lib/qr-types.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import {
   compressImage,
   createCompressedImageFile,

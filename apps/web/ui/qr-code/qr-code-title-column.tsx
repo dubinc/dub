@@ -1,9 +1,9 @@
 "use client";
 
-import { QrStorageData } from "@/lib/qr-types.ts";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QRCardAnalyticsBadge } from "@/ui/qr-code/qr-code-card-analytics-badge.tsx";
 import { QRCardDetails } from "@/ui/qr-code/qr-code-card-details.tsx";
 import { QRCardStatus } from "@/ui/qr-code/qr-code-card-status.tsx";

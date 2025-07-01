@@ -1,4 +1,3 @@
-import { QrStorageData } from "@/lib/qr-types.ts";
 import {
   BLACK_COLOR,
   TRANSPARENT_COLOR,
@@ -7,6 +6,7 @@ import {
 import { FRAMES } from "@/ui/qr-builder/constants/customization/frames.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QRCodeStyling, {
   CornerDotType,
   CornerSquareType,

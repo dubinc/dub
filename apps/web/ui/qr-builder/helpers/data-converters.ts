@@ -1,45 +1,12 @@
-import { LinkProps, QRProps, UserProps } from "@/lib/types";
 import { NewQrProps, UpdateQrProps } from "@/lib/types.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import {
+  QRBuilderData,
+  QRPartialUpdateData,
+  QrStorageData,
+  QRUpdateResult,
+} from "@/ui/qr-builder/types/types.ts";
 import { Options } from "qr-code-styling";
-
-export type QRBuilderData = {
-  title: string;
-  styles: Options;
-  frameOptions: {
-    id: string;
-  };
-  qrType: EQRType;
-  files: File[];
-};
-
-export type QrStorageData = QRProps & {
-  user: UserProps;
-  link: LinkProps;
-};
-
-export type QRPartialUpdateData = {
-  title?: string;
-  data?: string;
-  files?: File[];
-};
-
-export type QRUpdateResult = {
-  hasChanges: boolean;
-  changes: {
-    title: boolean;
-    data: boolean;
-    qrType: boolean;
-    frameOptions: boolean;
-    files: boolean;
-  };
-  updateData: UpdateQrProps;
-  existingFileInfo?: {
-    fileId: string | null;
-    fileName: string | null;
-    fileSize: number | null;
-  };
-};
 
 export const convertQRBuilderDataToServer = async (
   qrBuilderData: QRBuilderData,

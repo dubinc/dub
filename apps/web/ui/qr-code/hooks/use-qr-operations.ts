@@ -1,16 +1,16 @@
-import {
-  QRBuilderData,
-  convertQRBuilderDataToServer,
-  convertQRForUpdate,
-} from "@/lib/qr-types.ts";
 import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
+import {
+  convertQRBuilderDataToServer,
+  convertQRForUpdate,
+} from "@/ui/qr-builder/helpers/data-converters.ts";
+import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { fileToBase64 } from "@/ui/utils/file-to-base64";
+import { useToastWithUndo } from "@dub/ui";
 import { SHORT_DOMAIN } from "@dub/utils/src";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { useToastWithUndo } from "@dub/ui";
 
 export const useQrOperations = () => {
   const params = useParams() as { slug?: string };
@@ -140,7 +140,7 @@ export const useQrOperations = () => {
 
         if (res.status === 200) {
           await mutatePrefix(["/api/qrs", "/api/links"]);
-          
+
           toastWithUndo({
             id: "qr-archive-undo-toast",
             message: `Successfully ${archive ? "paused" : "unpaused"} QR!`,
@@ -155,7 +155,7 @@ export const useQrOperations = () => {
             },
             duration: 5000,
           });
-          
+
           return true;
         } else {
           const { error } = await res.json();

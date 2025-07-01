@@ -1,6 +1,6 @@
-import { QRBuilderData } from "@/lib/qr-types.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { getFiles } from "@/ui/qr-builder/helpers/file-store.ts";
+import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { Options } from "qr-code-styling";
 
 export type ProcessQrDataOptions = {

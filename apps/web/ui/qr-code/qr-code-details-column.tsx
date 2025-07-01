@@ -1,5 +1,5 @@
-import { QrStorageData } from "@/lib/qr-types.ts";
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QRCardAnalyticsBadge } from "@/ui/qr-code/qr-code-card-analytics-badge.tsx";
 import { QRCardStatus } from "@/ui/qr-code/qr-code-card-status.tsx";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";

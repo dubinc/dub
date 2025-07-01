@@ -1,4 +1,4 @@
-import { QrStorageData } from "@/lib/qr-types.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { Tooltip } from "@dub/ui";
 import { Icon } from "@iconify/react";
 import { Flex } from "@radix-ui/themes";

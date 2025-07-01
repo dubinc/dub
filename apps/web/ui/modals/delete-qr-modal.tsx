@@ -1,4 +1,4 @@
-import { QrStorageData } from "@/lib/qr-types.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
 import { Button, Modal } from "@dub/ui";
 import {

@@ -1,10 +1,10 @@
-import { QrStorageData } from "@/lib/qr-types.ts";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { useArchiveQRModal } from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
 import { useQrDownload } from "@/ui/qr-code/use-qr-download";
 import { Button, CardList, Photo, Popover, useKeyboardShortcut } from "@dub/ui";

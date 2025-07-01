@@ -1,4 +1,4 @@
-import { QrStorageData } from "@/lib/qr-types.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";

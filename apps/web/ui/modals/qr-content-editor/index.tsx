@@ -1,15 +1,15 @@
 "use client";
 
-import {
-  convertQrStorageDataToBuilderWithPartialUpdate,
-  QRPartialUpdateData,
-  QrStorageData,
-} from "@/lib/qr-types.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { convertQrStorageDataToBuilderWithPartialUpdate } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
 import { getQRValidationSchema } from "@/ui/qr-builder/qr-validation-schema.ts";
+import {
+  QRPartialUpdateData,
+  QrStorageData,
+} from "@/ui/qr-builder/types/types.ts";
 import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
