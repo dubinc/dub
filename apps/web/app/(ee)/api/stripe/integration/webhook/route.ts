@@ -19,11 +19,13 @@ const relevantEvents = new Set([
 
 // POST /api/stripe/integration/webhook – listen to Stripe webhooks (for Stripe Integration)
 export const POST = withAxiom(async (req: Request) => {
-  const buf = await req.text();
-  const { livemode } = JSON.parse(buf);
+  const pathname = new URL(req.url).pathname;
+  const testmode = pathname.endsWith("/test");
 
+  const buf = await req.text();
   const sig = req.headers.get("Stripe-Signature");
-  const webhookSecret = !livemode
+
+  const webhookSecret = testmode
     ? process.env.STRIPE_APP_WEBHOOK_SECRET_TEST
     : process.env.STRIPE_APP_WEBHOOK_SECRET;
 
