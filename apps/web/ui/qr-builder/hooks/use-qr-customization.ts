@@ -342,6 +342,11 @@ export function useQrCustomization(
       const selected = FRAMES.find((f) => f.type === frameId);
       setFrameTextColor(selected?.defaultTextColor || WHITE_COLOR);
 
+      setOptions((prevOptions) => ({
+        ...prevOptions,
+        backgroundOptions: { color: WHITE_COLOR },
+      }));
+
       if (!qrCode) return;
 
       qrCode.update({
