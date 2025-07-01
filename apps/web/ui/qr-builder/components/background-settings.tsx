@@ -39,13 +39,13 @@ export const BackgroundSettings: FC<IBackgroundSettingsProps> = ({
         disabled={isTransparent}
       />
 
-      <div className="border-border-300 bg-border-400 flex h-11 flex-row items-center gap-3 rounded-md border p-3">
+      <div className="border-border-500 flex h-11 flex-row items-center gap-3 rounded-md border p-3">
         <Checkbox
           value={optionsBackgroundColor}
           id="transparent-background"
           checked={isTransparent}
           onCheckedChange={onTransparentToggle}
-          className="data-[state=checked]:bg-secondary border-border-300 h-5 w-5 outline-0 data-[state=checked]:border-none"
+          className="data-[state=checked]:bg-secondary border-border-500 h-5 w-5 outline-0 data-[state=checked]:border-none"
         />
         <label className="whitespace-nowrap font-normal">
           Transparent background
