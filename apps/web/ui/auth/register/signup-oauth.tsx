@@ -1,11 +1,15 @@
 "use client";
 
+import { saveQrDataToCookieAction } from "@/lib/actions/save-qr-data-to-cookie";
+import { showMessage } from "@/ui/auth/helpers.ts";
 import { useAuthTracking } from "@/ui/modals/auth-modal.tsx";
 import { QRBuilderData } from "@/ui/modals/qr-builder";
+import { processQrDataForServerAction } from "@/ui/qr-builder/helpers";
 import { Button, Github, Google, useLocalStorage } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { signIn } from "next-auth/react";
+import { useAction } from "next-safe-action/hooks";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -25,6 +29,8 @@ export const SignUpOAuth = ({
   const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
 
+  const { execute: saveQrDataToCookie } = useAction(saveQrDataToCookieAction);
+
   useEffect(() => {
     // when leave page, reset state
     return () => {
@@ -33,6 +39,31 @@ export const SignUpOAuth = ({
     };
   }, []);
 
+  const handleQrDataProcessing = async () => {
+    if (!qrDataToCreate) return null;
+
+    try {
+      const processedData = await processQrDataForServerAction(qrDataToCreate, {
+        onUploadStart: () => setIsUploading(true),
+        onUploadEnd: () => setIsUploading(false),
+        onError: (errorMessage) => {
+          showMessage(errorMessage, "error");
+        },
+      });
+
+      if (processedData) {
+        setQrDataToCreate(null);
+        await saveQrDataToCookie({ qrData: processedData });
+      }
+
+      return processedData;
+    } catch (error) {
+      console.error("Error processing QR data:", error);
+      showMessage("Failed to process QR data", "error");
+      return null;
+    }
+  };
+
   return (
     <>
       {methods.includes("google") && (
@@ -40,16 +71,7 @@ export const SignUpOAuth = ({
           variant="secondary"
           text="Continue with Google"
           onClick={async () => {
-            // const processedQrDataToCreate = await processQrDataForServerAction(
-            //   qrDataToCreate,
-            //   {
-            //     onUploadStart: () => setIsUploading(true),
-            //     onUploadEnd: () => setIsUploading(false),
-            //     onError: (errorMessage) => {
-            //       showMessage(errorMessage, "error");
-            //     },
-            //   },
-            // );
+            await handleQrDataProcessing();
 
             trackAuthClick("google");
             trackClientEvents({
@@ -64,7 +86,7 @@ export const SignUpOAuth = ({
               ...(next && next.length > 0 ? { callbackUrl: next } : {}),
             });
           }}
-          loading={clickedGoogle}
+          loading={clickedGoogle || isUploading}
           icon={<Google className="h-4 w-4" />}
           className="border-border-500"
         />

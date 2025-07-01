@@ -18,6 +18,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { cookies } from "next/headers";
+import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
@@ -35,6 +37,8 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
     ...PrismaAdapter(p),
     createUser: async (data: any) => {
       const generatedUserId = createId({ prefix: "user_" });
+      const cookieStore = cookies();
+      const qrDataCookie = cookieStore.get("processed-qr-data")?.value;
 
       const user = await p.user.create({
         data: {
@@ -43,11 +47,43 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
         },
       });
 
-      await createWorkspaceForUser({
+      const workspace = await createWorkspaceForUser({
         prismaClient: p,
         userId: generatedUserId,
         email: data.email,
       });
+
+      if (qrDataCookie) {
+        try {
+          const qrDataToCreate = JSON.parse(qrDataCookie);
+          const linkUrl = qrDataToCreate?.file
+            ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.file}`
+            : qrDataToCreate.styles?.data;
+
+          await createQrWithLinkUniversal({
+            qrData: {
+              data: qrDataToCreate.styles?.data || linkUrl,
+              qrType: qrDataToCreate.qrType,
+              title: qrDataToCreate.title,
+              styles: qrDataToCreate.styles,
+              frameOptions: qrDataToCreate.frameOptions,
+              file: qrDataToCreate.file,
+              fileName: qrDataToCreate.fileName,
+              fileSize: qrDataToCreate.fileSize,
+              link: { url: linkUrl },
+            },
+            linkData: { url: linkUrl },
+            workspace: workspace as any,
+            userId: generatedUserId,
+            fileId: qrDataToCreate.file,
+            homePageDemo: true,
+          });
+
+          cookieStore.delete("processed-qr-data");
+        } catch (error) {
+          console.error("Error processing QR data from cookie:", error);
+        }
+      }
 
       return user;
     },

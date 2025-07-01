@@ -25,19 +25,6 @@ export async function createQr(
   fileId: string,
   homePageDemo?: boolean,
 ) {
-  console.log(
-    "creating QR",
-    data,
-    qrType,
-    title,
-    description,
-    styles,
-    frameOptions,
-    file,
-    fileName,
-    fileSize,
-    homePageDemo,
-  );
   const qr = await prisma.qr.create({
     data: {
       id: createId({ prefix: "qr_" }),
