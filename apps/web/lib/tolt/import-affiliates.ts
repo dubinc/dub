@@ -1,8 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { Program } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
-import { bulkCreateLinks } from "../api/links";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
 import { ToltAffiliate } from "./types";
@@ -22,9 +20,7 @@ export async function importAffiliates({
     },
   });
 
-  const { userId, token } = await toltImporter.getCredentials(
-    program.workspaceId,
-  );
+  const { token } = await toltImporter.getCredentials(program.workspaceId);
 
   const toltApi = new ToltApi({ token });
 
@@ -61,11 +57,9 @@ export async function importAffiliates({
     if (activeAffiliates.length > 0) {
       await Promise.all(
         activeAffiliates.map((affiliate) =>
-          createPartnerAndLinks({
+          createPartner({
             program,
             affiliate,
-            userId,
-            toltApi,
           }),
         ),
       );
@@ -84,17 +78,13 @@ export async function importAffiliates({
   });
 }
 
-// Create partner and their links
-async function createPartnerAndLinks({
+// Create partner
+async function createPartner({
   program,
   affiliate,
-  userId,
-  toltApi,
 }: {
   program: Program;
   affiliate: ToltAffiliate;
-  userId: string;
-  toltApi: ToltApi;
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -110,7 +100,7 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  const programEnrollment = await prisma.programEnrollment.upsert({
+  await prisma.programEnrollment.upsert({
     where: {
       partnerId_programId: {
         partnerId: partner.id,
@@ -128,39 +118,5 @@ async function createPartnerAndLinks({
     include: {
       links: true,
     },
-  });
-
-  if (!program.domain || !program.url) {
-    console.error("Program domain or url not found", program.id);
-    return;
-  }
-
-  if (programEnrollment.links.length > 0) {
-    console.log("Partner already has links", partner.id);
-    return;
-  }
-
-  const { data: links } = await toltApi.listLinks({
-    programId: program.id,
-    partnerId: partner.id,
-  });
-
-  if (links.length === 0) {
-    console.log("No links found for partner", partner.id);
-    return;
-  }
-
-  await bulkCreateLinks({
-    links: links.map((link) => ({
-      domain: program.domain!,
-      key: link.value || nanoid(),
-      url: program.url!,
-      trackConversion: true,
-      programId: program.id,
-      partnerId: partner.id,
-      folderId: program.defaultFolderId,
-      projectId: program.workspaceId,
-      userId,
-    })),
   });
 }
