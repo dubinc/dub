@@ -39,8 +39,8 @@ class ToltImporter {
   }
 
   async queue(body: {
+    action: z.infer<typeof importSteps>;
     programId: string;
-    action?: z.infer<typeof importSteps>;
     startingAfter?: string;
   }) {
     return await qstash.publishJSON({

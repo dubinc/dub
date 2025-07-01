@@ -8,7 +8,7 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  programId: z.string().describe("Tolt program ID to import."),
+  toltProgramId: z.string().describe("Tolt program ID to import."),
   token: z.string(),
 });
 
@@ -16,7 +16,7 @@ export const setToltTokenAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { token, programId } = parsedInput;
+    const { token, toltProgramId } = parsedInput;
 
     if (!workspace.partnersEnabled) {
       throw new Error("You are not allowed to perform this action.");
@@ -26,7 +26,9 @@ export const setToltTokenAction = authActionClient
     let program: ToltProgram | undefined;
 
     try {
-      program = await toltApi.getProgram({ programId });
+      program = await toltApi.getProgram({
+        programId: toltProgramId,
+      });
     } catch (error) {
       throw new Error(
         error instanceof Error
@@ -38,10 +40,8 @@ export const setToltTokenAction = authActionClient
     await toltImporter.setCredentials(workspace.id, {
       userId: user.id,
       token,
-      programId,
+      toltProgramId,
     });
-
-    console.log(program);
 
     return {
       program,

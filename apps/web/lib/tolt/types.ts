@@ -4,7 +4,7 @@ import { ToltProgramSchema } from "./schemas";
 export interface ToltConfig {
   token: string;
   userId: string;
-  programId: string;
+  toltProgramId: string;
 }
 
 export interface ToltProgram extends z.infer<typeof ToltProgramSchema> {
