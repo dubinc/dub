@@ -115,7 +115,6 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
           isQrDisabled ? "pointer-events-none cursor-not-allowed" : ""
         }`}
         styleButtonClassName="[&_img]:h-[60px] [&_img]:w-[60px] p-2"
-        minimalFlow
       />
       <AnimatePresence>
         {selectedSuggestedFrame !== "none" && (

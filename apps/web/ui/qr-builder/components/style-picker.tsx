@@ -14,7 +14,6 @@ interface IStylePickerProps {
   optionsWrapperClassName?: string;
   iconSize?: number;
   styleButtonClassName?: string;
-  minimalFlow?: boolean;
 }
 
 export const StylePicker: FC<IStylePickerProps> = ({
@@ -26,7 +25,6 @@ export const StylePicker: FC<IStylePickerProps> = ({
   optionsWrapperClassName,
   iconSize,
   styleButtonClassName,
-  minimalFlow = false,
 }) => {
   return (
     <div className={cn("flex flex-col gap-2", stylePickerWrapperClassName)}>
