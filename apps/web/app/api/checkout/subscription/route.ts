@@ -147,6 +147,10 @@ export const POST = withSession(
         },
       });
 
+      console.log(body.paymentPlan);
+      console.log(price);
+      console.log(user.currency?.currencyForPay);
+
       await Promise.all([
         prisma.user.update({
           where: {
@@ -165,10 +169,10 @@ export const POST = withSession(
           subject: "Welcome to GetQR",
           template: CUSTOMER_IO_TEMPLATES.SUBSCRIPTION_ACTIVE,
           messageData: {
-            period: '',
-            price: '',
-            currency: '',
-            next_billing_date: '',
+            period: '1 month',
+            price: '100',
+            currency: 'USD',
+            next_billing_date: '2025-07-01',
           },
         }),
       ]);
