@@ -10,10 +10,13 @@ const schema = z.object({
     styles: z.object({}).passthrough(),
     frameOptions: z.object({
       id: z.string(),
+      color: z.string().optional(),
+      textColor: z.string().optional(),
+      text: z.string().optional(),
     }),
     qrType: z.enum([
       "website",
-      "pdf", 
+      "pdf",
       "image",
       "video",
       "whatsapp",
@@ -48,4 +51,4 @@ export const saveQrDataToCookieAction = actionClient
       console.error("Error saving QR data to cookie:", error);
       throw new Error("Failed to save QR data");
     }
-  }); 
+  });
