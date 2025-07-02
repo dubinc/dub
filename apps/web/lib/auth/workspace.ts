@@ -15,6 +15,7 @@ import { normalizeWorkspaceId } from "../api/workspace-id";
 import { getFeatureFlags } from "../edge-config";
 import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
+import { tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
 
 interface WithWorkspaceHandler {
@@ -142,34 +143,43 @@ export const withWorkspace = (
 
         if (apiKey) {
           const hashedKey = await hashToken(apiKey);
-          const prismaArgs = {
-            where: {
-              hashedKey,
-            },
-            select: {
-              ...(isRestrictedToken && {
-                scopes: true,
-                rateLimit: true,
-                projectId: true,
-                expires: true,
-                installationId: true,
-              }),
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  isMachine: true,
+
+          const cachedToken = await tokenCache.get({
+            hashedKey,
+          });
+
+          if (!cachedToken) {
+            const prismaArgs = {
+              where: {
+                hashedKey,
+              },
+              select: {
+                ...(isRestrictedToken && {
+                  scopes: true,
+                  rateLimit: true,
+                  projectId: true,
+                  expires: true,
+                  installationId: true,
+                }),
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    isMachine: true,
+                  },
                 },
               },
-            },
-          };
+            };
 
-          if (isRestrictedToken) {
-            token = await prisma.restrictedToken.findUnique(prismaArgs);
-          } else {
-            token = await prisma.token.findUnique(prismaArgs);
+            if (isRestrictedToken) {
+              token = await prisma.restrictedToken.findUnique(prismaArgs);
+            } else {
+              token = await prisma.token.findUnique(prismaArgs);
+            }
           }
+
+          token = cachedToken || token;
 
           if (!token || !token.user) {
             throw new DubApiError({
@@ -183,6 +193,15 @@ export const withWorkspace = (
               code: "unauthorized",
               message: "Unauthorized: Access token expired.",
             });
+          }
+
+          if (!cachedToken) {
+            waitUntil(
+              tokenCache.set({
+                hashedKey,
+                token,
+              }),
+            );
           }
 
           // Rate limit checks for API keys

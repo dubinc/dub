@@ -24,6 +24,7 @@ export function EmbedPreview({
 
   const partnerLink = getLinkStructureOptions({
     domain: program.domain,
+    url: program.url,
   }).find(({ id }) => id === program.linkStructure)?.example;
 
   return (

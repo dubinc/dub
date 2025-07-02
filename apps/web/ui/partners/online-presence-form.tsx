@@ -2,7 +2,11 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
-import { sanitizeSocialHandle, SocialPlatform } from "@/lib/social-utils";
+import {
+  sanitizeSocialHandle,
+  sanitizeWebsite,
+  SocialPlatform,
+} from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
@@ -124,6 +128,19 @@ export const OnlinePresenceForm = forwardRef<
 
     const startVerification = useOAuthVerification(variant);
 
+    const onPasteWebsite = useCallback(
+      (e: React.ClipboardEvent<HTMLInputElement>) => {
+        const text = e.clipboardData.getData("text/plain");
+        const sanitized = sanitizeWebsite(text);
+
+        if (sanitized) {
+          setValue("website", sanitized);
+          e.preventDefault();
+        }
+      },
+      [setValue],
+    );
+
     const onPasteSocial = useCallback(
       (e: React.ClipboardEvent<HTMLInputElement>, platform: SocialPlatform) => {
         const text = e.clipboardData.getData("text/plain");
@@ -168,6 +185,7 @@ export const OnlinePresenceForm = forwardRef<
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                     )}
                     placeholder="example.com"
+                    onPaste={onPasteWebsite}
                     {...register("website")}
                   />
                 }
