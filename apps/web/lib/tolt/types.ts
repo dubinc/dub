@@ -15,7 +15,6 @@ export interface ToltConfig {
 
 export interface ToltListResponse<T> {
   success: true;
-  has_more: boolean;
   total_count: number;
   data: T[];
 }
@@ -24,18 +23,10 @@ export interface ToltProgram extends z.infer<typeof ToltProgramSchema> {
   total_affiliates: number;
 }
 
-export interface ToltAffiliate extends z.infer<typeof ToltAffiliateSchema> {
-  //
-}
+export type ToltAffiliate = z.infer<typeof ToltAffiliateSchema>;
 
-export interface ToltLink extends z.infer<typeof ToltLinkSchema> {
-  //
-}
+export type ToltLink = z.infer<typeof ToltLinkSchema>;
 
-export interface ToltCustomer extends z.infer<typeof ToltCustomerSchema> {
-  //
-}
+export type ToltCustomer = z.infer<typeof ToltCustomerSchema>;
 
-export interface ToltCommission extends z.infer<typeof ToltCommissionSchema> {
-  //
-}
+export type ToltCommission = z.infer<typeof ToltCommissionSchema>;

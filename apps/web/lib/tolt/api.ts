@@ -94,15 +94,11 @@ export class ToltApi {
     searchParams.append("starting_after", startingAfter || "");
     searchParams.append("limit", PAGE_LIMIT.toString());
 
-    const { data, has_more, total_count } = await this.fetch<
-      ToltListResponse<ToltAffiliate>
-    >(`${this.baseUrl}/partners?${searchParams.toString()}`);
+    const { data } = await this.fetch<ToltListResponse<ToltAffiliate>>(
+      `${this.baseUrl}/partners?${searchParams.toString()}`,
+    );
 
-    return {
-      has_more,
-      total_count,
-      data: ToltAffiliateSchema.array().parse(data),
-    };
+    return ToltAffiliateSchema.array().parse(data);
   }
 
   async listLinks({
@@ -118,15 +114,11 @@ export class ToltApi {
     searchParams.append("starting_after", startingAfter || "");
     searchParams.append("limit", PAGE_LIMIT.toString());
 
-    const { data, has_more, total_count } = await this.fetch<
-      ToltListResponse<ToltLink>
-    >(`${this.baseUrl}/links?${searchParams.toString()}`);
+    const { data } = await this.fetch<ToltListResponse<ToltLink>>(
+      `${this.baseUrl}/links?${searchParams.toString()}`,
+    );
 
-    return {
-      has_more,
-      total_count,
-      data: ToltLinkSchema.array().parse(data),
-    };
+    return ToltLinkSchema.array().parse(data);
   }
 
   async listCustomers({

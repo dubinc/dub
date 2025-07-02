@@ -27,14 +27,13 @@ export async function importLinks({
   let processedBatches = 0;
 
   while (hasMore && processedBatches < MAX_BATCHES) {
-    const { data: links, has_more } = await toltApi.listLinks({
+    const links = await toltApi.listLinks({
       programId: toltProgramId,
       startingAfter,
     });
 
-    hasMore = has_more;
-
     if (links.length === 0) {
+      hasMore = false;
       console.log("No more links to import.");
       break;
     }

@@ -37,14 +37,13 @@ export async function importAffiliates({
   const reward = saleReward || leadReward || clickReward;
 
   while (hasMore && processedBatches < MAX_BATCHES) {
-    const { data: affiliates, has_more } = await toltApi.listAffiliates({
+    const affiliates = await toltApi.listAffiliates({
       programId: toltProgramId,
       startingAfter,
     });
 
-    hasMore = has_more;
-
     if (affiliates.length === 0) {
+      hasMore = false;
       console.log("No more affiliates to import.");
       break;
     }
