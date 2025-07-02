@@ -15,7 +15,6 @@ const schema = z.object({
   action: importSteps,
   programId: z.string(),
   startingAfter: z.string().optional(),
-  page: z.number().optional(),
 });
 
 export async function POST(req: Request) {
@@ -39,11 +38,11 @@ export async function POST(req: Request) {
       case "import-referrals":
         await importReferrals(payload);
         break;
-      case "update-stripe-customers":
-        await updateStripeCustomers(payload);
-        break;
       case "import-commissions":
         await importCommissions(payload);
+        break;
+      case "update-stripe-customers":
+        await updateStripeCustomers(payload);
         break;
     }
 

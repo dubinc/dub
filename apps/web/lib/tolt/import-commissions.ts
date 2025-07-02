@@ -1,3 +1,5 @@
+import { sendEmail } from "@dub/email";
+import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus } from "@prisma/client";
@@ -70,39 +72,45 @@ export async function importCommissions({
       action: "import-commissions",
       startingAfter,
     });
+
     return;
   }
 
-  // await toltImporter.deleteCredentials(workspace.id);
+  await toltImporter.deleteCredentials(workspace.id);
 
-  // const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
-  //   where: {
-  //     userId_projectId: {
-  //       userId,
-  //       projectId: workspace.id,
-  //     },
-  //   },
-  //   select: {
-  //     user: {
-  //       select: {
-  //         email: true,
-  //       },
-  //     },
-  //   },
-  // });
+  const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
+    where: {
+      userId_projectId: {
+        userId,
+        projectId: workspace.id,
+      },
+    },
+    select: {
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
+  });
 
-  // if (workspaceUser && workspaceUser.user.email) {
-  //   await sendEmail({
-  //     email: workspaceUser.user.email,
-  //     subject: "Tolt program imported",
-  //     react: CampaignImported({
-  //       email: workspaceUser.user.email,
-  //       workspace,
-  //       program,
-  //       provider: "Tolt",
-  //     }),
-  //   });
-  // }
+  if (workspaceUser && workspaceUser.user.email) {
+    await sendEmail({
+      email: workspaceUser.user.email,
+      subject: "Tolt program imported",
+      react: CampaignImported({
+        email: workspaceUser.user.email,
+        workspace,
+        program,
+        provider: "Tolt",
+      }),
+    });
+  }
+
+  await toltImporter.queue({
+    programId,
+    action: "update-stripe-customers",
+  });
 }
 
 // Backfill historical commissions

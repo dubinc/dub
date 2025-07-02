@@ -143,7 +143,7 @@ async function createReferral({
     },
   });
 
-  if (customerFound) {
+  if (customerFound && customerFound.externalId !== customer.customer_id) {
     console.log(
       `A customer already exists with customer email, ${customer.email}`,
     );
