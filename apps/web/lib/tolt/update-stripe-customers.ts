@@ -87,15 +87,11 @@ export async function updateStripeCustomers({
     startingAfter = customers[customers.length - 1].id;
   }
 
-  if (hasMore) {
-    await toltImporter.queue({
-      programId,
-      action: "update-stripe-customers",
-      startingAfter,
-    });
-
-    return;
-  }
+  await toltImporter.queue({
+    programId,
+    action: hasMore ? "update-stripe-customers" : "cleanup-partners",
+    ...(hasMore && { startingAfter }),
+  });
 }
 
 async function searchStripeCustomer({
