@@ -189,6 +189,9 @@ async function createCommission({
     include: {
       link: true,
     },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
 
   if (!customerFound) {
