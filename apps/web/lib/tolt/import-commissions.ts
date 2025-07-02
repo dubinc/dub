@@ -5,12 +5,11 @@ import { nanoid } from "@dub/utils";
 import { CommissionStatus } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
-import { MAX_BATCHES } from "../rewardful/importer";
 import { getLeadEvent } from "../tinybird";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
-import { toltImporter } from "./importer";
+import { MAX_BATCHES, toltImporter } from "./importer";
 import { ToltCommission } from "./types";
 
 const toDubStatus: Record<ToltCommission["status"], CommissionStatus> = {
