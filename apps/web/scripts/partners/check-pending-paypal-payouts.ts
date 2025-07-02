@@ -23,6 +23,9 @@ async function main() {
         gte: 10000,
       },
       partner: {
+        // payoutsEnabledAt: {
+        //   not: null,
+        // },
         country: {
           in: PAYPAL_SUPPORTED_COUNTRIES,
         },
@@ -39,6 +42,7 @@ async function main() {
     .map((payout) => ({
       program: payout.program.name,
       partner: payout.partner.email,
+      status: payout.status,
       country: payout.partner.country,
       amount: payout.amount / 100,
     }));
