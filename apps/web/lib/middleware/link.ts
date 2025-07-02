@@ -71,20 +71,22 @@ export default async function LinkMiddleware(
   if (link) {
     const linkData = await getLinkViaEdge({ id: link.id });
 
-    if (linkData?.archived) {
-      return NextResponse.redirect(
-        new URL(
-          `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
-          req.url,
-        ),
-        {
-          headers: {
-            ...DUB_HEADERS,
-            "X-Robots-Tag": "googlebot: noindex",
-          },
-          status: 302,
+    const redirectToQrDisabledPlug = NextResponse.redirect(
+      new URL(
+        `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
+        req.url,
+      ),
+      {
+        headers: {
+          ...DUB_HEADERS,
+          "X-Robots-Tag": "googlebot: noindex",
         },
-      );
+        status: 302,
+      },
+    );
+
+    if (linkData?.archived) {
+      return redirectToQrDisabledPlug;
     }
 
     if (linkData?.userId) {
@@ -93,19 +95,7 @@ export default async function LinkMiddleware(
       );
 
       if (!featuresAccess) {
-        return NextResponse.redirect(
-          new URL(
-            `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
-            req.url,
-          ),
-          {
-            headers: {
-              ...DUB_HEADERS,
-              "X-Robots-Tag": "googlebot: noindex",
-            },
-            status: 302,
-          },
-        );
+        return redirectToQrDisabledPlug;
       }
     }
   }
@@ -113,20 +103,22 @@ export default async function LinkMiddleware(
   if (!link) {
     const linkData = await getLinkViaEdge({ domain, key });
 
-    if (linkData?.archived) {
-      return NextResponse.redirect(
-        new URL(
-          `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
-          req.url,
-        ),
-        {
-          headers: {
-            ...DUB_HEADERS,
-            "X-Robots-Tag": "googlebot: noindex",
-          },
-          status: 302,
+    const redirectToQrDisabledPlug = NextResponse.redirect(
+      new URL(
+        `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
+        req.url,
+      ),
+      {
+        headers: {
+          ...DUB_HEADERS,
+          "X-Robots-Tag": "googlebot: noindex",
         },
-      );
+        status: 302,
+      },
+    );
+
+    if (linkData?.archived) {
+      return redirectToQrDisabledPlug;
     }
 
     // Check user restrictions
@@ -136,19 +128,7 @@ export default async function LinkMiddleware(
       );
 
       if (!featuresAccess) {
-        return NextResponse.redirect(
-          new URL(
-            `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
-            req.url,
-          ),
-          {
-            headers: {
-              ...DUB_HEADERS,
-              "X-Robots-Tag": "googlebot: noindex",
-            },
-            status: 302,
-          },
-        );
+        return redirectToQrDisabledPlug;
       }
     }
 
