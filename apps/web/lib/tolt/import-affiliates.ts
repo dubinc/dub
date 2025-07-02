@@ -28,7 +28,7 @@ export async function importAffiliates({
 
   const toltApi = new ToltApi({ token });
 
-  let hasMoreAffiliates = true;
+  let hasMore = true;
   let processedBatches = 0;
 
   const saleReward = program.rewards.find((r) => r.event === "sale");
@@ -36,13 +36,13 @@ export async function importAffiliates({
   const clickReward = program.rewards.find((r) => r.event === "click");
   const reward = saleReward || leadReward || clickReward;
 
-  while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < MAX_BATCHES) {
     const { data: affiliates, has_more } = await toltApi.listAffiliates({
       programId: toltProgramId,
       startingAfter,
     });
 
-    hasMoreAffiliates = has_more;
+    hasMore = has_more;
 
     if (affiliates.length === 0) {
       console.log("No more affiliates to import.");
@@ -72,8 +72,8 @@ export async function importAffiliates({
 
   await toltImporter.queue({
     programId,
-    action: hasMoreAffiliates ? "import-affiliates" : "import-referrals",
-    ...(hasMoreAffiliates && { startingAfter }),
+    action: hasMore ? "import-affiliates" : "import-referrals",
+    ...(hasMore && { startingAfter }),
   });
 }
 

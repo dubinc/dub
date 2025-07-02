@@ -1,5 +1,9 @@
 import { prisma } from "@dub/prisma";
+import { nanoid } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
+import { createId } from "../api/create-id";
+import { recordClick, recordLeadWithTimestamp } from "../tinybird";
+import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
 import { ToltCustomer } from "./types";
@@ -64,20 +68,41 @@ export async function importReferrals({
         programId,
       },
       select: {
-        partnerId: true,
-        links: true,
+        partner: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        links: {
+          select: {
+            id: true,
+            key: true,
+            domain: true,
+            url: true,
+          },
+        },
       },
     });
 
-    const partnerLinksMap = new Map(
-      programEnrollments.map(({ partnerId, links }) => [partnerId, links]),
-    );
+    const partnerEmailToLinks = new Map<
+      string,
+      (typeof programEnrollments)[0]["links"]
+    >();
+
+    for (const { partner, links } of programEnrollments) {
+      if (!partner.email) {
+        continue;
+      }
+
+      partnerEmailToLinks.set(partner.email, links);
+    }
 
     await Promise.all(
       customers.map((customer) =>
-        createCustomer({
+        createReferral({
           workspace,
-          links: partnerLinksMap.get(customer.partner.email) ?? [],
+          links: partnerEmailToLinks.get(customer.partner.email) ?? [],
           customer,
         }),
       ),
@@ -97,106 +122,104 @@ export async function importReferrals({
 }
 
 // Create individual customer entries
-async function createCustomer({
+async function createReferral({
   customer,
   workspace,
   links,
 }: {
   customer: ToltCustomer;
   workspace: Pick<Project, "id" | "stripeConnectId">;
-  links: Link[];
+  links: Pick<Link, "id" | "key" | "domain" | "url">[];
 }) {
   if (links.length === 0) {
     console.log(`Link not found for referral ${customer.id}, skipping...`);
     return;
   }
 
-  // if (
-  //   !referral.stripe_customer_id ||
-  //   !referral.stripe_customer_id.startsWith("cus_")
-  // ) {
-  //   console.log(
-  //     `No Stripe customer ID provided for referral ${referralId}, skipping...`,
-  //   );
-  //   return;
-  // }
+  const customerFound = await prisma.customer.findFirst({
+    where: {
+      email: customer.email,
+      projectId: workspace.id,
+    },
+  });
 
-  // const customerFound = await prisma.customer.findUnique({
-  //   where: {
-  //     stripeCustomerId: referral.stripe_customer_id,
-  //   },
-  // });
+  if (customerFound) {
+    console.log(
+      `A customer already exists with customer email, ${customer.email}`,
+    );
+    return;
+  }
 
-  // if (customerFound) {
-  //   console.log(
-  //     `A customer already exists with Stripe customer ID ${referral.stripe_customer_id}`,
-  //   );
-  //   return;
-  // }
+  const link = links[0];
 
-  // const dummyRequest = new Request(link.url, {
-  //   headers: new Headers({
-  //     "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-  //     "x-forwarded-for": "127.0.0.1",
-  //     "x-vercel-ip-country": "US",
-  //     "x-vercel-ip-country-region": "CA",
-  //     "x-vercel-ip-continent": "NA",
-  //   }),
-  // });
+  const dummyRequest = new Request(link.url, {
+    headers: new Headers({
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+      "x-forwarded-for": "127.0.0.1",
+      "x-vercel-ip-country": "US",
+      "x-vercel-ip-country-region": "CA",
+      "x-vercel-ip-continent": "NA",
+    }),
+  });
 
-  // const clickData = await recordClick({
-  //   req: dummyRequest,
-  //   linkId: link.id,
-  //   clickId: nanoid(16),
-  //   url: link.url,
-  //   domain: link.domain,
-  //   key: link.key,
-  //   workspaceId: workspace.id,
-  //   skipRatelimit: true,
-  //   timestamp: new Date(customer.created_at).toISOString(),
-  // });
+  const clickData = await recordClick({
+    req: dummyRequest,
+    linkId: link.id,
+    clickId: nanoid(16),
+    url: link.url,
+    domain: link.domain,
+    key: link.key,
+    workspaceId: workspace.id,
+    skipRatelimit: true,
+    timestamp: new Date(customer.created_at).toISOString(),
+  });
 
-  // const clickEvent = clickEventSchemaTB.parse({
-  //   ...clickData,
-  //   bot: 0,
-  //   qr: 0,
-  // });
+  const clickEvent = clickEventSchemaTB.parse({
+    ...clickData,
+    bot: 0,
+    qr: 0,
+  });
 
-  // const customerId = createId({ prefix: "cus_" });
+  const customerId = createId({ prefix: "cus_" });
 
-  // await Promise.all([
-  //   prisma.customer.create({
-  //     data: {
-  //       id: customerId,
-  //       name:
-  //         // if name is null/undefined or starts with cus_, use email as name
-  //         !customer.name || customer.name.startsWith("cus_")
-  //           ? customer.email
-  //           : customer.name,
-  //       email: customer.email,
-  //       projectId: workspace.id,
-  //       projectConnectId: workspace.stripeConnectId,
-  //       clickId: clickEvent.click_id,
-  //       linkId: link.id,
-  //       country: clickEvent.country,
-  //       // clickedAt: new Date(customer.created_at),
-  //       // createdAt: new Date(customer.became_lead_at),
-  //       // externalId: customer.customer_id,
-  //       // stripeCustomerId: customer.stripe_customer_id,
-  //     },
-  //   }),
+  await Promise.all([
+    prisma.customer.create({
+      data: {
+        id: customerId,
+        name:
+          // if name is null/undefined or starts with cus_, use email as name
+          !customer.name || customer.name.startsWith("cus_")
+            ? customer.email
+            : customer.name,
+        email: customer.email,
+        projectId: workspace.id,
+        projectConnectId: workspace.stripeConnectId,
+        clickId: clickEvent.click_id,
+        linkId: link.id,
+        country: clickEvent.country,
+        clickedAt: new Date(customer.created_at),
+        createdAt: new Date(customer.created_at),
+        externalId: customer.customer_id,
+      },
+    }),
 
-  //   recordLeadWithTimestamp({
-  //     ...clickEvent,
-  //     event_id: nanoid(16),
-  //     event_name: "Sign up",
-  //     customer_id: customerId,
-  //     // timestamp: new Date(referral.became_lead_at).toISOString(),
-  //   }),
+    recordLeadWithTimestamp({
+      ...clickEvent,
+      event_id: nanoid(16),
+      event_name: "Sign up",
+      customer_id: customerId,
+      timestamp: new Date(customer.created_at).toISOString(),
+    }),
 
-  //   prisma.link.update({
-  //     where: { id: link.id },
-  //     data: { leads: { increment: 1 } },
-  //   }),
-  // ]);
+    prisma.link.update({
+      where: {
+        id: link.id,
+      },
+      data: {
+        leads: {
+          increment: 1,
+        },
+      },
+    }),
+  ]);
 }

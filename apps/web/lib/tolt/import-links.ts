@@ -23,16 +23,16 @@ export async function importLinks({
 
   const toltApi = new ToltApi({ token });
 
-  let hasMoreLinks = true;
+  let hasMore = true;
   let processedBatches = 0;
 
-  while (hasMoreLinks && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < MAX_BATCHES) {
     const { data: links, has_more } = await toltApi.listLinks({
       programId: toltProgramId,
       startingAfter,
     });
 
-    hasMoreLinks = has_more;
+    hasMore = has_more;
 
     if (links.length === 0) {
       console.log("No more links to import.");
@@ -83,7 +83,7 @@ export async function importLinks({
 
   await toltImporter.queue({
     programId,
-    action: hasMoreLinks ? "import-links" : "import-referrals",
-    ...(hasMoreLinks && { startingAfter }),
+    action: hasMore ? "import-links" : "import-referrals",
+    ...(hasMore && { startingAfter }),
   });
 }
