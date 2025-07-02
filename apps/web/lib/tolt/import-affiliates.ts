@@ -44,7 +44,6 @@ export async function importAffiliates({
 
     if (affiliates.length === 0) {
       hasMore = false;
-      console.log("No more affiliates to import.");
       break;
     }
 
@@ -65,6 +64,7 @@ export async function importAffiliates({
     }
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
+
     processedBatches++;
     startingAfter = affiliates[affiliates.length - 1].id;
   }
