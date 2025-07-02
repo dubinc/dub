@@ -90,6 +90,9 @@ export async function GET(req: Request) {
           email: {
             endsWith: "@dub-internal-test.com",
           },
+          createdAt: {
+            lt: oneHourAgo,
+          },
         },
       }),
     ]);
