@@ -1,4 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -15,12 +16,26 @@ export default async function ProgramDetailsPage({
 }) {
   const program = await getProgram({
     slug: programSlug,
-    include: ["defaultRewards", "defaultDiscount"],
+    include: [
+      "defaultRewards",
+      "defaultDiscount",
+      "allRewards",
+      "allDiscounts",
+    ],
   });
 
   if (!program) {
     notFound();
   }
+
+  const { rewards, discount } = getProgramApplicationRewardsAndDiscount({
+    program: {
+      ...program,
+      landerData: programLanderSchema.nullish().parse(program.landerData),
+    },
+    rewards: program.rewards,
+    discounts: program.discounts,
+  });
 
   return (
     <PageContent>
@@ -28,7 +43,11 @@ export default async function ProgramDetailsPage({
         <BackLink href="/programs">Programs</BackLink>
         <div className="mt-8 grid grid-cols-1 gap-x-16 gap-y-10 lg:grid-cols-[300px_minmax(0,600px)]">
           <div>
-            <ProgramSidebar program={program} />
+            <ProgramSidebar
+              program={program}
+              applicationRewards={rewards}
+              applicationDiscount={discount}
+            />
           </div>
           <div>
             <div
