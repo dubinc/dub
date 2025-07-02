@@ -52,7 +52,7 @@ export async function importAffiliates({
     );
 
     if (activeAffiliates.length > 0) {
-      await Promise.all(
+      const partners = await Promise.all(
         activeAffiliates.map((affiliate) =>
           createPartner({
             program,
@@ -61,6 +61,13 @@ export async function importAffiliates({
           }),
         ),
       );
+
+      if (partners.length > 0) {
+        await toltImporter.addPartners({
+          programId,
+          partnerIds: partners.map((p) => p.id),
+        });
+      }
     }
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -119,4 +126,6 @@ async function createPartner({
       status: "approved",
     },
   });
+
+  return partner;
 }

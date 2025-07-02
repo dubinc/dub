@@ -7,13 +7,15 @@ import { ToltConfig } from "./types";
 export const MAX_BATCHES = 5;
 export const CACHE_EXPIRY = 60 * 60 * 24;
 export const CACHE_KEY_PREFIX = "tolt:import";
+export const PARTNER_IDS_KEY_PREFIX = "tolt:import:partnerIds";
 
 export const importSteps = z.enum([
   "import-affiliates",
   "import-links",
   "import-referrals",
   "import-commissions",
-  "update-stripe-customers",
+  "update-stripe-customers", // update the customers with their stripe customer ID
+  "cleanup-partners", // remove partners with 0 leads
 ]);
 
 class ToltImporter {
@@ -48,6 +50,40 @@ class ToltImporter {
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/tolt`,
       body,
     });
+  }
+
+  async addPartners({
+    programId,
+    partnerIds,
+  }: {
+    programId: string;
+    partnerIds: string[];
+  }) {
+    if (!partnerIds || partnerIds.length === 0) {
+      return;
+    }
+
+    await redis.lpush(`${PARTNER_IDS_KEY_PREFIX}:${programId}`, ...partnerIds);
+  }
+
+  async scanPartnerIds({
+    programId,
+    start,
+    end,
+  }: {
+    programId: string;
+    start: number;
+    end: number;
+  }) {
+    return await redis.lrange(
+      `${PARTNER_IDS_KEY_PREFIX}:${programId}`,
+      start,
+      end,
+    );
+  }
+
+  async deletePartnerIds(programId: string) {
+    return await redis.del(`${PARTNER_IDS_KEY_PREFIX}:${programId}`);
   }
 }
 

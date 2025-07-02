@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { cleanupPartners } from "@/lib/tolt/cleanup-partners";
 import { importAffiliates } from "@/lib/tolt/import-affiliates";
 import { importCommissions } from "@/lib/tolt/import-commissions";
 import { importLinks } from "@/lib/tolt/import-links";
@@ -43,6 +44,9 @@ export async function POST(req: Request) {
         break;
       case "update-stripe-customers":
         await updateStripeCustomers(payload);
+        break;
+      case "cleanup-partners":
+        await cleanupPartners(payload);
         break;
     }
 
