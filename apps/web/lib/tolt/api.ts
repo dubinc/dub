@@ -82,8 +82,11 @@ export class ToltApi {
     const searchParams = new URLSearchParams();
     searchParams.append("program_id", programId);
     searchParams.append("expand[]", "program");
-    searchParams.append("starting_after", startingAfter || "");
     searchParams.append("limit", PAGE_LIMIT.toString());
+
+    if (startingAfter) {
+      searchParams.append("starting_after", startingAfter);
+    }
 
     const { data } = await this.fetch<ToltListResponse<ToltAffiliate>>(
       `${this.baseUrl}/partners?${searchParams.toString()}`,
@@ -102,8 +105,11 @@ export class ToltApi {
     const searchParams = new URLSearchParams();
     searchParams.append("program_id", programId);
     searchParams.append("expand[]", "partner");
-    searchParams.append("starting_after", startingAfter || "");
     searchParams.append("limit", PAGE_LIMIT.toString());
+
+    if (startingAfter) {
+      searchParams.append("starting_after", startingAfter);
+    }
 
     const { data } = await this.fetch<ToltListResponse<ToltLink>>(
       `${this.baseUrl}/links?${searchParams.toString()}`,
@@ -122,8 +128,11 @@ export class ToltApi {
     const searchParams = new URLSearchParams();
     searchParams.append("program_id", programId);
     searchParams.append("expand[]", "partner");
-    searchParams.append("starting_after", startingAfter || "");
     searchParams.append("limit", PAGE_LIMIT.toString());
+
+    if (startingAfter) {
+      searchParams.append("starting_after", startingAfter);
+    }
 
     // This might be an issue with the Tolt response, the response is within data.data for this endpoint
     const { data } = await this.fetch<{ data: { data: ToltCustomer[] } }>(
@@ -145,8 +154,11 @@ export class ToltApi {
     searchParams.append("expand[]", "partner");
     searchParams.append("expand[]", "customer");
     searchParams.append("expand[]", "transaction");
-    searchParams.append("starting_after", startingAfter || "");
     searchParams.append("limit", PAGE_LIMIT.toString());
+
+    if (startingAfter) {
+      searchParams.append("starting_after", startingAfter);
+    }
 
     const { data } = await this.fetch<ToltListResponse<ToltCommission>>(
       `${this.baseUrl}/commissions?${searchParams.toString()}`,
