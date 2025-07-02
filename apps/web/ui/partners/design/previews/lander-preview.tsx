@@ -1,22 +1,13 @@
 "use client";
 
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
-import useDiscounts from "@/lib/swr/use-discounts";
-import useRewards from "@/lib/swr/use-rewards";
-import {
-  ProgramLanderData,
-  ProgramProps,
-  ProgramWithLanderDataProps,
-} from "@/lib/types";
+import { ProgramLanderData, ProgramWithLanderDataProps } from "@/lib/types";
 import { useEditHeroModal } from "@/ui/partners/design/modals/edit-hero-modal";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
-import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import {
   Button,
   Grid,
-  LoadingSpinner,
   Pen2,
   Plus2,
   Tooltip,
@@ -39,6 +30,7 @@ import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "../branding-form";
 import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
 import { useEditRewardsModal } from "../modals/edit-rewards-modal";
+import { RewardsPreview } from "../rewards-preview";
 
 export function LanderPreview({
   program,
@@ -305,35 +297,6 @@ export function LanderPreview({
       </PreviewWindow>
     </>
   );
-}
-
-function RewardsPreview({ program }: { program: ProgramProps }) {
-  const { getValues } = useBrandingFormContext();
-  const { landerData } = {
-    ...useWatch(),
-    ...getValues(),
-  };
-
-  const { rewards, loading: rewardsLoading } = useRewards();
-  const { discounts, loading: discountsLoading } = useDiscounts();
-
-  if (rewardsLoading || discountsLoading)
-    return (
-      <div>
-        <LoadingSpinner />
-      </div>
-    );
-
-  const result = getProgramApplicationRewardsAndDiscount({
-    program: {
-      ...program,
-      landerData,
-    },
-    rewards: rewards || [],
-    discounts: discounts || [],
-  });
-
-  return <LanderRewards rewards={result.rewards} discount={result.discount} />;
 }
 
 function AddBlockButton({ onClick }: { onClick: () => void }) {

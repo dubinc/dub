@@ -3,10 +3,10 @@ import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { CSSProperties, useRef } from "react";
 import { useWatch } from "react-hook-form";
-import { LanderRewards } from "../../lander/lander-rewards";
 import { ProgramApplicationForm } from "../../lander/program-application-form";
 import { useBrandingFormContext } from "../branding-form";
 import { PreviewWindow } from "../preview-window";
+import { RewardsPreview } from "../rewards-preview";
 
 // Currently unused, but will be needed when we add form customization
 export function ApplicationPreview({
@@ -89,15 +89,7 @@ export function ApplicationPreview({
           {/* Program rewards */}
           <div className="mx-auto mt-6 max-w-screen-sm">
             <div className="px-6">
-              <LanderRewards
-                className="mt-4"
-                rewards={program.rewards ?? []}
-                discount={
-                  program.discounts?.find(
-                    (d) => d.id === program.defaultDiscountId,
-                  ) || null
-                }
-              />
+              <RewardsPreview program={program} />
             </div>
           </div>
 
