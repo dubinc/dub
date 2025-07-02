@@ -59,9 +59,9 @@ function ImportToltModal({
           <ArrowRight className="h-5 w-5 text-neutral-600" />
           <Logo />
         </div>
-        <h3 className="text-lg font-medium">Import Your Tolt Campaigns</h3>
+        <h3 className="text-lg font-medium">Import Your Tolt Program</h3>
         <p className="text-center text-sm text-neutral-500">
-          Import your existing Tolt campaigns into{" "}
+          Import your existing Tolt program into{" "}
           {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
         </p>
       </div>
