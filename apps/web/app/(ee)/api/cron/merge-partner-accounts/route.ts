@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -9,7 +9,7 @@ import { resend, unsubscribe } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, log, R2_URL } from "@dub/utils";
+import { log, R2_URL } from "@dub/utils";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -131,6 +131,7 @@ export async function POST(req: Request) {
       ({ programId }) => programId,
     );
 
+    // update links, commissions, and payouts
     if (programIdsToTransfer.length > 0) {
       await Promise.all([
         prisma.link.updateMany({
@@ -181,18 +182,15 @@ export async function POST(req: Request) {
       });
 
       await Promise.all([
+        // update link metadata in Tinybird
         recordLink(updatedLinks),
-
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-          body: {
-            partnerId: targetPartnerId,
-          },
-        }),
+        // expire link cache in Redis
+        linkCache.expireMany(updatedLinks),
       ]);
     }
 
     // Remove the user if there are no workspaces left
+    // TODO: we need to handle deleting multiple users when we allow partners to invite their team members in the future
     const sourcePartnerUser = sourcePartnerUsers[0];
 
     if (sourcePartnerUser) {
