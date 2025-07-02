@@ -13,7 +13,7 @@ import {
 } from "@/lib/webhook/utils";
 import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { sendEmail } from "@dub/email";
-import { WebhookAdded } from "@dub/email/templates/webhook-added";
+import WebhookAdded from "@dub/email/templates/webhook-added";
 import { prisma } from "@dub/prisma";
 import { WebhookReceiver } from "@dub/prisma/client";
 import { ZAPIER_INTEGRATION_ID } from "@dub/utils/src/constants";

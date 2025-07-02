@@ -1,7 +1,7 @@
 import { markDomainAsDeleted } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
-import { deletePartner } from "@/lib/api/partners/delete-partner";
+import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { unsubscribe } from "@dub/email/resend";
 import { prisma } from "@dub/prisma";
@@ -82,11 +82,6 @@ export async function GET(req: Request) {
         },
         select: {
           id: true,
-          programs: {
-            where: {
-              programId: E2E_PROGRAM_ID,
-            },
-          },
         },
       }),
 
@@ -94,6 +89,9 @@ export async function GET(req: Request) {
         where: {
           email: {
             endsWith: "@dub-internal-test.com",
+          },
+          createdAt: {
+            lt: oneHourAgo,
           },
         },
       }),
@@ -137,12 +135,9 @@ export async function GET(req: Request) {
 
     // Delete the partners
     if (partners.length > 0) {
-      for (const partner of partners) {
-        const res = await deletePartner({
-          partnerId: partner.id,
-        });
-        console.log("Deleted partner", partner.id, res);
-      }
+      await bulkDeletePartners({
+        partnerIds: partners.map((partner) => partner.id),
+      });
     }
 
     if (users.length > 0) {

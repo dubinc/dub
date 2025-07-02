@@ -110,8 +110,8 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
   const table = useTable({
     data:
-      earnings?.filter(
-        ({ status }) => !["duplicate", "fraud"].includes(status),
+      earnings?.filter(({ status }) =>
+        ["pending", "processed", "paid"].includes(status),
       ) || [],
     columns: [
       {
@@ -222,7 +222,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
           </div>
           <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
             <Link
-              href={`/programs/${payout.program.slug}/earnings?interval=all&payoutId=${payout.id}`}
+              href={`/programs/${payout.program.slug}/earnings?payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`}
               target="_blank"
               className={cn(
                 buttonVariants({ variant: "secondary" }),

@@ -1,5 +1,5 @@
 import { sendEmail } from "@dub/email";
-import { CampaignImported } from "@dub/email/templates/campaign-imported";
+import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus, Program } from "@prisma/client";
@@ -54,8 +54,6 @@ export async function importCommissions({
         }),
       ),
     );
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
     currentPage++;
     processedBatches++;
   }

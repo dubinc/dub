@@ -45,16 +45,12 @@ export const programInvitePartnersSchema = z.object({
     .array(
       z.object({
         email: z.string().email("Please enter a valid email"),
-        key: z.string().min(1, "Please enter a referral key"),
       }),
     )
     .max(10, "You can only invite up to 10 partners.")
     .nullable()
     .transform(
-      (partners) =>
-        partners?.filter(
-          (partner) => partner.email.trim() && partner.key.trim(),
-        ) || null,
+      (partners) => partners?.filter((partner) => partner.email.trim()) || null,
     ),
 });
 

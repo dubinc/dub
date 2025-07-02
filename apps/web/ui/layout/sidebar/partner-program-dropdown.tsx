@@ -9,13 +9,14 @@ import {
   Popover,
   useScrollProgress,
 } from "@dub/ui";
-import { Check2, Gear, Magnifier } from "@dub/ui/icons";
+import { Check2, GridIcon, Magnifier } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { Command } from "cmdk";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import {
+  memo,
   PropsWithChildren,
   useCallback,
   useMemo,
@@ -23,24 +24,8 @@ import {
   useState,
 } from "react";
 
-const LINKS = [
-  {
-    name: "Settings",
-    icon: Gear,
-    href: "/settings",
-  },
-  // {
-  //   name: "Help center",
-  //   icon: HelpCircle,
-  //   href: "https://dub.co/help",
-  //   target: "_blank",
-  // },
-  // {
-  //   name: "Switch to Business Hub",
-  //   icon: Connections3,
-  //   href: APP_DOMAIN,
-  // },
-];
+// Helps prevent flickering from re-rendering. We might be able to just add this to `BlurImage` itself in the future.
+const MemoBlurImage = memo(BlurImage);
 
 export function PartnerProgramDropdown() {
   const { programSlug } = useParams() as { programSlug?: string };
@@ -92,44 +77,20 @@ export function PartnerProgramDropdown() {
                 </div>
               )}
             <div className="p-2">
-              <Link
-                className={cn(
-                  "relative flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
-                  "hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                  "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                )}
-                href="/programs"
-                shallow={false}
-                onClick={() => setOpenPopover(false)}
-              >
-                <BlurImage
-                  src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                  width={40}
-                  height={40}
-                  alt={partner.name}
-                  className="size-5 shrink-0 overflow-hidden rounded-full border border-black/10"
-                />
-                <span className="block min-w-0 truncate text-sm leading-5 text-neutral-800">
-                  {partner.name}
-                </span>
-              </Link>
               <div className="mt-0.5 flex flex-col gap-0.5">
-                {LINKS.map(({ name, icon: Icon, href }) => (
-                  <Link
-                    key={name}
-                    href={href}
-                    className={cn(
-                      "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                      "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                    )}
-                    onClick={() => setOpenPopover(false)}
-                  >
-                    <Icon className="size-4 text-neutral-500" />
-                    <span className="block truncate text-neutral-800">
-                      {name}
-                    </span>
-                  </Link>
-                ))}
+                <Link
+                  href="/programs"
+                  className={cn(
+                    "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                    "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                  )}
+                  onClick={() => setOpenPopover(false)}
+                >
+                  <GridIcon className="size-4 text-neutral-500" />
+                  <span className="text-content-default block truncate">
+                    All programs
+                  </span>
+                </Link>
               </div>
             </div>
           </div>
@@ -141,36 +102,23 @@ export function PartnerProgramDropdown() {
         <button
           onClick={() => setOpenPopover(!openPopover)}
           className={cn(
-            "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 data-[state=open]:bg-neutral-200/80",
+            "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 data-[state=open]:bg-neutral-200/80",
             "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           )}
         >
           <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
-            <BlurImage
-              src={
-                selectedProgram?.logo ||
-                partner.image ||
-                `${OG_AVATAR_URL}${partner.id}`
-              }
-              referrerPolicy="no-referrer"
-              width={28}
-              height={28}
-              alt={selectedProgram?.name || partner.name}
-              className="size-7 flex-none shrink-0 overflow-hidden rounded-full"
-            />
-            <div className="min-w-0">
-              <div className="truncate text-sm font-medium leading-5 text-neutral-900">
-                {selectedProgram?.name || partner.name}
-              </div>
-              {(!selectedProgram || selectedProgram.status === "approved") && (
-                <div
-                  className={cn(
-                    "truncate text-xs capitalize leading-tight text-neutral-600",
-                  )}
-                >
-                  {selectedProgram ? "Enrolled" : "Partner"}
-                </div>
-              )}
+            {selectedProgram?.logo && (
+              <MemoBlurImage
+                src={selectedProgram.logo}
+                referrerPolicy="no-referrer"
+                width={40}
+                height={40}
+                alt={selectedProgram.name}
+                className="size-5 flex-none shrink-0 overflow-hidden rounded-full"
+              />
+            )}
+            <div className="text-content-emphasis min-w-0 truncate text-lg font-semibold">
+              {selectedProgram?.name || "All programs"}
             </div>
           </div>
           <ChevronsUpDown
@@ -185,9 +133,9 @@ export function PartnerProgramDropdown() {
 
 function PartnerDropdownPlaceholder() {
   return (
-    <div className="flex w-full animate-pulse items-center gap-x-1.5 rounded-lg p-1.5">
-      <div className="size-7 animate-pulse rounded-full bg-neutral-200" />
-      <div className="mb-px mt-0.5 h-8 w-28 grow animate-pulse rounded-md bg-neutral-200" />
+    <div className="flex w-full animate-pulse items-center gap-x-2.5 rounded-lg px-2 py-1.5">
+      <div className="size-5 animate-pulse rounded-full bg-neutral-200" />
+      <div className="h-7 w-28 grow animate-pulse rounded-md bg-neutral-200" />
       <ChevronsUpDown className="h-4 w-4 text-neutral-400" aria-hidden="true" />
     </div>
   );
@@ -242,7 +190,7 @@ function ProgramList({
           <span className="sr-only">Search</span>
           <Magnifier className="size-[1.125rem] text-neutral-500" />
           <Command.Input
-            className="h-12 w-full border-0 bg-transparent px-2.5 text-base placeholder:text-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+            className="placeholder:text-content-subtle h-12 w-full border-0 bg-transparent px-2.5 text-base focus:outline-none focus:ring-0 sm:text-sm"
             placeholder="Find program..."
           />
         </label>
@@ -282,7 +230,7 @@ function ProgramList({
                         onClick={() => setOpenPopover(false)}
                         tabIndex={-1}
                       >
-                        <BlurImage
+                        <MemoBlurImage
                           src={logo || `${OG_AVATAR_URL}${name}`}
                           width={40}
                           height={40}

@@ -4,6 +4,7 @@ import {
   generateCodeChallengeHash,
   generateCodeVerifier,
 } from "@/lib/api/oauth/utils";
+import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
 import { isValidUrl, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -14,12 +15,27 @@ import { authPartnerActionClient } from "../safe-action";
 import { ONLINE_PRESENCE_PROVIDERS } from "./online-presence-providers";
 
 const updateOnlinePresenceSchema = z.object({
-  website: parseUrlSchemaAllowEmpty().nullish(),
-  youtube: z.string().nullish(),
-  twitter: z.string().nullish(),
-  linkedin: z.string().nullish(),
-  instagram: z.string().nullish(),
-  tiktok: z.string().nullish(),
+  website: parseUrlSchemaAllowEmpty().nullish().transform(sanitizeWebsite),
+  youtube: z
+    .string()
+    .nullish()
+    .transform((input) => sanitizeSocialHandle(input, "youtube")),
+  twitter: z
+    .string()
+    .nullish()
+    .transform((input) => sanitizeSocialHandle(input, "twitter")),
+  linkedin: z
+    .string()
+    .nullish()
+    .transform((input) => sanitizeSocialHandle(input, "linkedin")),
+  instagram: z
+    .string()
+    .nullish()
+    .transform((input) => sanitizeSocialHandle(input, "instagram")),
+  tiktok: z
+    .string()
+    .nullish()
+    .transform((input) => sanitizeSocialHandle(input, "tiktok")),
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
 

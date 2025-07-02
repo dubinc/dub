@@ -1,6 +1,6 @@
 import { TRIGGER_TYPES } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
-import { CONTINENT_CODES, COUNTRY_CODES } from "@dub/utils";
+import { CONTINENT_CODES } from "@dub/utils";
 
 const analyticsTriggersResponse = z
   .object({
@@ -89,9 +89,9 @@ export const analyticsResponse = {
   countries: z
     .object({
       country: z
-        .enum(COUNTRY_CODES)
+        .string()
         .describe(
-          "The 2-letter ISO 3166-1 country code for the country associated with the location of the user. Learn more: https://d.to/geo",
+          "The 2-letter ISO 3166-1 country code of the country. Learn more: https://d.to/geo",
         ),
       region: z.literal("*").default("*"),
       city: z.literal("*").default("*"),
@@ -117,13 +117,13 @@ export const analyticsResponse = {
   regions: z
     .object({
       country: z
-        .enum(COUNTRY_CODES)
-        .describe("The 2-letter country code of the region: https://d.to/geo"),
-      region: z
         .string()
         .describe(
-          "The 2-letter ISO 3166-2 region code representing the region associated with the location of the user.",
+          "The 2-letter ISO 3166-1 country code of the country. Learn more: https://d.to/geo",
         ),
+      region: z
+        .string()
+        .describe("The 2-letter ISO 3166-2 region code of the region."),
       city: z.literal("*").default("*"),
       clicks: z
         .number()
@@ -147,8 +147,10 @@ export const analyticsResponse = {
   cities: z
     .object({
       country: z
-        .enum(COUNTRY_CODES)
-        .describe("The 2-letter country code of the city: https://d.to/geo"),
+        .string()
+        .describe(
+          "The 2-letter ISO 3166-1 country code of the country where this city is located. Learn more: https://d.to/geo",
+        ),
       region: z
         .string()
         .describe(

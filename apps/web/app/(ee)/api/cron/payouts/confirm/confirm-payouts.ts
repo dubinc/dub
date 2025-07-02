@@ -16,7 +16,7 @@ import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
-import { chunk, log } from "@dub/utils";
+import { chunk, currencyFormatter, log } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
 
 const paymentMethodToCurrency = {
@@ -111,60 +111,60 @@ export async function confirmPayouts({
 
   const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
-  // Create the invoice for the payouts
-  const newInvoice = await prisma.$transaction(async (tx) => {
-    const payoutFee = calculatePayoutFeeForMethod({
-      paymentMethod: paymentMethod.type,
-      payoutFee: workspace.payoutFee,
+  const payoutFee = calculatePayoutFeeForMethod({
+    paymentMethod: paymentMethod.type,
+    payoutFee: workspace.payoutFee,
+  });
+
+  if (!payoutFee) {
+    throw new Error("Failed to calculate payout fee.");
+  }
+
+  console.info(
+    `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
+  );
+
+  const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
+  const totalFee = Math.round(payoutAmount * payoutFee);
+  const total = payoutAmount + totalFee;
+  let convertedTotal = total;
+
+  // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
+  if (["sepa_debit", "acss_debit"].includes(paymentMethod.type)) {
+    const fxQuote = await createFxQuote({
+      fromCurrency: currency,
+      toCurrency: "usd",
     });
 
-    if (!payoutFee) {
-      throw new Error("Failed to calculate payout fee.");
+    const exchangeRate = fxQuote.rates[currency].exchange_rate;
+
+    // if Stripe's FX rate is not available, throw an error
+    if (!exchangeRate || exchangeRate <= 0) {
+      throw new Error(
+        `Failed to get exchange rate from Stripe for ${currency}.`,
+      );
     }
 
-    console.info(
-      `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
+    convertedTotal = Math.round(
+      (total / exchangeRate) * (1 + FOREX_MARKUP_RATE),
     );
 
-    const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
-    const totalFee = Math.round(payoutAmount * payoutFee);
-    const total = payoutAmount + totalFee;
-    let convertedTotal = total;
+    console.log(
+      `Currency conversion: ${total} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
+    );
+  }
 
-    // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
-    if (["sepa_debit", "acss_debit"].includes(paymentMethod.type)) {
-      const fxQuote = await createFxQuote({
-        fromCurrency: currency,
-        toCurrency: "usd",
-      });
+  // Generate the next invoice number
+  const totalInvoices = await prisma.invoice.count({
+    where: {
+      workspaceId: workspace.id,
+    },
+  });
+  const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
+  const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
 
-      const exchangeRate = fxQuote.rates[currency].exchange_rate;
-
-      // if Stripe's FX rate is not available, throw an error
-      if (!exchangeRate || exchangeRate <= 0) {
-        throw new Error(
-          `Failed to get exchange rate from Stripe for ${currency}.`,
-        );
-      }
-
-      convertedTotal = Math.round(
-        (total / exchangeRate) * (1 + FOREX_MARKUP_RATE),
-      );
-
-      console.log(
-        `Currency conversion: ${total} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
-      );
-    }
-
-    // Generate the next invoice number
-    const totalInvoices = await tx.invoice.count({
-      where: {
-        workspaceId: workspace.id,
-      },
-    });
-    const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
-    const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
-
+  // Create the invoice for the payouts
+  const newInvoice = await prisma.$transaction(async (tx) => {
     const invoice = await tx.invoice.create({
       data: {
         id: createId({ prefix: "inv_" }),
@@ -219,6 +219,11 @@ export async function confirmPayouts({
     });
 
     return invoice;
+  });
+
+  await log({
+    message: `*${program.name}* just sent a payout of *${currencyFormatter(payoutAmount / 100)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(totalFee / 100)} (${payoutFee * 100}%)* :money_mouth_face:`,
+    type: "payouts",
   });
 
   // Send emails to all the partners involved in the payouts if the payout method is Direct Debit
