@@ -17,7 +17,7 @@ export function ApplicationPreview({
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
-  const { setValue, getValues } = useBrandingFormContext();
+  const { getValues } = useBrandingFormContext();
   const { brandColor, logo, wordmark } = {
     ...useWatch(),
     ...getValues(),
@@ -85,18 +85,18 @@ export function ApplicationPreview({
               </div>
             </div>
           </div>
+
+          {/* Program rewards */}
           <div className="mx-auto mt-6 max-w-screen-sm">
             <div className="px-6">
-              {/* Program details grid */}
               <LanderRewards
                 className="mt-4"
-                program={{
-                  rewards: program.rewards ?? [],
-                  defaultDiscount:
-                    program.discounts?.find(
-                      (d) => d.id === program.defaultDiscountId,
-                    ) || null,
-                }}
+                rewards={program.rewards ?? []}
+                discount={
+                  program.discounts?.find(
+                    (d) => d.id === program.defaultDiscountId,
+                  ) || null
+                }
               />
             </div>
           </div>

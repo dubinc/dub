@@ -12,7 +12,6 @@ import {
   LoadingSpinner,
   Modal,
   TriangleWarning,
-  useMediaQuery,
   UserPlus,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -21,7 +20,6 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
-  useId,
   useMemo,
   useState,
 } from "react";
@@ -55,8 +53,6 @@ const REWARD_EVENTS = [
 function EditRewardsModalInner({
   setShowEditRewardsModal,
 }: EditRewardsModalProps) {
-  const id = useId();
-  const { isMobile } = useMediaQuery();
   const { program } = useProgram();
 
   const {
@@ -78,16 +74,7 @@ function EditRewardsModalInner({
 
   const form = useForm<Pick<BrandingFormData, "landerData">>({
     values: {
-      landerData: {
-        ...getValuesParent("landerData"),
-        rewards: {
-          saleRewardId: "none",
-          leadRewardId: "none",
-          clickRewardId: "none",
-          discountId: "none",
-          ...getValuesParent("landerData")?.rewards,
-        },
-      },
+      landerData: getValuesParent("landerData"),
     },
   });
 
@@ -99,6 +86,8 @@ function EditRewardsModalInner({
     formState: { isDirty },
   } = form;
 
+  console.log("getValues", getValues("landerData.rewards"));
+
   // Set default reward selections
   const setDefaultRewards = useCallback(
     (override?: boolean) => {
@@ -107,18 +96,15 @@ function EditRewardsModalInner({
       const landerDataRewards = getValues("landerData.rewards") || {};
 
       REWARD_EVENTS.forEach(({ event }) => {
-        if (
-          !override &&
-          landerDataRewards[event] &&
-          landerDataRewards[event] !== "none"
-        )
-          return;
+        if (!override && landerDataRewards[`${event}RewardId`]) return;
 
         const defaultReward = rewards?.find(
           (r) => r.event === event && r.default,
         );
-        if (defaultReward)
-          setValue(`landerData.rewards.${event}RewardId`, defaultReward.id);
+        setValue(
+          `landerData.rewards.${event}RewardId`,
+          defaultReward ? defaultReward.id : "none",
+        );
       });
     },
     [rewards, getValues, setValue],
@@ -131,26 +117,22 @@ function EditRewardsModalInner({
 
       const landerDataRewards = getValues("landerData.rewards") || {};
 
-      if (
-        (!override &&
-          landerDataRewards.discountId &&
-          landerDataRewards.discountId !== "none") ||
-        !program?.defaultDiscountId
-      )
-        return;
+      if (!override && landerDataRewards.discountId) return;
 
       const defaultDiscount = discounts?.find(
         (d) => d.id === program?.defaultDiscountId,
       );
 
-      if (defaultDiscount)
-        setValue(`landerData.rewards.discountId`, defaultDiscount.id);
+      setValue(
+        `landerData.rewards.discountId`,
+        defaultDiscount ? defaultDiscount.id : "none",
+      );
     },
     [discounts, program, getValues, setValue],
   );
 
   useEffect(() => setDefaultRewards(), [setDefaultRewards]);
-  useEffect(() => setDefaultDiscount(), [setDefaultDiscount]);
+  // useEffect(() => setDefaultDiscount(), [setDefaultDiscount]);
 
   return (
     <>
@@ -159,6 +141,7 @@ function EditRewardsModalInner({
         onSubmit={(e) => {
           e.stopPropagation();
           handleSubmit(({ landerData }) => {
+            console.log("updating parent", landerData);
             setValueParent("landerData", landerData, {
               shouldDirty: true,
             });
@@ -276,7 +259,7 @@ function EditRewardsModalInner({
                     discountId: "none",
                   },
                   {
-                    shouldDirty: isDirty,
+                    shouldDirty: true,
                   },
                 );
                 setDefaultRewards(true);

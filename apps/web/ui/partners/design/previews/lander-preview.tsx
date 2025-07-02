@@ -1,6 +1,13 @@
 "use client";
 
-import { ProgramLanderData, ProgramWithLanderDataProps } from "@/lib/types";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import useDiscounts from "@/lib/swr/use-discounts";
+import useRewards from "@/lib/swr/use-rewards";
+import {
+  ProgramLanderData,
+  ProgramProps,
+  ProgramWithLanderDataProps,
+} from "@/lib/types";
 import { useEditHeroModal } from "@/ui/partners/design/modals/edit-hero-modal";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
@@ -9,6 +16,7 @@ import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import {
   Button,
   Grid,
+  LoadingSpinner,
   Pen2,
   Plus2,
   Tooltip,
@@ -192,15 +200,7 @@ export function LanderPreview({
               <EditToolbar onEdit={() => setShowEditRewardsModal(true)} />
               <div className="relative mx-auto max-w-screen-sm py-4">
                 <div className="px-6">
-                  <LanderRewards
-                    program={{
-                      rewards: program.rewards ?? [],
-                      defaultDiscount:
-                        program.discounts?.find(
-                          (d) => d.id === program.defaultDiscountId,
-                        ) || null,
-                    }}
-                  />
+                  <RewardsPreview program={program} />
                 </div>
               </div>
             </div>
@@ -305,6 +305,35 @@ export function LanderPreview({
       </PreviewWindow>
     </>
   );
+}
+
+function RewardsPreview({ program }: { program: ProgramProps }) {
+  const { getValues } = useBrandingFormContext();
+  const { landerData } = {
+    ...useWatch(),
+    ...getValues(),
+  };
+
+  const { rewards, loading: rewardsLoading } = useRewards();
+  const { discounts, loading: discountsLoading } = useDiscounts();
+
+  if (rewardsLoading || discountsLoading)
+    return (
+      <div>
+        <LoadingSpinner />
+      </div>
+    );
+
+  const result = getProgramApplicationRewardsAndDiscount({
+    program: {
+      ...program,
+      landerData,
+    },
+    rewards: rewards || [],
+    discounts: discounts || [],
+  });
+
+  return <LanderRewards rewards={result.rewards} discount={result.discount} />;
 }
 
 function AddBlockButton({ onClick }: { onClick: () => void }) {
