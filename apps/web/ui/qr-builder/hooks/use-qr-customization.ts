@@ -9,6 +9,7 @@ import {
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { unescapeWiFiValue } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import QRCodeStyling, {
   CornerDotType,
   CornerSquareType,
@@ -128,12 +129,12 @@ export function useQrCustomization(
         }
         break;
       case EQRType.WIFI:
-        const wifiMatch = data.match(/WIFI:T:(.+);S:(.+);P:(.+);H:(.+);/);
+        const wifiMatch = data.match(/WIFI:T:([^;]+(?:\\;[^;]+)*);S:([^;]+(?:\\;[^;]+)*);P:([^;]+(?:\\;[^;]+)*);H:([^;]+(?:\\;[^;]+)*);/);
         if (wifiMatch) {
           return {
-            networkName: wifiMatch[2],
-            networkPassword: wifiMatch[3],
-            networkEncryption: wifiMatch[1],
+            networkName: unescapeWiFiValue(wifiMatch[2]),
+            networkPassword: unescapeWiFiValue(wifiMatch[3]),
+            networkEncryption: unescapeWiFiValue(wifiMatch[1]),
             isHiddenNetwork: wifiMatch[4],
           };
         }

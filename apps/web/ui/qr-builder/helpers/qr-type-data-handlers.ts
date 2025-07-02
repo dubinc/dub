@@ -1,5 +1,23 @@
 import { EQRType } from "../constants/get-qr-config.ts";
 
+// Function to escape special characters in Wi-Fi QR code
+const escapeWiFiValue = (value: string): string => {
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/"/g, '\\"')
+    .replace(/:/g, '\\:');
+};
+
+// Function to parse escaped values in Wi-Fi QR code
+const unescapeWiFiValue = (value: string): string => {
+  return value
+    .replace(/\\:/g, ':')
+    .replace(/\\"/g, '"')
+    .replace(/\\;/g, ';')
+    .replace(/\\\\/g, '\\');
+};
+
 export const qrTypeDataHandlers = {
   [EQRType.WEBSITE]: (values: Record<string, string>) => {
     return values.websiteLink;
@@ -23,7 +41,11 @@ export const qrTypeDataHandlers = {
     values: Record<string, string>,
     isHiddenNetwork: boolean,
   ) => {
-    return `WIFI:T:${values.networkEncryption};S:${values.networkName};P:${values.networkPassword};H:${isHiddenNetwork};`;
+    const networkEncryption = escapeWiFiValue(values.networkEncryption || 'WPA');
+    const networkName = escapeWiFiValue(values.networkName || '');
+    const networkPassword = escapeWiFiValue(values.networkPassword || '');
+    
+    return `WIFI:T:${networkEncryption};S:${networkName};P:${networkPassword};H:${isHiddenNetwork};`;
   },
   [EQRType.PDF]: (values: Record<string, string>) => {
     return crypto.randomUUID();
@@ -35,3 +57,6 @@ export const qrTypeDataHandlers = {
     return crypto.randomUUID();
   },
 };
+
+// Экспортируем функции для использования в парсерах
+export { escapeWiFiValue, unescapeWiFiValue };
