@@ -15,7 +15,7 @@ import { ToltCommission } from "./types";
 
 const toDubStatus: Record<ToltCommission["status"], CommissionStatus> = {
   pending: "pending",
-  approved: "processed",
+  approved: "pending",
   paid: "paid",
   rejected: "canceled",
   refunded: "refunded",
@@ -133,6 +133,13 @@ async function createCommission({
   commission: ToltCommission;
 }) {
   const { customer, partner, ...sale } = commission;
+
+  if (!sale.transaction_id) {
+    console.log(
+      `Commission ${commission.id} has no transaction ID, skipping...`,
+    );
+    return;
+  }
 
   const commissionFound = await prisma.commission.findUnique({
     where: {
