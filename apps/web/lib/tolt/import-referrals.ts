@@ -55,11 +55,6 @@ export async function importReferrals({
       },
     });
 
-    if (partners.length === 0) {
-      console.log("No partners found for customers, skipping...");
-      return;
-    }
-
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         partnerId: {
