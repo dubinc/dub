@@ -1,6 +1,7 @@
 import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { processLink, updateLink } from "@/lib/api/links";
+import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags.ts";
 import { getQr } from "@/lib/api/qrs/get-qr";
 import { updateQr } from "@/lib/api/qrs/update-qr";
@@ -196,6 +197,12 @@ export const DELETE = withWorkspace(
       include: {
         ...includeTags,
       },
+    });
+
+    // Clear the link cache to ensure the short link stops working immediately
+    await linkCache.delete({
+      domain: removedLink.domain,
+      key: removedLink.key,
     });
 
     return NextResponse.json({ link: removedLink, qr: removedQr }, { headers });
