@@ -3,6 +3,7 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { processLink, updateLink } from "@/lib/api/links";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags.ts";
+import { deleteQr } from '@/lib/api/qrs/delete-qr';
 import { getQr } from "@/lib/api/qrs/get-qr";
 import { updateQr } from "@/lib/api/qrs/update-qr";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -46,7 +47,7 @@ export const PATCH = withWorkspace(
     const body = updateQrBodySchema.parse(await parseRequestBody(req)) || {};
 
     // Create a new fileId only if there is a new file
-    const fileId = body.file ? crypto.randomUUID() : (qr.fileId || "");
+    const fileId = body.file ? crypto.randomUUID() : (qr.fileId || null);
 
     try {
       // Define the correct URL for the link
@@ -99,7 +100,7 @@ export const PATCH = withWorkspace(
         updatedLink: processedLink,
       });
 
-      const updatedQr = await updateQr(params.qrId, body, fileId, qr.fileId);
+      const updatedQr = await updateQr(params.qrId, body, fileId);
 
       return NextResponse.json(
         { qr: updatedQr },
@@ -184,28 +185,9 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const removedQr = await prisma.qr.delete({
-      where: {
-        id: qr.id,
-      },
-    });
+    const removedQr = await deleteQr(qr.id);
 
-    const removedLink = await prisma.link.delete({
-      where: {
-        id: qr.link!.id,
-      },
-      include: {
-        ...includeTags,
-      },
-    });
-
-    // Clear the link cache to ensure the short link stops working immediately
-    await linkCache.delete({
-      domain: removedLink.domain,
-      key: removedLink.key,
-    });
-
-    return NextResponse.json({ link: removedLink, qr: removedQr }, { headers });
+    return NextResponse.json({ qr: removedQr }, { headers });
   },
   {
     requiredPermissions: ["links.write"],
