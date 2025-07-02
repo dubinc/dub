@@ -34,7 +34,6 @@ export async function importLinks({
 
     if (links.length === 0) {
       hasMore = false;
-      console.log("No more links to import.");
       break;
     }
 
@@ -76,6 +75,7 @@ export async function importLinks({
     });
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
+
     processedBatches++;
     startingAfter = links[links.length - 1].id;
   }
