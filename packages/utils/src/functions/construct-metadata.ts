@@ -49,6 +49,7 @@ export function constructMetadata({
         ? `${title} | GetQR`
         : "GetQR | Create Custom QR Codes with Logo, Colors & Tracking"),
     description,
+    viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
     openGraph: {
       title,
       description,
