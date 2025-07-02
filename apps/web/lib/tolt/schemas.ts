@@ -14,7 +14,7 @@ export const ToltAffiliateSchema = z.object({
   last_name: z.string(),
   company_name: z.string().nullable(),
   country_code: z.string().nullable(),
-  status: z.enum(["active", "inactive"]).default("active"),
+  status: z.string().optional(),
   program: ToltProgramSchema.optional(),
 });
 
@@ -32,7 +32,7 @@ export const ToltCustomerSchema = z.object({
     .describe("Internal customer identifier in client's app."),
   email: z.string().nullable(),
   name: z.string().nullable(),
-  status: z.enum(["lead", "trialing", "active", "canceled"]),
+  status: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
   partner: ToltAffiliateSchema,
@@ -42,9 +42,9 @@ export const ToltCommissionSchema = z.object({
   id: z.string(),
   amount: z.string().describe("Amount of the commission in cents."),
   revenue: z.string().describe("Revenue of the commission in cents."),
-  transaction_id: z.string(),
+  transaction_id: z.string().nullable(), // this can be null
   charge_id: z.string(),
-  status: z.enum(["pending", "approved", "rejected", "refunded"]),
+  status: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
   partner: ToltAffiliateSchema.omit({

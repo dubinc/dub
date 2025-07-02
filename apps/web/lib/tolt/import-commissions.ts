@@ -13,6 +13,14 @@ import { ToltApi } from "./api";
 import { toltImporter } from "./importer";
 import { ToltCommission } from "./types";
 
+const toDubStatus: Record<ToltCommission["status"], CommissionStatus> = {
+  pending: "pending",
+  approved: "processed",
+  paid: "paid",
+  rejected: "canceled",
+  refunded: "refunded",
+};
+
 export async function importCommissions({
   programId,
   startingAfter,
@@ -54,8 +62,9 @@ export async function importCommissions({
     await Promise.all(
       commissions.map((commission) =>
         createCommission({
-          commission,
+          workspaceId: workspace.id,
           programId,
+          commission,
         }),
       ),
     );
@@ -115,9 +124,11 @@ export async function importCommissions({
 
 // Backfill historical commissions
 async function createCommission({
+  workspaceId,
   programId,
   commission,
 }: {
+  workspaceId: string;
   programId: string;
   commission: ToltCommission;
 }) {
@@ -166,7 +177,8 @@ async function createCommission({
 
   const customerFound = await prisma.customer.findFirst({
     where: {
-      stripeCustomerId: customer.email,
+      projectId: workspaceId,
+      email: customer.email,
     },
     include: {
       link: true,
@@ -175,7 +187,7 @@ async function createCommission({
 
   if (!customerFound) {
     console.log(
-      `No customer found for customer ID ${customer.email}, skipping...`,
+      `No customer found for customer email ${customer.email}, skipping...`,
     );
     return;
   }
@@ -207,13 +219,6 @@ async function createCommission({
     .parse(leadEvent.data[0]);
 
   const eventId = nanoid(16);
-
-  const toDubStatus: Record<ToltCommission["status"], CommissionStatus> = {
-    pending: "pending",
-    approved: "paid",
-    rejected: "canceled",
-    refunded: "refunded",
-  };
 
   await Promise.all([
     prisma.commission.create({

@@ -136,17 +136,17 @@ async function createReferral({
     return;
   }
 
-  const customerFound = await prisma.customer.findFirst({
+  const customerFound = await prisma.customer.findUnique({
     where: {
-      email: customer.email,
-      projectId: workspace.id,
+      projectId_externalId: {
+        projectId: workspace.id,
+        externalId: customer.customer_id,
+      },
     },
   });
 
-  if (customerFound && customerFound.externalId !== customer.customer_id) {
-    console.log(
-      `A customer already exists with customer email, ${customer.email}`,
-    );
+  if (customerFound) {
+    console.log(`A customer already exists with email ${customer.email}`);
     return;
   }
 

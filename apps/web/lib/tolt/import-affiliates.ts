@@ -71,7 +71,7 @@ export async function importAffiliates({
 
   await toltImporter.queue({
     programId,
-    action: hasMore ? "import-affiliates" : "import-referrals",
+    action: hasMore ? "import-affiliates" : "import-links",
     ...(hasMore && { startingAfter }),
   });
 }

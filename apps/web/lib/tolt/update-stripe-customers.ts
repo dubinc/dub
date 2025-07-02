@@ -4,8 +4,7 @@ import { log } from "@dub/utils";
 import { stripeAppClient } from "../stripe";
 import { MAX_BATCHES, toltImporter } from "./importer";
 
-// Stripe API have a default limit of 25 requests per second
-const CUSTOMERS_PER_BATCH = 25;
+const CUSTOMERS_PER_BATCH = 20;
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
