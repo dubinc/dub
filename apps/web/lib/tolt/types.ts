@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   ToltAffiliateSchema,
+  ToltCommissionSchema,
   ToltCustomerSchema,
   ToltLinkSchema,
   ToltProgramSchema,
@@ -32,5 +33,9 @@ export interface ToltLink extends z.infer<typeof ToltLinkSchema> {
 }
 
 export interface ToltCustomer extends z.infer<typeof ToltCustomerSchema> {
+  //
+}
+
+export interface ToltCommission extends z.infer<typeof ToltCommissionSchema> {
   //
 }

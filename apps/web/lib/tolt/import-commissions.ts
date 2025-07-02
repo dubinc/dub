@@ -1,47 +1,51 @@
-import { sendEmail } from "@dub/email";
-import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { CommissionStatus, Program } from "@prisma/client";
+import { CommissionStatus } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
-import { RewardfulApi } from "../rewardful/api";
-import { MAX_BATCHES, rewardfulImporter } from "../rewardful/importer";
-import { RewardfulCommission } from "../rewardful/types";
+import { MAX_BATCHES } from "../rewardful/importer";
 import { getLeadEvent } from "../tinybird";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
+import { ToltApi } from "./api";
+import { toltImporter } from "./importer";
+import { ToltCommission } from "./types";
 
 export async function importCommissions({
   programId,
-  page,
+  startingAfter,
 }: {
   programId: string;
-  page: number;
+  startingAfter?: string;
 }) {
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
+    include: {
+      workspace: true,
+    },
   });
 
-  const { token, userId, campaignId } = await rewardfulImporter.getCredentials(
-    program.workspaceId,
+  const { workspace } = program;
+
+  const { token, toltProgramId, userId } = await toltImporter.getCredentials(
+    workspace.id,
   );
 
-  const rewardfulApi = new RewardfulApi({ token });
+  const toltApi = new ToltApi({ token });
 
-  let currentPage = page;
-  let hasMoreCommissions = true;
+  let hasMore = true;
   let processedBatches = 0;
 
-  while (hasMoreCommissions && processedBatches < MAX_BATCHES) {
-    const commissions = await rewardfulApi.listCommissions({
-      page: currentPage,
+  while (hasMore && processedBatches < MAX_BATCHES) {
+    const commissions = await toltApi.listCommissions({
+      programId: toltProgramId,
+      startingAfter,
     });
 
     if (commissions.length === 0) {
-      hasMoreCommissions = false;
+      hasMore = false;
       break;
     }
 
@@ -49,87 +53,73 @@ export async function importCommissions({
       commissions.map((commission) =>
         createCommission({
           commission,
-          program,
-          campaignId,
+          programId,
         }),
       ),
     );
-    currentPage++;
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    startingAfter = commissions[commissions.length - 1].id;
     processedBatches++;
   }
 
-  if (hasMoreCommissions) {
-    return await rewardfulImporter.queue({
-      programId: program.id,
+  if (hasMore) {
+    await toltImporter.queue({
+      programId,
       action: "import-commissions",
-      page: currentPage,
+      startingAfter,
     });
+    return;
   }
 
-  // Imports finished
-  await rewardfulImporter.deleteCredentials(program.workspaceId);
+  // await toltImporter.deleteCredentials(workspace.id);
 
-  const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
-    where: {
-      userId_projectId: {
-        userId,
-        projectId: program.workspaceId,
-      },
-    },
-    include: {
-      project: true,
-      user: true,
-    },
-  });
+  // const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
+  //   where: {
+  //     userId_projectId: {
+  //       userId,
+  //       projectId: workspace.id,
+  //     },
+  //   },
+  //   select: {
+  //     user: {
+  //       select: {
+  //         email: true,
+  //       },
+  //     },
+  //   },
+  // });
 
-  if (workspaceUser && workspaceUser.user.email) {
-    await sendEmail({
-      email: workspaceUser.user.email,
-      subject: "Rewardful campaign imported",
-      react: CampaignImported({
-        email: workspaceUser.user.email,
-        workspace: workspaceUser.project,
-        program,
-        provider: "Rewardful",
-      }),
-    });
-  }
+  // if (workspaceUser && workspaceUser.user.email) {
+  //   await sendEmail({
+  //     email: workspaceUser.user.email,
+  //     subject: "Tolt program imported",
+  //     react: CampaignImported({
+  //       email: workspaceUser.user.email,
+  //       workspace,
+  //       program,
+  //       provider: "Tolt",
+  //     }),
+  //   });
+  // }
 }
 
 // Backfill historical commissions
 async function createCommission({
+  programId,
   commission,
-  program,
-  campaignId,
 }: {
-  commission: RewardfulCommission;
-  program: Program;
-  campaignId: string;
+  programId: string;
+  commission: ToltCommission;
 }) {
-  if (commission.campaign.id !== campaignId) {
-    console.log(
-      `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaign ${campaignId} (they're in ${commission.campaign.id}). Skipping...`,
-    );
-    return;
-  }
-
-  const { sale } = commission;
-
-  if (
-    !sale.referral.stripe_customer_id ||
-    !sale.referral.stripe_customer_id.startsWith("cus_")
-  ) {
-    console.log(
-      `No Stripe customer ID provided for referral ${sale.referral.id}, skipping...`,
-    );
-    return;
-  }
+  const { customer, partner, ...sale } = commission;
 
   const commissionFound = await prisma.commission.findUnique({
     where: {
       invoiceId_programId: {
-        invoiceId: sale.id,
-        programId: program.id,
+        invoiceId: sale.transaction_id,
+        programId,
       },
     },
   });
@@ -143,32 +133,32 @@ async function createCommission({
   // e.g. during the transition period
   // since we don't have the Stripe invoiceId from Rewardful, we use the referral's Stripe customer ID
   // and check for commissions that were created with the same amount and within a +-1 hour window
-  const chargedAt = new Date(sale.charged_at);
-  const trackedCommission = await prisma.commission.findFirst({
-    where: {
-      programId: program.id,
-      type: "sale",
-      customer: {
-        stripeCustomerId: sale.referral.stripe_customer_id,
-      },
-      amount: sale.sale_amount_cents,
-      createdAt: {
-        gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
-        lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
-      },
-    },
-  });
+  // const chargedAt = new Date(sale.created_at);
+  // const trackedCommission = await prisma.commission.findFirst({
+  //   where: {
+  //     programId,
+  //     type: "sale",
+  //     customer: {
+  //       stripeCustomerId: sale.referral.stripe_customer_id,
+  //     },
+  //     amount: Number(sale.amount),
+  //     createdAt: {
+  //       gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
+  //       lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
+  //     },
+  //   },
+  // });
 
-  if (trackedCommission) {
-    console.log(
-      `Commission ${trackedCommission.id} was already recorded on Dub, skipping...`,
-    );
-    return;
-  }
+  // if (trackedCommission) {
+  //   console.log(
+  //     `Commission ${trackedCommission.id} was already recorded on Dub, skipping...`,
+  //   );
+  //   return;
+  // }
 
-  const customerFound = await prisma.customer.findUnique({
+  const customerFound = await prisma.customer.findFirst({
     where: {
-      stripeCustomerId: sale.referral.stripe_customer_id,
+      stripeCustomerId: customer.email,
     },
     include: {
       link: true,
@@ -177,7 +167,7 @@ async function createCommission({
 
   if (!customerFound) {
     console.log(
-      `No customer found for Stripe customer ID ${sale.referral.stripe_customer_id}, skipping...`,
+      `No customer found for customer ID ${customer.email}, skipping...`,
     );
     return;
   }
@@ -210,11 +200,11 @@ async function createCommission({
 
   const eventId = nanoid(16);
 
-  const toDubStatus: Record<RewardfulCommission["state"], CommissionStatus> = {
+  const toDubStatus: Record<ToltCommission["status"], CommissionStatus> = {
     pending: "pending",
-    due: "pending",
-    paid: "paid",
-    voided: "canceled",
+    approved: "paid",
+    rejected: "canceled",
+    refunded: "refunded",
   };
 
   await Promise.all([
@@ -223,16 +213,16 @@ async function createCommission({
         id: createId({ prefix: "cm_" }),
         eventId,
         type: "sale",
-        programId: program.id,
+        programId,
         partnerId: customerFound.link.partnerId,
         linkId: customerFound.linkId,
         customerId: customerFound.id,
-        amount: sale.sale_amount_cents,
-        earnings: commission.amount,
-        currency: sale.currency.toLowerCase(),
+        amount: Number(sale.revenue),
+        earnings: Number(commission.amount),
+        currency: "usd", // TODO: there is no currency in the commission
         quantity: 1,
-        status: toDubStatus[commission.state],
-        invoiceId: sale.id, // this is not the actual invoice ID, but we use this to deduplicate the sales
+        status: toDubStatus[commission.status],
+        invoiceId: sale.transaction_id, // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(sale.created_at),
       },
     }),
@@ -241,35 +231,47 @@ async function createCommission({
       ...clickData,
       event_id: eventId,
       event_name: "Invoice paid",
-      amount: sale.sale_amount_cents,
+      amount: Number(sale.revenue),
       customer_id: customerFound.id,
       payment_processor: "stripe",
-      currency: sale.currency.toLowerCase(),
+      currency: "usd", // TODO: there is no currency in the commission
       metadata: JSON.stringify(commission),
       timestamp: new Date(sale.created_at).toISOString(),
     }),
 
     // update link stats
     prisma.link.update({
-      where: { id: customerFound.linkId },
+      where: {
+        id: customerFound.linkId,
+      },
       data: {
-        sales: { increment: 1 },
-        saleAmount: { increment: sale.sale_amount_cents },
+        sales: {
+          increment: 1,
+        },
+        saleAmount: {
+          increment: Number(sale.revenue),
+        },
       },
     }),
 
     // update customer stats
     prisma.customer.update({
-      where: { id: customerFound.id },
+      where: {
+        id: customerFound.id,
+      },
       data: {
-        sales: { increment: 1 },
-        saleAmount: { increment: sale.sale_amount_cents },
+        sales: {
+          increment: 1,
+        },
+        saleAmount: {
+          increment: Number(sale.revenue),
+        },
       },
     }),
   ]);
 
   await syncTotalCommissions({
     partnerId: customerFound.link.partnerId,
-    programId: program.id,
+    programId,
   });
 }

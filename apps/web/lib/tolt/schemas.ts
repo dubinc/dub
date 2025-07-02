@@ -37,3 +37,22 @@ export const ToltCustomerSchema = z.object({
   updated_at: z.string(),
   partner: ToltAffiliateSchema,
 });
+
+export const ToltCommissionSchema = z.object({
+  id: z.string(),
+  amount: z.string().describe("Amount of the commission in cents."),
+  revenue: z.string().describe("Revenue of the commission in cents."),
+  transaction_id: z.string(),
+  charge_id: z.string(),
+  status: z.enum(["pending", "approved", "rejected", "refunded"]),
+  created_at: z.string(),
+  updated_at: z.string(),
+  partner: ToltAffiliateSchema.omit({
+    status: true,
+    program: true,
+  }),
+  customer: ToltCustomerSchema.omit({
+    customer_id: true,
+    partner: true,
+  }),
+});

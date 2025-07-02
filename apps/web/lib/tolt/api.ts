@@ -1,12 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
 import {
   ToltAffiliateSchema,
+  ToltCommissionSchema,
   ToltCustomerSchema,
   ToltLinkSchema,
   ToltProgramSchema,
 } from "./schemas";
 import {
   ToltAffiliate,
+  ToltCommission,
   ToltCustomer,
   ToltLink,
   ToltListResponse,
@@ -140,11 +142,33 @@ export class ToltApi {
     searchParams.append("starting_after", startingAfter || "");
     searchParams.append("limit", PAGE_LIMIT.toString());
 
-    // This might be an issue with the Tolt response, it is within data.data for this endpoint
+    // This might be an issue with the Tolt response, the response is within data.data for this endpoint
     const { data } = await this.fetch<{ data: { data: ToltCustomer[] } }>(
       `${this.baseUrl}/customers?${searchParams.toString()}`,
     );
 
     return ToltCustomerSchema.array().parse(data.data);
+  }
+
+  async listCommissions({
+    programId,
+    startingAfter,
+  }: {
+    programId: string;
+    startingAfter?: string;
+  }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("program_id", programId);
+    searchParams.append("expand[]", "partner");
+    searchParams.append("expand[]", "customer");
+    searchParams.append("expand[]", "transaction");
+    searchParams.append("starting_after", startingAfter || "");
+    searchParams.append("limit", PAGE_LIMIT.toString());
+
+    const { data } = await this.fetch<ToltListResponse<ToltCommission>>(
+      `${this.baseUrl}/commissions?${searchParams.toString()}`,
+    );
+
+    return ToltCommissionSchema.array().parse(data);
   }
 }

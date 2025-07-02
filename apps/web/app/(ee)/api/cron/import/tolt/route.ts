@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { importCommissions } from "@/lib/rewardful/import-commissions";
 import { importAffiliates } from "@/lib/tolt/import-affiliates";
+import { importCommissions } from "@/lib/tolt/import-commissions";
 import { importLinks } from "@/lib/tolt/import-links";
 import { importReferrals } from "@/lib/tolt/import-referrals";
 import { importSteps } from "@/lib/tolt/importer";
