@@ -70,7 +70,22 @@ export default async function LinkMiddleware(
 
   if (link) {
     const linkData = await getLinkViaEdge({ id: link.id });
-    console.log('LINK_MIDDLEWARE Link data (if (link)):', linkData);
+
+    if (linkData?.archived) {
+      return NextResponse.redirect(
+        new URL(
+          `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
+          req.url,
+        ),
+        {
+          headers: {
+            ...DUB_HEADERS,
+            "X-Robots-Tag": "googlebot: noindex",
+          },
+          status: 302,
+        },
+      );
+    }
 
     if (linkData?.userId) {
       const { featuresAccess } = await checkFeaturesAccessAuthLess(
@@ -97,7 +112,23 @@ export default async function LinkMiddleware(
 
   if (!link) {
     const linkData = await getLinkViaEdge({ domain, key });
-    console.log('LINK_MIDDLEWARE Link data (if (!link)):', linkData);
+
+    if (linkData?.archived) {
+      return NextResponse.redirect(
+        new URL(
+          `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
+          req.url,
+        ),
+        {
+          headers: {
+            ...DUB_HEADERS,
+            "X-Robots-Tag": "googlebot: noindex",
+          },
+          status: 302,
+        },
+      );
+    }
+
     // Check user restrictions
     if (linkData?.userId) {
       const { featuresAccess } = await checkFeaturesAccessAuthLess(

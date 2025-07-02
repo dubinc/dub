@@ -1,5 +1,6 @@
 export interface EdgeLinkProps {
   id: string;
+  archived: number;
   domain: string;
   key: string;
   url: string;
