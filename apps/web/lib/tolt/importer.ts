@@ -13,6 +13,7 @@ export const importSteps = z.enum([
   "import-links",
   "import-referrals",
   "import-commissions",
+  "update-stripe-customers",
 ]);
 
 class ToltImporter {

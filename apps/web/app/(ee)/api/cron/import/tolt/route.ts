@@ -5,6 +5,7 @@ import { importCommissions } from "@/lib/tolt/import-commissions";
 import { importLinks } from "@/lib/tolt/import-links";
 import { importReferrals } from "@/lib/tolt/import-referrals";
 import { importSteps } from "@/lib/tolt/importer";
+import { updateStripeCustomers } from "@/lib/tolt/update-stripe-customers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -14,6 +15,7 @@ const schema = z.object({
   action: importSteps,
   programId: z.string(),
   startingAfter: z.string().optional(),
+  page: z.number().optional(),
 });
 
 export async function POST(req: Request) {
@@ -36,6 +38,9 @@ export async function POST(req: Request) {
         break;
       case "import-referrals":
         await importReferrals(payload);
+        break;
+      case "update-stripe-customers":
+        await updateStripeCustomers(payload);
         break;
       case "import-commissions":
         await importCommissions(payload);
