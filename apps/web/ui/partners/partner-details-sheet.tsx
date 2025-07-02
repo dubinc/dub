@@ -56,8 +56,8 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
   return (
     <div className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
-        <div className="flex items-start justify-between p-6">
-          <Sheet.Title className="text-xl font-semibold">
+        <div className="flex items-center justify-between px-6 py-4 h-16">
+          <Sheet.Title className="text-lg font-semibold">
             Partner details
           </Sheet.Title>
           <Sheet.Close asChild>
@@ -71,7 +71,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
       </div>
 
       <div className="flex grow flex-col">
-        <div className="border-y border-neutral-200 bg-neutral-50 p-6">
+        <div className="border-b border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
           <PartnerInfoSection partner={partner}>
             <Menu partner={partner} />
