@@ -1,4 +1,3 @@
-import { DubApiError } from "@/lib/api/errors";
 import {
   ToltAffiliateSchema,
   ToltCommissionSchema,
@@ -15,15 +14,6 @@ import {
 } from "./types";
 
 const PAGE_LIMIT = 10;
-
-class ToltApiError extends DubApiError {
-  constructor(message: string) {
-    super({
-      code: "bad_request",
-      message: `[Tolt API] ${message}`,
-    });
-  }
-}
 
 export class ToltApi {
   private readonly baseUrl = "https://api.tolt.com/v1";
@@ -42,8 +32,9 @@ export class ToltApi {
 
     if (!response.ok) {
       const error = await response.json();
+
       console.error("Tolt API Error:", error);
-      throw new ToltApiError(error);
+      throw new Error(error.message || "Unknown error from Tolt API.");
     }
 
     const data = await response.json();
