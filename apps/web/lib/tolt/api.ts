@@ -13,7 +13,7 @@ import {
   ToltListResponse,
 } from "./types";
 
-const PAGE_LIMIT = 10;
+const PAGE_LIMIT = 100;
 
 export class ToltApi {
   private readonly baseUrl = "https://api.tolt.com/v1";
