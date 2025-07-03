@@ -241,18 +241,9 @@ function EditRewardsModalInner({
               type="button"
               className="px-2 text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
               onClick={() => {
-                setValue(
-                  "landerData.rewards",
-                  {
-                    saleRewardId: "none",
-                    leadRewardId: "none",
-                    clickRewardId: "none",
-                    discountId: "none",
-                  },
-                  {
-                    shouldDirty: true,
-                  },
-                );
+                setValue("landerData.rewards", undefined, {
+                  shouldDirty: true,
+                });
                 setDefaultRewards(true);
                 setDefaultDiscount(true);
               }}
