@@ -190,7 +190,7 @@ async function createCommission({
       link: true,
     },
     orderBy: {
-      createdAt: "asc",
+      id: "asc",
     },
   });
 
