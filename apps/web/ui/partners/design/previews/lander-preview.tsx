@@ -185,8 +185,8 @@ export function LanderPreview({
             {/* Program rewards */}
             <div
               className="group relative"
-              data-touched={touchedBlockId === "hero"}
-              onClick={() => isMobile && setTouchedBlockId("hero")}
+              data-touched={touchedBlockId === "rewards"}
+              onClick={() => isMobile && setTouchedBlockId("rewards")}
             >
               <EditIndicatorGrid />
               <EditToolbar onEdit={() => setShowEditRewardsModal(true)} />

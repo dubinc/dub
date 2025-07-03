@@ -90,7 +90,7 @@ function EditRewardsModalInner({
       REWARD_EVENTS.forEach(({ event }) => {
         if (!override && landerDataRewards[`${event}RewardId`]) return;
 
-        const defaultReward = rewards?.find(
+        const defaultReward = rewards.find(
           (r) => r.event === event && r.default,
         );
         setValue(
@@ -111,7 +111,7 @@ function EditRewardsModalInner({
 
       if (!override && landerDataRewards.discountId) return;
 
-      const defaultDiscount = discounts?.find(
+      const defaultDiscount = discounts.find(
         (d) => d.id === program?.defaultDiscountId,
       );
 

@@ -22,12 +22,11 @@ export function getProgramApplicationRewardsAndDiscount({
   program: Pick<ProgramWithLanderDataProps, "defaultDiscountId" | "landerData">;
 }) {
   const defaults = {
-    rewards: rewards?.filter((r) => r.default),
-    discount:
-      discounts?.find((d) => d.id === program.defaultDiscountId) || null,
+    rewards: rewards.filter((r) => r.default),
+    discount: discounts.find((d) => d.id === program.defaultDiscountId) || null,
   };
 
-  if (!program?.landerData?.rewards) return defaults;
+  if (!program.landerData?.rewards) return defaults;
 
   const landerRewards = program.landerData.rewards;
   const result: {
@@ -39,7 +38,7 @@ export function getProgramApplicationRewardsAndDiscount({
     result.discount =
       landerRewards.discountId === "none"
         ? null
-        : discounts?.find((d) => d.id === landerRewards.discountId) ||
+        : discounts.find((d) => d.id === landerRewards.discountId) ||
           defaults.discount;
 
   (["sale", "lead", "click"] as const).forEach((event) => {
@@ -56,7 +55,7 @@ export function getProgramApplicationRewardsAndDiscount({
 
     // Still fall back to the default reward if there is no matching reward
     const reward =
-      rewards?.find((r) => r.id === landerReward && r.event === event) ||
+      rewards.find((r) => r.id === landerReward && r.event === event) ||
       defaultReward;
     if (!reward) return;
 
