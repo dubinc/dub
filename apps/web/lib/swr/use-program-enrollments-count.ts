@@ -12,11 +12,7 @@ export default function useProgramEnrollmentsCount(
 
   const { data: count, isLoading } = useSWR<number>(
     partnerId &&
-      `/api/partner-profile/programs/count?${new URLSearchParams(
-        Object.fromEntries(
-          Object.entries(query).map(([key, value]) => [key, value.toString()]),
-        ),
-      )}`,
+      `/api/partner-profile/programs/count?${new URLSearchParams(query)}`,
     fetcher,
     {
       dedupingInterval: 60000,
