@@ -8,13 +8,13 @@ export async function cleanupPartners({ programId }: { programId: string }) {
   let start = 0;
 
   while (hasMore) {
-    const partnerIds = await toltImporter.scanPartnerIds({
+    const importedPartnerIds = await toltImporter.scanPartnerIds({
       programId,
       start,
       end: start + PARTNER_IDS_PER_BATCH - 1,
     });
 
-    if (partnerIds.length === 0) {
+    if (importedPartnerIds.length === 0) {
       hasMore = false;
       break;
     }
@@ -24,7 +24,7 @@ export async function cleanupPartners({ programId }: { programId: string }) {
       where: {
         programId,
         partnerId: {
-          in: partnerIds,
+          in: importedPartnerIds,
         },
       },
       _sum: {
@@ -35,7 +35,7 @@ export async function cleanupPartners({ programId }: { programId: string }) {
     const partnersWithNoLeads = links.filter((link) => link._sum.leads === 0);
     const partnerIdsToRemove = partnersWithNoLeads
       .map((link) => link.partnerId)
-      .filter((partnerId) => partnerId !== null);
+      .filter((partnerId): partnerId is string => partnerId !== null);
 
     if (partnerIdsToRemove.length > 0) {
       await prisma.$transaction(async (tx) => {
