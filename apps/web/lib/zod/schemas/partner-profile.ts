@@ -122,3 +122,6 @@ export const partnerProfileProgramsQuerySchema = z.object({
   includeRewardsDiscounts: z.coerce.boolean().optional(),
   status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
 });
+
+export const partnerProfileProgramsCountQuerySchema =
+  partnerProfileProgramsQuerySchema.pick({ status: true });

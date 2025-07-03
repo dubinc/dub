@@ -1,6 +1,7 @@
 "use client";
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useRouterStuff } from "@dub/ui";
 import {
   CircleDollar,
@@ -30,6 +31,7 @@ type SidebarNavData = {
   queryString?: string;
   programSlug?: string;
   isUnapproved: boolean;
+  invitationsCount?: number;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
@@ -61,7 +63,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  programs: () => ({
+  programs: ({ invitationsCount }) => ({
     title: (
       <div className="mb-3">
         <PartnerProgramDropdown />
@@ -84,6 +86,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Invitations",
             icon: UserCheck,
             href: "/programs/invitations",
+            badge: invitationsCount || undefined,
           },
         ],
       },
@@ -239,6 +242,10 @@ export function PartnersSidebarNav({
             : "programs";
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
+  const { count: invitationsCount } = useProgramEnrollmentsCount({
+    status: "invited",
+  });
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -250,6 +257,7 @@ export function PartnersSidebarNav({
         programSlug: programSlug || "",
         isUnapproved:
           !!programEnrollment && programEnrollment.status !== "approved",
+        invitationsCount,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
