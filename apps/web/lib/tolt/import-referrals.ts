@@ -93,7 +93,7 @@ export async function importReferrals({
       partnerEmailToLinks.set(partner.email, links);
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       customers.map(({ partner, ...customer }) =>
         createReferral({
           workspace,
