@@ -15,10 +15,13 @@ export const approvePartnerAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    const program = await getProgramOrThrow(
+      {
+        workspaceId: workspace.id,
+        programId,
+      },
+      { includeLanderData: true },
+    );
 
     await approvePartnerEnrollment({
       workspace,

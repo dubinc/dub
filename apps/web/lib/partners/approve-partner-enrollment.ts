@@ -8,12 +8,13 @@ import { createPartnerLink } from "../api/partners/create-partner-link";
 import { recordLink } from "../tinybird/record-link";
 import {
   ProgramPartnerLinkProps,
-  ProgramProps,
+  ProgramWithLanderDataProps,
   WorkspaceProps,
 } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
+import { getProgramApplicationRewardsAndDiscount } from "./get-program-application-rewards";
 
 export async function approvePartnerEnrollment({
   workspace,
@@ -23,7 +24,7 @@ export async function approvePartnerEnrollment({
   userId,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: ProgramProps;
+  program: ProgramWithLanderDataProps;
   partnerId: string;
   linkId: string | null;
   userId: string;
@@ -31,7 +32,7 @@ export async function approvePartnerEnrollment({
   const { id: workspaceId } = workspace;
   const { id: programId } = program;
 
-  const [link, defaultRewards] = await Promise.all([
+  const [link, allRewards, allDiscounts] = await Promise.all([
     linkId
       ? getLinkOrThrow({
           workspaceId,
@@ -42,10 +43,21 @@ export async function approvePartnerEnrollment({
     prisma.reward.findMany({
       where: {
         programId,
-        default: true,
+      },
+    }),
+
+    prisma.discount.findMany({
+      where: {
+        programId,
       },
     }),
   ]);
+
+  const { rewards, discount } = getProgramApplicationRewardsAndDiscount({
+    program,
+    rewards: allRewards,
+    discounts: allDiscounts,
+  });
 
   if (link?.partnerId) {
     throw new Error("This link is already associated with another partner.");
@@ -62,13 +74,13 @@ export async function approvePartnerEnrollment({
       data: {
         status: "approved",
         createdAt: new Date(),
-        ...(defaultRewards.length > 0 && {
+        ...(rewards.length > 0 && {
           ...Object.fromEntries(
-            defaultRewards.map((r) => [
-              REWARD_EVENT_COLUMN_MAPPING[r.event],
-              r.id,
-            ]),
+            rewards.map((r) => [REWARD_EVENT_COLUMN_MAPPING[r.event], r.id]),
           ),
+        }),
+        ...(discount && {
+          discountId: discount.id,
         }),
       },
       include: {
@@ -144,7 +156,7 @@ export async function approvePartnerEnrollment({
               payoutsEnabled: Boolean(partner.payoutsEnabledAt),
             },
             rewardDescription: ProgramRewardDescription({
-              reward: defaultRewards.find((r) => r.event === "sale"),
+              reward: rewards.find((r) => r.event === "sale"),
             }),
           }),
         }),

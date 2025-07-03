@@ -3,6 +3,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { bulkApprovePartners } from "@/lib/partners/bulk-approve-partners";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import { approvePartnersBulkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
@@ -17,34 +18,56 @@ export const approvePartnersBulkAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [program, programEnrollments] = await Promise.all([
-      getProgramOrThrow(
-        {
-          workspaceId: workspace.id,
-          programId,
-        },
-        {
-          includeDefaultRewards: true,
-        },
-      ),
-      prisma.programEnrollment.findMany({
-        where: {
-          programId: programId,
-          status: "pending",
-          partnerId: {
-            in: partnerIds,
+    const [program, programEnrollments, allRewards, allDiscounts] =
+      await Promise.all([
+        getProgramOrThrow(
+          {
+            workspaceId: workspace.id,
+            programId,
           },
-        },
-        include: {
-          partner: true,
-        },
-      }),
-    ]);
+          {
+            includeDefaultRewards: true,
+            includeLanderData: true,
+          },
+        ),
+        prisma.programEnrollment.findMany({
+          where: {
+            programId: programId,
+            status: "pending",
+            partnerId: {
+              in: partnerIds,
+            },
+          },
+          include: {
+            partner: true,
+          },
+        }),
+
+        prisma.reward.findMany({
+          where: {
+            programId,
+          },
+        }),
+
+        prisma.discount.findMany({
+          where: {
+            programId,
+          },
+        }),
+      ]);
+
+    const { rewards, discount } = getProgramApplicationRewardsAndDiscount({
+      program,
+      rewards: allRewards,
+      discounts: allDiscounts,
+    });
 
     await bulkApprovePartners({
       workspace,
       program,
       programEnrollments,
       userId: user.id,
+      rewards,
+      discount,
     });
   });

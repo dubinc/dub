@@ -2,6 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
 import { WorkspaceProps } from "@/lib/types";
+import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
@@ -74,7 +75,10 @@ export async function POST(req: Request) {
 
     await approvePartnerEnrollment({
       workspace: program.workspace as WorkspaceProps,
-      program,
+      program: {
+        ...program,
+        landerData: programLanderSchema.nullish().parse(program.landerData),
+      },
       partnerId,
       linkId: null,
       userId: workspaceOwner.userId,

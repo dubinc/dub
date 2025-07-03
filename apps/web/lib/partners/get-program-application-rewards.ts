@@ -4,6 +4,8 @@ import {
   RewardProps,
 } from "@/lib/types";
 
+// TODO: Add an alternative to this function that doesn't require fetching all rewards and discounts
+
 /**
  * Determines the rewards and discount for a partner that submitted an application, based on any overrides in the lander data.
  */
