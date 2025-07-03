@@ -62,7 +62,7 @@ export function ProgramInviteCard({
         )}
         <span className="text-sm font-medium flex items-center gap-1">
           <Calendar6 className="size-3.5" />
-          Invited {new Date(programEnrollment.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+          Invited {new Date(programEnrollment.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
         </span>
       </p>
 
