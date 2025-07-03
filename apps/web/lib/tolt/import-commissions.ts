@@ -58,7 +58,7 @@ export async function importCommissions({
       break;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       commissions.map((commission) =>
         createCommission({
           workspaceId: workspace.id,
