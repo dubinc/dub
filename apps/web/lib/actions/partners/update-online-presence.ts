@@ -15,27 +15,43 @@ import { authPartnerActionClient } from "../safe-action";
 import { ONLINE_PRESENCE_PROVIDERS } from "./online-presence-providers";
 
 const updateOnlinePresenceSchema = z.object({
-  website: parseUrlSchemaAllowEmpty().nullish().transform(sanitizeWebsite),
+  website: parseUrlSchemaAllowEmpty()
+    .nullish()
+    .transform((input) =>
+      input === undefined ? undefined : sanitizeWebsite(input),
+    ),
   youtube: z
     .string()
     .nullish()
-    .transform((input) => sanitizeSocialHandle(input, "youtube")),
+    .transform((input) =>
+      input === undefined ? undefined : sanitizeSocialHandle(input, "youtube"),
+    ),
   twitter: z
     .string()
     .nullish()
-    .transform((input) => sanitizeSocialHandle(input, "twitter")),
+    .transform((input) =>
+      input === undefined ? undefined : sanitizeSocialHandle(input, "twitter"),
+    ),
   linkedin: z
     .string()
     .nullish()
-    .transform((input) => sanitizeSocialHandle(input, "linkedin")),
+    .transform((input) =>
+      input === undefined ? undefined : sanitizeSocialHandle(input, "linkedin"),
+    ),
   instagram: z
     .string()
     .nullish()
-    .transform((input) => sanitizeSocialHandle(input, "instagram")),
+    .transform((input) =>
+      input === undefined
+        ? undefined
+        : sanitizeSocialHandle(input, "instagram"),
+    ),
   tiktok: z
     .string()
     .nullish()
-    .transform((input) => sanitizeSocialHandle(input, "tiktok")),
+    .transform((input) =>
+      input === undefined ? undefined : sanitizeSocialHandle(input, "tiktok"),
+    ),
   source: z.enum(["onboarding", "settings"]).default("onboarding"),
 });
 
@@ -48,29 +64,14 @@ const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.merge(
 
 export const updateOnlinePresenceAction = authPartnerActionClient
   .schema(
-    updateOnlinePresenceSchema
-      .refine(
-        (data) => {
-          return !data.website || isValidUrl(data.website);
-        },
-        {
-          message: "Invalid website URL.",
-        },
-      )
-      .refine(
-        (data) => {
-          return (
-            data.youtube ||
-            data.twitter ||
-            data.linkedin ||
-            data.instagram ||
-            data.tiktok
-          );
-        },
-        {
-          message: "At least one social platform is required.",
-        },
-      ),
+    updateOnlinePresenceSchema.refine(
+      (data) => {
+        return !data.website || isValidUrl(data.website);
+      },
+      {
+        message: "Invalid website URL.",
+      },
+    ),
   )
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
