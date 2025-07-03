@@ -80,11 +80,12 @@ class DubEmbed {
             }),
           );
           break;
-        case "PAGE_HEIGHT":
+        case "PAGE_HEIGHT": {
           const container = document.getElementById(DUB_CONTAINER_ID);
           if (container) container.style.height = `${data.height}px`;
 
           break;
+        }
       }
     });
 
