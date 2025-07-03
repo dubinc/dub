@@ -57,7 +57,7 @@ export function ProgramInviteCard({
 
       <p className="mt-3 font-medium text-neutral-900">{program.name}</p>
 
-      <p className="mt-2 text-balance text-xs text-neutral-600">
+      <p className="my-2 text-balance text-xs text-neutral-600">
         <ProgramRewardDescription
           reward={reward}
           discount={discount}
