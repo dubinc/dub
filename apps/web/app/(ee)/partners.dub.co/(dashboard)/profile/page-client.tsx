@@ -9,6 +9,8 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge-partner-accounts-modal";
+import { CustomToast } from "@/ui/shared/custom-toast";
+import { AlertCircleFill } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
@@ -204,7 +206,16 @@ function ProfileForm({
         message: error.serverError,
       });
 
-      toast.error(error.serverError);
+      if (error.serverError?.includes("merge your partner accounts")) {
+        toast.custom(() => (
+          <CustomToast icon={AlertCircleFill}>
+            Email already in use. Do you want to [merge your partner
+            accounts](https://d.to/merge-partners) instead?
+          </CustomToast>
+        ));
+      } else {
+        toast.error(error.serverError);
+      }
     },
   });
 

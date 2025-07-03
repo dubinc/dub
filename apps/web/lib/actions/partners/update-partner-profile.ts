@@ -9,7 +9,7 @@ import {
   deepEqual,
   nanoid,
 } from "@dub/utils";
-import { PartnerProfileType } from "@prisma/client";
+import { PartnerProfileType, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { stripe } from "../../stripe";
 import z from "../../zod";
@@ -116,44 +116,58 @@ export const updatePartnerProfileAction = authPartnerActionClient
         ).url
       : null;
 
-    const updatedPartner = await prisma.partner.update({
-      where: {
-        id: partner.id,
-      },
-      data: {
-        name,
-        email,
-        description,
-        ...(imageUrl && { image: imageUrl }),
-        country,
-        profileType,
-        companyName,
-      },
-    });
+    try {
+      const updatedPartner = await prisma.partner.update({
+        where: {
+          id: partner.id,
+        },
+        data: {
+          name,
+          email,
+          description,
+          ...(imageUrl && { image: imageUrl }),
+          country,
+          profileType,
+          companyName,
+        },
+      });
 
-    waitUntil(
-      (async () => {
-        const shouldExpireCache = !deepEqual(
-          {
-            name: partner.name,
-            image: partner.image,
-          },
-          {
-            name: updatedPartner.name,
-            image: updatedPartner.image,
-          },
+      waitUntil(
+        (async () => {
+          const shouldExpireCache = !deepEqual(
+            {
+              name: partner.name,
+              image: partner.image,
+            },
+            {
+              name: updatedPartner.name,
+              image: updatedPartner.image,
+            },
+          );
+
+          if (!shouldExpireCache) {
+            return;
+          }
+
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+            body: {
+              partnerId: partner.id,
+            },
+          });
+        })(),
+      );
+    } catch (error) {
+      console.error(error);
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new Error(
+          "Email already in use. Do you want to merge your partner accounts instead? (https://d.to/merge-partners)",
         );
+      }
 
-        if (!shouldExpireCache) {
-          return;
-        }
-
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-          body: {
-            partnerId: partner.id,
-          },
-        });
-      })(),
-    );
+      throw new Error(error.message);
+    }
   });
