@@ -285,7 +285,7 @@ function ProfileForm({
                 type="email"
                 className={cn(
                   "block w-full rounded-md focus:outline-none sm:text-sm",
-                  errors.name
+                  errors.email
                     ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                     : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                   completedPayoutsCount > 0 &&
