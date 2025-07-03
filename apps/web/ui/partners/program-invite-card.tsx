@@ -7,6 +7,7 @@ import {
   Button,
   buttonVariants,
   Envelope,
+  Calendar6,
   Link4,
   StatusBadge,
 } from "@dub/ui";
@@ -42,7 +43,7 @@ export function ProgramInviteCard({
       : null;
 
   return (
-    <div className="hover:drop-shadow-card-hover relative flex flex-col rounded-xl border border-neutral-200 bg-neutral-50 p-5 transition-[filter]">
+    <div className="relative flex flex-col rounded-xl bg-neutral-100 p-5">
       <div className="flex justify-between gap-2">
         <BlurImage
           width={64}
@@ -57,19 +58,17 @@ export function ProgramInviteCard({
       </div>
 
       <p className="mt-3 font-medium text-neutral-900">{program.name}</p>
-      {program.domain && (
-        <p className="flex items-center gap-1 text-neutral-500">
-          <Link4 className="size-3" />
-          <span className="text-sm font-medium">{program.domain}</span>
-        </p>
-      )}
-      <p className="mt-2 text-balance text-xs text-neutral-600">
-        <ProgramRewardDescription
-          reward={reward}
-          discount={discount}
-          amountClassName="font-light"
-          periodClassName="font-light"
-        />
+      <p className="flex items-left gap-1 text-neutral-500 pt-1 pb-4 flex-col">
+        {program.domain && program.url && (
+          <span className="text-sm font-medium flex items-center gap-1">
+            <Link4 className="size-3.5" />
+            <a href={program.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{program.domain}</a>
+          </span>
+        )}
+        <span className="text-sm font-medium flex items-center gap-1">
+          <Calendar6 className="size-3.5" />
+          Invited {new Date(programEnrollment.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+        </span>
       </p>
 
       <div className="mt-2 flex grow flex-col justify-end">
