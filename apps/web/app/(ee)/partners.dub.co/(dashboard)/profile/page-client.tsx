@@ -203,7 +203,6 @@ function ProfileForm({
     <form
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
-        console.log({ data });
         const imageChanged = data.image !== partner.image;
 
         await executeAsync({
