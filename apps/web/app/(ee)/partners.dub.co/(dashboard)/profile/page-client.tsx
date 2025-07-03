@@ -6,6 +6,7 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps, PayoutsCount } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge-partner-accounts-modal";
 import {
@@ -127,9 +128,23 @@ function Controls({ formRef }: { formRef: RefObject<HTMLFormElement> }) {
     formState: { isSubmitting },
   } = useFormContext();
 
+  const {
+    setShowConfirmModal: setShowStripeConfirmModal,
+    confirmModal: stripeConfirmModal,
+  } = useConfirmModal({
+    title: "Confirm profile update",
+    description:
+      "Updating your email, country, or profile type will reset your Stripe account, which will require you to restart the payout connection process. Are you sure you want to continue?",
+    confirmText: "Continue",
+    onConfirm: () => {
+      formRef.current?.requestSubmit();
+    },
+  });
+
   return (
     <>
       <MergePartnerAccountsModal />
+      {stripeConfirmModal}
       <Button
         text="Merge accounts"
         variant="secondary"
@@ -142,16 +157,10 @@ function Controls({ formRef }: { formRef: RefObject<HTMLFormElement> }) {
         loading={isSubmitting}
         onClick={() => {
           if (partner?.stripeConnectId) {
-            const confirmed = window.confirm(
-              "Updating your email, country, or profile type will reset your Stripe account, which will require you to restart the payouts connection process. Are you sure you want to continue?",
-            );
-
-            if (!confirmed) {
-              return;
-            }
+            setShowStripeConfirmModal(true);
+          } else {
+            formRef.current?.requestSubmit();
           }
-
-          formRef.current?.requestSubmit();
         }}
       />
     </>
