@@ -67,8 +67,10 @@ export async function importAffiliates({
       );
 
       const partners = partnersPromise
-        .filter((p) => p.status === "fulfilled")
-        .map((p) => p.value as Partner);
+        .filter(
+          (p): p is PromiseFulfilledResult<Partner> => p.status === "fulfilled",
+        )
+        .map((p) => p.value);
 
       if (partners.length > 0) {
         await toltImporter.addPartners({
