@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Program, Reward } from "@dub/prisma/client";
+import { Partner, Program, Reward } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { ToltApi } from "./api";
@@ -56,7 +56,7 @@ export async function importAffiliates({
     );
 
     if (activeAffiliates.length > 0) {
-      const partners = await Promise.all(
+      const partnersPromise = await Promise.allSettled(
         activeAffiliates.map((affiliate) =>
           createPartner({
             program,
@@ -65,6 +65,10 @@ export async function importAffiliates({
           }),
         ),
       );
+
+      const partners = partnersPromise
+        .filter((p) => p.status === "fulfilled")
+        .map((p) => p.value as Partner);
 
       if (partners.length > 0) {
         await toltImporter.addPartners({
