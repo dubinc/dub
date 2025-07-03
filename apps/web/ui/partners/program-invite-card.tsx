@@ -6,10 +6,8 @@ import {
   BlurImage,
   Button,
   buttonVariants,
-  Envelope,
   Calendar6,
   Link4,
-  StatusBadge,
 } from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { cn } from "@dub/utils/src";
@@ -52,9 +50,6 @@ export function ProgramInviteCard({
           alt={program.name}
           className="size-8 rounded-full"
         />
-        <StatusBadge variant="new" icon={Envelope} className="py-0.5">
-          Invited
-        </StatusBadge>
       </div>
 
       <p className="mt-3 font-medium text-neutral-900">{program.name}</p>
