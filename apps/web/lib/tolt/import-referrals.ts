@@ -94,11 +94,11 @@ export async function importReferrals({
     }
 
     await Promise.all(
-      customers.map((customer) =>
+      customers.map(({ partner, ...customer }) =>
         createReferral({
           workspace,
-          links: partnerEmailToLinks.get(customer.partner.email) ?? [],
           customer,
+          links: partnerEmailToLinks.get(partner.email) ?? [],
         }),
       ),
     );
@@ -122,7 +122,7 @@ async function createReferral({
   workspace,
   links,
 }: {
-  customer: ToltCustomer;
+  customer: Omit<ToltCustomer, "partner">;
   workspace: Pick<Project, "id" | "stripeConnectId">;
   links: Pick<Link, "id" | "key" | "domain" | "url">[];
 }) {
@@ -141,7 +141,9 @@ async function createReferral({
   });
 
   if (customerFound) {
-    console.log(`A customer already exists with email ${customer.email}`);
+    console.log(
+      `A customer already exists with customer_id ${customer.customer_id}`,
+    );
     return;
   }
 

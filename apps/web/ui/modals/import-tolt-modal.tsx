@@ -178,7 +178,7 @@ function TokenForm({
           htmlFor="programId"
           className="block text-sm font-medium text-neutral-700"
         >
-          Program ID
+          Tolt Program ID
         </label>
         <input
           type="text"

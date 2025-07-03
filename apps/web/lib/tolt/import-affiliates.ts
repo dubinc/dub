@@ -18,7 +18,11 @@ export async function importAffiliates({
       id: programId,
     },
     include: {
-      rewards: true,
+      rewards: {
+        where: {
+          default: true,
+        },
+      },
     },
   });
 
@@ -34,7 +38,7 @@ export async function importAffiliates({
   const saleReward = program.rewards.find((r) => r.event === "sale");
   const leadReward = program.rewards.find((r) => r.event === "lead");
   const clickReward = program.rewards.find((r) => r.event === "click");
-  const reward = saleReward || leadReward || clickReward;
+  const defaultReward = saleReward || leadReward || clickReward;
 
   while (hasMore && processedBatches < MAX_BATCHES) {
     const affiliates = await toltApi.listAffiliates({
@@ -57,7 +61,7 @@ export async function importAffiliates({
           createPartner({
             program,
             affiliate,
-            reward,
+            reward: defaultReward,
           }),
         ),
       );

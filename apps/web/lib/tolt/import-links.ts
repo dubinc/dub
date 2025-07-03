@@ -51,28 +51,25 @@ export async function importLinks({
 
     const partnerMap = new Map(partners.map(({ email, id }) => [email, id]));
 
-    const activeLinks = links.filter((link) =>
+    const partnerLinks = links.filter((link) =>
       partnerMap.has(link.partner.email),
     );
 
-    if (activeLinks.length === 0) {
-      console.log("No active links to import.");
-      break;
+    if (partnerLinks.length > 0) {
+      await bulkCreateLinks({
+        links: partnerLinks.map((link) => ({
+          userId,
+          programId,
+          projectId: program.workspaceId,
+          partnerId: partnerMap.get(link.partner.email),
+          folderId: program.defaultFolderId,
+          domain: program.domain!,
+          key: link.value || nanoid(),
+          url: program.url!,
+          trackConversion: true,
+        })),
+      });
     }
-
-    await bulkCreateLinks({
-      links: activeLinks.map((link) => ({
-        userId,
-        programId,
-        projectId: program.workspaceId,
-        partnerId: partnerMap.get(link.partner.email),
-        folderId: program.defaultFolderId,
-        domain: program.domain!,
-        key: link.value || nanoid(),
-        url: program.url!,
-        trackConversion: true,
-      })),
-    });
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
