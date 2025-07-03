@@ -78,15 +78,7 @@ function EditRewardsModalInner({
     },
   });
 
-  const {
-    register,
-    setValue,
-    getValues,
-    handleSubmit,
-    formState: { isDirty },
-  } = form;
-
-  console.log("getValues", getValues("landerData.rewards"));
+  const { register, setValue, getValues, handleSubmit } = form;
 
   // Set default reward selections
   const setDefaultRewards = useCallback(
@@ -113,7 +105,7 @@ function EditRewardsModalInner({
   // Set default discount selection
   const setDefaultDiscount = useCallback(
     (override?: boolean) => {
-      if (!discounts?.length) return;
+      if (!discounts) return;
 
       const landerDataRewards = getValues("landerData.rewards") || {};
 
@@ -132,7 +124,7 @@ function EditRewardsModalInner({
   );
 
   useEffect(() => setDefaultRewards(), [setDefaultRewards]);
-  // useEffect(() => setDefaultDiscount(), [setDefaultDiscount]);
+  useEffect(() => setDefaultDiscount(), [setDefaultDiscount]);
 
   return (
     <>
@@ -141,7 +133,6 @@ function EditRewardsModalInner({
         onSubmit={(e) => {
           e.stopPropagation();
           handleSubmit(({ landerData }) => {
-            console.log("updating parent", landerData);
             setValueParent("landerData", landerData, {
               shouldDirty: true,
             });
