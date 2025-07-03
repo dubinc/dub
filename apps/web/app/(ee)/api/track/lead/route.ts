@@ -307,6 +307,7 @@ export const POST = withWorkspace(
   {
     requiredPlan: [
       "business",
+      "business legacy",
       "business plus",
       "business extra",
       "business max",
