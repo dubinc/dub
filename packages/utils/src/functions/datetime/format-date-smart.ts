@@ -1,4 +1,4 @@
-export const formatDateTimeSmart = (
+export const formatDateSmart = (
   datetime: Date | string,
   options?: Intl.DateTimeFormatOptions,
 ) => {
@@ -6,17 +6,13 @@ export const formatDateTimeSmart = (
   const now = new Date();
 
   return date.toLocaleDateString("en-US", {
-    month: "short",
     day: "numeric",
+    month: "long",
     // if date is in previous year, show year
-    // else, hide year, show time
+    // else, hide year
     ...(date.getUTCFullYear() !== now.getUTCFullYear()
       ? { year: "numeric" }
-      : {
-          hour: "numeric",
-          minute: "numeric",
-          hour12: true,
-        }),
+      : {}),
     ...options,
   });
 };
