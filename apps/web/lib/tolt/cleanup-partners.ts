@@ -38,30 +38,32 @@ export async function cleanupPartners({ programId }: { programId: string }) {
       .filter((partnerId) => partnerId !== null);
 
     if (partnerIdsToRemove.length > 0) {
-      await prisma.link.deleteMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIdsToRemove,
+      await prisma.$transaction(async (tx) => {
+        await tx.programEnrollment.deleteMany({
+          where: {
+            programId,
+            partnerId: {
+              in: partnerIdsToRemove,
+            },
           },
-        },
-      });
+        });
 
-      await prisma.programEnrollment.deleteMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIdsToRemove,
+        await tx.link.deleteMany({
+          where: {
+            programId,
+            partnerId: {
+              in: partnerIdsToRemove,
+            },
           },
-        },
-      });
+        });
 
-      await prisma.partner.deleteMany({
-        where: {
-          id: {
-            in: partnerIdsToRemove,
+        await tx.partner.deleteMany({
+          where: {
+            id: {
+              in: partnerIdsToRemove,
+            },
           },
-        },
+        });
       });
     }
 
