@@ -179,8 +179,8 @@ async function createReferral({
 
   const customerId = createId({ prefix: "cus_" });
 
-  await Promise.all([
-    prisma.customer.create({
+  try {
+    await prisma.customer.create({
       data: {
         id: customerId,
         name:
@@ -198,25 +198,29 @@ async function createReferral({
         createdAt: new Date(customer.created_at),
         externalId: customer.customer_id,
       },
-    }),
+    });
 
-    recordLeadWithTimestamp({
-      ...clickEvent,
-      event_id: nanoid(16),
-      event_name: "Sign up",
-      customer_id: customerId,
-      timestamp: new Date(customer.created_at).toISOString(),
-    }),
+    await Promise.all([
+      recordLeadWithTimestamp({
+        ...clickEvent,
+        event_id: nanoid(16),
+        event_name: "Sign up",
+        customer_id: customerId,
+        timestamp: new Date(customer.created_at).toISOString(),
+      }),
 
-    prisma.link.update({
-      where: {
-        id: link.id,
-      },
-      data: {
-        leads: {
-          increment: 1,
+      prisma.link.update({
+        where: {
+          id: link.id,
         },
-      },
-    }),
-  ]);
+        data: {
+          leads: {
+            increment: 1,
+          },
+        },
+      }),
+    ]);
+  } catch (error) {
+    console.error("error creating customer", customer, error);
+  }
 }
