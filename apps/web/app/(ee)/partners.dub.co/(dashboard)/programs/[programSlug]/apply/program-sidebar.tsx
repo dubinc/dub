@@ -120,7 +120,9 @@ export function ProgramSidebar({
         ) : (
           <ProgramRewardList
             rewards={
-              programEnrollment?.rewards ??
+              (programEnrollment?.status === "approved"
+                ? programEnrollment.rewards
+                : null) ??
               applicationRewards ??
               program.rewards ??
               []
