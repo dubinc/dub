@@ -4,6 +4,7 @@ import { BookOpen, Button, buttonVariants, ChevronLeft } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { InstallStripeIntegrationButton } from "./install-stripe-integration-button";
 import { guides, IntegrationType } from "./integrations";
 import { Markdown } from "./markdown";
 
@@ -59,6 +60,10 @@ export function Guide({ markdown }: { markdown: string }) {
         </div>
 
         <div className="space-y-6 rounded-2xl bg-white p-0 shadow-none">
+          {selectedGuide.type === "track-sale" &&
+            selectedGuide.key.startsWith("stripe") && (
+              <InstallStripeIntegrationButton />
+            )}
           <Markdown>{markdown}</Markdown>
 
           <Link

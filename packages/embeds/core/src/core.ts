@@ -71,13 +71,21 @@ class DubEmbed {
 
       console.debug("[Dub] Iframe message", data);
 
-      if (event === "ERROR") {
-        onError?.(
-          new EmbedError({
-            code: data?.code ?? "",
-            message: data?.message ?? "",
-          }),
-        );
+      switch (event) {
+        case "ERROR":
+          onError?.(
+            new EmbedError({
+              code: data?.code ?? "",
+              message: data?.message ?? "",
+            }),
+          );
+          break;
+        case "PAGE_HEIGHT": {
+          const container = document.getElementById(DUB_CONTAINER_ID);
+          if (container) container.style.height = `${data.height}px`;
+
+          break;
+        }
       }
     });
 
@@ -107,6 +115,9 @@ const createIframe = (
     ...(options.themeOptions
       ? { themeOptions: JSON.stringify(options.themeOptions) }
       : {}),
+
+    // Allows the iframe content to set overflow values and send height messages without affecting older embed scripts
+    dynamicHeight: "true",
   });
 
   iframe.src = `${iframeUrl}?${params.toString()}`;
