@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
@@ -92,7 +93,7 @@ export const invitePartnerAction = authActionClient
       });
     }
 
-    await createAndEnrollPartner({
+    const enrolledPartner = await createAndEnrollPartner({
       program,
       link,
       workspace,
@@ -107,17 +108,36 @@ export const invitePartnerAction = authActionClient
     });
 
     waitUntil(
-      sendEmail({
-        subject: `${program.name} invited you to join Dub Partners`,
-        email,
-        react: PartnerInvite({
-          email,
-          program: {
-            name: program.name,
-            slug: program.slug,
-            logo: program.logo,
-          },
-        }),
-      }),
+      (async () => {
+        await Promise.allSettled([
+          sendEmail({
+            subject: `${program.name} invited you to join Dub Partners`,
+            email,
+            react: PartnerInvite({
+              email,
+              program: {
+                name: program.name,
+                slug: program.slug,
+                logo: program.logo,
+              },
+            }),
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "partner.invited",
+            description: `Partner ${enrolledPartner.id} invited`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: enrolledPartner.id,
+                metadata: enrolledPartner,
+              },
+            ],
+          }),
+        ]);
+      })(),
     );
   });
