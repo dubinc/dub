@@ -137,11 +137,17 @@ export default async function LinkMiddleware(
       const domainData = await getDomainViaEdge(domain);
 
       if (domainData?.notFoundUrl) {
-        return redirectToQrDisabledPlug;
-      } else {
-        return NextResponse.rewrite(new URL(`/${domain}/not-found`, req.url), {
-          headers: DUB_HEADERS,
+        return NextResponse.redirect(domainData.notFoundUrl, {
+          headers: {
+            ...DUB_HEADERS,
+            "X-Robots-Tag": "googlebot: noindex",
+            // pass the Referer value to the not found URL
+            Referer: req.url,
+          },
+          status: 302,
         });
+      } else {
+        return redirectToQrDisabledPlug;
       }
     }
 
