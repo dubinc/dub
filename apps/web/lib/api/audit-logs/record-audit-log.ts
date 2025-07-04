@@ -45,10 +45,7 @@ export const recordAuditLog = async (data: AuditLogInput | AuditLogInput[]) => {
     ? data.map(transformAuditLogTB)
     : [transformAuditLogTB(data)];
 
-  if (!ENABLE_AUDIT_LOGS) {
-    console.info(auditLogs);
-    return;
-  }
+  console.log(auditLogs);
 
   await recordAuditLogTB(auditLogs).catch((error) => {
     console.error("Failed to record audit log", error, auditLogs);

@@ -1,3 +1,4 @@
+import { CommissionSchema } from "@/lib/zod/schemas/commissions";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
@@ -66,6 +67,10 @@ const actionSchema = z.enum([
   // Auto approve partners
   "auto_approve_partner.enabled",
   "auto_approve_partner.disabled",
+
+  // Commissions & clawbacks
+  "commission.created",
+  "clawback.created",
 ]);
 
 export const auditLogTarget = z.union([
@@ -108,6 +113,17 @@ export const auditLogTarget = z.union([
       supportEmail: true,
       autoApprovePartnersEnabledAt: true,
     }).optional(),
+  }),
+
+  z.object({
+    type: z.union([z.literal("commission"), z.literal("clawback")]),
+    id: z.string(),
+    metadata: CommissionSchema.pick({
+      type: true,
+      amount: true,
+      earnings: true,
+      currency: true,
+    }),
   }),
 ]);
 
