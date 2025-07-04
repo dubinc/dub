@@ -55,8 +55,8 @@ function DiscountSheetContent({
   isDefault,
 }: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const { id: workspaceId } = useWorkspace();
-  const { program, mutate: mutateProgram } = useProgram();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { mutate: mutateProgram } = useProgram();
 
   const [isRecurring, setIsRecurring] = useState(
     discount ? discount.maxDuration !== 0 : false,
@@ -102,7 +102,7 @@ function DiscountSheetContent({
       query: {
         discountId: discount?.id,
       },
-      enabled: Boolean(discount?.id && program?.id),
+      enabled: Boolean(discount?.id && defaultProgramId),
     });
 
   useEffect(() => {
@@ -133,7 +133,7 @@ function DiscountSheetContent({
         setIsOpen(false);
         toast.success("Discount created!");
         await mutateProgram();
-        await mutatePrefix(`/api/programs/${program?.id}/discounts`);
+        await mutatePrefix(`/api/programs/${defaultProgramId}/discounts`);
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -148,7 +148,7 @@ function DiscountSheetContent({
         setIsOpen(false);
         toast.success("Discount updated!");
         await mutateProgram();
-        await mutatePrefix(`/api/programs/${program?.id}/discounts`);
+        await mutatePrefix(`/api/programs/${defaultProgramId}/discounts`);
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -162,8 +162,8 @@ function DiscountSheetContent({
       onSuccess: async () => {
         setIsOpen(false);
         toast.success("Discount deleted!");
-        await mutate(`/api/programs/${program?.id}`);
-        await mutatePrefix(`/api/programs/${program?.id}/discounts`);
+        await mutate(`/api/programs/${defaultProgramId}`);
+        await mutatePrefix(`/api/programs/${defaultProgramId}/discounts`);
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -172,7 +172,7 @@ function DiscountSheetContent({
   );
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !program) {
+    if (!workspaceId || !defaultProgramId) {
       return;
     }
 
@@ -198,7 +198,7 @@ function DiscountSheetContent({
   };
 
   const onDelete = async () => {
-    if (!workspaceId || !program || !discount) {
+    if (!workspaceId || !defaultProgramId || !discount) {
       return;
     }
 
@@ -468,7 +468,7 @@ function DiscountSheetContent({
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
 
-            {!isDefault && program?.id && (
+            {!isDefault && defaultProgramId && (
               <ProgramSheetAccordionItem value="partner-eligibility">
                 <ProgramSheetAccordionTrigger>
                   Partner Eligibility
@@ -488,7 +488,7 @@ function DiscountSheetContent({
               </ProgramSheetAccordionItem>
             )}
 
-            {isDefault && program?.id && (
+            {isDefault && defaultProgramId && (
               <ProgramSheetAccordionItem value="partner-eligibility">
                 <ProgramSheetAccordionTrigger>
                   Partner Eligibility
