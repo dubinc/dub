@@ -5,12 +5,18 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Button, TooltipContent } from "@dub/ui";
 import { subMonths } from "date-fns";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export function AuditLogs() {
   const [loading, setLoading] = useState(false);
   const { plan, slug, id: workspaceId } = useWorkspace();
+  const searchParams = useSearchParams();
+  const start =
+    searchParams.get("start") || subMonths(new Date(), 12).toISOString();
+  const end = searchParams.get("end") || new Date().toISOString();
+
   const { canExportAuditLogs } = getPlanCapabilities(plan);
 
   const exportAuditLogs = async () => {
@@ -28,8 +34,8 @@ export function AuditLogs() {
         {
           method: "POST",
           body: JSON.stringify({
-            start: subMonths(new Date(), 12).toISOString(),
-            end: new Date().toISOString(),
+            start,
+            end,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -73,7 +79,7 @@ export function AuditLogs() {
             className="w-full sm:max-w-xs"
             align="start"
             disabled={!canExportAuditLogs}
-            defaultInterval="month"
+            defaultInterval="1y"
           />
 
           <Button
