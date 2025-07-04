@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
@@ -13,7 +14,7 @@ import { authActionClient } from "../safe-action";
 export const createDiscountAction = authActionClient
   .schema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { partnerIds, amount, type, maxDuration, couponId, couponTestId } =
       parsedInput;
 
@@ -97,14 +98,33 @@ export const createDiscountAction = authActionClient
     }
 
     waitUntil(
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-        body: {
-          programId,
-          discountId: discount.id,
-          isDefault,
-          action: "discount-created",
-        },
-      }),
+      (async () => {
+        await Promise.allSettled([
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+            body: {
+              programId,
+              discountId: discount.id,
+              isDefault,
+              action: "discount-created",
+            },
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "discount.created",
+            description: `Discount ${discount.id} created`,
+            actor: user,
+            targets: [
+              {
+                type: "discount",
+                id: discount.id,
+                metadata: discount,
+              },
+            ],
+          }),
+        ]);
+      })(),
     );
   });
