@@ -68,7 +68,6 @@ export const createDiscountAction = authActionClient
         },
       });
 
-      // Filter out invalid partner IDs
       const invalidPartnerIds = finalPartnerIds.filter(
         (id) =>
           !programEnrollments.some((enrollment) => enrollment.partnerId === id),
@@ -110,7 +109,7 @@ export const createDiscountAction = authActionClient
     });
 
     // TODO:
-    // Remove this 
+    // Remove this
     if (isDefault) {
       await prisma.program.update({
         where: {
