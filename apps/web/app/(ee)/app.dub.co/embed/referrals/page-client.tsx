@@ -43,6 +43,7 @@ export function ReferralsEmbedPageClient({
   earnings,
   stats,
   themeOptions,
+  dynamicHeight,
 }: {
   program: Program;
   links: ReferralsEmbedLink[];
@@ -59,6 +60,7 @@ export function ReferralsEmbedPageClient({
     saleAmount: number;
   };
   themeOptions: ThemeOptions;
+  dynamicHeight: boolean;
 }) {
   const resources = programResourcesSchema.parse(
     program.resources ?? { logos: [], colors: [], files: [] },
@@ -113,7 +115,7 @@ export function ReferralsEmbedPageClient({
   return (
     <div
       style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
-      className="flex min-h-screen flex-col"
+      className={cn("flex flex-col", !dynamicHeight && "min-h-screen")}
     >
       <div className="relative z-0 p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">

@@ -7,10 +7,9 @@ import {
   Button,
   buttonVariants,
   Envelope,
-  Link4,
   StatusBadge,
 } from "@dub/ui";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { formatDateSmart, OG_AVATAR_URL } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -52,18 +51,13 @@ export function ProgramInviteCard({
           className="size-8 rounded-full"
         />
         <StatusBadge variant="new" icon={Envelope} className="py-0.5">
-          Invited
+          Invited {formatDateSmart(programEnrollment.createdAt)}
         </StatusBadge>
       </div>
 
       <p className="mt-3 font-medium text-neutral-900">{program.name}</p>
-      {program.domain && (
-        <p className="flex items-center gap-1 text-neutral-500">
-          <Link4 className="size-3" />
-          <span className="text-sm font-medium">{program.domain}</span>
-        </p>
-      )}
-      <p className="mt-2 text-balance text-xs text-neutral-600">
+
+      <p className="my-2 text-balance text-xs text-neutral-600">
         <ProgramRewardDescription
           reward={reward}
           discount={discount}

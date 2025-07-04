@@ -54,7 +54,7 @@ export const GET = withWorkspace(
             },
             every: {
               status: status || {
-                notIn: ["pending", "rejected", "banned", "archived"],
+                in: ["approved", "invited"],
               },
             },
           },
@@ -115,7 +115,7 @@ export const GET = withWorkspace(
           where: {
             programId,
             status: status || {
-              notIn: ["pending", "rejected", "banned", "archived"],
+              in: ["approved", "invited"],
             },
             partner: {
               ...(country && {
@@ -166,7 +166,7 @@ export const GET = withWorkspace(
       where: {
         programId,
         status: status || {
-          notIn: ["pending", "rejected", "banned", "archived"],
+          in: ["approved", "invited"],
         },
         ...commonRewardWhere,
         partner: {
