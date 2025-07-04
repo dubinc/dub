@@ -46,6 +46,6 @@ export const approvePartnersBulkAction = authActionClient
       workspace,
       program,
       programEnrollments,
-      userId: user.id,
+      user,
     });
   });

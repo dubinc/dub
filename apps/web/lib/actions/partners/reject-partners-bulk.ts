@@ -1,16 +1,18 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rejectPartnersBulkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 // Reject a list of pending partners
 export const rejectPartnersBulkAction = authActionClient
   .schema(rejectPartnersBulkSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { partnerIds } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -25,6 +27,7 @@ export const rejectPartnersBulkAction = authActionClient
       },
       select: {
         id: true,
+        partner: true,
       },
     });
 
@@ -42,4 +45,25 @@ export const rejectPartnersBulkAction = authActionClient
         status: ProgramEnrollmentStatus.rejected,
       },
     });
+
+    waitUntil(
+      (async () => {
+        await recordAuditLog(
+          programEnrollments.map(({ partner }) => ({
+            workspaceId: workspace.id,
+            programId,
+            action: "partner_application.rejected",
+            description: `Partner application rejected for ${partner.id}`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: partner.id,
+                metadata: partner,
+              },
+            ],
+          })),
+        );
+      })(),
+    );
   });

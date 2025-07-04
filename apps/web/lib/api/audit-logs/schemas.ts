@@ -50,6 +50,7 @@ const actionSchema = z.enum([
 
   // Partner applications
   "partner_application.approved",
+  "partner_application.rejected",
 ]);
 
 export const auditLogTarget = z.union([

@@ -8,11 +8,9 @@ import { auditLogSchemaTB, recordAuditLogInputSchema } from "./schemas";
 
 const ENABLE_AUDIT_LOGS = true;
 
-// TODO:
-// Support array of logs
-export const recordAuditLog = async (
-  data: z.infer<typeof recordAuditLogInputSchema>,
-) => {
+type AuditLogInput = z.infer<typeof recordAuditLogInputSchema>;
+
+const transformAuditLogTB = (data: AuditLogInput) => {
   const headersList = headers();
   const location = data.req ? ipAddress(data.req) : getIP();
   const userAgent = headersList.get("user-agent");
@@ -23,7 +21,7 @@ export const recordAuditLog = async (
     userAgent,
   });
 
-  const auditLog: z.infer<typeof auditLogSchemaTB> = {
+  return {
     id: createId({ prefix: "audit_" }),
     timestamp: new Date().toISOString(),
     workspace_id: auditLogInput.workspaceId,
@@ -40,14 +38,20 @@ export const recordAuditLog = async (
     location: location || "",
     user_agent: userAgent || "",
   };
+};
+
+export const recordAuditLog = async (data: AuditLogInput | AuditLogInput[]) => {
+  const auditLogs = Array.isArray(data)
+    ? data.map(transformAuditLogTB)
+    : [transformAuditLogTB(data)];
 
   if (!ENABLE_AUDIT_LOGS) {
-    console.info(auditLog);
+    console.info(auditLogs);
     return;
   }
 
-  await recordAuditLogTB(auditLog).catch((error) => {
-    console.error("Failed to record audit log", error, auditLog);
+  await recordAuditLogTB(auditLogs).catch((error) => {
+    console.error("Failed to record audit log", error, auditLogs);
 
     // TODO:
     // Send a Slack notification
