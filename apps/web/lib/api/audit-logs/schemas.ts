@@ -1,4 +1,5 @@
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
+import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { z } from "zod";
 
@@ -46,31 +47,43 @@ const actionSchema = z.enum([
   "discount.created",
   "discount.updated",
   "discount.deleted",
+
+  // Partner applications
+  "partner_application.approved",
 ]);
 
-const rewardEvent = z.object({
-  type: z.literal("reward"),
-  id: z.string(),
-  metadata: RewardSchema.pick({
-    event: true,
-    type: true,
-    amount: true,
-    maxDuration: true,
+export const auditLogTarget = z.union([
+  z.object({
+    type: z.literal("reward"),
+    id: z.string(),
+    metadata: RewardSchema.pick({
+      event: true,
+      type: true,
+      amount: true,
+      maxDuration: true,
+    }),
   }),
-});
 
-const discountEvent = z.object({
-  type: z.literal("discount"),
-  id: z.string(),
-  metadata: DiscountSchema.pick({
-    type: true,
-    amount: true,
-    maxDuration: true,
-    couponId: true,
+  z.object({
+    type: z.literal("discount"),
+    id: z.string(),
+    metadata: DiscountSchema.pick({
+      type: true,
+      amount: true,
+      maxDuration: true,
+      couponId: true,
+    }),
   }),
-});
 
-export const auditLogEvent = z.union([rewardEvent, discountEvent]);
+  z.object({
+    type: z.literal("partner"),
+    id: z.string(),
+    metadata: PartnerSchema.pick({
+      name: true,
+      email: true,
+    }),
+  }),
+]);
 
 export const recordAuditLogInputSchema = z.object({
   workspaceId: z.string(),
@@ -84,7 +97,7 @@ export const recordAuditLogInputSchema = z.object({
   description: z.string().nullish(),
   location: z.string().nullish(),
   userAgent: z.string().nullish(),
-  targets: z.array(auditLogEvent).nullish(),
+  targets: z.array(auditLogTarget).nullish(),
   metadata: z.record(z.string(), z.any()).nullish(),
   req: z.instanceof(Request).nullish(),
 });
