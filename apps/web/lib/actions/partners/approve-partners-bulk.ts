@@ -14,47 +14,40 @@ export const approvePartnersBulkAction = authActionClient
   .schema(approvePartnersBulkSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let { partnerIds } = parsedInput;
-
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [program, programEnrollments] = await Promise.all([
-      prisma.program.findUniqueOrThrow({
-        where: {
-          id: programId,
-        },
-        include: {
-          rewards: true,
-          discounts: true,
-        },
-      }),
+    let { partnerIds } = parsedInput;
 
-      prisma.programEnrollment.findMany({
-        where: {
-          programId: programId,
-          status: "pending",
-          partnerId: {
-            in: partnerIds,
+    const program = await prisma.program.findUniqueOrThrow({
+      where: {
+        id: programId,
+      },
+      include: {
+        rewards: true,
+        discounts: true,
+        partners: {
+          where: {
+            status: "pending",
+            partnerId: {
+              in: partnerIds,
+            },
+          },
+          include: {
+            partner: true,
           },
         },
-        include: {
-          partner: true,
-        },
-      }),
-    ]);
+      },
+    });
 
     const programWithLanderData = ProgramWithLanderDataSchema.parse(program);
 
-    const { rewards, discount } = getProgramApplicationRewardsAndDiscount({
-      rewards: program.rewards,
-      discounts: program.discounts,
-      program: programWithLanderData,
-    });
+    const { rewards, discount } =
+      getProgramApplicationRewardsAndDiscount(program);
 
     await bulkApprovePartners({
       workspace,
       program: programWithLanderData,
-      programEnrollments,
+      programEnrollments: program.partners,
       rewards,
       discount,
       user,

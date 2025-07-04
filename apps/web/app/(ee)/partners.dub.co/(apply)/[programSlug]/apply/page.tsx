@@ -1,6 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
-import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
 import { notFound } from "next/navigation";
@@ -21,14 +20,8 @@ export default async function ApplicationPage({
     notFound();
   }
 
-  const { rewards, discount } = getProgramApplicationRewardsAndDiscount({
-    program: {
-      ...program,
-      landerData: programLanderSchema.nullish().parse(program.landerData),
-    },
-    rewards: program.rewards,
-    discounts: program.discounts,
-  });
+  const { rewards, discount } =
+    getProgramApplicationRewardsAndDiscount(program);
 
   return (
     <div

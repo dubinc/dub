@@ -25,14 +25,8 @@ export default async function ApplyPage({
 
   const landerData = programLanderSchema.parse(program.landerData);
 
-  const { rewards, discount } = getProgramApplicationRewardsAndDiscount({
-    program: {
-      ...program,
-      landerData: programLanderSchema.nullish().parse(program.landerData),
-    },
-    rewards: program.rewards,
-    discounts: program.discounts,
-  });
+  const { rewards, discount } =
+    getProgramApplicationRewardsAndDiscount(program);
 
   return (
     <div

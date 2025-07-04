@@ -16,26 +16,15 @@ export default async function ProgramDetailsPage({
 }) {
   const program = await getProgram({
     slug: programSlug,
-    include: [
-      "defaultRewards",
-      "defaultDiscount",
-      "allRewards",
-      "allDiscounts",
-    ],
+    include: ["allRewards", "allDiscounts"],
   });
 
   if (!program) {
     notFound();
   }
 
-  const { rewards, discount } = getProgramApplicationRewardsAndDiscount({
-    program: {
-      ...program,
-      landerData: programLanderSchema.nullish().parse(program.landerData),
-    },
-    rewards: program.rewards,
-    discounts: program.discounts,
-  });
+  const { rewards, discount } =
+    getProgramApplicationRewardsAndDiscount(program);
 
   return (
     <PageContent>

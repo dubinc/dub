@@ -27,12 +27,9 @@ export function RewardsPreview({ program }: { program: ProgramProps }) {
     );
 
   const result = getProgramApplicationRewardsAndDiscount({
-    program: {
-      ...program,
-      landerData,
-    },
     rewards: rewards || [],
     discounts: discounts || [],
+    landerData,
   });
 
   return <LanderRewards rewards={result.rewards} discount={result.discount} />;

@@ -6,12 +6,9 @@ import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { getLinkOrThrow } from "../api/links/get-link-or-throw";
 import { createPartnerLink } from "../api/partners/create-partner-link";
+import { getDefaultProgramIdOrThrow } from "../api/programs/get-default-program-id-or-throw";
 import { recordLink } from "../tinybird/record-link";
-import {
-  ProgramPartnerLinkProps,
-  ProgramWithLanderDataProps,
-  WorkspaceProps,
-} from "../types";
+import { ProgramPartnerLinkProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
@@ -19,46 +16,41 @@ import { getProgramApplicationRewardsAndDiscount } from "./get-program-applicati
 
 export async function approvePartnerEnrollment({
   workspace,
-  program,
   partnerId,
   linkId,
   userId,
 }: {
-  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: ProgramWithLanderDataProps;
+  workspace: Pick<
+    WorkspaceProps,
+    "id" | "plan" | "webhookEnabled" | "defaultProgramId"
+  >;
   partnerId: string;
   linkId: string | null;
   userId: string;
 }) {
   const { id: workspaceId } = workspace;
-  const { id: programId } = program;
+  const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const [link, allRewards, allDiscounts] = await Promise.all([
+  const [program, link] = await Promise.all([
+    prisma.program.findUniqueOrThrow({
+      where: {
+        id: programId,
+      },
+      include: {
+        rewards: true,
+        discounts: true,
+      },
+    }),
     linkId
       ? getLinkOrThrow({
           workspaceId,
           linkId,
         })
       : Promise.resolve(null),
-
-    prisma.reward.findMany({
-      where: {
-        programId,
-      },
-    }),
-
-    prisma.discount.findMany({
-      where: {
-        programId,
-      },
-    }),
   ]);
 
-  const { rewards, discount } = getProgramApplicationRewardsAndDiscount({
-    program,
-    rewards: allRewards,
-    discounts: allDiscounts,
-  });
+  const { rewards, discount } =
+    getProgramApplicationRewardsAndDiscount(program);
 
   if (link?.partnerId) {
     throw new Error("This link is already associated with another partner.");

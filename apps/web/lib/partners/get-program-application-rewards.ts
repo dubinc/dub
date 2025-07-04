@@ -1,8 +1,6 @@
-import {
-  DiscountProps,
-  ProgramWithLanderDataProps,
-  RewardProps,
-} from "@/lib/types";
+import { DiscountProps, RewardProps } from "@/lib/types";
+import { Prisma } from "@prisma/client";
+import { programLanderSchema } from "../zod/schemas/program-lander";
 
 // TODO: Add an alternative to this function that doesn't require fetching all rewards and discounts
 
@@ -12,23 +10,24 @@ import {
 export function getProgramApplicationRewardsAndDiscount({
   rewards,
   discounts,
-  program,
+  landerData,
 }: {
   /** Array of all of a program's rewards */
   rewards: RewardProps[];
   /** Array of all of a program's discounts */
   discounts: DiscountProps[];
-  /** Program object containing default discount ID and lander data */
-  program: Pick<ProgramWithLanderDataProps, "landerData">;
+  /** Lander data */
+  landerData: Prisma.JsonValue;
 }) {
   const defaults = {
     rewards: rewards.filter((r) => r.default),
     discount: discounts.find((d) => d.default) || null,
   };
 
-  if (!program.landerData?.rewards) return defaults;
+  const parsedLanderData = programLanderSchema.nullish().parse(landerData);
+  if (!parsedLanderData?.rewards) return defaults;
 
-  const landerRewards = program.landerData.rewards;
+  const landerRewards = parsedLanderData.rewards;
   const result: {
     rewards: RewardProps[];
     discount: DiscountProps | null;
