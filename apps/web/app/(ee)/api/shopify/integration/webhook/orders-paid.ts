@@ -15,7 +15,6 @@ export async function ordersPaid({
   const { customer: orderCustomer, checkout_token: checkoutToken } =
     orderSchema.parse(event);
 
-  // If no customer, th
   if (orderCustomer) {
     const { id: externalId } = orderCustomer;
 
