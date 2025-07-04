@@ -31,7 +31,7 @@ export async function createShopifySale({
     current_subtotal_price_set: { shop_money: shopMoney },
   } = order;
 
-  const amount = Number(shopMoney.amount) * 100;
+  const amount = Math.round(Number(shopMoney.amount) * 100); // round to nearest cent
   const { link_id: linkId } = leadData;
   const currency = shopMoney.currency_code.toLowerCase();
 
