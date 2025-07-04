@@ -15,6 +15,8 @@ import {
   useInViewport,
   UserCheck,
   useRouterStuff,
+  Button,
+  PenWriting,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
 import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
@@ -129,11 +131,26 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
 
   return (
     <CardList.Card
-      innerClassName="px-0 py-0 hover:cursor-pointer"
+      innerClassName="px-0 py-0 hover:cursor-pointer group"
       onClick={() => setShowPartnerLinkModal(true)}
     >
       <PartnerLinkModal />
-      <div className="p-4" ref={ref}>
+      <div className="p-4 relative" ref={ref}>
+        <button
+          type="button"
+          className="absolute right-4 top-4 z-10 opacity-0 pointer-events-none translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0"
+          onClick={e => {
+            e.stopPropagation();
+            setShowPartnerLinkModal(true);
+          }}
+        >
+          <Button
+            variant="light"
+            icon={<PenWriting />}
+            text="Edit link"
+            className="!px-3 !py-1.5 text-sm"
+          />
+        </button>
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative hidden shrink-0 items-center justify-center sm:flex">
@@ -149,32 +166,43 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
             </div>
 
             <div className="flex min-w-0 flex-col">
-              <div className="flex items-center gap-2">
-                <a
-                  href={link.shortLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
-                >
-                  {getPrettyUrl(link.shortLink)}
-                </a>
-                <CopyButton
-                  value={link.shortLink}
-                  variant="neutral"
-                  className="p-1.5"
-                />
-                {link.comments && <CommentsBadge comments={link.comments} />}
-              </div>
-              <div className="flex items-center gap-1">
-                <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="truncate text-sm text-neutral-500 transition-colors hover:text-neutral-700"
-                >
-                  {getPrettyUrl(link.url)}
-                </a>
+              <div className="flex flex-col">
+                <div className="group/shortlink relative flex w-fit items-center gap-1 pl-1 pr-1.5 py-0 transition-colors duration-150 hover:bg-neutral-100 hover:rounded-lg">
+                  <a
+                    href={link.shortLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
+                  >
+                    {getPrettyUrl(link.shortLink)}
+                  </a>
+                  <span className="flex items-center">
+                    <CopyButton
+                      value={link.shortLink}
+                      variant="neutral"
+                      className="p-0.5 opacity-0 group-hover/shortlink:opacity-100 transition-opacity duration-150"
+                    />
+                  </span>
+                  {link.comments && <CommentsBadge comments={link.comments} />}
+                </div>
+                <div className="group/desturl flex w-fit items-center gap-1 pl-1 pr-1.5 py-0 transition-colors duration-150 hover:bg-neutral-100 hover:rounded-lg">
+                  <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate text-sm text-neutral-500 transition-colors hover:text-neutral-700"
+                  >
+                    {getPrettyUrl(link.url)}
+                  </a>
+                  <span className="flex items-center">
+                    <CopyButton
+                      value={link.url}
+                      variant="neutral"
+                      className="p-0.5 opacity-0 group-hover/desturl:opacity-100 transition-opacity duration-150"
+                    />
+                  </span>
+                </div>
               </div>
             </div>
           </div>
