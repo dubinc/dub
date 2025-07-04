@@ -13,6 +13,8 @@ interface DiscountPartnersTableProps {
   setPartnerIds: (value: string[]) => void;
   discountPartners: EnrolledPartnerProps[];
   loading: boolean;
+  mode?: "include" | "exclude";
+  label?: string;
 }
 
 export function DiscountPartnersTable({
@@ -20,6 +22,8 @@ export function DiscountPartnersTable({
   setPartnerIds,
   discountPartners,
   loading,
+  mode = "include",
+  label = mode === "include" ? "Eligible partners" : "Non-eligible partners",
 }: DiscountPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -195,7 +199,7 @@ export function DiscountPartnersTable({
   return (
     <div className="my-2 flex flex-col gap-3">
       <label className="text-sm font-medium text-neutral-800">
-        Eligible partners
+        {label}
       </label>
 
       <Combobox

@@ -30,7 +30,7 @@ export const createDiscountAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await getProgramOrThrow({
+    await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
@@ -81,17 +81,19 @@ export const createDiscountAction = authActionClient
       }
 
       // A partner can have only one discount per program
+      // TODO:
+      // Fix it
       const partnersWithDiscounts = programEnrollments.filter(
         (pe) => pe.discountId && includedPartnerIds.includes(pe.partnerId),
       );
 
-      if (partnersWithDiscounts.length > 0) {
-        throw new Error(
-          `Partners ${partnersWithDiscounts
-            .map((pe) => pe.partner.name)
-            .join(", ")} are already enrolled in a discount.`,
-        );
-      }
+      // if (partnersWithDiscounts.length > 0) {
+      //   throw new Error(
+      //     `Partners ${partnersWithDiscounts
+      //       .map((pe) => pe.partner.name)
+      //       .join(", ")} are already enrolled in a discount.`,
+      //   );
+      // }
     }
 
     const discount = await prisma.discount.create({
@@ -106,6 +108,19 @@ export const createDiscountAction = authActionClient
         default: isDefault,
       },
     });
+
+    // TODO:
+    // Remove this 
+    if (isDefault) {
+      await prisma.program.update({
+        where: {
+          id: programId,
+        },
+        data: {
+          defaultDiscountId: discount.id,
+        },
+      });
+    }
 
     await prisma.programEnrollment.updateMany({
       where: {
