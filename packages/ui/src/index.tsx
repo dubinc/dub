@@ -30,6 +30,7 @@ export * from "./shimmer-dots";
 export * from "./status-badge";
 export * from "./switch";
 export * from "./table";
+export * from "./toaster";
 export * from "./toggle-group";
 export * from "./tooltip";
 export * from "./utm-builder";
