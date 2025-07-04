@@ -1,5 +1,6 @@
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
+import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { z } from "zod";
 
@@ -51,6 +52,17 @@ const actionSchema = z.enum([
   // Partner applications
   "partner_application.approved",
   "partner_application.rejected",
+
+  // Partner enrollments
+  "partner.archived",
+  "partner.banned",
+  "partner.unbanned",
+  "partner.invited",
+  "partner.approved",
+
+  // Auto approve partners
+  "auto_approve_partner.enabled",
+  "auto_approve_partner.disabled",
 ]);
 
 export const auditLogTarget = z.union([
@@ -83,6 +95,16 @@ export const auditLogTarget = z.union([
       name: true,
       email: true,
     }),
+  }),
+
+  z.object({
+    type: z.literal("program"),
+    id: z.string(),
+    metadata: ProgramSchema.pick({
+      name: true,
+      supportEmail: true,
+      autoApprovePartnersEnabledAt: true,
+    }).optional(),
   }),
 ]);
 
