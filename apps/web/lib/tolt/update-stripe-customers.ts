@@ -74,7 +74,7 @@ export async function updateStripeCustomers({
 
     await Promise.all(
       customers.map((customer) =>
-        searchStripeCustomer({
+        searchStripeAndUpdateCustomer({
           workspace,
           customer,
         }),
@@ -94,7 +94,7 @@ export async function updateStripeCustomers({
   });
 }
 
-async function searchStripeCustomer({
+async function searchStripeAndUpdateCustomer({
   workspace,
   customer,
 }: {
