@@ -1,33 +1,62 @@
-// @ts-nocheck contains old fields that are not used anymore
-
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
+/* 
+One time script to migrate the program-wide discounts to the new schema.
+*/
+
 async function main() {
-  const discounts = await prisma.discount.findMany({
+  // Migrate program-wide discounts
+  const programDiscounts = await prisma.discount.findMany({
+    where: {
+      defaultForProgram: {
+        isNot: null,
+      },
+      default: false,
+    },
     select: {
       id: true,
-      duration: true,
-      interval: true,
+      programId: true,
+    },
+  });
+  console.log({ programDiscounts });
+
+  const finalProgramDiscounts = programDiscounts.map((discount) => {
+    return {
+      discountId: discount.id,
+      programId: discount.programId,
+    };
+  });
+
+  console.table(finalProgramDiscounts);
+
+  // Update the default column in the Reward table
+  const res1 = await prisma.discount.updateMany({
+    where: {
+      id: {
+        in: finalProgramDiscounts.map((discount) => discount.discountId),
+      },
+    },
+    data: {
+      default: true,
     },
   });
 
-  // Move the duration + interval into maxDuration
-  for (const discount of discounts) {
-    const maxDuration = discount.duration
-      ? discount.interval === "month"
-        ? discount.duration
-        : discount.duration * 12
-      : null;
+  console.log({ res1 });
 
-    await prisma.discount.update({
+  for (const discount of finalProgramDiscounts) {
+    const discountId = discount.discountId;
+
+    const res2 = await prisma.programEnrollment.updateMany({
       where: {
-        id: discount.id,
+        programId: discount.programId,
       },
       data: {
-        maxDuration,
+        discountId,
       },
     });
+
+    console.log({ res2 });
   }
 }
 
