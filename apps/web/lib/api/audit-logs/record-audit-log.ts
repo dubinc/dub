@@ -28,15 +28,15 @@ const transformAuditLogTB = (data: AuditLogInput) => {
     program_id: auditLogInput.programId,
     action: auditLogInput.action,
     actor_id: auditLogInput.actor.id,
-    actor_type: auditLogInput.actor.type || "user",
-    actor_name: auditLogInput.actor.name || "",
-    description: auditLogInput.description || "",
+    actor_type: auditLogInput.actor.type ?? "user",
+    actor_name: auditLogInput.actor.name ?? "",
+    description: auditLogInput.description ?? "",
     targets: auditLogInput.targets ? JSON.stringify(auditLogInput.targets) : "",
     metadata: auditLogInput.metadata
       ? JSON.stringify(auditLogInput.metadata)
       : "",
-    ip_address: ipAddress || "",
-    user_agent: userAgent || "",
+    ip_address: ipAddress ?? "",
+    user_agent: userAgent ?? "",
   };
 };
 
