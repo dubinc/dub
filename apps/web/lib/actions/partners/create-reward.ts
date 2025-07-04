@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import {
@@ -7,12 +8,13 @@ import {
   REWARD_EVENT_COLUMN_MAPPING,
 } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     let {
       event,
       amount,
@@ -108,4 +110,23 @@ export const createRewardAction = authActionClient
         [rewardIdColumn]: reward.id,
       },
     });
+
+    waitUntil(
+      (async () => {
+        await recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "reward.created",
+          description: `Reward ${reward.id} created`,
+          actor: user,
+          targets: [
+            {
+              type: "reward",
+              id: reward.id,
+              metadata: reward,
+            },
+          ],
+        });
+      })(),
+    );
   });

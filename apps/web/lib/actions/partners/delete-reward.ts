@@ -1,9 +1,11 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -15,7 +17,7 @@ const deleteRewardSchema = z.object({
 export const deleteRewardAction = authActionClient
   .schema(deleteRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { rewardId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -60,4 +62,23 @@ export const deleteRewardAction = authActionClient
         },
       });
     });
+
+    waitUntil(
+      (async () => {
+        await recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "reward.deleted",
+          description: `Reward ${rewardId} deleted`,
+          actor: user,
+          targets: [
+            {
+              type: "reward",
+              id: rewardId,
+              metadata: reward,
+            },
+          ],
+        });
+      })(),
+    );
   });
