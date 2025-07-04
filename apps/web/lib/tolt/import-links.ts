@@ -73,21 +73,15 @@ export async function importLinks({
           continue;
         }
 
-        const linkCreated = await createPartnerLink({
+        await createPartnerLink({
           workspace: workspace as WorkspaceProps,
           program,
           link,
           partnerId,
           userId,
         });
-
-        if (linkCreated?.key !== link.value) {
-          console.log("linkCreated", linkCreated?.key, link.value);
-        }
       }
     }
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     processedBatches++;
     startingAfter = links[links.length - 1].id;
