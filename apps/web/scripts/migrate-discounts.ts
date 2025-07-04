@@ -1,9 +1,8 @@
+// @ts-nocheck – this is a one-time migration script for
+// when we migrate the program-wide discounts to the new schema
+
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-
-/* 
-One time script to migrate the program-wide discounts to the new schema.
-*/
 
 async function main() {
   // Migrate program-wide discounts
