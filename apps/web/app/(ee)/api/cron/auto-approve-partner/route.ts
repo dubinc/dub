@@ -1,8 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
-import { WorkspaceProps } from "@/lib/types";
-import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
@@ -33,10 +31,18 @@ export async function POST(req: Request) {
       },
       include: {
         workspace: {
-          select: {
-            id: true,
-            plan: true,
-            webhookEnabled: true,
+          include: {
+            users: {
+              where: {
+                role: "owner",
+              },
+              take: 1,
+            },
+          },
+        },
+        partners: {
+          where: {
+            id: partnerId,
           },
         },
       },
@@ -48,40 +54,23 @@ export async function POST(req: Request) {
       );
     }
 
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
-      },
-    });
-
-    if (programEnrollment.status !== "pending") {
+    if (program.partners.length === 0) {
       return new Response(
-        `${partnerId} is ${programEnrollment.status}. Skipping auto-approval.`,
+        `Partner ${partnerId} not found in program ${programId}. Skipping auto-approval.`,
       );
     }
 
-    const workspaceOwner = await prisma.projectUsers.findFirstOrThrow({
-      where: {
-        projectId: program.workspaceId,
-        role: "owner",
-      },
-      select: {
-        userId: true,
-      },
-    });
+    if (program.partners[0].status !== "pending") {
+      return new Response(
+        `${partnerId} is ${program.partners[0].status}. Skipping auto-approval.`,
+      );
+    }
 
     await approvePartnerEnrollment({
-      workspace: program.workspace as WorkspaceProps,
-      program: {
-        ...program,
-        landerData: programLanderSchema.nullish().parse(program.landerData),
-      },
+      programId,
       partnerId,
       linkId: null,
-      userId: workspaceOwner.userId,
+      userId: program.workspace.users[0].userId,
     });
 
     return new Response("Partner is auto-approved.");
