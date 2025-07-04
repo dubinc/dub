@@ -1,6 +1,7 @@
 import { CommissionSchema } from "@/lib/zod/schemas/commissions";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
+import { PayoutSchema } from "@/lib/zod/schemas/payouts";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { z } from "zod";
@@ -40,6 +41,10 @@ export const auditLogSchema = z.object({
 });
 
 const actionSchema = z.enum([
+  // Program
+  "program.created",
+  "program.updated",
+
   // Rewards
   "reward.created",
   "reward.updated",
@@ -77,9 +82,28 @@ const actionSchema = z.enum([
   "commission.canceled",
   "commission.marked_fraud",
   "commission.marked_duplicate",
+
+  // Payouts
+  "payout.confirmed",
+  "payout.marked_paid",
 ]);
 
 export const auditLogTarget = z.union([
+  z.object({
+    type: z.literal("program"),
+    id: z.string(),
+    metadata: ProgramSchema.pick({
+      domain: true,
+      url: true,
+      linkStructure: true,
+      supportEmail: true,
+      helpUrl: true,
+      termsUrl: true,
+      holdingPeriodDays: true,
+      minPayoutAmount: true,
+    }).optional(),
+  }),
+
   z.object({
     type: z.literal("reward"),
     id: z.string(),
@@ -129,6 +153,14 @@ export const auditLogTarget = z.union([
       amount: true,
       earnings: true,
       currency: true,
+    }),
+  }),
+
+  z.object({
+    type: z.literal("payout"),
+    id: z.string(),
+    metadata: PayoutSchema.pick({
+      status: true,
     }),
   }),
 ]);

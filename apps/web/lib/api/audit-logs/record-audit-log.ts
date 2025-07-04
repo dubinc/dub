@@ -6,7 +6,7 @@ import { createId } from "../create-id";
 import { getIP } from "../utils";
 import { auditLogSchemaTB, recordAuditLogInputSchema } from "./schemas";
 
-const ENABLE_AUDIT_LOGS = true;
+const DEBUG_AUDIT_LOGS = false;
 
 type AuditLogInput = z.infer<typeof recordAuditLogInputSchema>;
 
@@ -45,7 +45,9 @@ export const recordAuditLog = async (data: AuditLogInput | AuditLogInput[]) => {
     ? data.map(transformAuditLogTB)
     : [transformAuditLogTB(data)];
 
-  console.log(auditLogs);
+  if (DEBUG_AUDIT_LOGS) {
+    console.log(auditLogs);
+  }
 
   await recordAuditLogTB(auditLogs).catch((error) => {
     console.error("Failed to record audit log", error, auditLogs);
