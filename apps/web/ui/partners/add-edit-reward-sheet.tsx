@@ -223,8 +223,8 @@ function RewardSheetContent({
         onSubmit={handleSubmit(onSubmit)}
         className="flex h-full flex-col"
       >
-        <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-          <Sheet.Title className="text-xl font-semibold">
+        <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
+          <Sheet.Title className="text-lg font-semibold">
             {reward ? "Edit" : "Create"} {isDefault ? "default" : ""}{" "}
             {selectedEvent} reward
           </Sheet.Title>

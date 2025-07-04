@@ -22,6 +22,10 @@ export const confirmPayoutsAction = authActionClient
     const { workspace, user } = ctx;
     const { paymentMethodId, cutoffPeriod } = parsedInput;
 
+    if (workspace.role !== "owner") {
+      throw new Error("Only workspace owners can confirm payouts.");
+    }
+
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
     }

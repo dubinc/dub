@@ -1,12 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
-import { qstash } from "@/lib/cron";
 import { registerDomain } from "@/lib/dynadot/register-domain";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { sendEmail } from "@dub/email";
-import { DomainClaimed } from "@dub/email/templates/domain-claimed";
+import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, DEFAULT_LINK_PROPS } from "@dub/utils";
+import { DEFAULT_LINK_PROPS } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { waitUntil } from "@vercel/functions";
 import { addDomainToVercel } from "./add-domain-vercel";
@@ -128,14 +127,6 @@ export async function claimDotLinkDomain({
 
   waitUntil(
     Promise.all([
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/configure-dns`,
-        delay: 3 * 60,
-        body: {
-          domain,
-        },
-      }),
-
       // add domain to Vercel
       addDomainToVercel(domain),
 

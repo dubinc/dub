@@ -24,6 +24,7 @@ export function EmbedPreview({
 
   const partnerLink = getLinkStructureOptions({
     domain: program.domain,
+    url: program.url,
   }).find(({ id }) => id === program.linkStructure)?.example;
 
   return (
@@ -1486,7 +1487,7 @@ export function EmbedPreview({
                     style={{ whiteSpace: "pre" }}
                   >
                     <tspan x="714.429" y="733.091">
-                      After you payouts are connected, you’ll{" "}
+                      After your payouts are connected, you’ll{" "}
                     </tspan>
                     <tspan x="720.575" y="753.091">
                       get paid out automatically for all your{" "}

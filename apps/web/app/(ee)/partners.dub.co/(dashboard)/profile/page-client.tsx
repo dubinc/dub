@@ -6,11 +6,16 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps, PayoutsCount } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
+import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge-partner-accounts-modal";
+import { CustomToast } from "@/ui/shared/custom-toast";
+import { AlertCircleFill } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
   DotsPattern,
+  DynamicTooltipWrapper,
   FileUpload,
   LoadingSpinner,
   ToggleGroup,
@@ -88,6 +93,7 @@ function FormWrapper({
 
 type ProfileFormData = {
   name: string;
+  email: string;
   image: string | null;
   description: string | null;
   country: string;
@@ -102,6 +108,7 @@ function FormProvider({
   const form = useForm<ProfileFormData>({
     defaultValues: {
       name: partner.name,
+      email: partner.email ?? "",
       image: partner.image,
       description: partner.description ?? null,
       country: partner.country ?? "",
@@ -114,17 +121,51 @@ function FormProvider({
 }
 
 function Controls({ formRef }: { formRef: RefObject<HTMLFormElement> }) {
+  const { partner } = usePartnerProfile();
+
+  const { MergePartnerAccountsModal, setShowMergePartnerAccountsModal } =
+    useMergePartnerAccountsModal();
+
   const {
     formState: { isSubmitting },
   } = useFormContext();
 
+  const {
+    setShowConfirmModal: setShowStripeConfirmModal,
+    confirmModal: stripeConfirmModal,
+  } = useConfirmModal({
+    title: "Confirm profile update",
+    description:
+      "Updating your email, country, or profile type will reset your Stripe account, which will require you to restart the payout connection process. Are you sure you want to continue?",
+    confirmText: "Continue",
+    onConfirm: () => {
+      formRef.current?.requestSubmit();
+    },
+  });
+
   return (
-    <Button
-      text="Save changes"
-      className="h-8 w-fit px-2.5"
-      loading={isSubmitting}
-      onClick={() => formRef.current?.requestSubmit()}
-    />
+    <>
+      <MergePartnerAccountsModal />
+      {stripeConfirmModal}
+      <Button
+        text="Merge accounts"
+        variant="secondary"
+        className="h-8 w-fit px-2.5"
+        onClick={() => setShowMergePartnerAccountsModal(true)}
+      />
+      <Button
+        text="Save changes"
+        className="h-8 w-fit px-2.5"
+        loading={isSubmitting}
+        onClick={() => {
+          if (partner?.stripeConnectId) {
+            setShowStripeConfirmModal(true);
+          } else {
+            formRef.current?.requestSubmit();
+          }
+        }}
+      />
+    </>
   );
 }
 
@@ -165,7 +206,16 @@ function ProfileForm({
         message: error.serverError,
       });
 
-      toast.error(error.serverError);
+      if (error.serverError?.includes("merge your partner accounts")) {
+        toast.custom(() => (
+          <CustomToast icon={AlertCircleFill}>
+            Email already in use. Do you want to [merge your partner
+            accounts](https://d.to/merge-partners) instead?
+          </CustomToast>
+        ));
+      } else {
+        toast.error(error.serverError);
+      }
     },
   });
 
@@ -239,29 +289,57 @@ function ProfileForm({
               />
             </div>
           </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-neutral-800">Email</span>
+            <DynamicTooltipWrapper
+              tooltipProps={
+                completedPayoutsCount > 0
+                  ? {
+                      content:
+                        "Since you've already received payouts on Dub, you cannot change your email. If you need to update your email, please contact support.",
+                    }
+                  : undefined
+              }
+            >
+              <input
+                type="email"
+                className={cn(
+                  "block w-full rounded-md focus:outline-none sm:text-sm",
+                  errors.email
+                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                    : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                  completedPayoutsCount > 0 &&
+                    "cursor-not-allowed bg-neutral-100 text-neutral-400",
+                )}
+                placeholder="panic@thedis.co"
+                disabled={completedPayoutsCount > 0}
+                {...register("email", {
+                  required: true,
+                })}
+              />
+            </DynamicTooltipWrapper>
+          </label>
           <label className="flex flex-col">
             <span className="text-sm font-medium text-neutral-800">
               Country
             </span>
-            <div>
-              <Controller
-                control={control}
-                name="country"
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <CountryCombobox
-                    value={field.value || ""}
-                    onChange={field.onChange}
-                    error={errors.country ? true : false}
-                    disabledTooltip={
-                      completedPayoutsCount > 0
-                        ? "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support."
-                        : undefined
-                    }
-                  />
-                )}
-              />
-            </div>
+            <Controller
+              control={control}
+              name="country"
+              rules={{ required: true }}
+              render={({ field }) => (
+                <CountryCombobox
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                  error={errors.country ? true : false}
+                  disabledTooltip={
+                    completedPayoutsCount > 0
+                      ? "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support."
+                      : undefined
+                  }
+                />
+              )}
+            />
           </label>
 
           <label className="flex flex-col gap-1.5">
@@ -289,7 +367,16 @@ function ProfileForm({
             <span className="text-sm font-medium text-neutral-800">
               Profile type
             </span>
-            <div className="w-full">
+            <DynamicTooltipWrapper
+              tooltipProps={
+                completedPayoutsCount > 0
+                  ? {
+                      content:
+                        "Since you've already received payouts on Dub, you cannot change your profile type. If you need to update your profile type, please contact support.",
+                    }
+                  : undefined
+              }
+            >
               <LayoutGroup>
                 <div className="w-full">
                   <ToggleGroup
@@ -315,13 +402,14 @@ function ProfileForm({
                     )}
                     optionClassName={cn(
                       "h-9 flex items-center justify-center rounded-lg flex-1",
-                      completedPayoutsCount > 0 && "pointer-events-none",
+                      completedPayoutsCount > 0 &&
+                        "pointer-events-none text-neutral-400",
                     )}
                     indicatorClassName="bg-white"
                   />
                 </div>
               </LayoutGroup>
-            </div>
+            </DynamicTooltipWrapper>
           </label>
 
           <AnimatePresence mode="popLayout">
@@ -365,14 +453,6 @@ function ProfileForm({
           </AnimatePresence>
         </div>
       </div>
-      {/* <div className="flex justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-100 px-5 py-3.5">
-        <Button
-          type="submit"
-          text="Save changes"
-          className="h-8 w-fit px-2.5"
-          loading={isSubmitting || isPending}
-        />
-      </div> */}
     </form>
   );
 }

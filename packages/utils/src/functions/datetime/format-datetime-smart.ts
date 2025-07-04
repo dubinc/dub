@@ -5,7 +5,7 @@ export const formatDateTimeSmart = (
   const date = new Date(datetime);
   const now = new Date();
 
-  return new Date(datetime).toLocaleDateString("en-US", {
+  return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     // if date is in previous year, show year

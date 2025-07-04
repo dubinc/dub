@@ -45,6 +45,24 @@ const PLATFORM_CONFIGS: Record<SocialPlatform, SocialPlatformConfig> = {
   },
 };
 
+export const sanitizeWebsite = (input: string | null | undefined) => {
+  if (!input || typeof input !== "string") return null;
+
+  let website = input.trim();
+  if (!website) return null;
+
+  if (!website.startsWith("http")) website = `https://${website}`;
+
+  try {
+    const url = new URL(website);
+    url.search = "";
+
+    return url.toString();
+  } catch (e) {
+    return null;
+  }
+};
+
 export const sanitizeSocialHandle = (
   input: string | null | undefined,
   platform: SocialPlatform,

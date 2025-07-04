@@ -90,6 +90,7 @@ export default async function AppMiddleware(req: NextRequest) {
         "/programs",
         "/settings",
         "/upgrade",
+        "/guides",
         "/wrapped",
       ].includes(path) ||
       path.startsWith("/program") ||
