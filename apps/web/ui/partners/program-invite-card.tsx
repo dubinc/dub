@@ -36,8 +36,7 @@ export function ProgramInviteCard({
 
   const discount =
     program.discounts && program.discounts.length > 0
-      ? program.discounts.find((d) => d.id !== program.defaultDiscountId) ||
-        program.discounts[0]
+      ? program.discounts[0]
       : null;
 
   return (

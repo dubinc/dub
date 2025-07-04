@@ -1,7 +1,6 @@
 "use client";
 
 import useDiscounts from "@/lib/swr/use-discounts";
-import useProgram from "@/lib/swr/use-program";
 import type { DiscountProps } from "@/lib/types";
 import { useDiscountSheet } from "@/ui/partners/add-edit-discount-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
@@ -18,12 +17,9 @@ export function ProgramSettingsDiscountsPageClient() {
 }
 
 const DefaultDiscount = () => {
-  const { program } = useProgram();
   const { discounts, loading } = useDiscounts();
 
-  const defaultDiscount =
-    program?.defaultDiscountId &&
-    discounts?.find((d) => d.id === program.defaultDiscountId);
+  const defaultDiscount = discounts?.find((d) => d.default);
 
   const { DiscountSheet, setIsOpen } = useDiscountSheet({
     ...(defaultDiscount && { discount: defaultDiscount }),
@@ -77,16 +73,13 @@ const DefaultDiscount = () => {
 };
 
 const AdditionalDiscounts = () => {
-  const { program } = useProgram();
   const { discounts, loading } = useDiscounts();
+
+  const additionalDiscounts = discounts?.filter((d) => !d.default);
 
   const { DiscountSheet, setIsOpen } = useDiscountSheet({
     isDefault: false,
   });
-
-  const additionalDiscounts = discounts?.filter(
-    (discount) => discount.id !== program?.defaultDiscountId,
-  );
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">

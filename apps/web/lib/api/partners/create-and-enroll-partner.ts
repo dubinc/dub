@@ -34,7 +34,7 @@ export const createAndEnrollPartner = async ({
   skipEnrollmentCheck = false,
   enrolledAt,
 }: {
-  program: Pick<ProgramProps, "id" | "defaultFolderId" | "defaultDiscountId">;
+  program: Pick<ProgramProps, "id" | "defaultFolderId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
@@ -85,18 +85,25 @@ export const createAndEnrollPartner = async ({
     }
   }
 
-  const defaultRewards = await prisma.reward.findMany({
-    where: {
-      programId: program.id,
-      // if a specific reward is provided, exclude it from the default rewards because it'll be added below
-      ...(reward && {
-        event: {
-          not: reward.event,
-        },
-      }),
-      default: true,
-    },
-  });
+  const [defaultRewards, allDiscounts] = await prisma.$transaction([
+    prisma.reward.findMany({
+      where: {
+        programId: program.id,
+        // if a specific reward is provided, exclude it from the default rewards because it'll be added below
+        ...(reward && {
+          event: {
+            not: reward.event,
+          },
+        }),
+        default: true,
+      },
+    }),
+    prisma.discount.findMany({
+      where: {
+        programId: program.id,
+      },
+    }),
+  ]);
 
   const finalAssignedRewards = {
     ...Object.fromEntries(
@@ -106,6 +113,10 @@ export const createAndEnrollPartner = async ({
       [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
     }),
   };
+
+  const finalAssignedDiscount = discountId
+    ? allDiscounts.find((d) => d.id === discountId)?.id
+    : allDiscounts.find((d) => d.default)?.id;
 
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
@@ -119,10 +130,7 @@ export const createAndEnrollPartner = async ({
           },
         },
         ...finalAssignedRewards,
-        ...(discountId &&
-          discountId !== program.defaultDiscountId && {
-            discountId,
-          }),
+        discountId: finalAssignedDiscount,
         ...(enrolledAt && {
           createdAt: enrolledAt,
         }),

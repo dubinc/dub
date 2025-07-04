@@ -111,9 +111,7 @@ function EditRewardsModalInner({
 
       if (!override && landerDataRewards.discountId) return;
 
-      const defaultDiscount = discounts.find(
-        (d) => d.id === program?.defaultDiscountId,
-      );
+      const defaultDiscount = discounts.find((d) => d.default);
 
       setValue(
         `landerData.rewards.discountId`,
@@ -220,8 +218,7 @@ function EditRewardsModalInner({
                             {discounts?.map((discount) => (
                               <option value={discount.id} key={discount.id}>
                                 {formatDiscountDescription({ discount })}{" "}
-                                {program?.defaultDiscountId === discount.id &&
-                                  "(Default)"}
+                                {discount.default && "(Default)"}
                               </option>
                             ))}
                           </select>

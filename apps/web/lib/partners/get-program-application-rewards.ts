@@ -19,11 +19,11 @@ export function getProgramApplicationRewardsAndDiscount({
   /** Array of all of a program's discounts */
   discounts: DiscountProps[];
   /** Program object containing default discount ID and lander data */
-  program: Pick<ProgramWithLanderDataProps, "defaultDiscountId" | "landerData">;
+  program: Pick<ProgramWithLanderDataProps, "landerData">;
 }) {
   const defaults = {
     rewards: rewards.filter((r) => r.default),
-    discount: discounts.find((d) => d.id === program.defaultDiscountId) || null,
+    discount: discounts.find((d) => d.default) || null,
   };
 
   if (!program.landerData?.rewards) return defaults;
