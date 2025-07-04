@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
@@ -19,7 +20,7 @@ const deleteDiscountSchema = z.object({
 export const deleteDiscountAction = authActionClient
   .schema(deleteDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { discountId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -101,15 +102,32 @@ export const deleteDiscountAction = authActionClient
 
     if (deletedDiscountId) {
       waitUntil(
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-          body: {
+        Promise.allSettled([
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+            body: {
+              programId,
+              discountId,
+              isDefault: discount.default,
+              action: "discount-deleted",
+            },
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
             programId,
-            discountId,
-            isDefault: discount.default,
-            action: "discount-deleted",
-          },
-        }),
+            action: "discount.deleted",
+            description: `Discount ${discountId} deleted`,
+            actor: user,
+            targets: [
+              {
+                type: "discount",
+                id: discountId,
+                metadata: discount,
+              },
+            ],
+          }),
+        ]),
       );
     }
   });

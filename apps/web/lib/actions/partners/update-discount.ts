@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
@@ -13,7 +14,7 @@ import { authActionClient } from "../safe-action";
 export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     let {
       discountId,
       amount,
@@ -104,19 +105,34 @@ export const updateDiscountAction = authActionClient
           },
         );
 
-        if (!shouldExpireCache) {
-          return;
-        }
+        await Promise.allSettled([
+          shouldExpireCache
+            ? qstash.publishJSON({
+                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+                body: {
+                  programId,
+                  discountId,
+                  isDefault: updatedDiscount.default,
+                  action: "discount-updated",
+                },
+              })
+            : Promise.resolve(),
 
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-          body: {
+          recordAuditLog({
+            workspaceId: workspace.id,
             programId,
-            discountId,
-            isDefault: discount.default,
-            action: "discount-updated",
-          },
-        });
+            action: "discount.updated",
+            description: `Discount ${discount.id} updated`,
+            actor: user,
+            targets: [
+              {
+                type: "discount",
+                id: discount.id,
+                metadata: updatedDiscount,
+              },
+            ],
+          }),
+        ]);
       })(),
     );
   });

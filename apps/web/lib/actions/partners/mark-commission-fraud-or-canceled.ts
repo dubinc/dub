@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
@@ -17,7 +18,7 @@ const markCommissionFraudOrCanceledSchema = z.object({
 export const markCommissionFraudOrCanceledAction = authActionClient
   .schema(markCommissionFraudOrCanceledSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { commissionId, status } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -112,9 +113,31 @@ export const markCommissionFraudOrCanceledAction = authActionClient
     });
 
     waitUntil(
-      syncTotalCommissions({
-        partnerId: commission.partnerId,
-        programId,
-      }),
+      (async () => {
+        await Promise.allSettled([
+          syncTotalCommissions({
+            partnerId: commission.partnerId,
+            programId,
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action:
+              status === "fraud"
+                ? "commission.marked_fraud"
+                : "commission.canceled",
+            description: `Commission ${commissionId} marked as ${status}`,
+            actor: user,
+            targets: [
+              {
+                type: "commission",
+                id: commissionId,
+                metadata: commission,
+              },
+            ],
+          }),
+        ]);
+      })(),
     );
   });

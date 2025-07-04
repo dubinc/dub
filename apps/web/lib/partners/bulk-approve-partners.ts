@@ -6,8 +6,10 @@ import { prisma } from "@dub/prisma";
 import { chunk, isFulfilled } from "@dub/utils";
 import { Partner, ProgramEnrollment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { bulkCreateLinks } from "../api/links";
 import { generatePartnerLink } from "../api/partners/create-partner-link";
+import { Session } from "../auth/utils";
 import {
   DiscountProps,
   ProgramWithLanderDataProps,
@@ -24,14 +26,14 @@ export async function bulkApprovePartners({
   programEnrollments,
   rewards,
   discount,
-  userId,
+  user,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: ProgramWithLanderDataProps;
   programEnrollments: (ProgramEnrollment & { partner: Partner })[];
   rewards: RewardProps[];
   discount: DiscountProps | null;
-  userId: string;
+  user: Session["user"];
 }) {
   await prisma.programEnrollment.updateMany({
     where: {
@@ -69,7 +71,7 @@ export async function bulkApprovePartners({
                   name: partner.name,
                   email: partner.email!,
                 },
-                userId,
+                userId: user.id,
                 partnerId: partner.id,
               }),
             ),
@@ -122,6 +124,23 @@ export async function bulkApprovePartners({
               ),
             }),
           }),
+        ),
+
+        recordAuditLog(
+          programEnrollments.map(({ partner }) => ({
+            workspaceId: workspace.id,
+            programId: program.id,
+            action: "partner_application.approved",
+            description: `Partner application approved for ${partner.id}`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: partner.id,
+                metadata: partner,
+              },
+            ],
+          })),
         ),
       ]);
     })(),

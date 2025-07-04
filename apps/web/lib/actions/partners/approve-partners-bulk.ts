@@ -28,6 +28,7 @@ export const approvePartnersBulkAction = authActionClient
           discounts: true,
         },
       }),
+
       prisma.programEnrollment.findMany({
         where: {
           programId: programId,
@@ -54,8 +55,8 @@ export const approvePartnersBulkAction = authActionClient
       workspace,
       program: programWithLanderData,
       programEnrollments,
-      userId: user.id,
       rewards,
       discount,
+      user,
     });
   });

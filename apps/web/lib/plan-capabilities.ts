@@ -10,5 +10,6 @@ export const getPlanCapabilities = (
     canManageCustomers: !!plan && !["free", "pro"].includes(plan),
     canManageProgram: !!plan && !["free", "pro"].includes(plan),
     canTrackConversions: !!plan && !["free", "pro"].includes(plan),
+    canExportAuditLogs: !!plan && ["enterprise"].includes(plan),
   };
 };

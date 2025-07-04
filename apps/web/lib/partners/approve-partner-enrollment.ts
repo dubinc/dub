@@ -3,6 +3,7 @@ import { sendEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
+import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { getLinkOrThrow } from "../api/links/get-link-or-throw";
 import { createPartnerLink } from "../api/partners/create-partner-link";
 import { recordLink } from "../tinybird/record-link";
@@ -130,6 +131,16 @@ export async function approvePartnerEnrollment({
 
   waitUntil(
     (async () => {
+      const user = await prisma.user.findUniqueOrThrow({
+        where: {
+          id: userId,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      });
+
       const enrolledPartner = EnrolledPartnerSchema.parse({
         ...partner,
         ...enrollment,
@@ -165,6 +176,21 @@ export async function approvePartnerEnrollment({
           workspace,
           trigger: "partner.enrolled",
           data: enrolledPartner,
+        }),
+
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "partner_application.approved",
+          description: `Partner application approved for ${partner.id}`,
+          actor: user,
+          targets: [
+            {
+              type: "partner",
+              id: partner.id,
+              metadata: partner,
+            },
+          ],
         }),
       ]);
     })(),
