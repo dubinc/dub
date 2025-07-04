@@ -115,7 +115,7 @@ export const createAndEnrollPartner = async ({
   };
 
   const finalAssignedDiscount = discountId
-    ? allDiscounts.find((d) => d.id === discountId)?.id
+    ? allDiscounts.find((d) => d.id === discountId)?.id // we need to filter by this in case an invalid discountId is passed
     : allDiscounts.find((d) => d.default)?.id;
 
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
