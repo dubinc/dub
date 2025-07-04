@@ -67,6 +67,7 @@ const config: Pick<Config, "presets"> = {
             "caret-blink": "caret-blink 1s ease-out infinite",
             "pulse-scale": "pulse-scale 6s ease-out infinite",
             "gradient-move": "gradient-move 5s linear infinite",
+            "prevent-mobile-scroll": "prevent-mobile-scroll 0.01s",
           },
           keyframes: {
             ...sharedConfig?.theme?.extend?.keyframes,
@@ -113,9 +114,25 @@ const config: Pick<Config, "presets"> = {
               "0%": { backgroundPosition: "0% 50%" },
               "100%": { backgroundPosition: "200% 50%" },
             },
+            "prevent-mobile-scroll": {
+              "0%": { opacity: "0" },
+              "100%": { opacity: "1" },
+            },
           },
         },
       },
+      plugins: [
+        ...sharedConfig.plugins || [],
+        function({ addUtilities }) {
+          addUtilities({
+            '.prevent-ios-scroll': {
+              '&:focus': {
+                animation: 'prevent-mobile-scroll 0.01s',
+              },
+            },
+          });
+        },
+      ],
     },
   ],
 };

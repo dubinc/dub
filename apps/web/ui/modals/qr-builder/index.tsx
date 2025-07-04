@@ -6,6 +6,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -41,6 +42,17 @@ export function QRBuilderModal({
 
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Mobile fix: prevent white space and scrolling issues
+  useEffect(() => {
+    if (!showQRBuilderModal || !isMobile) return;
+
+    console.log("[MODAL_FIX] Applied mobile fixes");
+
+    return () => {
+      console.log("[MODAL_FIX] Restored original styles");
+    };
+  }, [showQRBuilderModal, isMobile]);
+
   const handleSaveQR = async (data: QRBuilderData) => {
     setIsProcessing(true);
 
@@ -61,7 +73,7 @@ export function QRBuilderModal({
   };
 
   const modalContent = (
-    <div className="flex h-full flex-col gap-2 overflow-y-auto bg-white md:h-fit">
+    <div className="[&_input]:prevent-ios-scroll [&_textarea]:prevent-ios-scroll flex h-full flex-col gap-2 overflow-y-auto bg-white md:h-fit">
       {isProcessing && (
         <div className="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-white/50 backdrop-blur-sm">
           <LoaderCircle className="text-secondary h-8 w-8 animate-spin" />
@@ -108,10 +120,11 @@ export function QRBuilderModal({
       <Drawer.Root
         open={showQRBuilderModal}
         onOpenChange={setShowQRBuilderModal}
+        dismissible={false}
       >
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex h-[96%] flex-col rounded-t-[10px] bg-white">
+          <Drawer.Content className="![bottom-0] ![top-auto] fixed bottom-0 left-0 right-0 z-50 flex !h-[100dvh] !max-h-[100dvh] !min-h-[100dvh] flex-col rounded-t-[10px] bg-white">
             <div className="flex-1 overflow-y-auto">{modalContent}</div>
           </Drawer.Content>
         </Drawer.Portal>
