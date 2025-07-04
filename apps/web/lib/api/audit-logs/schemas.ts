@@ -71,6 +71,12 @@ const actionSchema = z.enum([
   // Commissions & clawbacks
   "commission.created",
   "clawback.created",
+
+  // TODO:
+  // Finalize the action names
+  "commission.canceled",
+  "commission.marked_fraud",
+  "commission.marked_duplicate",
 ]);
 
 export const auditLogTarget = z.union([
