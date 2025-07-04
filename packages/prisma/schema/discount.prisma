@@ -14,5 +14,8 @@ model Discount {
   programEnrollments ProgramEnrollment[]
   program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   
+  // TODO: remove after https://github.com/dubinc/dub/pull/2611 + https://github.com/dubinc/dub/pull/2595 merges
+  defaultForProgram  Program?            @relation("ProgramDefaultDiscount")
+  
   @@index(programId)
 }
