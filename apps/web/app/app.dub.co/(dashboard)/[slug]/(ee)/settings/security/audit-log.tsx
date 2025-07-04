@@ -1,5 +1,6 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Button, TooltipContent } from "@dub/ui";
@@ -17,7 +18,7 @@ export function AuditLog() {
   const { plan, slug, id: workspaceId } = useWorkspace();
   const [dateRange, setDateRange] = useState(defaultDateRange);
 
-  const isEnterprise = plan === "enterprise";
+  const { canExportAuditLogs } = getPlanCapabilities(plan);
 
   const exportAuditLogs = async () => {
     if (!workspaceId) {
@@ -78,7 +79,8 @@ export function AuditLog() {
           <SimpleDateRangePicker
             className="w-full sm:max-w-xs"
             align="start"
-            disabled={!isEnterprise}
+            disabled={!canExportAuditLogs}
+            defaultInterval="month"
           />
 
           <Button
@@ -86,7 +88,7 @@ export function AuditLog() {
             variant="secondary"
             className="w-full sm:w-auto"
             disabledTooltip={
-              !isEnterprise && (
+              !canExportAuditLogs && (
                 <TooltipContent
                   title="Audit log export is only available on the Enterprise Plan."
                   cta="Contact sales"
@@ -95,14 +97,14 @@ export function AuditLog() {
                 />
               )
             }
-            disabled={!isEnterprise}
+            disabled={!canExportAuditLogs}
             onClick={exportAuditLogs}
             loading={loading}
           />
         </div>
       </div>
 
-      {!isEnterprise && (
+      {!canExportAuditLogs && (
         <div className="flex items-center justify-between rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-3 py-3 sm:px-10">
           <span className="text-sm text-neutral-500">
             Audit logs are available on the{" "}
