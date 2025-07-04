@@ -1,8 +1,9 @@
 import { tb } from "@/lib/tinybird";
 import { z } from "zod";
+import { prefixWorkspaceId } from "../workspace-id";
 
 export const auditLogFilterSchemaTB = z.object({
-  workspaceId: z.string(),
+  workspaceId: z.string().transform(prefixWorkspaceId),
   programId: z.string(),
   start: z.string(),
   end: z.string(),

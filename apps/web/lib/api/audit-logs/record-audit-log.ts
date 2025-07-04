@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { createId } from "../create-id";
 import { getIP } from "../utils";
+import { prefixWorkspaceId } from "../workspace-id";
 import { auditLogSchemaTB, recordAuditLogInputSchema } from "./schemas";
 
 type AuditLogInput = z.infer<typeof recordAuditLogInputSchema>;
@@ -23,7 +24,7 @@ const transformAuditLogTB = (data: AuditLogInput) => {
   return {
     id: createId({ prefix: "audit_" }),
     timestamp: new Date().toISOString(),
-    workspace_id: auditLogInput.workspaceId,
+    workspace_id: prefixWorkspaceId(auditLogInput.workspaceId),
     program_id: auditLogInput.programId,
     action: auditLogInput.action,
     actor_id: auditLogInput.actor.id,
