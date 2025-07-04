@@ -1,6 +1,6 @@
 "use client";
 
-import { AuditLog } from "./audit-log";
+import { AuditLogs } from "./audit-logs";
 import { SAML } from "./saml";
 import { SCIM } from "./scim";
 
@@ -9,7 +9,7 @@ export default function WorkspaceSecurityClient() {
     <>
       <SAML />
       <SCIM />
-      <AuditLog />
+      <AuditLogs />
     </>
   );
 }

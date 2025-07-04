@@ -8,16 +8,9 @@ import { subMonths } from "date-fns";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const defaultDateRange = {
-  from: subMonths(new Date(), 12),
-  to: new Date(),
-} as const;
-
-export function AuditLog() {
+export function AuditLogs() {
   const [loading, setLoading] = useState(false);
   const { plan, slug, id: workspaceId } = useWorkspace();
-  const [dateRange, setDateRange] = useState(defaultDateRange);
-
   const { canExportAuditLogs } = getPlanCapabilities(plan);
 
   const exportAuditLogs = async () => {
@@ -35,8 +28,8 @@ export function AuditLog() {
         {
           method: "POST",
           body: JSON.stringify({
-            start: dateRange.from.toISOString(),
-            end: dateRange.to.toISOString(),
+            start: subMonths(new Date(), 12).toISOString(),
+            end: new Date().toISOString(),
           }),
           headers: {
             "Content-Type": "application/json",
