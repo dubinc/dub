@@ -60,8 +60,6 @@ export const updateDiscountAction = authActionClient
           `Invalid partner IDs provided: ${invalidPartnerIds.join(", ")}`,
         );
       }
-
-      // TODO: A partner can have only one discount per program
     }
 
     const updatedDiscount = await prisma.discount.update({
