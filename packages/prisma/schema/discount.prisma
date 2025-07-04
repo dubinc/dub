@@ -1,18 +1,15 @@
 model Discount {
-  id String @id @default(cuid())
-
-  amount      Int             @default(0)
-  type        RewardStructure @default(percentage)
-  maxDuration Int? // in months (0 -> not recurring, null -> lifetime)
-  description String?
-
+  id           String          @id @default(cuid())
+  amount       Int             @default(0)
+  type         RewardStructure @default(percentage)
+  maxDuration  Int? // in months (0 -> not recurring, null -> lifetime)
+  description  String?
+  default      Boolean         @default(false)
   couponId     String?
   couponTestId String?
-
-  programId String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  programId    String
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   programEnrollments ProgramEnrollment[]
   defaultForProgram  Program?            @relation("ProgramDefaultDiscount")

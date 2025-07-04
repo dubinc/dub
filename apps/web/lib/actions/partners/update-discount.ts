@@ -16,12 +16,13 @@ export const updateDiscountAction = authActionClient
     const { workspace } = ctx;
     const {
       discountId,
-      partnerIds,
       amount,
       type,
       maxDuration,
       couponId,
       couponTestId,
+      includedPartnerIds,
+      excludedPartnerIds,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
