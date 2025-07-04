@@ -70,7 +70,7 @@ export function AuditLog() {
     <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col gap-6 p-5 sm:p-10">
         <div className="flex flex-col gap-1.5">
-          <h2 className="text-xl font-semibold">Audit Log</h2>
+          <h2 className="text-xl font-semibold">Audit Logs</h2>
           <p className="text-sm text-neutral-500">
             Workspace partner and payout history
           </p>
