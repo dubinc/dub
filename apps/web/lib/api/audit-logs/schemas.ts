@@ -103,6 +103,7 @@ export const auditLogTarget = z.union([
       termsUrl: true,
       holdingPeriodDays: true,
       minPayoutAmount: true,
+      autoApprovePartnersEnabledAt: true,
     }).optional(),
   }),
 
@@ -135,16 +136,6 @@ export const auditLogTarget = z.union([
       name: true,
       email: true,
     }),
-  }),
-
-  z.object({
-    type: z.literal("program"),
-    id: z.string(),
-    metadata: ProgramSchema.pick({
-      name: true,
-      supportEmail: true,
-      autoApprovePartnersEnabledAt: true,
-    }).optional(),
   }),
 
   z.object({
