@@ -1,12 +1,11 @@
 import { tb } from "@/lib/tinybird";
+import { log } from "@dub/utils";
 import { ipAddress } from "@vercel/functions";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createId } from "../create-id";
 import { getIP } from "../utils";
 import { auditLogSchemaTB, recordAuditLogInputSchema } from "./schemas";
-
-const DEBUG_AUDIT_LOGS = false;
 
 type AuditLogInput = z.infer<typeof recordAuditLogInputSchema>;
 
@@ -45,16 +44,21 @@ export const recordAuditLog = async (data: AuditLogInput | AuditLogInput[]) => {
     ? data.map(transformAuditLogTB)
     : [transformAuditLogTB(data)];
 
-  if (DEBUG_AUDIT_LOGS) {
-    console.log(auditLogs);
+  try {
+    await recordAuditLogTB(auditLogs);
+  } catch (error) {
+    console.error(
+      "Failed to record audit log",
+      error,
+      JSON.stringify(auditLogs),
+    );
+
+    await log({
+      message: "Failed to record audit log. See logs for more details.",
+      type: "errors",
+      mention: true,
+    });
   }
-
-  await recordAuditLogTB(auditLogs).catch((error) => {
-    console.error("Failed to record audit log", error, auditLogs);
-
-    // TODO:
-    // Send a Slack notification
-  });
 };
 
 const recordAuditLogTB = tb.buildIngestEndpoint({
