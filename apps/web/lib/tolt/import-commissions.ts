@@ -154,33 +154,6 @@ async function createCommission({
     return;
   }
 
-  // here, we also check for commissions that have already been recorded on Dub
-  // e.g. during the transition period
-  // since we don't have the Stripe invoiceId from Rewardful, we use the referral's Stripe customer ID
-  // and check for commissions that were created with the same amount and within a +-1 hour window
-  // const chargedAt = new Date(sale.created_at);
-  // const trackedCommission = await prisma.commission.findFirst({
-  //   where: {
-  //     programId,
-  //     type: "sale",
-  //     customer: {
-  //       stripeCustomerId: sale.referral.stripe_customer_id,
-  //     },
-  //     amount: Number(sale.amount),
-  //     createdAt: {
-  //       gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
-  //       lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
-  //     },
-  //   },
-  // });
-
-  // if (trackedCommission) {
-  //   console.log(
-  //     `Commission ${trackedCommission.id} was already recorded on Dub, skipping...`,
-  //   );
-  //   return;
-  // }
-
   const customerFound = await prisma.customer.findFirst({
     where: {
       projectId: workspaceId,
@@ -197,6 +170,33 @@ async function createCommission({
   if (!customerFound) {
     console.log(
       `No customer found for customer email ${customer.email}, skipping...`,
+    );
+    return;
+  }
+
+  // here, we also check for commissions that have already been recorded on Dub
+  // e.g. during the transition period
+  // since we don't have the Stripe invoiceId from Tolt, we use the referral's customer ID
+  // and check for commissions that were created with the same amount and within a +-1 hour window
+  const chargedAt = new Date(sale.created_at);
+  const trackedCommission = await prisma.commission.findFirst({
+    where: {
+      programId,
+      type: "sale",
+      customer: {
+        id: customerFound.id,
+      },
+      amount: Number(sale.amount),
+      createdAt: {
+        gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
+        lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
+      },
+    },
+  });
+
+  if (trackedCommission) {
+    console.log(
+      `Commission ${trackedCommission.id} was already recorded on Dub, skipping...`,
     );
     return;
   }
