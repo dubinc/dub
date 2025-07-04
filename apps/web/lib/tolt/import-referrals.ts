@@ -6,7 +6,7 @@ import { recordClick, recordLeadWithTimestamp } from "../tinybird";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
-import { ToltCustomer } from "./types";
+import { ToltAffiliate, ToltCustomer } from "./types";
 
 export async function importReferrals({
   programId,
@@ -98,6 +98,7 @@ export async function importReferrals({
         createReferral({
           workspace,
           customer,
+          partner,
           links: partnerEmailToLinks.get(partner.email) ?? [],
         }),
       ),
@@ -121,13 +122,18 @@ async function createReferral({
   customer,
   workspace,
   links,
+  partner,
 }: {
   customer: Omit<ToltCustomer, "partner">;
+  partner: ToltAffiliate;
   workspace: Pick<Project, "id" | "stripeConnectId">;
   links: Pick<Link, "id" | "key" | "domain" | "url">[];
 }) {
   if (links.length === 0) {
-    console.log(`Link not found for referral ${customer.id}, skipping...`);
+    console.log("Link not found for referral, skipping...", {
+      customerEmail: customer.email,
+      partnerEmail: partner.email,
+    });
     return;
   }
 
@@ -221,6 +227,6 @@ async function createReferral({
       }),
     ]);
   } catch (error) {
-    console.error("error creating customer", customer, error);
+    console.error("Error creating customer", customer, error);
   }
 }

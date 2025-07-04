@@ -1,8 +1,10 @@
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
-import { bulkCreateLinks } from "../api/links";
+import { createLink } from "../api/links";
+import { generatePartnerLink } from "../api/partners/create-partner-link";
+import { ProgramProps, WorkspaceProps } from "../types";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
+import { ToltLink } from "./types";
 
 export async function importLinks({
   programId,
@@ -15,10 +17,15 @@ export async function importLinks({
     where: {
       id: programId,
     },
+    include: {
+      workspace: true,
+    },
   });
 
+  const { workspace } = program;
+
   const { token, toltProgramId, userId } = await toltImporter.getCredentials(
-    program.workspaceId,
+    workspace.id,
   );
 
   const toltApi = new ToltApi({ token });
@@ -49,26 +56,35 @@ export async function importLinks({
       },
     });
 
+    // map partner emails to partner ids
     const partnerMap = new Map(partners.map(({ email, id }) => [email, id]));
 
+    // filter links to only include links with a partner
     const partnerLinks = links.filter((link) =>
       partnerMap.has(link.partner.email),
     );
 
     if (partnerLinks.length > 0) {
-      await bulkCreateLinks({
-        links: partnerLinks.map((link) => ({
+      for (const link of partnerLinks) {
+        const partnerId = partnerMap.get(link.partner.email);
+
+        if (!partnerId) {
+          console.log("Partner not found", link.partner.email);
+          continue;
+        }
+
+        const linkCreated = await createPartnerLink({
+          workspace: workspace as WorkspaceProps,
+          program,
+          link,
+          partnerId,
           userId,
-          programId,
-          projectId: program.workspaceId,
-          partnerId: partnerMap.get(link.partner.email),
-          folderId: program.defaultFolderId,
-          domain: program.domain!,
-          key: link.value || nanoid(),
-          url: program.url!,
-          trackConversion: true,
-        })),
-      });
+        });
+
+        if (linkCreated?.key !== link.value) {
+          console.log("linkCreated", linkCreated?.key, link.value);
+        }
+      }
     }
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -82,4 +98,51 @@ export async function importLinks({
     action: hasMore ? "import-links" : "import-referrals",
     ...(hasMore && { startingAfter }),
   });
+}
+
+async function createPartnerLink({
+  workspace,
+  program,
+  link,
+  partnerId,
+  userId,
+}: {
+  workspace: WorkspaceProps;
+  program: ProgramProps;
+  link: ToltLink;
+  partnerId: string;
+  userId: string;
+}) {
+  const linkFound = await prisma.link.findFirst({
+    where: {
+      domain: program.domain!,
+      key: link.value,
+    },
+    select: {
+      partnerId: true,
+    },
+  });
+
+  if (linkFound?.partnerId === partnerId) {
+    console.error(
+      `Partner ${link.partner.email} already has a link with key ${link.value}`,
+    );
+    return null;
+  }
+
+  try {
+    const partnerLink = await generatePartnerLink({
+      workspace,
+      program,
+      partner: link.partner,
+      key: link.value,
+      partnerId,
+      userId,
+    });
+
+    return createLink(partnerLink);
+  } catch (error) {
+    console.error("Error creating partner link", error, link);
+    return null;
+  }
 }
