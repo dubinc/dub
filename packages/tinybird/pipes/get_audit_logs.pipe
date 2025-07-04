@@ -11,7 +11,7 @@ SQL >
         actor_name,
         targets,
         description,
-        location,
+        ip_address,
         user_agent,
         metadata
     FROM dub_audit_logs
