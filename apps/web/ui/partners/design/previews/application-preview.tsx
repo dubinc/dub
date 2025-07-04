@@ -6,7 +6,7 @@ import { useWatch } from "react-hook-form";
 import { ProgramApplicationForm } from "../../lander/program-application-form";
 import { useBrandingFormContext } from "../branding-form";
 import { PreviewWindow } from "../preview-window";
-import { RewardsPreview } from "../rewards-preview";
+import { RewardsDiscountsPreview } from "../rewards-discounts-preview";
 
 // Currently unused, but will be needed when we add form customization
 export function ApplicationPreview({
@@ -89,7 +89,7 @@ export function ApplicationPreview({
           {/* Program rewards */}
           <div className="mx-auto mt-6 max-w-screen-sm">
             <div className="px-6">
-              <RewardsPreview program={program} />
+              <RewardsDiscountsPreview />
             </div>
           </div>
 

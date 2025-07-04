@@ -3,13 +3,12 @@
 import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import useDiscounts from "@/lib/swr/use-discounts";
 import useRewards from "@/lib/swr/use-rewards";
-import { ProgramProps } from "@/lib/types";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { LoadingSpinner } from "@dub/ui";
 import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "./branding-form";
 
-export function RewardsPreview({ program }: { program: ProgramProps }) {
+export function RewardsDiscountsPreview() {
   const { getValues } = useBrandingFormContext();
   const { landerData } = {
     ...useWatch(),

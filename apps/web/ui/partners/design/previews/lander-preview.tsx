@@ -30,7 +30,7 @@ import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "../branding-form";
 import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
 import { useEditRewardsModal } from "../modals/edit-rewards-modal";
-import { RewardsPreview } from "../rewards-preview";
+import { RewardsDiscountsPreview } from "../rewards-discounts-preview";
 
 export function LanderPreview({
   program,
@@ -192,7 +192,7 @@ export function LanderPreview({
               <EditToolbar onEdit={() => setShowEditRewardsModal(true)} />
               <div className="relative mx-auto max-w-screen-sm py-4">
                 <div className="px-6">
-                  <RewardsPreview program={program} />
+                  <RewardsDiscountsPreview />
                 </div>
               </div>
             </div>
