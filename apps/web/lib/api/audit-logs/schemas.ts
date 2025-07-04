@@ -23,23 +23,6 @@ export const auditLogSchemaTB = z.object({
   metadata: z.string().nullable(),
 });
 
-// Schema that represents the audit log in the CSV file
-export const auditLogSchema = z.object({
-  id: z.string(),
-  timestamp: z.string(),
-  workspaceId: z.string(),
-  programId: z.string(),
-  action: z.string(),
-  actorId: z.string(),
-  actorType: z.string(),
-  actorName: z.string(),
-  description: z.string(),
-  targets: z.array(z.record(z.string(), z.any())).nullable(),
-  ipAddress: z.string().nullable(),
-  userAgent: z.string().nullable(),
-  metadata: z.record(z.string(), z.any()).nullable(),
-});
-
 const actionSchema = z.enum([
   // Program
   "program.created",
