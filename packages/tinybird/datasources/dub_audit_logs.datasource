@@ -9,7 +9,7 @@ SCHEMA >
   `actor_name` String `json:$.actor_name`,
   `targets` String `json:$.targets`,
   `description` String `json:$.description`,
-  `location` String `json:$.location`,
+  `ip_address` String `json:$.ip_address`,
   `user_agent` String `json:$.user_agent`,
   `metadata` String `json:$.metadata`
 

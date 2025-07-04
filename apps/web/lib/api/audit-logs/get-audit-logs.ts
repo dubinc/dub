@@ -16,7 +16,7 @@ export const auditLogResponseSchemaTB = z.object({
   actor_type: z.string(),
   actor_name: z.string(),
   description: z.string(),
-  location: z.string(),
+  ip_address: z.string(),
   user_agent: z.string(),
   targets: z.string(),
   metadata: z.string(),

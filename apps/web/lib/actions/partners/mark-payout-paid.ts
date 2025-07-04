@@ -48,21 +48,19 @@ export const markPayoutPaidAction = authActionClient
     ]);
 
     waitUntil(
-      (async () => {
-        await recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "payout.marked_paid",
-          description: `Payout ${payout.id} marked as paid`,
-          actor: user,
-          targets: [
-            {
-              type: "payout",
-              id: payout.id,
-              metadata: payout,
-            },
-          ],
-        });
-      })(),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "payout.marked_paid",
+        description: `Payout ${payout.id} marked as paid`,
+        actor: user,
+        targets: [
+          {
+            type: "payout",
+            id: payout.id,
+            metadata: payout,
+          },
+        ],
+      }),
     );
   });

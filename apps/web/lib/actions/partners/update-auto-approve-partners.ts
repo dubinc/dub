@@ -30,19 +30,17 @@ export const updateAutoApprovePartnersAction = authActionClient
     });
 
     waitUntil(
-      (async () => {
-        await recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: autoApprovePartners
-            ? "auto_approve_partner.enabled"
-            : "auto_approve_partner.disabled",
-          description: autoApprovePartners
-            ? "Auto approve partners enabled"
-            : "Auto approve partners disabled",
-          actor: user,
-        });
-      })(),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: autoApprovePartners
+          ? "auto_approve_partner.enabled"
+          : "auto_approve_partner.disabled",
+        description: autoApprovePartners
+          ? "Auto approve partners enabled"
+          : "Auto approve partners disabled",
+        actor: user,
+      }),
     );
 
     return program;

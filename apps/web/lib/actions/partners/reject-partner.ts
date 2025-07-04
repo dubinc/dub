@@ -42,21 +42,19 @@ export const rejectPartnerAction = authActionClient
     });
 
     waitUntil(
-      (async () => {
-        await recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "partner_application.rejected",
-          description: `Partner application rejected for ${partnerId}`,
-          actor: user,
-          targets: [
-            {
-              type: "partner",
-              id: partnerId,
-              metadata: programEnrollment.partner,
-            },
-          ],
-        });
-      })(),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "partner_application.rejected",
+        description: `Partner application rejected for ${partnerId}`,
+        actor: user,
+        targets: [
+          {
+            type: "partner",
+            id: partnerId,
+            metadata: programEnrollment.partner,
+          },
+        ],
+      }),
     );
   });

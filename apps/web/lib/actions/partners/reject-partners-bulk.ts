@@ -47,23 +47,21 @@ export const rejectPartnersBulkAction = authActionClient
     });
 
     waitUntil(
-      (async () => {
-        await recordAuditLog(
-          programEnrollments.map(({ partner }) => ({
-            workspaceId: workspace.id,
-            programId,
-            action: "partner_application.rejected",
-            description: `Partner application rejected for ${partner.id}`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partner.id,
-                metadata: partner,
-              },
-            ],
-          })),
-        );
-      })(),
+      recordAuditLog(
+        programEnrollments.map(({ partner }) => ({
+          workspaceId: workspace.id,
+          programId,
+          action: "partner_application.rejected",
+          description: `Partner application rejected for ${partner.id}`,
+          actor: user,
+          targets: [
+            {
+              type: "partner",
+              id: partner.id,
+              metadata: partner,
+            },
+          ],
+        })),
+      ),
     );
   });

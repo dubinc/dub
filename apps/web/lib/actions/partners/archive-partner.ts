@@ -39,22 +39,19 @@ export const archivePartnerAction = authActionClient
     });
 
     waitUntil(
-      (async () => {
-        await recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action:
-            status === "archived" ? "partner.archived" : "partner.approved",
-          description: `Partner ${partnerId} ${status}`,
-          actor: user,
-          targets: [
-            {
-              type: "partner",
-              id: partnerId,
-              metadata: partner,
-            },
-          ],
-        });
-      })(),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: status === "archived" ? "partner.archived" : "partner.approved",
+        description: `Partner ${partnerId} ${status}`,
+        actor: user,
+        targets: [
+          {
+            type: "partner",
+            id: partnerId,
+            metadata: partner,
+          },
+        ],
+      }),
     );
   });

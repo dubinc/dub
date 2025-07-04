@@ -83,22 +83,20 @@ export const updateRewardAction = authActionClient
     }
 
     waitUntil(
-      (async () => {
-        await recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "reward.updated",
-          description: `Reward ${rewardId} updated`,
-          actor: user,
-          targets: [
-            {
-              type: "reward",
-              id: rewardId,
-              metadata: updatedReward,
-            },
-          ],
-        });
-      })(),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "reward.updated",
+        description: `Reward ${rewardId} updated`,
+        actor: user,
+        targets: [
+          {
+            type: "reward",
+            id: rewardId,
+            metadata: updatedReward,
+          },
+        ],
+      }),
     );
   });
 

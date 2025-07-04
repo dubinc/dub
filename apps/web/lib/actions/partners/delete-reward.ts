@@ -64,21 +64,19 @@ export const deleteRewardAction = authActionClient
     });
 
     waitUntil(
-      (async () => {
-        await recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "reward.deleted",
-          description: `Reward ${rewardId} deleted`,
-          actor: user,
-          targets: [
-            {
-              type: "reward",
-              id: rewardId,
-              metadata: reward,
-            },
-          ],
-        });
-      })(),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "reward.deleted",
+        description: `Reward ${rewardId} deleted`,
+        actor: user,
+        targets: [
+          {
+            type: "reward",
+            id: rewardId,
+            metadata: reward,
+          },
+        ],
+      }),
     );
   });

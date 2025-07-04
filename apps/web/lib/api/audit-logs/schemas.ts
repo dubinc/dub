@@ -18,7 +18,7 @@ export const auditLogSchemaTB = z.object({
   actor_name: z.string(),
   description: z.string(),
   targets: z.string().nullable(),
-  location: z.string().nullable(),
+  ip_address: z.string().nullable(),
   user_agent: z.string().nullable(),
   metadata: z.string().nullable(),
 });
@@ -35,7 +35,7 @@ export const auditLogSchema = z.object({
   actorName: z.string(),
   description: z.string(),
   targets: z.array(z.record(z.string(), z.any())).nullable(),
-  location: z.string().nullable(),
+  ipAddress: z.string().nullable(),
   userAgent: z.string().nullable(),
   metadata: z.record(z.string(), z.any()).nullable(),
 });
@@ -77,9 +77,6 @@ const actionSchema = z.enum([
   "commission.created",
   "commission.updated",
   "clawback.created",
-
-  // TODO:
-  // Finalize the action names
   "commission.canceled",
   "commission.marked_fraud",
   "commission.marked_duplicate",
@@ -167,7 +164,7 @@ export const recordAuditLogInputSchema = z.object({
     type: z.string().nullish(),
   }),
   description: z.string().nullish(),
-  location: z.string().nullish(),
+  ipAddress: z.string().nullish(),
   userAgent: z.string().nullish(),
   targets: z.array(auditLogTarget).nullish(),
   metadata: z.record(z.string(), z.any()).nullish(),

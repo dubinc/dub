@@ -1,6 +1,6 @@
 import { tb } from "@/lib/tinybird";
 import { log } from "@dub/utils";
-import { ipAddress } from "@vercel/functions";
+import { ipAddress as getIPAddress } from "@vercel/functions";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createId } from "../create-id";
@@ -11,12 +11,12 @@ type AuditLogInput = z.infer<typeof recordAuditLogInputSchema>;
 
 const transformAuditLogTB = (data: AuditLogInput) => {
   const headersList = headers();
-  const location = data.req ? ipAddress(data.req) : getIP();
+  const ipAddress = data.req ? getIPAddress(data.req) : getIP();
   const userAgent = headersList.get("user-agent");
 
   const auditLogInput = recordAuditLogInputSchema.parse({
     ...data,
-    location,
+    ipAddress,
     userAgent,
   });
 
@@ -34,7 +34,7 @@ const transformAuditLogTB = (data: AuditLogInput) => {
     metadata: auditLogInput.metadata
       ? JSON.stringify(auditLogInput.metadata)
       : "",
-    location: location || "",
+    ip_address: ipAddress || "",
     user_agent: userAgent || "",
   };
 };
