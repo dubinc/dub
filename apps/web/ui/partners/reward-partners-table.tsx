@@ -40,7 +40,10 @@ export function RewardPartnersTable({
 
   // Create a map for faster partner lookups
   const partnersMap = useMemo(() => {
-    if (!searchPartners) return new Map();
+    if (!searchPartners) {
+      return new Map();
+    }
+
     return new Map(
       searchPartners.map((partner) => [
         partner.id,

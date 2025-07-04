@@ -172,7 +172,7 @@ const Discount = ({
               <ProgramRewardDescription discount={discount} />
             </span>
           </div>
-          {discount.partnersCount && discount?.partnersCount > 0 ? (
+          {!isDefault ? (
             <Badge variant="green">{discount.partnersCount} partners</Badge>
           ) : (
             <Badge variant="gray">All partners</Badge>

@@ -29,16 +29,12 @@ export const deleteDiscountAction = authActionClient
       programId,
     });
 
-    await getDiscountOrThrow({
+    const discount = await getDiscountOrThrow({
       programId,
       discountId,
     });
 
-    // Backup the partners data before deleting the discount
-    // We'll use this data to update the link cache for the partner links
-    const isDefault = program.defaultDiscountId === discountId;
-
-    if (!isDefault) {
+    if (!discount.default) {
       let offset = 0;
 
       while (true) {
@@ -68,28 +64,35 @@ export const deleteDiscountAction = authActionClient
     }
 
     const deletedDiscountId = await prisma.$transaction(async (tx) => {
-      // if this is the default discount, set the program default discount to null
-      if (isDefault) {
-        await tx.program.update({
-          where: { id: programId },
-          data: { defaultDiscountId: null },
-        });
-      }
-
-      // update all program enrollments to have no discount
-      await tx.programEnrollment.updateMany({
+      // 1. Find the default discount (if it exists)
+      const defaultDiscount = await tx.discount.findFirst({
         where: {
-          discountId,
-        },
-        data: {
-          discountId: null,
+          programId,
+          default: true,
         },
       });
 
-      // delete the discount
+      // 2. Update current associations
+      await tx.programEnrollment.updateMany({
+        where: {
+          programId,
+          discountId: discount.id,
+        },
+        data: {
+          // Replace the current discount with the default discount if it exists
+          // and the discount we're deleting is not the default discount
+          discountId: discount.default
+            ? null
+            : defaultDiscount
+              ? defaultDiscount.id
+              : null,
+        },
+      });
+
+      // 3. Finally, delete the current discount
       await tx.discount.delete({
         where: {
-          id: discountId,
+          id: discount.id,
         },
       });
 
@@ -103,7 +106,7 @@ export const deleteDiscountAction = authActionClient
           body: {
             programId,
             discountId,
-            isDefault,
+            isDefault: discount.default,
             action: "discount-deleted",
           },
         }),
