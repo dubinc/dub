@@ -3,6 +3,7 @@ import { toltImporter } from "./importer";
 
 const PARTNER_IDS_PER_BATCH = 100;
 
+// Remove partners that have no leads from the program
 export async function cleanupPartners({ programId }: { programId: string }) {
   let hasMore = true;
   let start = 0;
