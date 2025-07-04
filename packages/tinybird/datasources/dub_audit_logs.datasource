@@ -16,4 +16,4 @@ SCHEMA >
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
 ENGINE_SORTING_KEY "workspace_id, program_id, timestamp"
-ENGINE_TTL "timestamp + INTERVAL 1 YEAR"
+ENGINE_TTL "toDateTime(timestamp) + INTERVAL 1 YEAR"

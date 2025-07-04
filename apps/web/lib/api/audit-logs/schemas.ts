@@ -20,7 +20,7 @@ export const auditLogSchemaTB = z.object({
 });
 
 // Schema that represents the audit log in the CSV file
-export const AuditLogSchema = z.object({
+export const auditLogSchema = z.object({
   id: z.string(),
   timestamp: z.string(),
   workspaceId: z.string(),
@@ -36,7 +36,19 @@ export const AuditLogSchema = z.object({
   metadata: z.record(z.string(), z.any()).nullable(),
 });
 
-const RewardEvent = z.object({
+const actionSchema = z.enum([
+  // Rewards
+  "reward.created",
+  "reward.updated",
+  "reward.deleted",
+
+  // Discounts
+  "discount.created",
+  "discount.updated",
+  "discount.deleted",
+]);
+
+const rewardEvent = z.object({
   type: z.literal("reward"),
   id: z.string(),
   metadata: RewardSchema.pick({
@@ -47,31 +59,32 @@ const RewardEvent = z.object({
   }),
 });
 
-const DiscountEvent = z.object({
+const discountEvent = z.object({
   type: z.literal("discount"),
   id: z.string(),
   metadata: DiscountSchema.pick({
     type: true,
     amount: true,
     maxDuration: true,
+    couponId: true,
   }),
 });
 
-export const AuditLogEvent = z.union([RewardEvent, DiscountEvent]);
+export const auditLogEvent = z.union([rewardEvent, discountEvent]);
 
 export const recordAuditLogInputSchema = z.object({
   workspaceId: z.string(),
   programId: z.string(),
-  action: z.string(),
+  action: actionSchema,
   actor: z.object({
     id: z.string(),
-    name: z.string().nullable(),
-    type: z.string().optional(),
+    name: z.string().nullish(),
+    type: z.string().nullish(),
   }),
-  description: z.string().optional(),
-  location: z.string().optional(),
-  userAgent: z.string().optional(),
-  targets: z.array(AuditLogEvent).nullable(),
-  metadata: z.record(z.string(), z.any()).nullable(),
-  req: z.instanceof(Request).optional(),
+  description: z.string().nullish(),
+  location: z.string().nullish(),
+  userAgent: z.string().nullish(),
+  targets: z.array(auditLogEvent).nullish(),
+  metadata: z.record(z.string(), z.any()).nullish(),
+  req: z.instanceof(Request).nullish(),
 });
