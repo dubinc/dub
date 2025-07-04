@@ -27,6 +27,7 @@ export const approvePartnersBulkAction = authActionClient
           includeDefaultRewards: true,
         },
       ),
+
       prisma.programEnrollment.findMany({
         where: {
           programId: programId,
