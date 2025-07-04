@@ -17,11 +17,6 @@ export const determinePartnerDiscount = async ({
     },
     include: {
       discount: true,
-      program: {
-        include: {
-          defaultDiscount: true,
-        },
-      },
     },
   });
 
@@ -29,8 +24,7 @@ export const determinePartnerDiscount = async ({
     return null;
   }
 
-  const partnerDiscount =
-    programEnrollment.discount || programEnrollment.program.defaultDiscount;
+  const partnerDiscount = programEnrollment.discount;
 
   if (!partnerDiscount) {
     return null;

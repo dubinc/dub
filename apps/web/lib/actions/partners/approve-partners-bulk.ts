@@ -1,10 +1,10 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { bulkApprovePartners } from "@/lib/partners/bulk-approve-partners";
 import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import { approvePartnersBulkSchema } from "@/lib/zod/schemas/partners";
+import { ProgramWithLanderDataSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 
@@ -18,53 +18,41 @@ export const approvePartnersBulkAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [program, programEnrollments, allRewards, allDiscounts] =
-      await Promise.all([
-        getProgramOrThrow(
-          {
-            workspaceId: workspace.id,
-            programId,
+    const [program, programEnrollments] = await Promise.all([
+      prisma.program.findUniqueOrThrow({
+        where: {
+          id: programId,
+        },
+        include: {
+          rewards: true,
+          discounts: true,
+        },
+      }),
+      prisma.programEnrollment.findMany({
+        where: {
+          programId: programId,
+          status: "pending",
+          partnerId: {
+            in: partnerIds,
           },
-          {
-            includeDefaultRewards: true,
-            includeLanderData: true,
-          },
-        ),
-        prisma.programEnrollment.findMany({
-          where: {
-            programId: programId,
-            status: "pending",
-            partnerId: {
-              in: partnerIds,
-            },
-          },
-          include: {
-            partner: true,
-          },
-        }),
+        },
+        include: {
+          partner: true,
+        },
+      }),
+    ]);
 
-        prisma.reward.findMany({
-          where: {
-            programId,
-          },
-        }),
-
-        prisma.discount.findMany({
-          where: {
-            programId,
-          },
-        }),
-      ]);
+    const programWithLanderData = ProgramWithLanderDataSchema.parse(program);
 
     const { rewards, discount } = getProgramApplicationRewardsAndDiscount({
-      program,
-      rewards: allRewards,
-      discounts: allDiscounts,
+      rewards: program.rewards,
+      discounts: program.discounts,
+      program: programWithLanderData,
     });
 
     await bulkApprovePartners({
       workspace,
-      program,
+      program: programWithLanderData,
       programEnrollments,
       userId: user.id,
       rewards,

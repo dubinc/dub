@@ -30,11 +30,15 @@ export const getProgram = cache(
                 },
               },
         }),
-        ...(include?.includes("defaultDiscount") && {
-          defaultDiscount: true,
-        }),
-        ...(include?.includes("allDiscounts") && {
-          discounts: true,
+        ...((include?.includes("defaultDiscount") ||
+          include?.includes("allDiscounts")) && {
+          discounts: include.includes("allDiscounts")
+            ? true
+            : {
+                where: {
+                  default: true, // program-wide discounts only
+                },
+              },
         }),
       },
     });
