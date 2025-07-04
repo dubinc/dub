@@ -1,4 +1,4 @@
-// @ts-nocheck – this is a one-time migration script for
+// this is a one-time migration script for
 // when we migrate the program-wide discounts to the new schema
 
 import { prisma } from "@dub/prisma";
@@ -8,9 +8,6 @@ async function main() {
   // Migrate program-wide discounts
   const programDiscounts = await prisma.discount.findMany({
     where: {
-      defaultForProgram: {
-        isNot: null,
-      },
       default: false,
     },
     select: {
@@ -49,6 +46,7 @@ async function main() {
     const res2 = await prisma.programEnrollment.updateMany({
       where: {
         programId: discount.programId,
+        discountId: null,
       },
       data: {
         discountId,
