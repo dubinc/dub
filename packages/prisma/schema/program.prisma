@@ -62,7 +62,6 @@ model Program {
   commissions     Commission[]
   rewards         Reward[]
   discounts       Discount[]           @relation("ProgramDiscounts")
-  defaultDiscount Discount?            @relation("ProgramDefaultDiscount", fields: [defaultDiscountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index(workspaceId)
   @@index(domain)

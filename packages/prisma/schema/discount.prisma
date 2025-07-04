@@ -11,11 +11,11 @@ model Discount {
 
   programId String
 
+  default     Boolean         @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   programEnrollments ProgramEnrollment[]
-  defaultForProgram  Program?            @relation("ProgramDefaultDiscount")
   program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index(programId)
