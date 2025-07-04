@@ -66,7 +66,6 @@ const actionSchema = z.enum([
   "partner.unbanned",
   "partner.invited",
   "partner.approved",
-  "partner.invited",
   "partner.invite_deleted",
   "partner.invite_resent",
 
