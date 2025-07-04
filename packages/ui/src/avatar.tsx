@@ -15,10 +15,9 @@ export function getUserAvatarUrl(user?: User | null) {
   if (!user?.id) return "https://api.dub.co/og/avatar";
 
   const ogAvatar = `https://api.dub.co/og/avatar?seed=${encodeURIComponent(user.id)}`;
-  const encodedOGAvatar = `https://api.dub.co/og/avatar${encodeURIComponent(`?seed=${encodeURIComponent(user.id)}`)}`;
 
   return user.email
-    ? `https://www.gravatar.com/avatar/${sha256(user.email)}?d=${encodeURIComponent(encodedOGAvatar)}`
+    ? `https://0.gravatar.com/avatar/${sha256(user.email)}?d=${ogAvatar}`
     : ogAvatar;
 }
 
