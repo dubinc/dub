@@ -60,6 +60,7 @@ const actionSchema = z.enum([
   "partner_application.rejected",
 
   // Partner enrollments
+  "partner.created",
   "partner.archived",
   "partner.banned",
   "partner.unbanned",
@@ -75,6 +76,7 @@ const actionSchema = z.enum([
 
   // Commissions & clawbacks
   "commission.created",
+  "commission.updated",
   "clawback.created",
 
   // TODO:
