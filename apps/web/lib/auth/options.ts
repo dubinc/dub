@@ -48,19 +48,29 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       sendVerificationRequest({ identifier, url }) {
-        if (process.env.NODE_ENV === "development") {
-          console.log(`Login link: ${url}`);
-          return;
-        } else {
-          sendEmail({
+        const customerId = prisma.user.findUnique({
+          where: {
             email: identifier,
-            subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-            template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
-            messageData: {
-              url,
-            },
-          });
-        }
+          },
+          select: {
+            id: true,
+          },
+        }).then((user) => {
+          if (process.env.NODE_ENV === "development") {
+            console.log(`Login link: ${url}`);
+            return;
+          } else {
+            sendEmail({
+              email: identifier,
+              subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+              template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
+              messageData: {
+                url,
+              },
+              customerId: user?.id,
+            });
+          }
+        });
       },
     }),
     GoogleProvider({
