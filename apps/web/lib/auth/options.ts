@@ -94,7 +94,7 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       sendVerificationRequest({ identifier, url }) {
-        const customerId = prisma.user.findUnique({
+        prisma.user.findUnique({
           where: {
             email: identifier,
           },
