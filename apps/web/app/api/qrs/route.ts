@@ -111,6 +111,7 @@ export const POST = withWorkspace(
           qr_type: createdQr.qrType,
           url: HOME_DOMAIN,
         },
+        customerId: session?.user?.id,
       });
     }
 
