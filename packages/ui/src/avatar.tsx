@@ -14,7 +14,7 @@ export function getUserAvatarUrl(user?: User | null) {
 
   if (!user?.id) return "https://api.dub.co/og/avatar";
 
-  const ogAvatar = `https://api.dub.co/og/avatar?seed=${encodeURIComponent(user.id)}`;
+  const ogAvatar = `https://api.dub.co/og/avatar/${user.id}`;
 
   return user.email
     ? `https://0.gravatar.com/avatar/${sha256(user.email)}?d=${ogAvatar}`
@@ -52,7 +52,7 @@ export function Avatar({
       )}
       draggable={false}
       onError={() => {
-        setUrl(`https://api.dub.co/og/avatar?seed=${user.id}`);
+        setUrl(`https://api.dub.co/og/avatar/${user.id}`);
       }}
     />
   );
