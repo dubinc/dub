@@ -97,7 +97,6 @@ export const DestinationUrlInput = forwardRef<
             {...(formContext && {
               onChange: (e) => {
                 const url = e.target.value;
-
                 formContext.setValue("url", url);
                 const parentParams = getParamsFromURL(url);
 

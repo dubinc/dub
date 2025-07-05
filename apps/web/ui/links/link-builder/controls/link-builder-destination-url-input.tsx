@@ -17,7 +17,7 @@ import { useAvailableDomains } from "../../use-available-domains";
  */
 export const LinkBuilderDestinationUrlInput = memo(
   forwardRef<HTMLInputElement>((_, ref) => {
-    const { control, setValue, clearErrors } = useFormContext<LinkFormData>();
+    const { control, setValue, clearErrors, setError } = useFormContext<LinkFormData>();
     0;
 
     const { errors } = useFormState({ control, name: ["url"] });
@@ -42,8 +42,13 @@ export const LinkBuilderDestinationUrlInput = memo(
             value={field.value}
             domains={domains}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              clearErrors("url");
-              field.onChange(e.target.value);
+              const value = e.target.value;
+              if (/\s/.test(value)) {
+                setError("url", { message: "Enter a valid URL" });
+              } else {
+                clearErrors("url");
+                field.onChange(value);
+              }
             }}
             required={key !== "_root"}
             error={errors.url?.message || undefined}
