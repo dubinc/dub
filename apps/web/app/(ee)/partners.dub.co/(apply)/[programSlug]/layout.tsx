@@ -27,9 +27,9 @@ export async function generateMetadata({
 
   return constructMetadata({
     title: `${program.name} Affiliate Program`,
-    description: `Join the ${program.name} affiliate program and earn ${formatRewardDescription(
+    description: `Join the ${program.name} affiliate program and ${formatRewardDescription(
       { reward: rewards[0] },
-    )} by referring ${program.name} to your friends and followers.`,
+    ).toLowerCase()} by referring ${program.name} to your friends and followers.`,
     image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}`,
   });
 }
