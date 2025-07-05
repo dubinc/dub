@@ -15,24 +15,8 @@ export const getProgram = cache(
         slug,
       },
       include: {
-        ...(include?.includes("allRewards") && {
-          rewards: include.includes("allRewards")
-            ? true
-            : {
-                where: {
-                  default: true, // program-wide rewards only
-                },
-              },
-        }),
-        ...(include?.includes("allDiscounts") && {
-          discounts: include.includes("allDiscounts")
-            ? true
-            : {
-                where: {
-                  default: true, // program-wide discounts only
-                },
-              },
-        }),
+        rewards: include?.includes("allRewards") ? true : undefined,
+        discounts: include?.includes("allDiscounts") ? true : undefined,
       },
     });
 
