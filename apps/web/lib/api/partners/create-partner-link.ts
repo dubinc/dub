@@ -23,6 +23,7 @@ type PartnerLinkArgs = {
   >;
   userId: string;
   partnerId?: string;
+  key?: string; // current key to use for the link
 };
 
 /**
@@ -55,6 +56,7 @@ export const generatePartnerLink = async ({
   partner,
   userId,
   partnerId,
+  key,
 }: PartnerLinkArgs) => {
   if (!program.domain || !program.url) {
     throw new DubApiError({
@@ -71,13 +73,15 @@ export const generatePartnerLink = async ({
   let code: ErrorCodes | null;
 
   // generate a key for the link
-  let currentKey = "";
-  if (username) {
-    currentKey = username;
-  } else if (name) {
-    currentKey = slugify(name);
-  } else {
-    currentKey = slugify(email.split("@")[0]);
+  let currentKey = key;
+  if (!currentKey) {
+    if (username) {
+      currentKey = username;
+    } else if (name) {
+      currentKey = slugify(name);
+    } else {
+      currentKey = slugify(email.split("@")[0]);
+    }
   }
 
   while (true) {

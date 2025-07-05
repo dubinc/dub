@@ -25,7 +25,7 @@ export default function CampaignImported({
   },
 }: {
   email: string;
-  provider: "Rewardful";
+  provider: "Rewardful" | "Tolt";
   workspace: {
     slug: string;
   };

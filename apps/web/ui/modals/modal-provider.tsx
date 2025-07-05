@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useImportRewardfulModal } from "./import-rewardful-modal";
+import { useImportToltModal } from "./import-tolt-modal";
 import { useLinkBuilder } from "./link-builder";
 import { useProgramWelcomeModal } from "./program-welcome-modal";
 import { useUpgradedModal } from "./upgraded-modal";
@@ -42,6 +43,7 @@ export const ModalContext = createContext<{
   setShowImportRebrandlyModal: Dispatch<SetStateAction<boolean>>;
   setShowImportCsvModal: Dispatch<SetStateAction<boolean>>;
   setShowImportRewardfulModal: Dispatch<SetStateAction<boolean>>;
+  setShowImportToltModal: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddWorkspaceModal: () => {},
   setShowAddEditDomainModal: () => {},
@@ -52,6 +54,7 @@ export const ModalContext = createContext<{
   setShowImportRebrandlyModal: () => {},
   setShowImportCsvModal: () => {},
   setShowImportRewardfulModal: () => {},
+  setShowImportToltModal: () => {},
 });
 
 export function ModalProvider({ children }: { children: ReactNode }) {
@@ -105,6 +108,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
     useProgramWelcomeModal();
   const { setShowImportRewardfulModal, ImportRewardfulModal } =
     useImportRewardfulModal();
+  const { setShowImportToltModal, ImportToltModal } = useImportToltModal();
 
   useEffect(() => {
     setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
@@ -196,6 +200,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         setShowImportRebrandlyModal,
         setShowImportCsvModal,
         setShowImportRewardfulModal,
+        setShowImportToltModal,
       }}
     >
       <AddWorkspaceModal />
@@ -208,6 +213,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportRebrandlyModal />
       <ImportCsvModal />
       <ImportRewardfulModal />
+      <ImportToltModal />
       <WelcomeModal />
       <UpgradedModal />
       <ProgramWelcomeModal />
