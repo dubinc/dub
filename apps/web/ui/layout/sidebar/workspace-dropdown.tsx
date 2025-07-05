@@ -10,7 +10,7 @@ import {
   useScrollProgress,
 } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -46,7 +46,8 @@ export function WorkspaceDropdown() {
       return {
         ...selectedWorkspace,
         image:
-          selectedWorkspace.logo || `${OG_AVATAR_URL}${selectedWorkspace.name}`,
+          selectedWorkspace.logo ||
+          `https://avatar.vercel.sh/${selectedWorkspace.id}`,
       };
 
       // return personal account selector if there's no workspace or error (user doesn't have access to workspace)
@@ -164,7 +165,7 @@ function WorkspaceList({
         <div className="border-b border-neutral-200 p-2">
           <div className="flex items-center gap-x-2.5 rounded-md p-2">
             <BlurImage
-              src={selected.image || `${OG_AVATAR_URL}${selected.name}`}
+              src={selected.image}
               width={28}
               height={28}
               alt={selected.name}
@@ -229,7 +230,7 @@ function WorkspaceList({
                   onClick={() => setOpenPopover(false)}
                 >
                   <BlurImage
-                    src={logo || `${OG_AVATAR_URL}${name}`}
+                    src={logo || `https://avatar.vercel.sh/${id}`}
                     width={28}
                     height={28}
                     alt={id}

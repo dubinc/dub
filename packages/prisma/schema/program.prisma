@@ -37,7 +37,7 @@ model Program {
   cookieLength                 Int           @default(90)
   holdingPeriodDays            Int           @default(0) // number of days to wait before earnings are added to a payout
   minPayoutAmount              Int           @default(10000) // Default minimum payout amount of $100
-  defaultDiscountId            String?       @unique // default discount for the program
+  
   embedData                    Json?         @db.Json
   landerData                   Json?         @db.Json
   landerPublishedAt            DateTime?
@@ -62,7 +62,6 @@ model Program {
   commissions     Commission[]
   rewards         Reward[]
   discounts       Discount[]           @relation("ProgramDiscounts")
-  defaultDiscount Discount?            @relation("ProgramDefaultDiscount", fields: [defaultDiscountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index(workspaceId)
   @@index(domain)

@@ -1,5 +1,5 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import { prismaEdge } from "@dub/prisma/edge";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
@@ -37,11 +37,8 @@ export async function GET(req: NextRequest) {
       slug,
     },
     include: {
-      rewards: {
-        where: {
-          default: true,
-        },
-      },
+      rewards: true,
+      discounts: true,
     },
   });
 
@@ -54,8 +51,7 @@ export async function GET(req: NextRequest) {
   const logo = program.wordmark || program.logo;
   const brandColor = program.brandColor || "#000000";
 
-  const rewards = sortRewardsByEventOrder(program.rewards);
-  const reward = rewards?.length > 0 ? rewards[0] : null;
+  const { rewards } = getProgramApplicationRewardsAndDiscount(program);
 
   return new ImageResponse(
     (
@@ -134,7 +130,7 @@ export async function GET(req: NextRequest) {
             {`Join the ${program.name} affiliate program`}
           </div>
           <div tw="mt-10 flex">
-            {reward && (
+            {rewards.length > 0 && (
               <div tw="w-full flex items-center rounded-md bg-neutral-100 border border-neutral-200 p-8 text-2xl">
                 {/* @ts-ignore */}
                 <InvoiceDollar tw="w-8 h-8 mr-4" />
@@ -143,15 +139,17 @@ export async function GET(req: NextRequest) {
                   style={{ fontFamily: "Inter Semibold" }}
                 >
                   {constructRewardAmount({
-                    amount: reward.amount,
-                    type: reward.type,
+                    amount: rewards[0].amount,
+                    type: rewards[0].type,
                   })}{" "}
-                  per {reward.event}
+                  per {rewards[0].event}
                 </strong>
-                {reward.maxDuration === null ? (
+                {rewards[0].maxDuration === null ? (
                   "for the customer's lifetime"
-                ) : reward.maxDuration && reward.maxDuration > 1 ? (
-                  <>, and again every month for {reward.maxDuration} months</>
+                ) : rewards[0].maxDuration && rewards[0].maxDuration > 1 ? (
+                  <>
+                    , and again every month for {rewards[0].maxDuration} months
+                  </>
                 ) : null}
               </div>
             )}

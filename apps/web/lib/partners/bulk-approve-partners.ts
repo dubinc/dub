@@ -6,9 +6,16 @@ import { prisma } from "@dub/prisma";
 import { chunk, isFulfilled } from "@dub/utils";
 import { Partner, ProgramEnrollment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { bulkCreateLinks } from "../api/links";
 import { generatePartnerLink } from "../api/partners/create-partner-link";
-import { ProgramProps, WorkspaceProps } from "../types";
+import { Session } from "../auth/utils";
+import {
+  DiscountProps,
+  ProgramWithLanderDataProps,
+  RewardProps,
+  WorkspaceProps,
+} from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
@@ -17,12 +24,16 @@ export async function bulkApprovePartners({
   workspace,
   program,
   programEnrollments,
-  userId,
+  rewards,
+  discount,
+  user,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: ProgramProps;
+  program: ProgramWithLanderDataProps;
   programEnrollments: (ProgramEnrollment & { partner: Partner })[];
-  userId: string;
+  rewards: RewardProps[];
+  discount: DiscountProps | null;
+  user: Session["user"];
 }) {
   await prisma.programEnrollment.updateMany({
     where: {
@@ -33,15 +44,14 @@ export async function bulkApprovePartners({
     data: {
       status: "approved",
       createdAt: new Date(),
-      ...(program.rewards &&
-        program.rewards.length > 0 && {
-          ...Object.fromEntries(
-            program.rewards.map((r) => [
-              REWARD_EVENT_COLUMN_MAPPING[r.event],
-              r.id,
-            ]),
-          ),
-        }),
+      ...(rewards.length > 0 && {
+        ...Object.fromEntries(
+          rewards.map((r) => [REWARD_EVENT_COLUMN_MAPPING[r.event], r.id]),
+        ),
+      }),
+      ...(discount && {
+        discountId: discount.id,
+      }),
     },
   });
 
@@ -61,7 +71,7 @@ export async function bulkApprovePartners({
                   name: partner.name,
                   email: partner.email!,
                 },
-                userId,
+                userId: user.id,
                 partnerId: partner.id,
               }),
             ),
@@ -92,7 +102,7 @@ export async function bulkApprovePartners({
                   payoutsEnabled: Boolean(partner.payoutsEnabledAt),
                 },
                 rewardDescription: ProgramRewardDescription({
-                  reward: program.rewards?.find((r) => r.event === "sale"),
+                  reward: rewards?.find((r) => r.event === "sale"),
                 }),
               }),
             })),
@@ -114,6 +124,23 @@ export async function bulkApprovePartners({
               ),
             }),
           }),
+        ),
+
+        recordAuditLog(
+          programEnrollments.map(({ partner }) => ({
+            workspaceId: workspace.id,
+            programId: program.id,
+            action: "partner_application.approved",
+            description: `Partner application approved for ${partner.id}`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: partner.id,
+                metadata: partner,
+              },
+            ],
+          })),
         ),
       ]);
     })(),

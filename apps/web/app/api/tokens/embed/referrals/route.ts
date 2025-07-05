@@ -49,7 +49,6 @@ export const POST = withWorkspace(
           id: true,
           workspaceId: true,
           defaultFolderId: true,
-          defaultDiscountId: true,
           domain: true,
           url: true,
         },

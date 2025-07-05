@@ -106,7 +106,7 @@ async function createPartnerAndLinks({
     },
     create: {
       id: createId({ prefix: "pn_" }),
-      name: `${affiliate.first_name} ${affiliate.last_name}`,
+      name: `${affiliate.first_name}${affiliate.last_name && affiliate.last_name !== "Unknown" ? ` ${affiliate.last_name}` : ""}`,
       email: affiliate.email,
     },
     update: {},

@@ -9,7 +9,7 @@ import { authActionClient } from "../safe-action";
 export const createClawbackAction = authActionClient
   .schema(createClawbackSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { partnerId, amount, description } = parsedInput;
@@ -26,5 +26,7 @@ export const createClawbackAction = authActionClient
       description,
       amount: -amount,
       quantity: 1,
+      user,
+      workspaceId: workspace.id,
     });
   });

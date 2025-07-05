@@ -5,10 +5,12 @@ export default function SimpleDateRangePicker({
   className,
   align = "center",
   defaultInterval = "30d",
+  disabled,
 }: {
   className?: string;
   align?: "start" | "center" | "end";
   defaultInterval?: string;
+  disabled?: boolean;
 }) {
   const { queryParams, searchParamsObj } = useRouterStuff();
   const { start, end, interval } = searchParamsObj as {
@@ -69,6 +71,7 @@ export default function SimpleDateRangePicker({
           shortcut,
         };
       })}
+      disabled={disabled}
     />
   );
 }

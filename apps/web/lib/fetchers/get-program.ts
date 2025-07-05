@@ -8,23 +8,15 @@ export const getProgram = cache(
     include,
   }: {
     slug: string;
-    include?: ("defaultRewards" | "defaultDiscount")[];
+    include?: ("allRewards" | "allDiscounts")[];
   }) => {
     const program = await prisma.program.findUnique({
       where: {
         slug,
       },
       include: {
-        ...(include?.includes("defaultRewards") && {
-          rewards: {
-            where: {
-              default: true, // program-wide rewards only
-            },
-          },
-        }),
-        ...(include?.includes("defaultDiscount") && {
-          defaultDiscount: true,
-        }),
+        rewards: include?.includes("allRewards") ? true : undefined,
+        discounts: include?.includes("allDiscounts") ? true : undefined,
       },
     });
 
@@ -32,7 +24,7 @@ export const getProgram = cache(
       return null;
     }
 
-    if (include?.includes("defaultRewards")) {
+    if (include?.includes("allRewards")) {
       program.rewards = sortRewardsByEventOrder(program.rewards);
     }
 

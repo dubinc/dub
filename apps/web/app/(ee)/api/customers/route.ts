@@ -29,9 +29,7 @@ import { NextResponse } from "next/server";
 interface CustomerResponse extends Customer {
   link: Link & {
     programEnrollment: ProgramEnrollment & {
-      program: Program & {
-        defaultDiscount: Discount;
-      };
+      program: Program;
       partner: Partner;
       discount: Discount | null;
     };
@@ -95,11 +93,6 @@ export const GET = withWorkspace(
                 include: {
                   programEnrollment: {
                     include: {
-                      program: {
-                        include: {
-                          defaultDiscount: true,
-                        },
-                      },
                       partner: {
                         select: {
                           id: true,

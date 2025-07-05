@@ -1,6 +1,7 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
-import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { Header } from "../header";
@@ -12,12 +13,15 @@ export default async function ApplicationPage({
 }) {
   const program = await getProgram({
     slug: programSlug,
-    include: ["defaultRewards", "defaultDiscount"],
+    include: ["allRewards", "allDiscounts"],
   });
 
   if (!program) {
     notFound();
   }
+
+  const { rewards, discount } =
+    getProgramApplicationRewardsAndDiscount(program);
 
   return (
     <div
@@ -43,16 +47,11 @@ export default async function ApplicationPage({
           </p>
         </div>
 
-        <div className="mt-10">
-          <h2 className="mb-2 text-base font-semibold text-neutral-800">
-            Rewards
-          </h2>
-          <ProgramRewardList
-            rewards={program.rewards}
-            discount={program.defaultDiscount}
-            className="bg-neutral-100"
-          />
-        </div>
+        <LanderRewards
+          className="mt-10"
+          rewards={rewards}
+          discount={discount}
+        />
 
         {/* Application form */}
         <div className="mt-10">

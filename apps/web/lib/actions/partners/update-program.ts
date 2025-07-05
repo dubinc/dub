@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
 import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
@@ -26,7 +27,7 @@ const schema = updateProgramSchema.partial().extend({
 export const updateProgramAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const {
       name,
       logo,
@@ -72,7 +73,7 @@ export const updateProgramAction = authActionClient
         : null,
     ]);
 
-    await prisma.program.update({
+    const updatedProgram = await prisma.program.update({
       where: {
         id: programId,
       },
@@ -129,6 +130,21 @@ export const updateProgramAction = authActionClient
               revalidatePath(`/partners.dub.co/${program.slug}/apply/success`),
             ]
           : []),
+
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId: program.id,
+          action: "program.updated",
+          description: `Program ${program.name} updated`,
+          actor: user,
+          targets: [
+            {
+              type: "program",
+              id: program.id,
+              metadata: updatedProgram,
+            },
+          ],
+        }),
       ]),
     );
   });

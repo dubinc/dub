@@ -43,7 +43,7 @@ describe.sequential("/customers/**", async () => {
   test("PATCH /customers/{id}", async () => {
     const toUpdate = {
       name: "Updated",
-      avatar: "https://api.dub.co/og/avatar?seed=1234567890",
+      avatar: "https://api.dub.co/og/avatar/1234567890",
     };
 
     const { status, data: customer } = await http.patch<Customer>({
