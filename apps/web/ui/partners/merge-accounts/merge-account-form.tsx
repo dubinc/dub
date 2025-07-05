@@ -58,7 +58,7 @@ export function MergeAccountForm({
             <img
               src={
                 sourceAccount.avatarUrl ||
-                `https://api.dub.co/og/avatar?seed=${sourceAccount.email}`
+                `https://api.dub.co/og/avatar/${sourceAccount.email}`
               }
               alt={sourceAccount.name}
               className="size-12 rounded-full object-cover"
@@ -83,7 +83,7 @@ export function MergeAccountForm({
             <img
               src={
                 targetAccount.avatarUrl ||
-                `https://api.dub.co/og/avatar?seed=${targetAccount.email}`
+                `https://api.dub.co/og/avatar/${targetAccount.email}`
               }
               alt={targetAccount.name}
               className="size-12 rounded-full object-cover"

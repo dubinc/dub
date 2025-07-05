@@ -4,7 +4,10 @@ import { getTheme } from "./utils";
 
 export const runtime = "edge";
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { seed?: string[] } },
+) {
   const origin = req.headers.get("origin");
   // Validate the origin header and set CORS headers accordingly
   const corsHeaders = {
@@ -17,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const seed = searchParams.get("seed");
+  const seed = params.seed?.[0] ?? searchParams.get("seed");
   const theme = getTheme(seed);
 
   return new ImageResponse(
