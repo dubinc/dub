@@ -4,7 +4,7 @@ import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit } from "@/lib/upstash";
 import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
 import { prisma } from "@dub/prisma";
-import { R2_URL } from "@dub/utils";
+import { HOME_DOMAIN, R2_URL } from "@dub/utils";
 import { flattenValidationErrors } from "next-safe-action";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId, getIP } from "../api/utils";
@@ -13,6 +13,7 @@ import z from "../zod";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
 
 const qrDataToCreateSchema = z.object({
   title: z.string(),
@@ -117,7 +118,7 @@ export const createUserAccountAction = actionClient
           ? `${R2_URL}/qrs-content/${qrDataToCreate.file}`
           : (qrDataToCreate!.styles!.data! as string);
 
-        await createQrWithLinkUniversal({
+        const { createdQr } = await createQrWithLinkUniversal({
           qrData: {
             data: qrDataToCreate.styles.data as string,
             qrType: qrDataToCreate.qrType as any,
@@ -142,6 +143,18 @@ export const createUserAccountAction = actionClient
           userId: generatedUserId,
           fileId: qrDataToCreate.file || undefined,
           homePageDemo: true,
+        });
+
+        await sendEmail({
+          email: email,
+          subject: "Welcome to GetQR",
+          template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+          messageData: {
+            qr_name: createdQr.title || "Untitled QR",
+            qr_type: createdQr.qrType,
+            url: HOME_DOMAIN,
+          },
+          customerId: generatedUserId,
         });
       }
     }
