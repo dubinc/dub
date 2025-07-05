@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
@@ -19,7 +20,7 @@ const deleteDiscountSchema = z.object({
 export const deleteDiscountAction = authActionClient
   .schema(deleteDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { discountId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -29,16 +30,12 @@ export const deleteDiscountAction = authActionClient
       programId,
     });
 
-    await getDiscountOrThrow({
+    const discount = await getDiscountOrThrow({
       programId,
       discountId,
     });
 
-    // Backup the partners data before deleting the discount
-    // We'll use this data to update the link cache for the partner links
-    const isDefault = program.defaultDiscountId === discountId;
-
-    if (!isDefault) {
+    if (!discount.default) {
       let offset = 0;
 
       while (true) {
@@ -68,28 +65,35 @@ export const deleteDiscountAction = authActionClient
     }
 
     const deletedDiscountId = await prisma.$transaction(async (tx) => {
-      // if this is the default discount, set the program default discount to null
-      if (isDefault) {
-        await tx.program.update({
-          where: { id: programId },
-          data: { defaultDiscountId: null },
-        });
-      }
-
-      // update all program enrollments to have no discount
-      await tx.programEnrollment.updateMany({
+      // 1. Find the default discount (if it exists)
+      const defaultDiscount = await tx.discount.findFirst({
         where: {
-          discountId,
-        },
-        data: {
-          discountId: null,
+          programId,
+          default: true,
         },
       });
 
-      // delete the discount
+      // 2. Update current associations
+      await tx.programEnrollment.updateMany({
+        where: {
+          programId,
+          discountId: discount.id,
+        },
+        data: {
+          // Replace the current discount with the default discount if it exists
+          // and the discount we're deleting is not the default discount
+          discountId: discount.default
+            ? null
+            : defaultDiscount
+              ? defaultDiscount.id
+              : null,
+        },
+      });
+
+      // 3. Finally, delete the current discount
       await tx.discount.delete({
         where: {
-          id: discountId,
+          id: discount.id,
         },
       });
 
@@ -98,15 +102,32 @@ export const deleteDiscountAction = authActionClient
 
     if (deletedDiscountId) {
       waitUntil(
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-          body: {
+        Promise.allSettled([
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+            body: {
+              programId,
+              discountId,
+              isDefault: discount.default,
+              action: "discount-deleted",
+            },
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
             programId,
-            discountId,
-            isDefault,
-            action: "discount-deleted",
-          },
-        }),
+            action: "discount.deleted",
+            description: `Discount ${discountId} deleted`,
+            actor: user,
+            targets: [
+              {
+                type: "discount",
+                id: discountId,
+                metadata: discount,
+              },
+            ],
+          }),
+        ]),
       );
     }
   });

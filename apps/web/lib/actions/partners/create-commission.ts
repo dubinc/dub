@@ -19,7 +19,7 @@ import { authActionClient } from "../safe-action";
 export const createCommissionAction = authActionClient
   .schema(createCommissionSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
 
     const {
       partnerId,
@@ -60,6 +60,8 @@ export const createCommissionAction = authActionClient
         amount: amount ?? 0,
         quantity: 1,
         createdAt: date ?? new Date(),
+        user,
+        workspaceId: workspace.id,
       });
 
       return;
@@ -179,6 +181,8 @@ export const createCommissionAction = authActionClient
           amount: 0,
           quantity: 1,
           createdAt: finalLeadEventDate,
+          user,
+          workspaceId: workspace.id,
         }),
       ]);
     }
@@ -213,6 +217,8 @@ export const createCommissionAction = authActionClient
           invoiceId,
           currency: "usd",
           createdAt: saleEventDate,
+          user,
+          workspaceId: workspace.id,
         }),
       ]);
     }

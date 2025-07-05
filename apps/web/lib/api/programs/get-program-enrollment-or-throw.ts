@@ -7,10 +7,12 @@ export async function getProgramEnrollmentOrThrow({
   partnerId,
   programId,
   includeRewards = false,
+  includePartner = false,
 }: {
   partnerId: string;
   programId: string;
   includeRewards?: boolean;
+  includePartner?: boolean;
 }) {
   const include: Prisma.ProgramEnrollmentInclude = {
     program: true,
@@ -23,6 +25,9 @@ export async function getProgramEnrollmentOrThrow({
       clickReward: true,
       leadReward: true,
       saleReward: true,
+    }),
+    ...(includePartner && {
+      partner: true,
     }),
   };
 

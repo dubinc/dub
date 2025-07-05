@@ -1,3 +1,4 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
@@ -194,6 +195,21 @@ export const createProgram = async ({
             logo: logoUrl,
           },
         }),
+      }),
+
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: program.id,
+        action: "program.created",
+        description: `Program ${program.name} created`,
+        actor: user,
+        targets: [
+          {
+            type: "program",
+            id: program.id,
+            metadata: program,
+          },
+        ],
       }),
     ]),
   );

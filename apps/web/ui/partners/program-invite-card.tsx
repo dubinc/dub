@@ -33,12 +33,7 @@ export function ProgramInviteCard({
   });
 
   const reward = programEnrollment.rewards?.[0];
-
-  const discount =
-    program.discounts && program.discounts.length > 0
-      ? program.discounts.find((d) => d.id !== program.defaultDiscountId) ||
-        program.discounts[0]
-      : null;
+  const discount = programEnrollment.discount;
 
   return (
     <div className="hover:drop-shadow-card-hover relative flex flex-col rounded-xl border border-neutral-200 bg-neutral-50 p-5 transition-[filter]">

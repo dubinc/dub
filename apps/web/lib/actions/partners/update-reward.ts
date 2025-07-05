@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import {
@@ -8,12 +9,13 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { Reward } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const updateRewardAction = authActionClient
   .schema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     let {
       rewardId,
       amount,
@@ -79,6 +81,23 @@ export const updateRewardAction = authActionClient
         partnerIds: includedPartnerIds,
       });
     }
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "reward.updated",
+        description: `Reward ${rewardId} updated`,
+        actor: user,
+        targets: [
+          {
+            type: "reward",
+            id: rewardId,
+            metadata: updatedReward,
+          },
+        ],
+      }),
+    );
   });
 
 // Update default reward

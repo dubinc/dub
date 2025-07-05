@@ -1,3 +1,4 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { exceededLimitError } from "@/lib/api/errors";
 import {
@@ -18,6 +19,7 @@ import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirme
 import { prisma } from "@dub/prisma";
 import { chunk, currencyFormatter, log } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 
 const paymentMethodToCurrency = {
   sepa_debit: "eur",
@@ -267,4 +269,40 @@ export async function confirmPayouts({
       );
     }
   }
+
+  waitUntil(
+    (async () => {
+      // refetching to confirm the payouts are in the processing state
+      const updatedPayouts = await prisma.payout.findMany({
+        where: {
+          id: {
+            in: payouts.map((p) => p.id),
+          },
+          status: "processing",
+        },
+        select: {
+          id: true,
+          status: true,
+          user: true,
+        },
+      });
+
+      await recordAuditLog(
+        updatedPayouts.map((payout) => ({
+          workspaceId: workspace.id,
+          programId: program.id,
+          action: "payout.confirmed",
+          description: `Payout ${payout.id} confirmed`,
+          actor: payout.user!,
+          targets: [
+            {
+              type: "payout",
+              id: payout.id,
+              metadata: payout,
+            },
+          ],
+        })),
+      );
+    })(),
+  );
 }
