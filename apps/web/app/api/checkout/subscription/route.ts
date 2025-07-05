@@ -183,6 +183,7 @@ export const POST = withSession(
             currency: user.currency?.currencyForPay as string,
             next_billing_date: format(addDays(new Date(), period), 'yyyy-MM-dd'),
           },
+          customerId: authSession.user.id,
         }),
       ]);
 

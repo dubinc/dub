@@ -77,6 +77,15 @@ export const sendOtpAction = actionClient
       },
     });
 
+    const customerId = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+      select: {
+        id: true,
+      },
+    });
+
     await Promise.all([
       prisma.emailVerificationToken.create({
         data: {
@@ -93,6 +102,7 @@ export const sendOtpAction = actionClient
         messageData: {
           code,
         },
+        customerId: customerId?.id,
       }),
     ]);
   });
