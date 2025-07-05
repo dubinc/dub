@@ -6,7 +6,6 @@ import { Flex, Text } from "@radix-ui/themes";
 import { Info } from "lucide-react";
 import { FC } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { ButtonsWrapper } from "./components/buttons-wrapper.tsx";
 import { CheckboxWithLabel } from "./components/checkbox-with-label.tsx";
 import { InputWithLabel } from "./components/input-with-label.tsx";
 import { Select } from "./components/select.tsx";
@@ -18,7 +17,7 @@ interface IQRContentBuilderProps {
   isHiddenNetwork: boolean;
   onHiddenNetworkChange: (checked: boolean) => void;
   validateFields: () => void;
-  minimalFlow?: boolean;
+  homePageDemo?: boolean;
   hideNameField?: boolean;
 }
 
@@ -27,7 +26,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   isHiddenNetwork,
   onHiddenNetworkChange,
   validateFields,
-  minimalFlow = false,
+  homePageDemo = false,
   hideNameField = false,
 }) => {
   const { isMobile } = useMediaQuery();
@@ -45,7 +44,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
         >
           <InputWithLabel
             id={field.id}
-            minimalFlow={minimalFlow}
+            homePageDemo={homePageDemo}
             initFromPlaceholder={field.initFromPlaceholder}
             tooltip={field.tooltip}
             {...field}
@@ -137,7 +136,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
           "flex h-fit w-full flex-col items-center justify-center gap-6 p-0 md:max-w-[524px] md:p-0",
           {
             "border-border-100 rounded-lg border p-3 md:px-6 md:py-4":
-              !minimalFlow,
+              !homePageDemo,
           },
         )}
       >
@@ -150,14 +149,7 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
         >
           {renderCardContent()}
         </form>
-
-        {!minimalFlow && !isMobile && (
-          <ButtonsWrapper qrType={qrType} handleNext={validateFields} />
-        )}
       </div>
-      {!minimalFlow && isMobile && (
-        <ButtonsWrapper qrType={qrType} handleNext={validateFields} />
-      )}
     </div>
   );
 };

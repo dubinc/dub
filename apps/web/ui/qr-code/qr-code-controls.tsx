@@ -1,17 +1,11 @@
-import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
-import {
-  sendArchiveRequest,
-  useArchiveQRModal,
-} from "@/ui/modals/archive-qr-modal.tsx";
+import { useArchiveQRModal } from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
-import {
-  QrCodesListContext,
-  ResponseQrCode,
-} from "@/ui/qr-code/qr-codes-container.tsx";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
 import { useQrDownload } from "@/ui/qr-code/use-qr-download";
 import { Button, CardList, Photo, Popover, useKeyboardShortcut } from "@dub/ui";
 import { BoxArchive, Download } from "@dub/ui/icons";
@@ -19,11 +13,10 @@ import { cn } from "@dub/utils";
 import { Delete, Palette, RefreshCw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { PropsWithChildren, RefObject, useContext, useState } from "react";
-import { toast } from "sonner";
 import { ThreeDots } from "../shared/icons";
 
 interface QrCodeControlsProps {
-  qrCode: ResponseQrCode;
+  qrCode: QrStorageData;
   canvasRef?: RefObject<HTMLCanvasElement>;
   isTrialOver?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
@@ -54,18 +47,11 @@ export function QrCodeControls({
   });
 
   const {
-    setShowQRBuilderModal: setShowQREditModal,
-    QRBuilderModal: QREditModal,
-  } = useQRBuilder({
-    props: qrCode,
-  });
-
-  const {
     setShowQRBuilderModal: setShowQRTypeModal,
-    QRBuilderModal: QRTypeModal,
+    QRBuilderModal: QRChangeTypeModal,
   } = useQRBuilder({
     props: qrCode,
-    initialStep: 1, // Этап выбора типа QR кода
+    initialStep: 1, // choosing the type of QR code
   });
 
   const {
@@ -73,10 +59,8 @@ export function QrCodeControls({
     QRBuilderModal: QRCustomizeModal,
   } = useQRBuilder({
     props: qrCode,
-    initialStep: 3, // Этап кастомизации дизайна
+    initialStep: 3, // design customization
   });
-
-  const [archiving, setArchiving] = useState<boolean>(false);
 
   const folderId = qrCode.link.folderId || searchParams.get("folderId");
 
@@ -90,9 +74,6 @@ export function QrCodeControls({
     (e) => {
       setOpenPopover(false);
       switch (e.key) {
-        case "e":
-          canManageLink && setShowQREditModal(true);
-          break;
         case "a":
           canManageLink && setShowArchiveQRModal(true);
           break;
@@ -108,8 +89,7 @@ export function QrCodeControls({
 
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
-      <QREditModal />
-      <QRTypeModal />
+      <QRChangeTypeModal />
       <QRCustomizeModal />
       <ArchiveQRModal />
       <DeleteLinkModal />
@@ -135,22 +115,6 @@ export function QrCodeControls({
         content={
           <div className="w-full sm:w-48">
             <div className="grid gap-1 p-2">
-              {/*<Button*/}
-              {/*  text="Edit"*/}
-              {/*  variant="outline"*/}
-              {/*  onClick={() => {*/}
-              {/*    setOpenPopover(false);*/}
-              {/*    setShowQREditModal(true);*/}
-              {/*  }}*/}
-              {/*  icon={<PenWriting className="size-4" />}*/}
-              {/*  shortcut="E"*/}
-              {/*  className="h-9 px-2 font-medium justify-start w-full"*/}
-              {/*  disabledTooltip={*/}
-              {/*    !canManageLink*/}
-              {/*      ? "You don't have permission to update this link."*/}
-              {/*      : undefined*/}
-              {/*  }*/}
-              {/*/>*/}
               <Button
                 text="Change QR Type"
                 variant="outline"
@@ -197,33 +161,15 @@ export function QrCodeControls({
               <Button
                 text={qrCode.archived ? "Unpause" : "Pause"}
                 variant="outline"
-                onClick={async () => {
+                onClick={() => {
                   if (isTrialOver) {
                     setShowTrialExpiredModal?.(true);
                     setOpenPopover(false);
                     return;
                   }
 
-                  setArchiving(true);
-                  const res = await sendArchiveRequest({
-                    qrId: qrCode.id,
-                    archive: !qrCode.archived,
-                    workspaceId,
-                  });
-
-                  if (!res.ok) {
-                    const { error } = await res.json();
-                    toast.error(error.message);
-                    setArchiving(false);
-                    return;
-                  }
-
-                  mutatePrefix(["/api/qrs", "/api/links"]);
-                  toast.success(
-                    `Successfully ${qrCode.archived ? "unpaused" : "paused"} QR code!`,
-                  );
                   setOpenPopover(false);
-                  setArchiving(false);
+                  setShowArchiveQRModal(true);
                 }}
                 icon={<BoxArchive className="size-4" />}
                 shortcut="A"
@@ -233,7 +179,6 @@ export function QrCodeControls({
                     ? "You don't have permission to archive this link."
                     : undefined
                 }
-                loading={archiving}
               />
 
               <Button
@@ -284,7 +229,7 @@ function DownloadPopover({
   setShowTrialExpiredModal,
   children,
 }: PropsWithChildren<{
-  qrCode: ResponseQrCode;
+  qrCode: QrStorageData;
   canvasRef: RefObject<HTMLCanvasElement>;
   isTrialOver?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;

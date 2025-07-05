@@ -1,8 +1,7 @@
 import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
-import { DubApiError, ErrorCodes } from "@/lib/api/errors";
-import { createLink, processLink } from "@/lib/api/links";
+import { DubApiError } from "@/lib/api/errors";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
-import { createQr } from "@/lib/api/qrs/create-qr";
+import { createQrWithLinkUniversal } from "@/lib/api/qrs/create-qr-with-link-universal";
 import { getQrs } from "@/lib/api/qrs/get-qrs";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -13,10 +12,28 @@ import {
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
 import { createQrBodySchema } from "@/lib/zod/schemas/qrs";
-import { LOCALHOST_IP, R2_URL } from "@dub/utils";
+import { HOME_DOMAIN, LOCALHOST_IP, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-const crypto = require("crypto");
+import crypto from "crypto";
+import { prisma } from "@dub/prisma";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
+
+// GET /api/qrs – get all qrs for a workspace
+export const GET = withWorkspace(
+  async ({ headers, searchParams, workspace, session }) => {
+    const params = getLinksQuerySchemaBase.parse(searchParams);
+
+    const response = await getQrs(params);
+
+    return NextResponse.json(response, {
+      headers,
+    });
+  },
+  {
+    requiredPermissions: ["links.read"],
+  },
+);
 
 // POST /api/qrs – create a new qr
 export const POST = withWorkspace(
@@ -25,7 +42,6 @@ export const POST = withWorkspace(
       throwIfLinksUsageExceeded(workspace);
     }
 
-    // TODO: CHECK
     if (session?.user?.id) {
       const { featuresAccess } = await checkFeaturesAccessAuthLess(
         session?.user?.id,
@@ -36,10 +52,8 @@ export const POST = withWorkspace(
       }
     }
 
-    console.log("here create qr");
-
     const body = createQrBodySchema.parse(await parseRequestBody(req));
-    console.log("POST /api/qrs body:", body);
+
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
       const { success } = await ratelimit(10, "1 d").limit(ip);
@@ -60,67 +74,51 @@ export const POST = withWorkspace(
       url: body.file ? `${R2_URL}/qrs-content/${fileId}` : body.link.url,
     };
 
-    const { link, error, code } = await processLink({
-      payload: linkData,
+    const { createdQr } = await createQrWithLinkUniversal({
+      qrData: body,
+      linkData,
       workspace,
-      ...(session && { userId: session.user.id }),
+      userId: session?.user?.id,
+      fileId,
+      onLinkCreated: async (createdLink) => {
+        if (createdLink.projectId && createdLink.userId) {
+          waitUntil(
+            sendWorkspaceWebhook({
+              trigger: "link.created",
+              workspace,
+              data: linkEventSchema.parse(createdLink),
+            }),
+          );
+        }
+      },
     });
 
-    if (error != null) {
-      throw new DubApiError({
-        code: code as ErrorCodes,
-        message: error,
+    const existingQrCount = await prisma.qr.count({
+      where: {
+        userId: session.user.id,
+      },
+    });
+
+    if (existingQrCount === 1) {
+      // const referer = req.headers.get('referer') || req.headers.get('referrer');
+      // const origin = new URL(referer || '').origin;
+      await sendEmail({
+        email: session?.user?.email,
+        subject: "Welcome to GetQR",
+        template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+        messageData: {
+          qr_name: createdQr.title || "Untitled QR",
+          qr_type: createdQr.qrType,
+          url: HOME_DOMAIN,
+        },
       });
     }
 
-    try {
-      const createdLink = await createLink(link);
-
-      if (createdLink.projectId && createdLink.userId) {
-        waitUntil(
-          sendWorkspaceWebhook({
-            trigger: "link.created",
-            workspace,
-            data: linkEventSchema.parse(createdLink),
-          }),
-        );
-      }
-
-      const createdQr = await createQr(
-        body,
-        createdLink.shortLink,
-        createdLink.id,
-        createdLink.userId,
-        fileId,
-      );
-
-      return NextResponse.json(createdQr, {
-        headers,
-      });
-    } catch (error) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: error.message,
-      });
-    }
-  },
-  {
-    requiredPermissions: ["links.write"],
-  },
-);
-
-// GET /api/qrs – get all qrs for a workspace
-export const GET = withWorkspace(
-  async ({ headers, searchParams, workspace, session }) => {
-    const params = getLinksQuerySchemaBase.parse(searchParams);
-
-    const response = await getQrs(params);
-
-    return NextResponse.json(response, {
+    return NextResponse.json(createdQr, {
       headers,
     });
   },
   {
-    requiredPermissions: ["links.read"],
+    requiredPermissions: ["links.write"],
   },
 );

@@ -3,9 +3,9 @@ import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
-import { sendEmail, CUSTOMER_IO_TEMPLATES } from "@dub/email";
+import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
-import { LoginLink } from "@dub/email/templates/login-link";
 import { WelcomeEmail } from "@dub/email/templates/welcome-email";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
@@ -18,6 +18,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { cookies } from "next/headers";
+import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
@@ -34,12 +36,56 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
   return {
     ...PrismaAdapter(p),
     createUser: async (data: any) => {
-      return p.user.create({
+      const generatedUserId = createId({ prefix: "user_" });
+      const cookieStore = cookies();
+      const qrDataCookie = cookieStore.get("processed-qr-data")?.value;
+
+      const user = await p.user.create({
         data: {
           ...data,
-          id: createId({ prefix: "user_" }),
+          id: generatedUserId,
         },
       });
+
+      const workspace = await createWorkspaceForUser({
+        prismaClient: p,
+        userId: generatedUserId,
+        email: data.email,
+      });
+
+      if (qrDataCookie) {
+        try {
+          const qrDataToCreate = JSON.parse(qrDataCookie);
+          const linkUrl = qrDataToCreate?.file
+            ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.file}`
+            : qrDataToCreate.styles?.data;
+
+          await createQrWithLinkUniversal({
+            qrData: {
+              data: qrDataToCreate.styles?.data || linkUrl,
+              qrType: qrDataToCreate.qrType,
+              title: qrDataToCreate.title,
+              styles: qrDataToCreate.styles,
+              frameOptions: qrDataToCreate.frameOptions,
+              file: qrDataToCreate.file,
+              fileName: qrDataToCreate.fileName,
+              fileSize: qrDataToCreate.fileSize,
+              link: { url: linkUrl },
+            },
+            linkData: { url: linkUrl },
+            workspace: workspace as any,
+            userId: generatedUserId,
+            fileId: qrDataToCreate.file,
+            homePageDemo: true,
+          });
+
+          cookieStore.delete("processed-qr-data");
+        } catch (error) {
+          console.error("Error processing QR data from cookie:", error);
+        }
+      }
+
+      return user;
     },
   };
 };
@@ -148,7 +194,7 @@ export const authOptions: NextAuthOptions = {
 
         const { code } = credentials;
 
-        console.log('credentials');
+        console.log("credentials");
         console.log(credentials);
 
         if (!code) {
@@ -330,9 +376,7 @@ export const authOptions: NextAuthOptions = {
         // domain: VERCEL_DEPLOYMENT
         //   ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
         //   : undefined,
-        domain: VERCEL_DEPLOYMENT
-          ? `.getqr.com`
-          : undefined,
+        domain: VERCEL_DEPLOYMENT ? `.getqr.com` : undefined,
         secure: VERCEL_DEPLOYMENT,
       },
     },

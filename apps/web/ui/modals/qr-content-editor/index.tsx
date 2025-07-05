@@ -1,17 +1,22 @@
 "use client";
 
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { convertQrStorageDataToBuilderWithPartialUpdate } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCodeContentBuilder } from "@/ui/qr-builder/qr-code-content-builder.tsx";
 import { getQRValidationSchema } from "@/ui/qr-builder/qr-validation-schema.ts";
-import { useQrSave } from "@/ui/qr-code/hooks/use-qr-save.ts";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import {
+  QRPartialUpdateData,
+  QrStorageData,
+} from "@/ui/qr-builder/types/types.ts";
+import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { Button, Modal } from "@dub/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Theme } from "@radix-ui/themes";
+import { LoaderCircle } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -49,7 +54,7 @@ const getModalTitle = (qrType: EQRType): string => {
 export type QRContentEditorData = Record<string, string | File[] | undefined>;
 
 type QRContentEditorModalProps = {
-  qrCode?: ResponseQrCode;
+  qrCode?: QrStorageData;
   showQRContentEditorModal: boolean;
   setShowQRContentEditorModal: Dispatch<SetStateAction<boolean>>;
   isProcessing: boolean;
@@ -66,7 +71,7 @@ export function QRContentEditorModal({
   const selectedQRType = (qrCode?.qrType as EQRType) || EQRType.WEBSITE;
 
   const { parsedInputValues } = useQrCustomization(qrCode);
-  const { updateQr } = useQrSave();
+  const { updateQrWithOriginal } = useQrOperations();
 
   const validationSchema = getQRValidationSchema(selectedQRType);
 
@@ -78,16 +83,11 @@ export function QRContentEditorModal({
 
   useEffect(() => {
     if (parsedInputValues && Object.keys(parsedInputValues).length > 0) {
-      console.log("Setting initial values:", parsedInputValues);
-      console.log("QR Code data:", qrCode?.data);
-      console.log("QR Code type:", selectedQRType);
-
       const valuesWithQrName = {
         ...parsedInputValues,
         [`qrName-${selectedQRType}`]: qrCode?.title || "QR Code",
       };
 
-      console.log("Values with qrName:", valuesWithQrName);
       methods.reset(valuesWithQrName);
     }
   }, [parsedInputValues, methods, qrCode]);
@@ -109,10 +109,6 @@ export function QRContentEditorModal({
     setIsProcessing(true);
 
     try {
-      console.log("Form data:", formData);
-      console.log("QR Type:", selectedQRType);
-      console.log("Hidden network:", isHiddenNetwork);
-
       const { qrName, ...filteredFormData } = formData;
 
       if (selectedQRType === EQRType.WHATSAPP && filteredFormData.number) {
@@ -127,29 +123,32 @@ export function QRContentEditorModal({
         isHiddenNetwork,
       );
 
-      console.log("Generated QR data string:", qrDataString);
-
       if (!qrDataString) {
         toast.error("Failed to generate QR data");
         return;
       }
 
-      const updateData = {
+      const files = [
+        ...(formData.filesImage ? (formData.filesImage as File[]) : []),
+        ...(formData.filesPDF ? (formData.filesPDF as File[]) : []),
+        ...(formData.filesVideo ? (formData.filesVideo as File[]) : []),
+      ];
+
+      const partialUpdate: QRPartialUpdateData = {
+        title: formData.qrName as string,
         data: qrDataString,
-        qrType: selectedQRType,
-        // Добавляем файлы если они есть
-        ...(formData.filesImage && { files: formData.filesImage as File[] }),
-        ...(formData.filesPDF && { files: formData.filesPDF as File[] }),
-        ...(formData.filesVideo && { files: formData.filesVideo as File[] }),
+        files: files.length > 0 ? files : undefined,
       };
 
-      console.log("Sending update data:", updateData);
+      const qrBuilderData = convertQrStorageDataToBuilderWithPartialUpdate(
+        qrCode,
+        partialUpdate,
+      );
 
-      const success = await updateQr(qrCode.id, updateData);
+      const success = await updateQrWithOriginal(qrCode, qrBuilderData);
 
       if (success) {
         setShowQRContentEditorModal(false);
-        // toast.success уже показывается в useQrSave
       }
     } catch (error) {
       console.error("Failed to update QR code:", error);
@@ -195,10 +194,18 @@ export function QRContentEditorModal({
     <Modal
       showModal={showQRContentEditorModal}
       setShowModal={setShowQRContentEditorModal}
+      drawerRootProps={{
+        dismissible: false,
+      }}
       className="border-border-500 h-fit transition-[height] duration-[300ms]"
     >
       <Theme>
         <div className="flex flex-col gap-2">
+          {isProcessing && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-white/50 backdrop-blur-sm">
+              <LoaderCircle className="text-secondary h-8 w-8 animate-spin" />
+            </div>
+          )}
           {/* Header */}
           <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
             <div className="flex items-center gap-2">
@@ -227,8 +234,8 @@ export function QRContentEditorModal({
                 isHiddenNetwork={isHiddenNetwork}
                 onHiddenNetworkChange={handleHiddenNetworkChange}
                 validateFields={validateFields}
-                minimalFlow={true}
-                hideNameField={true}
+                homePageDemo
+                hideNameField
               />
 
               {/* Actions */}
@@ -255,7 +262,7 @@ export function QRContentEditorModal({
   );
 }
 
-export function useQRContentEditor(data?: { qrCode?: ResponseQrCode }) {
+export function useQRContentEditor(data?: { qrCode?: QrStorageData }) {
   const { qrCode } = data ?? {};
 
   const [isProcessing, setIsProcessing] = useState(false);

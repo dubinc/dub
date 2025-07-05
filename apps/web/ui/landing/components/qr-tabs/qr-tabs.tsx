@@ -1,9 +1,9 @@
 "use client";
 
 import { useAuthModal } from "@/ui/modals/auth-modal.tsx";
-import { QRBuilderData } from "@/ui/modals/qr-builder";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder.tsx";
 import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
+import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { Rating } from "@/ui/qr-rating/rating.tsx";
 import { useLocalStorage, useMediaQuery } from "@dub/ui";
 import { forwardRef, useEffect } from "react";
@@ -12,7 +12,7 @@ import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
 export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
   const { AuthModal, showModal } = useAuthModal();
 
-  const [localQrDataToCreate, setLocalQrDataToCreate] =
+  const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>(`qr-data-to-create`, null);
 
   const { isMobile } = useMediaQuery();
@@ -46,21 +46,21 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
   }, [isMobile]);
 
   const handleSaveQR = async (data: QRBuilderData) => {
-    setLocalQrDataToCreate(data);
+    setQrDataToCreate(data);
     showModal("signup");
   };
 
   return (
-    <section className="bg-primary-100 w-full px-3 pb-6 md:pb-12">
+    <section className="bg-primary-100 w-full px-3 py-10 lg:py-14">
       <div
-        className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-4 md:gap-12"
+        className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-6 lg:gap-12"
         ref={ref}
       >
         <QrTabsTitle />
 
         <QrBuilder handleSaveQR={handleSaveQR} homepageDemo />
 
-        {isMobile && <Rating />}
+        <Rating />
 
         {!isMobile && <LogoScrollingBanner />}
       </div>

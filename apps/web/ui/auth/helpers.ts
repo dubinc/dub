@@ -1,5 +1,5 @@
+import { MessageType } from "@/ui/modals/auth-modal.tsx";
 import { toast } from "sonner";
-import { MessageType } from "../../app/app.dub.co/(auth)/auth.modal";
 
 export const showMessage = (
   message: string | undefined,

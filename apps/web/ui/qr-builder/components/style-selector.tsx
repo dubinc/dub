@@ -12,6 +12,7 @@ interface IStyleSelectorProps {
   onDotsStyleChange: (type: DotType) => void;
   onBorderColorChange: (color: string) => void;
   onBackgroundColorChange: (color: string) => void;
+  selectedSuggestedFrame: string;
 }
 
 export const StyleSelector: FC<IStyleSelectorProps> = ({
@@ -20,6 +21,7 @@ export const StyleSelector: FC<IStyleSelectorProps> = ({
   onDotsStyleChange,
   onBorderColorChange,
   onBackgroundColorChange,
+  selectedSuggestedFrame,
 }) => {
   return (
     <div
@@ -39,7 +41,7 @@ export const StyleSelector: FC<IStyleSelectorProps> = ({
         styleButtonClassName="[&_img]:h-12 [&_img]:w-12 p-3.5"
       />
       <div
-        className={cn("[&>div>div:first-child]:!flex-row", {
+        className={cn("", {
           "border-border-500 rounded-lg border p-3": isMobile,
         })}
       >
@@ -47,8 +49,7 @@ export const StyleSelector: FC<IStyleSelectorProps> = ({
           options={options}
           onBorderColorChange={onBorderColorChange}
           onBackgroundColorChange={onBackgroundColorChange}
-          isMobile={isMobile}
-          minimalFlow
+          selectedSuggestedFrame={selectedSuggestedFrame}
         />
       </div>
     </div>

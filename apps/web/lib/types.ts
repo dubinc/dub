@@ -56,6 +56,7 @@ import {
   ProgramInviteSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
+import { createQrBodySchema, updateQrBodySchema } from "./zod/schemas/qrs";
 import {
   saleEventResponseSchema,
   trackSaleResponseSchema,
@@ -67,9 +68,6 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
-import { createQrBodySchema } from './zod/schemas/qrs';
-
-export type QRProps = Qr;
 
 export type LinkProps = Link;
 
@@ -435,4 +433,7 @@ export type FolderSummary = Pick<
   "id" | "name" | "accessLevel" | "linkCount"
 >;
 
+export type QRProps = Qr;
 export type NewQrProps = z.infer<typeof createQrBodySchema>;
+export type UpdateQrProps = Omit<NewQrProps, "id"> &
+  z.infer<typeof updateQrBodySchema>;

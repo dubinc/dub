@@ -1,6 +1,6 @@
 "use client";
 
-import { FAQ_ITEMS } from "@/ui/landing/components/faq-section/config.ts";
+import { SectionTitle } from "@/ui/landing/components/section-title.tsx";
 import { BlockMarkdown } from "@/ui/partners/lander-blocks/BlockMarkdown.tsx";
 import {
   Accordion,
@@ -10,22 +10,28 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { Heading } from "@radix-ui/themes";
+import { FC } from "react";
 
-export const FAQSection = () => {
+type FaqItems = {
+  title: string;
+  content: string;
+};
+
+interface IFaqSectionProps {
+  faqItems: FaqItems[];
+}
+
+export const FAQSection: FC<IFaqSectionProps> = ({ faqItems }) => {
   const { isMobile } = useMediaQuery();
 
   return (
-    <section className="mx-auto flex w-full max-w-[1172px] flex-col justify-between gap-2 px-3 pt-3 lg:flex-row lg:gap-6 lg:pt-8">
-      <Heading
-        as="h2"
-        weight="bold"
-        size={{ initial: "7", md: "8" }}
-        className="text-neutral mb-4 text-center lg:max-w-64 lg:text-left"
-      >
-        {isMobile ? "FAQ" : "Frequently Asked Questions"}
-      </Heading>
+    <section className="mx-auto flex w-full max-w-[1172px] flex-col items-center justify-between gap-2 px-3 pt-3 lg:flex-row lg:items-start lg:gap-6 lg:pt-8">
+      <SectionTitle
+        titleFirstPart={isMobile ? "FAQ" : "Frequently Asked Questions"}
+        className="mb-4 text-center lg:max-w-64 lg:!text-left"
+      />
       <Accordion type="multiple" className="w-full">
-        {FAQ_ITEMS.map((item, idx) => (
+        {faqItems.map((item, idx) => (
           <AccordionItem key={idx} value={idx.toString()}>
             <AccordionTrigger className="justify-beetwen group gap-3 py-2 text-neutral-700">
               <Heading

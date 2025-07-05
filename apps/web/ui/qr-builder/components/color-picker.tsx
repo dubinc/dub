@@ -1,5 +1,6 @@
 import { cn } from "@dub/utils";
-import { ChangeEvent, FC, useEffect, useState } from "react";
+import { Flex, Text } from "@radix-ui/themes";
+import { FC, useEffect, useState } from "react";
 import { isValidHex } from "../helpers/is-valid-hex.ts";
 import { isWhiteHex } from "../helpers/is-white-hex.ts";
 
@@ -7,7 +8,6 @@ interface IColorPickerInputProps {
   label: string;
   color: string;
   onColorChange: (color: string) => void;
-  pickerId: string;
   isValid: boolean;
   setIsValid: (isValid: boolean) => void;
   disabled?: boolean;
@@ -17,7 +17,6 @@ export const ColorPickerInput: FC<IColorPickerInputProps> = ({
   label,
   color,
   onColorChange,
-  pickerId,
   isValid,
   setIsValid,
   disabled = false,
@@ -29,58 +28,49 @@ export const ColorPickerInput: FC<IColorPickerInputProps> = ({
     setIsValid(isValidHex(color));
   }, [color]);
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newColor = e.target.value.toUpperCase();
-    setIsValid(isValidHex(newColor));
-    onColorChange(newColor);
-  };
-
   return (
-    <div className="flex flex-col items-start justify-center gap-2">
+    <Flex
+      direction="column"
+      align="start"
+      justify="center"
+      gap="2"
+      className="w-full"
+    >
       <label className="font-medium">{label}</label>
       <div
         className={cn(
-          "border-border-300 relative flex h-11 items-center gap-2 rounded-md border p-3",
+          "border-border-500 relative flex h-11 w-full cursor-pointer items-center justify-between rounded-md border p-3 md:min-w-[130px]",
           {
             "border-red-600": !isValid,
-            "bg-border-200 cursor-not-allowed text-neutral-200": disabled,
+            "bg-border-200 cursor-not-allowed": disabled,
           },
         )}
       >
-        <input
-          type="text"
-          value={color}
-          onChange={handleInputChange}
-          className={cn(
-            "w-full max-w-[126px] basis-3/4 border-none p-0 text-sm focus:ring-0",
-            {
-              "text-red-600": !isValid,
-              "bg-border-200 text-neutral-200": disabled,
-            },
-          )}
-          placeholder="#000000"
-          disabled={disabled}
-        />
-        <button
-          type="button"
-          className={cn("h-5 max-h-5 w-5 max-w-5 basis-1/4 rounded", {
-            "border-border-300 border": showBorder || !isValid,
-            "cursor-not-allowed": disabled,
+        <Text
+          as="span"
+          className={cn("text-sm", {
+            "text-red-600": !isValid,
+            "text-neutral-400": disabled,
           })}
-          style={{
-            backgroundColor: color,
-          }}
-          onClick={() => document.getElementById(pickerId)?.click()}
-        />
+        >
+          {color}
+        </Text>
+        <div className="pointer-events-none h-5 w-5 flex-shrink-0">
+          <div
+            className={cn("h-full w-full rounded", {
+              "border-border-500 border": showBorder,
+            })}
+            style={{ backgroundColor: color }}
+          />
+        </div>
         <input
-          id={pickerId}
           type="color"
           value={color}
           onChange={(e) => onColorChange(e.target.value.toUpperCase())}
-          className="absolute inset-0 cursor-pointer opacity-0"
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           disabled={disabled}
         />
       </div>
-    </div>
+    </Flex>
   );
 };

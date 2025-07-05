@@ -41,7 +41,7 @@ const ReviewsIo = () => {
     script.onload = () => {
       new window.carouselInlineWidget("reviewsio-carousel-widget", {
         /* Your REVIEWS.io account ID: */
-        store: "hint.app",
+        store: "getqr.com",
         sku: "",
         lang: "en",
         carousel_type: "topHeader",

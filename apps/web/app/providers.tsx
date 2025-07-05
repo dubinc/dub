@@ -4,6 +4,7 @@ import { PosthogPageview } from "@/ui/layout/posthog-pageview";
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import {
   KeyboardShortcutProvider,
+  ToasterProvider,
   TooltipProvider,
   useRemoveGAParams,
 } from "@dub/ui";
@@ -11,7 +12,6 @@ import PlausibleProvider from "next-plausible";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { ReactNode } from "react";
-import { Toaster } from "sonner";
 
 if (typeof window !== "undefined") {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
@@ -39,7 +39,7 @@ export default function RootProviders({ children }: { children: ReactNode }) {
       />
       <TooltipProvider>
         <KeyboardShortcutProvider>
-          <Toaster closeButton className="pointer-events-auto" />
+          <ToasterProvider />
           <PosthogPageview />
           {children}
           <DubAnalytics

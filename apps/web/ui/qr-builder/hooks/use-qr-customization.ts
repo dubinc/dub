@@ -1,12 +1,15 @@
 import {
   BLACK_COLOR,
-  TRANSPARENT_COLOR,
   WHITE_COLOR,
 } from "@/ui/qr-builder/constants/customization/colors.ts";
-import { FRAMES } from "@/ui/qr-builder/constants/customization/frames.ts";
+import {
+  FRAME_TEXT,
+  FRAMES,
+} from "@/ui/qr-builder/constants/customization/frames.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { unescapeWiFiValue } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import QRCodeStyling, {
   CornerDotType,
   CornerSquareType,
@@ -17,14 +20,18 @@ import { useEffect, useState } from "react";
 import { convertSvgUrlToBase64 } from "../helpers/convert-svg-url-to-base64.ts";
 
 export function useQrCustomization(
-  initialData?: ResponseQrCode,
+  initialData?: QrStorageData,
   homepageDemo?: boolean,
 ) {
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
-  const [selectedSuggestedLogo, setSelectedSuggestedLogo] = useState("none");
-  const [selectedSuggestedFrame, setSelectedSuggestedFrame] = useState("none");
-
+  const [selectedSuggestedLogo, setSelectedSuggestedLogo] =
+    useState<string>("none");
+  const [selectedSuggestedFrame, setSelectedSuggestedFrame] =
+    useState<string>("none");
+  const [frameColor, setFrameColor] = useState<string>(BLACK_COLOR);
+  const [frameTextColor, setFrameTextColor] = useState<string>(WHITE_COLOR);
+  const [frameText, setFrameText] = useState<string>(FRAME_TEXT);
   const [selectedQRType, setSelectedQRType] = useState<EQRType>(
     initialData?.qrType as EQRType,
   );
@@ -68,6 +75,7 @@ export function useQrCustomization(
       imageSize: 0.4,
       hideBackgroundDots: true,
       crossOrigin: "anonymous",
+      margin: 10,
     },
     ...(initialData?.styles as Options),
   });
@@ -121,12 +129,12 @@ export function useQrCustomization(
         }
         break;
       case EQRType.WIFI:
-        const wifiMatch = data.match(/WIFI:T:(.+);S:(.+);P:(.+);H:(.+);/);
+        const wifiMatch = data.match(/WIFI:T:([^;]+(?:\\;[^;]+)*);S:([^;]+(?:\\;[^;]+)*);P:([^;]+(?:\\;[^;]+)*);H:([^;]+(?:\\;[^;]+)*);/);
         if (wifiMatch) {
           return {
-            networkName: wifiMatch[2],
-            networkPassword: wifiMatch[3],
-            networkEncryption: wifiMatch[1],
+            networkName: unescapeWiFiValue(wifiMatch[2]),
+            networkPassword: unescapeWiFiValue(wifiMatch[3]),
+            networkEncryption: unescapeWiFiValue(wifiMatch[1]),
             isHiddenNetwork: wifiMatch[4],
           };
         }
@@ -184,13 +192,31 @@ export function useQrCustomization(
       data,
     }));
 
-    if (selectedSuggestedFrame !== "none") {
-      const extensionFn = FRAMES[selectedSuggestedFrame];
-      if (extensionFn) qrCode.applyExtension(extensionFn);
-    } else {
+    const frame = FRAMES.find((f) => f.type === selectedSuggestedFrame);
+
+    if (selectedSuggestedFrame === "none" || !frame?.extension) {
       qrCode.deleteExtension?.();
+      return;
     }
-  }, [qrCode, data, selectedSuggestedFrame, isQrDisabled]);
+
+    qrCode.applyExtension?.((qr, opts) =>
+      frame.extension!(qr as SVGSVGElement, {
+        width: opts.width!,
+        height: opts.height!,
+        frameColor,
+        frameTextColor,
+        frameText,
+      }),
+    );
+  }, [
+    qrCode,
+    data,
+    selectedSuggestedFrame,
+    isQrDisabled,
+    frameColor,
+    frameText,
+    frameTextColor,
+  ]);
 
   useEffect(() => {
     if (!qrCode || isQrDisabled) return;
@@ -212,6 +238,37 @@ export function useQrCustomization(
         setSelectedSuggestedFrame(frameId);
         handlers.onSuggestedFrameSelect(frameId);
       }
+
+      if (
+        initialData.frameOptions &&
+        typeof initialData?.frameOptions === "object" &&
+        "color" in initialData.frameOptions
+      ) {
+        const frameColor = initialData.frameOptions.color as string;
+        setFrameColor(frameColor);
+        handlers.onFrameColorChange(frameColor);
+      }
+
+      if (
+        initialData.frameOptions &&
+        typeof initialData?.frameOptions === "object" &&
+        "textColor" in initialData.frameOptions
+      ) {
+        const frameTextColor = initialData.frameOptions.textColor as string;
+        setFrameTextColor(frameTextColor);
+        handlers.onFrameTextColorChange(frameTextColor);
+      }
+
+      if (
+        initialData.frameOptions &&
+        typeof initialData?.frameOptions === "object" &&
+        "text" in initialData.frameOptions
+      ) {
+        const frameText = initialData.frameOptions.text as string;
+        setFrameText(frameText);
+        handlers.onFrameTextChange(frameText);
+      }
+
       setSelectedQRType(initialData.qrType as EQRType);
     }
   }, [initialData, qrCode]);
@@ -252,13 +309,14 @@ export function useQrCustomization(
         backgroundOptions: { color },
       }));
     },
-    onTransparentBackgroundToggle: (checked: boolean) => {
-      setOptions((prevOptions) => ({
-        ...prevOptions,
-        backgroundOptions: {
-          color: checked ? TRANSPARENT_COLOR : WHITE_COLOR,
-        },
-      }));
+    onFrameColorChange: (color: string) => {
+      setFrameColor(color);
+    },
+    onFrameTextColorChange: (color: string) => {
+      setFrameTextColor(color);
+    },
+    onFrameTextChange: (text: string) => {
+      setFrameText(text);
     },
     onSuggestedLogoSelect: async (logoType: string, logoUrl?: string) => {
       if (selectedSuggestedLogo === logoType) return;
@@ -281,22 +339,25 @@ export function useQrCustomization(
     onSuggestedFrameSelect: (frameId: string) => {
       setSelectedSuggestedFrame(frameId);
 
+      const selected = FRAMES.find((f) => f.type === frameId);
+      setFrameTextColor(selected?.defaultTextColor || WHITE_COLOR);
+
+      setOptions((prevOptions) => ({
+        ...prevOptions,
+        backgroundOptions: { color: WHITE_COLOR },
+      }));
+
       if (!qrCode) return;
 
       qrCode.update({
         ...options,
+        backgroundOptions: {
+          color: WHITE_COLOR,
+        },
         data: homepageDemo
           ? `${window.location.origin}/qr-complete-setup`
           : data,
       });
-
-      const selected = FRAMES.find((f) => f.type === frameId);
-
-      if (selected?.extension) {
-        qrCode.applyExtension(selected.extension);
-      } else {
-        qrCode.deleteExtension();
-      }
     },
     setUploadedLogoFile: (file: File | null) => {
       if (file !== uploadedLogo) {
@@ -335,6 +396,9 @@ export function useQrCustomization(
     uploadedLogo,
     selectedSuggestedLogo,
     selectedSuggestedFrame,
+    frameColor,
+    frameTextColor,
+    frameText,
     setOptions,
     handlers,
     isQrDisabled,

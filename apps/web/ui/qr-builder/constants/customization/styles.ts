@@ -23,8 +23,15 @@ export type TStyleOption = {
   type: CornerSquareType | CornerDotType | DotType | string;
   extension?: (
     svg: SVGSVGElement,
-    options: { width: number; height: number },
+    options: {
+      width: number;
+      height: number;
+      frameColor: string;
+      frameText: string;
+      frameTextColor: string;
+    },
   ) => void;
+  defaultTextColor?: string;
 };
 
 export const BORDER_STYLES: TStyleOption[] = [

@@ -2,6 +2,7 @@ import {
   EQRType,
   FILE_QR_TYPES,
 } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { unescapeWiFiValue } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 
 const isURL = (str: string): boolean => {
   try {
@@ -46,12 +47,12 @@ const parseWhatsAppQRData = (data: string) => {
 
 const parseWiFiQRData = (data: string) => {
   const wifiMatch = data.match(
-    /WIFI:T:([^;]+);S:([^;]+);P:([^;]+);H:([^;]+);?/,
+    /WIFI:T:([^;]+(?:\\;[^;]+)*);S:([^;]+(?:\\;[^;]+)*);P:([^;]+(?:\\;[^;]+)*);H:([^;]+(?:\\;[^;]+)*);?/,
   );
 
   if (wifiMatch) {
     return {
-      networkName: wifiMatch[2],
+      networkName: unescapeWiFiValue(wifiMatch[2]),
     };
   }
 

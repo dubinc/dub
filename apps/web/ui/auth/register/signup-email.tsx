@@ -72,7 +72,7 @@ export const SignUpEmail = ({
         <Input
           type="email"
           placeholder="Your Email"
-          autoComplete="email"
+          autoComplete="off"
           required
           {...register("email")}
           error={errors.email?.message}
@@ -92,6 +92,7 @@ export const SignUpEmail = ({
           text={isPending ? "Submitting..." : "Sign Up"}
           disabled={isPending}
           loading={isPending}
+          className="!mt-3"
         />
       </div>
     </form>

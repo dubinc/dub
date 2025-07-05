@@ -14,7 +14,6 @@ interface IStylePickerProps {
   optionsWrapperClassName?: string;
   iconSize?: number;
   styleButtonClassName?: string;
-  minimalFlow?: boolean;
 }
 
 export const StylePicker: FC<IStylePickerProps> = ({
@@ -26,7 +25,6 @@ export const StylePicker: FC<IStylePickerProps> = ({
   optionsWrapperClassName,
   iconSize,
   styleButtonClassName,
-  minimalFlow = false,
 }) => {
   return (
     <div className={cn("flex flex-col gap-2", stylePickerWrapperClassName)}>
@@ -53,7 +51,7 @@ export const StylePicker: FC<IStylePickerProps> = ({
         <div className="mt-2">
           <ScrollArea.Scrollbar
             orientation="horizontal"
-            className="bg-border-100 h-1 rounded-[3px]"
+            className="bg-border-100 h-1 cursor-pointer rounded-[3px]"
           >
             <ScrollArea.Thumb className="!bg-primary !h-full rounded-lg" />
           </ScrollArea.Scrollbar>

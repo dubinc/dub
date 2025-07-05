@@ -3,13 +3,14 @@ import {
   EQRType,
   LINKED_QR_TYPES,
 } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { ResponseQrCode } from "@/ui/qr-code/qr-codes-container.tsx";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { unescapeWiFiValue } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { Tooltip } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils/src";
 import { Icon } from "@iconify/react";
 import { memo } from "react";
 
-const getDisplayContent = (qrCode: ResponseQrCode): string => {
+const getDisplayContent = (qrCode: QrStorageData): string => {
   const { data, qrType } = qrCode;
 
   switch (qrType as EQRType) {
@@ -40,9 +41,9 @@ const getDisplayContent = (qrCode: ResponseQrCode): string => {
       return data;
 
     case EQRType.WIFI:
-      const wifiMatch = data.match(/WIFI:T:(.+);S:(.+);P:(.+);H:(.+);/);
+      const wifiMatch = data.match(/WIFI:T:([^;]+(?:\\;[^;]+)*);S:([^;]+(?:\\;[^;]+)*);P:([^;]+(?:\\;[^;]+)*);H:([^;]+(?:\\;[^;]+)*);/);
       if (wifiMatch) {
-        return wifiMatch[2]; // networkName
+        return unescapeWiFiValue(wifiMatch[2]); // networkName
       }
       return data;
 
@@ -81,7 +82,7 @@ export const QRCardDetails = memo(
     isTrialOver,
     setShowTrialExpiredModal,
   }: {
-    qrCode: ResponseQrCode;
+    qrCode: QrStorageData;
     compact?: boolean;
     isTrialOver?: boolean;
     setShowTrialExpiredModal?: (show: boolean) => void;

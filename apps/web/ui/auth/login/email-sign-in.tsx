@@ -176,26 +176,26 @@ export const EmailSignIn = ({
         }}
         className="flex flex-col gap-y-3"
       >
-        {authMethod === "email" && (
-          <input
-            id="email"
-            name="email"
-            autoFocus={!isMobile && !showPasswordField}
-            type="email"
-            placeholder="example@domain.com"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            size={1}
-            className={cn(
-              "border-border-500 focus:border-secondary block w-full min-w-0 appearance-none rounded-md border px-3 py-2 placeholder-neutral-400 shadow-sm focus:outline-none sm:text-sm",
-              {
-                "pr-10": isPending,
-              },
-            )}
-          />
-        )}
+        {/* {authMethod === "email" && ( */}
+        <input
+          id="email"
+          name="email"
+          autoFocus={!isMobile && !showPasswordField}
+          type="email"
+          placeholder="example@domain.com"
+          autoComplete="off"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          size={1}
+          className={cn(
+            "border-border-500 focus:border-secondary block w-full min-w-0 appearance-none rounded-md border px-3 py-2 placeholder-neutral-400 shadow-sm focus:outline-none sm:text-sm",
+            {
+              "pr-10": isPending,
+            },
+          )}
+        />
+        {/* )} */}
 
         {showPasswordField && (
           <div>
@@ -211,14 +211,16 @@ export const EmailSignIn = ({
 
         <Button
           text={`Continue with ${password ? "Password" : "Email"}`}
-          variant="secondary"
+          variant="primary"
           icon={
             password ? (
               <InputPassword className="size-4 text-neutral-600" />
             ) : (
-              <Mail className="size-4 text-neutral-600" />
+              <Mail className="size-4 text-white" />
             )
           }
+          type="submit"
+          /*
           {...(authMethod !== "email" && {
             type: "button",
             onClick: (e) => {
@@ -227,6 +229,7 @@ export const EmailSignIn = ({
               setAuthMethod("email");
             },
           })}
+          */
           loading={clickedMethod === "email" || isPending}
           disabled={clickedMethod && clickedMethod !== "email"}
           className="border-border-500"

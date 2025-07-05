@@ -15,6 +15,18 @@ import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { updateUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
+import { addDays, format } from 'date-fns';
+
+const getPeriod = (paymentPlan: string) => {
+  const periodMap = {
+    'PRICE_MONTH_PLAN': '1 month',
+    'PRICE_QUARTER_PLAN': '3 months',
+    'PRICE_YEAR_PLAN': '12 months',
+  };
+  
+  return periodMap[paymentPlan];
+}
 
 const paymentService = new PaymentService();
 
@@ -85,6 +97,11 @@ export const POST = withSession(
     };
 
     try {
+      const period = getChargePeriodDaysIdByPlan({
+        paymentPlan: body.paymentPlan,
+        user,
+      });
+
       const { tokenOnboardingData, paymentMethodToken } =
         await paymentService.createClientSubscription({
           user: {
@@ -100,10 +117,7 @@ export const POST = withSession(
               trialPrice: 0,
               trialPeriodDays: 0,
               price,
-              chargePeriodDays: getChargePeriodDaysIdByPlan({
-                paymentPlan: body.paymentPlan,
-                user,
-              }),
+              chargePeriodDays: period,
               secondary: false,
               twoSteps: false,
             },
@@ -159,32 +173,17 @@ export const POST = withSession(
             },
           },
         }),
-        // sendEmail(emailTemplates.SUBSCRIPTION_CREATE, user.email as string, [
-        //   {
-        //     name: 'trial_period',
-        //     content: `${TRIAL_PERIOD_DAYS}`,
-        //   },
-        //   {
-        //     name: 'trial_price',
-        //     content: (trialPrice / 100).toFixed(2),
-        //   },
-        //   {
-        //     name: 'price',
-        //     content: (price / 100).toFixed(2),
-        //   },
-        //   {
-        //     name: 'currency_symbol',
-        //     content: user.currency?.currencyForPay as string,
-        //   },
-        //   {
-        //     name: 'period',
-        //     content: `${chargePeriodDays}`,
-        //   },
-        //   {
-        //     name: 'trial_end_date',
-        //     content: getTrialEndDate(),
-        //   },
-        // ]),
+        await sendEmail({
+          email: user.email || authSession.user.email,
+          subject: "Welcome to GetQR",
+          template: CUSTOMER_IO_TEMPLATES.SUBSCRIPTION_ACTIVE,
+          messageData: {
+            period: getPeriod(body.paymentPlan),
+            price: (price / 100).toFixed(2),
+            currency: user.currency?.currencyForPay as string,
+            next_billing_date: format(addDays(new Date(), period), 'yyyy-MM-dd'),
+          },
+        }),
       ]);
 
       return NextResponse.json({

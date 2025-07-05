@@ -1,16 +1,14 @@
 import { useTrialExpiredModal } from "@/lib/hooks/use-trial-expired-modal.tsx";
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
-import {
-  QrCodesListContext,
-  ResponseQrCode,
-} from "@/ui/qr-code/qr-codes-container.tsx";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
 import { CardList } from "@dub/ui";
 import { useContext, useRef } from "react";
 import { QrCodeDetailsColumn } from "./qr-code-details-column.tsx";
 import { QrCodeTitleColumn } from "./qr-code-title-column.tsx";
 
-export function QrCodeCard({ qrCode }: { qrCode: ResponseQrCode }) {
+export function QrCodeCard({ qrCode }: { qrCode: QrStorageData }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { isTrialOver } = useContext(QrCodesListContext);
   const { setShowTrialExpiredModal, TrialExpiredModalCallback } =

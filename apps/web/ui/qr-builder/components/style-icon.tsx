@@ -18,7 +18,7 @@ export default function StyleIcon({
       alt="QR Style"
       width={size}
       height={size}
-      className={cn("object-contain", className)}
+      className={cn("object-fill", className)}
       priority
     />
   );
