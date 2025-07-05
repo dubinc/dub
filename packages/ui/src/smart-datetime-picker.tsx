@@ -84,7 +84,7 @@ export function SmartDateTimePicker({
               inputRef.current.value = formatDateTime(date);
             }
           }}
-          className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
+          className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 mx-2 sm:text-sm"
         />
       </div>
     </div>
