@@ -18,19 +18,21 @@ export const sendEmail = async ({
   marketing,
   template,
   messageData,
+  customerId,
 }: Omit<CreateEmailOptions, "to" | "from"> & {
   email: string;
   from?: string;
   marketing?: boolean;
   template?: string;
   messageData?: Record<string, string>;
+  customerId?: string;
 }) => {
   console.log("Sending email");
   console.log("template", template);
   console.log("process.env.CUSTOMER_IO_API_KEY", process.env.CUSTOMER_IO_API_KEY);
   // If template is provided, use Customer.io transactional API
   if (template && process.env.CUSTOMER_IO_API_KEY) {
-    return await sendViaCustomerIO(template, email, messageData);
+    return await sendViaCustomerIO(template, email, messageData, customerId);
   }
 
   // Otherwise, follow the existing provider logic
