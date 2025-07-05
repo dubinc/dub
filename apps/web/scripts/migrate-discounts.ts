@@ -1,4 +1,4 @@
-// this is a one-time migration script for
+// @ts-nocheck – this is a one-time migration script for
 // when we migrate the program-wide discounts to the new schema
 
 import { prisma } from "@dub/prisma";
@@ -17,7 +17,6 @@ async function main() {
       },
     },
   });
-  console.table(nonDefaultDiscounts, ["id", "programId", "_count"]);
   console.log(
     `Found ${nonDefaultDiscounts.reduce(
       (acc, discount) => acc + discount._count.programEnrollments,
@@ -26,7 +25,7 @@ async function main() {
   );
 
   // Migrate program-wide discounts
-  const programDiscounts = await prisma.discount.findMany({
+  const programDiscount = await prisma.discount.findFirst({
     where: {
       defaultForProgram: {
         isNot: null,
@@ -39,44 +38,55 @@ async function main() {
     },
   });
 
-  const finalProgramDiscounts = programDiscounts.map((discount) => {
-    return {
-      discountId: discount.id,
-      programId: discount.programId,
-    };
-  });
+  console.log({ programDiscount });
 
-  console.table(finalProgramDiscounts);
+  if (!programDiscount) {
+    console.log("No program discounts to migrate");
+    return;
+  }
 
-  // Update the default column in the Reward table
-  const res1 = await prisma.discount.updateMany({
-    where: {
-      id: {
-        in: finalProgramDiscounts.map((discount) => discount.discountId),
-      },
-    },
-    data: {
-      default: true,
-    },
-  });
+  const { id: discountId, programId } = programDiscount;
 
-  console.log({ res1 });
-
-  for (const discount of finalProgramDiscounts) {
-    const discountId = discount.discountId;
-
-    const res2 = await prisma.programEnrollment.updateMany({
+  while (true) {
+    const programEnrollmentsToUpdate = await prisma.programEnrollment.findMany({
       where: {
-        programId: discount.programId,
+        programId,
         discountId: null, // only update if the discountId is null
+      },
+      take: 500,
+    });
+
+    if (programEnrollmentsToUpdate.length === 0) {
+      break;
+    }
+
+    const data = await prisma.programEnrollment.updateMany({
+      where: {
+        id: {
+          in: programEnrollmentsToUpdate.map((enrollment) => enrollment.id),
+        },
       },
       data: {
         discountId,
       },
     });
 
-    console.log({ res2 });
+    console.log(`Updated ${data.count} program enrollments`);
   }
+
+  // Update the default column in the Reward table
+  await prisma.discount.update({
+    where: {
+      id: programDiscount.id,
+    },
+    data: {
+      default: true,
+    },
+  });
+
+  console.log(
+    `Updated program-wide discount ${programDiscount.id} to use default: true`,
+  );
 }
 
 main();
