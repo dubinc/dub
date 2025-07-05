@@ -42,7 +42,7 @@ export async function POST(req: Request) {
         },
         partners: {
           where: {
-            id: partnerId,
+            partnerId,
           },
         },
       },
