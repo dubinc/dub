@@ -1,4 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { Wordmark } from "@dub/ui";
@@ -15,23 +16,19 @@ export async function generateMetadata({
 }) {
   const program = await getProgram({
     slug: programSlug,
-    include: ["defaultRewards"],
+    include: ["allRewards", "allDiscounts"],
   });
 
   if (!program) {
     notFound();
   }
 
-  if (!program.rewards || program.rewards.length === 0) {
-    notFound();
-  }
-
-  const reward = program.rewards[0];
+  const { rewards } = getProgramApplicationRewardsAndDiscount(program);
 
   return constructMetadata({
     title: `${program.name} Affiliate Program`,
     description: `Join the ${program.name} affiliate program and earn ${formatRewardDescription(
-      { reward },
+      { reward: rewards[0] },
     )} by referring ${program.name} to your friends and followers.`,
     image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}`,
   });

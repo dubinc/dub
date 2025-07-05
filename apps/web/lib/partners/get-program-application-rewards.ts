@@ -1,6 +1,7 @@
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { Prisma } from "@prisma/client";
 import { programLanderSchema } from "../zod/schemas/program-lander";
+import { sortRewardsByEventOrder } from "./sort-rewards-by-event-order";
 
 // TODO: Add an alternative to this function that doesn't require fetching all rewards and discounts
 
@@ -20,7 +21,7 @@ export function getProgramApplicationRewardsAndDiscount({
   landerData: Prisma.JsonValue;
 }) {
   const defaults = {
-    rewards: rewards.filter((r) => r.default),
+    rewards: sortRewardsByEventOrder(rewards.filter((r) => r.default)),
     discount: discounts.find((d) => d.default) || null,
   };
 

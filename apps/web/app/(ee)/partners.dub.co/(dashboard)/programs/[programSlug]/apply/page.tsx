@@ -31,13 +31,11 @@ export default async function ProgramDetailsPage({
       <PageWidthWrapper className="mb-10 mt-4">
         <BackLink href="/programs">Programs</BackLink>
         <div className="mt-8 grid grid-cols-1 gap-x-16 gap-y-10 lg:grid-cols-[300px_minmax(0,600px)]">
-          <div>
-            <ProgramSidebar
-              program={program}
-              applicationRewards={rewards}
-              applicationDiscount={discount}
-            />
-          </div>
+          <ProgramSidebar
+            program={program}
+            applicationRewards={rewards}
+            applicationDiscount={discount}
+          />
           <div>
             <div
               className="relative"

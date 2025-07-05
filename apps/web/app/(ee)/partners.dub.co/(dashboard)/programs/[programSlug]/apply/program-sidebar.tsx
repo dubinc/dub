@@ -28,6 +28,7 @@ export function ProgramSidebar({
   const { programEnrollment, loading: isLoadingProgramEnrollment } =
     useProgramEnrollment({
       swrOpts: {
+        keepPreviousData: true,
         shouldRetryOnError: (err) => err.status !== 404,
         revalidateOnFocus: false,
       },
