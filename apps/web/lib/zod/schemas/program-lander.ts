@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 const programLanderBlockTitleSchema = z.string().optional();
-const programLanderBlockDescriptionSchema = z.string().optional();
 
 export const programLanderBlockCommonSchema = z.object({
   id: z.string(),
@@ -75,8 +74,16 @@ export const programLanderBlockSchema = z.discriminatedUnion("type", [
   programLanderEarningsCalculatorBlockSchema,
 ]);
 
+export const programLanderRewardsSchema = z.object({
+  saleRewardId: z.string().or(z.literal("none")).optional(),
+  leadRewardId: z.string().or(z.literal("none")).optional(),
+  clickRewardId: z.string().or(z.literal("none")).optional(),
+  discountId: z.string().or(z.literal("none")).optional(),
+});
+
 export const programLanderSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
+  rewards: programLanderRewardsSchema.optional(),
   blocks: z.array(programLanderBlockSchema),
 });

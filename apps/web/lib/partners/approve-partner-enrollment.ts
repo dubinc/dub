@@ -4,52 +4,58 @@ import PartnerApplicationApproved from "@dub/email/templates/partner-application
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
-import { getLinkOrThrow } from "../api/links/get-link-or-throw";
 import { createPartnerLink } from "../api/partners/create-partner-link";
 import { recordLink } from "../tinybird/record-link";
-import {
-  ProgramPartnerLinkProps,
-  ProgramProps,
-  WorkspaceProps,
-} from "../types";
+import { ProgramPartnerLinkProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
+import { getProgramApplicationRewardsAndDiscount } from "./get-program-application-rewards";
 
 export async function approvePartnerEnrollment({
-  workspace,
-  program,
+  programId,
   partnerId,
   linkId,
   userId,
 }: {
-  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: ProgramProps;
+  programId: string;
   partnerId: string;
   linkId: string | null;
   userId: string;
 }) {
-  const { id: workspaceId } = workspace;
-  const { id: programId } = program;
-
-  const [link, defaultRewards] = await Promise.all([
-    linkId
-      ? getLinkOrThrow({
-          workspaceId,
-          linkId,
-        })
-      : Promise.resolve(null),
-
-    prisma.reward.findMany({
+  const [program, link] = await Promise.all([
+    prisma.program.findUniqueOrThrow({
       where: {
-        programId,
-        default: true,
+        id: programId,
+      },
+      include: {
+        rewards: true,
+        discounts: true,
+        workspace: true,
       },
     }),
+    linkId
+      ? prisma.link.findUniqueOrThrow({
+          where: {
+            id: linkId,
+          },
+        })
+      : Promise.resolve(null),
   ]);
 
-  if (link?.partnerId) {
-    throw new Error("This link is already associated with another partner.");
+  const { rewards, discount } =
+    getProgramApplicationRewardsAndDiscount(program);
+
+  const workspace = program.workspace as WorkspaceProps;
+
+  if (link) {
+    if (link.projectId !== program.workspaceId) {
+      throw new Error("This link is not associated with this program.");
+    }
+
+    if (link?.partnerId) {
+      throw new Error("This link is already associated with another partner.");
+    }
   }
 
   const [programEnrollment, updatedLink] = await Promise.all([
@@ -63,13 +69,13 @@ export async function approvePartnerEnrollment({
       data: {
         status: "approved",
         createdAt: new Date(),
-        ...(defaultRewards.length > 0 && {
+        ...(rewards.length > 0 && {
           ...Object.fromEntries(
-            defaultRewards.map((r) => [
-              REWARD_EVENT_COLUMN_MAPPING[r.event],
-              r.id,
-            ]),
+            rewards.map((r) => [REWARD_EVENT_COLUMN_MAPPING[r.event], r.id]),
           ),
+        }),
+        ...(discount && {
+          discountId: discount.id,
         }),
       },
       include: {
@@ -155,7 +161,7 @@ export async function approvePartnerEnrollment({
               payoutsEnabled: Boolean(partner.payoutsEnabledAt),
             },
             rewardDescription: ProgramRewardDescription({
-              reward: defaultRewards.find((r) => r.event === "sale"),
+              reward: rewards.find((r) => r.event === "sale"),
             }),
           }),
         }),

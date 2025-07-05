@@ -5,7 +5,6 @@ import { useEditHeroModal } from "@/ui/partners/design/modals/edit-hero-modal";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
-import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import {
   Button,
   Grid,
@@ -30,6 +29,8 @@ import {
 import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "../branding-form";
 import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
+import { useEditRewardsModal } from "../modals/edit-rewards-modal";
+import { RewardsDiscountsPreview } from "../rewards-discounts-preview";
 
 export function LanderPreview({
   program,
@@ -66,6 +67,7 @@ export function LanderPreview({
   );
 
   const { setShowEditHeroModal, EditHeroModal } = useEditHeroModal();
+  const { setShowEditRewardsModal, EditRewardsModal } = useEditRewardsModal();
 
   const [addBlockIndex, setAddBlockIndex] = useState<number | null>(null);
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
@@ -80,9 +82,9 @@ export function LanderPreview({
     return [block, DESIGNER_BLOCKS.find((b) => b.id === block?.type)];
   }, [landerData, editingBlockId]);
 
-  const [touchedBlockId, setTouchedBlockId] = useState<string | "hero" | null>(
-    null,
-  );
+  const [touchedBlockId, setTouchedBlockId] = useState<
+    string | "hero" | "rewards" | null
+  >(null);
 
   return (
     <>
@@ -102,6 +104,7 @@ export function LanderPreview({
         />
       )}
       <EditHeroModal />
+      <EditRewardsModal />
       <AddBlockModal
         addIndex={addBlockIndex ?? 0}
         showAddBlockModal={addBlockIndex !== null}
@@ -163,6 +166,8 @@ export function LanderPreview({
                 </div>
               </div>
             </header>
+
+            {/* Hero */}
             <div
               className="group relative mt-6"
               data-touched={touchedBlockId === "hero"}
@@ -176,22 +181,27 @@ export function LanderPreview({
                 </div>
               </div>
             </div>
+
+            {/* Program rewards */}
+            <div
+              className="group relative"
+              data-touched={touchedBlockId === "rewards"}
+              onClick={() => isMobile && setTouchedBlockId("rewards")}
+            >
+              <EditIndicatorGrid />
+              <EditToolbar onEdit={() => setShowEditRewardsModal(true)} />
+              <div className="relative mx-auto max-w-screen-sm py-4">
+                <div className="px-6">
+                  <RewardsDiscountsPreview />
+                </div>
+              </div>
+            </div>
+
+            {/* Buttons */}
             <div className="mx-auto max-w-screen-sm">
               <div className="px-6">
-                {/* Program details grid */}
-                <LanderRewards
-                  program={{
-                    rewards: program.rewards ?? [],
-                    defaultDiscount:
-                      program.discounts?.find(
-                        (d) => d.id === program.defaultDiscountId,
-                      ) || null,
-                  }}
-                />
-
-                {/* Buttons */}
                 <div
-                  className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
+                  className="animate-scale-in-fade mt-6 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
                   {...{ inert: "" }}
                 >
                   <Button

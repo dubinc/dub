@@ -3,7 +3,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
-import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
@@ -40,13 +39,6 @@ export const invitePartnerAction = authActionClient
         ? getRewardOrThrow({
             programId,
             rewardId,
-          })
-        : null,
-
-      discountId
-        ? getDiscountOrThrow({
-            programId,
-            discountId,
           })
         : null,
     ]);

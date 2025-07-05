@@ -56,7 +56,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
   return (
     <div className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
-        <div className="flex items-center justify-between px-6 py-4 h-16">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
             Partner details
           </Sheet.Title>
@@ -135,31 +135,6 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
               ))}
             </div>
           )}
-
-          {/* <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
-            <Link
-              href={`/${slug}/analytics?programId=${defaultProgramId}&partnerId=${partner.id}&interval=all`}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
-              )}
-            >
-              <LinesY className="size-4 text-neutral-900" />
-              Analytics
-            </Link>
-            <Link
-              href={`/${slug}/events?programId=${defaultProgramId}&partnerId=${partner.id}&interval=all`}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
-              )}
-            >
-              <CursorRays className="size-4 text-neutral-900" />
-              Events
-            </Link>
-          </div> */}
 
           {showPartnerDetails && (
             <div className="-mb-6 mt-2 flex items-center gap-2">

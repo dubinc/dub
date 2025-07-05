@@ -22,8 +22,6 @@ export const ProgramSchema = z.object({
   domain: z.string().nullable(),
   url: z.string().nullable(),
   cookieLength: z.number(),
-  defaultDiscountId: z.string().nullable(),
-  rewards: z.array(RewardSchema).nullish(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
   linkStructure: z.nativeEnum(LinkStructure),
@@ -31,8 +29,9 @@ export const ProgramSchema = z.object({
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
 
-  // Discounts (for dual-sided incentives)
+  rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
+
   defaultFolderId: z.string().nullable(),
   wordmark: z.string().nullable(),
   createdAt: z.date(),

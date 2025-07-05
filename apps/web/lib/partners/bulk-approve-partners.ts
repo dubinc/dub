@@ -10,7 +10,12 @@ import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { bulkCreateLinks } from "../api/links";
 import { generatePartnerLink } from "../api/partners/create-partner-link";
 import { Session } from "../auth/utils";
-import { ProgramProps, WorkspaceProps } from "../types";
+import {
+  DiscountProps,
+  ProgramWithLanderDataProps,
+  RewardProps,
+  WorkspaceProps,
+} from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
@@ -19,11 +24,15 @@ export async function bulkApprovePartners({
   workspace,
   program,
   programEnrollments,
+  rewards,
+  discount,
   user,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: ProgramProps;
+  program: ProgramWithLanderDataProps;
   programEnrollments: (ProgramEnrollment & { partner: Partner })[];
+  rewards: RewardProps[];
+  discount: DiscountProps | null;
   user: Session["user"];
 }) {
   await prisma.programEnrollment.updateMany({
@@ -35,15 +44,14 @@ export async function bulkApprovePartners({
     data: {
       status: "approved",
       createdAt: new Date(),
-      ...(program.rewards &&
-        program.rewards.length > 0 && {
-          ...Object.fromEntries(
-            program.rewards.map((r) => [
-              REWARD_EVENT_COLUMN_MAPPING[r.event],
-              r.id,
-            ]),
-          ),
-        }),
+      ...(rewards.length > 0 && {
+        ...Object.fromEntries(
+          rewards.map((r) => [REWARD_EVENT_COLUMN_MAPPING[r.event], r.id]),
+        ),
+      }),
+      ...(discount && {
+        discountId: discount.id,
+      }),
     },
   });
 
@@ -94,7 +102,7 @@ export async function bulkApprovePartners({
                   payoutsEnabled: Boolean(partner.payoutsEnabledAt),
                 },
                 rewardDescription: ProgramRewardDescription({
-                  reward: program.rewards?.find((r) => r.event === "sale"),
+                  reward: rewards?.find((r) => r.event === "sale"),
                 }),
               }),
             })),

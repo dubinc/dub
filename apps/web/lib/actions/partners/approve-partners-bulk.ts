@@ -1,9 +1,10 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { bulkApprovePartners } from "@/lib/partners/bulk-approve-partners";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import { approvePartnersBulkSchema } from "@/lib/zod/schemas/partners";
+import { ProgramWithLanderDataSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 
@@ -13,39 +14,42 @@ export const approvePartnersBulkAction = authActionClient
   .schema(approvePartnersBulkSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let { partnerIds } = parsedInput;
-
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [program, programEnrollments] = await Promise.all([
-      getProgramOrThrow(
-        {
-          workspaceId: workspace.id,
-          programId,
-        },
-        {
-          includeDefaultRewards: true,
-        },
-      ),
+    let { partnerIds } = parsedInput;
 
-      prisma.programEnrollment.findMany({
-        where: {
-          programId: programId,
-          status: "pending",
-          partnerId: {
-            in: partnerIds,
+    const program = await prisma.program.findUniqueOrThrow({
+      where: {
+        id: programId,
+      },
+      include: {
+        rewards: true,
+        discounts: true,
+        partners: {
+          where: {
+            status: "pending",
+            partnerId: {
+              in: partnerIds,
+            },
+          },
+          include: {
+            partner: true,
           },
         },
-        include: {
-          partner: true,
-        },
-      }),
-    ]);
+      },
+    });
+
+    const programWithLanderData = ProgramWithLanderDataSchema.parse(program);
+
+    const { rewards, discount } =
+      getProgramApplicationRewardsAndDiscount(program);
 
     await bulkApprovePartners({
       workspace,
-      program,
-      programEnrollments,
+      program: programWithLanderData,
+      programEnrollments: program.partners,
+      rewards,
+      discount,
       user,
     });
   });
