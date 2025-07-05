@@ -139,7 +139,6 @@ export function ProgramLinksPageClient() {
 function LinkCardSkeleton() {
   return (
     <CardList.Card innerClassName="px-0 py-0" hoverStateEnabled={false}>
-      <div className="h-[33px] rounded-t-xl bg-neutral-50"></div>
       <div className="p-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">

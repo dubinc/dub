@@ -6,17 +6,17 @@ import { CommentsBadge } from "@/ui/links/comments-badge";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import {
   ArrowTurnRight2,
+  Button,
   CardList,
   CopyButton,
   CursorRays,
   InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
+  PenWriting,
   useInViewport,
   UserCheck,
   useRouterStuff,
-  Button,
-  PenWriting,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
 import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
@@ -103,54 +103,13 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
     }));
   }, [timeseries]);
 
-  const stats = useMemo(
-    () => [
-      {
-        id: "clicks",
-        icon: CursorRays,
-        value: totals?.clicks ?? 0,
-        iconClassName: "data-[active=true]:text-blue-500",
-      },
-      {
-        id: "leads",
-        icon: UserCheck,
-        value: totals?.leads ?? 0,
-        className: "hidden sm:flex",
-        iconClassName: "data-[active=true]:text-purple-500",
-      },
-      {
-        id: "sales",
-        icon: InvoiceDollar,
-        value: totals?.saleAmount ?? 0,
-        className: "hidden sm:flex",
-        iconClassName: "data-[active=true]:text-teal-500",
-      },
-    ],
-    [totals],
-  );
-
   return (
     <CardList.Card
       innerClassName="px-0 py-0 hover:cursor-pointer group"
       onClick={() => setShowPartnerLinkModal(true)}
     >
       <PartnerLinkModal />
-      <div className="p-4 relative" ref={ref}>
-        <button
-          type="button"
-          className="absolute right-4 top-4 z-10 opacity-0 pointer-events-none translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0"
-          onClick={e => {
-            e.stopPropagation();
-            setShowPartnerLinkModal(true);
-          }}
-        >
-          <Button
-            variant="light"
-            icon={<PenWriting />}
-            text="Edit link"
-            className="!px-3 !py-1.5 text-sm"
-          />
-        </button>
+      <div className="relative p-4" ref={ref}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative hidden shrink-0 items-center justify-center sm:flex">
@@ -167,7 +126,7 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
 
             <div className="flex min-w-0 flex-col">
               <div className="flex flex-col">
-                <div className="group/shortlink relative flex w-fit items-center gap-1 pl-1 pr-1.5 py-0 transition-colors duration-150 hover:bg-neutral-100 hover:rounded-lg">
+                <div className="group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
                   <a
                     href={link.shortLink}
                     target="_blank"
@@ -180,12 +139,12 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                     <CopyButton
                       value={link.shortLink}
                       variant="neutral"
-                      className="p-0.5 opacity-0 group-hover/shortlink:opacity-100 transition-opacity duration-150"
+                      className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
                     />
                   </span>
                   {link.comments && <CommentsBadge comments={link.comments} />}
                 </div>
-                <div className="group/desturl flex w-fit items-center gap-1 pl-1 pr-1.5 py-0 transition-colors duration-150 hover:bg-neutral-100 hover:rounded-lg">
+                <div className="group/desturl flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
                   <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
                   <a
                     href={link.url}
@@ -199,13 +158,20 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                     <CopyButton
                       value={link.url}
                       variant="neutral"
-                      className="p-0.5 opacity-0 group-hover/desturl:opacity-100 transition-opacity duration-150"
+                      className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/desturl:opacity-100"
                     />
                   </span>
                 </div>
               </div>
             </div>
           </div>
+          <Button
+            variant="secondary"
+            icon={<PenWriting className="size-3.5" />}
+            text="Edit"
+            className="h-7 w-fit px-2"
+            onClick={() => setShowPartnerLinkModal(true)}
+          />
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -219,8 +185,17 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                   event: chart.key === "saleAmount" ? "sales" : chart.key,
                 },
               )}`}
-              className="rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
+              className="group/chart relative isolate rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
             >
+              <div className="absolute right-2 top-2 overflow-hidden">
+                <div className="translate-x-full transition-transform duration-200 group-hover/chart:translate-x-0">
+                  <Button
+                    text="View more"
+                    variant="secondary"
+                    className="h-6 w-fit px-2 text-xs"
+                  />
+                </div>
+              </div>
               <div className="flex flex-col gap-1 pl-2 pt-3 lg:pl-1.5">
                 <div className="flex items-center gap-1.5">
                   <chart.icon
