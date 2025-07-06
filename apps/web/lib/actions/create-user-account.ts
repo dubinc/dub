@@ -14,6 +14,9 @@ import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
+import { TrackClient } from "customerio-node";
+
+let cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_API_KEY!);
 
 const qrDataToCreateSchema = z.object({
   title: z.string(),
@@ -144,6 +147,16 @@ export const createUserAccountAction = actionClient
           fileId: qrDataToCreate.file || undefined,
           homePageDemo: true,
         });
+
+        await cio.identify(generatedUserId, {
+          email: email,
+        });
+        // await cio.track(generatedUserId, {
+        //   event: "user_created",
+        //   properties: {
+        //     email: email,
+        //   },
+        // });
 
         await sendEmail({
           email: email,
