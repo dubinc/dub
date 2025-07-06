@@ -25,9 +25,33 @@ import {
 } from "next/server";
 import { checkFeaturesAccessAuthLess } from "../actions/check-features-access-auth-less";
 import { linkCache } from "../api/links/cache";
-import { getLinkViaEdge } from "../planetscale";
+import { getLinkViaEdge, conn } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
+import { TrackClient } from 'customerio-node';
+
+const cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_TRACK_API_KEY!);
+
+const sendScanLimitReachedEvent = async (linkId: string) => {
+  const linkRows = await conn.execute(
+    `SELECT l.*, 
+      (SELECT SUM(clicks) FROM Link WHERE userId = l.userId) as totalUserClicks
+    FROM Link l 
+    WHERE l.id = ?`,
+    [linkId]
+  );
+
+  const link = linkRows.rows?.[0];
+
+  const featuresAccess = await checkFeaturesAccessAuthLess(link.userId);
+
+  // Check if user has exceeded total clicks limit
+  if (link.totalUserClicks >= 30 && !featuresAccess.featuresAccess) {
+    await cio.track(link.userId, {
+      name: "scan_limit_reached",
+    });
+  }
+};
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -265,6 +289,8 @@ export default async function LinkMiddleware(
       }),
     );
 
+    await sendScanLimitReachedEvent(linkId);
+
     return createResponseWithCookie(
       NextResponse.rewrite(new URL(`/${domain}`, req.url), {
         headers: {
@@ -310,6 +336,8 @@ export default async function LinkMiddleware(
       }),
     );
 
+    await sendScanLimitReachedEvent(linkId);
+
     return createResponseWithCookie(
       NextResponse.rewrite(
         new URL(
@@ -343,6 +371,8 @@ export default async function LinkMiddleware(
         workspaceId,
       }),
     );
+
+    await sendScanLimitReachedEvent(linkId);
 
     return createResponseWithCookie(
       NextResponse.rewrite(
@@ -380,6 +410,8 @@ export default async function LinkMiddleware(
       }),
     );
 
+    await sendScanLimitReachedEvent(linkId);
+
     return createResponseWithCookie(
       NextResponse.redirect(
         getFinalUrl(ios, {
@@ -409,6 +441,8 @@ export default async function LinkMiddleware(
         workspaceId,
       }),
     );
+
+    await sendScanLimitReachedEvent(linkId);
 
     return createResponseWithCookie(
       NextResponse.redirect(
@@ -440,6 +474,8 @@ export default async function LinkMiddleware(
       }),
     );
 
+    await sendScanLimitReachedEvent(linkId);
+
     return createResponseWithCookie(
       NextResponse.redirect(
         getFinalUrl(geo[country], {
@@ -469,6 +505,8 @@ export default async function LinkMiddleware(
         workspaceId,
       }),
     );
+
+    await sendScanLimitReachedEvent(linkId);
 
     if (hasEmptySearchParams(url)) {
       return NextResponse.rewrite(new URL("/api/patch-redirect", req.url), {
