@@ -152,10 +152,7 @@ export const createUserAccountAction = actionClient
           email: email,
         });
         await cio.track(generatedUserId, {
-          event: "user_created",
-          properties: {
-            email: email,
-          },
+          name: "user_created",
         });
 
         await sendEmail({
