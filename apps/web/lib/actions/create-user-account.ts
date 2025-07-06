@@ -151,12 +151,12 @@ export const createUserAccountAction = actionClient
         await cio.identify(generatedUserId, {
           email: email,
         });
-        // await cio.track(generatedUserId, {
-        //   event: "user_created",
-        //   properties: {
-        //     email: email,
-        //   },
-        // });
+        await cio.track(generatedUserId, {
+          event: "user_created",
+          properties: {
+            email: email,
+          },
+        });
 
         await sendEmail({
           email: email,
