@@ -37,7 +37,6 @@ export const saveQrDataToCookieAction = actionClient
     const { qrData } = parsedInput;
 
     try {
-      // Сохраняем обработанные QR данные в куки
       cookies().set("processed-qr-data", JSON.stringify(qrData), {
         httpOnly: true,
         secure: true,

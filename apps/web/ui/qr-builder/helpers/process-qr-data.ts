@@ -19,7 +19,7 @@ export type TProcessedQRData = {
   fileSize?: number | null;
 };
 
-export const processQrDataForServerAction = async (
+export const prepareRegistrationQrData = async (
   qrDataToCreate: QRBuilderData | null,
   options: ProcessQrDataOptions = {},
 ): Promise<TProcessedQRData | null> => {
