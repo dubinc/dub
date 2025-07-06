@@ -16,7 +16,7 @@ import { actionClient } from "./safe-action";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
 import { TrackClient } from "customerio-node";
 
-let cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_API_KEY!);
+let cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_TRACK_API_KEY!);
 
 const qrDataToCreateSchema = z.object({
   title: z.string(),
