@@ -38,6 +38,17 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsCount", title: "AnalyticsCount" }),
+  count_new: z
+    .object({
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsCount", title: "AnalyticsCount" }),
   timeseries: z
     .object({
       start: z.string().describe("The starting timestamp of the interval"),

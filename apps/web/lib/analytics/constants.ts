@@ -114,6 +114,7 @@ export const INTERVAL_DATA: Record<
 
 export const VALID_ANALYTICS_ENDPOINTS = [
   "count",
+  "count_new",
   "timeseries",
   "continents",
   "regions",
