@@ -12,6 +12,7 @@ export const configureVercelNameservers = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        op: "update",
         zone: true,
       }),
     },
