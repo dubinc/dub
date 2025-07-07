@@ -78,11 +78,13 @@ export const PayoutStats = memo(() => {
             {payoutsCount ? (
               <p className="text-content-default font-medium">
                 {currencyFormatter(
-                  (payoutsCount?.find(
-                    (payout) =>
-                      payout.status === PayoutStatus.completed ||
-                      payout.status === PayoutStatus.processing,
-                  )?.amount || 0) / 100,
+                  (payoutsCount
+                    ?.filter(
+                      (payout) =>
+                        payout.status === PayoutStatus.completed ||
+                        payout.status === PayoutStatus.processing,
+                    )
+                    ?.reduce((acc, p) => acc + p.amount, 0) ?? 0) / 100,
                   {
                     maximumFractionDigits: 2,
                   },
