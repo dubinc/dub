@@ -43,7 +43,7 @@ export async function confirmPayouts({
     | "payoutsLimit"
     | "payoutFee"
   >;
-  program: Pick<Program, "id" | "name" | "logo">;
+  program: Pick<Program, "id" | "name" | "logo" | "minPayoutAmount">;
   userId: string;
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
@@ -57,6 +57,9 @@ export async function confirmPayouts({
       programId: program.id,
       status: "pending",
       invoiceId: null,
+      amount: {
+        gte: program.minPayoutAmount,
+      },
       partner: {
         payoutsEnabledAt: {
           not: null,
