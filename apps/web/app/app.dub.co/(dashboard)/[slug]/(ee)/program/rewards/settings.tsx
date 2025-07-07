@@ -2,18 +2,20 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
+import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { HOLDING_PERIOD_DAYS } from "@/lib/zod/schemas/programs";
-import { Button } from "@dub/ui";
+import { Button, DynamicTooltipWrapper, TooltipContent } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { SettingsRow } from "../program-settings-row";
 
-type FormData = Pick<ProgramProps, "holdingPeriodDays">;
+type FormData = Pick<ProgramProps, "holdingPeriodDays" | "minPayoutAmount">;
 
 export function RewardSettings() {
   const { id: workspaceId, plan } = useWorkspace();
@@ -27,6 +29,9 @@ export function RewardSettings() {
     mode: "onBlur",
     defaultValues: {
       holdingPeriodDays: program?.holdingPeriodDays,
+      minPayoutAmount: program?.minPayoutAmount
+        ? program?.minPayoutAmount / 100
+        : undefined,
     },
   });
 
@@ -79,6 +84,63 @@ export function RewardSettings() {
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+          </SettingsRow>
+
+          <SettingsRow
+            heading="Minimum payout amount"
+            description="Set the minimum payout amount (cannot be less than $100)"
+          >
+            <div className="flex items-center justify-end">
+              <div className="w-full max-w-md">
+                <div className="relative mt-2 rounded-md shadow-sm">
+                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                    $
+                  </span>
+
+                  <DynamicTooltipWrapper
+                    tooltipProps={
+                      plan !== "enterprise"
+                        ? {
+                            content: (
+                              <TooltipContent
+                                title="Minimum payout amount customization is only available on Enterprise plans. The default minimum payout amount on Dub is $100."
+                                cta="Contact sales"
+                                href="https://dub.co/enterprise"
+                                target="_blank"
+                              />
+                            ),
+                          }
+                        : undefined
+                    }
+                  >
+                    <div>
+                      <input
+                        className={cn(
+                          "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                          errors.minPayoutAmount &&
+                            "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
+                          plan !== "enterprise" &&
+                            "cursor-not-allowed bg-neutral-50 text-neutral-400",
+                        )}
+                        {...register("minPayoutAmount", {
+                          required: true,
+                          valueAsNumber: true,
+                          min: 100,
+                          onChange: handleMoneyInputChange,
+                        })}
+                        onKeyDown={handleMoneyKeyDown}
+                        placeholder="100"
+                        disabled={plan !== "enterprise"}
+                      />
+                    </div>
+                  </DynamicTooltipWrapper>
+
+                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                    USD
+                  </span>
+                </div>
               </div>
             </div>
           </SettingsRow>

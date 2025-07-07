@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
+import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { isStored, storage } from "@/lib/storage";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
@@ -40,6 +41,7 @@ export const updateProgramAction = authActionClient
       helpUrl,
       termsUrl,
       holdingPeriodDays,
+      minPayoutAmount,
       cookieLength,
       defaultFolderId,
     } = parsedInput;
@@ -90,6 +92,10 @@ export const updateProgramAction = authActionClient
         termsUrl,
         cookieLength,
         holdingPeriodDays,
+        minPayoutAmount:
+          workspace.plan === "enterprise"
+            ? minPayoutAmount
+            : DUB_MIN_PAYOUT_AMOUNT_CENTS,
         defaultFolderId,
       },
     });
