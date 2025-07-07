@@ -75,7 +75,12 @@ export const CountrySelectAutocompleteComponent = ({
             disabled={disabled}
           />
 
-          <div className="relative mt-1 max-h-60 overflow-auto">
+          <div
+            className="relative mt-1 max-h-60 touch-pan-y overflow-auto overscroll-contain"
+            onWheel={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
             <Command.List className="max-h-60 overflow-auto pr-1">
               {filteredOptions.length === 0 ? (
                 <Command.Empty className="px-3 py-2 text-neutral-800">

@@ -14,8 +14,10 @@ import { cn } from "@dub/utils/src";
 import { Flex, Text } from "@radix-ui/themes";
 import { AnimatePresence, motion } from "framer-motion";
 import { RotateCcw } from "lucide-react";
-import { FC, useEffect, useState } from "react";
+import { FC, FormEvent, useEffect, useState } from "react";
 import { StylePicker } from "./style-picker.tsx";
+
+const MAX_FRAME_TEXT_LENGTH = 10;
 
 const animationVariants = {
   open: {
@@ -91,8 +93,9 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
   };
 
   const handleFrameTextChange = (text: string) => {
-    setFrameText(text);
-    onFrameTextChange(text);
+    const truncatedText = text.slice(0, MAX_FRAME_TEXT_LENGTH);
+    setFrameText(truncatedText);
+    onFrameTextChange(truncatedText);
   };
 
   return (
@@ -140,7 +143,12 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
                 placeholder={"Frame Text"}
                 value={frameText}
                 onChange={(e) => handleFrameTextChange(e.target.value)}
-                maxLength={10}
+                onBeforeInput={(e: FormEvent<HTMLInputElement>) => {
+                  if (frameText.length >= MAX_FRAME_TEXT_LENGTH) {
+                    e.preventDefault();
+                  }
+                }}
+                maxLength={MAX_FRAME_TEXT_LENGTH}
               />
             </Flex>
             <Flex direction="row" gap="2" className="items-end text-sm">

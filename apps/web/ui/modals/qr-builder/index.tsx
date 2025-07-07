@@ -108,10 +108,12 @@ export function QRBuilderModal({
       <Drawer.Root
         open={showQRBuilderModal}
         onOpenChange={setShowQRBuilderModal}
+        dismissible={false}
+        repositionInputs={false}
       >
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex h-[96%] flex-col rounded-t-[10px] bg-white">
+          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex !h-[100dvh] !max-h-[100dvh] !min-h-[100dvh] flex-col rounded-t-[10px] bg-white">
             <div className="flex-1 overflow-y-auto">{modalContent}</div>
           </Drawer.Content>
         </Drawer.Portal>
