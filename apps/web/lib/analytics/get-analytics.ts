@@ -121,8 +121,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     region,
   });
 
-  console.log("RESPONSE!!!", response);
-
   if (["count", "count_new"].includes(groupBy)) {
     // Return the count value for deprecated endpoints
     if (isDeprecatedClicksEndpoint) {
