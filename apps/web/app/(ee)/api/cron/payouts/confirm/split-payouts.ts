@@ -11,7 +11,7 @@ export async function splitPayouts({
   program,
   cutoffPeriod,
 }: {
-  program: Pick<Program, "id">;
+  program: Pick<Program, "id" | "minPayoutAmount">;
   cutoffPeriod: CUTOFF_PERIOD_TYPES;
 }) {
   const payouts = await prisma.payout.findMany({
@@ -19,6 +19,9 @@ export async function splitPayouts({
       programId: program.id,
       status: "pending",
       invoiceId: null,
+      amount: {
+        gte: program.minPayoutAmount,
+      },
       partner: {
         payoutsEnabledAt: {
           not: null,
