@@ -53,10 +53,22 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
     console.log("link.totalUserClicks", link.totalUserClicks);
   
     if (link.totalUserClicks >= 29 && !featuresAccess.featuresAccess) {
-      console.log(featuresAccess);
-      await cio.track(link.userId, {
-        name: "scan_limit_reached",
+      const auth = Buffer.from(`${process.env.CUSTOMER_IO_SITE_ID}:${process.env.CUSTOMER_IO_TRACK_API_KEY}`).toString("base64");
+
+      const response = await fetch(`https://track.customer.io/api/v1/customers/${link.userId}/events`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Basic ${auth}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "scan_limit_reached",
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Request failed: ${response.status} ${await response.text()}`);
+      }
     }
   } catch (error) {
     console.error("Error sending scan limit reached event for link", linkId, error);
