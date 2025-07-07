@@ -1,6 +1,8 @@
 "use client";
 
+import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -14,6 +16,7 @@ import {
   StatusBadge,
   Table,
   Tooltip,
+  TooltipContent,
   usePagination,
   useRouterStuff,
   useTable,
@@ -28,6 +31,7 @@ import {
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { PayoutDetailsSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-details-sheet";
+import { useParams } from "next/navigation";
 import { memo, useEffect, useState } from "react";
 import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
@@ -304,13 +308,37 @@ function AmountRowItem({
   status: PayoutStatus;
   payoutsEnabled: boolean;
 }) {
+  const { slug } = useParams();
+  const { program } = useProgram();
   const display = currencyFormatter(amount / 100, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
+  const minPayoutAmount =
+    program?.minPayoutAmount || DUB_MIN_PAYOUT_AMOUNT_CENTS;
+
   if (status === PayoutStatus.pending) {
-    if (!payoutsEnabled) {
+    if (amount < minPayoutAmount) {
+      return (
+        <Tooltip
+          content={
+            <TooltipContent
+              title={`Your program's minimum payout amount is ${currencyFormatter(
+                minPayoutAmount / 100,
+              )}. This payout will be accrued and processed during the next payout period.`}
+              cta="Update minimum payout amount"
+              href={`/${slug}/program/settings/rewards`}
+              target="_blank"
+            />
+          }
+        >
+          <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+            {display}
+          </span>
+        </Tooltip>
+      );
+    } else if (!payoutsEnabled) {
       return (
         <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
