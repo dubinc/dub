@@ -121,7 +121,7 @@ export const ImportRewardfulForm = ({
             )}
           </div>
           <Link
-            href="#"
+            href="https://dub.co/help/article/migrating-from-rewardful#migrating-multiple-campaigns"
             className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
             target="_blank"
             rel="noopener noreferrer"
