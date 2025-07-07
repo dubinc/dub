@@ -114,25 +114,9 @@ const config: Pick<Config, "presets"> = {
               "0%": { backgroundPosition: "0% 50%" },
               "100%": { backgroundPosition: "200% 50%" },
             },
-            "prevent-mobile-scroll": {
-              "0%": { opacity: "0" },
-              "100%": { opacity: "1" },
-            },
           },
         },
       },
-      plugins: [
-        ...sharedConfig.plugins || [],
-        function({ addUtilities }) {
-          addUtilities({
-            '.prevent-ios-scroll': {
-              '&:focus': {
-                animation: 'prevent-mobile-scroll 0.01s',
-              },
-            },
-          });
-        },
-      ],
     },
   ],
 };
