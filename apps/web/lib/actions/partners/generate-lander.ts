@@ -3,7 +3,10 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { programLanderSimpleSchema } from "@/lib/zod/schemas/program-lander";
 import { anthropic } from "@ai-sdk/anthropic";
-import FireCrawlApp from "@mendable/firecrawl-js";
+import FireCrawlApp, {
+  ErrorResponse,
+  ScrapeResponse,
+} from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
@@ -37,6 +40,18 @@ export const generateLanderAction = authActionClient
 
     if (!scrapeResult.success) throw new Error(scrapeResult.error);
 
+    let pricingScrapeResult: ScrapeResponse | ErrorResponse | null = null;
+    const pricingLink = scrapeResult.links?.find((link) =>
+      link.endsWith("/pricing"),
+    );
+    if (pricingLink)
+      pricingScrapeResult = await app.scrapeUrl(pricingLink, {
+        formats: ["markdown"],
+        onlyMainContent: true,
+        parsePDF: false,
+        maxAge: 14400000,
+      });
+
     const { object } = await generateObject({
       model: anthropic("claude-3-5-sonnet-latest"),
       schema: programLanderSimpleSchema,
@@ -45,7 +60,10 @@ export const generateLanderAction = authActionClient
         `Do not include any initial header/hero content because the landing page will already have an initial title and subtitle. ` +
         `Do not make any assumptions about the terms or rewards associated with the program. ` +
         `Markdown is supported in "text" blocks, but use it sparingly. ` +
-        `Company website:\n\n${scrapeResult.markdown}`,
+        `Company website:\n\n${scrapeResult.markdown}` +
+        (pricingScrapeResult?.success
+          ? `\n\nCompany pricing page:\n\n${pricingScrapeResult.markdown}`
+          : ""),
       temperature: 0.4,
     });
 
