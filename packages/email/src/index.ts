@@ -35,6 +35,10 @@ export const sendEmail = async ({
     return await sendViaCustomerIO(template, email, messageData, customerId);
   }
 
+  if (!template) {
+    return;
+  }
+
   // Otherwise, follow the existing provider logic
   if (resend) {
     return await sendEmailViaResend({

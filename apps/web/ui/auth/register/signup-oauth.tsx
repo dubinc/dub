@@ -3,7 +3,7 @@
 import { saveQrDataToCookieAction } from "@/lib/actions/save-qr-data-to-cookie";
 import { showMessage } from "@/ui/auth/helpers.ts";
 import { useAuthTracking } from "@/ui/modals/auth-modal.tsx";
-import { processQrDataForServerAction } from "@/ui/qr-builder/helpers";
+import { prepareRegistrationQrData } from "@/ui/qr-builder/helpers";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { Button, Github, Google, useLocalStorage } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";
@@ -43,7 +43,7 @@ export const SignUpOAuth = ({
     if (!qrDataToCreate) return null;
 
     try {
-      const processedData = await processQrDataForServerAction(qrDataToCreate, {
+      const processedData = await prepareRegistrationQrData(qrDataToCreate, {
         onUploadStart: () => setIsUploading(true),
         onUploadEnd: () => setIsUploading(false),
         onError: (errorMessage) => {

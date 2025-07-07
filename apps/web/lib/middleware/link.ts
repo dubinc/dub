@@ -25,9 +25,55 @@ import {
 } from "next/server";
 import { checkFeaturesAccessAuthLess } from "../actions/check-features-access-auth-less";
 import { linkCache } from "../api/links/cache";
-import { getLinkViaEdge } from "../planetscale";
+import { getLinkViaEdge, conn } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
+import { TrackClient } from 'customerio-node';
+
+const cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_TRACK_API_KEY!);
+
+const sendScanLimitReachedEvent = async (linkId: string) => {
+  console.log("Sending scan limit reached event for link", linkId);
+
+  try {
+    const linkRows = await conn.execute(
+      `SELECT l.*, 
+        (SELECT SUM(clicks) FROM Link WHERE userId = l.userId) as totalUserClicks
+      FROM Link l 
+      WHERE l.id = ?`,
+      [linkId]
+    );
+  
+    const link = linkRows.rows?.[0];
+
+    console.log("Link", link);
+  
+    const featuresAccess = await checkFeaturesAccessAuthLess(link.userId, true);
+    console.log("featuresAccess", featuresAccess);
+    console.log("link.totalUserClicks", link.totalUserClicks);
+  
+    if (link.totalUserClicks >= 29 && !featuresAccess.featuresAccess) {
+      const auth = Buffer.from(`${process.env.CUSTOMER_IO_SITE_ID}:${process.env.CUSTOMER_IO_TRACK_API_KEY}`).toString("base64");
+
+      const response = await fetch(`https://track.customer.io/api/v1/customers/${link.userId}/events`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Basic ${auth}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "scan_limit_reached",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed: ${response.status} ${await response.text()}`);
+      }
+    }
+  } catch (error) {
+    console.error("Error sending scan limit reached event for link", linkId, error);
+  }
+};
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -255,6 +301,10 @@ export default async function LinkMiddleware(
   // for root domain links, if there's no destination URL, rewrite to placeholder page
   if (!url) {
     ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
+    ev.waitUntil(
       recordClick({
         req,
         linkId,
@@ -300,6 +350,10 @@ export default async function LinkMiddleware(
     // rewrite to deeplink page if the link is a mailto: or tel:
   } else if (isSupportedDeeplinkProtocol(url)) {
     ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
+    ev.waitUntil(
       recordClick({
         req,
         linkId,
@@ -333,6 +387,10 @@ export default async function LinkMiddleware(
 
     // rewrite to target URL if link cloaking is enabled
   } else if (rewrite) {
+    ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
     ev.waitUntil(
       recordClick({
         req,
@@ -370,6 +428,10 @@ export default async function LinkMiddleware(
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
     ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
+    ev.waitUntil(
       recordClick({
         req,
         linkId,
@@ -399,6 +461,10 @@ export default async function LinkMiddleware(
 
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && userAgent(req).os?.name === "Android") {
+    ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
     ev.waitUntil(
       recordClick({
         req,
@@ -430,6 +496,10 @@ export default async function LinkMiddleware(
     // redirect to geo-specific link if it is specified and the user is in the specified country
   } else if (geo && country && country in geo) {
     ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
+    ev.waitUntil(
       recordClick({
         req,
         linkId,
@@ -459,6 +529,10 @@ export default async function LinkMiddleware(
 
     // regular redirect
   } else {
+    ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
     ev.waitUntil(
       recordClick({
         req,

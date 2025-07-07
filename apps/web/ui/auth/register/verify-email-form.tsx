@@ -3,7 +3,7 @@
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
 import { showMessage } from "@/ui/auth/helpers";
 import { MessageType } from "@/ui/modals/auth-modal.tsx";
-import { processQrDataForServerAction } from "@/ui/qr-builder/helpers/process-qr-data.ts";
+import { prepareRegistrationQrData } from "@/ui/qr-builder/helpers/process-qr-data.ts";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import {
   AnimatedSizeContainer,
@@ -90,7 +90,7 @@ export const VerifyEmailForm = ({
   }
 
   const handleSubmit = async () => {
-    const processedQrDataToCreate = await processQrDataForServerAction(
+    const processedQrDataToCreate = await prepareRegistrationQrData(
       qrDataToCreate,
       {
         onUploadStart: () => setIsUploading(true),

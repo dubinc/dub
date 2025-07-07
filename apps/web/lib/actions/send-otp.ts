@@ -86,6 +86,9 @@ export const sendOtpAction = actionClient
       },
     });
 
+    console.log("send otp");
+    console.log("customerId", customerId);
+
     await Promise.all([
       prisma.emailVerificationToken.create({
         data: {
