@@ -36,36 +36,24 @@ export function SaleTypeBlock() {
 
   const isLoading = isLoadingRecurring || !totalEvents;
 
-  const maxAmount = useMemo(
-    () =>
-      Math.max(totalEvents?.saleAmount ?? 0, recurringEvents?.saleAmount ?? 0),
-    [totalEvents, recurringEvents],
-  );
+  const items = useMemo(() => {
+    if (!totalEvents || !recurringEvents) return [];
 
-  const items = useMemo(
-    () =>
-      [
-        {
-          label: "First",
-          count: (totalEvents?.sales ?? 0) - (recurringEvents?.sales ?? 0),
-          amount:
-            (totalEvents?.saleAmount ?? 0) - (recurringEvents?.saleAmount ?? 0),
-          fraction:
-            ((totalEvents?.saleAmount ?? 0) -
-              (recurringEvents?.saleAmount ?? 0)) /
-            maxAmount,
-          colorClassName: "text-violet-500",
-        },
-        {
-          label: "Recurring",
-          count: recurringEvents?.sales ?? 0,
-          amount: recurringEvents?.saleAmount ?? 0,
-          fraction: (recurringEvents?.saleAmount ?? 0) / maxAmount,
-          colorClassName: "text-violet-200",
-        },
-      ].filter(({ fraction }) => fraction > 0),
-    [totalEvents, recurringEvents, maxAmount],
-  );
+    return [
+      {
+        label: "First",
+        count: totalEvents.sales - recurringEvents.sales,
+        fraction: recurringEvents.sales / (totalEvents.sales || 1),
+        colorClassName: "text-violet-500",
+      },
+      {
+        label: "Recurring",
+        count: recurringEvents.sales,
+        fraction: 1 - recurringEvents.sales / (totalEvents.sales || 1),
+        colorClassName: "text-violet-200",
+      },
+    ].filter(({ fraction }) => fraction > 0);
+  }, [totalEvents, recurringEvents]);
 
   return (
     <ProgramOverviewBlock
