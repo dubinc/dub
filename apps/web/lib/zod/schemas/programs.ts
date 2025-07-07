@@ -2,7 +2,6 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { LinkStructure, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
@@ -58,15 +57,9 @@ export const updateProgramSchema = z.object({
     }),
   minPayoutAmount: z.coerce
     .number()
+    .nonnegative()
     .nullish()
-    .transform((val) =>
-      val && val < DUB_MIN_PAYOUT_AMOUNT_CENTS
-        ? val * 100
-        : DUB_MIN_PAYOUT_AMOUNT_CENTS,
-    )
-    .refine((val) => val >= DUB_MIN_PAYOUT_AMOUNT_CENTS, {
-      message: "Minimum payout amount must be at least $100",
-    }),
+    .transform((val) => (val ? val * 100 : 0)),
   linkStructure: z.nativeEnum(LinkStructure),
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
