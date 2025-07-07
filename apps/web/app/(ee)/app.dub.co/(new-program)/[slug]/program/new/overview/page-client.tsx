@@ -41,8 +41,17 @@ export function PageClient() {
   };
 
   const isValid = useMemo(() => {
-    const { name, url, domain, logo, programType, rewardful, type, amount } =
-      data;
+    const {
+      name,
+      url,
+      domain,
+      logo,
+      programType,
+      rewardful,
+      type,
+      amount,
+      tolt,
+    } = data;
 
     if (!name || !url || !domain || !logo) {
       return false;
@@ -52,7 +61,7 @@ export function PageClient() {
       return false;
     }
 
-    if (programType === "import" && (!rewardful || !rewardful.id)) {
+    if (programType === "import" && !rewardful && !tolt) {
       return false;
     }
 
