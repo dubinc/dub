@@ -36,6 +36,11 @@ export function SaleTypeBlock() {
 
   const isLoading = isLoadingRecurring || !totalEvents;
 
+  if (totalEvents && recurringEvents) {
+    //recurringEvents.sales = 0;
+    //totalEvents.sales = 0;
+  }
+
   const items = useMemo(() => {
     if (!totalEvents || !recurringEvents) return [];
 
@@ -43,13 +48,13 @@ export function SaleTypeBlock() {
       {
         label: "First",
         count: totalEvents.sales - recurringEvents.sales,
-        fraction: recurringEvents.sales / (totalEvents.sales || 1),
+        fraction: 1 - recurringEvents.sales / (totalEvents.sales || 1),
         colorClassName: "text-violet-500",
       },
       {
         label: "Recurring",
         count: recurringEvents.sales,
-        fraction: 1 - recurringEvents.sales / (totalEvents.sales || 1),
+        fraction: recurringEvents.sales / (totalEvents.sales || 1),
         colorClassName: "text-violet-200",
       },
     ].filter(({ fraction }) => fraction > 0);
