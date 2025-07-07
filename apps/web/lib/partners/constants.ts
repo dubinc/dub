@@ -4,6 +4,7 @@ import { PaymentMethodOption } from "../types";
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
 export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
 export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
+export const DUB_MIN_PAYOUT_AMOUNT_CENTS = 0; // $0
 export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
 export const FOREX_MARKUP_RATE = 0.005; // 0.5%
 export const MIN_WITHDRAWAL_AMOUNT_CENTS = 10_000; // $100
