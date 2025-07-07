@@ -36,11 +36,6 @@ export function SaleTypeBlock() {
 
   const isLoading = isLoadingRecurring || !totalEvents;
 
-  if (totalEvents && recurringEvents) {
-    //recurringEvents.sales = 0;
-    //totalEvents.sales = 0;
-  }
-
   const items = useMemo(() => {
     if (!totalEvents || !recurringEvents) return [];
 
