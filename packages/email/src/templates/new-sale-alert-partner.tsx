@@ -96,18 +96,28 @@ export default function NewSaleAlertPartner({
             <Text className="text-sm leading-6 text-neutral-600">
               You received{" "}
               <strong className="text-black">{earningsInDollars}</strong> in
-              commission for this sale and it will be eligible for payout after
-              the program's {program.holdingPeriodDays}-day holding period (
-              <strong>
-                {new Date(
-                  Date.now() + program.holdingPeriodDays * 24 * 60 * 60 * 1000,
-                ).toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </strong>
-              ).
+              commission for this sale
+              {program.holdingPeriodDays > 0 ? (
+                <>
+                  {" "}
+                  and it will be eligible for payout after the program's{" "}
+                  {program.holdingPeriodDays}-day holding period (
+                  <strong>
+                    {new Date(
+                      Date.now() +
+                        program.holdingPeriodDays * 24 * 60 * 60 * 1000,
+                    ).toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </strong>
+                  )
+                </>
+              ) : (
+                " and it will be included in your next payout"
+              )}
+              .
             </Text>
 
             <Section className="mb-12 mt-8">
