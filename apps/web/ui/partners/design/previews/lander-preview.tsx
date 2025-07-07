@@ -28,6 +28,7 @@ import {
 } from "react";
 import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "../branding-form";
+import { LanderAI } from "../lander-ai";
 import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
 import { useEditRewardsModal } from "../modals/edit-rewards-modal";
 import { RewardsDiscountsPreview } from "../rewards-discounts-preview";
@@ -295,6 +296,7 @@ export function LanderPreview({
           </div>
         </div>
       </PreviewWindow>
+      <LanderAI />
     </>
   );
 }

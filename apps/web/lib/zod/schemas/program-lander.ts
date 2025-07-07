@@ -87,3 +87,14 @@ export const programLanderSchema = z.object({
   rewards: programLanderRewardsSchema.optional(),
   blocks: z.array(programLanderBlockSchema),
 });
+
+// Simpler schemas for AI generation
+export const programLanderSimpleBlockSchema = z.discriminatedUnion("type", [
+  programLanderTextBlockSchema,
+  programLanderAccordionBlockSchema,
+  programLanderEarningsCalculatorBlockSchema,
+]);
+
+export const programLanderSimpleSchema = z.object({
+  blocks: z.array(programLanderSimpleBlockSchema),
+});
