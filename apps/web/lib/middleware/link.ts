@@ -48,7 +48,7 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
 
     console.log("Link", link);
   
-    const featuresAccess = await checkFeaturesAccessAuthLess(link.userId);
+    const featuresAccess = await checkFeaturesAccessAuthLess(link.userId, true);
     console.log("featuresAccess", featuresAccess);
     console.log("link.totalUserClicks", link.totalUserClicks);
   

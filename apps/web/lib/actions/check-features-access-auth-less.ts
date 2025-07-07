@@ -3,7 +3,7 @@
 import { conn } from "@/lib/planetscale/connection";
 import { checkSubscriptionStatusAuthLess } from "./check-subscription-status-auth-less";
 
-export const checkFeaturesAccessAuthLess = async (userId: string) => {
+export const checkFeaturesAccessAuthLess = async (userId: string, beforeRecord?: boolean) => {
   const { rows } = await conn.execute(
     `SELECT u.createdAt as userCreatedAt, u.email as email,
       (SELECT SUM(clicks) FROM Link l WHERE l.userId = u.id) as totalUserClicks
@@ -33,7 +33,9 @@ export const checkFeaturesAccessAuthLess = async (userId: string) => {
       )
     : 0;
 
-  const isTrialOver = totalClicks >= 30 || daysSinceRegistration >= 10;
+  const maxClicks = beforeRecord ? 29 : 30;
+
+  const isTrialOver = totalClicks >= maxClicks || daysSinceRegistration >= 10;
 
   return {
     featuresAccess: isSubscribed || !isTrialOver,
