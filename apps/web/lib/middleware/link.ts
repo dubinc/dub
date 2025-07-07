@@ -33,23 +33,30 @@ import { TrackClient } from 'customerio-node';
 const cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_TRACK_API_KEY!);
 
 const sendScanLimitReachedEvent = async (linkId: string) => {
-  const linkRows = await conn.execute(
-    `SELECT l.*, 
-      (SELECT SUM(clicks) FROM Link WHERE userId = l.userId) as totalUserClicks
-    FROM Link l 
-    WHERE l.id = ?`,
-    [linkId]
-  );
+  console.log("Sending scan limit reached event for link", linkId);
 
-  const link = linkRows.rows?.[0];
+  try {
+    const linkRows = await conn.execute(
+      `SELECT l.*, 
+        (SELECT SUM(clicks) FROM Link WHERE userId = l.userId) as totalUserClicks
+      FROM Link l 
+      WHERE l.id = ?`,
+      [linkId]
+    );
+  
+    const link = linkRows.rows?.[0];
 
-  const featuresAccess = await checkFeaturesAccessAuthLess(link.userId);
-
-  // Check if user has exceeded total clicks limit
-  if (link.totalUserClicks >= 30 && !featuresAccess.featuresAccess) {
-    await cio.track(link.userId, {
-      name: "scan_limit_reached",
-    });
+    console.log("Link", link);
+  
+    const featuresAccess = await checkFeaturesAccessAuthLess(link.userId);
+  
+    if (link.totalUserClicks >= 30 && !featuresAccess.featuresAccess) {
+      await cio.track(link.userId, {
+        name: "scan_limit_reached",
+      });
+    }
+  } catch (error) {
+    console.error("Error sending scan limit reached event for link", linkId, error);
   }
 };
 
@@ -289,7 +296,9 @@ export default async function LinkMiddleware(
       }),
     );
 
-    await sendScanLimitReachedEvent(linkId);
+    ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
 
     return createResponseWithCookie(
       NextResponse.rewrite(new URL(`/${domain}`, req.url), {
@@ -336,7 +345,9 @@ export default async function LinkMiddleware(
       }),
     );
 
-    await sendScanLimitReachedEvent(linkId);
+    ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
 
     return createResponseWithCookie(
       NextResponse.rewrite(
@@ -372,7 +383,9 @@ export default async function LinkMiddleware(
       }),
     );
 
-    await sendScanLimitReachedEvent(linkId);
+    ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
 
     return createResponseWithCookie(
       NextResponse.rewrite(
@@ -410,7 +423,9 @@ export default async function LinkMiddleware(
       }),
     );
 
-    await sendScanLimitReachedEvent(linkId);
+    ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
 
     return createResponseWithCookie(
       NextResponse.redirect(
@@ -442,7 +457,9 @@ export default async function LinkMiddleware(
       }),
     );
 
-    await sendScanLimitReachedEvent(linkId);
+    ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
 
     return createResponseWithCookie(
       NextResponse.redirect(
@@ -474,7 +491,9 @@ export default async function LinkMiddleware(
       }),
     );
 
-    await sendScanLimitReachedEvent(linkId);
+    ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
 
     return createResponseWithCookie(
       NextResponse.redirect(
@@ -506,7 +525,9 @@ export default async function LinkMiddleware(
       }),
     );
 
-    await sendScanLimitReachedEvent(linkId);
+    ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
 
     if (hasEmptySearchParams(url)) {
       return NextResponse.rewrite(new URL("/api/patch-redirect", req.url), {
