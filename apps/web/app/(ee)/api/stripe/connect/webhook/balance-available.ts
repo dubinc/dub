@@ -30,12 +30,13 @@ export async function balanceAvailable(event: Stripe.Event) {
     return;
   }
 
-  // Get the latest balance
+  // Get the partner's current balance
   const balance = await stripe.balance.retrieve({
     stripeAccount,
   });
 
-  let { amount: availableBalance, currency } = balance.available[0];
+  const { amount, currency } = balance.available[0];
+  let availableBalance = amount;
 
   if (currency !== "usd") {
     const fxRates = await redis.hget("fxRates:usd", currency.toUpperCase());
@@ -47,25 +48,22 @@ export async function balanceAvailable(event: Stripe.Event) {
       return;
     }
 
-    let convertedAmount = availableBalance / Number(fxRates);
+    let convertedUsdAmount = availableBalance / Number(fxRates);
 
     const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(
       currency.toUpperCase(),
     );
 
     if (isZeroDecimalCurrency) {
-      convertedAmount = convertedAmount * 100;
+      convertedUsdAmount = convertedUsdAmount * 100;
     }
 
-    // Update the available balance to USD
-    availableBalance = Math.round(convertedAmount);
-  }
-
-  if (availableBalance < partner.minWithdrawalAmount) {
-    console.log(
-      `Available balance (${currencyFormatter(availableBalance / 100)}) is less than the minimum withdrawal amount (${currencyFormatter(partner.minWithdrawalAmount / 100)}). Skipping...`,
-    );
-    return;
+    if (convertedUsdAmount < partner.minWithdrawalAmount) {
+      console.log(
+        `Available balance (${currencyFormatter(convertedUsdAmount / 100)}) is less than the minimum withdrawal amount (${currencyFormatter(partner.minWithdrawalAmount / 100)}). Skipping...`,
+      );
+      return;
+    }
   }
 
   let withdrawalFee = 0;
@@ -104,12 +102,19 @@ export async function balanceAvailable(event: Stripe.Event) {
       amount: withdrawalFee,
       description: "Dub Partners withdrawal fee",
     });
+
+    // If the withdrawal fee was charged, we need to fetch the partner's updated balance
+    const updatedBalance = await stripe.balance.retrieve({
+      stripeAccount,
+    });
+
+    availableBalance = updatedBalance.available[0].amount;
   }
 
   const payout = await stripe.payouts.create(
     {
-      amount: availableBalance - withdrawalFee,
-      currency: "usd",
+      amount: availableBalance,
+      currency,
       description: "Dub Partners payout",
       method: "standard",
     },
