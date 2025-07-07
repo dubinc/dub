@@ -97,11 +97,8 @@ function ProgramPayoutSettingsModalInner({
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium leading-5 text-neutral-900">
-              Holding period
+              Payout holding period
             </label>
-            <p className="text-xs text-neutral-500">
-              Set the holding period before payouts are released
-            </p>
             <div className="relative mt-2 rounded-md shadow-sm">
               <select
                 className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
@@ -120,9 +117,6 @@ function ProgramPayoutSettingsModalInner({
             <label className="text-sm font-medium leading-5 text-neutral-900">
               Minimum payout amount
             </label>
-            <p className="text-xs text-neutral-500">
-              Set the minimum payout amount (optional)
-            </p>
             <div className="relative mt-2 rounded-md shadow-sm">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
                 $
