@@ -48,6 +48,13 @@ export const createConnectedAccount = async ({
       ...(country !== "US" && {
         tos_acceptance: { service_agreement: "recipient" },
       }),
+      settings: {
+        payouts: {
+          schedule: {
+            interval: "manual",
+          },
+        },
+      },
     });
   } catch (error) {
     throw new Error(error.message);
