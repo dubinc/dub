@@ -50,7 +50,7 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
   
     const featuresAccess = await checkFeaturesAccessAuthLess(link.userId);
   
-    if (link.totalUserClicks >= 30 && !featuresAccess.featuresAccess) {
+    if (link.totalUserClicks >= 29 && !featuresAccess.featuresAccess) {
       await cio.track(link.userId, {
         name: "scan_limit_reached",
       });
