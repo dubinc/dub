@@ -75,7 +75,6 @@ export async function balanceAvailable(event: Stripe.Event) {
     withdrawalFee = BELOW_MIN_WITHDRAWAL_FEE_CENTS;
 
     const transfers = await stripe.transfers.list({
-      limit: 1,
       destination: stripeAccount,
     });
 
@@ -86,22 +85,25 @@ export async function balanceAvailable(event: Stripe.Event) {
       return;
     }
 
-    if (transfers.data.length > 0) {
-      const transfer = transfers.data[0];
+    // Find the latest transfer that's large enough to cover the withdrawal fee
+    const suitableTransfer = transfers.data
+      .filter((transfer) => transfer.amount >= withdrawalFee)
+      .sort((a, b) => b.created - a.created)[0];
 
-      if (transfer.amount < withdrawalFee) {
-        console.error(
-          `Transfer amount (${currencyFormatter(transfer.amount / 100)}) is less than the withdrawal fee (${currencyFormatter(withdrawalFee / 100)}). Skipping...`,
-        );
-        return;
-      }
-
-      // Charge the withdrawal fee to the partner's account
-      await stripe.transfers.createReversal(transfer.id, {
-        amount: withdrawalFee,
-        description: "Dub Partners withdrawal fee",
-      });
+    if (!suitableTransfer) {
+      console.error(
+        `No transfer found with amount >= withdrawal fee (${currencyFormatter(withdrawalFee / 100)}). Available transfers: ${transfers.data
+          .map((t) => currencyFormatter(t.amount / 100))
+          .join(", ")}. Skipping...`,
+      );
+      return;
     }
+
+    // Charge the withdrawal fee to the partner's account
+    await stripe.transfers.createReversal(suitableTransfer.id, {
+      amount: withdrawalFee,
+      description: "Dub Partners withdrawal fee",
+    });
   }
 
   const payout = await stripe.payouts.create(
