@@ -67,7 +67,6 @@ const config: Pick<Config, "presets"> = {
             "caret-blink": "caret-blink 1s ease-out infinite",
             "pulse-scale": "pulse-scale 6s ease-out infinite",
             "gradient-move": "gradient-move 5s linear infinite",
-            "prevent-mobile-scroll": "prevent-mobile-scroll 0.01s",
           },
           keyframes: {
             ...sharedConfig?.theme?.extend?.keyframes,
