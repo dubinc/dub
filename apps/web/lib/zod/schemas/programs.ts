@@ -2,7 +2,6 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { LinkStructure, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
@@ -23,25 +22,20 @@ export const ProgramSchema = z.object({
   url: z.string().nullable(),
   cookieLength: z.number(),
   holdingPeriodDays: z.number(),
-  minPayoutAmount: z.number(),
   linkStructure: z.nativeEnum(LinkStructure),
   linkParameter: z.string().nullish(),
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
-
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
-
   defaultFolderId: z.string().nullable(),
   wordmark: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-
-  // Help & support
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
   ageVerification: z.number().nullish(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 export const ProgramWithLanderDataSchema = ProgramSchema.extend({
@@ -60,20 +54,7 @@ export const updateProgramSchema = z.object({
     .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
       message: `Holding period must be ${HOLDING_PERIOD_DAYS.join(", ")} days`,
     }),
-  minPayoutAmount: z.coerce
-    .number()
-    .nullish()
-    .transform((val) =>
-      val && val < DUB_MIN_PAYOUT_AMOUNT_CENTS
-        ? val * 100
-        : DUB_MIN_PAYOUT_AMOUNT_CENTS,
-    )
-    .refine((val) => val >= DUB_MIN_PAYOUT_AMOUNT_CENTS, {
-      message: "Minimum payout amount must be at least $100",
-    }),
   linkStructure: z.nativeEnum(LinkStructure),
-
-  // Help & support
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),

@@ -30,7 +30,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const { cutoffPeriod } = confirmPayoutsQuerySchema.parse(searchParams);
 
-  const { minPayoutAmount } = await getProgramOrThrow({
+ await getProgramOrThrow({
     workspaceId: workspace.id,
     programId,
   });
@@ -43,9 +43,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     where: {
       programId,
       status: "pending",
-      amount: {
-        gte: minPayoutAmount,
-      },
       partner: {
         payoutsEnabledAt: {
           not: null,
@@ -86,7 +83,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
           amount: newPayoutAmount,
         };
       })
-      .filter((payout) => payout.amount >= minPayoutAmount);
   }
 
   return NextResponse.json(z.array(PayoutResponseSchema).parse(payouts));

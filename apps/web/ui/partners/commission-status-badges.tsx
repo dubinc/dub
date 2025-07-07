@@ -10,7 +10,6 @@ import { currencyFormatter } from "@dub/utils";
 
 interface CommissionTooltipDataProps {
   holdingPeriodDays: number;
-  minPayoutAmount: number;
   supportEmail: string;
 }
 
@@ -35,7 +34,7 @@ export const CommissionStatusBadges = {
     icon: CircleHalfDottedClock,
     tooltip: (data: CommissionTooltipDataProps) => (
       <SimpleTooltipContent
-        title={`This commission has been processed and will be paid out once your payout total reaches the program's minimum payout amount of ${currencyFormatter(data.minPayoutAmount / 100)}.`}
+        title={`This commission has been processed and will be paid out once your payout total reaches the program's minimum payout amount of $100.`} // TODO: need fix
         cta="Learn more."
         href="https://dub.co/help/article/receiving-payouts"
       />
