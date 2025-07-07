@@ -9,6 +9,7 @@ import { DEFAULT_LINK_PROPS } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { waitUntil } from "@vercel/functions";
 import { addDomainToVercel } from "./add-domain-vercel";
+import { configureVercelNameservers } from "./configure-vercel-nameservers";
 import { markDomainAsDeleted } from "./mark-domain-deleted";
 
 export async function claimDotLinkDomain({
@@ -87,7 +88,7 @@ export async function claimDotLinkDomain({
   // if the domain was added to a different workspace but is not verified
   // we should remove it to free up the domain for the current workspace
   if (matchingUnverifiedDomain) {
-    const { projectId, slug } = matchingUnverifiedDomain;
+    const { slug } = matchingUnverifiedDomain;
 
     await markDomainAsDeleted({
       domain: slug,
@@ -127,8 +128,8 @@ export async function claimDotLinkDomain({
 
   waitUntil(
     Promise.all([
-      // add domain to Vercel
-      addDomainToVercel(domain),
+      // add domain to Vercel + configure it to use Vercel nameservers
+      addDomainToVercel(domain).then(() => configureVercelNameservers(domain)),
 
       // send email to workspace owners
       !skipWorkspaceChecks
