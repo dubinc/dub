@@ -62,7 +62,7 @@ export const programLanderEarningsCalculatorBlockSchema =
   programLanderBlockCommonSchema.extend({
     type: z.literal("earnings-calculator"),
     data: z.object({
-      productPrice: z.number(),
+      productPrice: z.number().describe("Average product price in cents"),
     }),
   });
 
