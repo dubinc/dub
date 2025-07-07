@@ -3,13 +3,20 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import { setRewardfulTokenAction } from "@/lib/actions/partners/set-rewardful-token";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { PROGRAM_IMPORT_SOURCES } from "@/lib/partners/constants";
 import { RewardfulCampaign } from "@/lib/rewardful/types";
 import { useRewardfulCampaigns } from "@/lib/swr/use-rewardful-campaigns";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { COMMISSION_TYPES } from "@/lib/zod/schemas/rewards";
-import { Button, CircleCheckFill, Input, InputSelect } from "@dub/ui";
+import {
+  Button,
+  CircleCheckFill,
+  Input,
+  InputSelect,
+  InputSelectItemProps,
+} from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -55,14 +62,6 @@ const DEFAULT_REWARD_TYPES = [
     description: "For sign ups and leads",
   },
 ] as const;
-
-const IMPORT_SOURCES = [
-  {
-    id: "rewardful",
-    value: "Rewardful",
-    image: "https://assets.dub.co/misc/icons/rewardful.svg",
-  },
-];
 
 export function Form() {
   const router = useRouter();
@@ -431,7 +430,9 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
 const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
   const [token, setToken] = useState("");
   const { id: workspaceId } = useWorkspace();
-  const [selectedSource, setSelectedSource] = useState(IMPORT_SOURCES[0]);
+  const [selectedSource, setSelectedSource] = useState(
+    PROGRAM_IMPORT_SOURCES[0],
+  );
 
   const {
     executeAsync: setRewardfulToken,
@@ -478,7 +479,7 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
         </label>
         <div className="relative mt-2">
           <InputSelect
-            items={IMPORT_SOURCES}
+            items={PROGRAM_IMPORT_SOURCES as unknown as InputSelectItemProps[]}
             selectedItem={selectedSource}
             setSelectedItem={setSelectedSource}
             className="w-full"
@@ -488,7 +489,7 @@ const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
           />
         </div>
         <Link
-          href="https://dub.co/help/article/migrating-from-rewardful#what-data-is-migrated"
+          href={selectedSource.helpUrl}
           className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
           target="_blank"
           rel="noopener noreferrer"

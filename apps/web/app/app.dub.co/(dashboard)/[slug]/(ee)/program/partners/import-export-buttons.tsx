@@ -1,5 +1,6 @@
 "use client";
 
+import { PROGRAM_IMPORT_SOURCES } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useExportPartnersModal } from "@/ui/modals/export-partners-modal";
 import { useImportRewardfulModal } from "@/ui/modals/import-rewardful-modal";
@@ -32,41 +33,29 @@ export function ImportExportButtons() {
               <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                 Import Partners
               </p>
-              <ImportOption
-                onClick={() => {
-                  setOpenPopover(false);
-                  router.push(`/${slug}/program/partners?import=rewardful`);
-                }}
-              >
-                <IconMenu
-                  text="Import from Rewardful"
-                  icon={
-                    <img
-                      src="https://assets.dub.co/misc/icons/rewardful.svg"
-                      alt="Rewardful logo"
-                      className="h-4 w-4"
-                    />
-                  }
-                />
-              </ImportOption>
 
-              <ImportOption
-                onClick={() => {
-                  setOpenPopover(false);
-                  router.push(`/${slug}/program/partners?import=tolt`);
-                }}
-              >
-                <IconMenu
-                  text="Import from Tolt"
-                  icon={
-                    <img
-                      src="https://assets.dub.co/misc/icons/tolt.svg"
-                      alt="Tolt logo"
-                      className="h-4 w-4"
-                    />
-                  }
-                />
-              </ImportOption>
+              {PROGRAM_IMPORT_SOURCES.map((source) => (
+                <ImportOption
+                  key={source.id}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    router.push(
+                      `/${slug}/program/partners?import=${source.id}`,
+                    );
+                  }}
+                >
+                  <IconMenu
+                    text={`Import from ${source.value}`}
+                    icon={
+                      <img
+                        src={source.image}
+                        alt={`${source.value} logo`}
+                        className="h-4 w-4"
+                      />
+                    }
+                  />
+                </ImportOption>
+              ))}
             </div>
 
             <div className="border-t border-neutral-200" />
