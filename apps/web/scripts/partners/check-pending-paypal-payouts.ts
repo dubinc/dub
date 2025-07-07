@@ -37,13 +37,15 @@ async function main() {
     },
   });
 
-  const eligiblePayouts = payouts.map((payout) => ({
-    program: payout.program.name,
-    partner: payout.partner.email,
-    status: payout.status,
-    country: payout.partner.country,
-    amount: payout.amount / 100,
-  }));
+  const eligiblePayouts = payouts
+    .filter((payout) => payout.amount >= payout.program.minPayoutAmount)
+    .map((payout) => ({
+      program: payout.program.name,
+      partner: payout.partner.email,
+      status: payout.status,
+      country: payout.partner.country,
+      amount: payout.amount / 100,
+    }));
 
   console.table(eligiblePayouts);
   console.log(`Total eligible payouts: ${eligiblePayouts.length}`);
