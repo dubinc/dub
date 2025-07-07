@@ -22,6 +22,7 @@ export const ProgramSchema = z.object({
   url: z.string().nullable(),
   cookieLength: z.number(),
   holdingPeriodDays: z.number(),
+  minPayoutAmount: z.number(),
   linkStructure: z.nativeEnum(LinkStructure),
   linkParameter: z.string().nullish(),
   landerPublishedAt: z.date().nullish(),
