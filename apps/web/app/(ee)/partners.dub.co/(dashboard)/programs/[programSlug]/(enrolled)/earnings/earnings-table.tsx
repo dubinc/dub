@@ -215,6 +215,8 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               tooltip={badge.tooltip({
                 holdingPeriodDays:
                   programEnrollment?.program.holdingPeriodDays ?? 0,
+                minPayoutAmount:
+                  programEnrollment?.program.minPayoutAmount ?? 10000,
                 supportEmail:
                   programEnrollment?.program.supportEmail ?? "support@dub.co",
               })}
