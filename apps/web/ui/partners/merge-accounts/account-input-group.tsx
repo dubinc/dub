@@ -16,4 +16,4 @@ export function AccountInputGroup({ title, children }: AccountInputGroupProps) {
       </div>
     </div>
   );
-} 
+}

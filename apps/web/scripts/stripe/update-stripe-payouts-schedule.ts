@@ -1,6 +1,6 @@
-import "dotenv-flow/config";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
+import "dotenv-flow/config";
 
 async function main() {
   const limit = 1;

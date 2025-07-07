@@ -1,5 +1,5 @@
-import "dotenv-flow/config";
 import { stripe } from "@/lib/stripe";
+import "dotenv-flow/config";
 
 // Just for testing purposes
 async function main() {

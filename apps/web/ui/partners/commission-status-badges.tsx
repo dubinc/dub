@@ -6,7 +6,6 @@ import {
   Duplicate,
   ShieldAlert,
 } from "@dub/ui/icons";
-import { currencyFormatter } from "@dub/utils";
 
 interface CommissionTooltipDataProps {
   holdingPeriodDays: number;
