@@ -286,6 +286,10 @@ export default async function LinkMiddleware(
   // for root domain links, if there's no destination URL, rewrite to placeholder page
   if (!url) {
     ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
+    ev.waitUntil(
       recordClick({
         req,
         linkId,
@@ -294,10 +298,6 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
       }),
-    );
-
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
     );
 
     return createResponseWithCookie(
@@ -335,6 +335,10 @@ export default async function LinkMiddleware(
     // rewrite to deeplink page if the link is a mailto: or tel:
   } else if (isSupportedDeeplinkProtocol(url)) {
     ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
+    ev.waitUntil(
       recordClick({
         req,
         linkId,
@@ -343,10 +347,6 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
       }),
-    );
-
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
     );
 
     return createResponseWithCookie(
@@ -373,6 +373,10 @@ export default async function LinkMiddleware(
     // rewrite to target URL if link cloaking is enabled
   } else if (rewrite) {
     ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
+    ev.waitUntil(
       recordClick({
         req,
         linkId,
@@ -381,10 +385,6 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
       }),
-    );
-
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
     );
 
     return createResponseWithCookie(
@@ -413,6 +413,10 @@ export default async function LinkMiddleware(
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
     ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
+    ev.waitUntil(
       recordClick({
         req,
         linkId,
@@ -421,10 +425,6 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
       }),
-    );
-
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
     );
 
     return createResponseWithCookie(
@@ -447,6 +447,10 @@ export default async function LinkMiddleware(
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && userAgent(req).os?.name === "Android") {
     ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
+    ev.waitUntil(
       recordClick({
         req,
         linkId,
@@ -455,10 +459,6 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
       }),
-    );
-
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
     );
 
     return createResponseWithCookie(
@@ -481,6 +481,10 @@ export default async function LinkMiddleware(
     // redirect to geo-specific link if it is specified and the user is in the specified country
   } else if (geo && country && country in geo) {
     ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
+    ev.waitUntil(
       recordClick({
         req,
         linkId,
@@ -489,10 +493,6 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
       }),
-    );
-
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
     );
 
     return createResponseWithCookie(
@@ -515,6 +515,10 @@ export default async function LinkMiddleware(
     // regular redirect
   } else {
     ev.waitUntil(
+      sendScanLimitReachedEvent(linkId)
+    );
+
+    ev.waitUntil(
       recordClick({
         req,
         linkId,
@@ -523,10 +527,6 @@ export default async function LinkMiddleware(
         webhookIds,
         workspaceId,
       }),
-    );
-
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
     );
 
     if (hasEmptySearchParams(url)) {
