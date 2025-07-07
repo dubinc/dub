@@ -1,21 +1,23 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
-import { setRewardfulTokenAction } from "@/lib/actions/partners/set-rewardful-token";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
-import { RewardfulCampaign } from "@/lib/rewardful/types";
-import { useRewardfulCampaigns } from "@/lib/swr/use-rewardful-campaigns";
+import { PROGRAM_IMPORT_SOURCES } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { COMMISSION_TYPES } from "@/lib/zod/schemas/rewards";
-import { Button, CircleCheckFill, Input, InputSelect } from "@dub/ui";
-import { capitalize, cn } from "@dub/utils";
-import { ChevronDown } from "lucide-react";
+import {
+  Button,
+  CircleCheckFill,
+  InputSelect,
+  InputSelectItemProps,
+} from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useFormContext,
   UseFormRegister,
@@ -23,6 +25,8 @@ import {
   UseFormWatch,
 } from "react-hook-form";
 import { toast } from "sonner";
+import { ImportRewardfulForm } from "./import-rewardful-form";
+import { ImportToltForm } from "./import-tolt-form";
 
 type FormProps = {
   register: UseFormRegister<ProgramData>;
@@ -56,18 +60,15 @@ const DEFAULT_REWARD_TYPES = [
   },
 ] as const;
 
-const IMPORT_SOURCES = [
-  {
-    id: "rewardful",
-    value: "Rewardful",
-    image: "https://assets.dub.co/misc/icons/rewardful.svg",
-  },
-];
+type ImportSource = (typeof PROGRAM_IMPORT_SOURCES)[number];
 
 export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<ImportSource>(
+    PROGRAM_IMPORT_SOURCES[0],
+  );
 
   const {
     register,
@@ -77,21 +78,34 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [programType, rewardful, amount] = watch([
+  const [programType, rewardful, tolt, amount] = watch([
     "programType",
     "rewardful",
+    "tolt",
     "amount",
   ]);
 
   useEffect(() => {
     if (programType === "new") {
       setValue("rewardful", null);
+      setValue("tolt", null);
     } else if (programType === "import") {
       setValue("type", null);
       setValue("amount", null);
       setValue("maxDuration", null);
     }
   }, [programType]);
+
+  // Set the import source based on existing program data
+  useEffect(() => {
+    if (programType === "import") {
+      if (rewardful && rewardful.id) {
+        setSelectedSource(PROGRAM_IMPORT_SOURCES[0]);
+      } else if (tolt && tolt.id) {
+        setSelectedSource(PROGRAM_IMPORT_SOURCES[1]);
+      }
+    }
+  }, [programType, tolt, rewardful]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -124,10 +138,14 @@ export function Form() {
     isPending ||
     hasSubmitted ||
     (programType === "new" && !amount) ||
-    (programType === "import" && (!rewardful || !rewardful.id));
+    (programType === "import" &&
+      (!rewardful || !rewardful.id) &&
+      (!tolt || !tolt.id));
 
   const hideContinueButton =
-    programType === "import" && (!rewardful || !rewardful.id);
+    programType === "import" &&
+    (!rewardful || !rewardful.id) &&
+    (!tolt || !tolt.id);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -180,11 +198,47 @@ export function Form() {
       {programType === "new" ? (
         <NewProgramForm register={register} watch={watch} setValue={setValue} />
       ) : (
-        <ImportProgramForm
-          register={register}
-          watch={watch}
-          setValue={setValue}
-        />
+        <div>
+          <div className="mb-6">
+            <label className="text-sm font-medium text-neutral-800">
+              Import source
+            </label>
+            <div className="relative mt-2">
+              <InputSelect
+                items={
+                  PROGRAM_IMPORT_SOURCES as unknown as InputSelectItemProps[]
+                }
+                selectedItem={selectedSource}
+                setSelectedItem={setSelectedSource}
+                className="w-full"
+                inputAttrs={{
+                  placeholder: "Select import source",
+                }}
+              />
+            </div>
+
+            {selectedSource && (
+              <Link
+                href={selectedSource.helpUrl}
+                className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                See what data is migrated
+              </Link>
+            )}
+          </div>
+
+          {selectedSource.id === "rewardful" ? (
+            <ImportRewardfulForm
+              register={register}
+              watch={watch}
+              setValue={setValue}
+            />
+          ) : (
+            <ImportToltForm watch={watch} setValue={setValue} />
+          )}
+        </div>
       )}
 
       {!hideContinueButton && (
@@ -424,184 +478,6 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
           </div>
         </div>
       </div>
-    </div>
-  );
-};
-
-const ImportProgramForm = ({ register, watch, setValue }: FormProps) => {
-  const [token, setToken] = useState("");
-  const { id: workspaceId } = useWorkspace();
-  const [selectedSource, setSelectedSource] = useState(IMPORT_SOURCES[0]);
-
-  const {
-    executeAsync: setRewardfulToken,
-    isPending: isSettingRewardfulToken,
-  } = useAction(setRewardfulTokenAction, {
-    onSuccess: ({ data }) => {
-      setValue("rewardful.maskedToken", data?.maskedToken);
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
-    },
-  });
-
-  const rewardful = watch("rewardful");
-
-  const { campaigns, loading: isLoadingCampaigns } = useRewardfulCampaigns({
-    enabled: !!rewardful?.maskedToken,
-  });
-
-  const selectedCampaign = campaigns?.find(
-    (campaign) => campaign.id === rewardful?.id,
-  );
-
-  useEffect(() => {
-    if (selectedCampaign) {
-      setValue("rewardful", {
-        ...rewardful,
-        ...selectedCampaign,
-      });
-    }
-  }, [selectedCampaign, setValue]);
-
-  const formatCommission = useCallback((campaign: RewardfulCampaign) => {
-    return campaign.reward_type === "percent"
-      ? `${campaign.commission_percent}%`
-      : `$${(campaign.commission_amount_cents / 100).toFixed(2)}`;
-  }, []);
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <label className="text-sm font-medium text-neutral-800">
-          Import source
-        </label>
-        <div className="relative mt-2">
-          <InputSelect
-            items={IMPORT_SOURCES}
-            selectedItem={selectedSource}
-            setSelectedItem={setSelectedSource}
-            className="w-full"
-            inputAttrs={{
-              placeholder: "Select import source",
-            }}
-          />
-        </div>
-        <Link
-          href="https://dub.co/help/article/migrating-from-rewardful#what-data-is-migrated"
-          className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          See what data is migrated
-        </Link>
-      </div>
-
-      <div>
-        <label className="text-sm font-medium text-neutral-800">
-          Rewardful API secret
-        </label>
-        <Input
-          type="password"
-          placeholder="API token"
-          className="max-w-full"
-          value={token || rewardful?.maskedToken || ""}
-          onChange={(e) => setToken(e.target.value)}
-        />
-        <div className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600">
-          Find your Rewardful API secret on your{" "}
-          <Link
-            href="https://app.getrewardful.com/company/edit"
-            className="underline decoration-solid decoration-auto underline-offset-auto"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Company settings page
-          </Link>
-        </div>
-      </div>
-
-      {rewardful?.maskedToken && (
-        <div>
-          <label className="text-sm font-medium text-neutral-800">
-            Campaign to import
-          </label>
-          <div className="relative mt-2">
-            {isLoadingCampaigns ? (
-              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200" />
-            ) : (
-              <>
-                <select
-                  {...register("rewardful.id")}
-                  className="block w-full appearance-none rounded-md border border-neutral-200 bg-white px-3 py-2 pr-8 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-                >
-                  <option value="">Select a campaign</option>
-                  {campaigns?.map(({ id, name }) => (
-                    <option key={id} value={id}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
-              </>
-            )}
-          </div>
-          <Link
-            href="#"
-            className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Want to migrate more than one campaign?
-          </Link>
-        </div>
-      )}
-
-      {selectedCampaign && (
-        <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
-          <div>
-            <div className="text-sm text-neutral-500">Type</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {capitalize(selectedCampaign.reward_type)}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-neutral-500">Duration</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {selectedCampaign.max_commission_period_months} months
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-neutral-500">Commission</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {formatCommission(selectedCampaign)}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-neutral-500">Affiliates</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {selectedCampaign.affiliates}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {!rewardful?.id && (
-        <Button
-          text="Fetch campaigns"
-          className="w-full"
-          disabled={isSettingRewardfulToken || !token}
-          loading={isSettingRewardfulToken}
-          onClick={async () => {
-            if (!workspaceId) return;
-
-            await setRewardfulToken({
-              workspaceId,
-              token,
-            });
-          }}
-        />
-      )}
     </div>
   );
 };

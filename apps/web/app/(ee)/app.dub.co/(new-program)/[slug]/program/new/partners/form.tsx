@@ -1,6 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { PROGRAM_IMPORT_SOURCES } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { Button, Input } from "@dub/ui";
@@ -14,18 +15,8 @@ import { toast } from "sonner";
 
 const MAX_PARTNERS = 5;
 
-const generateKeyFromEmail = (email: string) => {
-  if (!email) return "";
-
-  const prefix = email.split("@")[0];
-  const randomNum = Math.floor(1000 + Math.random() * 9000);
-
-  return `${prefix}-${randomNum}`;
-};
-
 export function Form() {
   const router = useRouter();
-  const [keyErrors, setKeyErrors] = useState<{ [key: number]: string }>({});
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const {
     id: workspaceId,
@@ -38,7 +29,6 @@ export function Form() {
     register,
     control,
     handleSubmit,
-    setValue,
     watch,
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
@@ -48,7 +38,7 @@ export function Form() {
     control,
   });
 
-  const [rewardful] = watch(["rewardful"]);
+  const [rewardful, tolt] = watch(["rewardful", "tolt"]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -75,9 +65,16 @@ export function Form() {
 
   const buttonDisabled = isSubmitting || isPending || loading || hasSubmitted;
 
+  const isImporting = rewardful || tolt;
+  const importSource = isImporting
+    ? rewardful
+      ? PROGRAM_IMPORT_SOURCES[0]
+      : PROGRAM_IMPORT_SOURCES[1]
+    : null;
+
   return (
     <div className="space-y-6">
-      {rewardful?.affiliates && (
+      {importSource && (
         <div className="space-y-3">
           <p className="text-sm text-neutral-600">
             Invite new partners in addition to those being imported.
@@ -87,8 +84,8 @@ export function Form() {
             <div className="flex items-center gap-2">
               <div className="flex size-5 items-center justify-center rounded-full bg-blue-600">
                 <img
-                  src="https://assets.dub.co/misc/icons/rewardful.svg"
-                  alt="Rewardful logo"
+                  src={importSource.image}
+                  alt={importSource.value}
                   className="size-5"
                 />
               </div>
@@ -97,7 +94,7 @@ export function Form() {
               </span>
             </div>
             <span className="text-sm text-neutral-600">
-              {rewardful?.affiliates}
+              {rewardful?.affiliates || tolt?.affiliates || 0}
             </span>
           </div>
         </div>

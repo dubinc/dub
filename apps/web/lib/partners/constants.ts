@@ -62,3 +62,18 @@ export const PAYMENT_METHOD_TYPES: Stripe.PaymentMethod.Type[] = [
   "link",
   ...DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
 ];
+
+export const PROGRAM_IMPORT_SOURCES = [
+  {
+    id: "rewardful",
+    value: "Rewardful",
+    image: "https://assets.dub.co/misc/icons/rewardful.svg",
+    helpUrl: "https://dub.co/help/article/migrating-from-rewardful",
+  },
+  {
+    id: "tolt",
+    value: "Tolt",
+    image: "https://assets.dub.co/misc/icons/tolt.svg",
+    helpUrl: "https://dub.co/help/article/migrating-from-tolt",
+  },
+] as const;
