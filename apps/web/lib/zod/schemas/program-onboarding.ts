@@ -1,3 +1,4 @@
+import { ToltProgramSchema } from "@/lib/tolt/schemas";
 import { LinkStructure, RewardStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
@@ -29,6 +30,10 @@ export const programRewardSchema = z
         commission_percent: z.number().nullable(),
       })
       .nullish(),
+    tolt: ToltProgramSchema.extend({
+      maskedToken: z.string(),
+      affiliates: z.number(),
+    }).nullish(),
   })
   .merge(
     z.object({
