@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { limiter } from "@/lib/cron/limiter";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { sendEmail } from "@dub/email";
 import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
 import { prisma } from "@dub/prisma";
@@ -27,10 +28,24 @@ export async function GET(req: Request) {
       );
     }
 
+    const programsWithCustomMinPayouts = await prisma.program.findMany({
+      where: {
+        minPayoutAmount: {
+          gt: DUB_MIN_PAYOUT_AMOUNT_CENTS,
+        },
+      },
+    });
+
     const pendingPayouts = await prisma.payout.groupBy({
       by: ["programId"],
       where: {
         status: "pending",
+        amount: {
+          gte: DUB_MIN_PAYOUT_AMOUNT_CENTS,
+        },
+        programId: {
+          notIn: programsWithCustomMinPayouts.map((p) => p.id),
+        },
         partner: {
           payoutsEnabledAt: {
             not: null,
@@ -44,6 +59,39 @@ export async function GET(req: Request) {
         _all: true,
       },
     });
+
+    for (const program of programsWithCustomMinPayouts) {
+      console.log(
+        `Manually calculating pending payout for program ${program.id} which has a custom min payout amount of ${program.minPayoutAmount}`,
+      );
+
+      const pendingPayout = await prisma.payout.aggregate({
+        where: {
+          programId: program.id,
+          status: "pending",
+          amount: {
+            gte: program.minPayoutAmount,
+          },
+          partner: {
+            payoutsEnabledAt: {
+              not: null,
+            },
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+        _count: {
+          _all: true,
+        },
+      });
+
+      pendingPayouts.push({
+        programId: program.id,
+        _sum: pendingPayout._sum,
+        _count: pendingPayout._count,
+      });
+    }
 
     if (!pendingPayouts.length) {
       return NextResponse.json("No pending payouts found. Skipping...");
