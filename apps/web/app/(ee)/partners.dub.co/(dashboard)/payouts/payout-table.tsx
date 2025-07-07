@@ -6,9 +6,11 @@ import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
 import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,
+  SimpleTooltipContent,
   Table,
   Tooltip,
   usePagination,
@@ -83,7 +85,12 @@ export function PayoutTable() {
       },
       {
         header: "Status",
-        cell: ({ row }) => <PayoutStatusBadgePartner payout={row.original} />,
+        cell: ({ row }) => (
+          <PayoutStatusBadgePartner
+            payout={row.original}
+            program={row.original.program}
+          />
+        ),
       },
       {
         id: "paidAt",
@@ -100,10 +107,11 @@ export function PayoutTable() {
         header: "Amount",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            {currencyFormatter(row.original.amount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
+            <AmountRowItem
+              amount={row.original.amount}
+              status={row.original.status}
+              minPayoutAmount={row.original.program.minPayoutAmount}
+            />
 
             {["completed", "processing"].includes(row.original.status) && (
               <Tooltip content="View invoice">
@@ -213,4 +221,41 @@ export function PayoutTable() {
       </div>
     </>
   );
+}
+
+function AmountRowItem({
+  amount,
+  status,
+  minPayoutAmount,
+}: {
+  amount: number;
+  status: PayoutStatus;
+  minPayoutAmount: number;
+}) {
+  const display = currencyFormatter(amount / 100, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  if (status === PayoutStatus.pending && amount < minPayoutAmount) {
+    return (
+      <Tooltip
+        content={
+          <SimpleTooltipContent
+            title={`This program's minimum payout amount is ${currencyFormatter(
+              minPayoutAmount / 100,
+            )}. This payout will be accrued and processed during the next payout period.`}
+            cta="Learn more."
+            href="https://dub.co/help/article/receiving-payouts"
+          />
+        }
+      >
+        <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+          {display}
+        </span>
+      </Tooltip>
+    );
+  }
+
+  return display;
 }

@@ -14,7 +14,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
   const parsed = payoutsQuerySchema.parse(searchParams);
 
-  await getProgramOrThrow({
+  const { minPayoutAmount } = await getProgramOrThrow({
     workspaceId: workspace.id,
     programId,
   });
@@ -36,6 +36,9 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       ...(status && { status }),
       ...(partnerId && { partnerId }),
       ...(eligibility === "eligible" && {
+        amount: {
+          gte: minPayoutAmount,
+        },
         partner: {
           payoutsEnabledAt: {
             not: null,
