@@ -2,6 +2,7 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
+import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { LinkStructure, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
@@ -54,6 +55,17 @@ export const updateProgramSchema = z.object({
     .number()
     .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
       message: `Holding period must be ${HOLDING_PERIOD_DAYS.join(", ")} days`,
+    }),
+  minPayoutAmount: z.coerce
+    .number()
+    .nullish()
+    .transform((val) =>
+      val && val < DUB_MIN_PAYOUT_AMOUNT_CENTS
+        ? val * 100
+        : DUB_MIN_PAYOUT_AMOUNT_CENTS,
+    )
+    .refine((val) => val >= DUB_MIN_PAYOUT_AMOUNT_CENTS, {
+      message: "Minimum payout amount must be at least $100",
     }),
   linkStructure: z.nativeEnum(LinkStructure),
   supportEmail: z.string().email().max(255).nullish(),
