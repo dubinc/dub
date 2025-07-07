@@ -35,8 +35,16 @@ export async function balanceAvailable(event: Stripe.Event) {
     stripeAccount,
   });
 
+  // Check if there's any available balance
+  if (!balance.available || balance.available.length === 0) {
+    console.log("No available balance found. Skipping...");
+    return;
+  }
+
   const { amount, currency } = balance.available[0];
+
   let availableBalance = amount;
+  let convertedUsdAmount = amount;
 
   if (currency !== "usd") {
     const fxRates = await redis.hget("fxRates:usd", currency.toUpperCase());
@@ -48,7 +56,7 @@ export async function balanceAvailable(event: Stripe.Event) {
       return;
     }
 
-    let convertedUsdAmount = availableBalance / Number(fxRates);
+    convertedUsdAmount = availableBalance / Number(fxRates);
 
     const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(
       currency.toUpperCase(),
@@ -57,13 +65,14 @@ export async function balanceAvailable(event: Stripe.Event) {
     if (isZeroDecimalCurrency) {
       convertedUsdAmount = convertedUsdAmount * 100;
     }
+  }
 
-    if (convertedUsdAmount < partner.minWithdrawalAmount) {
-      console.log(
-        `Available balance (${currencyFormatter(convertedUsdAmount / 100)}) is less than the minimum withdrawal amount (${currencyFormatter(partner.minWithdrawalAmount / 100)}). Skipping...`,
-      );
-      return;
-    }
+  // Check minimum withdrawal amount
+  if (convertedUsdAmount < partner.minWithdrawalAmount) {
+    console.log(
+      `Available balance (${currencyFormatter(convertedUsdAmount / 100)}) is less than the minimum withdrawal amount (${currencyFormatter(partner.minWithdrawalAmount / 100)}). Skipping...`,
+    );
+    return;
   }
 
   let withdrawalFee = 0;
@@ -107,6 +116,14 @@ export async function balanceAvailable(event: Stripe.Event) {
     const updatedBalance = await stripe.balance.retrieve({
       stripeAccount,
     });
+
+    if (!updatedBalance.available || updatedBalance.available.length === 0) {
+      // this should never happen, but just in case
+      console.log(
+        "No available balance found after withdrawal fee. Skipping...",
+      );
+      return;
+    }
 
     availableBalance = updatedBalance.available[0].amount;
   }
