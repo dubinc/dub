@@ -8,24 +8,46 @@ import { Button, Input } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useState } from "react";
-import {
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from "react-hook-form";
+import { UseFormSetValue } from "react-hook-form";
 import { toast } from "sonner";
 
 type FormProps = {
-  register: UseFormRegister<ProgramData>;
-  watch: UseFormWatch<ProgramData>;
   setValue: UseFormSetValue<ProgramData>;
 };
 
-export const ImportToltForm = ({ register, watch, setValue }: FormProps) => {
+type Step = "set-token" | "program-info";
+
+export const ImportToltForm = ({ setValue }: FormProps) => {
+  const [step, setStep] = useState<Step>("set-token");
+  const [toltProgram, setToltProgram] = useState<ToltProgram | null>(null);
+
+  return (
+    <>
+      {step === "set-token" ? (
+        <ToltTokenForm
+          setStep={setStep}
+          setToltProgram={setToltProgram}
+          setValue={setValue}
+        />
+      ) : (
+        <ToltProgramInfo toltProgram={toltProgram!} />
+      )}
+    </>
+  );
+};
+
+function ToltTokenForm({
+  setStep,
+  setToltProgram,
+  setValue,
+}: {
+  setStep: (step: Step) => void;
+  setToltProgram: (program: ToltProgram | null) => void;
+  setValue: UseFormSetValue<ProgramData>;
+}) {
   const [token, setToken] = useState("");
   const { id: workspaceId } = useWorkspace();
   const [toltProgramId, setToltProgramId] = useState("");
-  const [toltProgram, setToltProgram] = useState<ToltProgram | null>(null);
 
   const { executeAsync, isPending } = useAction(setToltTokenAction, {
     onSuccess: ({ data }) => {
@@ -33,13 +55,11 @@ export const ImportToltForm = ({ register, watch, setValue }: FormProps) => {
         setToltProgram(data.program);
 
         setValue("tolt", {
-          id: data.program.id,
-          name: data.program.name,
-          subdomain: data.program.subdomain,
-          payout_term: data.program.payout_term,
-          total_affiliates: data.program.total_affiliates,
+          ...data.program,
           maskedToken: token,
         });
+
+        setStep("program-info");
       }
     },
     onError: ({ error }) => {
@@ -68,7 +88,7 @@ export const ImportToltForm = ({ register, watch, setValue }: FormProps) => {
         <Input
           type="password"
           placeholder="API token"
-          className="max-w-full"
+          className="mt-2 max-w-full"
           value={token}
           onChange={(e) => setToken(e.target.value)}
         />
@@ -92,7 +112,7 @@ export const ImportToltForm = ({ register, watch, setValue }: FormProps) => {
         <Input
           type="text"
           placeholder="Program ID"
-          className="max-w-full"
+          className="mt-2 max-w-full"
           value={toltProgramId}
           onChange={(e) => setToltProgramId(e.target.value)}
         />
@@ -109,44 +129,49 @@ export const ImportToltForm = ({ register, watch, setValue }: FormProps) => {
         </div>
       </div>
 
-      {toltProgram && (
-        <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
-          <div>
-            <div className="text-sm text-neutral-500">Name</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {toltProgram.name}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-neutral-500">Subdomain</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {toltProgram.subdomain}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-neutral-500">Payout Term</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {toltProgram.payout_term} days
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-neutral-500">Total Partners</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {toltProgram.total_affiliates?.toLocaleString() || "0"}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {!toltProgram && (
-        <Button
-          text="Fetch program"
-          className="w-full"
-          disabled={!token || !toltProgramId}
-          loading={isPending}
-          onClick={handleFetchProgram}
-        />
-      )}
+      <Button
+        text={isPending ? "Fetching program..." : "Fetch program"}
+        className="w-full"
+        disabled={!token || !toltProgramId}
+        loading={isPending}
+        onClick={handleFetchProgram}
+      />
     </div>
   );
-};
+}
+
+function ToltProgramInfo({ toltProgram }: { toltProgram: ToltProgram }) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h4 className="mb-3 text-sm font-medium text-neutral-700">
+          Program Information
+        </h4>
+        <dl className="grid grid-cols-2 gap-3 rounded-md border border-neutral-200 bg-white p-4 text-xs">
+          <div>
+            <dt className="text-neutral-500">Name</dt>
+            <dd className="font-medium text-neutral-700">{toltProgram.name}</dd>
+          </div>
+          <div>
+            <dt className="text-neutral-500">Subdomain</dt>
+            <dd className="font-medium text-neutral-700">
+              {toltProgram.subdomain}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-neutral-500">Payout Term</dt>
+            <dd className="font-medium text-neutral-700">
+              {toltProgram.payout_term} days
+            </dd>
+          </div>
+          <div>
+            <dt className="text-neutral-500">Total Partners</dt>
+            <dd className="font-medium text-neutral-700">
+              {toltProgram.total_affiliates?.toLocaleString() || "0"}
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  );
+}

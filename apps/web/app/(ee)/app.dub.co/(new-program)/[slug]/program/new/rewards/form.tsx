@@ -60,11 +60,13 @@ const DEFAULT_REWARD_TYPES = [
   },
 ] as const;
 
+type ImportSource = (typeof PROGRAM_IMPORT_SOURCES)[number];
+
 export function Form() {
   const router = useRouter();
   const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [selectedSource, setSelectedSource] = useState(
+  const [selectedSource, setSelectedSource] = useState<ImportSource>(
     PROGRAM_IMPORT_SOURCES[0],
   );
 
@@ -220,11 +222,7 @@ export function Form() {
               setValue={setValue}
             />
           ) : (
-            <ImportToltForm
-              register={register}
-              watch={watch}
-              setValue={setValue}
-            />
+            <ImportToltForm setValue={setValue} />
           )}
         </div>
       )}
