@@ -32,7 +32,7 @@ export const programRewardSchema = z
       .nullish(),
     tolt: ToltProgramSchema.extend({
       maskedToken: z.string(),
-      total_affiliates: z.number(),
+      affiliates: z.number(),
     }).nullish(),
   })
   .merge(

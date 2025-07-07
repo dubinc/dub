@@ -68,7 +68,7 @@ export class ToltApi {
       ...ToltProgramSchema.parse({
         ...partner.program,
       }),
-      total_affiliates: total_count,
+      affiliates: total_count,
     };
   }
 

@@ -20,7 +20,7 @@ export interface ToltListResponse<T> {
 }
 
 export interface ToltProgram extends z.infer<typeof ToltProgramSchema> {
-  total_affiliates: number;
+  affiliates: number;
 }
 
 export type ToltAffiliate = z.infer<typeof ToltAffiliateSchema>;

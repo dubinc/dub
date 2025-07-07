@@ -96,6 +96,17 @@ export function Form() {
     }
   }, [programType]);
 
+  // Set the import source based on existing program data
+  useEffect(() => {
+    if (programType === "import") {
+      if (rewardful && rewardful.id) {
+        setSelectedSource(PROGRAM_IMPORT_SOURCES[0]);
+      } else if (tolt && tolt.id) {
+        setSelectedSource(PROGRAM_IMPORT_SOURCES[1]);
+      }
+    }
+  }, [programType, tolt, rewardful]);
+
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
       router.push(`/${workspaceSlug}/program/new/partners`);
@@ -205,14 +216,17 @@ export function Form() {
                 }}
               />
             </div>
-            <Link
-              href={selectedSource.helpUrl}
-              className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              See what data is migrated
-            </Link>
+
+            {selectedSource && (
+              <Link
+                href={selectedSource.helpUrl}
+                className="mt-2 text-xs font-normal leading-[1.1] text-neutral-600 underline decoration-solid decoration-auto underline-offset-auto"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                See what data is migrated
+              </Link>
+            )}
           </div>
 
           {selectedSource.id === "rewardful" ? (

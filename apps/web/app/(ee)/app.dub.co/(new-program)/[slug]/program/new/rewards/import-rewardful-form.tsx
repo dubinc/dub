@@ -78,7 +78,7 @@ export const ImportRewardfulForm = ({
         <Input
           type="password"
           placeholder="API token"
-          className="max-w-full"
+          className="mt-2 max-w-full"
           value={token || rewardful?.maskedToken || ""}
           onChange={(e) => setToken(e.target.value)}
         />

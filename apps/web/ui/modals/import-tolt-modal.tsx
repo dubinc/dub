@@ -271,7 +271,7 @@ function ProgramInfo({
           <div>
             <dt className="text-neutral-500">Total Partners</dt>
             <dd className="font-medium text-neutral-700">
-              {toltProgram.total_affiliates?.toLocaleString() || "0"}
+              {toltProgram.affiliates?.toLocaleString() || "0"}
             </dd>
           </div>
         </dl>
@@ -279,7 +279,7 @@ function ProgramInfo({
 
       <Button
         text="Import program"
-        disabled={!toltProgram || toltProgram.total_affiliates === 0}
+        disabled={!toltProgram || toltProgram.affiliates === 0}
         loading={isPending}
         className="w-full justify-center"
       />

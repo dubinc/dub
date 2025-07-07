@@ -68,6 +68,7 @@ function ToltTokenForm({
           ...data.program,
           maskedToken: token,
         });
+
         setStep("program-info");
       }
     },
@@ -176,7 +177,7 @@ function ToltProgramInfo({ toltProgram }: { toltProgram: ToltProgram }) {
           <div>
             <dt className="text-neutral-500">Total Partners</dt>
             <dd className="font-medium text-neutral-700">
-              {toltProgram.total_affiliates?.toLocaleString() || "0"}
+              {toltProgram.affiliates?.toLocaleString() || "0"}
             </dd>
           </div>
         </dl>

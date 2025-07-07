@@ -5,6 +5,7 @@ import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-par
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { isStored, storage } from "@/lib/storage";
+import { toltImporter } from "@/lib/tolt/importer";
 import { WorkspaceProps } from "@/lib/types";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { sendEmail } from "@dub/email";
@@ -42,6 +43,7 @@ export const createProgram = async ({
     maxDuration,
     partners,
     rewardful,
+    tolt,
     linkStructure,
     supportEmail,
     helpUrl,
@@ -148,6 +150,14 @@ export const createProgram = async ({
     await rewardfulImporter.queue({
       programId: program.id,
       action: "import-campaign",
+    });
+  }
+
+  // import the tolt program if it exists
+  if (tolt && tolt.id) {
+    await toltImporter.queue({
+      programId: program.id,
+      action: "import-affiliates",
     });
   }
 
