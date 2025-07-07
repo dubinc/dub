@@ -7,19 +7,29 @@ import { ProgramData } from "@/lib/types";
 import { Button, Input } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useState } from "react";
-import { UseFormSetValue } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 type FormProps = {
+  watch: UseFormWatch<ProgramData>;
   setValue: UseFormSetValue<ProgramData>;
 };
 
 type Step = "set-token" | "program-info";
 
-export const ImportToltForm = ({ setValue }: FormProps) => {
+export const ImportToltForm = ({ watch, setValue }: FormProps) => {
   const [step, setStep] = useState<Step>("set-token");
   const [toltProgram, setToltProgram] = useState<ToltProgram | null>(null);
+
+  const tolt = watch("tolt");
+
+  useEffect(() => {
+    if (tolt) {
+      setToltProgram(tolt);
+      setStep("program-info");
+    }
+  }, [tolt]);
 
   return (
     <>
@@ -58,7 +68,6 @@ function ToltTokenForm({
           ...data.program,
           maskedToken: token,
         });
-
         setStep("program-info");
       }
     },

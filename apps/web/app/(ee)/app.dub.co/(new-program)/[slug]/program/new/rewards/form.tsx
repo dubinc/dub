@@ -222,7 +222,7 @@ export function Form() {
               setValue={setValue}
             />
           ) : (
-            <ImportToltForm setValue={setValue} />
+            <ImportToltForm watch={watch} setValue={setValue} />
           )}
         </div>
       )}
