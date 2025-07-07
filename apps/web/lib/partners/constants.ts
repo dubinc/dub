@@ -6,7 +6,8 @@ export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
 export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
 export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
 export const FOREX_MARKUP_RATE = 0.005; // 0.5%
-export const SMALL_WITHDRAWAL_FEE_CENTS = 200; // $2 fee for withdrawals under $100
+export const MIN_WITHDRAWAL_AMOUNT_CENTS = 10_000; // $100
+export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 200; // $2
 
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {

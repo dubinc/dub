@@ -3,7 +3,7 @@ import "dotenv-flow/config";
 
 // Just for testing purposes
 async function main() {
-  const connectedAccount = "acct_...";
+  const connectedAccount = "acct_1Ri8yePKFVxAW5Pv";
 
   // 1. Do a transfer
   const transfer = await stripe.transfers.create({
@@ -24,7 +24,7 @@ async function main() {
     stripeAccount: connectedAccount,
   });
 
-  console.log("Balance", balance.available);
+  console.log("Balance", JSON.stringify(balance, null, 2));
 
   // 3. Create payout
   const payout = await stripe.payouts.create(
