@@ -23,7 +23,7 @@ export default function NewSaleAlertPartner({
     name: "Acme",
     slug: "acme",
     logo: DUB_WORDMARK,
-    holdingPeriodDays: 0,
+    holdingPeriodDays: 30,
   },
   sale = {
     amount: 4900,
