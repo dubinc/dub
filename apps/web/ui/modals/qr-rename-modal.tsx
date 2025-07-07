@@ -73,6 +73,9 @@ function QRRenameModal({
       showModal={showQRRenameModal}
       setShowModal={setShowQRRenameModal}
       className="border-border-500 max-w-md"
+      drawerRootProps={{
+        repositionInputs: false,
+      }}
     >
       <Theme>
         <div className="flex flex-col gap-2">
