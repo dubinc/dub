@@ -45,6 +45,8 @@ export const updateProgramAction = authActionClient
       defaultFolderId,
     } = parsedInput;
 
+    console.log({ minPayoutAmount });
+
     const programId = getDefaultProgramIdOrThrow(workspace);
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
