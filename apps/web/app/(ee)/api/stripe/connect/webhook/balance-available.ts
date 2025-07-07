@@ -1,8 +1,10 @@
+import { ZERO_DECIMAL_CURRENCIES } from "@/lib/analytics/convert-currency";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
 } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
+import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter } from "@dub/utils";
 import Stripe from "stripe";
@@ -33,10 +35,31 @@ export async function balanceAvailable(event: Stripe.Event) {
     stripeAccount,
   });
 
-  const availableBalance = balance.available.reduce(
-    (acc, curr) => acc + curr.amount,
-    0,
-  );
+  let { amount: availableBalance, currency } = balance.available[0];
+
+  if (currency !== "usd") {
+    const fxRates = await redis.hget("fxRates:usd", currency.toUpperCase());
+
+    if (!fxRates) {
+      console.error(
+        `Failed to get exchange rate from Redis for ${currency}. Skipping...`,
+      );
+      return;
+    }
+
+    let convertedAmount = availableBalance / Number(fxRates);
+
+    const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(
+      currency.toUpperCase(),
+    );
+
+    if (isZeroDecimalCurrency) {
+      convertedAmount = convertedAmount * 100;
+    }
+
+    // Update the available balance to USD
+    availableBalance = Math.round(convertedAmount);
+  }
 
   if (availableBalance < partner.minWithdrawalAmount) {
     console.log(
