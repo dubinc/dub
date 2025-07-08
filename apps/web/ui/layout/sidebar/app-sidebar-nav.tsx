@@ -265,11 +265,11 @@ const NAV_AREAS: SidebarNavAreas<{
             href: "/account/settings",
             exact: true,
           },
-          {
-            name: "Security",
-            icon: ShieldCheck,
-            href: "/account/settings/security",
-          },
+          // {
+          //   name: "Security",
+          //   icon: ShieldCheck,
+          //   href: "/account/settings/security",
+          // },
           ...(session?.user?.["dubPartnerId"]
             ? [
                 {
