@@ -28,7 +28,7 @@ import {
 } from "react";
 import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "../branding-form";
-import { LanderAI } from "../lander-ai";
+import { LanderAIBanner } from "../lander-ai-banner";
 import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
 import { useEditRewardsModal } from "../modals/edit-rewards-modal";
 import { RewardsDiscountsPreview } from "../rewards-discounts-preview";
@@ -116,6 +116,7 @@ export function LanderPreview({
           }
         }}
       />
+      <LanderAIBanner />
       <PreviewWindow
         url={`${PARTNERS_DOMAIN}/${program?.slug}`}
         scrollRef={scrollRef}
@@ -296,7 +297,6 @@ export function LanderPreview({
           </div>
         </div>
       </PreviewWindow>
-      <LanderAI />
     </>
   );
 }

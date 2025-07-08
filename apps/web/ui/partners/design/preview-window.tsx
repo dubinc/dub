@@ -24,7 +24,7 @@ export function PreviewWindow({
   return (
     <div
       className={cn(
-        "flex size-full flex-col overflow-hidden rounded-t-xl border-x border-t border-neutral-200 bg-white shadow-md",
+        "relative flex size-full flex-col overflow-hidden rounded-t-xl border-x border-t border-neutral-200 bg-white shadow-md",
         className,
       )}
     >
