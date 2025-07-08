@@ -18,32 +18,32 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type UpdateInvoiceSettingsModalProps = {
-  showUpdateInvoiceSettingsModal: boolean;
-  setShowUpdateInvoiceSettingsModal: Dispatch<SetStateAction<boolean>>;
+type UpdatePayoutSettingsModalProps = {
+  showUpdatePayoutSettingsModal: boolean;
+  setShowUpdatePayoutSettingsModal: Dispatch<SetStateAction<boolean>>;
 };
 
-type UpdateInvoiceSettingsFormData = z.infer<
+type UpdatePayoutSettingsFormData = z.infer<
   typeof partnerInvoiceSettingsSchema
 >;
 
-function UpdateInvoiceSettingsModal(props: UpdateInvoiceSettingsModalProps) {
-  const { showUpdateInvoiceSettingsModal, setShowUpdateInvoiceSettingsModal } =
+function UpdatePayoutSettingsModal(props: UpdatePayoutSettingsModalProps) {
+  const { showUpdatePayoutSettingsModal, setShowUpdatePayoutSettingsModal } =
     props;
 
   return (
     <Modal
-      showModal={showUpdateInvoiceSettingsModal}
-      setShowModal={setShowUpdateInvoiceSettingsModal}
+      showModal={showUpdatePayoutSettingsModal}
+      setShowModal={setShowUpdatePayoutSettingsModal}
     >
-      <UpdateInvoiceSettingsModalInner {...props} />
+      <UpdatePayoutSettingsModalInner {...props} />
     </Modal>
   );
 }
 
-function UpdateInvoiceSettingsModalInner({
-  setShowUpdateInvoiceSettingsModal,
-}: UpdateInvoiceSettingsModalProps) {
+function UpdatePayoutSettingsModalInner({
+  setShowUpdatePayoutSettingsModal,
+}: UpdatePayoutSettingsModalProps) {
   const { partner } = usePartnerProfile();
 
   const {
@@ -51,7 +51,7 @@ function UpdateInvoiceSettingsModalInner({
     handleSubmit,
     watch,
     formState: { isDirty },
-  } = useForm<UpdateInvoiceSettingsFormData>({
+  } = useForm<UpdatePayoutSettingsFormData>({
     defaultValues: {
       companyName: partner?.companyName ?? "",
       address: partner?.invoiceSettings?.address ?? "",
@@ -63,8 +63,8 @@ function UpdateInvoiceSettingsModalInner({
     updatePartnerInvoiceSettingsAction,
     {
       onSuccess: async () => {
-        toast.success("Invoice settings updated successfully!");
-        setShowUpdateInvoiceSettingsModal(false);
+        toast.success("Payout settings updated successfully!");
+        setShowUpdatePayoutSettingsModal(false);
         mutatePrefix("/api/partner-profile");
       },
       onError({ error }) {
@@ -73,7 +73,7 @@ function UpdateInvoiceSettingsModalInner({
     },
   );
 
-  const onSubmit = async (data: UpdateInvoiceSettingsFormData) => {
+  const onSubmit = async (data: UpdatePayoutSettingsFormData) => {
     await executeAsync(data);
   };
 
@@ -84,7 +84,7 @@ function UpdateInvoiceSettingsModalInner({
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-4 border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Invoice settings</h3>
+        <h3 className="text-lg font-medium leading-none">Payout settings</h3>
         <p className="text-sm font-normal text-neutral-600">
           This information is added to your payout invoices.
         </p>
@@ -137,7 +137,7 @@ function UpdateInvoiceSettingsModalInner({
           text="Cancel"
           disabled={isPending}
           className="h-8 w-fit px-3"
-          onClick={() => setShowUpdateInvoiceSettingsModal(false)}
+          onClick={() => setShowUpdatePayoutSettingsModal(false)}
         />
 
         <Button
@@ -152,24 +152,24 @@ function UpdateInvoiceSettingsModalInner({
   );
 }
 
-export function useUpdateInvoiceSettingsModal() {
-  const [showUpdateInvoiceSettingsModal, setShowUpdateInvoiceSettingsModal] =
+export function useUpdatePayoutSettingsModal() {
+  const [showUpdatePayoutSettingsModal, setShowUpdatePayoutSettingsModal] =
     useState(false);
 
-  const UpdateInvoiceSettingsModalCallback = useCallback(() => {
+  const UpdatePayoutSettingsModalCallback = useCallback(() => {
     return (
-      <UpdateInvoiceSettingsModal
-        showUpdateInvoiceSettingsModal={showUpdateInvoiceSettingsModal}
-        setShowUpdateInvoiceSettingsModal={setShowUpdateInvoiceSettingsModal}
+      <UpdatePayoutSettingsModal
+        showUpdatePayoutSettingsModal={showUpdatePayoutSettingsModal}
+        setShowUpdatePayoutSettingsModal={setShowUpdatePayoutSettingsModal}
       />
     );
-  }, [showUpdateInvoiceSettingsModal, setShowUpdateInvoiceSettingsModal]);
+  }, [showUpdatePayoutSettingsModal, setShowUpdatePayoutSettingsModal]);
 
   return useMemo(
     () => ({
-      setShowUpdateInvoiceSettingsModal,
-      UpdateInvoiceSettingsModal: UpdateInvoiceSettingsModalCallback,
+      setShowUpdatePayoutSettingsModal,
+      UpdatePayoutSettingsModal: UpdatePayoutSettingsModalCallback,
     }),
-    [setShowUpdateInvoiceSettingsModal, UpdateInvoiceSettingsModalCallback],
+    [setShowUpdatePayoutSettingsModal, UpdatePayoutSettingsModalCallback],
   );
 }
