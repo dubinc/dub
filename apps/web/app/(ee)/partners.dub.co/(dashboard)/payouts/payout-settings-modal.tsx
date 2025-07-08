@@ -2,14 +2,14 @@
 
 import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update-partner-payout-settings";
 import {
+  ALLOWED_MIN_WITHDRAWAL_AMOUNTS,
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
-  ALLOWED_MIN_WITHDRAWAL_AMOUNTS,
 } from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
-import { Button, Modal, Slider } from "@dub/ui";
+import { Button, Modal, Slider, Sparkle3 } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -132,9 +132,14 @@ function PayoutSettingsModalInner({
               }}
               marks={ALLOWED_MIN_WITHDRAWAL_AMOUNTS}
               hint={
-                minWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS
-                  ? `${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)} payout fee for payouts under $100`
-                  : undefined
+                minWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS ? (
+                  `${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)} payout fee for payouts under $100`
+                ) : (
+                  <div className="flex items-center gap-1 text-xs font-normal leading-4 text-neutral-500">
+                    <Sparkle3 className="size-4" />
+                    Free payouts unlocked
+                  </div>
+                )
               }
             />
           </div>
