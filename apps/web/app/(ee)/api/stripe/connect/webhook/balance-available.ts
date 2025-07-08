@@ -77,6 +77,36 @@ export async function balanceAvailable(event: Stripe.Event) {
     return;
   }
 
+  // Subtract the pending/in-transit payouts from the available balance
+  const { data: stripePayouts } = await stripe.payouts.list(
+    {
+      status: "pending",
+    },
+    {
+      stripeAccount,
+    },
+  );
+
+  if (stripePayouts.length > 0) {
+    const pendingOrInTransitPayouts = stripePayouts.filter(
+      ({ status }) => status === "pending" || status === "in_transit",
+    );
+
+    const alreadyPaidOutAmount = pendingOrInTransitPayouts.reduce(
+      (acc, payout) => acc + payout.amount,
+      0,
+    );
+
+    availableBalance = availableBalance - alreadyPaidOutAmount;
+  }
+
+  if (availableBalance <= 0) {
+    console.log(
+      `The available balance (${currencyFormatter(availableBalance / 100, { maximumFractionDigits: 2 })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
+    );
+    return;
+  }
+
   let withdrawalFee = 0;
 
   // Decide if we need to charge a withdrawal fee for the partner
