@@ -5,6 +5,7 @@ import {
 import {
   FRAME_TEXT,
   FRAMES,
+  isDefaultTextColor,
 } from "@/ui/qr-builder/constants/customization/frames.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
@@ -354,7 +355,12 @@ export function useQrCustomization(
       setSelectedSuggestedFrame(frameId);
 
       const selected = FRAMES.find((f) => f.type === frameId);
-      setFrameTextColor(selected?.defaultTextColor || WHITE_COLOR);
+      const isUsingDefaultColor =
+        frameTextColor === selected?.defaultTextColor ||
+        isDefaultTextColor(frameTextColor);
+      if (!frameTextColor || isUsingDefaultColor) {
+        setFrameTextColor(selected?.defaultTextColor || WHITE_COLOR);
+      }
 
       setOptions((prevOptions) => ({
         ...prevOptions,
