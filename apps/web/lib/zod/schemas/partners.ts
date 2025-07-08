@@ -5,7 +5,7 @@ import {
   PartnerStatus,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
-import { COUNTRY_CODES } from "@dub/utils";
+import { COUNTRY_CODES, currencyFormatter } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
@@ -590,6 +590,6 @@ export const partnerPayoutSettingsSchema = z.object({
     .min(1000, "Minimum withdrawal amount must be greater than $10.")
     .default(10000)
     .refine((val) => ALLOWED_MIN_WITHDRAWAL_AMOUNTS.includes(val), {
-      message: `Minimum withdrawal amount must be one of ${ALLOWED_MIN_WITHDRAWAL_AMOUNTS.join(", ")}`,
+      message: `Minimum withdrawal amount must be one of ${ALLOWED_MIN_WITHDRAWAL_AMOUNTS.map((amount) => currencyFormatter(amount / 100)).join(", ")}`,
     }),
 });
