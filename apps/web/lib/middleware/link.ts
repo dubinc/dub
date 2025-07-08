@@ -28,9 +28,6 @@ import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge, conn } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
-import { trackServerEvents } from "../../core/integration/analytic/analytic-server.service";
-import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface";
-
 
 const sendScanLimitReachedEvent = async (linkId: string) => {
   console.log("Sending scan limit reached event for link", linkId);
@@ -68,19 +65,30 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
         }),
       });
 
-      // Send Mixpanel event
-      await trackServerEvents({
-        event: EAnalyticEvents.SCAN_LIMIT_REACHED,
-        distinct_id: link.userId,
-        params: {
-          email: link.userEmail,
-          mixpanel_user_id: link.userId,
-          timestamp: new Date().toISOString(),
+      // Send Mixpanel event via fetch
+      const mixpanelResponse = await fetch('https://api.mixpanel.com/track', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify([{
+          event: 'scanLimitReached',
+          properties: {
+            distinct_id: link.userId,
+            email: link.userEmail,
+            mixpanel_user_id: link.userId,
+            timestamp: new Date().toISOString(),
+            token: process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN,
+          },
+        }]),
       });
 
       if (!response.ok) {
-        throw new Error(`Request failed: ${response.status} ${await response.text()}`);
+        throw new Error(`CustomerIo request failed: ${response.status} ${await response.text()}`);
+      }
+
+      if (!mixpanelResponse.ok) {
+        throw new Error(`Mixpanel request failed: ${mixpanelResponse.status} ${await mixpanelResponse.text()}`);
       }
     }
   } catch (error) {
