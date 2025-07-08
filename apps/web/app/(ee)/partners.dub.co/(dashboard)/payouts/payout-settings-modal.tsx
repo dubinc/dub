@@ -4,7 +4,7 @@ import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
-  MINIMUM_WITHDRAWAL_AMOUNTS,
+  ALLOWED_MIN_WITHDRAWAL_AMOUNTS,
 } from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -114,14 +114,14 @@ function PayoutSettingsModalInner({
 
             <Slider
               value={minWithdrawalAmount}
-              min={MINIMUM_WITHDRAWAL_AMOUNTS[0]}
+              min={ALLOWED_MIN_WITHDRAWAL_AMOUNTS[0]}
               max={
-                MINIMUM_WITHDRAWAL_AMOUNTS[
-                  MINIMUM_WITHDRAWAL_AMOUNTS.length - 1
+                ALLOWED_MIN_WITHDRAWAL_AMOUNTS[
+                  ALLOWED_MIN_WITHDRAWAL_AMOUNTS.length - 1
                 ]
               }
               onChange={(value) => {
-                const closest = MINIMUM_WITHDRAWAL_AMOUNTS.reduce(
+                const closest = ALLOWED_MIN_WITHDRAWAL_AMOUNTS.reduce(
                   (prev, curr) =>
                     Math.abs(curr - value) < Math.abs(prev - value)
                       ? curr
@@ -130,7 +130,7 @@ function PayoutSettingsModalInner({
 
                 setValue("minWithdrawalAmount", closest, { shouldDirty: true });
               }}
-              marks={MINIMUM_WITHDRAWAL_AMOUNTS}
+              marks={ALLOWED_MIN_WITHDRAWAL_AMOUNTS}
               hint={
                 minWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS
                   ? `${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)} payout fee for payouts under $100`

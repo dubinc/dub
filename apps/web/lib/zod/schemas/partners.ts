@@ -1,4 +1,4 @@
-import { MINIMUM_WITHDRAWAL_AMOUNTS } from "@/lib/partners/constants";
+import { ALLOWED_MIN_WITHDRAWAL_AMOUNTS } from "@/lib/partners/constants";
 import {
   PartnerBannedReason,
   PartnerProfileType,
@@ -589,7 +589,7 @@ export const partnerPayoutSettingsSchema = z.object({
     .number()
     .min(1000, "Minimum withdrawal amount must be greater than $10.")
     .default(10000)
-    .refine((val) => MINIMUM_WITHDRAWAL_AMOUNTS.includes(val), {
-      message: `Minimum withdrawal amount must be one of ${MINIMUM_WITHDRAWAL_AMOUNTS.join(", ")}`,
+    .refine((val) => ALLOWED_MIN_WITHDRAWAL_AMOUNTS.includes(val), {
+      message: `Minimum withdrawal amount must be one of ${ALLOWED_MIN_WITHDRAWAL_AMOUNTS.join(", ")}`,
     }),
 });

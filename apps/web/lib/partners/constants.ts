@@ -9,6 +9,9 @@ export const FOREX_MARKUP_RATE = 0.005; // 0.5%
 export const MIN_WITHDRAWAL_AMOUNT_CENTS = 10000; // $100
 export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 200; // $2
 
+export const ALLOWED_MIN_WITHDRAWAL_AMOUNTS = [1000, 2500, 5000, 7500, 10000];
+export const ALLOWED_MIN_PAYOUT_AMOUNTS = [0, 2000, 5000, 10000, 20000];
+
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
   type: Stripe.PaymentMethod.Type;
@@ -76,5 +79,3 @@ export const PROGRAM_IMPORT_SOURCES = [
     helpUrl: "https://dub.co/help/article/migrating-from-tolt",
   },
 ] as const;
-
-export const MINIMUM_WITHDRAWAL_AMOUNTS = [1000, 2500, 5000, 7500, 10000];
