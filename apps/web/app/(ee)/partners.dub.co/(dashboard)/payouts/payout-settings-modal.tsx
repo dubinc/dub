@@ -125,6 +125,7 @@ function PayoutSettingsModalInner({
                 format={{
                   style: "currency",
                   currency: "USD",
+                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                   trailingZeroDisplay: "stripIfInteger",
                 }}
                 className="mb-2 text-2xl font-medium leading-6 text-neutral-800"
