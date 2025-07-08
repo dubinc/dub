@@ -23,8 +23,6 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
     if (!isMobile) return;
 
     const handleFocusOut = (e: Event) => {
-      const topMargin = isMobile ? 60 : 0;
-
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -34,7 +32,7 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
             !document.activeElement ||
             document.activeElement === document.body
           ) {
-            window.scrollTo({ top: topMargin, behavior: "smooth" });
+            window.scrollTo({ top: 60, behavior: "smooth" });
           }
         }, 150);
       }
