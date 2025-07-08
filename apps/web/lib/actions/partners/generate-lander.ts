@@ -37,9 +37,11 @@ export const generateLanderAction = authActionClient
       },
     );
 
-    const app = new FireCrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
+    const firecrawl = new FireCrawlApp({
+      apiKey: process.env.FIRECRAWL_API_KEY,
+    });
 
-    const scrapeResult = await app.scrapeUrl(websiteUrl, {
+    const scrapeResult = await firecrawl.scrapeUrl(websiteUrl, {
       formats: ["markdown", "links"],
       onlyMainContent: false,
       parsePDF: false,
@@ -53,7 +55,7 @@ export const generateLanderAction = authActionClient
       link.endsWith("/pricing"),
     );
     if (pricingLink)
-      pricingScrapeResult = await app.scrapeUrl(pricingLink, {
+      pricingScrapeResult = await firecrawl.scrapeUrl(pricingLink, {
         formats: ["markdown"],
         onlyMainContent: true,
         parsePDF: false,
