@@ -9,8 +9,9 @@ import {
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
-import { Button, Modal, Slider, Sparkle3 } from "@dub/ui";
+import { Button, Modal, Slider } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
+import { PartyPopper } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -136,7 +137,7 @@ function PayoutSettingsModalInner({
                   `${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)} payout fee for payouts under $100`
                 ) : (
                   <div className="flex items-center gap-1 text-xs font-normal leading-4 text-neutral-500">
-                    <Sparkle3 className="size-4" />
+                    <PartyPopper className="size-4" />
                     Free payouts unlocked
                   </div>
                 )
