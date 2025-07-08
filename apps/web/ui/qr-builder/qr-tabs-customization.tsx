@@ -9,6 +9,7 @@ import { StyleSelector } from "@/ui/qr-builder/components/style-selector.tsx";
 import { CornerDotType, CornerSquareType } from "qr-code-styling";
 import { DotType, Options } from "qr-code-styling/lib/types";
 import { QR_STYLES_OPTIONS } from "./constants/get-qr-config.ts";
+import { FrameOptions } from "./types/types.ts";
 
 interface QrTabsCustomizationProps {
   styleOptionActiveTab: string;
@@ -20,6 +21,7 @@ interface QrTabsCustomizationProps {
   isMobile: boolean;
   options: Options;
   homepageDemo?: boolean;
+  frameOptions: FrameOptions;
   handlers: {
     onSuggestedFrameSelect: (type: string) => void;
     onFrameColorChange: (color: string) => void;
@@ -44,9 +46,23 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
   isMobile,
   options,
   homepageDemo = false,
+  frameOptions,
   handlers,
 }) => {
   console.log("selectedSuggestedLogo:", selectedSuggestedLogo);
+
+  const frameSelector = (
+    <FrameSelector
+      selectedSuggestedFrame={selectedSuggestedFrame}
+      isQrDisabled={isQrDisabled}
+      onFrameSelect={handlers.onSuggestedFrameSelect}
+      onFrameColorChange={handlers.onFrameColorChange}
+      onFrameTextColorChange={handlers.onFrameTextColorChange}
+      onFrameTextChange={handlers.onFrameTextChange}
+      isMobile={isMobile}
+      frameOptions={frameOptions}
+    />
+  );
 
   return isMobile || !homepageDemo ? (
     <Tabs.Root
@@ -76,17 +92,7 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
           value={tab.label}
           className="w-full focus:outline-none"
         >
-          {tab.id === "frame" && (
-            <FrameSelector
-              selectedSuggestedFrame={selectedSuggestedFrame}
-              isQrDisabled={isQrDisabled}
-              onFrameSelect={handlers.onSuggestedFrameSelect}
-              onFrameColorChange={handlers.onFrameColorChange}
-              onFrameTextColorChange={handlers.onFrameTextColorChange}
-              onFrameTextChange={handlers.onFrameTextChange}
-              isMobile={isMobile}
-            />
-          )}
+          {tab.id === "frame" && frameSelector}
 
           {tab.id === "style" && (
             <StyleSelector
@@ -123,17 +129,7 @@ export const QrTabsCustomization: FC<QrTabsCustomizationProps> = ({
       {QR_STYLES_OPTIONS.map((tab) => (
         <div key={tab.id} className="flex w-full flex-col gap-4">
           <h3 className="text-lg font-medium">{tab.label}</h3>
-          {tab.id === "frame" && (
-            <FrameSelector
-              selectedSuggestedFrame={selectedSuggestedFrame}
-              isQrDisabled={isQrDisabled}
-              onFrameSelect={handlers.onSuggestedFrameSelect}
-              onFrameColorChange={handlers.onFrameColorChange}
-              onFrameTextColorChange={handlers.onFrameTextColorChange}
-              onFrameTextChange={handlers.onFrameTextChange}
-              isMobile={isMobile}
-            />
-          )}
+          {tab.id === "frame" && frameSelector}
           {tab.id === "style" && (
             <StyleSelector
               options={options}

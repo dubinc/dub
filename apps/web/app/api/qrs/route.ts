@@ -12,12 +12,16 @@ import {
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
 import { createQrBodySchema } from "@/lib/zod/schemas/qrs";
+import {
+  EQRType,
+  FILE_QR_TYPES,
+} from "@/ui/qr-builder/constants/get-qr-config";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
+import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN, LOCALHOST_IP, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { prisma } from "@dub/prisma";
-import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
+import { NextResponse } from "next/server";
 
 // GET /api/qrs – get all qrs for a workspace
 export const GET = withWorkspace(
@@ -35,7 +39,7 @@ export const GET = withWorkspace(
   },
 );
 
-// POST /api/qrs – create a new qr
+// POST /api/qrs – create a new qr
 export const POST = withWorkspace(
   async ({ req, headers, session, workspace }) => {
     if (workspace) {
@@ -67,7 +71,8 @@ export const POST = withWorkspace(
       }
     }
 
-    const fileId = crypto.randomUUID();
+    const isFileType = FILE_QR_TYPES.includes(body.qrType as EQRType);
+    const fileId = isFileType ? crypto.randomUUID() : null;
 
     const linkData = {
       ...body.link,

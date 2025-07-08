@@ -22,7 +22,7 @@ import WreathPreview from "@/ui/qr-builder/icons/frames/wreath-preview.svg";
 import Wreath from "@/ui/qr-builder/icons/frames/wreath.svg";
 import NoLogoIcon from "@/ui/qr-builder/icons/no-logo.svg";
 import { StaticImageData } from "next/image";
-import { BLACK_COLOR } from "./colors.ts";
+import { BLACK_COLOR, WHITE_COLOR } from "./colors.ts";
 import { TStyleOption } from "./styles.ts";
 
 const frameCache = new Map<string, HTMLElement>();
@@ -155,6 +155,10 @@ export async function preloadAllFrames() {
     }),
   );
 }
+
+export const isDefaultTextColor = (color: string): boolean => {
+  return color === WHITE_COLOR || color === BLACK_COLOR;
+};
 
 async function embedQRIntoFrame(
   svg: SVGSVGElement,

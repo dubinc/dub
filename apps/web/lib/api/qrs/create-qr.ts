@@ -22,27 +22,32 @@ export async function createQr(
   url: string,
   linkId: string,
   userId: string | null,
-  fileId: string,
+  fileId: string | null,
   homePageDemo?: boolean,
 ) {
+  const isFileType = FILE_QR_TYPES.includes(qrType as EQRType);
+
   const qr = await prisma.qr.create({
     data: {
       id: createId({ prefix: "qr_" }),
       qrType,
-      data: data, // @TODO: check with guys why it was a link url and that we can use data as we need to display real data in dashboard
+      data: data,
       title,
       description,
       styles,
       frameOptions,
       linkId,
       userId,
-      fileId,
-      fileName,
-      fileSize,
+      ...(isFileType &&
+        fileId && {
+          fileId,
+          fileName,
+          fileSize,
+        }),
     },
   });
 
-  if (FILE_QR_TYPES.includes(qrType as EQRType) && file && !homePageDemo) {
+  if (isFileType && file && fileId && !homePageDemo) {
     await storage.upload(`qrs-content/${fileId}`, file);
   }
 
