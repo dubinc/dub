@@ -4,7 +4,7 @@ import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex, Text } from "@radix-ui/themes";
 import { Info } from "lucide-react";
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { CheckboxWithLabel } from "./components/checkbox-with-label.tsx";
 import { InputWithLabel } from "./components/input-with-label.tsx";
@@ -32,6 +32,12 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   const { isMobile } = useMediaQuery();
 
   const { control } = useFormContext();
+
+  useEffect(() => {
+    if (isMobile && homePageDemo) {
+      window.scrollTo({ top: 200, behavior: "smooth" });
+    }
+  }, [isMobile]);
 
   const renderCardContent = () => {
     if (!qrType) return <p className="text-neutral text-sm">Unknown QR Type</p>;
