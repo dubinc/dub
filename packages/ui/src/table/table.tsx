@@ -325,6 +325,14 @@ export function Table<T>({
             scrollWrapperClassName,
           )}
         >
+          {/* Selection Toolbar Overlay */}
+          {selectionEnabled && (
+            <SelectionToolbar
+              table={table}
+              controls={selectionControls}
+              className="top-0 left-0 right-0"
+            />
+          )}
           <table
             className={cn(
               [
@@ -425,9 +433,7 @@ export function Table<T>({
                   })}
                 </tr>
               ))}
-              {selectionEnabled && (
-                <SelectionToolbar table={table} controls={selectionControls} />
-              )}
+              {/* SelectionToolbar row removed from here */}
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => {
