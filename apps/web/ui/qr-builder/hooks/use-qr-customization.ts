@@ -9,7 +9,7 @@ import {
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { unescapeWiFiValue } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
-import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { FrameOptions, QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QRCodeStyling, {
   CornerDotType,
   CornerSquareType,
@@ -23,15 +23,24 @@ export function useQrCustomization(
   initialData?: QrStorageData,
   homepageDemo?: boolean,
 ) {
+  const frameOptions = initialData?.frameOptions as FrameOptions | null;
+
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
   const [uploadedLogo, setUploadedLogo] = useState<File | null>(null);
   const [selectedSuggestedLogo, setSelectedSuggestedLogo] =
     useState<string>("none");
-  const [selectedSuggestedFrame, setSelectedSuggestedFrame] =
-    useState<string>("none");
-  const [frameColor, setFrameColor] = useState<string>(BLACK_COLOR);
-  const [frameTextColor, setFrameTextColor] = useState<string>(WHITE_COLOR);
-  const [frameText, setFrameText] = useState<string>(FRAME_TEXT);
+  const [selectedSuggestedFrame, setSelectedSuggestedFrame] = useState<string>(
+    frameOptions?.id || "none",
+  );
+  const [frameColor, setFrameColor] = useState<string>(
+    frameOptions?.color || BLACK_COLOR,
+  );
+  const [frameTextColor, setFrameTextColor] = useState<string>(
+    frameOptions?.textColor || WHITE_COLOR,
+  );
+  const [frameText, setFrameText] = useState<string>(
+    frameOptions?.text || FRAME_TEXT,
+  );
   const [selectedQRType, setSelectedQRType] = useState<EQRType>(
     initialData?.qrType as EQRType,
   );
