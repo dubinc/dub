@@ -90,6 +90,7 @@ export const programLanderSchema = z.object({
 
 // Simpler schemas for AI generation
 export const programLanderSimpleBlockSchema = z.discriminatedUnion("type", [
+  programLanderImageBlockSchema,
   programLanderTextBlockSchema,
   programLanderAccordionBlockSchema,
   programLanderEarningsCalculatorBlockSchema,

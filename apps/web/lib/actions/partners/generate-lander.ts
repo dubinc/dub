@@ -75,6 +75,9 @@ export const generateLanderAction = authActionClient
         `Generate a basic landing page for an affiliate program powered by Dub Partners based on a company website. ` +
         `Do not include any initial header/hero content because the landing page will already have an initial title and subtitle. ` +
         `Do not make any assumptions about the terms or rewards associated with the program. ` +
+        (scrapeResult.metadata?.ogImage
+          ? `You may include an image block in the landing page, only using the OG image here: ${scrapeResult.metadata?.ogImage}. `
+          : "") +
         `Markdown is supported in "text" blocks, but use it sparingly. ` +
         `Avoid using links. Relevant CTA links are already on the landing page. ` +
         // Program details
