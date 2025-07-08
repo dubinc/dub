@@ -7,9 +7,9 @@ async function main() {
     livemode: false,
   });
 
-  const stripeAccount = "acct_1QVcu12ULJbggj84";
+  const stripeAccount = "acct_1RiZ6DDixECvUM5P";
 
-  // Create a coupon
+  // // Create a coupon
   const coupon = await stripeApp.coupons.create(
     {
       name: "Coupon 1",
@@ -24,7 +24,7 @@ async function main() {
 
   console.log(coupon);
 
-  // List all coupons
+  // // List all coupons
   const coupons = await stripeApp.coupons.list({
     stripeAccount,
   });
@@ -34,8 +34,8 @@ async function main() {
   // Create a promotion code
   const promotionCode = await stripeApp.promotionCodes.create(
     {
-      coupon: "eL9nAqZy",
-      code: "TEST_CODE",
+      coupon: "msvkvUlA",
+      code: "WELCOME",
       metadata: {
         partnerId: "123",
       },
