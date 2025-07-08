@@ -25,7 +25,7 @@ export function SaleTypeBlock() {
   }>(
     `/api/analytics?${editQueryString(queryString, {
       event: "sales",
-      groupBy: "count_new",
+      groupBy: "count",
       saleType: "recurring",
     })}`,
     fetcher,

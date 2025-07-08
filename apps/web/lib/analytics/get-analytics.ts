@@ -44,7 +44,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // 5. no other dimensional filters are applied
   if (
     linkId &&
-    ["count", "count_new"].includes(groupBy) &&
+    groupBy === "count" &&
     interval === "all" &&
     !start &&
     !end &&
@@ -121,7 +121,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     region,
   });
 
-  if (["count", "count_new"].includes(groupBy)) {
+  if (groupBy === "count") {
     // Return the count value for deprecated endpoints
     if (isDeprecatedClicksEndpoint) {
       return response.data[0][event];

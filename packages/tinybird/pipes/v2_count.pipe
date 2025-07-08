@@ -125,10 +125,13 @@ NODE count_sales
 SQL >
 
     %
-    SELECT sales, amount, amount AS saleAmount
-    FROM
-        (
-            SELECT COUNT(*) as sales, sum(amount) as amount
+    WITH
+        sale_rankings AS (
+            SELECT
+                *,
+                ROW_NUMBER() OVER (
+                    PARTITION BY customer_id, link_id ORDER BY timestamp ASC
+                ) as sale_rank
             FROM
                 dub_sale_events_mv
                 {% if not defined(linkId) and (
@@ -174,6 +177,19 @@ SQL >
                 {% if defined(url) %} AND url = {{ url }} {% end %}
                 {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
                 {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
+        )
+    SELECT sales, amount, amount AS saleAmount
+    FROM
+        (
+            SELECT COUNT(*) as sales, sum(amount) as amount
+            FROM sale_rankings
+            WHERE
+                1 = 1
+                {% if defined(saleType) %}
+                    {% if saleType == 'new' %} AND sale_rank = 1
+                    {% elif saleType == 'recurring' %} AND sale_rank > 1
+                    {% end %}
+                {% end %}
         ) AS subquery
 
 
