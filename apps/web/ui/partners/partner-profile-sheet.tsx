@@ -98,7 +98,7 @@ function PartnerProfileSheetContent({
               <h4 className="font-semibold text-neutral-900">
                 Online presence
               </h4>
-              <OnlinePresenceSummary partner={partner} className="mt-2" />
+              <OnlinePresenceSummary partner={partner} className="mt-3" />
             </div>
           </div>
         </div>
