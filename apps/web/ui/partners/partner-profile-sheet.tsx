@@ -63,7 +63,7 @@ function PartnerProfileSheetContent({
   return (
     <>
       <div className="flex grow flex-col">
-        <div className="flex items-center justify-between px-6 py-4 h-16">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
             Partner profile
           </Sheet.Title>

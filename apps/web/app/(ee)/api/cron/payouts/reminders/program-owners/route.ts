@@ -1,7 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { limiter } from "@/lib/cron/limiter";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import { sendEmail } from "@dub/email";
 import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
 import { prisma } from "@dub/prisma";
@@ -31,7 +30,7 @@ export async function GET(req: Request) {
     const programsWithCustomMinPayouts = await prisma.program.findMany({
       where: {
         minPayoutAmount: {
-          gt: DUB_MIN_PAYOUT_AMOUNT_CENTS,
+          gt: 0,
         },
       },
     });
@@ -41,7 +40,7 @@ export async function GET(req: Request) {
       where: {
         status: "pending",
         amount: {
-          gte: DUB_MIN_PAYOUT_AMOUNT_CENTS,
+          gt: 0,
         },
         programId: {
           notIn: programsWithCustomMinPayouts.map((p) => p.id),

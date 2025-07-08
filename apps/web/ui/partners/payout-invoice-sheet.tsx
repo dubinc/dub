@@ -365,7 +365,7 @@ function PayoutInvoiceSheetContent() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4 h-16">
+      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
         <Sheet.Title className="text-lg font-semibold">
           Payout invoice
         </Sheet.Title>
