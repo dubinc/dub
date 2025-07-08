@@ -11,6 +11,7 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
 import { Button, Modal, Slider, useScrollProgress } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
+import NumberFlow from "@number-flow/react";
 import { PartyPopper } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -118,9 +119,16 @@ function PayoutSettingsModalInner({
             </div>
 
             <div>
-              <div className="mb-2 text-2xl font-medium leading-6 text-neutral-800">
-                {currencyFormatter(minWithdrawalAmount / 100)} USD
-              </div>
+              <NumberFlow
+                value={minWithdrawalAmount / 100}
+                suffix=" USD"
+                format={{
+                  style: "currency",
+                  currency: "USD",
+                  trailingZeroDisplay: "stripIfInteger",
+                }}
+                className="mb-2 text-2xl font-medium leading-6 text-neutral-800"
+              />
 
               <Slider
                 value={minWithdrawalAmount}
