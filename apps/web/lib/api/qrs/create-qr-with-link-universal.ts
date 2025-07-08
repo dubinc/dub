@@ -1,6 +1,6 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
-import { WorkspaceProps, NewQrProps } from "@/lib/types";
+import { NewQrProps, WorkspaceProps } from "@/lib/types";
 import { createQr } from "./create-qr";
 
 interface CreateQrWithLinkOptions {
@@ -9,13 +9,13 @@ interface CreateQrWithLinkOptions {
     url: string;
     [key: string]: any;
   };
-  
+
   workspace: Pick<WorkspaceProps, "id" | "plan" | "flags"> | undefined;
   userId?: string | null;
-  fileId?: string;
-  
+  fileId?: string | null;
+
   homePageDemo?: boolean;
-  
+
   onLinkCreated?: (link: any) => Promise<void> | void;
 }
 
@@ -53,7 +53,7 @@ export async function createQrWithLinkUniversal({
       createdLink.shortLink,
       createdLink.id,
       createdLink.userId,
-      fileId || crypto.randomUUID(),
+      fileId || null,
       homePageDemo,
     );
 
@@ -64,4 +64,4 @@ export async function createQrWithLinkUniversal({
       message: error.message,
     });
   }
-} 
+}
