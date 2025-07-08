@@ -48,11 +48,13 @@ model Program {
   linkStructure                LinkStructure @default(short)
   linkParameter                String? // null for SHORT, "via" for QUERY, "refer" for PATH
   autoApprovePartnersEnabledAt DateTime?
+  couponCodeTrackingEnabledAt  DateTime?
   createdAt                    DateTime      @default(now())
   updatedAt                    DateTime      @updatedAt
 
   workspace     Project              @relation(fields: [workspaceId], references: [id])
   primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  defaultFor    Project?             @relation("defaultProgram")
   partners      ProgramEnrollment[]
   payouts       Payout[]
   invoices      Invoice[]

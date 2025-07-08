@@ -57,6 +57,7 @@ model Project {
   domains               Domain[]
   tags                  Tag[]
   programs              Program[]
+  defaultProgram        Program?               @relation("defaultProgram", fields: [defaultProgramId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   invoices              Invoice[]
   customers             Customer[]
   defaultDomains        DefaultDomains[]
