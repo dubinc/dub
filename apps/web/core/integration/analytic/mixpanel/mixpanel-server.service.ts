@@ -21,11 +21,11 @@ class MixpanelServerService {
   private mixpanel: Mixpanel.Mixpanel;
 
   constructor() {
-    if (!process.env.MIXPANEL_PROJECT_TOKEN) {
-      throw new Error("MIXPANEL_PROJECT_TOKEN environment variable is required");
+    if (!process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN) {
+      throw new Error("NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN environment variable is required");
     }
 
-    this.mixpanel = Mixpanel.init(process.env.MIXPANEL_PROJECT_TOKEN, {
+    this.mixpanel = Mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN, {
       debug: process.env.NODE_ENV !== "production",
       // You can add other server-side specific options here
     });

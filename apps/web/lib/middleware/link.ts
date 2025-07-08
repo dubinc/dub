@@ -28,18 +28,19 @@ import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge, conn } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
-import { TrackClient } from 'customerio-node';
+import { trackServerEvents } from "../../core/integration/analytic/analytic-server.service";
+import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface";
 
-const cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_TRACK_API_KEY!);
 
 const sendScanLimitReachedEvent = async (linkId: string) => {
   console.log("Sending scan limit reached event for link", linkId);
 
   try {
     const linkRows = await conn.execute(
-      `SELECT l.*, 
-        (SELECT SUM(clicks) FROM Link WHERE userId = l.userId) as totalUserClicks
+      `SELECT l.*, u.id as userId, u.email as userEmail,
+        (SELECT SUM(clicks) FROM Link WHERE userId = u.id) as totalUserClicks
       FROM Link l 
+      LEFT JOIN User u ON l.userId = u.id 
       WHERE l.id = ?`,
       [linkId]
     );
@@ -53,6 +54,7 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
     console.log("link.totalUserClicks", link.totalUserClicks);
   
     if (link.totalUserClicks >= 29 && !featuresAccess.featuresAccess) {
+      // Send Customer.io event
       const auth = Buffer.from(`${process.env.CUSTOMER_IO_SITE_ID}:${process.env.CUSTOMER_IO_TRACK_API_KEY}`).toString("base64");
 
       const response = await fetch(`https://track.customer.io/api/v1/customers/${link.userId}/events`, {
@@ -64,6 +66,17 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
         body: JSON.stringify({
           name: "scan_limit_reached",
         }),
+      });
+
+      // Send Mixpanel event
+      await trackServerEvents({
+        event: EAnalyticEvents.SCAN_LIMIT_REACHED,
+        distinct_id: link.userId,
+        params: {
+          email: link.userEmail,
+          mixpanel_user_id: link.userId,
+          timestamp: new Date().toISOString(),
+        },
       });
 
       if (!response.ok) {

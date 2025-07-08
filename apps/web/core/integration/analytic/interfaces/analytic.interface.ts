@@ -16,6 +16,8 @@ export enum EAnalyticEvents {
   PURCHASE_SUCCESS = "purchaseSuccess",
   PURCHASE_ERROR = "purchaseError",
 
+  SCAN_LIMIT_REACHED = "scanLimitReached",
+
   EXPERIMENT_VIEWED = "experimentViewed",
 }
 
