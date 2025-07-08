@@ -45,4 +45,4 @@ export function OTPInputField({ value, onChange, label }: OTPInputFieldProps) {
       </div>
     </div>
   );
-} 
+}

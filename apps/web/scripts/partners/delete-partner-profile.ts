@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { bulkDeleteLinks } from "../../lib/api/links/bulk-delete-links";
-import { stripeConnectClient } from "./stripe";
+import { stripeConnectClient } from "../stripe/connect-client";
 
 async function main() {
   const partner = await prisma.partner.findUniqueOrThrow({

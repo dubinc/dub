@@ -36,8 +36,7 @@ model Program {
   url                          String?
   cookieLength                 Int           @default(90)
   holdingPeriodDays            Int           @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount              Int           @default(10000) // Default minimum payout amount of $100
-  
+  minPayoutAmount              Int           @default(0) // Default minimum payout amount of $0
   embedData                    Json?         @db.Json
   landerData                   Json?         @db.Json
   landerPublishedAt            DateTime?
@@ -52,16 +51,16 @@ model Program {
   createdAt                    DateTime      @default(now())
   updatedAt                    DateTime      @updatedAt
 
-  workspace       Project              @relation(fields: [workspaceId], references: [id])
-  primaryDomain   Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
-  partners        ProgramEnrollment[]
-  payouts         Payout[]
-  invoices        Invoice[]
-  applications    ProgramApplication[]
-  links           Link[]
-  commissions     Commission[]
-  rewards         Reward[]
-  discounts       Discount[]           @relation("ProgramDiscounts")
+  workspace     Project              @relation(fields: [workspaceId], references: [id])
+  primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  partners      ProgramEnrollment[]
+  payouts       Payout[]
+  invoices      Invoice[]
+  applications  ProgramApplication[]
+  links         Link[]
+  commissions   Commission[]
+  rewards       Reward[]
+  discounts     Discount[]           @relation("ProgramDiscounts")
 
   @@index(workspaceId)
   @@index(domain)
