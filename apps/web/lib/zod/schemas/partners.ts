@@ -1,3 +1,4 @@
+import { MINIMUM_WITHDRAWAL_AMOUNTS } from "@/lib/partners/constants";
 import {
   PartnerBannedReason,
   PartnerProfileType,
@@ -207,6 +208,9 @@ export const PartnerSchema = z
       })
       .nullable()
       .describe("The partner's invoice settings."),
+    minWithdrawalAmount: z
+      .number()
+      .describe("The minimum withdrawal amount in cents."),
     createdAt: z
       .date()
       .describe("The date when the partner was created on Dub."),
@@ -230,6 +234,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   paypalEmail: true,
   stripeConnectId: true,
   payoutsEnabledAt: true,
+  minWithdrawalAmount: true,
   createdAt: true,
 })
   .merge(
@@ -576,8 +581,15 @@ export const archivePartnerSchema = z.object({
   partnerId: z.string(),
 });
 
-export const partnerInvoiceSettingsSchema = z.object({
+export const partnerPayoutSettingsSchema = z.object({
   companyName: z.string().max(190).trim().min(1, "Business name is required."),
-  address: z.string().max(500).trim().nullable(),
-  taxId: z.string().max(100).trim().nullable(),
+  address: z.string().max(500).trim().nullish(),
+  taxId: z.string().max(100).trim().nullish(),
+  minWithdrawalAmount: z.coerce
+    .number()
+    .min(0, "Minimum withdrawal amount must be greater than 0.")
+    .default(10000)
+    .refine((val) => MINIMUM_WITHDRAWAL_AMOUNTS.includes(val), {
+      message: `Minimum withdrawal amount must be one of ${MINIMUM_WITHDRAWAL_AMOUNTS.join(", ")}`,
+    }),
 });

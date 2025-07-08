@@ -76,3 +76,5 @@ export const PROGRAM_IMPORT_SOURCES = [
     helpUrl: "https://dub.co/help/article/migrating-from-tolt",
   },
 ] as const;
+
+export const MINIMUM_WITHDRAWAL_AMOUNTS = [1000, 2500, 5000, 7500, 10000];
