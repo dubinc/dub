@@ -18,32 +18,32 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type UpdatePayoutSettingsModalProps = {
-  showUpdatePayoutSettingsModal: boolean;
-  setShowUpdatePayoutSettingsModal: Dispatch<SetStateAction<boolean>>;
+type PayoutSettingsModalProps = {
+  showPayoutSettingsModal: boolean;
+  setShowPayoutSettingsModal: Dispatch<SetStateAction<boolean>>;
 };
 
-type UpdatePayoutSettingsFormData = z.infer<
+type PayoutSettingsFormData = z.infer<
   typeof partnerInvoiceSettingsSchema
 >;
 
-function UpdatePayoutSettingsModal(props: UpdatePayoutSettingsModalProps) {
-  const { showUpdatePayoutSettingsModal, setShowUpdatePayoutSettingsModal } =
+function PayoutSettingsModal(props: PayoutSettingsModalProps) {
+  const { showPayoutSettingsModal, setShowPayoutSettingsModal } =
     props;
 
   return (
     <Modal
-      showModal={showUpdatePayoutSettingsModal}
-      setShowModal={setShowUpdatePayoutSettingsModal}
+      showModal={showPayoutSettingsModal}
+      setShowModal={setShowPayoutSettingsModal}
     >
-      <UpdatePayoutSettingsModalInner {...props} />
+      <PayoutSettingsModalInner {...props} />
     </Modal>
   );
 }
 
-function UpdatePayoutSettingsModalInner({
-  setShowUpdatePayoutSettingsModal,
-}: UpdatePayoutSettingsModalProps) {
+function PayoutSettingsModalInner({
+  setShowPayoutSettingsModal,
+}: PayoutSettingsModalProps) {
   const { partner } = usePartnerProfile();
 
   const {
@@ -51,7 +51,7 @@ function UpdatePayoutSettingsModalInner({
     handleSubmit,
     watch,
     formState: { isDirty },
-  } = useForm<UpdatePayoutSettingsFormData>({
+  } = useForm<PayoutSettingsFormData>({
     defaultValues: {
       companyName: partner?.companyName ?? "",
       address: partner?.invoiceSettings?.address ?? "",
@@ -64,7 +64,7 @@ function UpdatePayoutSettingsModalInner({
     {
       onSuccess: async () => {
         toast.success("Payout settings updated successfully!");
-        setShowUpdatePayoutSettingsModal(false);
+        setShowPayoutSettingsModal(false);
         mutatePrefix("/api/partner-profile");
       },
       onError({ error }) {
@@ -73,7 +73,7 @@ function UpdatePayoutSettingsModalInner({
     },
   );
 
-  const onSubmit = async (data: UpdatePayoutSettingsFormData) => {
+  const onSubmit = async (data: PayoutSettingsFormData) => {
     await executeAsync(data);
   };
 
@@ -137,7 +137,7 @@ function UpdatePayoutSettingsModalInner({
           text="Cancel"
           disabled={isPending}
           className="h-8 w-fit px-3"
-          onClick={() => setShowUpdatePayoutSettingsModal(false)}
+          onClick={() => setShowPayoutSettingsModal(false)}
         />
 
         <Button
@@ -152,24 +152,24 @@ function UpdatePayoutSettingsModalInner({
   );
 }
 
-export function useUpdatePayoutSettingsModal() {
-  const [showUpdatePayoutSettingsModal, setShowUpdatePayoutSettingsModal] =
+export function usePayoutSettingsModal() {
+  const [showPayoutSettingsModal, setShowPayoutSettingsModal] =
     useState(false);
 
-  const UpdatePayoutSettingsModalCallback = useCallback(() => {
+  const PayoutSettingsModalCallback = useCallback(() => {
     return (
-      <UpdatePayoutSettingsModal
-        showUpdatePayoutSettingsModal={showUpdatePayoutSettingsModal}
-        setShowUpdatePayoutSettingsModal={setShowUpdatePayoutSettingsModal}
+      <PayoutSettingsModal
+        showPayoutSettingsModal={showPayoutSettingsModal}
+        setShowPayoutSettingsModal={setShowPayoutSettingsModal}
       />
     );
-  }, [showUpdatePayoutSettingsModal, setShowUpdatePayoutSettingsModal]);
+  }, [showPayoutSettingsModal, setShowPayoutSettingsModal]);
 
   return useMemo(
     () => ({
-      setShowUpdatePayoutSettingsModal,
-      UpdatePayoutSettingsModal: UpdatePayoutSettingsModalCallback,
+      setShowPayoutSettingsModal,
+      PayoutSettingsModal: PayoutSettingsModalCallback,
     }),
-    [setShowUpdatePayoutSettingsModal, UpdatePayoutSettingsModalCallback],
+    [setShowPayoutSettingsModal, PayoutSettingsModalCallback],
   );
 }

@@ -1,20 +1,20 @@
 "use client";
 
 import { Button } from "@dub/ui";
-import { useUpdatePayoutSettingsModal } from "./update-payout-settings-modal";
+import { usePayoutSettingsModal } from "./payout-settings-modal";
 
 export function PayoutSettingsButton() {
-  const { UpdatePayoutSettingsModal, setShowUpdatePayoutSettingsModal } =
-    useUpdatePayoutSettingsModal();
+  const { PayoutSettingsModal, setShowPayoutSettingsModal } =
+    usePayoutSettingsModal();
 
   return (
     <>
-      <UpdatePayoutSettingsModal />
+      <PayoutSettingsModal />
       <Button
         type="button"
         text="Payout settings"
         variant="secondary"
-        onClick={() => setShowUpdatePayoutSettingsModal(true)}
+        onClick={() => setShowPayoutSettingsModal(true)}
       />
     </>
   );
