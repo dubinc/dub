@@ -28,18 +28,17 @@ import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge, conn } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
-import { TrackClient } from 'customerio-node';
-
-const cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_TRACK_API_KEY!);
+import { EAnalyticEvents } from 'core/integration/analytic/interfaces/analytic.interface';
 
 const sendScanLimitReachedEvent = async (linkId: string) => {
   console.log("Sending scan limit reached event for link", linkId);
 
   try {
     const linkRows = await conn.execute(
-      `SELECT l.*, 
-        (SELECT SUM(clicks) FROM Link WHERE userId = l.userId) as totalUserClicks
+      `SELECT l.*, u.id as userId, u.email as userEmail,
+        (SELECT SUM(clicks) FROM Link WHERE userId = u.id) as totalUserClicks
       FROM Link l 
+      LEFT JOIN User u ON l.userId = u.id 
       WHERE l.id = ?`,
       [linkId]
     );
@@ -53,6 +52,7 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
     console.log("link.totalUserClicks", link.totalUserClicks);
   
     if (link.totalUserClicks >= 29 && !featuresAccess.featuresAccess) {
+      // Send Customer.io event
       const auth = Buffer.from(`${process.env.CUSTOMER_IO_SITE_ID}:${process.env.CUSTOMER_IO_TRACK_API_KEY}`).toString("base64");
 
       const response = await fetch(`https://track.customer.io/api/v1/customers/${link.userId}/events`, {
@@ -66,8 +66,30 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
         }),
       });
 
+      // Send Mixpanel event via fetch
+      const mixpanelResponse = await fetch('https://api.mixpanel.com/track', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([{
+          event: EAnalyticEvents.SCAN_LIMIT_REACHED,
+          properties: {
+            distinct_id: link.userId,
+            email: link.userEmail,
+            mixpanel_user_id: link.userId,
+            timestamp: new Date().toISOString(),
+            token: process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN,
+          },
+        }]),
+      });
+
       if (!response.ok) {
-        throw new Error(`Request failed: ${response.status} ${await response.text()}`);
+        throw new Error(`CustomerIo request failed: ${response.status} ${await response.text()}`);
+      }
+
+      if (!mixpanelResponse.ok) {
+        throw new Error(`Mixpanel request failed: ${mixpanelResponse.status} ${await mixpanelResponse.text()}`);
       }
     }
   } catch (error) {

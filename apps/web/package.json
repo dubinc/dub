@@ -154,6 +154,7 @@
     "@types/html-escaper": "^3.0.0",
     "@types/js-cookie": "^3.0.6",
     "@types/jsonwebtoken": "^9.0.9",
+    "@types/mixpanel": "^2.14.9",
     "@types/ms": "^0.7.31",
     "@types/node": "18.11.9",
     "@types/react": "^18.2.47",

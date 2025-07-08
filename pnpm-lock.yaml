@@ -288,6 +288,9 @@ importers:
       markdown-to-jsx:
         specifier: ^7.7.6
         version: 7.7.6(react@18.2.0)
+      mixpanel:
+        specifier: ^0.18.1
+        version: 0.18.1
       mixpanel-browser:
         specifier: ^2.65.0
         version: 2.65.0
@@ -445,6 +448,9 @@ importers:
       '@types/jsonwebtoken':
         specifier: ^9.0.9
         version: 9.0.9
+      '@types/mixpanel':
+        specifier: ^2.14.9
+        version: 2.14.9
       '@types/ms':
         specifier: ^0.7.31
         version: 0.7.31
@@ -12203,6 +12209,10 @@ packages:
       '@types/unist': 3.0.3
     dev: false
 
+  /@types/mixpanel@2.14.9:
+    resolution: {integrity: sha512-/0xAtxlluEBz3f/cmM04tVTmP94mPEME6TBl+kKA7HtPWlvxH/fMSmp4ZdV2b/SN+7FLHm/aR6Fau8wZrjvoZQ==}
+    dev: true
+
   /@types/ms@0.7.31:
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
 
@@ -19347,6 +19357,15 @@ packages:
 
   /mixpanel@0.18.0:
     resolution: {integrity: sha512-VyUoiLB/S/7abYYHGD5x0LijeuJCUabG8Hb+FvYU3Y99xHf1Qh+s4/pH9lt50fRitAHncWbU1FE01EknUfVVjQ==}
+    engines: {node: '>=10.0'}
+    dependencies:
+      https-proxy-agent: 5.0.0
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
+  /mixpanel@0.18.1:
+    resolution: {integrity: sha512-YD1xfn6WP6ZLQ6Pmgh0KgdXhueJEsrodThMTsHzHMH0VbWa9ck8s+ynDtM83OSgt+yQ61W/SQNrH8Y4wIwocGg==}
     engines: {node: '>=10.0'}
     dependencies:
       https-proxy-agent: 5.0.0
