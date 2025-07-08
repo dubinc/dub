@@ -30,6 +30,7 @@ import {
   UTM_PARAMETERS,
 } from "@dub/ui";
 import {
+  Calendar6,
   Cube,
   CursorRays,
   FlagWavy,
@@ -43,9 +44,11 @@ import {
   MobilePhone,
   OfficeBuilding,
   QRCode,
+  Receipt2,
   ReferredVia,
   Tag,
   User,
+  UserPlus,
   Users,
   Window,
 } from "@dub/ui/icons";
@@ -469,7 +472,6 @@ export function useAnalyticsFilters({
                 key: "partnerId",
                 icon: Users,
                 label: "Partner",
-                separatorAfter: true,
                 options:
                   partners?.map(({ partner, ...rest }) => {
                     return {
@@ -487,6 +489,24 @@ export function useAnalyticsFilters({
                       right: getFilterOptionTotal(rest),
                     };
                   }) ?? null,
+              },
+              {
+                key: "saleType",
+                icon: Receipt2,
+                label: "Sale type",
+                separatorAfter: true,
+                options: [
+                  {
+                    value: "new",
+                    label: "First",
+                    icon: UserPlus,
+                  },
+                  {
+                    value: "recurring",
+                    label: "Recurring",
+                    icon: Calendar6,
+                  },
+                ],
               },
             ]
           : partnerPage
