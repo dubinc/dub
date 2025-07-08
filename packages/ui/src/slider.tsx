@@ -76,7 +76,9 @@ export function Slider({
           </RadixSlider.Thumb>
         </RadixSlider.Root>
 
-        {hint && <div className="mt-2 text-xs text-neutral-500">{hint}</div>}
+        <div className="mt-2 text-xs text-neutral-500 min-h-[1rem]">
+          {hint}
+        </div>
       </div>
     </div>
   );

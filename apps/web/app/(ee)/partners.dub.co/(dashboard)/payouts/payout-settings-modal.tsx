@@ -95,7 +95,7 @@ function PayoutSettingsModalInner({
       </div>
 
       {/*  Minimum withdrawal amount */}
-      <div className="space-y-6 bg-neutral-50 p-4 sm:p-6">
+      <div className="space-y-10 bg-neutral-50 p-4 sm:p-6">
         <div>
           <h4 className="text-base font-semibold leading-6 text-neutral-900">
             Minimum withdrawal amount
@@ -132,10 +132,8 @@ function PayoutSettingsModalInner({
             }
           />
         </div>
-      </div>
 
-      {/* Invoice details */}
-      <div className="flex flex-col gap-2 bg-neutral-50 p-4 sm:p-6">
+        {/* Invoice details */}
         <div className="space-y-4">
           <div>
             <h4 className="text-base font-semibold leading-6 text-neutral-900">
