@@ -4,6 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { cn, fetcher, nFormatter } from "@dub/utils";
+import Link from "next/link";
 import { useContext, useMemo, useState } from "react";
 import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
@@ -41,12 +42,14 @@ export function SaleTypeBlock() {
 
     return [
       {
+        key: "new",
         label: "First",
         count: totalEvents.sales - recurringEvents.sales,
         fraction: 1 - recurringEvents.sales / (totalEvents.sales || 1),
         colorClassName: "text-violet-500",
       },
       {
+        key: "recurring",
         label: "Recurring",
         count: recurringEvents.sales,
         fraction: recurringEvents.sales / (totalEvents.sales || 1),
@@ -91,33 +94,39 @@ export function SaleTypeBlock() {
                     key={item.label}
                     className={cn(
                       "h-full rounded-md bg-current transition-transform",
-                      hoveredItem === item.label && "scale-105",
+                      hoveredItem === item.key && "scale-105",
                       item.colorClassName,
                     )}
                     style={{ width: `${Math.max(item.fraction * 100, 1)}%` }}
-                    onPointerEnter={() => setHoveredItem(item.label)}
+                    onPointerEnter={() => setHoveredItem(item.key)}
                     onPointerLeave={() =>
-                      setHoveredItem((i) => (i === item.label ? null : i))
+                      setHoveredItem((i) => (i === item.key ? null : i))
                     }
                   />
                 ))}
               </div>
 
               {/* List */}
-              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,max-content)_minmax(0,max-content)] items-center gap-x-4 gap-y-2">
+              <div className="-mx-2 flex flex-col gap-y-2">
                 {items.map((item) => (
-                  <div
-                    key={item.label}
+                  <Link
+                    key={item.key}
+                    href={`/${workspaceSlug}/program/analytics${getQueryString(
+                      { tab: "sales", saleType: item.key },
+                      {
+                        include: ["interval", "start", "end"],
+                      },
+                    )}`}
+                    target="_blank"
                     className={cn(
-                      "text-content-default contents text-xs font-medium tabular-nums transition-colors [&>*]:transition-opacity",
-                      item.label === hoveredItem && "text-content-emphasis",
-                      hoveredItem &&
-                        item.label !== hoveredItem &&
-                        "[&>*]:opacity-60",
+                      "text-content-default flex items-center justify-between gap-4 text-xs font-medium tabular-nums transition-[colors,opacity]",
+                      "rounded-md px-2 hover:bg-neutral-50 active:bg-neutral-100",
+                      item.key === hoveredItem && "text-content-emphasis",
+                      hoveredItem && item.key !== hoveredItem && "opacity-60",
                     )}
-                    onPointerEnter={() => setHoveredItem(item.label)}
+                    onPointerEnter={() => setHoveredItem(item.key)}
                     onPointerLeave={() =>
-                      setHoveredItem((i) => (i === item.label ? null : i))
+                      setHoveredItem((i) => (i === item.key ? null : i))
                     }
                   >
                     <div className="flex items-center gap-2 py-1">
@@ -129,11 +138,13 @@ export function SaleTypeBlock() {
                       />
                       <span>{item.label}</span>
                     </div>
-                    <span>{formatPercentage(item.fraction * 100)}%</span>
-                    <span className="text-content-muted">
-                      {nFormatter(item.count, { full: item.count < 99999 })}
-                    </span>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <span>{formatPercentage(item.fraction * 100)}%</span>
+                      <span className="text-content-muted min-w-8 text-right">
+                        {nFormatter(item.count, { full: item.count < 99999 })}
+                      </span>
+                    </div>
+                  </Link>
                 ))}
               </div>
             </div>
