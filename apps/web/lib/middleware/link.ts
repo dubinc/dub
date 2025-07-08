@@ -28,6 +28,7 @@ import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge, conn } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
+import { EAnalyticEvents } from 'core/integration/analytic/interfaces/analytic.interface';
 
 const sendScanLimitReachedEvent = async (linkId: string) => {
   console.log("Sending scan limit reached event for link", linkId);
@@ -72,7 +73,7 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify([{
-          event: 'scanLimitReached',
+          event: EAnalyticEvents.SCAN_LIMIT_REACHED,
           properties: {
             distinct_id: link.userId,
             email: link.userEmail,
