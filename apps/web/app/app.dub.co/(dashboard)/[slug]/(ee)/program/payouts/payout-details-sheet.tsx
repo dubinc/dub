@@ -207,7 +207,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-white px-6 py-4 h-16">
+      <div className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-neutral-200 bg-white px-6 py-4">
         <Sheet.Title className="text-lg font-semibold">
           {capitalize(payout.status)} payout
         </Sheet.Title>

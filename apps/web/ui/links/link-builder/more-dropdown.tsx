@@ -29,7 +29,7 @@ export function MoreDropdown() {
         if (option.key === "testVariants") return flags?.abTesting;
         if (option.key === "partnerId") return Boolean(defaultProgramId);
         return true;
-      }
+      },
     );
   }, [data, isMobile, flags, defaultProgramId]);
 
