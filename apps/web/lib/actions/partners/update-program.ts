@@ -4,15 +4,22 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
 import { isStored, storage } from "@/lib/storage";
-import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
+import { ProgramLanderData } from "@/lib/types";
+import {
+  programLanderImageBlockSchema,
+  programLanderSchema,
+} from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { nanoid, R2_URL } from "@dub/utils";
+import { isFulfilled, isRejected, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
-import { updateProgramSchema } from "../../zod/schemas/programs";
+import {
+  ProgramWithLanderDataSchema,
+  updateProgramSchema,
+} from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
 
 const schema = updateProgramSchema.partial().extend({
@@ -32,7 +39,7 @@ export const updateProgramAction = authActionClient
       logo,
       wordmark,
       brandColor,
-      landerData,
+      landerData: landerDataInput,
       domain,
       url,
       linkStructure,
@@ -73,6 +80,10 @@ export const updateProgramAction = authActionClient
             .then(({ url }) => url)
         : null,
     ]);
+
+    const landerData = landerDataInput
+      ? await uploadLanderDataImages({ landerData: landerDataInput, programId })
+      : landerDataInput;
 
     const updatedProgram = await prisma.program.update({
       where: {
@@ -145,4 +156,70 @@ export const updateProgramAction = authActionClient
         }),
       ]),
     );
+
+    return {
+      success: true,
+      program: ProgramWithLanderDataSchema.parse(updatedProgram),
+    };
   });
+
+/**
+ * Uploads any foreign images from the lander data to R2 and updates the URLs in the lander data.
+ */
+async function uploadLanderDataImages({
+  landerData: landerDataParam,
+  programId,
+}: {
+  landerData: ProgramLanderData;
+  programId: string;
+}) {
+  // Clone object to avoid mutating the original
+  const landerData = JSON.parse(JSON.stringify(landerDataParam));
+
+  const foreignImageUrls = (
+    landerData.blocks.filter((block) => block.type === "image") as z.infer<
+      typeof programLanderImageBlockSchema
+    >[]
+  )
+    .map((block) => block.data.url)
+    .filter(
+      (url) => !url.startsWith(`${R2_URL}/programs/${programId}/lander/`),
+    );
+
+  if (foreignImageUrls.length <= 0) return landerData;
+
+  // Upload images
+  const results = await Promise.allSettled(
+    foreignImageUrls.map(async (url) => ({
+      url,
+      uploadedUrl: (
+        await storage.upload(
+          `programs/${programId}/lander/image_${nanoid(7)}`,
+          url,
+        )
+      ).url,
+    })),
+  );
+
+  // Log failed uploads
+  results.filter(isRejected).map((result) => {
+    console.error("Failed to upload lander image", result.reason);
+  });
+
+  const fulfilled = results.filter(isFulfilled);
+  if (fulfilled.length <= 0) return landerData;
+
+  // Update URLs in the lander data
+  landerData.blocks.forEach((block) => {
+    if (block.type === "image") {
+      const result = fulfilled.find(
+        (result) => result.value.url === block.data.url,
+      );
+      if (result) {
+        block.data.url = result.value.uploadedUrl;
+      }
+    }
+  });
+
+  return landerData;
+}

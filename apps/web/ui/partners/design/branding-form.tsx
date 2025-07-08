@@ -129,17 +129,25 @@ function BrandingFormInner({
   } = form;
 
   const { executeAsync, isPending } = useAction(updateProgramAction, {
-    async onSuccess() {
+    async onSuccess({ data }) {
       await mutateProgram();
       toast.success("Program updated successfully.");
-      // Reset form state to clear isSubmitSuccessful
+
       const currentValues = getValues();
-      reset(currentValues);
+
+      if (data?.program.landerData) {
+        // Reset to persisted (in case anything changed)
+        reset({
+          ...currentValues,
+          landerData: data?.program.landerData,
+        });
+      } else {
+        // Still reset form state to clear isSubmitSuccessful
+        reset(currentValues);
+      }
     },
     onError({ error }) {
       console.error(error);
-      setError("root", { message: "Failed to update program." });
-      toast.error("Failed to update program.");
     },
   });
 
@@ -163,10 +171,16 @@ function BrandingFormInner({
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
-        await executeAsync({
+        const result = await executeAsync({
           workspaceId: workspaceId!,
           ...data,
         });
+
+        if (!result?.data?.success) {
+          toast.error("Failed to update program.");
+          setError("root", { message: "Failed to update program." });
+          return;
+        }
       })}
       className="overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
     >

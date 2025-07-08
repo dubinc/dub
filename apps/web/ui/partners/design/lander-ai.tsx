@@ -84,7 +84,7 @@ function GenerateLanderModalInner({
               const data = programLanderSimpleSchema.parse(result?.data);
               if (!data.blocks.length) throw new Error("No blocks generated");
 
-              setValueParent("landerData", data);
+              setValueParent("landerData", data, { shouldDirty: true });
             } catch (e) {
               console.error("Error generating program lander", e);
               setError("root", { message: "Failed to generate landing page." });
