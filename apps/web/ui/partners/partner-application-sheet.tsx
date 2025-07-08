@@ -31,7 +31,7 @@ function PartnerApplicationSheetContent({
   return (
     <>
       <div className="flex grow flex-col">
-        <div className="flex items-center justify-between px-6 py-4 h-16">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
             Partner application
           </Sheet.Title>
@@ -328,7 +328,9 @@ function PartnerRejectButton({
     {
       onSuccess: async () => {
         await mutatePrefix("/api/partners");
-        toast.success("Application rejected. No email sent, and can they reapply in 30 days.");
+        toast.success(
+          "Application rejected. No email sent, and can they reapply in 30 days.",
+        );
         setIsOpen(false);
       },
       onError({ error }) {
