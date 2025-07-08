@@ -23,13 +23,10 @@ type PayoutSettingsModalProps = {
   setShowPayoutSettingsModal: Dispatch<SetStateAction<boolean>>;
 };
 
-type PayoutSettingsFormData = z.infer<
-  typeof partnerInvoiceSettingsSchema
->;
+type PayoutSettingsFormData = z.infer<typeof partnerInvoiceSettingsSchema>;
 
 function PayoutSettingsModal(props: PayoutSettingsModalProps) {
-  const { showPayoutSettingsModal, setShowPayoutSettingsModal } =
-    props;
+  const { showPayoutSettingsModal, setShowPayoutSettingsModal } = props;
 
   return (
     <Modal
@@ -85,9 +82,6 @@ function PayoutSettingsModalInner({
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-4 border-b border-neutral-200 p-4 sm:p-6">
         <h3 className="text-lg font-medium leading-none">Payout settings</h3>
-        <p className="text-sm font-normal text-neutral-600">
-          This information is added to your payout invoices.
-        </p>
       </div>
 
       <div className="flex flex-col gap-2 bg-neutral-50 p-4 sm:p-6">
@@ -153,8 +147,7 @@ function PayoutSettingsModalInner({
 }
 
 export function usePayoutSettingsModal() {
-  const [showPayoutSettingsModal, setShowPayoutSettingsModal] =
-    useState(false);
+  const [showPayoutSettingsModal, setShowPayoutSettingsModal] = useState(false);
 
   const PayoutSettingsModalCallback = useCallback(() => {
     return (
