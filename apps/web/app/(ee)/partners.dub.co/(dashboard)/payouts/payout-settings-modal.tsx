@@ -1,12 +1,16 @@
 "use client";
 
 import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update-partner-payout-settings";
-import { MINIMUM_WITHDRAWAL_AMOUNTS } from "@/lib/partners/constants";
+import {
+  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+  MIN_WITHDRAWAL_AMOUNT_CENTS,
+  MINIMUM_WITHDRAWAL_AMOUNTS,
+} from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
 import { Button, Modal } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, currencyFormatter } from "@dub/utils";
 import * as RadixSlider from "@radix-ui/react-slider";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -106,16 +110,25 @@ function PayoutSettingsModalInner({
         <div>
           <Slider
             value={currentMinWithdrawalAmount}
-            onChange={(value) =>
-              setValue("minWithdrawalAmount", value, { shouldDirty: true })
-            }
+            onChange={(value) => {
+              const closest = MINIMUM_WITHDRAWAL_AMOUNTS.reduce((prev, curr) =>
+                Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev,
+              );
+
+              setValue("minWithdrawalAmount", closest, { shouldDirty: true });
+            }}
             min={MINIMUM_WITHDRAWAL_AMOUNTS[0]}
             max={
               MINIMUM_WITHDRAWAL_AMOUNTS[MINIMUM_WITHDRAWAL_AMOUNTS.length - 1]
             }
             marks={MINIMUM_WITHDRAWAL_AMOUNTS}
             formatValue={(value) => `$${(value / 100).toFixed(0)} USD`}
-            hint="$2 payout fee for payouts under $100"
+            hint={
+              currentMinWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS
+                ? `${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)} payout fee for payouts under $100`
+                : undefined
+            }
+            disabled={false}
           />
         </div>
       </div>
@@ -238,9 +251,8 @@ export function Slider({
   hint,
   disabled,
 }: SliderProps) {
-  // Calculate percent for thumb/track
   const percent = ((value - min) / (max - min)) * 100;
-  // Default marks: 4 evenly spaced
+
   const sliderMarks = marks || [
     min,
     min + (max - min) / 3,
@@ -250,11 +262,10 @@ export function Slider({
 
   return (
     <div className={cn("w-full", className)}>
-      {/* Value label */}
       <div className="mb-2 text-3xl font-semibold text-neutral-900">
         {formatValue ? formatValue(value) : value}
       </div>
-      {/* Slider */}
+
       <RadixSlider.Root
         className="relative flex h-6 w-full items-center"
         value={[value]}
@@ -265,11 +276,9 @@ export function Slider({
         disabled={disabled}
         aria-label="Slider"
       >
-        {/* Track */}
         <RadixSlider.Track className="relative h-3 w-full rounded-full bg-neutral-200">
-          {/* Active range */}
           <RadixSlider.Range className="absolute h-3 rounded-full bg-neutral-900" />
-          {/* Marks/dots */}
+
           {sliderMarks.map((mark, i) => {
             const left = ((mark - min) / (max - min)) * 100;
             return (
@@ -284,7 +293,6 @@ export function Slider({
                 )}
                 style={{ left: `calc(${left}% - 0.75rem)` }}
               >
-                {/* Inner dot for active mark */}
                 {left === percent && (
                   <span className="block h-4 w-4 rounded-full bg-neutral-900" />
                 )}
@@ -292,13 +300,13 @@ export function Slider({
             );
           })}
         </RadixSlider.Track>
-        {/* Thumb */}
+
         <RadixSlider.Thumb
           className="absolute left-0 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full border-2 border-neutral-900 bg-white shadow focus:outline-none focus:ring-2 focus:ring-neutral-400"
           style={{ left: `calc(${percent}% - 0.75rem)` }}
         />
       </RadixSlider.Root>
-      {/* Hint/description */}
+
       {hint && <div className="mt-2 text-xs text-neutral-500">{hint}</div>}
     </div>
   );
