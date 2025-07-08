@@ -70,6 +70,7 @@ export async function importCampaign({ programId }: { programId: string }) {
           id: programId,
         },
         data: {
+          minPayoutAmount: minimum_payout_cents,
           holdingPeriodDays: days_until_commissions_are_due,
         },
       });
