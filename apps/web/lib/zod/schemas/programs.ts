@@ -12,7 +12,7 @@ import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
 import { parseDateSchema } from "./utils";
 
-export const HOLDING_PERIOD_DAYS = [0, 14, 30, 60, 90];
+export const HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
 
 export const ProgramSchema = z.object({
   id: z.string(),
