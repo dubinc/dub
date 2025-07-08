@@ -191,7 +191,7 @@ function PartnerApproval({
     onSuccess: async () => {
       queryParams({ del: "partnerId" });
       setIsOpen(false);
-      await mutatePrefix("/api/partners");
+      await mutatePrefix(["/api/partners", "/api/partners/count"]);
       toast.success("Approved the partner successfully.");
     },
     onError({ error }) {
