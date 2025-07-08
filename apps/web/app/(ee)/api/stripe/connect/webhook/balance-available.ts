@@ -6,7 +6,7 @@ import {
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, log } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function balanceAvailable(event: Stripe.Event) {
@@ -36,8 +36,10 @@ export async function balanceAvailable(event: Stripe.Event) {
   });
 
   // Check if there's any available balance
-  if (!balance.available || balance.available.length === 0) {
-    console.log("No available balance found. Skipping...");
+  if (balance.available.length === 0 || balance.available[0].amount === 0) {
+    console.log(
+      `No available balance found for partner ${partner.email} (${stripeAccount}). Skipping...`,
+    );
     return;
   }
 
@@ -70,7 +72,7 @@ export async function balanceAvailable(event: Stripe.Event) {
   // Check minimum withdrawal amount
   if (convertedUsdAmount < partner.minWithdrawalAmount) {
     console.log(
-      `Available balance (${currencyFormatter(convertedUsdAmount / 100)}) is less than the minimum withdrawal amount (${currencyFormatter(partner.minWithdrawalAmount / 100)}). Skipping...`,
+      `The available balance (${currencyFormatter(convertedUsdAmount / 100, { maximumFractionDigits: 2 })}) for partner ${partner.email} (${stripeAccount}) is less than their minimum withdrawal amount (${currencyFormatter(partner.minWithdrawalAmount / 100, { maximumFractionDigits: 2 })})`,
     );
     return;
   }
@@ -87,7 +89,7 @@ export async function balanceAvailable(event: Stripe.Event) {
 
     if (transfers.data.length === 0) {
       console.error(
-        `No transfers found for partner ${partner.id}. Skipping...`,
+        `No transfers found for partner ${partner.email} (${stripeAccount}). Skipping...`,
       );
       return;
     }
@@ -97,12 +99,17 @@ export async function balanceAvailable(event: Stripe.Event) {
       .filter((transfer) => transfer.amount >= withdrawalFee)
       .sort((a, b) => b.created - a.created)[0];
 
+    // This should never happen, but just in case
     if (!suitableTransfer) {
-      console.error(
-        `No transfer found with amount >= withdrawal fee (${currencyFormatter(withdrawalFee / 100)}). Available transfers: ${transfers.data
-          .map((t) => currencyFormatter(t.amount / 100))
-          .join(", ")}. Skipping...`,
-      );
+      const errorMessage = `Error processing withdrawal for partner ${partner.email} (${stripeAccount}): No transfer found with amount >= withdrawal fee (${currencyFormatter(withdrawalFee / 100)}). Available transfers: ${transfers.data
+        .map((t) => currencyFormatter(t.amount / 100))
+        .join(", ")}. Skipping...`;
+      console.error(errorMessage);
+      await log({
+        message: errorMessage,
+        type: "errors",
+        mention: true,
+      });
       return;
     }
 
@@ -117,10 +124,13 @@ export async function balanceAvailable(event: Stripe.Event) {
       stripeAccount,
     });
 
-    if (!updatedBalance.available || updatedBalance.available.length === 0) {
+    if (
+      updatedBalance.available.length === 0 ||
+      updatedBalance.available[0].amount === 0
+    ) {
       // this should never happen, but just in case
       console.log(
-        "No available balance found after withdrawal fee. Skipping...",
+        `No available balance found after withdrawal fee for partner ${partner.email} (${stripeAccount}). Skipping...`,
       );
       return;
     }
@@ -140,5 +150,7 @@ export async function balanceAvailable(event: Stripe.Event) {
     },
   );
 
-  console.log("Stripe payout created", payout);
+  console.log(
+    `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${payout.id} (${currencyFormatter(payout.amount / 100, { maximumFractionDigits: 2 })})`,
+  );
 }
