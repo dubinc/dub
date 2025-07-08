@@ -5,6 +5,7 @@ import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { TrackClient } from 'customerio-node';
 import { checkFeaturesAccessAuthLess } from '@/lib/actions/check-features-access-auth-less';
+import { EAnalyticEvents } from 'core/integration/analytic/interfaces/analytic.interface';
 
 const cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_TRACK_API_KEY!);
 
@@ -63,6 +64,28 @@ async function handler(req: Request) {
             await cio.track(user.id, {
               name: "day_limit_reached",
             });
+
+            // Send Mixpanel event via fetch
+            const mixpanelResponse = await fetch('https://api.mixpanel.com/track', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify([{
+                event: EAnalyticEvents.DAY_LIMIT_REACHED,
+                properties: {
+                  distinct_id: user.id,
+                  email: user.email,
+                  mixpanel_user_id: user.id,
+                  timestamp: new Date().toISOString(),
+                  token: process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN,
+                },
+              }]),
+            });
+
+            if (!mixpanelResponse.ok) {
+              throw new Error(`Mixpanel request failed: ${mixpanelResponse.status} ${await mixpanelResponse.text()}`);
+            }
           }
 
           return { success: true, userId: user.id };
