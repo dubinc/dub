@@ -1,3 +1,4 @@
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
@@ -13,21 +14,11 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const programEnrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
-      },
-    },
-    include: {
-      links: true,
-      program: true,
-      clickReward: true,
-      leadReward: true,
-      saleReward: true,
-      discount: true,
-    },
+  const programEnrollment = await getProgramEnrollmentOrThrow({
+    partnerId,
+    programId,
+    includeRewards: true,
+    includeDiscount: true,
   });
 
   if (!programEnrollment) {
