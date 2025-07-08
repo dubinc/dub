@@ -96,45 +96,52 @@ function PayoutSettingsModalInner({
 
       {/*  Minimum withdrawal amount */}
       <div className="space-y-10 bg-neutral-50 p-4 sm:p-6">
-        <div>
-          <h4 className="text-base font-semibold leading-6 text-neutral-900">
-            Minimum withdrawal amount
-          </h4>
-          <p className="text-sm font-medium leading-5 text-neutral-500">
-            Set the minimum amount for funds to be withdrawn from Dub into your
-            connected payout account.
-          </p>
-        </div>
-
-        <div>
-          <div className="mb-2 text-2xl font-medium leading-6 text-neutral-800">
-            {currencyFormatter(minWithdrawalAmount / 100)} USD
+        <div className="space-y-6">
+          <div>
+            <h4 className="text-base font-semibold leading-6 text-neutral-900">
+              Minimum withdrawal amount
+            </h4>
+            <p className="text-sm font-medium leading-5 text-neutral-500">
+              Set the minimum amount for funds to be withdrawn from Dub into
+              your connected payout account.
+            </p>
           </div>
 
-          <Slider
-            value={minWithdrawalAmount}
-            min={MINIMUM_WITHDRAWAL_AMOUNTS[0]}
-            max={
-              MINIMUM_WITHDRAWAL_AMOUNTS[MINIMUM_WITHDRAWAL_AMOUNTS.length - 1]
-            }
-            onChange={(value) => {
-              const closest = MINIMUM_WITHDRAWAL_AMOUNTS.reduce((prev, curr) =>
-                Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev,
-              );
+          <div>
+            <div className="mb-2 text-2xl font-medium leading-6 text-neutral-800">
+              {currencyFormatter(minWithdrawalAmount / 100)} USD
+            </div>
 
-              setValue("minWithdrawalAmount", closest, { shouldDirty: true });
-            }}
-            marks={MINIMUM_WITHDRAWAL_AMOUNTS}
-            hint={
-              minWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS
-                ? `${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)} payout fee for payouts under $100`
-                : undefined
-            }
-          />
+            <Slider
+              value={minWithdrawalAmount}
+              min={MINIMUM_WITHDRAWAL_AMOUNTS[0]}
+              max={
+                MINIMUM_WITHDRAWAL_AMOUNTS[
+                  MINIMUM_WITHDRAWAL_AMOUNTS.length - 1
+                ]
+              }
+              onChange={(value) => {
+                const closest = MINIMUM_WITHDRAWAL_AMOUNTS.reduce(
+                  (prev, curr) =>
+                    Math.abs(curr - value) < Math.abs(prev - value)
+                      ? curr
+                      : prev,
+                );
+
+                setValue("minWithdrawalAmount", closest, { shouldDirty: true });
+              }}
+              marks={MINIMUM_WITHDRAWAL_AMOUNTS}
+              hint={
+                minWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS
+                  ? `${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)} payout fee for payouts under $100`
+                  : undefined
+              }
+            />
+          </div>
         </div>
 
         {/* Invoice details */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
             <h4 className="text-base font-semibold leading-6 text-neutral-900">
               Invoice details (optional)
