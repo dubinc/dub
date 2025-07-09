@@ -13,6 +13,7 @@ import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { Session } from "../auth";
 import { RewardProps } from "../types";
+import { sendWorkspaceWebhook } from "../webhook/publish";
 import { determinePartnerReward } from "./determine-partner-reward";
 
 export const createPartnerCommission = async ({
@@ -193,10 +194,26 @@ export const createPartnerCommission = async ({
         const shouldCaptureAuditLog = user && workspaceId;
         const isClawback = earnings < 0;
 
+        const workspace = await prisma.project.findUniqueOrThrow({
+          where: {
+            id: workspaceId,
+          },
+          select: {
+            id: true,
+            webhookEnabled: true,
+          },
+        });
+
         await Promise.allSettled([
           syncTotalCommissions({
             partnerId,
             programId,
+          }),
+
+          sendWorkspaceWebhook({
+            trigger: "commission.created",
+            data: commission,
+            workspace,
           }),
 
           shouldCaptureAuditLog

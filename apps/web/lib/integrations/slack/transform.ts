@@ -1,10 +1,11 @@
-import { APP_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN, currencyFormatter } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
 import { z } from "zod";
 import { WebhookTrigger } from "../../types";
 import { webhookPayloadSchema } from "../../webhook/schemas";
 import {
   ClickEventWebhookData,
+  CommissionEventDataProps,
   LeadEventWebhookData,
   PartnerEventDataProps,
   SaleEventWebhookData,
@@ -233,6 +234,53 @@ const enrolledPartnerTemplate = ({ data }: { data: PartnerEventDataProps }) => {
   };
 };
 
+const commissionCreatedTemplate = ({
+  data,
+}: {
+  data: CommissionEventDataProps;
+}) => {
+  const { id, amount, earnings } = data;
+
+  const formattedAmount = currencyFormatter(amount / 100, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const formattedEarnings = currencyFormatter(earnings / 100, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  return {
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*New commission created* :tada:`,
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Commission ID*\n${id}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Amount*\n${formattedAmount}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Earnings*\n${formattedEarnings}`,
+          },
+        ],
+      },
+    ],
+  };
+};
+
 const slackTemplates: Record<WebhookTrigger, any> = {
   "link.created": createLinkTemplate,
   "link.updated": createLinkTemplate,
@@ -241,6 +289,7 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "lead.created": createLeadTemplate,
   "sale.created": createSaleTemplate,
   "partner.enrolled": enrolledPartnerTemplate,
+  "commission.created": commissionCreatedTemplate,
 };
 
 export const formatEventForSlack = (

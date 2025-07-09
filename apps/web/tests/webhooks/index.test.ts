@@ -40,6 +40,15 @@ const enrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
     .nullable(),
 });
 
+// TODO: Implement this
+const commissionWebhookEventSchemaExtended = EnrolledPartnerSchema.extend({
+  createdAt: z.string().transform((str) => new Date(str)),
+  payoutsEnabledAt: z
+    .string()
+    .transform((str) => (str ? new Date(str) : null))
+    .nullable(),
+});
+
 const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.created": linkEventSchema,
   "link.updated": linkEventSchema,
@@ -48,6 +57,7 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
   "partner.enrolled": enrolledPartnerSchemaExtended,
+  "commission.created": commissionWebhookEventSchemaExtended,
 };
 
 describe("Webhooks", () => {
