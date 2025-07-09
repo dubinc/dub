@@ -187,9 +187,9 @@ export function RewardPartnersTable({
             </div>
           );
         },
-        size: 150,
-        minSize: 150,
-        maxSize: 150,
+        size: 180,
+        minSize: 180,
+        maxSize: 180,
       },
       {
         header: "Email",
@@ -198,9 +198,9 @@ export function RewardPartnersTable({
             {row.original.email}
           </div>
         ),
-        size: 210,
-        minSize: 210,
-        maxSize: 210,
+        size: 160,
+        minSize: 160,
+        maxSize: 160,
       },
       {
         id: "actions",
