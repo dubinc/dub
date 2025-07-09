@@ -67,6 +67,9 @@ export async function balanceAvailable(event: Stripe.Event) {
     if (isZeroDecimalCurrency) {
       convertedUsdAmount = convertedUsdAmount * 100;
     }
+
+    // round to nearest integer to avoid errors with Stripe
+    convertedUsdAmount = Math.round(convertedUsdAmount);
   }
 
   // Check minimum withdrawal amount
