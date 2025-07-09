@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 import { clickEventSchema } from "../zod/schemas/clicks";
-import { CommissionWebhookSchema } from "../zod/schemas/commissions";
+import { CommissionResponseSchema } from "../zod/schemas/commissions";
 import { CustomerSchema } from "../zod/schemas/customers";
 import { linkEventSchema } from "../zod/schemas/links";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
@@ -117,11 +117,11 @@ export const webhookEventSchema = z
         id: z.string(),
         event: z.literal("commission.created"),
         createdAt: z.string(),
-        data: CommissionWebhookSchema,
+        data: CommissionResponseSchema,
       })
       .openapi({
         ref: "CommissionCreatedEvent",
-        description: "Triggered when a partner commission is created.",
+        description: "Triggered when a commission is created for a partner.",
       }),
   ])
   .openapi({

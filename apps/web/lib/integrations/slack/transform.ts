@@ -4,11 +4,11 @@ import { z } from "zod";
 import { WebhookTrigger } from "../../types";
 import { webhookPayloadSchema } from "../../webhook/schemas";
 import {
-  ClickEventWebhookData,
-  CommissionEventDataProps,
-  LeadEventWebhookData,
-  PartnerEventDataProps,
-  SaleEventWebhookData,
+  ClickEventWebhookPayload,
+  CommissionEventWebhookPayload,
+  LeadEventWebhookPayload,
+  PartnerEventWebhookPayload,
+  SaleEventWebhookPayload,
 } from "../../webhook/types";
 
 const createLinkTemplate = ({
@@ -50,7 +50,7 @@ const createLinkTemplate = ({
   };
 };
 
-const clickLinkTemplate = ({ data }: { data: ClickEventWebhookData }) => {
+const clickLinkTemplate = ({ data }: { data: ClickEventWebhookPayload }) => {
   const { link, click } = data;
   const linkToClicks = `${APP_DOMAIN}/events?event=clicks&domain=${link.domain}&key=${link.key}`;
 
@@ -102,7 +102,7 @@ const clickLinkTemplate = ({ data }: { data: ClickEventWebhookData }) => {
   };
 };
 
-const createLeadTemplate = ({ data }: { data: LeadEventWebhookData }) => {
+const createLeadTemplate = ({ data }: { data: LeadEventWebhookPayload }) => {
   const { customer, click, link } = data;
   const linkToLeads = `${APP_DOMAIN}/events?event=leads&domain=${link.domain}&key=${link.key}`;
 
@@ -151,7 +151,7 @@ const createLeadTemplate = ({ data }: { data: LeadEventWebhookData }) => {
   };
 };
 
-const createSaleTemplate = ({ data }: { data: SaleEventWebhookData }) => {
+const createSaleTemplate = ({ data }: { data: SaleEventWebhookPayload }) => {
   const { customer, click, sale, link } = data;
   const amountInDollars = (sale.amount / 100).toFixed(2);
   const linkToSales = `${APP_DOMAIN}/events?event=sales&domain=${link.domain}&key=${link.key}`;
@@ -201,7 +201,7 @@ const createSaleTemplate = ({ data }: { data: SaleEventWebhookData }) => {
   };
 };
 
-const enrolledPartnerTemplate = ({ data }: { data: PartnerEventDataProps }) => {
+const enrolledPartnerTemplate = ({ data }: { data: PartnerEventWebhookPayload }) => {
   const { name, email, country } = data;
 
   return {
@@ -237,7 +237,7 @@ const enrolledPartnerTemplate = ({ data }: { data: PartnerEventDataProps }) => {
 const commissionCreatedTemplate = ({
   data,
 }: {
-  data: CommissionEventDataProps;
+  data: CommissionEventWebhookPayload;
 }) => {
   const { id, amount, earnings } = data;
 

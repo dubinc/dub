@@ -1,13 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { WebhookTrigger, WorkspaceProps } from "../types";
 import { sendWebhooks } from "./qstash";
-import {
-  CommissionEventDataProps,
-  LeadEventDataProps,
-  LinkEventDataProps,
-  PartnerEventDataProps,
-  SaleEventDataProps,
-} from "./types";
+import { WebhookEventPayload } from "./types";
 
 // Send workspace level webhook
 export const sendWorkspaceWebhook = async ({
@@ -17,12 +11,7 @@ export const sendWorkspaceWebhook = async ({
 }: {
   trigger: WebhookTrigger;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
-  data:
-    | LinkEventDataProps
-    | LeadEventDataProps
-    | SaleEventDataProps
-    | PartnerEventDataProps
-    | CommissionEventDataProps;
+  data: WebhookEventPayload;
 }) => {
   if (!workspace.webhookEnabled) {
     return;
