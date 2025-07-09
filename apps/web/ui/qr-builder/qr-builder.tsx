@@ -122,11 +122,21 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   filteredInputValues as Record<string, string>,
                 ),
           );
-          setFiles(
-            (inputValues.filesImage ||
-              inputValues.filesPDF ||
-              inputValues.filesVideo) as File[],
-          );
+
+          let files: File[] | null = null;
+          switch (qrType) {
+            case EQRType.PDF:
+              files = (inputValues.filesPDF as File[]) || null;
+              break;
+            case EQRType.IMAGE:
+              files = (inputValues.filesImage as File[]) || null;
+              break;
+            case EQRType.VIDEO:
+              files = (inputValues.filesVideo as File[]) || null;
+              break;
+          }
+
+          setFiles(files);
           handleScroll();
         },
         [setData],
