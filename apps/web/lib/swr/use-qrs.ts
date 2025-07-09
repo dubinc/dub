@@ -41,7 +41,7 @@ export default function useQrs(
             includeUser: "true",
             includeWebhooks: "true",
             includeDashboard: "true",
-            userId: session!.user.id,
+            userId: session?.user?.id,
             ...opts,
           },
           {

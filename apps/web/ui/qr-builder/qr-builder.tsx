@@ -373,6 +373,12 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           options={options}
                           homepageDemo={homepageDemo}
                           handlers={handlers}
+                          frameOptions={{
+                            id: selectedSuggestedFrame,
+                            color: frameColor,
+                            textColor: frameTextColor,
+                            text: frameText,
+                          }}
                         />
                       </Flex>
                     )}
