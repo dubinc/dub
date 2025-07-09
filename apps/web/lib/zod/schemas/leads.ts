@@ -21,7 +21,7 @@ export const trackLeadRequestSchema = z.object({
       "The name of the lead event to track. Can also be used as a unique identifier to associate a given lead event for a customer for a subsequent sale event (via the `leadEventName` prop in `/track/sale`).",
     )
     .openapi({ example: "Sign up" }),
-  externalId: z
+  customerExternalId: z
     .string()
     .trim()
     .max(100)
@@ -70,6 +70,13 @@ export const trackLeadRequestSchema = z.object({
     .describe(
       "Additional metadata to be stored with the lead event. Max 10,000 characters.",
     ),
+  externalId: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .describe("Deprecated. Use `customerExternalId` instead.")
+    .openapi({ deprecated: true }),
 });
 
 export const trackLeadResponseSchema = z.object({

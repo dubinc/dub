@@ -5,7 +5,7 @@ import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
-  externalId: z
+  customerExternalId: z
     .string()
     .trim()
     .max(100)
@@ -63,6 +63,13 @@ export const trackSaleRequestSchema = z.object({
     .describe(
       "Additional metadata to be stored with the sale event. Max 10,000 characters when stringified.",
     ),
+  externalId: z
+    .string()
+    .trim()
+    .max(100)
+    .nullish()
+    .describe("Deprecated. Use `customerExternalId` instead.")
+    .openapi({ deprecated: true }),
 });
 
 export const trackSaleResponseSchema = z.object({
