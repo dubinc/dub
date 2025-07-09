@@ -101,14 +101,8 @@ export async function balanceAvailable(event: Stripe.Event) {
   }
 
   if (availableBalance <= 0) {
-    const adjustedBalanceInCents =
-      currency === "usd"
-        ? availableBalance
-        : availableBalance *
-          (ZERO_DECIMAL_CURRENCIES.includes(currency.toUpperCase()) ? 1 : 100);
-
     console.log(
-      `The adjusted available balance (${currencyFormatter(adjustedBalanceInCents / 100, { maximumFractionDigits: 2 })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
+      `The available balance (${currencyFormatter(availableBalance / 100, { maximumFractionDigits: 2 })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
     );
     return;
   }

@@ -1,19 +1,16 @@
 "use server";
 
-import { partnerInvoiceSettingsSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
+import { partnerPayoutSettingsSchema } from "../../zod/schemas/partners";
 import { authPartnerActionClient } from "../safe-action";
 
-// TODO
-// See if we can combine this with the updatePartnerProfileAction
-
-// Update a partner invoice settings
-export const updatePartnerInvoiceSettingsAction = authPartnerActionClient
-  .schema(partnerInvoiceSettingsSchema)
+// Update a partner payout & invoice settings
+export const updatePartnerPayoutSettingsAction = authPartnerActionClient
+  .schema(partnerPayoutSettingsSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
-    const { companyName, address, taxId } = parsedInput;
+    const { companyName, address, taxId, minWithdrawalAmount } = parsedInput;
 
     const invoiceSettings = {
       address: address || undefined,
@@ -27,6 +24,7 @@ export const updatePartnerInvoiceSettingsAction = authPartnerActionClient
       data: {
         companyName,
         invoiceSettings,
+        minWithdrawalAmount,
       },
     });
   });
