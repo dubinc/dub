@@ -171,6 +171,12 @@ export async function balanceAvailable(event: Stripe.Event) {
     availableBalance = updatedBalance.available[0].amount;
   }
 
+  if (["huf", "twd"].includes(currency)) {
+    // For HUF and TWD, Stripe requires payout amounts to be evenly divisible by 100
+    // We need to round down to the nearest 100 units
+    availableBalance = Math.floor(availableBalance / 100) * 100;
+  }
+
   const payout = await stripe.payouts.create(
     {
       amount: availableBalance,
