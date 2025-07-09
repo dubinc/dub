@@ -1,8 +1,5 @@
 import { EnrolledPartnerProps } from "@/lib/types";
-import { Tooltip } from "@dub/ui";
 import {
-  ArrowUpRight,
-  BadgeCheck2Fill,
   Globe,
   Icon,
   Instagram,
@@ -13,6 +10,7 @@ import {
 } from "@dub/ui/icons";
 import { cn, getPrettyUrl, nFormatter } from "@dub/utils";
 import { Fragment } from "react";
+import { OnlinePresenceCard } from "./online-presence-card";
 
 const fields: {
   label: string;
@@ -115,36 +113,13 @@ export function OnlinePresenceSummary({
           <Fragment key={label}>
             <span className="text-content-default font-medium">{label}</span>
             <div>
-              <a
-                target="_blank"
-                href={href!}
-                rel="noopener noreferrer"
-                className="border-border-subtle group flex max-w-full items-center justify-between gap-4 rounded-lg border p-3 text-neutral-600 transition-colors hover:bg-neutral-50 active:bg-neutral-100"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="border-border-subtle text-content-default flex size-8 items-center justify-center rounded-full border bg-white">
-                    <Icon className="size-4" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <span className="min-w-0 truncate">{value}</span>
-                      {verified && (
-                        <Tooltip content="Verified" disableHoverableContent>
-                          <div>
-                            <BadgeCheck2Fill className="size-4 text-green-600" />
-                          </div>
-                        </Tooltip>
-                      )}
-                    </div>
-                    {info && info.length > 0 && (
-                      <div className="text-content-subtle text-xs">
-                        {info.join(" • ")}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <ArrowUpRight className="text-content-subtle mr-1 size-4 -translate-x-0.5 translate-y-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100" />
-              </a>
+              <OnlinePresenceCard
+                icon={Icon}
+                value={value ?? ""}
+                verified={verified}
+                info={info}
+                href={href ?? undefined}
+              />
             </div>
           </Fragment>
         );

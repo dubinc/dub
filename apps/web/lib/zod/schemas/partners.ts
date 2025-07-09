@@ -1,10 +1,11 @@
+import { ALLOWED_MIN_WITHDRAWAL_AMOUNTS } from "@/lib/partners/constants";
 import {
   PartnerBannedReason,
   PartnerProfileType,
   PartnerStatus,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
-import { COUNTRY_CODES } from "@dub/utils";
+import { COUNTRY_CODES, currencyFormatter } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
@@ -207,6 +208,9 @@ export const PartnerSchema = z
       })
       .nullable()
       .describe("The partner's invoice settings."),
+    minWithdrawalAmount: z
+      .number()
+      .describe("The minimum withdrawal amount in cents."),
     createdAt: z
       .date()
       .describe("The date when the partner was created on Dub."),
@@ -580,8 +584,15 @@ export const archivePartnerSchema = z.object({
   partnerId: z.string(),
 });
 
-export const partnerInvoiceSettingsSchema = z.object({
+export const partnerPayoutSettingsSchema = z.object({
   companyName: z.string().max(190).trim().min(1, "Business name is required."),
-  address: z.string().max(500).trim().nullable(),
-  taxId: z.string().max(100).trim().nullable(),
+  address: z.string().max(500).trim().nullish(),
+  taxId: z.string().max(100).trim().nullish(),
+  minWithdrawalAmount: z.coerce
+    .number()
+    .min(1000, "Minimum withdrawal amount must be greater than $10.")
+    .default(10000)
+    .refine((val) => ALLOWED_MIN_WITHDRAWAL_AMOUNTS.includes(val), {
+      message: `Minimum withdrawal amount must be one of ${ALLOWED_MIN_WITHDRAWAL_AMOUNTS.map((amount) => currencyFormatter(amount / 100)).join(", ")}`,
+    }),
 });
