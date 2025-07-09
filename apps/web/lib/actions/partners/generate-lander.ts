@@ -1,7 +1,10 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { programLanderSimpleSchema } from "@/lib/zod/schemas/program-lander";
+import {
+  programLanderSchema,
+  programLanderSimpleSchema,
+} from "@/lib/zod/schemas/program-lander";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { anthropic } from "@ai-sdk/anthropic";
@@ -17,14 +20,15 @@ import { authActionClient } from "../safe-action";
 const schema = z.object({
   workspaceId: z.string(),
   websiteUrl: z.string().url(),
-  landerData: programLanderSimpleSchema.optional(),
+  landerData: programLanderSchema.optional(),
+  prompt: z.string().optional(),
 });
 
 export const generateLanderAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { websiteUrl, landerData } = parsedInput;
+    const { websiteUrl, landerData, prompt } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
     const program = await getProgramOrThrow(
@@ -70,18 +74,23 @@ export const generateLanderAction = authActionClient
 
     const { object } = await generateObject({
       model: anthropic("claude-sonnet-4-20250514"),
-      schema: programLanderSimpleSchema,
+      schema: landerData ? programLanderSchema : programLanderSimpleSchema,
       prompt:
         // Instructions
         `Generate a basic landing page for an affiliate program powered by Dub Partners based on a company website. ` +
         `Do not include any initial header/hero content because the landing page will already have an initial title and subtitle. ` +
         `Do not make any assumptions about the terms or rewards associated with the program. ` +
         (scrapeResult.metadata?.ogImage
-          ? `You may include an image block in the landing page, only using the OG image here: ${scrapeResult.metadata?.ogImage}. `
+          ? `You ${landerData ? "could" : "may"} include an image block in the landing page, only using the OG image here: ${scrapeResult.metadata?.ogImage}. `
           : "") +
-        `If you have product pricing information, include an earnings calculator block, using the highest non-enterprise tier for the product price. ` +
+        `Do not add any file blocks. ` +
+        `If you have product pricing information, ${landerData ? "you could" : "you should"} include an earnings calculator block, using the highest non-enterprise tier for the product price. ` +
         `Markdown is supported in "text" blocks, but use it sparingly. ` +
         `Avoid using links. Relevant CTA links are already on the landing page. ` +
+        // Additional instructions
+        (prompt
+          ? `\n\nAdditional instructions are provided by the user. If they specify a specific action, do not do anything more than that action: "${prompt}"`
+          : "") +
         // Program details
         `\n\nProgram details:` +
         `\n\nName: ${program.name}\n` +
@@ -94,6 +103,12 @@ export const generateLanderAction = authActionClient
         `Dub Partners enables businesses to create scalable referral and affiliate programs to drive revenue through incentivized user and partner networks. ` +
         `With Dub Partners, you can build powerful, scalable referral and affiliate programs with 1-click global payouts and white-labeling functionality. ` +
         `You may reference Dub Partners in the landing page, but do not focus on it or devote any full section of the page to it.` +
+        // Existing page
+        (landerData
+          ? `\n\nThis landing page already has existing content. DO NOT update the existing content, only add new content (unless otherwise directed). ` +
+            `Absolutely do not update file or image blocks, just maintain them. Existing content:` +
+            `\n${JSON.stringify(landerData, null, 2)}`
+          : "") +
         // Website content
         `\n\nCompany website to base the landing page on:\n\n${mainPageMarkdown}` +
         (pricingPageMarkdown
@@ -102,7 +117,7 @@ export const generateLanderAction = authActionClient
       temperature: 0.4,
     });
 
-    return object;
+    return programLanderSchema.parse(object);
   });
 
 function cleanMarkdown(markdown: string) {

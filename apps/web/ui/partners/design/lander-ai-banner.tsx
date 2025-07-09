@@ -107,7 +107,7 @@ export function LanderAIBanner() {
               const data = programLanderSimpleSchema.parse(result?.data);
               if (!data.blocks.length) throw new Error("No blocks generated");
 
-              setValue("landerData", data, { shouldDirty: true });
+              setValue("landerData.blocks", data.blocks, { shouldDirty: true });
             } catch (e) {
               console.error("Error generating program lander", e);
               toast.error(

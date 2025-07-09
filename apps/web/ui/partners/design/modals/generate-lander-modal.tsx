@@ -1,12 +1,19 @@
 import useProgram from "@/lib/swr/use-program";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { ProgramLanderData } from "@/lib/types";
+import { Button, Modal, useEnterSubmit, useMediaQuery } from "@dub/ui";
 import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
+
+type GenerateLanderFormData = {
+  websiteUrl: string;
+  prompt?: string;
+};
 
 type GenerateLanderModalProps = {
   showGenerateLanderModal: boolean;
   setShowGenerateLanderModal: Dispatch<SetStateAction<boolean>>;
-  onGenerate: (data: { websiteUrl: string }) => void;
+  onGenerate: (data: GenerateLanderFormData) => void;
+  landerData?: ProgramLanderData;
 };
 
 export function GenerateLanderModal(props: GenerateLanderModalProps) {
@@ -20,7 +27,11 @@ export function GenerateLanderModal(props: GenerateLanderModalProps) {
   );
 }
 
-function GenerateLanderModalInner({ setShowGenerateLanderModal, onGenerate }) {
+function GenerateLanderModalInner({
+  setShowGenerateLanderModal,
+  onGenerate,
+  landerData,
+}: GenerateLanderModalProps) {
   const { isMobile } = useMediaQuery();
   const { program } = useProgram();
 
@@ -28,11 +39,16 @@ function GenerateLanderModalInner({ setShowGenerateLanderModal, onGenerate }) {
     register,
     handleSubmit,
     formState: { isSubmitting, isSubmitSuccessful },
-  } = useForm<{ websiteUrl: string }>({
+  } = useForm<GenerateLanderFormData>({
     defaultValues: {
       websiteUrl: program?.url ?? "",
+      prompt: "",
     },
   });
+
+  const { handleKeyDown } = useEnterSubmit();
+
+  const updating = !!landerData?.blocks.length;
 
   return (
     <>
@@ -40,18 +56,21 @@ function GenerateLanderModalInner({ setShowGenerateLanderModal, onGenerate }) {
         className="p-4 pt-3"
         onSubmit={(e) => {
           e.stopPropagation();
-          handleSubmit(async ({ websiteUrl }) => {
+          handleSubmit(async ({ websiteUrl, prompt }) => {
             setShowGenerateLanderModal(false);
-            onGenerate({ websiteUrl });
+            onGenerate({ websiteUrl, prompt });
           })(e);
         }}
       >
         <h3 className="text-base font-semibold leading-6 text-neutral-800">
-          Generate a new landing page
+          {updating
+            ? "Generate landing page content"
+            : "Generate a new landing page"}
         </h3>
         <p className="text-content-subtle mt-2 text-sm">
-          We'll use AI to generate a new landing page for your program, based on
-          content from your own website.
+          {updating
+            ? "We'll use AI to update your program's landing page, based on content from your own website."
+            : "We'll use AI to generate a new landing page for your program, based on content from your own website."}
         </p>
 
         <div className="mt-4 flex flex-col gap-6">
@@ -70,6 +89,24 @@ function GenerateLanderModalInner({ setShowGenerateLanderModal, onGenerate }) {
               />
             </div>
           </label>
+
+          {/* Instructions */}
+          {updating && (
+            <label>
+              <span className="block text-sm font-medium text-neutral-700">
+                Instructions (optional)
+              </span>
+              <div className="mt-2 rounded-md shadow-sm">
+                <textarea
+                  placeholder="Any additional instructions for the AI"
+                  rows={2}
+                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  onKeyDown={handleKeyDown}
+                  {...register("prompt")}
+                />
+              </div>
+            </label>
+          )}
         </div>
 
         <div className="mt-4 flex items-center justify-end gap-2">

@@ -12,7 +12,6 @@ import {
   LoadingSpinner,
   Pen2,
   Plus2,
-  Sparkle3,
   Tooltip,
   Trash,
   useMediaQuery,
@@ -33,6 +32,7 @@ import { useWatch } from "react-hook-form";
 import { useBrandingContext } from "../branding-context-provider";
 import { useBrandingFormContext } from "../branding-form";
 import { LanderAIBanner } from "../lander-ai-banner";
+import { LanderPreviewControls } from "../lander-preview-controls";
 import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
 import { useEditRewardsModal } from "../modals/edit-rewards-modal";
 import { RewardsDiscountsPreview } from "../rewards-discounts-preview";
@@ -47,8 +47,7 @@ export function LanderPreview({
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
-  let { isGeneratingLander, isGenerateBannerHidden } = useBrandingContext();
-  // isGeneratingLander = true; // TODO
+  const { isGeneratingLander } = useBrandingContext();
 
   const { setValue, getValues } = useBrandingFormContext();
   const { landerData, brandColor, logo, wordmark } = {
@@ -94,9 +93,6 @@ export function LanderPreview({
     string | "hero" | "rewards" | null
   >(null);
 
-  const showGenerateButton =
-    isGenerateBannerHidden || landerData?.blocks.length !== 0;
-
   return (
     <>
       {editingBlock && editingBlockMeta && (
@@ -130,29 +126,7 @@ export function LanderPreview({
       <PreviewWindow
         url={`${PARTNERS_DOMAIN}/${program?.slug}`}
         scrollRef={scrollRef}
-        controls={
-          <div
-            className={cn(
-              "pointer-events-none w-0 translate-y-1 overflow-hidden opacity-0 transition-[opacity,transform]",
-              showGenerateButton &&
-                "pointer-events-auto w-auto translate-y-0 opacity-100",
-            )}
-            {...{ inert: showGenerateButton ? undefined : "" }}
-          >
-            <Button
-              type="button"
-              variant="secondary"
-              text={
-                <div className="flex items-center gap-1">
-                  Generate
-                  <Sparkle3 className="size-3" />
-                </div>
-              }
-              className="animate-fade-in h-7 w-fit px-2"
-              onClick={() => alert("wip")}
-            />
-          </div>
-        }
+        controls={<LanderPreviewControls />}
         overlay={
           <div
             className={cn(
