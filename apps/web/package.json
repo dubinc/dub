@@ -16,7 +16,7 @@
     "prisma:format": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma format"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^1.2.12",
+    "@ai-sdk/anthropic": "^1.0.7",
     "@boxyhq/saml-jackson": "1.41.0",
     "@chronark/zod-bird": "^0.3.9",
     "@dub/analytics": "^0.0.27",
@@ -59,7 +59,7 @@
     "@visx/scale": "^3.3.0",
     "@visx/shape": "^2.12.2",
     "@visx/text": "^3.3.0",
-    "ai": "^4.3.17",
+    "ai": "^4.0.30",
     "aws4fetch": "^1.0.19",
     "base-x": "^5.0.0",
     "bcryptjs": "^2.4.3",
