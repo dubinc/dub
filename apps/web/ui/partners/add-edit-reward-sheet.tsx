@@ -432,6 +432,8 @@ function RewardSheetContent({
               <ProgramSheetAccordionContent>
                 <div className="space-y-4">
                   <RewardPartnersTable
+                    event={selectedEvent}
+                    rewardId={reward?.id}
                     partnerIds={
                       (isDefault ? excludedPartnerIds : includedPartnerIds) ||
                       []

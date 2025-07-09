@@ -363,9 +363,8 @@ function RowMenuButton({
     {
       onSuccess: async () => {
         await mutatePrefix("/api/partners");
-
-        toast.success("Deleted the partner invite.");
         setIsOpen(false);
+        toast.success("Deleted the partner invite.");
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
