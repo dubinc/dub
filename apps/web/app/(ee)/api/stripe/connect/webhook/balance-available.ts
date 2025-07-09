@@ -105,7 +105,7 @@ export async function balanceAvailable(event: Stripe.Event) {
 
   if (availableBalance <= 0) {
     console.log(
-      `The available balance (${currencyFormatter(availableBalance / 100, { maximumFractionDigits: 2 })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
+      `The available balance (${currencyFormatter(availableBalance / 100, { maximumFractionDigits: 2, currency })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
     );
     return;
   }
@@ -190,6 +190,6 @@ export async function balanceAvailable(event: Stripe.Event) {
   );
 
   console.log(
-    `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${payout.id} (${currencyFormatter(payout.amount / 100, { maximumFractionDigits: 2 })})`,
+    `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${payout.id} (${currencyFormatter(payout.amount / 100, { maximumFractionDigits: 2, currency })})`,
   );
 }
