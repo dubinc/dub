@@ -5,6 +5,18 @@ import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { v4 as uuidv4 } from "uuid";
 import { tokenDecode, tokenEncode } from "./user-session-token.service.ts";
 
+// apply user session cookie after auth
+export const applyUserSession = async (user: ICustomerBody) => {
+  const cookieStore = cookies();
+
+  cookieStore.set(ECookieArg.USER, tokenEncode(user), {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+  });
+};
+
 // get user cookie
 export const getUserCookieService = () => {
   const cookieStore = cookies();
@@ -17,6 +29,10 @@ export const getUserCookieService = () => {
 
   if (!user?.id) {
     return { user: null, sessionId };
+  }
+
+  if (user?.id) {
+    applyUserSession(user);
   }
 
   return { user, sessionId };
@@ -62,13 +78,6 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
   cookieStore.set(ECookieArg.USER, tokenEncode(user), { httpOnly: true });
 
   return user;
-};
-
-// apply user session cookie after auth
-export const applyUserSession = async (user: ICustomerBody) => {
-  const cookieStore = cookies();
-
-  cookieStore.set(ECookieArg.USER, tokenEncode(user), { httpOnly: true });
 };
 
 // sign out user cookie

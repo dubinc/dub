@@ -1,5 +1,6 @@
 "use client";
 
+import { resetUserCookieSession } from "@/lib/actions/reset-user-cookie-session.ts";
 import useUser from "@/lib/swr/use-user.ts";
 import { Avatar, Icon, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -59,6 +60,14 @@ export default function UserDropdown() {
     });
   };
 
+  const logout = async () => {
+    handleUserOptionClick("logout");
+    await resetUserCookieSession();
+    signOut({
+      callbackUrl: "/",
+    });
+  };
+
   return (
     <Popover
       content={
@@ -111,12 +120,7 @@ export default function UserDropdown() {
             type="button"
             label="Logout"
             icon={LogOut}
-            onClick={() => {
-              handleUserOptionClick("logout");
-              signOut({
-                callbackUrl: "/",
-              });
-            }}
+            onClick={logout}
           />
         </div>
       }

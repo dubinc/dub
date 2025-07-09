@@ -3,9 +3,12 @@
 import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit } from "@/lib/upstash";
 import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN, R2_URL } from "@dub/utils";
+import { TrackClient } from "customerio-node";
 import { flattenValidationErrors } from "next-safe-action";
+import { getUserCookieService } from "../../core/services/cookie/user-session.service.ts";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId, getIP } from "../api/utils";
 import { hashPassword } from "../auth/password";
@@ -13,10 +16,11 @@ import z from "../zod";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
-import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
-import { TrackClient } from "customerio-node";
 
-let cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_TRACK_API_KEY!);
+let cio = new TrackClient(
+  process.env.CUSTOMER_IO_SITE_ID!,
+  process.env.CUSTOMER_IO_TRACK_API_KEY!,
+);
 
 const qrDataToCreateSchema = z.object({
   title: z.string(),
@@ -97,75 +101,78 @@ export const createUserAccountAction = actionClient
       },
     });
 
-    if (!user) {
-      const generatedUserId = createId({ prefix: "user_" });
+    if (user) {
+      throw new Error("User with this email already exists");
+    }
 
-      await prisma.user.create({
-        data: {
-          id: generatedUserId,
-          email,
-          passwordHash: await hashPassword(password),
-          emailVerified: new Date(),
-        },
-      });
+    const { sessionId } = await getUserCookieService();
+    const generatedUserId = sessionId ?? createId({ prefix: "user_" });
 
-      // @CUSTOM_FEATURE: creation of a workspace immediately after registration to skip onboarding
-      const workspaceResponse = await createWorkspaceForUser({
-        prismaClient: prisma,
-        userId: generatedUserId,
+    await prisma.user.create({
+      data: {
+        id: generatedUserId,
         email,
-      });
+        passwordHash: await hashPassword(password),
+        emailVerified: new Date(),
+      },
+    });
 
-      if (qrDataToCreate) {
-        const linkUrl = qrDataToCreate?.file
-          ? `${R2_URL}/qrs-content/${qrDataToCreate.file}`
-          : (qrDataToCreate!.styles!.data! as string);
+    // @CUSTOM_FEATURE: creation of a workspace immediately after registration to skip onboarding
+    const workspaceResponse = await createWorkspaceForUser({
+      prismaClient: prisma,
+      userId: generatedUserId,
+      email,
+    });
 
-        const { createdQr } = await createQrWithLinkUniversal({
-          qrData: {
-            data: qrDataToCreate.styles.data as string,
-            qrType: qrDataToCreate.qrType as any,
-            title: qrDataToCreate.title,
-            description: undefined,
-            styles: qrDataToCreate.styles,
-            frameOptions: qrDataToCreate.frameOptions,
-            file: qrDataToCreate.file,
-            fileName: qrDataToCreate.fileName,
-            fileSize: qrDataToCreate.fileSize,
-            link: {
-              url: linkUrl,
-            },
-          },
-          linkData: {
+    if (qrDataToCreate) {
+      const linkUrl = qrDataToCreate?.file
+        ? `${R2_URL}/qrs-content/${qrDataToCreate.file}`
+        : (qrDataToCreate!.styles!.data! as string);
+
+      const { createdQr } = await createQrWithLinkUniversal({
+        qrData: {
+          data: qrDataToCreate.styles.data as string,
+          qrType: qrDataToCreate.qrType as any,
+          title: qrDataToCreate.title,
+          description: undefined,
+          styles: qrDataToCreate.styles,
+          frameOptions: qrDataToCreate.frameOptions,
+          file: qrDataToCreate.file,
+          fileName: qrDataToCreate.fileName,
+          fileSize: qrDataToCreate.fileSize,
+          link: {
             url: linkUrl,
           },
-          workspace: workspaceResponse as Pick<
-            WorkspaceProps,
-            "id" | "plan" | "flags"
-          >,
-          userId: generatedUserId,
-          fileId: qrDataToCreate.file || undefined,
-          homePageDemo: true,
-        });
+        },
+        linkData: {
+          url: linkUrl,
+        },
+        workspace: workspaceResponse as Pick<
+          WorkspaceProps,
+          "id" | "plan" | "flags"
+        >,
+        userId: generatedUserId,
+        fileId: qrDataToCreate.file || undefined,
+        homePageDemo: true,
+      });
 
-        await cio.identify(generatedUserId, {
-          email: email,
-        });
-        await cio.track(generatedUserId, {
-          name: "user_created",
-        });
+      await cio.identify(generatedUserId, {
+        email: email,
+      });
+      await cio.track(generatedUserId, {
+        name: "user_created",
+      });
 
-        await sendEmail({
-          email: email,
-          subject: "Welcome to GetQR",
-          template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-          messageData: {
-            qr_name: createdQr.title || "Untitled QR",
-            qr_type: createdQr.qrType,
-            url: HOME_DOMAIN,
-          },
-          customerId: generatedUserId,
-        });
-      }
+      await sendEmail({
+        email: email,
+        subject: "Welcome to GetQR",
+        template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+        messageData: {
+          qr_name: createdQr.title || "Untitled QR",
+          qr_type: createdQr.qrType,
+          url: HOME_DOMAIN,
+        },
+        customerId: generatedUserId,
+      });
     }
   });

@@ -6,9 +6,11 @@ import {
   CreateLinkMiddleware,
   LinkMiddleware,
 } from "@/lib/middleware";
+import { PublicRoutesMiddleware } from "@/lib/middleware/public-routes.ts";
 import { parse } from "@/lib/middleware/utils";
 import { getUserCountry } from "@/lib/middleware/utils/get-user-country.ts";
 import { getUserViaToken } from "@/lib/middleware/utils/get-user-via-token.ts";
+import { initSessionCookie } from "@/lib/middleware/utils/init-session.ts";
 import {
   ADMIN_HOSTNAMES,
   API_HOSTNAMES,
@@ -18,10 +20,6 @@ import {
 } from "@dub/utils";
 import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import {
-  ALLOWED_REGIONS,
-  PUBLIC_ROUTES,
-} from "./app/[domain]/(public)/constants/types.ts";
 import PartnersMiddleware from "./lib/middleware/partners";
 
 export const config = {
@@ -39,42 +37,23 @@ export const config = {
 };
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
-  const { domain, path, key, fullKey } = parse(req);
+  const { domain, key, fullKey } = parse(req);
   const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
 
-  console.log("here");
-  console.log(domain, path, key, fullKey);
-  console.log(APP_HOSTNAMES.has(domain));
-  console.log(process.env.NEXT_PUBLIC_VERCEL_ENV);
-  console.log(process.env.NEXT_PUBLIC_APP_DOMAIN);
+  req.cookies.set("test", "test");
+
+  // Инициализируем session cookie для всех пользователей
+  const sessionCookie = initSessionCookie(req, user);
 
   AxiomMiddleware(req, ev);
 
-  const isPublicRoute =
-    PUBLIC_ROUTES.includes(path) ||
-    path.startsWith("/help") ||
-    ALLOWED_REGIONS.includes(path.slice(1));
-
-  // Try to fix public routes locally
-  if (isPublicRoute) {
-    if (APP_HOSTNAMES.has(domain)) {
-      if (user) {
-        return AppMiddleware(req, country, user, isPublicRoute);
-      }
-    }
-
-    return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url), {
-      headers: {
-        "Set-Cookie": `country=${country}; Path=/; Secure; SameSite=Strict;`,
-      },
-    });
-  }
+  PublicRoutesMiddleware(req, country, user, sessionCookie);
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
     console.log("middleware here1");
-    return AppMiddleware(req, country, user);
+    return AppMiddleware(req, country, user, sessionCookie);
   }
 
   // for API
@@ -85,18 +64,30 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // default redirects for dub.sh
   if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
-    return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
+    const response = NextResponse.redirect(DEFAULT_REDIRECTS[key]);
+    if (sessionCookie) {
+      response.headers.set("Set-Cookie", sessionCookie);
+    }
+    return response;
   }
 
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
     console.log("middleware here3");
-    return AdminMiddleware(req);
+    const response = await AdminMiddleware(req);
+    if (sessionCookie) {
+      response.headers.set("Set-Cookie", sessionCookie);
+    }
+    return response;
   }
 
   if (PARTNERS_HOSTNAMES.has(domain)) {
     console.log("middleware here4");
-    return PartnersMiddleware(req);
+    const response = await PartnersMiddleware(req);
+    if (sessionCookie) {
+      response.headers.set("Set-Cookie", sessionCookie);
+    }
+    return response;
   }
 
   console.log("middleware here5");

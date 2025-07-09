@@ -19,6 +19,7 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
+import { getUserCookieService } from "../../core/services/cookie/user-session.service.ts";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
@@ -36,8 +37,10 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
   return {
     ...PrismaAdapter(p),
     createUser: async (data: any) => {
-      const generatedUserId = createId({ prefix: "user_" });
       const cookieStore = cookies();
+      const { sessionId } = await getUserCookieService();
+
+      const generatedUserId = sessionId ?? createId({ prefix: "user_" });
       const qrDataCookie = cookieStore.get("processed-qr-data")?.value;
 
       const user = await p.user.create({
@@ -94,29 +97,31 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       sendVerificationRequest({ identifier, url }) {
-        prisma.user.findUnique({
-          where: {
-            email: identifier,
-          },
-          select: {
-            id: true,
-          },
-        }).then((user) => {
-          if (process.env.NODE_ENV === "development") {
-            console.log(`Login link: ${url}`);
-            return;
-          } else {
-            sendEmail({
+        prisma.user
+          .findUnique({
+            where: {
               email: identifier,
-              subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-              template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
-              messageData: {
-                url,
-              },
-              customerId: user?.id,
-            });
-          }
-        });
+            },
+            select: {
+              id: true,
+            },
+          })
+          .then((user) => {
+            if (process.env.NODE_ENV === "development") {
+              console.log(`Login link: ${url}`);
+              return;
+            } else {
+              sendEmail({
+                email: identifier,
+                subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+                template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
+                messageData: {
+                  url,
+                },
+                customerId: user?.id,
+              });
+            }
+          });
       },
     }),
     GoogleProvider({

@@ -1,6 +1,5 @@
 import { parse } from "@/lib/middleware/utils";
 import { UserProps } from "@/lib/types.ts";
-import { userSessionIdInit } from "core/services/cookie/user-session-id-init.service.ts";
 import { NextRequest, NextResponse } from "next/server";
 import EmbedMiddleware from "./embed";
 import NewLinkMiddleware from "./new-link";
@@ -14,6 +13,7 @@ export default async function AppMiddleware(
   req: NextRequest,
   country?: string,
   user?: UserProps,
+  sessionCookie?: string,
   isPublicRoute?: boolean,
 ) {
   const { domain, path, fullPath } = parse(req);
@@ -25,16 +25,6 @@ export default async function AppMiddleware(
   }
   const isWorkspaceInvite =
     req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
-
-  // Initialize session ID for authenticated users
-  let sessionCookie = "";
-  if (user) {
-    console.log("user via token", user);
-    const sessionInit = userSessionIdInit(req, user.id);
-    if (sessionInit.needsUpdate) {
-      sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict;`;
-    }
-  }
 
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (

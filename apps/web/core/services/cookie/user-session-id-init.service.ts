@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
+import { createId } from "@/lib/api/utils.ts";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
-import { v4 as uuidV4 } from "uuid";
 
 export const userSessionIdInit = (request: NextRequest, forceId?: string) => {
   let needsUpdate = false;
@@ -21,7 +21,7 @@ export const userSessionIdInit = (request: NextRequest, forceId?: string) => {
     let uuid = request.cookies.get(ECookieArg.SESSION_ID)?.value || "";
 
     if (!uuid) {
-      uuid = uuidV4();
+      uuid = createId({ prefix: "user_" });
       needsUpdate = true;
       request.cookies.set(ECookieArg.SESSION_ID, uuid);
     }
