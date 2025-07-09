@@ -17,13 +17,14 @@ import { authActionClient } from "../safe-action";
 const schema = z.object({
   workspaceId: z.string(),
   websiteUrl: z.string().url(),
+  landerData: programLanderSimpleSchema.optional(),
 });
 
 export const generateLanderAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { websiteUrl } = parsedInput;
+    const { websiteUrl, landerData } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
     const program = await getProgramOrThrow(
@@ -78,7 +79,7 @@ export const generateLanderAction = authActionClient
         (scrapeResult.metadata?.ogImage
           ? `You may include an image block in the landing page, only using the OG image here: ${scrapeResult.metadata?.ogImage}. `
           : "") +
-        `If you have product pricing information, include an earnings calculator block, using the highest non-enterprise tier for the average price. ` +
+        `If you have product pricing information, include an earnings calculator block, using the highest non-enterprise tier for the product price. ` +
         `Markdown is supported in "text" blocks, but use it sparingly. ` +
         `Avoid using links. Relevant CTA links are already on the landing page. ` +
         // Program details
@@ -92,6 +93,7 @@ export const generateLanderAction = authActionClient
         `\n\nMore about Dub Partners:\n\n` +
         `Dub Partners enables businesses to create scalable referral and affiliate programs to drive revenue through incentivized user and partner networks. ` +
         `With Dub Partners, you can build powerful, scalable referral and affiliate programs with 1-click global payouts and white-labeling functionality. ` +
+        `You may reference Dub Partners in the landing page, but do not focus on it or devote any full section of the page to it.` +
         // Website content
         `\n\nCompany website to base the landing page on:\n\n${mainPageMarkdown}` +
         (pricingPageMarkdown
@@ -107,7 +109,7 @@ function cleanMarkdown(markdown: string) {
   // Remove images
   markdown = markdown.replaceAll(/!\[[^\]]+\]\([^\)]+\)/g, "");
 
-  // Truncate
+  // Truncate to 10k characters
   markdown = markdown.substring(0, 10_000);
 
   return markdown;
