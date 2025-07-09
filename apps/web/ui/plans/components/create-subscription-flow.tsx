@@ -51,6 +51,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       params: {
         page_name: pageName,
         content_value: paymentMethodType,
+        event_category: "Authorized",
       },
       sessionId: cookieUser.id,
     });
@@ -68,6 +69,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       params: {
         page_name: pageName,
         element_name: paymentMethodType,
+        event_category: "Authorized",
       },
       sessionId: cookieUser.id,
     });
@@ -79,6 +81,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       params: {
         page_name: pageName,
         content_value: "card",
+        event_category: "Authorized",
       },
       sessionId: cookieUser.id,
     });
@@ -87,6 +90,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       params: {
         page_name: pageName,
         element_name: "CardDetails",
+        event_category: "Authorized",
       },
       sessionId: cookieUser.id,
     });

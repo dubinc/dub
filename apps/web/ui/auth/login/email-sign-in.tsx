@@ -62,6 +62,7 @@ export const EmailSignIn = ({
             params: {
               method: "email",
               email: email,
+              event_category: "unAuthorized",
             },
           });
 
@@ -169,6 +170,7 @@ export const EmailSignIn = ({
               params: {
                 method: "email",
                 email: email,
+                event_category: "Authorized",
               },
             });
             router.push(response?.url || redirectTo || "/workspaces");

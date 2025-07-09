@@ -78,6 +78,7 @@ export const SignUpOAuth = ({
               event: EAnalyticEvents.SIGNUP_ATTEMPT,
               params: {
                 method: "google",
+                event_category: "unAuthorized",
               },
             });
             setClickedGoogle(true);

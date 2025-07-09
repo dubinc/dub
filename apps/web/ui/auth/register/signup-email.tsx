@@ -63,6 +63,7 @@ export const SignUpEmail = ({
           params: {
             method: "email",
             email: data.email,
+            event_category: "unAuthorized",
           },
         });
         await executeAsync(data);

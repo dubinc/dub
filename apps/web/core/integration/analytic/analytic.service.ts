@@ -16,16 +16,11 @@ declare global {
   }
 }
 
-// interface IWorkflowVersion {
-//   user_token?: string;
-// }
-
 // interface
 interface TrackClientEventsParams<T> {
   event: EAnalyticEvents;
   sessionId?: string;
   user?: ICustomerBody | null;
-  // params?: T & IWorkflowVersion;
   params?: T;
 }
 

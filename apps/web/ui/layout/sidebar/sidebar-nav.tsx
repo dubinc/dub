@@ -186,6 +186,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         page_name: "profile",
         content_value: name.toLowerCase().replace(/\s+/g, "_"),
         email: user?.email,
+        event_category: "Authorized",
       },
       sessionId: user?.id,
     });

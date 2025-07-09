@@ -48,6 +48,7 @@ export const generateCheckoutFormPaymentEvents = ({
     flow_type: flowType,
     plan_code: planCode,
     subscription_id: subscriptionId,
+    event_category: "Authorized",
     toxic,
     ...additionalParams,
   };

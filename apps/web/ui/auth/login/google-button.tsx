@@ -27,6 +27,7 @@ export function GoogleButton() {
           event: EAnalyticEvents.LOGIN_ATTEMPT,
           params: {
             method: "google",
+            event_category: "unAuthorized",
           },
         });
         setClickedMethod("google");
@@ -43,6 +44,7 @@ export function GoogleButton() {
             event: EAnalyticEvents.LOGIN_SUCCESS,
             params: {
               method: "google",
+              event_category: "Authorized",
             },
           });
           router.push(response.url || next || "/workspaces");

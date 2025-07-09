@@ -53,6 +53,7 @@ export function AuthModal({
         event: EAnalyticEvents.ELEMENT_OPENED,
         params: {
           element_name: authType,
+          event_category: "unAuthorized",
         },
       });
     }
@@ -239,6 +240,7 @@ export function useAuthTracking(authType?: AuthType) {
         params: {
           element_name: authType || "signup", // Default to signup if not specified
           content_value: contentValue,
+          event_category: "unAuthorized",
         },
       });
     },
