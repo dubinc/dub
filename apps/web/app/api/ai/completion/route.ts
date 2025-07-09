@@ -28,7 +28,9 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     throwIfAIUsageExceeded(workspace);
 
     const result = streamText({
-      model: anthropic(model),
+      model: anthropic(
+        model as "claude-3-5-haiku-latest" | "claude-sonnet-4-20250514",
+      ),
       messages: [
         {
           role: "user",
