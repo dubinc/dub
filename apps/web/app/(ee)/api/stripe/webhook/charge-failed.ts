@@ -53,6 +53,18 @@ export async function chargeFailed(event: Stripe.Event) {
     },
   });
 
+  // Reduce the payoutsUsage by the invoice amount since the charge failed
+  await prisma.project.update({
+    where: {
+      id: invoice.workspaceId,
+    },
+    data: {
+      payoutsUsage: {
+        decrement: invoice.amount,
+      },
+    },
+  });
+
   const workspace = await prisma.project.findUniqueOrThrow({
     where: {
       id: invoice.workspaceId,
