@@ -67,6 +67,9 @@ export async function balanceAvailable(event: Stripe.Event) {
     if (isZeroDecimalCurrency) {
       convertedUsdAmount = convertedUsdAmount * 100;
     }
+
+    // round to nearest integer to avoid errors with Stripe
+    convertedUsdAmount = Math.round(convertedUsdAmount);
   }
 
   // Check minimum withdrawal amount
@@ -102,7 +105,7 @@ export async function balanceAvailable(event: Stripe.Event) {
 
   if (availableBalance <= 0) {
     console.log(
-      `The available balance (${currencyFormatter(availableBalance / 100, { maximumFractionDigits: 2 })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
+      `The available balance (${currencyFormatter(availableBalance / 100, { maximumFractionDigits: 2, currency })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
     );
     return;
   }
@@ -168,6 +171,12 @@ export async function balanceAvailable(event: Stripe.Event) {
     availableBalance = updatedBalance.available[0].amount;
   }
 
+  if (["huf", "twd"].includes(currency)) {
+    // For HUF and TWD, Stripe requires payout amounts to be evenly divisible by 100
+    // We need to round down to the nearest 100 units
+    availableBalance = Math.floor(availableBalance / 100) * 100;
+  }
+
   const payout = await stripe.payouts.create(
     {
       amount: availableBalance,
@@ -181,6 +190,6 @@ export async function balanceAvailable(event: Stripe.Event) {
   );
 
   console.log(
-    `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${payout.id} (${currencyFormatter(payout.amount / 100, { maximumFractionDigits: 2 })})`,
+    `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${payout.id} (${currencyFormatter(payout.amount / 100, { maximumFractionDigits: 2, currency })})`,
   );
 }
