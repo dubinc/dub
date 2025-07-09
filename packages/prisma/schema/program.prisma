@@ -77,6 +77,7 @@ model ProgramEnrollment {
   clickRewardId    String?
   leadRewardId     String?
   saleRewardId     String?
+  couponId         String? // Stripe coupon ID for link-based coupon code tracking
   applicationId    String?                 @unique
   status           ProgramEnrollmentStatus @default(pending)
   totalCommissions Int                     @default(0) // total commissions earned by the partner (in cents)

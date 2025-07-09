@@ -41,6 +41,14 @@
       "purpose": "Allows storing Dub access tokens in Stripe for an account."
     },
     {
+      "permission": "coupon_write",
+      "purpose": "Allows Dub to create coupons for an account."
+    },
+    {
+      "permission": "coupon_read",
+      "purpose": "Allows Dub to read coupons for an account."
+    },
+    {
       "permission": "promotion_code_write",
       "purpose": "Allows Dub to create promotion codes for an account."
     },

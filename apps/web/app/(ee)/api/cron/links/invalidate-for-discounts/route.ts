@@ -8,9 +8,15 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
-  programId: z.string(),
   discountId: z.string(),
-  isDefault: z.boolean(),
+  programId: z
+    .string()
+    .optional()
+    .describe("Must be passed for discount-deleted action"),
+  isDefault: z
+    .boolean()
+    .optional()
+    .describe("Must be passed for discount-deleted action"),
   action: z.enum(["discount-created", "discount-updated", "discount-deleted"]),
 });
 

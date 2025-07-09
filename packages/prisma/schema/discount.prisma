@@ -6,13 +6,14 @@ model Discount {
   maxDuration  Int? // in months (0 -> not recurring, null -> lifetime)
   description  String?
   couponId     String?
-  couponTestId String?  
+  couponTestId String?
   default      Boolean         @default(false)
+  provider     String? // coupon provider for link-based coupon code tracking
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
   programEnrollments ProgramEnrollment[]
   program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  
+
   @@index(programId)
 }
