@@ -45,6 +45,7 @@ export async function createStripeCoupon({
     console.error(
       `Failed to create Stripe coupon for ${stripeConnectId}: ${error}`,
     );
-    return null;
+
+    throw new Error(error instanceof Error ? error.message : "Unknown error");
   }
 }

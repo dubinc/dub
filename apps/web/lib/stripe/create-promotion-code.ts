@@ -1,40 +1,41 @@
-import { Link } from "@prisma/client";
 import { stripeAppClient } from ".";
 
-export async function createPromotionCode({
+// Create a promotion code on Stripe for connected accounts
+export async function createStripePromotionCode({
   couponId,
-  link,
-  stripeAccount,
+  linkKey,
+  stripeConnectId,
 }: {
   couponId: string;
-  link: Pick<Link, "key" | "partnerId">;
-  stripeAccount: string;
+  linkKey: string;
+  stripeConnectId: string | null;
 }) {
+  if (!stripeConnectId) {
+    console.error(
+      "stripeConnectId not found for the workspace. Stripe promotion code creation skipped.",
+    );
+    return;
+  }
+
   const stripe = stripeAppClient({
     livemode: process.env.NODE_ENV === "production",
   });
 
   try {
-    const promotionCode = await stripe.promotionCodes.create(
+    return await stripe.promotionCodes.create(
       {
         coupon: couponId,
-        code: link.key,
-        metadata: {
-          partnerId: link.partnerId,
-        },
+        code: linkKey.toUpperCase(),
       },
       {
-        stripeAccount,
+        stripeAccount: stripeConnectId,
       },
     );
-
-    console.log(
-      `Promotion code ${promotionCode.id} created for link ${link.key} for account ${stripeAccount}`,
+  } catch (error) {
+    console.error(
+      `Failed to create Stripe promotion code for ${stripeConnectId}: ${error}`,
     );
 
-    return promotionCode;
-  } catch (error) {
-    console.error("Failed to create promotion code", error);
-    throw error;
+    throw new Error(error instanceof Error ? error.message : "Unknown error");
   }
 }

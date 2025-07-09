@@ -172,6 +172,14 @@ export const createDiscountAction = authActionClient
               },
             ],
           }),
+
+          // If the coupon code is created on Stripe, create a promotion code for each link
+          stripeCoupon ? qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
+            body: {
+              discountId: discount.id,
+            },
+          }) : Promise.resolve(),
         ]);
       })(),
     );
