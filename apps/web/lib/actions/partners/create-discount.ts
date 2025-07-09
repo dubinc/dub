@@ -34,7 +34,7 @@ export const createDiscountAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await getProgramOrThrow({
+    const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
@@ -174,12 +174,26 @@ export const createDiscountAction = authActionClient
           }),
 
           // If the coupon code is created on Stripe, create a promotion code for each link
-          stripeCoupon ? qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
-            body: {
-              discountId: discount.id,
-            },
-          }) : Promise.resolve(),
+          stripeCoupon
+            ? qstash.publishJSON({
+                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
+                body: {
+                  discountId: discount.id,
+                },
+              })
+            : Promise.resolve(),
+
+          // Enable the coupon-code tracking if not already enabled
+          stripeCoupon && !program.couponCodeTrackingEnabledAt
+            ? prisma.program.update({
+                where: {
+                  id: programId,
+                },
+                data: {
+                  couponCodeTrackingEnabledAt: new Date(),
+                },
+              })
+            : Promise.resolve(),
         ]);
       })(),
     );
