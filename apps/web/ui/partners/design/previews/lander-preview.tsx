@@ -8,6 +8,7 @@ import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import {
   Button,
   Grid,
+  LoadingSpinner,
   Pen2,
   Plus2,
   Tooltip,
@@ -27,6 +28,7 @@ import {
   useState,
 } from "react";
 import { useWatch } from "react-hook-form";
+import { useBrandingContext } from "../branding-context-provider";
 import { useBrandingFormContext } from "../branding-form";
 import { LanderAIBanner } from "../lander-ai-banner";
 import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
@@ -42,6 +44,9 @@ export function LanderPreview({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
+
+  let { isGeneratingLander } = useBrandingContext();
+  // isGeneratingLander = true; // TODO
 
   const { setValue, getValues } = useBrandingFormContext();
   const { landerData, brandColor, logo, wordmark } = {
@@ -120,6 +125,42 @@ export function LanderPreview({
       <PreviewWindow
         url={`${PARTNERS_DOMAIN}/${program?.slug}`}
         scrollRef={scrollRef}
+        overlay={
+          <div
+            className={cn(
+              "absolute inset-0 flex items-center justify-center bg-white/10",
+              "pointer-events-none opacity-0 transition-[backdrop-filter,opacity] duration-500",
+              isGeneratingLander &&
+                "pointer-events-auto opacity-100 backdrop-blur-md",
+            )}
+            {...{ inert: isGeneratingLander ? undefined : "" }}
+          >
+            <div
+              className={cn(
+                "text-content-default flex items-center transition-transform duration-500",
+                !isGeneratingLander && "translate-y-1",
+              )}
+            >
+              <LoadingSpinner className="mr-2 size-3.5 shrink-0" />
+              <span className="flex items-center text-sm font-medium">
+                Generating content
+              </span>
+              <span className="ml-px shrink-0 -translate-y-px">
+                {[...Array(3)].map((_, i) => (
+                  <span
+                    key={i}
+                    className="animate-ellipsis-wave inline-block"
+                    style={{
+                      animationDelay: `${3 - i * -0.15}s`,
+                    }}
+                  >
+                    .
+                  </span>
+                ))}
+              </span>
+            </div>
+          </div>
+        }
       >
         <div className="relative z-0 mx-auto min-h-screen w-full bg-white">
           <div

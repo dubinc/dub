@@ -3,22 +3,43 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { programLanderSimpleSchema } from "@/lib/zod/schemas/program-lander";
 import { X } from "@/ui/shared/icons";
-import { Button, Grid, Modal, Sparkle3, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  Grid,
+  LoadingSpinner,
+  Modal,
+  Sparkle3,
+  useMediaQuery,
+} from "@dub/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
+import { useBrandingContext } from "./branding-context-provider";
 import { useBrandingFormContext } from "./branding-form";
 
 export function LanderAIBanner() {
+  const { id: workspaceId } = useWorkspace();
+
   const landerData = useWatch({ name: "landerData" });
+  const { setValue } = useBrandingFormContext();
 
   const [bannerHidden, setBannerHidden] = useState(false);
   const [showGenerateLanderModal, setShowGenerateLanderModal] = useState(false);
 
-  // TODO: Uncomment the below logic before shipping
-  const showBanner = !bannerHidden; // && landerData?.blocks.length === 0;
+  const { isGeneratingLander, setIsGeneratingLander } = useBrandingContext();
+
+  const { executeAsync } = useAction(generateLanderAction, {
+    async onSuccess() {
+      toast.success("Landing page generated.");
+    },
+    onError({ error }) {
+      console.error(error);
+    },
+  });
+
+  const showBanner = !bannerHidden && landerData?.blocks.length === 0;
 
   return (
     <>
@@ -51,6 +72,10 @@ export function LanderAIBanner() {
                     text="Generate"
                     className="ml-2 h-7 w-fit rounded-lg px-2.5"
                     onClick={() => setShowGenerateLanderModal(true)}
+                    {...(isGeneratingLander && {
+                      disabled: true,
+                      icon: <LoadingSpinner className="size-3" />,
+                    })}
                   />
                 </div>
                 <div className="basis-0">
@@ -69,10 +94,34 @@ export function LanderAIBanner() {
           </motion.div>
         )}
       </AnimatePresence>
-      <GenerateLanderModal
-        showGenerateLanderModal={showGenerateLanderModal}
-        setShowGenerateLanderModal={setShowGenerateLanderModal}
-      />
+      {(showBanner || showGenerateLanderModal) && (
+        <GenerateLanderModal
+          showGenerateLanderModal={showGenerateLanderModal}
+          setShowGenerateLanderModal={setShowGenerateLanderModal}
+          onGenerate={async ({ websiteUrl }) => {
+            setIsGeneratingLander(true);
+
+            const result = await executeAsync({
+              workspaceId: workspaceId!,
+              websiteUrl,
+            });
+
+            try {
+              const data = programLanderSimpleSchema.parse(result?.data);
+              if (!data.blocks.length) throw new Error("No blocks generated");
+
+              setValue("landerData", data, { shouldDirty: true });
+            } catch (e) {
+              console.error("Error generating program lander", e);
+              toast.error(
+                "Failed to generate landing page. Please try again later.",
+              );
+            } finally {
+              setIsGeneratingLander(false);
+            }
+          }}
+        />
+      )}
     </>
   );
 }
@@ -80,6 +129,7 @@ export function LanderAIBanner() {
 type GenerateLanderModalProps = {
   showGenerateLanderModal: boolean;
   setShowGenerateLanderModal: Dispatch<SetStateAction<boolean>>;
+  onGenerate: (data: { websiteUrl: string }) => void;
 };
 
 function GenerateLanderModal(props: GenerateLanderModalProps) {
@@ -93,33 +143,17 @@ function GenerateLanderModal(props: GenerateLanderModalProps) {
   );
 }
 
-function GenerateLanderModalInner({
-  setShowGenerateLanderModal,
-}: GenerateLanderModalProps) {
+function GenerateLanderModalInner({ setShowGenerateLanderModal, onGenerate }) {
   const { isMobile } = useMediaQuery();
-  const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
-
-  const { setValue: setValueParent } = useBrandingFormContext();
 
   const {
     register,
     handleSubmit,
-    setError,
     formState: { isSubmitting, isSubmitSuccessful },
   } = useForm<{ websiteUrl: string }>({
     defaultValues: {
       websiteUrl: program?.url ?? "",
-    },
-  });
-
-  const { executeAsync, isPending } = useAction(generateLanderAction, {
-    async onSuccess() {
-      toast.success("Landing page generated.");
-      setShowGenerateLanderModal(false);
-    },
-    onError({ error }) {
-      console.error(error);
     },
   });
 
@@ -130,23 +164,8 @@ function GenerateLanderModalInner({
         onSubmit={(e) => {
           e.stopPropagation();
           handleSubmit(async ({ websiteUrl }) => {
-            const result = await executeAsync({
-              workspaceId: workspaceId!,
-              websiteUrl,
-            });
-
-            try {
-              const data = programLanderSimpleSchema.parse(result?.data);
-              if (!data.blocks.length) throw new Error("No blocks generated");
-
-              setValueParent("landerData", data, { shouldDirty: true });
-            } catch (e) {
-              console.error("Error generating program lander", e);
-              setError("root", { message: "Failed to generate landing page." });
-              toast.error(
-                "Failed to generate landing page. Please try again later.",
-              );
-            }
+            setShowGenerateLanderModal(false);
+            onGenerate({ websiteUrl });
           })(e);
         }}
       >

@@ -2,7 +2,7 @@ import { buttonVariants, Copy, useCopyToClipboard } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import { PropsWithChildren, RefObject } from "react";
+import { PropsWithChildren, ReactNode, RefObject } from "react";
 import { toast } from "sonner";
 
 export function PreviewWindow({
@@ -11,6 +11,7 @@ export function PreviewWindow({
   showViewButton = true,
   className,
   contentClassName,
+  overlay,
   children,
 }: PropsWithChildren<{
   url: string;
@@ -18,6 +19,7 @@ export function PreviewWindow({
   showViewButton?: boolean;
   className?: string;
   contentClassName?: string;
+  overlay?: ReactNode;
 }>) {
   const [_, copyToClipboard] = useCopyToClipboard();
 
@@ -73,14 +75,17 @@ export function PreviewWindow({
           )}
         </div>
       </div>
-      <div
-        className={cn(
-          "scrollbar-hide @container grow overflow-y-auto",
-          contentClassName,
-        )}
-        ref={scrollRef}
-      >
-        {children}
+      <div className="relative z-0 grow overflow-hidden">
+        <div
+          className={cn(
+            "scrollbar-hide @container relative size-full overflow-y-auto",
+            contentClassName,
+          )}
+          ref={scrollRef}
+        >
+          {children}
+        </div>
+        {overlay}
       </div>
     </div>
   );

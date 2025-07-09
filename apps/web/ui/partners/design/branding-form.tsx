@@ -24,6 +24,10 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { KeyedMutator } from "swr";
 import { z } from "zod";
+import {
+  BrandingContextProvider,
+  useBrandingContext,
+} from "./branding-context-provider";
 import { BrandingSettingsForm } from "./branding-settings-form";
 import { EmbedPreview } from "./previews/embed-preview";
 import { LanderPreview } from "./previews/lander-preview";
@@ -65,12 +69,14 @@ export function BrandingForm() {
     );
 
   return (
-    <BrandingFormInner
-      program={program}
-      mutateProgram={mutateProgram}
-      draft={draft}
-      setDraft={setDraft}
-    />
+    <BrandingContextProvider>
+      <BrandingFormInner
+        program={program}
+        mutateProgram={mutateProgram}
+        draft={draft}
+        setDraft={setDraft}
+      />
+    </BrandingContextProvider>
   );
 }
 
@@ -162,11 +168,17 @@ function BrandingFormInner({
 
   const [isTabPopoverOpen, setIsTabPopoverOpen] = useState(false);
 
+  const { isGeneratingLander } = useBrandingContext();
+
   // Disable publish button when:
-  // - there are no changes
-  // - the program lander is already published
+  // - the lander is being generated with AI
+  // OR:
+  //   - there are no changes
+  //   - the program lander is already published
   const disablePublishButton =
-    !isDirty && program.landerPublishedAt ? true : false;
+    isGeneratingLander || (!isDirty && program.landerPublishedAt)
+      ? true
+      : false;
 
   return (
     <form
