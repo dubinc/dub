@@ -38,6 +38,7 @@ export * from "./check";
 export * from "./check2";
 export * from "./checkbox-checked-fill";
 export * from "./checkbox-unchecked";
+export * from "./chevron-down";
 export * from "./chevron-left";
 export * from "./chevron-right";
 export * from "./circle-check";
