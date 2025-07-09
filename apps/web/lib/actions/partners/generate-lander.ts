@@ -17,13 +17,14 @@ import { authActionClient } from "../safe-action";
 const schema = z.object({
   workspaceId: z.string(),
   websiteUrl: z.string().url(),
+  landerData: programLanderSimpleSchema.optional(),
 });
 
 export const generateLanderAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { websiteUrl } = parsedInput;
+    const { websiteUrl, landerData } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
     const program = await getProgramOrThrow(
@@ -92,6 +93,7 @@ export const generateLanderAction = authActionClient
         `\n\nMore about Dub Partners:\n\n` +
         `Dub Partners enables businesses to create scalable referral and affiliate programs to drive revenue through incentivized user and partner networks. ` +
         `With Dub Partners, you can build powerful, scalable referral and affiliate programs with 1-click global payouts and white-labeling functionality. ` +
+        `You may reference Dub Partners in the landing page, but do not focus on it or devote any full section of the page to it.` +
         // Website content
         `\n\nCompany website to base the landing page on:\n\n${mainPageMarkdown}` +
         (pricingPageMarkdown

@@ -145,7 +145,7 @@ export function LanderPreview({
               <div className="text-content-default flex items-center">
                 <LoadingSpinner className="mr-2 size-3.5 shrink-0" />
                 <span className="text-sm font-medium">Generating content</span>
-                <span className="ml-px shrink-0 -translate-y-px">
+                <span className="ml-px shrink-0">
                   {[...Array(3)].map((_, i) => (
                     <span
                       key={i}
