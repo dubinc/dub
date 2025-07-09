@@ -7,6 +7,7 @@ import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import {
   Button,
+  CircleInfo,
   Grid,
   LoadingSpinner,
   Pen2,
@@ -137,27 +138,34 @@ export function LanderPreview({
           >
             <div
               className={cn(
-                "text-content-default flex items-center transition-transform duration-500",
+                "flex flex-col items-center gap-6 px-4 text-center text-sm transition-transform duration-500 sm:gap-2",
                 !isGeneratingLander && "translate-y-1",
               )}
             >
-              <LoadingSpinner className="mr-2 size-3.5 shrink-0" />
-              <span className="flex items-center text-sm font-medium">
-                Generating content
-              </span>
-              <span className="ml-px shrink-0 -translate-y-px">
-                {[...Array(3)].map((_, i) => (
-                  <span
-                    key={i}
-                    className="animate-ellipsis-wave inline-block"
-                    style={{
-                      animationDelay: `${3 - i * -0.15}s`,
-                    }}
-                  >
-                    .
-                  </span>
-                ))}
-              </span>
+              <div className="text-content-default flex items-center">
+                <LoadingSpinner className="mr-2 size-3.5 shrink-0" />
+                <span className="text-sm font-medium">Generating content</span>
+                <span className="ml-px shrink-0 -translate-y-px">
+                  {[...Array(3)].map((_, i) => (
+                    <span
+                      key={i}
+                      className="animate-ellipsis-wave inline-block"
+                      style={{
+                        animationDelay: `${3 - i * -0.15}s`,
+                      }}
+                    >
+                      .
+                    </span>
+                  ))}
+                </span>
+              </div>
+
+              <div className="text-content-subtle flex flex-col items-center gap-1 sm:flex-row">
+                <CircleInfo className="size-3 shrink-0" />
+                <span className="text-xs font-medium">
+                  Review all generated content for accuracy and style
+                </span>
+              </div>
             </div>
           </div>
         }

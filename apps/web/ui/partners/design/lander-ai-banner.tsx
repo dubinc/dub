@@ -105,7 +105,7 @@ export function LanderAIBanner() {
                       text={
                         <div className="flex items-center gap-1">
                           <span>Generate</span>
-                          <ChevronDown className="size-2.5 shrink-0 text-white transition-transform duration-75 group-data-[state=open]:-scale-y-100 [&_*]:stroke-2" />
+                          <ChevronDown className="size-2.5 shrink-0 transition-transform duration-75 group-data-[state=open]:-scale-y-100 [&_*]:stroke-2" />
                         </div>
                       }
                       onClick={() => setShowGenerateLanderPopover(true)}
