@@ -3,9 +3,16 @@
 import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { EventType } from "@dub/prisma/client";
-import { Button, Combobox, Table, Tooltip, useTable } from "@dub/ui";
+import {
+  Button,
+  CircleWarning,
+  Combobox,
+  Table,
+  Tooltip,
+  useTable,
+} from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
-import { AlertTriangle, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -172,7 +179,9 @@ export function RewardPartnersTable({
 
               {isOnAnotherReward && (
                 <Tooltip content="This partner is currently on another reward and will be updated to this one.">
-                  <AlertTriangle className="size-4 text-orange-500" />
+                  <div className="flex items-center justify-center rounded-md bg-orange-100 px-1.5 py-1">
+                    <CircleWarning className="size-4 text-orange-500" />
+                  </div>
                 </Tooltip>
               )}
             </div>
