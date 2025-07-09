@@ -30,6 +30,7 @@ export * from "./popover";
 export * from "./radio-group";
 export * from "./sheet";
 export * from "./shimmer-dots";
+export * from "./slider";
 export * from "./smart-datetime-picker";
 export * from "./status-badge";
 export * from "./switch";
