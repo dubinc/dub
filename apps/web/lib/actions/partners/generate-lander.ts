@@ -22,7 +22,7 @@ const schema = z.object({
 export const generateLanderAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace, user } = ctx;
+    const { workspace } = ctx;
     const { websiteUrl } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -68,7 +68,7 @@ export const generateLanderAction = authActionClient
       : null;
 
     const { object } = await generateObject({
-      model: anthropic("claude-3-5-sonnet-latest"),
+      model: anthropic("claude-sonnet-4-20250514"),
       schema: programLanderSimpleSchema,
       prompt:
         // Instructions
