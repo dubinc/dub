@@ -50,7 +50,7 @@ export const createPartnerCommission = async ({
   currency?: string;
   description?: string;
   createdAt?: Date;
-  user?: Session["user"]; // user who created the commission
+  user?: Session["user"]; // user who created the manual commission
 }) => {
   let earnings = 0;
   let status: CommissionStatus = "pending";
@@ -179,6 +179,7 @@ export const createPartnerCommission = async ({
         linkId,
         eventId,
         invoiceId,
+        userId: user?.id,
         quantity,
         amount,
         type: event,
