@@ -5,16 +5,15 @@ import { programLanderSimpleSchema } from "@/lib/zod/schemas/program-lander";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
-  ChevronDown,
   Grid,
   LoadingSpinner,
-  Popover,
+  Modal,
   Sparkle3,
   useMediaQuery,
 } from "@dub/ui";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, PropsWithChildren, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useBrandingContext } from "./branding-context-provider";
@@ -27,8 +26,7 @@ export function LanderAIBanner() {
   const { setValue } = useBrandingFormContext();
 
   const [bannerHidden, setBannerHidden] = useState(false);
-  const [showGenerateLanderPopover, setShowGenerateLanderPopover] =
-    useState(false);
+  const [showGenerateLanderModal, setShowGenerateLanderModal] = useState(false);
 
   const { isGeneratingLander, setIsGeneratingLander } = useBrandingContext();
 
@@ -69,52 +67,16 @@ export function LanderAIBanner() {
                   <span className="text-content-emphasis text-left text-sm font-medium">
                     Generate your program landing page based on your website
                   </span>
-                  <GenerateLanderPopover
-                    showGenerateLanderPopover={showGenerateLanderPopover}
-                    setShowGenerateLanderPopover={setShowGenerateLanderPopover}
-                    onGenerate={async ({ websiteUrl }) => {
-                      setShowGenerateLanderPopover(false);
-                      setIsGeneratingLander(true);
-
-                      const result = await executeAsync({
-                        workspaceId: workspaceId!,
-                        websiteUrl,
-                      });
-
-                      try {
-                        const data = programLanderSimpleSchema.parse(
-                          result?.data,
-                        );
-                        if (!data.blocks.length)
-                          throw new Error("No blocks generated");
-
-                        setValue("landerData", data, { shouldDirty: true });
-                      } catch (e) {
-                        console.error("Error generating program lander", e);
-                        toast.error(
-                          "Failed to generate landing page. Please try again later.",
-                        );
-                      } finally {
-                        setIsGeneratingLander(false);
-                      }
-                    }}
-                  >
-                    <Button
-                      variant="success"
-                      className="group ml-2 h-7 w-fit rounded-lg pl-2.5 pr-2 data-[state=open]:bg-blue-600 data-[state=open]:ring-4 data-[state=open]:ring-blue-200"
-                      text={
-                        <div className="flex items-center gap-1">
-                          <span>Generate</span>
-                          <ChevronDown className="size-2.5 shrink-0 transition-transform duration-75 group-data-[state=open]:-scale-y-100 [&_*]:stroke-2" />
-                        </div>
-                      }
-                      onClick={() => setShowGenerateLanderPopover(true)}
-                      {...(isGeneratingLander && {
-                        disabled: true,
-                        icon: <LoadingSpinner className="size-3" />,
-                      })}
-                    />
-                  </GenerateLanderPopover>
+                  <Button
+                    variant="success"
+                    text="Generate"
+                    className="ml-2 h-7 w-fit rounded-lg px-2.5"
+                    onClick={() => setShowGenerateLanderModal(true)}
+                    {...(isGeneratingLander && {
+                      disabled: true,
+                      icon: <LoadingSpinner className="size-3" />,
+                    })}
+                  />
                 </div>
                 <div className="basis-0">
                   <Button
@@ -132,36 +94,56 @@ export function LanderAIBanner() {
           </motion.div>
         )}
       </AnimatePresence>
+      {(showBanner || showGenerateLanderModal) && (
+        <GenerateLanderModal
+          showGenerateLanderModal={showGenerateLanderModal}
+          setShowGenerateLanderModal={setShowGenerateLanderModal}
+          onGenerate={async ({ websiteUrl }) => {
+            setIsGeneratingLander(true);
+
+            const result = await executeAsync({
+              workspaceId: workspaceId!,
+              websiteUrl,
+            });
+
+            try {
+              const data = programLanderSimpleSchema.parse(result?.data);
+              if (!data.blocks.length) throw new Error("No blocks generated");
+
+              setValue("landerData", data, { shouldDirty: true });
+            } catch (e) {
+              console.error("Error generating program lander", e);
+              toast.error(
+                "Failed to generate landing page. Please try again later.",
+              );
+            } finally {
+              setIsGeneratingLander(false);
+            }
+          }}
+        />
+      )}
     </>
   );
 }
 
-type GenerateLanderPopoverProps = {
-  showGenerateLanderPopover: boolean;
-  setShowGenerateLanderPopover: Dispatch<SetStateAction<boolean>>;
+type GenerateLanderModalProps = {
+  showGenerateLanderModal: boolean;
+  setShowGenerateLanderModal: Dispatch<SetStateAction<boolean>>;
   onGenerate: (data: { websiteUrl: string }) => void;
 };
 
-function GenerateLanderPopover({
-  children,
-  ...props
-}: PropsWithChildren<GenerateLanderPopoverProps>) {
+function GenerateLanderModal(props: GenerateLanderModalProps) {
   return (
-    <Popover
-      openPopover={props.showGenerateLanderPopover}
-      setOpenPopover={props.setShowGenerateLanderPopover}
-      align="end"
-      side="bottom"
-      content={<GenerateLanderPopoverInner {...props} />}
+    <Modal
+      showModal={props.showGenerateLanderModal}
+      setShowModal={props.setShowGenerateLanderModal}
     >
-      {children}
-    </Popover>
+      <GenerateLanderModalInner {...props} />
+    </Modal>
   );
 }
 
-function GenerateLanderPopoverInner({
-  onGenerate,
-}: Pick<GenerateLanderPopoverProps, "onGenerate">) {
+function GenerateLanderModalInner({ setShowGenerateLanderModal, onGenerate }) {
   const { isMobile } = useMediaQuery();
   const { program } = useProgram();
 
@@ -181,39 +163,53 @@ function GenerateLanderPopoverInner({
         className="p-4 pt-3"
         onSubmit={(e) => {
           e.stopPropagation();
-          handleSubmit(
-            async ({ websiteUrl }) => await onGenerate({ websiteUrl }),
-          )(e);
+          handleSubmit(async ({ websiteUrl }) => {
+            setShowGenerateLanderModal(false);
+            onGenerate({ websiteUrl });
+          })(e);
         }}
       >
-        <div className="flex items-end gap-2">
-          <div className="flex flex-col gap-6">
-            {/* Title */}
-            <label>
-              <span className="block text-sm font-medium text-neutral-700">
-                Your website URL
-              </span>
-              <div className="mt-1.5 rounded-md shadow-sm">
-                <input
-                  type="text"
-                  placeholder="https://dub.co"
-                  autoFocus={!isMobile}
-                  className="block w-full min-w-32 rounded-md border-neutral-300 py-1.5 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("websiteUrl", { required: true })}
-                />
-              </div>
-            </label>
-          </div>
+        <h3 className="text-base font-semibold leading-6 text-neutral-800">
+          Generate a new landing page
+        </h3>
+        <p className="text-content-subtle mt-2 text-sm">
+          We'll use AI to generate a new landing page for your program, based on
+          content from your own website.
+        </p>
 
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              type="submit"
-              variant="primary"
-              loading={isSubmitting || isSubmitSuccessful}
-              text="Generate"
-              className="h-[34px] w-fit"
-            />
-          </div>
+        <div className="mt-4 flex flex-col gap-6">
+          {/* Title */}
+          <label>
+            <span className="block text-sm font-medium text-neutral-700">
+              Website URL
+            </span>
+            <div className="mt-2 rounded-md shadow-sm">
+              <input
+                type="text"
+                placeholder="https://dub.co"
+                autoFocus={!isMobile}
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                {...register("websiteUrl")}
+              />
+            </div>
+          </label>
+        </div>
+
+        <div className="mt-4 flex items-center justify-end gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            text="Cancel"
+            className="h-9 w-fit"
+            onClick={() => setShowGenerateLanderModal(false)}
+          />
+          <Button
+            type="submit"
+            variant="primary"
+            loading={isSubmitting || isSubmitSuccessful}
+            text="Generate"
+            className="h-9 w-fit"
+          />
         </div>
       </form>
     </>
