@@ -42,11 +42,11 @@ export const POST = async (req: Request) => {
     }
   } catch (error) {
     await log({
-      message: `Stripe webhook failed. Error: ${error.message}`,
+      message: `Stripe webhook failed (${event.type}). Error: ${error.message}`,
       type: "errors",
     });
 
-    return new Response('Webhook error: "Webhook handler failed. View logs."', {
+    return new Response(`Webhook error: ${error.message}`, {
       status: 400,
     });
   }
