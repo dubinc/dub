@@ -78,6 +78,7 @@ export const generateLanderAction = authActionClient
         (scrapeResult.metadata?.ogImage
           ? `You may include an image block in the landing page, only using the OG image here: ${scrapeResult.metadata?.ogImage}. `
           : "") +
+        `If you have product pricing information, include an earnings calculator block, using the highest non-enterprise tier for the average price. ` +
         `Markdown is supported in "text" blocks, but use it sparingly. ` +
         `Avoid using links. Relevant CTA links are already on the landing page. ` +
         // Program details
@@ -104,5 +105,10 @@ export const generateLanderAction = authActionClient
 
 function cleanMarkdown(markdown: string) {
   // Remove images
-  return markdown.replaceAll(/!\[[^\]]+\]\([^\)]+\)/g, "");
+  markdown = markdown.replaceAll(/!\[[^\]]+\]\([^\)]+\)/g, "");
+
+  // Truncate
+  markdown = markdown.substring(0, 10_000);
+
+  return markdown;
 }
