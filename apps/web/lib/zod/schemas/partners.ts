@@ -290,6 +290,10 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.merge(
     .describe(
       "If the partner submitted an application to join the program, this is the ID of the application.",
     ),
+  clickRewardId: z.string().nullish(),
+  leadRewardId: z.string().nullish(),
+  saleRewardId: z.string().nullish(),
+  discountId: z.string().nullish(),
   bannedAt: z.date().nullish(),
   bannedReason: z
     .enum(
