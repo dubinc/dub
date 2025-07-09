@@ -20,7 +20,7 @@ const expectValidSaleResponse = (
       name: expect.any(String),
       email: expect.any(String),
       avatar: expect.any(String),
-      customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
+      externalId: E2E_CUSTOMER_EXTERNAL_ID,
     },
     sale: {
       amount: sale.amount,
