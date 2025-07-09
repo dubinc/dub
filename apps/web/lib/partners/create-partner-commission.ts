@@ -14,6 +14,7 @@ import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { Session } from "../auth";
 import { RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
+import { CommissionResponseSchema } from "../zod/schemas/commissions";
 import { determinePartnerReward } from "./determine-partner-reward";
 
 export const createPartnerCommission = async ({
@@ -187,6 +188,10 @@ export const createPartnerCommission = async ({
         description,
         createdAt,
       },
+      include: {
+        partner: true,
+        customer: true,
+      },
     });
 
     waitUntil(
@@ -212,7 +217,7 @@ export const createPartnerCommission = async ({
 
           sendWorkspaceWebhook({
             trigger: "commission.created",
-            data: commission,
+            data: CommissionResponseSchema.parse(commission),
             workspace,
           }),
 

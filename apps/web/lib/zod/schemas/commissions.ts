@@ -191,8 +191,3 @@ export const createClawbackSchema = z.object({
     CLAWBACK_REASONS.map((r) => r.value) as [string, ...string[]],
   ),
 });
-
-
-// TODO:
-// Extend this with additional fields
-export const CommissionWebhookSchema = CommissionSchema;
