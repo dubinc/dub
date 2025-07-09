@@ -1,6 +1,6 @@
 "use client";
 
-import { approvePartnersBulkAction } from "@/lib/actions/partners/approve-partners-bulk";
+import { bulkApprovePartnersAction } from "@/lib/actions/partners/bulk-approve-partners";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import { rejectPartnersBulkAction } from "@/lib/actions/partners/reject-partners-bulk";
 import { mutatePrefix } from "@/lib/swr/mutate";
@@ -102,15 +102,15 @@ export function ProgramPartnersApplicationsPageClient() {
     });
 
   const { executeAsync: approvePartners, isPending: isApprovingPartners } =
-    useAction(approvePartnersBulkAction, {
+    useAction(bulkApprovePartnersAction, {
       onError: ({ error }) => {
         toast.error(error.serverError);
       },
-      onSuccess: ({ input }) => {
+      onSuccess: async ({ input }) => {
+        await mutatePrefix("/api/partners");
         toast.success(
           `${pluralize("Partner", input.partnerIds.length)} approved`,
         );
-        mutatePrefix(["/api/partners", "/api/partners/count"]);
       },
     });
 

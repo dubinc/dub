@@ -189,9 +189,9 @@ function PartnerApproval({
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess: async () => {
+      await mutatePrefix("/api/partners");
       queryParams({ del: "partnerId" });
       setIsOpen(false);
-      await mutatePrefix("/api/partners");
       toast.success("Approved the partner successfully.");
     },
     onError({ error }) {

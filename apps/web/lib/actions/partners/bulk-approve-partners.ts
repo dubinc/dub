@@ -10,7 +10,7 @@ import { authActionClient } from "../safe-action";
 
 // Approve partners applications in bulk
 // A referral link will be created for each partner
-export const approvePartnersBulkAction = authActionClient
+export const bulkApprovePartnersAction = authActionClient
   .schema(approvePartnersBulkSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
