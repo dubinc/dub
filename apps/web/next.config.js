@@ -1,8 +1,9 @@
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 const { withAxiom } = require("next-axiom");
+const { withSentryConfig } = require("@sentry/nextjs");
 
 /** @type {import('next').NextConfig} */
-module.exports = withAxiom({
+const nextConfig = withAxiom({
   reactStrictMode: false,
   transpilePackages: [
     "shiki",
@@ -19,6 +20,7 @@ module.exports = withAxiom({
     ],
     ...(process.env.NODE_ENV === "production" && {
       esmExternals: "loose",
+      instrumentationHook: true,
     }),
   },
   webpack: (config, { webpack, isServer }) => {
@@ -198,5 +200,25 @@ module.exports = withAxiom({
         destination: "https://plausible.io/api/event",
       },
     ];
+  },
+});
+
+module.exports = withSentryConfig(nextConfig, {
+  org: "dubinc",
+  project: "web",
+
+  // Only print logs for uploading source maps in CI
+  silent: !process.env.CI,
+
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: false,
+
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+
+  debug: false,
+
+  sourcemaps: {
+    disable: true,
   },
 });
