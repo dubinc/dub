@@ -20,7 +20,7 @@ const expectValidSaleResponse = (
       name: expect.any(String),
       email: expect.any(String),
       avatar: expect.any(String),
-      externalId: E2E_CUSTOMER_EXTERNAL_ID,
+      customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
     },
     sale: {
       amount: sale.amount,
@@ -58,7 +58,7 @@ describe("POST /track/sale", async () => {
       path: "/track/sale",
       body: {
         ...sale,
-        externalId: E2E_CUSTOMER_EXTERNAL_ID,
+        customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
       },
     });
 
@@ -70,7 +70,7 @@ describe("POST /track/sale", async () => {
       path: "/track/sale",
       body: {
         ...sale,
-        externalId: E2E_CUSTOMER_EXTERNAL_ID,
+        customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
         invoiceId: sale.invoiceId,
       },
     });
@@ -89,7 +89,7 @@ describe("POST /track/sale", async () => {
       body: {
         ...sale,
         invoiceId: `INV_${randomId()}`,
-        externalId: "external-id-that-does-not-exist",
+        customerExternalId: "external-id-that-does-not-exist",
       },
     });
 
@@ -101,7 +101,7 @@ describe("POST /track/sale", async () => {
     });
   });
 
-  test("track a sale with `customerId` (backward compatibility)", async () => {
+  test("track a sale with `externalId` (backward compatibility)", async () => {
     const newSale = {
       ...sale,
       invoiceId: `INV_${randomId()}`,
@@ -112,11 +112,29 @@ describe("POST /track/sale", async () => {
       path: "/track/sale",
       body: {
         ...newSale,
-        customerId: E2E_CUSTOMER_EXTERNAL_ID,
+        externalId: E2E_CUSTOMER_EXTERNAL_ID,
       },
     });
 
     expectValidSaleResponse(response4, newSale);
+  });
+
+  test("track a sale with `customerId` (backward compatibility)", async () => {
+    const newSale = {
+      ...sale,
+      invoiceId: `INV_${randomId()}`,
+      amount: randomSaleAmount(),
+    };
+
+    const response5 = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...newSale,
+        customerId: E2E_CUSTOMER_EXTERNAL_ID,
+      },
+    });
+
+    expectValidSaleResponse(response5, newSale);
   });
 
   test("track a sale with JPY currency (zero decimal currency)", async () => {
@@ -132,7 +150,7 @@ describe("POST /track/sale", async () => {
       path: "/track/sale",
       body: {
         ...jpySale,
-        externalId: E2E_CUSTOMER_EXTERNAL_ID,
+        customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
       },
     });
 
