@@ -12,6 +12,7 @@ import {
   LoadingSpinner,
   Pen2,
   Plus2,
+  Sparkle3,
   Tooltip,
   Trash,
   useMediaQuery,
@@ -46,7 +47,7 @@ export function LanderPreview({
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
-  let { isGeneratingLander } = useBrandingContext();
+  let { isGeneratingLander, isGenerateBannerHidden } = useBrandingContext();
   // isGeneratingLander = true; // TODO
 
   const { setValue, getValues } = useBrandingFormContext();
@@ -93,6 +94,9 @@ export function LanderPreview({
     string | "hero" | "rewards" | null
   >(null);
 
+  const showGenerateButton =
+    isGenerateBannerHidden || landerData?.blocks.length !== 0;
+
   return (
     <>
       {editingBlock && editingBlockMeta && (
@@ -126,6 +130,29 @@ export function LanderPreview({
       <PreviewWindow
         url={`${PARTNERS_DOMAIN}/${program?.slug}`}
         scrollRef={scrollRef}
+        controls={
+          <div
+            className={cn(
+              "pointer-events-none w-0 translate-y-1 overflow-hidden opacity-0 transition-[opacity,transform]",
+              showGenerateButton &&
+                "pointer-events-auto w-auto translate-y-0 opacity-100",
+            )}
+            {...{ inert: showGenerateButton ? undefined : "" }}
+          >
+            <Button
+              type="button"
+              variant="secondary"
+              text={
+                <div className="flex items-center gap-1">
+                  Generate
+                  <Sparkle3 className="size-3" />
+                </div>
+              }
+              className="animate-fade-in h-7 w-fit px-2"
+              onClick={() => alert("wip")}
+            />
+          </div>
+        }
         overlay={
           <div
             className={cn(

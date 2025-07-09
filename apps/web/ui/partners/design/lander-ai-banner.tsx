@@ -25,10 +25,14 @@ export function LanderAIBanner() {
   const landerData = useWatch({ name: "landerData" });
   const { setValue } = useBrandingFormContext();
 
-  const [bannerHidden, setBannerHidden] = useState(false);
   const [showGenerateLanderModal, setShowGenerateLanderModal] = useState(false);
 
-  const { isGeneratingLander, setIsGeneratingLander } = useBrandingContext();
+  const {
+    isGeneratingLander,
+    setIsGeneratingLander,
+    isGenerateBannerHidden,
+    setIsGenerateBannerHidden,
+  } = useBrandingContext();
 
   const { executeAsync } = useAction(generateLanderAction, {
     async onSuccess() {
@@ -39,7 +43,7 @@ export function LanderAIBanner() {
     },
   });
 
-  const showBanner = !bannerHidden && landerData?.blocks.length === 0;
+  const showBanner = !isGenerateBannerHidden && landerData?.blocks.length === 0;
 
   return (
     <>
@@ -83,7 +87,7 @@ export function LanderAIBanner() {
                     variant="outline"
                     icon={<X className="size-4" />}
                     className="size-7 rounded-lg bg-black/5 p-0 backdrop-blur-sm hover:bg-black/10 active:bg-black/15"
-                    onClick={() => setBannerHidden(true)}
+                    onClick={() => setIsGenerateBannerHidden(true)}
                   />
                 </div>
               </div>

@@ -12,6 +12,7 @@ export function PreviewWindow({
   className,
   contentClassName,
   overlay,
+  controls,
   children,
 }: PropsWithChildren<{
   url: string;
@@ -20,6 +21,7 @@ export function PreviewWindow({
   className?: string;
   contentClassName?: string;
   overlay?: ReactNode;
+  controls?: ReactNode;
 }>) {
   const [_, copyToClipboard] = useCopyToClipboard();
 
@@ -59,7 +61,8 @@ export function PreviewWindow({
             </div>
           </div>
         </button>
-        <div className="flex grow basis-0 justify-end">
+        <div className="flex grow basis-0 justify-end gap-2">
+          {controls}
           {showViewButton && (
             <Link
               href={url}
