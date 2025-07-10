@@ -1,5 +1,6 @@
+import useWorkspaces from "@/lib/swr/use-workspaces";
 import { Avatar, Button, Modal } from "@dub/ui";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
   Dispatch,
@@ -9,6 +10,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 
 function DeleteAccountModal({
   showDeleteAccountModal,
@@ -19,30 +21,82 @@ function DeleteAccountModal({
 }) {
   const router = useRouter();
   const { data: session, update } = useSession();
+  const { workspaces } = useWorkspaces();
   const [deleting, setDeleting] = useState(false);
 
+  const userWorkspace = useMemo(() => {
+    if (!workspaces) return null;
+    return workspaces.find(
+      (workspace) => workspace.users?.[0].role === "owner",
+    );
+  }, [workspaces]);
+
   async function deleteAccount() {
-    setDeleting(true);
-    await fetch(`/api/user`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then(async (res) => {
-      if (res.status === 200) {
-        update();
-        // delay to allow for the route change to complete
-        await new Promise((resolve) =>
-          setTimeout(() => {
-            router.push("/register");
-            resolve(null);
-          }, 200),
-        );
-      } else {
-        setDeleting(false);
-        const error = await res.text();
-        throw error;
+    return new Promise((resolve, reject) => {
+      setDeleting(true);
+
+      const deleteUser = async () => {
+        const accountRes = await fetch(`/api/user`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (accountRes.ok) {
+          setShowDeleteAccountModal(false);
+          setDeleting(false);
+          // Then handle session cleanup and redirect
+          await Promise.all([
+            mutate("/api/workspaces"),
+            update(),
+            signOut({ redirect: false }),
+          ]);
+          router.push("/register");
+          resolve(null);
+        } else {
+          const error = await accountRes.text();
+          throw new Error(error);
+        }
+      };
+
+      if (!userWorkspace?.id) {
+        deleteUser().catch((error) => {
+          setDeleting(false);
+          reject(error.message);
+        });
+        return;
       }
+
+      // If user has a workspace we need to delete it first
+      fetch(`/api/workspaces/${userWorkspace.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then(async (res) => {
+          if (res.ok) {
+            try {
+              await deleteUser();
+            } catch (error) {
+              setDeleting(false);
+              reject(
+                error instanceof Error
+                  ? error.message
+                  : "Failed to delete account",
+              );
+            }
+          } else {
+            setDeleting(false);
+            const error = await res.text();
+            reject(error);
+          }
+        })
+        .catch((error) => {
+          setDeleting(false);
+          reject(error.message);
+        });
     });
   }
 
@@ -55,8 +109,8 @@ function DeleteAccountModal({
         <Avatar user={session?.user} />
         <h3 className="text-lg font-medium">Delete Account</h3>
         <p className="text-center text-sm text-neutral-500">
-          Warning: This will permanently delete your account, all your
-          workspaces, and all your short links.
+          Warning: This will permanently delete your account and all your QR
+          codes.
         </p>
       </div>
 
