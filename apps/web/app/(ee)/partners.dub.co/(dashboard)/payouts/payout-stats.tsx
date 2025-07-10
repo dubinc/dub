@@ -1,17 +1,33 @@
 "use client";
 
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
+import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PayoutStatus } from "@dub/prisma/client";
-import {
-  InfoTooltip,
-  LoadingCircle,
-  PaperPlane,
-  Success,
-  TriangleWarning,
-} from "@dub/ui";
+import { InfoTooltip } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import { ReactNode } from "react";
+
+const tooltips = {
+  stripe: {
+    pending:
+      "Payouts that have passed the program’s holding period and are waiting to be processed.",
+    processing:
+      "Payouts that have been processed by the program and are on their way to your Stripe Express account.",
+    sent: "Payouts that have been sent to your Stripe Express account and will be automatically paid out once they reach your minimum withdrawal balance.",
+    completed:
+      "Payouts that have been paid out from Stripe to your connected bank account.",
+  },
+  paypal: {
+    pending:
+      "Payouts that have passed the program’s holding period and are waiting to be processed.",
+    processing:
+      "Payouts that have been processed by the program and are on their way to your PayPal account.",
+    sent: "",
+    completed: "Payouts that have been paid out to your PayPal account",
+  },
+} as const;
 
 function PayoutStatsCard({
   label,
@@ -26,21 +42,14 @@ function PayoutStatsCard({
   amount: number;
   icon: any;
   iconClassName?: string;
-  tooltip: string;
+  tooltip?: string;
   sublabel?: ReactNode;
   error?: boolean;
 }) {
   const isLoading = amount === undefined || error;
 
-  console.log({
-    label,
-    isLoading,
-    amount,
-    error,
-  });
-
   return (
-    <div className="flex min-w-[200px] flex-col gap-3 p-4">
+    <div className="flex flex-col gap-3 p-4">
       <div className="flex items-center gap-2">
         <div
           className={cn(
@@ -53,28 +62,30 @@ function PayoutStatsCard({
         <span className="text-xs font-medium leading-3 text-neutral-500">
           {label}
         </span>
-        <InfoTooltip content={tooltip} side="top" className="size-3.5" />
+
+        {tooltip && (
+          <InfoTooltip content={tooltip} side="top" className="size-3.5" />
+        )}
       </div>
 
       <div className="flex items-end gap-2">
         {!isLoading ? (
-          <span className="text-xl font-medium leading-7 text-neutral-800">
+          <span className="text-base font-medium leading-6 text-neutral-800 sm:text-xl sm:leading-7">
             {error ? (
               "-"
             ) : (
               <>
-                USD{" "}
                 {amount > 0
                   ? currencyFormatter(amount / 100, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })
-                  : "0.00"}
+                  : "$0.00"}
               </>
             )}
           </span>
         ) : (
-          <div className="h-7 w-24 animate-pulse rounded bg-neutral-200" />
+          <div className="h-6 w-20 animate-pulse rounded bg-neutral-200 sm:h-7 sm:w-24" />
         )}
 
         {/* {sublabel && (
@@ -86,9 +97,21 @@ function PayoutStatsCard({
 }
 
 export function PayoutStats() {
+  const { partner } = usePartnerProfile();
+
   const { payoutsCount, error } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
   });
+
+  let payoutMethod: "stripe" | "paypal" | undefined = undefined;
+
+  if (partner?.stripeConnectId) {
+    payoutMethod = "stripe";
+  } else if (partner?.paypalEmail) {
+    payoutMethod = "paypal";
+  }
+
+  const tooltip = payoutMethod ? tooltips[payoutMethod] : undefined;
 
   const payoutStatusMap = Object.fromEntries(
     payoutsCount?.map((p) => [p.status, p]) || [],
@@ -98,44 +121,57 @@ export function PayoutStats() {
     {
       label: "Pending",
       amount: payoutStatusMap?.pending?.amount,
-      icon: TriangleWarning,
+      icon: PayoutStatusBadges.pending.icon,
       iconClassName: "bg-orange-100 text-orange-500",
-      tooltip:
-        "Payouts that have passed the program’s holding period and are waiting to be processed.",
+      tooltip: tooltip?.pending,
       error: !!error,
+      payoutMethod,
     },
     {
       label: "Processing",
       amount: payoutStatusMap?.processing?.amount,
-      icon: LoadingCircle,
+      icon: PayoutStatusBadges.processing.icon,
       iconClassName: "bg-blue-100 text-blue-500",
-      tooltip:
-        "Payouts that have been processed by the program and are on their way to your Stripe Express account.",
+      tooltip: tooltip?.processing,
       error: !!error,
+      payoutMethod,
     },
-    {
-      label: "Sent",
-      amount: payoutStatusMap?.sent?.amount,
-      icon: PaperPlane,
-      iconClassName: "bg-indigo-100 text-indigo-500",
-      tooltip:
-        "Payouts that have been sent to your Stripe Express account and will be automatically paid out once they reach your minimum withdrawal balance.",
-      sublabel: "Est: 4 business days",
-      error: !!error,
-    },
+
+    ...(payoutMethod === "stripe"
+      ? [
+          {
+            label: "Sent",
+            amount: payoutStatusMap?.sent?.amount,
+            icon: PayoutStatusBadges.sent.icon,
+            iconClassName: "bg-indigo-100 text-indigo-500",
+            tooltip: tooltip?.sent,
+            sublabel: "Est: 4 business days",
+            error: !!error,
+            payoutMethod,
+          },
+        ]
+      : []),
+
     {
       label: "Complete",
       amount: payoutStatusMap?.completed?.amount,
-      icon: Success,
+      icon: PayoutStatusBadges.completed.icon,
       iconClassName: "bg-green-100 text-green-500",
-      tooltip:
-        "Payouts that have been paid out from Stripe to your connected bank account.",
+      tooltip: tooltip?.completed,
       error: !!error,
+      payoutMethod,
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-4 divide-y-0 rounded-lg border border-neutral-200 sm:grid-cols-2 lg:grid-cols-4 lg:divide-x">
+    <div
+      className={cn(
+        "grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200",
+        payoutMethod === "stripe"
+          ? "xs:grid-cols-4 xs:divide-x xs:divide-y-0"
+          : "xs:grid-cols-3 xs:divide-x xs:divide-y-0",
+      )}
+    >
       {payoutStats.map((stat) => (
         <PayoutStatsCard key={stat.label} {...stat} />
       ))}

@@ -3,6 +3,7 @@ import {
   CircleHalfDottedClock,
   CircleWarning,
   CircleXmark,
+  PaperPlane,
 } from "@dub/ui/icons";
 
 export const PayoutStatusBadges = {
@@ -16,6 +17,12 @@ export const PayoutStatusBadges = {
     label: "Processing",
     variant: "new",
     icon: CircleHalfDottedClock,
+    className: "text-blue-600 bg-blue-100",
+  },
+  sent: {
+    label: "Sent",
+    variant: "new",
+    icon: PaperPlane,
     className: "text-blue-600 bg-blue-100",
   },
   completed: {
