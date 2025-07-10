@@ -17,6 +17,7 @@ import { LinkSchema } from "./links";
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
   invoiceId: true,
+  description: true,
 }).merge(
   z.object({
     customer: z
