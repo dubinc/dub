@@ -4,8 +4,6 @@ import Stripe from "stripe";
 export async function payoutPaid(event: Stripe.Event) {
   const stripeAccount = event.account;
 
-  console.log("payoutPaid", event);
-
   if (!stripeAccount) {
     console.error("Stripe account not found. Skipping...");
     return;
@@ -24,6 +22,15 @@ export async function payoutPaid(event: Stripe.Event) {
     return;
   }
 
-  // TODO:
-  // Update the associated payouts on Dub to completed
+  const stripePayout = event.data.object as Stripe.Payout;
+
+  await prisma.payout.updateMany({
+    where: {
+      status: "sent",
+      stripePayoutId: stripePayout.id,
+    },
+    data: {
+      status: "completed",
+    },
+  });
 }

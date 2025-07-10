@@ -114,13 +114,14 @@ export async function balanceAvailable(event: Stripe.Event) {
 
   let withdrawalFee = 0;
 
+  const transfers = await stripe.transfers.list({
+    destination: stripeAccount,
+    limit: 100,
+  });
+
   // Decide if we need to charge a withdrawal fee for the partner
   if (partner.minWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS) {
     withdrawalFee = BELOW_MIN_WITHDRAWAL_FEE_CENTS;
-
-    const transfers = await stripe.transfers.list({
-      destination: stripeAccount,
-    });
 
     if (transfers.data.length === 0) {
       console.error(
@@ -190,6 +191,20 @@ export async function balanceAvailable(event: Stripe.Event) {
       stripeAccount,
     },
   );
+
+  // Find the Dub payouts associated with this Stripe payout
+  await prisma.payout.updateMany({
+    where: {
+      status: "sent",
+      stripePayoutId: null,
+      stripeTransferId: {
+        in: transfers.data.map(({ id }) => id),
+      },
+    },
+    data: {
+      stripePayoutId: payout.id,
+    },
+  });
 
   console.log(
     `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${payout.id} (${currencyFormatter(payout.amount / 100, { maximumFractionDigits: 2, currency })})`,
