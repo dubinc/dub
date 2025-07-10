@@ -1,14 +1,17 @@
 import { cn } from "@dub/utils";
 import { Table } from "@tanstack/react-table";
 import { ReactNode, useEffect, useState } from "react";
+import { Checkbox } from "../checkbox";
 import { useKeyboardShortcut } from "../hooks";
 
 export function SelectionToolbar<T>({
   table,
   controls,
+  className,
 }: {
   table: Table<T>;
   controls?: (table: Table<T>) => ReactNode;
+  className?: string;
 }) {
   const selectedCount = table.getSelectedRowModel().rows.length;
   const [lastSelectedCount, setLastSelectedCount] = useState(0);
@@ -24,32 +27,49 @@ export function SelectionToolbar<T>({
   });
 
   return (
-    <tr
-      className={cn("size-0")}
-      {...{
-        inert: table.getSelectedRowModel().rows.length ? undefined : "",
-      }}
+    <div
+      className={cn(
+        "border-border-subtle w-full border-b bg-white",
+        "transition-opacity duration-100",
+        selectedCount > 0
+          ? "pointer-events-auto opacity-100"
+          : "pointer-events-none opacity-0",
+        className,
+      )}
+      {...{ inert: selectedCount > 0 ? undefined : "" }}
     >
-      <td colSpan={table.getHeaderGroups().length} className="contents size-0">
-        <div
+      <div className="flex h-11 items-center gap-2.5 px-2 py-2.5">
+        <div className="flex w-6 items-center justify-center">
+          <Checkbox
+            className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+            checked={
+              table.getIsAllRowsSelected()
+                ? true
+                : table.getIsSomeRowsSelected()
+                  ? "indeterminate"
+                  : false
+            }
+            onCheckedChange={() => table.toggleAllRowsSelected()}
+            title="Select all"
+          />
+        </div>
+        <span
           className={cn(
-            "pointer-events-none absolute bottom-px left-11 right-0 top-0 bg-white opacity-0 duration-100",
-            selectedCount && "pointer-events-auto opacity-100",
+            "text-content-emphasis mr-2 text-sm font-medium tabular-nums transition-transform duration-150",
+            selectedCount > 0 ? "translate-x-0" : "-translate-x-1",
           )}
         >
-          <div
-            className={cn(
-              "flex size-full -translate-x-1 items-center gap-2 transition-transform duration-100",
-              selectedCount && "translate-x-0",
-            )}
-          >
-            <span className="text-content-emphasis mr-2 text-sm font-medium tabular-nums">
-              {lastSelectedCount} selected
-            </span>
-            {controls?.(table)}
-          </div>
+          {lastSelectedCount} selected
+        </span>
+        <div
+          className={cn(
+            "flex items-center gap-2 transition-transform duration-150",
+            selectedCount > 0 ? "translate-x-0" : "-translate-x-1",
+          )}
+        >
+          {controls?.(table)}
         </div>
-      </td>
-    </tr>
+      </div>
+    </div>
   );
 }
