@@ -8,6 +8,7 @@ import { PayoutStatus } from "@dub/prisma/client";
 import { InfoTooltip } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import { ReactNode } from "react";
+import { usePartnerPayoutSettingsModal } from "./partner-payout-settings-modal";
 
 const tooltips = {
   stripe: {
@@ -43,7 +44,7 @@ function PayoutStatsCard({
   icon: any;
   iconClassName?: string;
   tooltip?: string;
-  sublabel?: ReactNode;
+  sublabel?: () => ReactNode;
   error?: boolean;
 }) {
   const isLoading = amount === undefined || error;
@@ -70,27 +71,31 @@ function PayoutStatsCard({
 
       <div className="flex items-end gap-2">
         {!isLoading ? (
-          <span className="text-base font-medium leading-6 text-neutral-800 sm:text-xl sm:leading-7">
-            {error ? (
-              "-"
-            ) : (
-              <>
-                {amount > 0
-                  ? currencyFormatter(amount / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
-                  : "$0.00"}
-              </>
-            )}
-          </span>
-        ) : (
-          <div className="h-6 w-20 animate-pulse rounded bg-neutral-200 sm:h-7 sm:w-24" />
-        )}
+          <div className="flex items-center gap-2">
+            <span className="h-7 text-base font-medium leading-6 text-neutral-800 sm:text-xl sm:leading-7">
+              {error ? (
+                "-"
+              ) : (
+                <>
+                  {amount > 0
+                    ? currencyFormatter(amount / 100, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })
+                    : "$0.00"}
+                </>
+              )}
+            </span>
 
-        {/* {sublabel && (
-          <span className="ml-2 text-xs text-neutral-500">{sublabel}</span>
-        )} */}
+            {sublabel && (
+              <span className="items-center gap-6 rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium leading-4 text-neutral-700">
+                {sublabel()}
+              </span>
+            )}
+          </div>
+        ) : (
+          <div className="h-7 w-20 animate-pulse rounded bg-neutral-200 sm:h-7 sm:w-24" />
+        )}
       </div>
     </div>
   );
@@ -102,6 +107,9 @@ export function PayoutStats() {
   const { payoutsCount, error } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
   });
+
+  const { PartnerPayoutSettingsModal, setShowPartnerPayoutSettingsModal } =
+    usePartnerPayoutSettingsModal();
 
   let payoutMethod: "stripe" | "paypal" | undefined = undefined;
 
@@ -125,7 +133,6 @@ export function PayoutStats() {
       iconClassName: "bg-orange-100 text-orange-500",
       tooltip: tooltip?.pending,
       error: !!error,
-      payoutMethod,
     },
     {
       label: "Processing",
@@ -134,7 +141,6 @@ export function PayoutStats() {
       iconClassName: "bg-blue-100 text-blue-500",
       tooltip: tooltip?.processing,
       error: !!error,
-      payoutMethod,
     },
 
     ...(payoutMethod === "stripe"
@@ -145,36 +151,57 @@ export function PayoutStats() {
             icon: PayoutStatusBadges.sent.icon,
             iconClassName: "bg-indigo-100 text-indigo-500",
             tooltip: tooltip?.sent,
-            sublabel: "Est: 4 business days",
             error: !!error,
-            payoutMethod,
+            sublabel: () => {
+              if (!partner || !payoutsCount || error) {
+                return (
+                  <div className="h-4 w-20 animate-pulse rounded bg-neutral-200" />
+                );
+              }
+
+              const amount = payoutStatusMap.sent.amount;
+
+              if (amount < partner.minWithdrawalAmount) {
+                return (
+                  <button
+                    onClick={() => setShowPartnerPayoutSettingsModal(true)}
+                    title="Update minimum withdrawal amount"
+                  >
+                    {currencyFormatter(partner.minWithdrawalAmount / 100)}{" "}
+                    minimum
+                  </button>
+                );
+              }
+            },
           },
         ]
       : []),
 
     {
-      label: "Complete",
+      label: "Completed",
       amount: payoutStatusMap?.completed?.amount,
       icon: PayoutStatusBadges.completed.icon,
       iconClassName: "bg-green-100 text-green-500",
       tooltip: tooltip?.completed,
       error: !!error,
-      payoutMethod,
     },
   ];
 
   return (
-    <div
-      className={cn(
-        "grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200",
-        payoutMethod === "stripe"
-          ? "xs:grid-cols-4 xs:divide-x xs:divide-y-0"
-          : "xs:grid-cols-3 xs:divide-x xs:divide-y-0",
-      )}
-    >
-      {payoutStats.map((stat) => (
-        <PayoutStatsCard key={stat.label} {...stat} />
-      ))}
-    </div>
+    <>
+      <PartnerPayoutSettingsModal />
+      <div
+        className={cn(
+          "grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200",
+          payoutMethod === "stripe"
+            ? "xs:grid-cols-4 xs:divide-x xs:divide-y-0"
+            : "xs:grid-cols-3 xs:divide-x xs:divide-y-0",
+        )}
+      >
+        {payoutStats.map((stat) => (
+          <PayoutStatsCard key={stat.label} {...stat} />
+        ))}
+      </div>
+    </>
   );
 }
