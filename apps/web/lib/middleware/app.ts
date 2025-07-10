@@ -27,6 +27,7 @@ export default async function AppMiddleware(req: NextRequest) {
     path !== "/forgot-password" &&
     path !== "/register" &&
     path !== "/auth/saml" &&
+    path !== "/two-factor-challenge" &&
     !path.startsWith("/auth/reset-password/") &&
     !path.startsWith("/share/")
   ) {

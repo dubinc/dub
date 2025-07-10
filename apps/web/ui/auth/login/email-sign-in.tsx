@@ -92,6 +92,11 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
           }
 
           if (!response.ok && response.error) {
+            if (response.error === "two-factor-required") {
+              router.push("/two-factor-challenge");
+              return;
+            }
+
             if (errorCodes[response.error]) {
               toast.error(errorCodes[response.error]);
             } else {
