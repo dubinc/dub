@@ -5,6 +5,8 @@ import {
 } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
+import { sendEmail } from "@dub/email";
+import PartnerPayoutWithdrawalInitiated from "@dub/email/templates/partner-payout-withdrawal-initiated";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter, log } from "@dub/utils";
 import Stripe from "stripe";
@@ -192,4 +194,16 @@ export async function balanceAvailable(event: Stripe.Event) {
   console.log(
     `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${payout.id} (${currencyFormatter(payout.amount / 100, { maximumFractionDigits: 2, currency })})`,
   );
+
+  if (partner.email) {
+    await sendEmail({
+      variant: "notifications",
+      subject: "Your funds are on their way to your bank",
+      email: partner.email,
+      react: PartnerPayoutWithdrawalInitiated({
+        email: partner.email,
+        payoutAmount: availableBalance,
+      }),
+    });
+  }
 }
