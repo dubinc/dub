@@ -81,8 +81,9 @@ export const PayoutStats = memo(() => {
                   (payoutsCount
                     ?.filter(
                       (payout) =>
-                        payout.status === PayoutStatus.completed ||
-                        payout.status === PayoutStatus.processing,
+                        payout.status === PayoutStatus.processing ||
+                        payout.status === PayoutStatus.sent ||
+                        payout.status === PayoutStatus.completed,
                     )
                     ?.reduce((acc, p) => acc + p.amount, 0) ?? 0) / 100,
                   {
