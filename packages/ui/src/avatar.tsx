@@ -34,7 +34,7 @@ export function Avatar({
     return (
       <div
         className={cn(
-          "h-10 w-10 animate-pulse rounded-full border border-neutral-300 bg-neutral-100",
+          "border-border-500 h-10 w-10 animate-pulse rounded-full border bg-neutral-100",
           className,
         )}
       />
@@ -49,7 +49,7 @@ export function Avatar({
       referrerPolicy="no-referrer"
       src={url}
       className={cn(
-        "h-10 w-10 rounded-full border border-neutral-300",
+        "border-border-500 h-10 w-10 rounded-full border",
         className,
       )}
       draggable={false}
