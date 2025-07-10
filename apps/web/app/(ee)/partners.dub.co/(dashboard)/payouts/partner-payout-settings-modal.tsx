@@ -10,6 +10,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
+import { PayoutMethodsDropdown } from "@/ui/partners/payout-methods-dropdown";
 import {
   AnimatedSizeContainer,
   Button,
@@ -124,8 +125,10 @@ function PartnerPayoutSettingsModalInner({
                 </h4>
               </div>
 
-              {partner && (
+              {!partner?.payoutsEnabledAt ? (
                 <ConnectPayoutButton className="h-10 rounded-lg px-4 py-2" />
+              ) : (
+                <PayoutMethodsDropdown />
               )}
             </div>
 
