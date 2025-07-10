@@ -9,8 +9,13 @@ const expectedCommission = {
   status: expect.any(String),
   currency: expect.any(String),
   type: expect.any(String),
+  invoiceId: expect.any(String),
+  description: expect.any(String),
+  quantity: expect.any(Number),
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
+  partner: expect.any(Object),
+  customer: expect.any(Object),
 };
 
 describe.sequential("/commissions/**", async () => {
