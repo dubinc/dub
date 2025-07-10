@@ -24,6 +24,10 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { KeyedMutator } from "swr";
 import { z } from "zod";
+import {
+  BrandingContextProvider,
+  useBrandingContext,
+} from "./branding-context-provider";
 import { BrandingSettingsForm } from "./branding-settings-form";
 import { EmbedPreview } from "./previews/embed-preview";
 import { LanderPreview } from "./previews/lander-preview";
@@ -65,12 +69,14 @@ export function BrandingForm() {
     );
 
   return (
-    <BrandingFormInner
-      program={program}
-      mutateProgram={mutateProgram}
-      draft={draft}
-      setDraft={setDraft}
-    />
+    <BrandingContextProvider>
+      <BrandingFormInner
+        program={program}
+        mutateProgram={mutateProgram}
+        draft={draft}
+        setDraft={setDraft}
+      />
+    </BrandingContextProvider>
   );
 }
 
@@ -129,17 +135,25 @@ function BrandingFormInner({
   } = form;
 
   const { executeAsync, isPending } = useAction(updateProgramAction, {
-    async onSuccess() {
+    async onSuccess({ data }) {
       await mutateProgram();
       toast.success("Program updated successfully.");
-      // Reset form state to clear isSubmitSuccessful
+
       const currentValues = getValues();
-      reset(currentValues);
+
+      if (data?.program.landerData) {
+        // Reset to persisted (in case anything changed)
+        reset({
+          ...currentValues,
+          landerData: data?.program.landerData,
+        });
+      } else {
+        // Still reset form state to clear isSubmitSuccessful
+        reset(currentValues);
+      }
     },
     onError({ error }) {
       console.error(error);
-      setError("root", { message: "Failed to update program." });
-      toast.error("Failed to update program.");
     },
   });
 
@@ -154,19 +168,31 @@ function BrandingFormInner({
 
   const [isTabPopoverOpen, setIsTabPopoverOpen] = useState(false);
 
+  const { isGeneratingLander } = useBrandingContext();
+
   // Disable publish button when:
-  // - there are no changes
-  // - the program lander is already published
+  // - the lander is being generated with AI
+  // OR:
+  //   - there are no changes
+  //   - the program lander is already published
   const disablePublishButton =
-    !isDirty && program.landerPublishedAt ? true : false;
+    isGeneratingLander || (!isDirty && program.landerPublishedAt)
+      ? true
+      : false;
 
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
-        await executeAsync({
+        const result = await executeAsync({
           workspaceId: workspaceId!,
           ...data,
         });
+
+        if (!result?.data?.success) {
+          toast.error("Failed to update program.");
+          setError("root", { message: "Failed to update program." });
+          return;
+        }
       })}
       className="overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
     >
