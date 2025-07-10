@@ -27,6 +27,14 @@ export async function getQrs({
     }
   }
 
+  // Map qrs sort options to database fields
+  const sortMapping = {
+    lastScanned: "lastClicked",
+    totalScans: "clicks",
+  };
+
+  const actualSortBy = sortMapping[sortBy] || sortBy;
+
   const qrs = await prisma.qr.findMany({
     where: {
       ...(search && {
@@ -46,7 +54,15 @@ export async function getQrs({
       link: true,
     },
     orderBy: {
-      [sortBy]: sortOrder,
+      ...(["clicks", "lastClicked"].includes(actualSortBy)
+        ? {
+            link: {
+              [actualSortBy]: sortOrder,
+            },
+          }
+        : {
+            [actualSortBy || "createdAt"]: sortOrder,
+          }),
     },
     take: pageSize,
     skip: (page - 1) * pageSize,
