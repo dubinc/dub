@@ -69,7 +69,7 @@ function PayoutStatsCard({
         )}
       </div>
 
-      <div className="flex items-center gap-2 bg-red-50">
+      <div className="flex items-center gap-2">
         {!isLoading ? (
           <div className="flex items-center gap-2">
             <span className="h-7 text-base font-medium leading-6 text-neutral-800 sm:text-xl sm:leading-7">
