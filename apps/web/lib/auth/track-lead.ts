@@ -14,7 +14,7 @@ export const trackLead = async (user: User) => {
   await dub.track.lead({
     clickId,
     eventName: "Sign Up",
-    externalId: user.id,
+    customerExternalId: user.id,
     customerName: user.name,
     customerEmail: user.email,
     customerAvatar: user.image,

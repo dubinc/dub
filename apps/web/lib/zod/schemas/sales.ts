@@ -5,7 +5,7 @@ import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
-  externalId: z
+  customerExternalId: z
     .string()
     .trim()
     .max(100)
