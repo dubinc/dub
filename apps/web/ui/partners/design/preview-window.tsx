@@ -2,7 +2,7 @@ import { buttonVariants, Copy, useCopyToClipboard } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import { PropsWithChildren, RefObject } from "react";
+import { PropsWithChildren, ReactNode, RefObject } from "react";
 import { toast } from "sonner";
 
 export function PreviewWindow({
@@ -11,6 +11,8 @@ export function PreviewWindow({
   showViewButton = true,
   className,
   contentClassName,
+  overlay,
+  controls,
   children,
 }: PropsWithChildren<{
   url: string;
@@ -18,13 +20,15 @@ export function PreviewWindow({
   showViewButton?: boolean;
   className?: string;
   contentClassName?: string;
+  overlay?: ReactNode;
+  controls?: ReactNode;
 }>) {
   const [_, copyToClipboard] = useCopyToClipboard();
 
   return (
     <div
       className={cn(
-        "flex size-full flex-col overflow-hidden rounded-t-xl border-x border-t border-neutral-200 bg-white shadow-md",
+        "relative flex size-full flex-col overflow-hidden rounded-t-xl border-x border-t border-neutral-200 bg-white shadow-md",
         className,
       )}
     >
@@ -57,7 +61,8 @@ export function PreviewWindow({
             </div>
           </div>
         </button>
-        <div className="flex grow basis-0 justify-end">
+        <div className="flex grow basis-0 justify-end gap-2">
+          {controls}
           {showViewButton && (
             <Link
               href={url}
@@ -73,14 +78,17 @@ export function PreviewWindow({
           )}
         </div>
       </div>
-      <div
-        className={cn(
-          "scrollbar-hide @container grow overflow-y-auto",
-          contentClassName,
-        )}
-        ref={scrollRef}
-      >
-        {children}
+      <div className="relative z-0 grow overflow-hidden">
+        <div
+          className={cn(
+            "scrollbar-hide @container relative size-full overflow-y-auto",
+            contentClassName,
+          )}
+          ref={scrollRef}
+        >
+          {children}
+        </div>
+        {overlay}
       </div>
     </div>
   );
