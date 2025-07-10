@@ -53,7 +53,7 @@ describe("POST /track/lead", async () => {
       body: {
         clickId: trackedClickId,
         eventName: "Signup",
-        externalId: customer1.externalId,
+        customerExternalId: customer1.externalId,
         customerName: customer1.name,
         customerEmail: customer1.email,
         customerAvatar: customer1.avatar,
@@ -73,7 +73,7 @@ describe("POST /track/lead", async () => {
       body: {
         clickId: trackedClickId,
         eventName: "Signup",
-        externalId: customer1.externalId,
+        customerExternalId: customer1.externalId,
         customerName: customer1.name,
         customerEmail: customer1.email,
         customerAvatar: customer1.avatar,
@@ -95,7 +95,7 @@ describe("POST /track/lead", async () => {
       body: {
         clickId: trackedClickId,
         eventName: "Start Trial",
-        externalId: customer2.externalId,
+        customerExternalId: customer2.externalId,
         customerName: customer2.name,
         customerEmail: customer2.email,
         customerAvatar: customer2.avatar,
@@ -117,7 +117,7 @@ describe("POST /track/lead", async () => {
       body: {
         clickId: trackedClickId,
         eventName: "Mode=Wait Signup",
-        externalId: customer3.externalId,
+        customerExternalId: customer3.externalId,
         customerName: customer3.name,
         customerEmail: customer3.email,
         customerAvatar: customer3.avatar,
@@ -133,7 +133,7 @@ describe("POST /track/lead", async () => {
     const saleResponse = await http.post<TrackSaleResponse>({
       path: "/track/sale",
       body: {
-        externalId: customer3.externalId,
+        customerExternalId: customer3.externalId,
         eventName: "Mode=Wait Purchase",
         amount: 500,
         paymentProcessor: "stripe",
@@ -143,13 +143,13 @@ describe("POST /track/lead", async () => {
     expect(saleResponse.status).toEqual(200);
   });
 
-  test("track a lead with `customerId` (backward compatibility)", async () => {
+  test("track a lead with `externalId` (backward compatibility)", async () => {
     const customer4 = randomCustomer();
     const response = await http.post<TrackLeadResponse>({
       path: "/track/lead",
       body: {
         clickId: trackedClickId,
-        customerId: customer4.externalId,
+        externalId: customer4.externalId,
         eventName: "Signup",
         customerName: customer4.name,
         customerEmail: customer4.email,
@@ -160,6 +160,27 @@ describe("POST /track/lead", async () => {
     expectValidLeadResponse({
       response,
       customer: customer4,
+      clickId: trackedClickId,
+    });
+  });
+
+  test("track a lead with `customerId` (backward compatibility)", async () => {
+    const customer5 = randomCustomer();
+    const response = await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        clickId: trackedClickId,
+        customerId: customer5.externalId,
+        eventName: "Signup",
+        customerName: customer5.name,
+        customerEmail: customer5.email,
+        customerAvatar: customer5.avatar,
+      },
+    });
+
+    expectValidLeadResponse({
+      response,
+      customer: customer5,
       clickId: trackedClickId,
     });
   });
