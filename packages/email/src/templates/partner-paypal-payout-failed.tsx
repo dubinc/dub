@@ -87,7 +87,10 @@ export default function PartnerPaypalPayoutFailed({
               To resolve this, please verify that your PayPal account is active
               and able to receive payments. Please update your account details
               at your earliest convenience and retry the payout from your{" "}
-              <Link href="https://partners.dub.co/payouts">
+              <Link
+                href="https://partners.dub.co/payouts"
+                className="font-medium text-black underline"
+              >
                 Payout settings
               </Link>
               .

@@ -43,7 +43,7 @@ export default function PartnerPayoutWithdrawalInitiated({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Congratulations!{" "}
+              Good news!{" "}
               <span className="font-semibold text-neutral-800">
                 {payoutAmountFormatted}
               </span>{" "}
@@ -51,11 +51,18 @@ export default function PartnerPayoutWithdrawalInitiated({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              This process{" "}
+              Depending on your bank's location, this process can{" "}
               <span className="font-semibold text-neutral-800">
-                can take up to 4-5 business days
+                can take anywhere between 1-14 business days
               </span>
-              . If there are delays, please contact your program support.
+              . If there are any delays, please contact{" "}
+              <Link
+                href="https://support.stripe.com/express"
+                className="font-medium text-black underline"
+              >
+                Stripe support
+              </Link>
+              .
             </Text>
 
             <Section className="mb-12 mt-8">

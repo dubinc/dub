@@ -82,21 +82,23 @@ export default function PartnerPayoutSent({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              <strong className="text-black">{program.name}</strong> has sent
-              you <strong className="text-black">{saleAmountInDollars}</strong>
-              {startDate && endDate ? (
-                <>
-                  {" "}
-                  for affiliate sales made from{" "}
-                  <strong className="text-black">{startDate}</strong> to{" "}
-                  <strong className="text-black">{endDate}</strong>.
-                </>
-              ) : (
-                "."
-              )}
+              Your payouts of{" "}
+              <strong className="text-black">{saleAmountInDollars}</strong> from{" "}
+              <strong className="text-black">{program.name}</strong> have been
+              processed and are now in your Stripe Express account.
             </Text>
             <Text className="text-sm leading-6 text-neutral-600">
-              The funds are on their way to your account.
+              If the balance in your Stripe Express account is above your
+              minimum withdrawal balance, they'll automatically be transferred
+              to your bank account. You can change your minimum withdrawal
+              balance any time in your{" "}
+              <Link
+                href="https://partners.dub.co/payouts"
+                className="font-medium text-black underline"
+              >
+                payout settings
+              </Link>
+              .
             </Text>
 
             <Section className="mb-12 mt-8">
