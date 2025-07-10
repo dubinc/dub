@@ -3,16 +3,17 @@ import { Table } from "@tanstack/react-table";
 import { ReactNode, useEffect, useState } from "react";
 import { useKeyboardShortcut } from "../hooks";
 import { Checkbox } from "../checkbox";
-import { AnimatePresence, motion } from "framer-motion";
 
 export function SelectionToolbar<T>({
   table,
   controls,
   className,
+  overlayWidth,
 }: {
   table: Table<T>;
   controls?: (table: Table<T>) => ReactNode;
   className?: string;
+  overlayWidth?: string | number;
 }) {
   const selectedCount = table.getSelectedRowModel().rows.length;
   const [lastSelectedCount, setLastSelectedCount] = useState(0);
@@ -27,35 +28,22 @@ export function SelectionToolbar<T>({
     modal: false,
   });
 
-  // Animation variants for count and actions
-  const rowVariants = {
-    visible: {
-      transition: { staggerChildren: 0.04, delayChildren: 0.02 },
-    },
-    hidden: {},
-  };
-  const itemVariants = {
-    hidden: { opacity: 0, x: -4 },
-    visible: { opacity: 1, x: 0 },
-  };
-
   return (
-    <AnimatePresence>
-      {selectedCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.12 }}
-          className={cn(
-            "pointer-events-auto absolute z-10 left-0 right-0 top-0 min-h-[40px] border-b border-border-subtle bg-white",
-            className
-          )}
-          style={{ boxSizing: "border-box" }}
-        >
-          <div className="flex items-center gap-2.5 px-3.5 py-2 min-h-[40px]">
+    <div
+      className={cn(
+        "pointer-events-auto w-full border-b border-border-subtle bg-white",
+        "transition-transform duration-200 ease-out transition-opacity duration-200 ease-out",
+        selectedCount > 0
+          ? "opacity-100 translate-x-0 pointer-events-auto"
+          : "opacity-0 -translate-x-full pointer-events-none",
+        className
+      )}
+      style={overlayWidth ? { width: overlayWidth } : undefined}
+    >
+              <div className="flex items-center gap-2.5 px-2 py-2.5 h-11">
+          <div className="flex items-center justify-center w-6">
             <Checkbox
-              className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black mr-2"
+              className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
               checked={
                 table.getIsAllRowsSelected()
                   ? true
@@ -66,27 +54,24 @@ export function SelectionToolbar<T>({
               onCheckedChange={() => table.toggleAllRowsSelected()}
               title="Select all"
             />
-            <motion.span
-              variants={itemVariants}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              className="text-content-emphasis text-sm font-medium tabular-nums mr-2"
-            >
-              {lastSelectedCount} selected
-            </motion.span>
-            <motion.div
-              variants={itemVariants}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              className="flex items-center gap-2"
-            >
-              {controls?.(table)}
-            </motion.div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          <span className={cn(
+            "text-content-emphasis text-sm font-medium tabular-nums mr-2 transition-all duration-200 ease-out",
+            selectedCount > 0
+              ? "translate-x-0 opacity-100"
+              : "-translate-x-1 opacity-0"
+          )}>
+            {lastSelectedCount} selected
+          </span>
+          <div className={cn(
+            "flex items-center gap-2 transition-all duration-200 ease-out",
+            selectedCount > 0
+              ? "translate-x-0 opacity-100"
+              : "-translate-x-1 opacity-0"
+          )}>
+            {controls?.(table)}
+          </div>
+        </div>
+    </div>
   );
 }

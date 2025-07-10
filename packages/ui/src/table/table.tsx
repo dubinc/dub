@@ -17,6 +17,8 @@ import {
   useEffect,
   useMemo,
   useState,
+  useRef,
+  useLayoutEffect,
 } from "react";
 import { Button } from "../button";
 import { Checkbox } from "../checkbox";
@@ -311,6 +313,16 @@ export function Table<T>({
       .reduce((acc, column) => acc + column.getSize(), 0);
   }, [enableColumnResizing, table.getVisibleLeafColumns()]);
 
+  // --- NEW: Table ref and measured width for overlay toolbar ---
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [measuredWidth, setMeasuredWidth] = useState<string | number>("100%");
+  useLayoutEffect(() => {
+    if (tableRef.current) {
+      setMeasuredWidth(tableRef.current.scrollWidth);
+    }
+  }, [data, table.getVisibleLeafColumns(), enableColumnResizing, tableWidth]);
+  // -----------------------------------------------------------
+
   return (
     <div
       className={cn(
@@ -330,10 +342,12 @@ export function Table<T>({
             <SelectionToolbar
               table={table}
               controls={selectionControls}
-              className="top-0 left-0 right-0"
+              overlayWidth={measuredWidth}
+              className="absolute left-0 top-0 z-10"
             />
           )}
           <table
+            ref={tableRef}
             className={cn(
               [
                 "group/table w-full border-separate border-spacing-0 transition-[border-spacing,margin-top]",
@@ -433,7 +447,6 @@ export function Table<T>({
                   })}
                 </tr>
               ))}
-              {/* SelectionToolbar row removed from here */}
             </thead>
             <tbody>
               {table.getRowModel().rows.map((row) => {
