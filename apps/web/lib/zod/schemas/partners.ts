@@ -294,6 +294,10 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.merge(
     .describe(
       "If the partner submitted an application to join the program, this is the ID of the application.",
     ),
+  clickRewardId: z.string().nullish(),
+  leadRewardId: z.string().nullish(),
+  saleRewardId: z.string().nullish(),
+  discountId: z.string().nullish(),
   bannedAt: z.date().nullish(),
   bannedReason: z
     .enum(
@@ -581,7 +585,7 @@ export const archivePartnerSchema = z.object({
 });
 
 export const partnerPayoutSettingsSchema = z.object({
-  companyName: z.string().max(190).trim().min(1, "Business name is required."),
+  companyName: z.string().max(190).trim().nullish(),
   address: z.string().max(500).trim().nullish(),
   taxId: z.string().max(100).trim().nullish(),
   minWithdrawalAmount: z.coerce

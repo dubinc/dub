@@ -166,61 +166,53 @@ export async function confirmPayouts({
   const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
 
   // Create the invoice for the payouts
-  const newInvoice = await prisma.$transaction(async (tx) => {
-    const invoice = await tx.invoice.create({
-      data: {
-        id: createId({ prefix: "inv_" }),
-        number: invoiceNumber,
-        programId: program.id,
-        workspaceId: workspace.id,
-        amount: payoutAmount,
-        fee: totalFee,
-        total,
-      },
-    });
+  const invoice = await prisma.invoice.create({
+    data: {
+      id: createId({ prefix: "inv_" }),
+      number: invoiceNumber,
+      programId: program.id,
+      workspaceId: workspace.id,
+      amount: payoutAmount,
+      fee: totalFee,
+      total,
+    },
+  });
 
-    if (!invoice) {
-      throw new Error("Failed to create payout invoice.");
-    }
+  await stripe.paymentIntents.create({
+    amount: convertedTotal,
+    customer: workspace.stripeId!,
+    payment_method_types: [paymentMethod.type],
+    payment_method: paymentMethod.id,
+    currency,
+    confirmation_method: "automatic",
+    confirm: true,
+    transfer_group: invoice.id,
+    statement_descriptor: "Dub Partners",
+    description: `Dub Partners payout invoice (${invoice.id})`,
+  });
 
-    await stripe.paymentIntents.create({
-      amount: convertedTotal,
-      customer: workspace.stripeId!,
-      payment_method_types: [paymentMethod.type],
-      payment_method: paymentMethod.id,
-      currency,
-      confirmation_method: "automatic",
-      confirm: true,
-      transfer_group: invoice.id,
-      statement_descriptor: "Dub Partners",
-      description: `Dub Partners payout invoice (${invoice.id})`,
-    });
+  await prisma.payout.updateMany({
+    where: {
+      id: {
+        in: payouts.map((p) => p.id),
+      },
+    },
+    data: {
+      invoiceId: invoice.id,
+      status: "processing",
+      userId,
+    },
+  });
 
-    await tx.payout.updateMany({
-      where: {
-        id: {
-          in: payouts.map((p) => p.id),
-        },
+  await prisma.project.update({
+    where: {
+      id: workspace.id,
+    },
+    data: {
+      payoutsUsage: {
+        increment: payoutAmount,
       },
-      data: {
-        invoiceId: invoice.id,
-        status: "processing",
-        userId,
-      },
-    });
-
-    await tx.project.update({
-      where: {
-        id: workspace.id,
-      },
-      data: {
-        payoutsUsage: {
-          increment: payoutAmount,
-        },
-      },
-    });
-
-    return invoice;
+    },
   });
 
   await log({
@@ -231,7 +223,7 @@ export async function confirmPayouts({
   // Send emails to all the partners involved in the payouts if the payout method is Direct Debit
   // This is because Direct Debit takes 4 business days to process, so we want to give partners a heads up
   if (
-    newInvoice &&
+    invoice &&
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
   ) {
     if (!resend) {
