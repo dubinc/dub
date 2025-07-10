@@ -217,9 +217,9 @@ export const createPartnerCommission = async ({
           }),
 
           sendWorkspaceWebhook({
+            workspace,
             trigger: "commission.created",
             data: CommissionEnrichedSchema.parse(commission),
-            workspace,
           }),
 
           shouldCaptureAuditLog
