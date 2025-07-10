@@ -14,7 +14,10 @@ import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 
-export const PartnerEarningsSchema = CommissionSchema.merge(
+export const PartnerEarningsSchema = CommissionSchema.omit({
+  userId: true,
+  invoiceId: true,
+}).merge(
   z.object({
     customer: z
       .object({
