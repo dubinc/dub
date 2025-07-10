@@ -184,7 +184,7 @@ export function PayoutStats() {
       error: !!error,
     },
 
-    ...(payoutMethod !== "paypal"
+    ...(payoutMethod === "stripe"
       ? [
           {
             label: "Sent",
@@ -211,6 +211,8 @@ export function PayoutStats() {
                   </button>
                 );
               }
+
+              return "Est: 4 business days";
             },
           },
         ]
