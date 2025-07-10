@@ -209,7 +209,7 @@ export function PayoutMethodsDropdown() {
         setOpenPopover={setOpenPopover}
       >
         {isBankAccountLoading || isPartnerLoading ? (
-          <div className="rounded-lg border border-neutral-200">
+          <div className="w-full rounded-lg border border-neutral-200">
             <PayoutMethodSkeleton />
           </div>
         ) : (
