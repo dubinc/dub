@@ -154,9 +154,7 @@ export function PayoutStats() {
             error: !!error,
             sublabel: () => {
               if (!partner || !payoutsCount || error) {
-                return (
-                  <div className="h-4 w-20 animate-pulse rounded bg-neutral-200" />
-                );
+                return null;
               }
 
               const amount = payoutStatusMap.sent.amount;
@@ -194,8 +192,8 @@ export function PayoutStats() {
         className={cn(
           "grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200",
           payoutMethod === "stripe"
-            ? "xs:grid-cols-4 xs:divide-x xs:divide-y-0"
-            : "xs:grid-cols-3 xs:divide-x xs:divide-y-0",
+            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 sm:divide-x sm:divide-y-0"
+            : "grid-cols-1 sm:grid-cols-3 sm:divide-x sm:divide-y-0",
         )}
       >
         {payoutStats.map((stat) => (
