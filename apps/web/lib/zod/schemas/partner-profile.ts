@@ -16,8 +16,6 @@ import { LinkSchema } from "./links";
 
 export const PartnerEarningsSchema = CommissionSchema.merge(
   z.object({
-    type: z.string(),
-    quantity: z.number().nullable(),
     customer: z
       .object({
         id: z.string(),

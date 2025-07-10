@@ -15,8 +15,13 @@ export const CommissionSchema = z.object({
   earnings: z.number(),
   currency: z.string(),
   status: z.nativeEnum(CommissionStatus),
-  invoiceId: z.string().nullish(),
-  description: z.string().nullish(),
+  invoiceId: z.string().nullable(),
+  description: z.string().nullable(),
+  quantity: z.number(),
+  userId: z
+    .string()
+    .nullable()
+    .describe("The user who created the manual commission."),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -24,7 +29,6 @@ export const CommissionSchema = z.object({
 // Represents the commission object used in webhook and API responses (/api/commissions/**)
 export const CommissionEnrichedSchema = CommissionSchema.merge(
   z.object({
-    quantity: z.number(),
     partner: PartnerSchema,
     customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
   }),
