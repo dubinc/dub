@@ -21,6 +21,7 @@ export const CommissionSchema = z.object({
   updatedAt: z.date(),
 });
 
+// Represents the commission object used in webhook and API responses (/api/commissions/**)
 export const CommissionEnrichedSchema = CommissionSchema.merge(
   z.object({
     quantity: z.number(),
