@@ -234,6 +234,8 @@ const enrolledPartnerTemplate = ({ data }: { data: PartnerEventWebhookPayload })
   };
 };
 
+// TODO (kiran):
+// We should improve this template
 const commissionCreatedTemplate = ({
   data,
 }: {
