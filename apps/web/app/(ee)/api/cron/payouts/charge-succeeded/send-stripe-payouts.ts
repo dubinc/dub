@@ -35,7 +35,7 @@ export async function sendStripePayouts({
       { idempotencyKey: payout.id }, // add idempotency key to avoid duplicate transfers
     );
 
-    console.log(`Transfer created for payout ${payout.id}`, transfer);
+    console.log(`Transfer ${transfer.id} created for payout ${payout.id}`);
 
     await Promise.allSettled([
       prisma.payout.update({
@@ -44,7 +44,7 @@ export async function sendStripePayouts({
         },
         data: {
           stripeTransferId: transfer.id,
-          status: "completed",
+          status: "sent",
           paidAt: new Date(),
         },
       }),
