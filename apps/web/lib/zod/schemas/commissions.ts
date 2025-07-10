@@ -21,7 +21,7 @@ export const CommissionSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const CommissionResponseSchema = CommissionSchema.merge(
+export const CommissionEnrichedSchema = CommissionSchema.merge(
   z.object({
     quantity: z.number(),
     partner: PartnerSchema,

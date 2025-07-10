@@ -1,9 +1,9 @@
-import { CommissionResponseSchema } from "@/lib/zod/schemas/commissions";
+import { CommissionEnrichedSchema } from "@/lib/zod/schemas/commissions";
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
 import { IntegrationHarness } from "../utils/integration";
 
-type Commission = z.infer<typeof CommissionResponseSchema>;
+type Commission = z.infer<typeof CommissionEnrichedSchema>;
 
 const expectedCommission = {
   id: expect.any(String),
