@@ -69,7 +69,7 @@ function PayoutStatsCard({
         )}
       </div>
 
-      <div className="flex items-end gap-2">
+      <div className="flex items-center gap-2 bg-red-50">
         {!isLoading ? (
           <div className="flex items-center gap-2">
             <span className="h-7 text-base font-medium leading-6 text-neutral-800 sm:text-xl sm:leading-7">
@@ -192,7 +192,7 @@ export function PayoutStats() {
         className={cn(
           "grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200",
           payoutMethod === "stripe"
-            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 sm:divide-x sm:divide-y-0"
+            ? "grid-cols-1 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4"
             : "grid-cols-1 sm:grid-cols-3 sm:divide-x sm:divide-y-0",
         )}
       >
