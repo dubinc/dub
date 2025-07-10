@@ -34,7 +34,8 @@ export const POST = withWorkspace(
       clickId,
       eventName,
       eventQuantity,
-      externalId,
+      customerExternalId: newExternalId,
+      externalId: oldExternalId, // deprecated (but we'll support it for backwards compatibility)
       customerId: oldCustomerId, // deprecated (but we'll support it for backwards compatibility)
       customerName,
       customerEmail,
@@ -44,13 +45,14 @@ export const POST = withWorkspace(
     } = trackLeadRequestSchema
       .extend({
         // add backwards compatibility
+        customerExternalId: z.string().nullish(),
         externalId: z.string().nullish(),
         customerId: z.string().nullish(),
       })
       .parse(body);
 
     const stringifiedEventName = eventName.toLowerCase().replace(" ", "-");
-    const customerExternalId = externalId || oldCustomerId;
+    const customerExternalId = newExternalId || oldExternalId || oldCustomerId;
     const customerId = createId({ prefix: "cus_" });
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();

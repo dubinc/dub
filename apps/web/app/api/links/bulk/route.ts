@@ -343,11 +343,9 @@ export const PATCH = withWorkspace(
     }
 
     if (checkIfLinksHaveFolders(links)) {
-      const folderIds = [
-        ...new Set(
-          links.map((link) => link.folderId).filter(Boolean) as string[],
-        ),
-      ];
+      const folderIds = Array.from(
+        new Set(links.map((link) => link.folderId).filter(Boolean) as string[]),
+      );
 
       const folderPermissions = await checkFolderPermissions({
         workspaceId: workspace.id,

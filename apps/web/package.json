@@ -68,7 +68,7 @@
     "cmdk": "^1.1.1",
     "concurrently": "^8.0.1",
     "date-fns": "^3.6.0",
-    "dub": "^0.63.6",
+    "dub": "^0.64.1",
     "fast-xml-parser": "^5.0.6",
     "file-type": "^20.4.1",
     "framer-motion": "^10.16.16",

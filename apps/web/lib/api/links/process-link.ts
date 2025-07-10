@@ -1,7 +1,7 @@
 import { isBlacklistedDomain } from "@/lib/edge-config";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
-import { isStored } from "@/lib/storage";
+import { isNotHostedImage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import {
@@ -299,10 +299,11 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (bulk) {
-    if (proxy && image && !isStored(image)) {
+    if (proxy && image && isNotHostedImage(image)) {
       return {
         link: payload,
-        error: "You cannot set custom social cards with bulk link creation.",
+        error:
+          "You cannot upload custom link preview images with bulk link creation.",
         code: "unprocessable_entity",
       };
     }
