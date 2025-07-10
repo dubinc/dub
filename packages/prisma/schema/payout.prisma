@@ -1,7 +1,8 @@
 enum PayoutStatus {
   pending
-  processing
-  completed
+  processing // program has initiated the payout
+  sent // payout has been sent to partner's Stripe Express account
+  completed // payout has been sent to the partner's bank account
   failed
   canceled
 }
