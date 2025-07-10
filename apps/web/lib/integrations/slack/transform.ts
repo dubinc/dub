@@ -201,7 +201,11 @@ const createSaleTemplate = ({ data }: { data: SaleEventWebhookPayload }) => {
   };
 };
 
-const enrolledPartnerTemplate = ({ data }: { data: PartnerEventWebhookPayload }) => {
+const enrolledPartnerTemplate = ({
+  data,
+}: {
+  data: PartnerEventWebhookPayload;
+}) => {
   const { name, email, country } = data;
 
   return {
