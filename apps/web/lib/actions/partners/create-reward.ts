@@ -69,7 +69,7 @@ export const createRewardAction = authActionClient
 
       if (invalidPartnerIds.length > 0) {
         throw new Error(
-          `Invalid partner IDs provided: ${invalidPartnerIds.join(", ")}`,
+          `Invalid partner IDs provided (partners must be enrolled in the program): ${invalidPartnerIds.join(", ")}`,
         );
       }
     }
