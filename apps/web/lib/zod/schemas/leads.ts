@@ -70,13 +70,6 @@ export const trackLeadRequestSchema = z.object({
     .describe(
       "Additional metadata to be stored with the lead event. Max 10,000 characters.",
     ),
-  externalId: z
-    .string()
-    .trim()
-    .max(100)
-    .nullish()
-    .describe("Deprecated. Use `customerExternalId` instead.")
-    .openapi({ deprecated: true }),
 });
 
 export const trackLeadResponseSchema = z.object({
