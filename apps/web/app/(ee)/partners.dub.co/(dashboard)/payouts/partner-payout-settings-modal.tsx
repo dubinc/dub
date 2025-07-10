@@ -9,10 +9,17 @@ import {
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
-import { Button, Modal, Slider, useScrollProgress } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Button,
+  Modal,
+  Slider,
+  useScrollProgress,
+} from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { PartyPopper } from "lucide-react";
+import { motion } from "framer-motion";
+import { ChevronDown, PartyPopper } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -93,6 +100,8 @@ function PartnerPayoutSettingsModalInner({
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-4 border-b border-neutral-200 p-4 sm:p-6">
@@ -106,109 +115,134 @@ function PartnerPayoutSettingsModalInner({
           onScroll={updateScrollProgress}
           className="scrollbar-hide max-h-[calc(100dvh-200px)] space-y-10 overflow-y-auto bg-neutral-50 p-4 sm:p-6"
         >
-          <div className="space-y-6">
-            <div>
-              <h4 className="text-base font-semibold leading-6 text-neutral-900">
-                Minimum withdrawal amount
-              </h4>
-              <p className="text-sm font-medium text-neutral-500">
-                Set the minimum amount for funds to be withdrawn from Dub into
-                your connected payout account.
-              </p>
+          <div className="divide-y divide-neutral-200">
+            <div className="space-y-6 pb-8">
+              <div>
+                <h4 className="text-base font-semibold leading-6 text-neutral-900">
+                  Minimum withdrawal amount
+                </h4>
+                <p className="text-sm font-medium text-neutral-500">
+                  Set the minimum amount for funds to be withdrawn from Dub into
+                  your connected payout account.
+                </p>
+              </div>
+
+              <div>
+                <NumberFlow
+                  value={minWithdrawalAmount / 100}
+                  suffix=" USD"
+                  format={{
+                    style: "currency",
+                    currency: "USD",
+                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                    trailingZeroDisplay: "stripIfInteger",
+                  }}
+                  className="mb-2 text-2xl font-medium leading-6 text-neutral-800"
+                />
+
+                <Slider
+                  value={minWithdrawalAmount}
+                  min={ALLOWED_MIN_WITHDRAWAL_AMOUNTS[0]}
+                  max={
+                    ALLOWED_MIN_WITHDRAWAL_AMOUNTS[
+                      ALLOWED_MIN_WITHDRAWAL_AMOUNTS.length - 1
+                    ]
+                  }
+                  onChange={(value) => {
+                    const closest = ALLOWED_MIN_WITHDRAWAL_AMOUNTS.reduce(
+                      (prev, curr) =>
+                        Math.abs(curr - value) < Math.abs(prev - value)
+                          ? curr
+                          : prev,
+                    );
+
+                    setValue("minWithdrawalAmount", closest, {
+                      shouldDirty: true,
+                    });
+                  }}
+                  marks={ALLOWED_MIN_WITHDRAWAL_AMOUNTS}
+                  hint={
+                    minWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS ? (
+                      `${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)} payout fee for payouts under $100`
+                    ) : (
+                      <div className="flex items-center gap-1 text-xs font-normal leading-4 text-neutral-500">
+                        <PartyPopper className="size-4" />
+                        Free payouts unlocked
+                      </div>
+                    )
+                  }
+                />
+              </div>
             </div>
 
-            <div>
-              <NumberFlow
-                value={minWithdrawalAmount / 100}
-                suffix=" USD"
-                format={{
-                  style: "currency",
-                  currency: "USD",
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                  trailingZeroDisplay: "stripIfInteger",
-                }}
-                className="mb-2 text-2xl font-medium leading-6 text-neutral-800"
-              />
+            {/* Advanced settings */}
+            <div className="pt-8">
+              <button
+                type="button"
+                className="flex w-full items-center gap-2"
+                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+              >
+                <p className="text-sm text-neutral-600">
+                  {showAdvancedOptions ? "Hide" : "Show"} advanced settings
+                </p>
+                <motion.div
+                  animate={{ rotate: showAdvancedOptions ? 180 : 0 }}
+                  className="text-neutral-600"
+                >
+                  <ChevronDown className="size-4" />
+                </motion.div>
+              </button>
 
-              <Slider
-                value={minWithdrawalAmount}
-                min={ALLOWED_MIN_WITHDRAWAL_AMOUNTS[0]}
-                max={
-                  ALLOWED_MIN_WITHDRAWAL_AMOUNTS[
-                    ALLOWED_MIN_WITHDRAWAL_AMOUNTS.length - 1
-                  ]
-                }
-                onChange={(value) => {
-                  const closest = ALLOWED_MIN_WITHDRAWAL_AMOUNTS.reduce(
-                    (prev, curr) =>
-                      Math.abs(curr - value) < Math.abs(prev - value)
-                        ? curr
-                        : prev,
-                  );
-
-                  setValue("minWithdrawalAmount", closest, {
-                    shouldDirty: true,
-                  });
-                }}
-                marks={ALLOWED_MIN_WITHDRAWAL_AMOUNTS}
-                hint={
-                  minWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS ? (
-                    `${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)} payout fee for payouts under $100`
-                  ) : (
-                    <div className="flex items-center gap-1 text-xs font-normal leading-4 text-neutral-500">
-                      <PartyPopper className="size-4" />
-                      Free payouts unlocked
+              <AnimatedSizeContainer height>
+                {showAdvancedOptions && (
+                  <div className="space-y-6 py-6">
+                    {/* Invoice details */}
+                    <div>
+                      <h4 className="text-base font-semibold leading-6 text-neutral-900">
+                        Invoice details (optional)
+                      </h4>
+                      <p className="text-sm font-medium text-neutral-500">
+                        This information is added to your payout invoices.
+                      </p>
                     </div>
-                  )
-                }
-              />
-            </div>
-          </div>
+                    <div>
+                      <label className="text-sm font-medium text-neutral-900">
+                        Business name
+                      </label>
+                      <div className="relative mt-1.5 rounded-md shadow-sm">
+                        <input
+                          autoFocus
+                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                          {...register("companyName")}
+                        />
+                      </div>
+                    </div>
 
-          {/* Invoice details */}
-          <div className="space-y-6">
-            <div>
-              <h4 className="text-base font-semibold leading-6 text-neutral-900">
-                Invoice details (optional)
-              </h4>
-              <p className="text-sm font-medium text-neutral-500">
-                This information is added to your payout invoices.
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-neutral-900">
-                Business name
-              </label>
-              <div className="relative mt-1.5 rounded-md shadow-sm">
-                <input
-                  autoFocus
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("companyName")}
-                />
-              </div>
-            </div>
+                    <div>
+                      <label className="text-sm font-medium text-neutral-900">
+                        Business address
+                      </label>
+                      <TextareaAutosize
+                        className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                        minRows={3}
+                        {...register("address")}
+                      />
+                    </div>
 
-            <div>
-              <label className="text-sm font-medium text-neutral-900">
-                Business address
-              </label>
-              <TextareaAutosize
-                className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                minRows={3}
-                {...register("address")}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-neutral-900">
-                Business tax ID
-              </label>
-              <div className="relative mt-1.5 rounded-md shadow-sm">
-                <input
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("taxId")}
-                />
-              </div>
+                    <div>
+                      <label className="text-sm font-medium text-neutral-900">
+                        Business tax ID
+                      </label>
+                      <div className="relative mt-1.5 rounded-md shadow-sm">
+                        <input
+                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                          {...register("taxId")}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </AnimatedSizeContainer>
             </div>
           </div>
         </div>
