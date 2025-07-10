@@ -4,7 +4,6 @@ import {
 } from "@/lib/analytics/constants";
 import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
 import { LinkStructure, ProgramEnrollmentStatus } from "@dub/prisma/client";
-import { currencyFormatter } from "@dub/utils";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
@@ -60,9 +59,8 @@ export const updateProgramSchema = z.object({
   minPayoutAmount: z.coerce
     .number()
     .refine((val) => ALLOWED_MIN_PAYOUT_AMOUNTS.includes(val), {
-      message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.map((amount) => currencyFormatter(amount / 100)).join(", ")}`,
-    })
-    .transform((val) => val * 100),
+      message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
+    }),
   linkStructure: z.nativeEnum(LinkStructure),
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),

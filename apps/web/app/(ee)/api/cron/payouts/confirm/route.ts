@@ -60,7 +60,7 @@ export async function POST(req: Request) {
   } catch (error) {
     await log({
       message: `Error confirming payouts for program: ${error.message}`,
-      type: "cron",
+      type: "errors",
     });
 
     return handleAndReturnErrorResponse(error);

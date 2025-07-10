@@ -27,29 +27,32 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type PayoutSettingsModalProps = {
-  showPayoutSettingsModal: boolean;
-  setShowPayoutSettingsModal: Dispatch<SetStateAction<boolean>>;
+type PartnerPayoutSettingsModalProps = {
+  showPartnerPayoutSettingsModal: boolean;
+  setShowPartnerPayoutSettingsModal: Dispatch<SetStateAction<boolean>>;
 };
 
-type PayoutSettingsFormData = z.infer<typeof partnerPayoutSettingsSchema>;
+type PartnerPayoutSettingsFormData = z.infer<
+  typeof partnerPayoutSettingsSchema
+>;
 
-function PayoutSettingsModal(props: PayoutSettingsModalProps) {
-  const { showPayoutSettingsModal, setShowPayoutSettingsModal } = props;
+function PartnerPayoutSettingsModal(props: PartnerPayoutSettingsModalProps) {
+  const { showPartnerPayoutSettingsModal, setShowPartnerPayoutSettingsModal } =
+    props;
 
   return (
     <Modal
-      showModal={showPayoutSettingsModal}
-      setShowModal={setShowPayoutSettingsModal}
+      showModal={showPartnerPayoutSettingsModal}
+      setShowModal={setShowPartnerPayoutSettingsModal}
     >
-      <PayoutSettingsModalInner {...props} />
+      <PartnerPayoutSettingsModalInner {...props} />
     </Modal>
   );
 }
 
-function PayoutSettingsModalInner({
-  setShowPayoutSettingsModal,
-}: PayoutSettingsModalProps) {
+function PartnerPayoutSettingsModalInner({
+  setShowPartnerPayoutSettingsModal,
+}: PartnerPayoutSettingsModalProps) {
   const { partner } = usePartnerProfile();
 
   const {
@@ -58,7 +61,7 @@ function PayoutSettingsModalInner({
     watch,
     setValue,
     formState: { isDirty },
-  } = useForm<PayoutSettingsFormData>({
+  } = useForm<PartnerPayoutSettingsFormData>({
     defaultValues: {
       companyName: partner?.companyName || undefined,
       address: partner?.invoiceSettings?.address || undefined,
@@ -72,7 +75,7 @@ function PayoutSettingsModalInner({
     {
       onSuccess: async () => {
         toast.success("Payout settings updated successfully!");
-        setShowPayoutSettingsModal(false);
+        setShowPartnerPayoutSettingsModal(false);
         mutatePrefix("/api/partner-profile");
       },
       onError({ error }) {
@@ -81,7 +84,7 @@ function PayoutSettingsModalInner({
     },
   );
 
-  const onSubmit = async (data: PayoutSettingsFormData) => {
+  const onSubmit = async (data: PartnerPayoutSettingsFormData) => {
     await executeAsync(data);
   };
 
@@ -221,7 +224,7 @@ function PayoutSettingsModalInner({
           text="Cancel"
           disabled={isPending}
           className="h-8 w-fit px-3"
-          onClick={() => setShowPayoutSettingsModal(false)}
+          onClick={() => setShowPartnerPayoutSettingsModal(false)}
         />
 
         <Button
@@ -236,23 +239,24 @@ function PayoutSettingsModalInner({
   );
 }
 
-export function usePayoutSettingsModal() {
-  const [showPayoutSettingsModal, setShowPayoutSettingsModal] = useState(false);
+export function usePartnerPayoutSettingsModal() {
+  const [showPartnerPayoutSettingsModal, setShowPartnerPayoutSettingsModal] =
+    useState(false);
 
-  const PayoutSettingsModalCallback = useCallback(() => {
+  const PartnerPayoutSettingsModalCallback = useCallback(() => {
     return (
-      <PayoutSettingsModal
-        showPayoutSettingsModal={showPayoutSettingsModal}
-        setShowPayoutSettingsModal={setShowPayoutSettingsModal}
+      <PartnerPayoutSettingsModal
+        showPartnerPayoutSettingsModal={showPartnerPayoutSettingsModal}
+        setShowPartnerPayoutSettingsModal={setShowPartnerPayoutSettingsModal}
       />
     );
-  }, [showPayoutSettingsModal, setShowPayoutSettingsModal]);
+  }, [showPartnerPayoutSettingsModal, setShowPartnerPayoutSettingsModal]);
 
   return useMemo(
     () => ({
-      setShowPayoutSettingsModal,
-      PayoutSettingsModal: PayoutSettingsModalCallback,
+      setShowPartnerPayoutSettingsModal,
+      PartnerPayoutSettingsModal: PartnerPayoutSettingsModalCallback,
     }),
-    [setShowPayoutSettingsModal, PayoutSettingsModalCallback],
+    [setShowPartnerPayoutSettingsModal, PartnerPayoutSettingsModalCallback],
   );
 }
