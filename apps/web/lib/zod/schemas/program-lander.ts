@@ -62,7 +62,7 @@ export const programLanderEarningsCalculatorBlockSchema =
   programLanderBlockCommonSchema.extend({
     type: z.literal("earnings-calculator"),
     data: z.object({
-      productPrice: z.number(),
+      productPrice: z.number().describe("Average product price in cents"),
     }),
   });
 
@@ -86,4 +86,16 @@ export const programLanderSchema = z.object({
   description: z.string().optional(),
   rewards: programLanderRewardsSchema.optional(),
   blocks: z.array(programLanderBlockSchema),
+});
+
+// Simpler schemas for AI generation
+export const programLanderSimpleBlockSchema = z.discriminatedUnion("type", [
+  programLanderImageBlockSchema,
+  programLanderTextBlockSchema,
+  programLanderAccordionBlockSchema,
+  programLanderEarningsCalculatorBlockSchema,
+]);
+
+export const programLanderSimpleSchema = z.object({
+  blocks: z.array(programLanderSimpleBlockSchema),
 });

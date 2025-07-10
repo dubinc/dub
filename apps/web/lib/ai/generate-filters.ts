@@ -18,7 +18,7 @@ export async function generateFilters(prompt: string) {
 
   (async () => {
     const { partialObjectStream } = await streamObject({
-      model: anthropic("claude-3-5-sonnet-latest"),
+      model: anthropic("claude-sonnet-4-20250514"),
       schema,
       prompt,
       temperature: 0.4,
