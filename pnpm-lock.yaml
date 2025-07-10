@@ -73,6 +73,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^3.9.0
         version: 3.9.0(react-hook-form@7.52.1(react@18.2.0))
+      '@mendable/firecrawl-js':
+        specifier: ^1.29.1
+        version: 1.29.1
       '@next-auth/prisma-adapter':
         specifier: ^1.0.5
         version: 1.0.5(@prisma/client@5.18.0(prisma@5.18.0))(next-auth@4.24.4(next@14.3.0-canary.42(@opentelemetry/api@1.9.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(nodemailer@6.9.3)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))
@@ -191,8 +194,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.63.6
-        version: 0.63.6(zod@3.22.4)
+        specifier: ^0.64.1
+        version: 0.64.1(zod@3.22.4)
       fast-xml-parser:
         specifier: ^5.0.6
         version: 5.0.6
@@ -2314,6 +2317,10 @@ packages:
 
   '@libsql/sqlite3@0.3.1':
     resolution: {integrity: sha512-KOOBUuKDjqzteM6QA0W1vnZDfOt5MNMyo2yr4TaH1RcCd7Fsts4lpzfty6FmE1d6QDrRxjRq2ZciO6VdQ9ZF3A==}
+
+  '@mendable/firecrawl-js@1.29.1':
+    resolution: {integrity: sha512-w7mXja6hSNL6li7BHgY6LQLnBJ9RIxWkmZ16y2MCOr3w6MlR7k2ZcTxro6vEJrUoshhyoOqhcFCyD1P0ckBuRw==}
+    engines: {node: '>=22.0.0'}
 
   '@mongodb-js/saslprep@1.2.0':
     resolution: {integrity: sha512-+ywrb0AqkfaYuhHs6LxKWgqbh3I72EpEgESCw37o+9qPx9WTCkgDm2B+eMrwehGtHBWHFU4GXvnSCNiFhhausg==}
@@ -6015,12 +6022,12 @@ packages:
     peerDependencies:
       zod: '>= 3'
 
-  dub@0.63.6:
-    resolution: {integrity: sha512-4iAJvOtj5MegRqsSpUc2H9Prvgh95vidGGEHXYrJO6bLUQ4TSfQwoRei+WdKJohV0t4klhEj4ruQx2olefMzuA==}
+  dub@0.64.1:
+    resolution: {integrity: sha512-IXeoWN3lPBwMASvH+b/J8HQgQZI1dUfH/4pbLwvOXIioMVBBS2X+YwsX6c1MkZoUk0PsF6PoZNjahiNRMKpIyQ==}
     hasBin: true
     peerDependencies:
       '@modelcontextprotocol/sdk': '>=1.5.0 <1.10.0'
-      zod: '>= 3'
+      zod: ^3
     peerDependenciesMeta:
       '@modelcontextprotocol/sdk':
         optional: true
@@ -9985,6 +9992,9 @@ packages:
       typeorm-aurora-data-api-driver:
         optional: true
 
+  typescript-event-target@1.1.1:
+    resolution: {integrity: sha512-dFSOFBKV6uwaloBCCUhxlD3Pr/P1a/tJdcmPrTXCHlEFD3faj0mztjcGn6VBAhQ0/Bdy8K3VWrrqwbt/ffsYsg==}
+
   typescript@4.9.5:
     resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
     engines: {node: '>=4.2.0'}
@@ -12356,6 +12366,15 @@ snapshots:
       - bufferutil
       - encoding
       - utf-8-validate
+
+  '@mendable/firecrawl-js@1.29.1':
+    dependencies:
+      axios: 1.8.2
+      typescript-event-target: 1.1.1
+      zod: 3.23.8
+      zod-to-json-schema: 3.24.1(zod@3.23.8)
+    transitivePeerDependencies:
+      - debug
 
   '@mongodb-js/saslprep@1.2.0':
     dependencies:
@@ -16716,7 +16735,7 @@ snapshots:
     dependencies:
       zod: 3.23.8
 
-  dub@0.63.6(zod@3.22.4):
+  dub@0.64.1(zod@3.22.4):
     dependencies:
       zod: 3.22.4
 
@@ -21902,6 +21921,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  typescript-event-target@1.1.1: {}
+
   typescript@4.9.5: {}
 
   typescript@5.1.6: {}
@@ -22463,6 +22484,10 @@ snapshots:
   zod-to-json-schema@3.24.1(zod@3.22.4):
     dependencies:
       zod: 3.22.4
+
+  zod-to-json-schema@3.24.1(zod@3.23.8):
+    dependencies:
+      zod: 3.23.8
 
   zod@3.22.4: {}
 
