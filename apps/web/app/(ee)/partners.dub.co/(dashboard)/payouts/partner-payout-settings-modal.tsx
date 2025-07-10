@@ -9,6 +9,7 @@ import {
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
+import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import {
   AnimatedSizeContainer,
   Button,
@@ -108,7 +109,6 @@ function PartnerPayoutSettingsModalInner({
         <h3 className="text-lg font-medium leading-none">Payout settings</h3>
       </div>
 
-      {/*  Minimum withdrawal amount */}
       <div className="relative">
         <div
           ref={scrollRef}
@@ -116,7 +116,21 @@ function PartnerPayoutSettingsModalInner({
           className="scrollbar-hide max-h-[calc(100dvh-200px)] space-y-10 overflow-y-auto bg-neutral-50 p-4 sm:p-6"
         >
           <div className="divide-y divide-neutral-200">
-            <div className="space-y-6 pb-8">
+            {/* Connected payout account */}
+            <div className="space-y-3 pb-6">
+              <div>
+                <h4 className="text-base font-semibold leading-6 text-neutral-900">
+                  Connected payout account
+                </h4>
+              </div>
+
+              {partner && (
+                <ConnectPayoutButton className="h-10 rounded-lg px-4 py-2" />
+              )}
+            </div>
+
+            {/*  Minimum withdrawal amount */}
+            <div className="space-y-6 py-6">
               <div>
                 <h4 className="text-base font-semibold leading-6 text-neutral-900">
                   Minimum withdrawal amount
@@ -176,15 +190,13 @@ function PartnerPayoutSettingsModalInner({
             </div>
 
             {/* Advanced settings */}
-            <div className="pt-8">
+            <div className="pt-6">
               <button
                 type="button"
                 className="flex w-full items-center gap-2"
                 onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
               >
-                <p className="text-sm text-neutral-600">
-                  {showAdvancedOptions ? "Hide" : "Show"} advanced settings
-                </p>
+                <p className="text-sm text-neutral-600">Advanced settings</p>
                 <motion.div
                   animate={{ rotate: showAdvancedOptions ? 180 : 0 }}
                   className="text-neutral-600"
@@ -195,7 +207,7 @@ function PartnerPayoutSettingsModalInner({
 
               <AnimatedSizeContainer height>
                 {showAdvancedOptions && (
-                  <div className="space-y-6 py-6">
+                  <div className="grid grid-cols-1 gap-6 py-6">
                     {/* Invoice details */}
                     <div>
                       <h4 className="text-base font-semibold leading-6 text-neutral-900">
