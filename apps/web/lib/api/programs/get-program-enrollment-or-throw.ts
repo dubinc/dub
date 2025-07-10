@@ -6,13 +6,15 @@ import { DubApiError } from "../errors";
 export async function getProgramEnrollmentOrThrow({
   partnerId,
   programId,
-  includeRewards = false,
   includePartner = false,
+  includeRewards = false,
+  includeDiscount = false,
 }: {
   partnerId: string;
   programId: string;
-  includeRewards?: boolean;
   includePartner?: boolean;
+  includeRewards?: boolean;
+  includeDiscount?: boolean;
 }) {
   const include: Prisma.ProgramEnrollmentInclude = {
     program: true,
@@ -21,13 +23,16 @@ export async function getProgramEnrollmentOrThrow({
         createdAt: "asc",
       },
     },
+    ...(includePartner && {
+      partner: true,
+    }),
     ...(includeRewards && {
       clickReward: true,
       leadReward: true,
       saleReward: true,
     }),
-    ...(includePartner && {
-      partner: true,
+    ...(includeDiscount && {
+      discount: true,
     }),
   };
 
