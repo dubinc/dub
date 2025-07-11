@@ -202,7 +202,7 @@ export function PayoutStats() {
         "grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200",
         "grid-cols-1", // always single column on mobile
         "sm:grid-cols-2 sm:divide-x sm:divide-y-0", // two columns on small screens
-        "md:grid-cols-5", // five columns on medium+ screens
+        payoutMethod === "stripe" ? "md:grid-cols-5" : "md:grid-cols-3", // five or three columns (depends on payout method) on medium+ screens
       )}
     >
       {payoutStats.map((stat) => (

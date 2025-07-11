@@ -1,5 +1,3 @@
-import { sendEmail } from "@dub/email";
-import PartnerPayoutSent from "@dub/email/templates/partner-payout-sent";
 import { prisma } from "@dub/prisma";
 import { payoutsItemSchema } from "./utils";
 
@@ -66,7 +64,7 @@ export async function payoutsItemSucceeded(event: any) {
     //   sendEmail({
     //     subject: "You've been paid!",
     //     email: payout.partner.email,
-    //     react: PartnerPayoutSent({
+    //     react: PartnerPayoutProcessed({
     //       email: payout.partner.email,
     //       payout: {
     //         id: payout.id,

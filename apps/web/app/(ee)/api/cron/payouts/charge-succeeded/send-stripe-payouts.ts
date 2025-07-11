@@ -4,12 +4,19 @@ import {
 } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
-import PartnerPayoutSent from "@dub/email/templates/partner-payout-sent";
+import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, pluralize } from "@dub/utils";
+import { Invoice } from "@prisma/client";
 import { Payload } from "./utils";
 
-export async function sendStripePayouts({ payload }: { payload: Payload }) {
+export async function sendStripePayouts({
+  payload,
+  invoice,
+}: {
+  payload: Payload;
+  invoice: Invoice;
+}) {
   const { invoiceId } = payload;
 
   const payouts = await prisma.payout.findMany({
@@ -27,9 +34,7 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
         },
       },
     },
-    select: {
-      id: true,
-      amount: true,
+    include: {
       partner: {
         select: {
           id: true,
@@ -40,6 +45,7 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
       },
       program: {
         select: {
+          id: true,
           name: true,
           logo: true,
         },
@@ -51,6 +57,8 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
     console.log("No payouts for sending via Stripe, skipping...");
     return;
   }
+
+  const latestInvoicePayout = payouts.find((p) => p.invoiceId === invoiceId)!;
 
   // Group payouts by partnerId
   const payoutsByPartner = payouts.reduce((map, payout) => {
@@ -72,7 +80,8 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
     const payoutIds = payouts.map((p) => p.id);
     const totalAmount = payouts.reduce((acc, payout) => acc + payout.amount, 0);
 
-    // Total payout amount is less than the minimum withdrawal amount, we don't need to them
+    // Total payout amount is less than the minimum withdrawal amount
+    // we only update status to "processed" – no need to create a transfer for now
     if (totalAmount < partner.minWithdrawalAmount) {
       await prisma.payout.updateMany({
         where: {
@@ -86,7 +95,7 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
       });
 
       console.log(
-        `Payouts amount (${currencyFormatter(totalAmount / 100)}) for partner ${partner.id} are below the minWithdrawalAmount (${currencyFormatter(partner.minWithdrawalAmount / 100)})`,
+        `Total processed payouts (${currencyFormatter(totalAmount / 100)}) for partner ${partner.id} are below the minWithdrawalAmount (${currencyFormatter(partner.minWithdrawalAmount / 100)}), skipping...`,
       );
 
       continue;
@@ -111,7 +120,7 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
         currency: "usd",
         transfer_group: invoiceId,
         destination: partner.stripeConnectId!,
-        description: "You’ve been paid!",
+        description: `Dub Partners payout for ${payouts.map((p) => p.id).join(", ")}`,
       },
       {
         idempotencyKey: `${invoiceId}-${partner.id}`,
@@ -119,7 +128,10 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
     );
 
     console.log(
-      `Transfer ${transfer.id} created for payout amount of ${totalAmount} for partner ${partner.id}`,
+      `Transfer of ${currencyFormatter(totalAmount / 100)} (${transfer.id}) created for partner ${partner.id} for ${pluralize(
+        "payout",
+        payouts.length,
+      )} ${payouts.map((p) => p.id).join(", ")}`,
     );
 
     await Promise.allSettled([
@@ -152,9 +164,10 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
             variant: "notifications",
             subject: "You've been paid!",
             email: partner.email,
-            react: PartnerPayoutSent({
+            react: PartnerPayoutProcessed({
               email: partner.email,
-              payoutAmount: totalAmount,
+              program: latestInvoicePayout.program,
+              payout: latestInvoicePayout,
             }),
           })
         : Promise.resolve(),

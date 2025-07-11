@@ -54,6 +54,7 @@ export async function POST(req: Request) {
     await Promise.allSettled([
       sendStripePayouts({
         payload: body,
+        invoice,
       }),
 
       sendPaypalPayouts({

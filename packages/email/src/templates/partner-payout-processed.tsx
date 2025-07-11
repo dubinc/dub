@@ -1,4 +1,4 @@
-import { currencyFormatter, DUB_WORDMARK } from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK, formatDate } from "@dub/utils";
 import {
   Body,
   Container,
@@ -14,17 +14,53 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function PartnerPayoutSent({
+export default function PartnerPayoutProcessed({
   email = "panic@thedis.co",
-  payoutAmount = 56700,
+  program = {
+    name: "Acme",
+    logo: DUB_WORDMARK,
+  },
+  payout = {
+    id: "po_8VuCr2i7WnG65d4TNgZO19fT",
+    amount: 490,
+    startDate: new Date("2024-11-01"),
+    endDate: new Date("2024-11-30"),
+  },
 }: {
   email: string;
-  payoutAmount: number;
+  program: {
+    name: string;
+    logo: string | null;
+  };
+  payout: {
+    id: string;
+    amount: number;
+    startDate?: Date | null;
+    endDate?: Date | null;
+  };
 }) {
-  const payoutAmountInDollars = currencyFormatter(payoutAmount / 100, {
+  const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
+  const startDate = payout.startDate
+    ? formatDate(payout.startDate, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    : null;
+
+  const endDate = payout.endDate
+    ? formatDate(payout.endDate, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    : null;
 
   return (
     <Html>
@@ -42,15 +78,23 @@ export default function PartnerPayoutSent({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Your payouts of{" "}
-              <strong className="text-black">{payoutAmountInDollars}</strong>{" "}
-              have been processed and have been sent to your Stripe Express
-              account.
+              <strong className="text-black">{program.name}</strong> has sent
+              you <strong className="text-black">{saleAmountInDollars}</strong>
+              {startDate && endDate ? (
+                <>
+                  {" "}
+                  for affiliate sales made from{" "}
+                  <strong className="text-black">{startDate}</strong> to{" "}
+                  <strong className="text-black">{endDate}</strong>.
+                </>
+              ) : (
+                "."
+              )}
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
               If the amount in your Stripe Express account is above your minimum
-              withdrawal balance, they’ll automatically begin transferring to
+              withdrawal balance, they'll automatically begin transferring to
               your bank account. You can change your minimum any time from the
               settings on your payouts page.
             </Text>
