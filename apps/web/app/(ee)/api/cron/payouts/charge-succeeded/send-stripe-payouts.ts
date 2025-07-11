@@ -10,7 +10,7 @@ import { currencyFormatter } from "@dub/utils";
 import { Payload } from "./utils";
 
 export async function sendStripePayouts({ payload }: { payload: Payload }) {
-  const { invoiceId, chargeId, achCreditTransfer } = payload;
+  const { invoiceId } = payload;
 
   const payouts = await prisma.payout.findMany({
     where: {
