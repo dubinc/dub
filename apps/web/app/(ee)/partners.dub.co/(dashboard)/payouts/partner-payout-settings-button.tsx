@@ -3,17 +3,17 @@
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { Button } from "@dub/ui";
-import { usePartnerPayoutSettingsModal } from "./partner-payout-settings-modal";
+import { usePartnerPayoutSettingsSheet } from "./partner-payout-settings-sheet";
 
 export function PartnerPayoutSettingsButton() {
   const { partner } = usePartnerProfile();
 
-  const { PartnerPayoutSettingsModal, setShowPartnerPayoutSettingsModal } =
-    usePartnerPayoutSettingsModal();
+  const { PartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet } =
+    usePartnerPayoutSettingsSheet();
 
   return (
     <>
-      <PartnerPayoutSettingsModal />
+      <PartnerPayoutSettingsSheet />
 
       {!partner?.payoutsEnabledAt && <ConnectPayoutButton />}
 
@@ -21,7 +21,7 @@ export function PartnerPayoutSettingsButton() {
         type="button"
         text="Payout settings"
         variant="secondary"
-        onClick={() => setShowPartnerPayoutSettingsModal(true)}
+        onClick={() => setShowPartnerPayoutSettingsSheet(true)}
       />
     </>
   );

@@ -11,17 +11,10 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { PayoutMethodsDropdown } from "@/ui/partners/payout-methods-dropdown";
-import {
-  AnimatedSizeContainer,
-  Button,
-  Modal,
-  Slider,
-  useScrollProgress,
-} from "@dub/ui";
+import { Button, Sheet, Slider, useScrollProgress } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { motion } from "framer-motion";
-import { ChevronDown, PartyPopper } from "lucide-react";
+import { PartyPopper } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -36,32 +29,32 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type PartnerPayoutSettingsModalProps = {
-  showPartnerPayoutSettingsModal: boolean;
-  setShowPartnerPayoutSettingsModal: Dispatch<SetStateAction<boolean>>;
+type PartnerPayoutSettingsSheetProps = {
+  showPartnerPayoutSettingsSheet: boolean;
+  setShowPartnerPayoutSettingsSheet: Dispatch<SetStateAction<boolean>>;
 };
 
 type PartnerPayoutSettingsFormData = z.infer<
   typeof partnerPayoutSettingsSchema
 >;
 
-function PartnerPayoutSettingsModal(props: PartnerPayoutSettingsModalProps) {
-  const { showPartnerPayoutSettingsModal, setShowPartnerPayoutSettingsModal } =
+function PartnerPayoutSettingsSheet(props: PartnerPayoutSettingsSheetProps) {
+  const { showPartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet } =
     props;
 
   return (
-    <Modal
-      showModal={showPartnerPayoutSettingsModal}
-      setShowModal={setShowPartnerPayoutSettingsModal}
+    <Sheet
+      open={showPartnerPayoutSettingsSheet}
+      onOpenChange={setShowPartnerPayoutSettingsSheet}
     >
-      <PartnerPayoutSettingsModalInner {...props} />
-    </Modal>
+      <PartnerPayoutSettingsSheetInner {...props} />
+    </Sheet>
   );
 }
 
-function PartnerPayoutSettingsModalInner({
-  setShowPartnerPayoutSettingsModal,
-}: PartnerPayoutSettingsModalProps) {
+function PartnerPayoutSettingsSheetInner({
+  setShowPartnerPayoutSettingsSheet,
+}: PartnerPayoutSettingsSheetProps) {
   const { partner } = usePartnerProfile();
 
   const {
@@ -84,7 +77,7 @@ function PartnerPayoutSettingsModalInner({
     {
       onSuccess: async () => {
         toast.success("Payout settings updated successfully!");
-        setShowPartnerPayoutSettingsModal(false);
+        setShowPartnerPayoutSettingsSheet(false);
         mutatePrefix("/api/partner-profile");
       },
       onError({ error }) {
@@ -102,19 +95,19 @@ function PartnerPayoutSettingsModalInner({
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="space-y-4 border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Payout settings</h3>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
+      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
+        <Sheet.Title className="text-lg font-semibold">
+          Payout settings
+        </Sheet.Title>
       </div>
 
-      <div className="relative">
+      <div className="relative flex-1 overflow-y-auto">
         <div
           ref={scrollRef}
           onScroll={updateScrollProgress}
-          className="scrollbar-hide max-h-[calc(100dvh-200px)] space-y-10 overflow-y-auto bg-neutral-50 p-4 sm:p-6"
+          className="scrollbar-hide h-full space-y-10 overflow-y-auto bg-neutral-50 p-4 sm:p-6"
         >
           <div className="divide-y divide-neutral-200">
             {/* Connected payout account */}
@@ -192,72 +185,52 @@ function PartnerPayoutSettingsModalInner({
               </div>
             </div>
 
-            {/* Advanced settings */}
-            <div className="pt-6">
-              <button
-                type="button"
-                className="flex w-full items-center gap-2"
-                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-              >
-                <p className="text-sm text-neutral-600">Advanced settings</p>
-                <motion.div
-                  animate={{ rotate: showAdvancedOptions ? 180 : 0 }}
-                  className="text-neutral-600"
-                >
-                  <ChevronDown className="size-4" />
-                </motion.div>
-              </button>
+            {/* Invoice details */}
+            <div className="space-y-6 py-6">
+              <div>
+                <h4 className="text-base font-semibold leading-6 text-neutral-900">
+                  Invoice details (optional)
+                </h4>
+                <p className="text-sm font-medium text-neutral-500">
+                  This information is added to your payout invoices.
+                </p>
+              </div>
 
-              <AnimatedSizeContainer height>
-                {showAdvancedOptions && (
-                  <div className="grid grid-cols-1 gap-6 py-6">
-                    {/* Invoice details */}
-                    <div>
-                      <h4 className="text-base font-semibold leading-6 text-neutral-900">
-                        Invoice details (optional)
-                      </h4>
-                      <p className="text-sm font-medium text-neutral-500">
-                        This information is added to your payout invoices.
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-neutral-900">
-                        Business name
-                      </label>
-                      <div className="relative mt-1.5 rounded-md shadow-sm">
-                        <input
-                          autoFocus
-                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                          {...register("companyName")}
-                        />
-                      </div>
-                    </div>
+              <div>
+                <label className="text-sm font-medium text-neutral-900">
+                  Business name
+                </label>
+                <div className="relative mt-1.5 rounded-md shadow-sm">
+                  <input
+                    autoFocus
+                    className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                    {...register("companyName")}
+                  />
+                </div>
+              </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-neutral-900">
-                        Business address
-                      </label>
-                      <TextareaAutosize
-                        className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                        minRows={3}
-                        {...register("address")}
-                      />
-                    </div>
+              <div>
+                <label className="text-sm font-medium text-neutral-900">
+                  Business address
+                </label>
+                <TextareaAutosize
+                  className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  minRows={3}
+                  {...register("address")}
+                />
+              </div>
 
-                    <div>
-                      <label className="text-sm font-medium text-neutral-900">
-                        Business tax ID
-                      </label>
-                      <div className="relative mt-1.5 rounded-md shadow-sm">
-                        <input
-                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                          {...register("taxId")}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </AnimatedSizeContainer>
+              <div>
+                <label className="text-sm font-medium text-neutral-900">
+                  Business tax ID
+                </label>
+                <div className="relative mt-1.5 rounded-md shadow-sm">
+                  <input
+                    className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                    {...register("taxId")}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -267,13 +240,13 @@ function PartnerPayoutSettingsModalInner({
         />
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
+      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
         <Button
           variant="secondary"
           text="Cancel"
           disabled={isPending}
           className="h-8 w-fit px-3"
-          onClick={() => setShowPartnerPayoutSettingsModal(false)}
+          onClick={() => setShowPartnerPayoutSettingsSheet(false)}
         />
 
         <Button
@@ -288,24 +261,24 @@ function PartnerPayoutSettingsModalInner({
   );
 }
 
-export function usePartnerPayoutSettingsModal() {
-  const [showPartnerPayoutSettingsModal, setShowPartnerPayoutSettingsModal] =
+export function usePartnerPayoutSettingsSheet() {
+  const [showPartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet] =
     useState(false);
 
-  const PartnerPayoutSettingsModalCallback = useCallback(() => {
+  const PartnerPayoutSettingsSheetCallback = useCallback(() => {
     return (
-      <PartnerPayoutSettingsModal
-        showPartnerPayoutSettingsModal={showPartnerPayoutSettingsModal}
-        setShowPartnerPayoutSettingsModal={setShowPartnerPayoutSettingsModal}
+      <PartnerPayoutSettingsSheet
+        showPartnerPayoutSettingsSheet={showPartnerPayoutSettingsSheet}
+        setShowPartnerPayoutSettingsSheet={setShowPartnerPayoutSettingsSheet}
       />
     );
-  }, [showPartnerPayoutSettingsModal, setShowPartnerPayoutSettingsModal]);
+  }, [showPartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet]);
 
   return useMemo(
     () => ({
-      setShowPartnerPayoutSettingsModal,
-      PartnerPayoutSettingsModal: PartnerPayoutSettingsModalCallback,
+      setShowPartnerPayoutSettingsSheet,
+      PartnerPayoutSettingsSheet: PartnerPayoutSettingsSheetCallback,
     }),
-    [setShowPartnerPayoutSettingsModal, PartnerPayoutSettingsModalCallback],
+    [setShowPartnerPayoutSettingsSheet, PartnerPayoutSettingsSheetCallback],
   );
 }
