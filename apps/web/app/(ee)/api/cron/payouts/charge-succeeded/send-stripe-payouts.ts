@@ -168,6 +168,7 @@ export async function sendStripePayouts({
               email: partner.email,
               program: latestInvoicePayout.program,
               payout: latestInvoicePayout,
+              variant: "stripe",
             }),
           })
         : Promise.resolve(),

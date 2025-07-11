@@ -26,6 +26,7 @@ export default function PartnerPayoutProcessed({
     startDate: new Date("2024-11-01"),
     endDate: new Date("2024-11-30"),
   },
+  variant = "stripe",
 }: {
   email: string;
   program: {
@@ -38,6 +39,7 @@ export default function PartnerPayoutProcessed({
     startDate?: Date | null;
     endDate?: Date | null;
   };
+  variant: "stripe" | "paypal";
 }) {
   const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
     minimumFractionDigits: 2,
@@ -78,8 +80,9 @@ export default function PartnerPayoutProcessed({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              <strong className="text-black">{program.name}</strong> has sent
-              you <strong className="text-black">{saleAmountInDollars}</strong>
+              Good news! <strong className="text-black">{program.name}</strong>{" "}
+              has sent you{" "}
+              <strong className="text-black">{saleAmountInDollars}</strong>
               {startDate && endDate ? (
                 <>
                   {" "}
@@ -93,10 +96,9 @@ export default function PartnerPayoutProcessed({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              If the amount in your Stripe Express account is above your minimum
-              withdrawal balance, they'll automatically begin transferring to
-              your bank account. You can change your minimum any time from the
-              settings on your payouts page.
+              {variant === "stripe"
+                ? "If the balance in your Stripe Express account is above your minimum withdrawal amount, they'll automatically begin transferring to your bank account. You can change your minimum withdrawal amount any time in your payout settings."
+                : "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete."}
             </Text>
 
             <Section className="mb-12 mt-8">
