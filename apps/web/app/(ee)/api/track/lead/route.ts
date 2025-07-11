@@ -8,10 +8,10 @@ import { createPartnerCommission } from "@/lib/partners/create-partner-commissio
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
+import { ClickEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
-import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
@@ -22,8 +22,6 @@ import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-type ClickData = z.infer<typeof clickEventSchemaTB>;
 
 // POST /api/track/lead – Track a lead conversion event
 export const POST = withWorkspace(
@@ -88,7 +86,7 @@ export const POST = withWorkspace(
 
     if (ok) {
       // Find click event
-      let clickData: ClickData | null = null;
+      let clickData: ClickEventTB | null = null;
       const clickEvent = await getClickEvent({ clickId });
 
       if (clickEvent && clickEvent.data && clickEvent.data.length > 0) {
@@ -96,7 +94,7 @@ export const POST = withWorkspace(
       }
 
       if (!clickData) {
-        const cachedClickData = await redis.get<ClickData>(
+        const cachedClickData = await redis.get<ClickEventTB>(
           `clickIdCache:${clickId}`,
         );
 
