@@ -17,12 +17,12 @@ import { Footer } from "../components/footer";
 // Send this email after initiating a Stripe payout to the partner
 export default function PartnerPayoutWithdrawalInitiated({
   email = "panic@thedis.co",
-  payoutAmount = 490,
+  amount = 45590,
 }: {
   email: string;
-  payoutAmount: number;
+  amount: number;
 }) {
-  const payoutAmountFormatted = currencyFormatter(payoutAmount / 100, {
+  const amountInDollars = currencyFormatter(amount / 100, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -45,7 +45,7 @@ export default function PartnerPayoutWithdrawalInitiated({
             <Text className="text-sm leading-6 text-neutral-600">
               Good news!{" "}
               <span className="font-semibold text-neutral-800">
-                {payoutAmountFormatted}
+                {amountInDollars}
               </span>{" "}
               is being transferred to your bank account.
             </Text>

@@ -21,7 +21,7 @@ model Payout {
   periodStart      DateTime?
   periodEnd        DateTime?
   paypalTransferId String?      @unique
-  stripeTransferId String?      @unique
+  stripeTransferId String?
   stripePayoutId   String?
   failureReason    String?      @db.Text
   createdAt        DateTime     @default(now())

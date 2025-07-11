@@ -149,16 +149,17 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
         },
       }),
 
-      partner.email &&
-        sendEmail({
-          variant: "notifications",
-          subject: "You've been paid!",
-          email: partner.email,
-          react: PartnerPayoutSent({
+      partner.email
+        ? sendEmail({
+            variant: "notifications",
+            subject: "You've been paid!",
             email: partner.email,
-            payoutAmount: totalAmount,
-          }),
-        }),
+            react: PartnerPayoutSent({
+              email: partner.email,
+              payoutAmount: totalAmount,
+            }),
+          })
+        : Promise.resolve(),
     ]);
 
     // sleep for 250ms
