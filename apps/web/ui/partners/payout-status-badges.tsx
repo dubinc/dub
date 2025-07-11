@@ -1,5 +1,6 @@
 import {
   CircleCheck,
+  CircleHalfDottedCheck,
   CircleHalfDottedClock,
   CircleWarning,
   CircleXmark,
@@ -22,7 +23,7 @@ export const PayoutStatusBadges = {
   processed: {
     label: "Processed",
     variant: "new",
-    icon: CircleHalfDottedClock,
+    icon: CircleHalfDottedCheck,
     className: "text-indigo-600 bg-indigo-100",
   },
   sent: {
