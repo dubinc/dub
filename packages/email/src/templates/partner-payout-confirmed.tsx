@@ -100,16 +100,17 @@ export default function PartnerPayoutConfirmed({
               )}
               .
             </Text>
+
             <Text className="text-sm leading-6 text-neutral-600">
               The payout is currently being processed and is expected to be
-              credited to your Stripe Express account within 5 business days
-              (excluding weekends and public holidays).
+              credited to your account within 5 business days (excluding
+              weekends and public holidays).
             </Text>
 
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
-                href={`https://partners.dub.co/payouts?payoutId=${payout.id}`}
+                href={`https://partners.dub.co/settings/payouts?payoutId=${payout.id}`}
               >
                 View payout
               </Link>
