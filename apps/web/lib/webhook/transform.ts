@@ -6,9 +6,8 @@ import { Webhook } from "@dub/prisma/client";
 import { OG_AVATAR_URL, nanoid, toCamelCase } from "@dub/utils";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import { generateRandomName } from "../names";
-import { WebhookTrigger } from "../types";
-import z from "../zod";
-import { clickEventSchema, clickEventSchemaTB } from "../zod/schemas/clicks";
+import { ClickEventTB, WebhookTrigger } from "../types";
+import { clickEventSchema } from "../zod/schemas/clicks";
 import { WebhookSchema } from "../zod/schemas/webhooks";
 import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
 import { leadWebhookEventSchema, saleWebhookEventSchema } from "./schemas";
@@ -30,7 +29,7 @@ export const transformWebhook = (webhook: TransformWebhookProps) => {
 };
 
 export const transformClickEventData = (
-  data: z.infer<typeof clickEventSchemaTB> & {
+  data: ClickEventTB & {
     link: any;
   },
 ) => {

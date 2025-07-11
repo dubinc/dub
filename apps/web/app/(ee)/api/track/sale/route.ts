@@ -7,11 +7,11 @@ import { withWorkspace } from "@/lib/auth";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
+import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
@@ -21,8 +21,6 @@ import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-type LeadEvent = z.infer<typeof leadEventSchemaTB>;
 
 // POST /api/track/sale – Track a sale conversion event
 export const POST = withWorkspace(
@@ -107,14 +105,14 @@ export const POST = withWorkspace(
       eventName: leadEventName,
     });
 
-    let leadEventData: LeadEvent | null = null;
+    let leadEventData: LeadEventTB | null = null;
 
     if (!leadEvent || leadEvent.data.length === 0) {
       // Check cache to see if the lead event exists
       // if leadEventName is provided, we only check for that specific event
       // otherwise, we check for all cached lead events for that customer
 
-      const cachedLeadEvent = await redis.get<LeadEvent>(
+      const cachedLeadEvent = await redis.get<LeadEventTB>(
         `leadCache:${customer.id}${leadEventName ? `:${leadEventName.toLowerCase().replace(" ", "-")}` : ""}`,
       );
 
