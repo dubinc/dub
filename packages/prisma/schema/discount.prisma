@@ -8,7 +8,6 @@ model Discount {
   couponId     String?
   couponTestId String?
   default      Boolean         @default(false)
-  provider     String? // coupon provider for link-based coupon code tracking
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
