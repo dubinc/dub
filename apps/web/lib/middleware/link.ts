@@ -62,7 +62,10 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: "scan_limit_reached",
+          name: "trial_expired",
+          data: {
+            codes: 30,
+          },
         }),
       });
 
@@ -73,11 +76,12 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify([{
-          event: EAnalyticEvents.SCAN_LIMIT_REACHED,
+          event: EAnalyticEvents.TRIAL_EXPIRED,
           properties: {
             distinct_id: link.userId,
             email: link.userEmail,
             mixpanel_user_id: link.userId,
+            codes: 30,
             timestamp: new Date().toISOString(),
             token: process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN,
           },
