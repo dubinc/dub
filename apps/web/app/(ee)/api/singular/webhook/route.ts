@@ -1,9 +1,110 @@
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { getClickEvent } from "@/lib/tinybird";
+import { ClickEventTB } from "@/lib/types";
+import { redis } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
+import { getSearchParams } from "@dub/utils";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const customEventSchema = z.object({
+  dub_id: z.string().min(1),
+  event_name: z.string(),
+  event_date: z.string().nullable(),
+  event_time: z.string().nullable(),
+  install_date: z.string().nullable(),
+  install_time: z.string().nullable(),
+});
+
+const saleEventSchema = customEventSchema.merge(
+  z.object({
+    revenue: z.number().nullable(),
+  }),
+);
+
+const schema = z.discriminatedUnion("event_name", [
+  customEventSchema,
+  saleEventSchema,
+]);
+
 // GET /api/singular/webhook – listen to Postback events from Singular
 export const GET = async (req: Request) => {
-  // Find the click event
-  // Find the link info
-  // Map singular event to Dub event
-  // Find the Singular event (lead, sale)
-  // Track the valid events
-  // Return 200
+  try {
+    const searchParams = getSearchParams(req.url);
+
+    console.debug("Parameters", searchParams);
+
+    const {
+      dub_id: clickId,
+      event_name: eventName,
+      event_date: eventDate,
+      event_time: eventTime,
+      install_date: installDate,
+      install_time: installTime,
+    } = schema.parse(searchParams);
+
+    // Find the click event
+    let clickData: ClickEventTB | null = null;
+    const clickEvent = await getClickEvent({
+      clickId,
+    });
+
+    if (clickEvent && clickEvent.data && clickEvent.data.length > 0) {
+      clickData = clickEvent.data[0];
+    }
+
+    if (!clickData) {
+      const cachedClickData = await redis.get<ClickEventTB>(
+        `clickIdCache:${clickId}`,
+      );
+
+      if (cachedClickData) {
+        clickData = {
+          ...cachedClickData,
+          timestamp: cachedClickData.timestamp
+            .replace("T", " ")
+            .replace("Z", ""),
+          qr: cachedClickData.qr ? 1 : 0,
+          bot: cachedClickData.bot ? 1 : 0,
+        };
+      }
+    }
+
+    if (!clickData) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Click event not found for clickId: ${clickId}`,
+      });
+    }
+
+    // TODO:
+    // How to skip already tracked events
+    // How to identify the customer (do they pass the these info via)
+
+    // Find the link associated with the click event
+    const { link_id: linkId } = clickData;
+
+    const link = await prisma.link.findUniqueOrThrow({
+      where: {
+        id: linkId,
+      },
+    });
+
+    if (!link.projectId) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Link does not belong to a workspace.",
+      });
+    }
+
+    return NextResponse.json({
+      clickId,
+    });
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
+  }
+};
+
+export const HEAD = async (req: Request) => {
+  return new Response("OK");
 };
