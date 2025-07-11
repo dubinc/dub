@@ -20,9 +20,19 @@ export async function sendPaypalPayouts({ payload }: { payload: Payload }) {
         },
       },
     },
-    include: {
-      partner: true,
-      program: true,
+    select: {
+      id: true,
+      amount: true,
+      partner: {
+        select: {
+          paypalEmail: true,
+        },
+      },
+      program: {
+        select: {
+          name: true,
+        },
+      },
     },
   });
 
