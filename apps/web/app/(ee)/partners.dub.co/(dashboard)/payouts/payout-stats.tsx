@@ -220,14 +220,14 @@ export function PayoutStats() {
             },
           },
 
-          // {
-          //   label: "Sent",
-          //   amount: payoutStatusMap?.sent?.amount,
-          //   icon: PayoutStatusBadges.sent.icon,
-          //   iconClassName: PayoutStatusBadges.sent.className,
-          //   tooltip: tooltip?.sent,
-          //   error: !!error,
-          // },
+          {
+            label: "Sent",
+            amount: payoutStatusMap?.sent?.amount,
+            icon: PayoutStatusBadges.sent.icon,
+            iconClassName: PayoutStatusBadges.sent.className,
+            tooltip: tooltip?.sent,
+            error: !!error,
+          },
         ]
       : []),
 
@@ -247,7 +247,7 @@ export function PayoutStats() {
       <div
         className={cn(
           "grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200",
-          "grid-cols-1 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4",
+          "grid-cols-1 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-5",
         )}
       >
         {payoutStats.map((stat) => (
