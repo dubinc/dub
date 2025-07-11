@@ -26,7 +26,7 @@ export async function payoutPaid(event: Stripe.Event) {
 
   const stripePayout = event.data.object as Stripe.Payout;
 
-  const { count: payoutsCount } = await prisma.payout.updateMany({
+  await prisma.payout.updateMany({
     where: {
       status: "sent",
       stripePayoutId: stripePayout.id,
@@ -35,24 +35,4 @@ export async function payoutPaid(event: Stripe.Event) {
       status: "completed",
     },
   });
-
-  if (payoutsCount === 0) {
-    console.error(
-      `No payouts found with Stripe payout ID ${stripePayout.id}. Skipping...`,
-    );
-    return;
-  }
-
-  const payouts = await prisma.payout.findMany({
-    where: {
-      stripePayoutId: stripePayout.id,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  console.log(
-    `Completed payouts for Stripe Connect account ${stripeAccount}: [${payouts.map((p) => p.id).join(", ")}]`,
-  );
 }
