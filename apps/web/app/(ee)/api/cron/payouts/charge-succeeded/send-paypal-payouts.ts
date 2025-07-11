@@ -1,19 +1,35 @@
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
-import { Payload, Payouts } from "./utils";
+import { prisma } from "@dub/prisma";
+import { Payload } from "./utils";
 
-export async function sendPaypalPayouts({
-  payload,
-  payouts,
-}: {
-  payload: Payload;
-  payouts: Payouts[];
-}) {
+export async function sendPaypalPayouts({ payload }: { payload: Payload }) {
+  const { invoiceId } = payload;
+
+  const payouts = await prisma.payout.findMany({
+    where: {
+      invoiceId,
+      status: {
+        not: "completed",
+      },
+      partner: {
+        payoutsEnabledAt: {
+          not: null,
+        },
+        paypalEmail: {
+          not: null,
+        },
+      },
+    },
+    include: {
+      partner: true,
+      program: true,
+    },
+  });
+
   if (payouts.length === 0) {
     console.log("No payouts for sending via PayPal, skipping...");
     return;
   }
-
-  const { invoiceId } = payload;
 
   await createPayPalBatchPayout({
     payouts,
