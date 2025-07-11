@@ -60,21 +60,22 @@ export async function payoutsItemSucceeded(event: any) {
       },
     }),
 
-    payout.partner.email &&
-      sendEmail({
-        subject: "You've been paid!",
-        email: payout.partner.email,
-        react: PartnerPayoutSent({
-          email: payout.partner.email,
-          program: payout.program,
-          payout: {
-            id: payout.id,
-            amount: payout.amount,
-            startDate: payout.periodStart,
-            endDate: payout.periodEnd,
-          },
-        }),
-        variant: "notifications",
-      }),
+    // TODO
+    // Fix this after finalizing the email templates
+    // payout.partner.email &&
+    //   sendEmail({
+    //     subject: "You've been paid!",
+    //     email: payout.partner.email,
+    //     react: PartnerPayoutSent({
+    //       email: payout.partner.email,
+    //       payout: {
+    //         id: payout.id,
+    //         amount: payout.amount,
+    //         startDate: payout.periodStart,
+    //         endDate: payout.periodEnd,
+    //       },
+    //     }),
+    //     variant: "notifications",
+    //   }),
   ]);
 }
