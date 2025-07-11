@@ -6,6 +6,7 @@ import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutSent from "@dub/email/templates/partner-payout-sent";
 import { prisma } from "@dub/prisma";
+import { currencyFormatter } from "@dub/utils";
 import { Payload } from "./utils";
 
 export async function sendStripePayouts({ payload }: { payload: Payload }) {
@@ -13,7 +14,10 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
 
   const payouts = await prisma.payout.findMany({
     where: {
-      status: "processing",
+      status: {
+        in: ["processing", "processed"],
+      },
+      stripeTransferId: null,
       partner: {
         payoutsEnabledAt: {
           not: null,
@@ -26,8 +30,6 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
     select: {
       id: true,
       amount: true,
-      periodStart: true,
-      periodEnd: true,
       partner: {
         select: {
           id: true,
@@ -38,7 +40,6 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
       },
       program: {
         select: {
-          id: true,
           name: true,
           logo: true,
         },
@@ -64,8 +65,6 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
     return map;
   }, new Map<string, typeof payouts>());
 
-  console.log("payoutsByPartner", payoutsByPartner);
-
   // Process payouts for each partner
   for (const [_, payouts] of payoutsByPartner) {
     let withdrawalFee = 0;
@@ -85,6 +84,10 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
           status: "processed",
         },
       });
+
+      console.log(
+        `Payouts amount (${currencyFormatter(totalAmount / 100)}) for partner ${partner.id} are below the minWithdrawalAmount (${currencyFormatter(partner.minWithdrawalAmount / 100)})`,
+      );
 
       continue;
     }
@@ -109,11 +112,6 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
         transfer_group: invoiceId,
         destination: partner.stripeConnectId!,
         description: "You’ve been paid!",
-        ...(!achCreditTransfer
-          ? {
-              source_transaction: chargeId,
-            }
-          : {}),
       },
       {
         idempotencyKey: `${invoiceId}-${partner.id}`,

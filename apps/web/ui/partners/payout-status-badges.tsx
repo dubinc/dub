@@ -19,6 +19,12 @@ export const PayoutStatusBadges = {
     icon: CircleHalfDottedClock,
     className: "text-blue-600 bg-blue-100",
   },
+  processed: {
+    label: "Processed",
+    variant: "new",
+    icon: CircleHalfDottedClock,
+    className: "text-indigo-600 bg-indigo-100",
+  },
   sent: {
     label: "Sent",
     variant: "new",

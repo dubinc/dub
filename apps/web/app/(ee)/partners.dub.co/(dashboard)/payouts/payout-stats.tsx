@@ -23,16 +23,20 @@ const tooltips = {
     pending:
       "Payouts that have passed the program’s holding period and are waiting to be processed.",
     processing:
-      "Payouts that have been processed by the program and are on their way to your Stripe Express account.",
-    sent: "Payouts that have been sent to your Stripe Express account and will be automatically paid out once they reach your minimum withdrawal balance.",
+      " Payouts that are being processed by the program – this can take up to 5 business days.",
+    processed:
+      "Payouts that have been processed by the program and will be paid out to your connected bank account once they reach your minimum withdrawal balance.",
+    sent: "Payouts that are on their way to your connected bank account – this can take anywhere from 1 to 14 business days depending on your bank location.",
     completed:
       "Payouts that have been paid out from Stripe to your connected bank account.",
   },
+
   paypal: {
     pending:
       "Payouts that have passed the program’s holding period and are waiting to be processed.",
     processing:
-      "Payouts that have been processed by the program and are on their way to your PayPal account.",
+      "Payouts that have been processed by the program and are on their way to your PayPal account - this can take up to 5 business days.",
+    processed: "",
     sent: "",
     completed: "Payouts that have been paid out to your PayPal account",
   },
@@ -169,7 +173,7 @@ export function PayoutStats() {
       label: "Pending",
       amount: payoutStatusMap?.pending?.amount,
       icon: PayoutStatusBadges.pending.icon,
-      iconClassName: "bg-orange-100 text-orange-500",
+      iconClassName: PayoutStatusBadges.pending.className,
       tooltip: tooltip?.pending,
       error: !!error,
       showConnectButton: partner && !partner.payoutsEnabledAt,
@@ -179,7 +183,7 @@ export function PayoutStats() {
       label: "Processing",
       amount: payoutStatusMap?.processing?.amount,
       icon: PayoutStatusBadges.processing.icon,
-      iconClassName: "bg-blue-100 text-blue-500",
+      iconClassName: PayoutStatusBadges.processing.className,
       tooltip: tooltip?.processing,
       error: !!error,
     },
@@ -187,11 +191,11 @@ export function PayoutStats() {
     ...(payoutMethod === "stripe"
       ? [
           {
-            label: "Sent",
-            amount: payoutStatusMap?.sent?.amount,
-            icon: PayoutStatusBadges.sent.icon,
-            iconClassName: "bg-indigo-100 text-indigo-500",
-            tooltip: tooltip?.sent,
+            label: "Processed",
+            amount: payoutStatusMap?.processed?.amount,
+            icon: PayoutStatusBadges.processed.icon,
+            iconClassName: PayoutStatusBadges.processed.className,
+            tooltip: tooltip?.processing,
             error: !!error,
             sublabel: () => {
               if (!partner || !payoutsCount || error) {
@@ -215,6 +219,15 @@ export function PayoutStats() {
               return "Est: 4 business days";
             },
           },
+
+          // {
+          //   label: "Sent",
+          //   amount: payoutStatusMap?.sent?.amount,
+          //   icon: PayoutStatusBadges.sent.icon,
+          //   iconClassName: PayoutStatusBadges.sent.className,
+          //   tooltip: tooltip?.sent,
+          //   error: !!error,
+          // },
         ]
       : []),
 
@@ -222,7 +235,7 @@ export function PayoutStats() {
       label: "Completed",
       amount: payoutStatusMap?.completed?.amount,
       icon: PayoutStatusBadges.completed.icon,
-      iconClassName: "bg-green-100 text-green-500",
+      iconClassName: PayoutStatusBadges.completed.className,
       tooltip: tooltip?.completed,
       error: !!error,
     },
@@ -234,9 +247,7 @@ export function PayoutStats() {
       <div
         className={cn(
           "grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200",
-          payoutMethod === "stripe"
-            ? "grid-cols-1 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4"
-            : "grid-cols-1 sm:grid-cols-3 sm:divide-x sm:divide-y-0",
+          "grid-cols-1 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4",
         )}
       >
         {payoutStats.map((stat) => (
