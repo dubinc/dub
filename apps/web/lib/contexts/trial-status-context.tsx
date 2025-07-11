@@ -1,6 +1,6 @@
 "use client";
 
-import { checkFeaturesAccess } from "@/lib/actions/check-features-access.ts";
+import { checkFeaturesAccess } from "@/lib/actions/check-features-access";
 import { useGetUserProfileQuery } from "core/api/user/user.hook.tsx";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -15,6 +15,7 @@ import {
 
 interface TrialStatusContextType {
   isTrialOver: boolean;
+  trialEndDate: string | null;
   setIsTrialOver: (value: boolean) => void; // TODO: remove it, still used for testing
 }
 
@@ -31,6 +32,7 @@ export function TrialStatusProvider({ children }: { children: ReactNode }) {
     | { data: null; status: "loading" };
 
   const [isTrialOver, setIsTrialOver] = useState<boolean>(false);
+  const [trialEndDate, setTrialEndDate] = useState<string | null>(null);
   const pathname = usePathname();
 
   useGetUserProfileQuery();
@@ -41,8 +43,9 @@ export function TrialStatusProvider({ children }: { children: ReactNode }) {
     try {
       const res = await checkFeaturesAccess();
 
-      if (!res?.data?.featuresAccess) {
-        setIsTrialOver(true);
+      if (res?.data) {
+        setIsTrialOver(!res.data.featuresAccess);
+        setTrialEndDate(res.data.trialEndDate);
       }
     } catch (error) {
       console.error("Error checking trial status:", error);
@@ -56,7 +59,9 @@ export function TrialStatusProvider({ children }: { children: ReactNode }) {
   }, [status, checkTrialStatus, pathname]);
 
   return (
-    <TrialStatusContext.Provider value={{ isTrialOver, setIsTrialOver }}>
+    <TrialStatusContext.Provider
+      value={{ isTrialOver, trialEndDate, setIsTrialOver }}
+    >
       {children}
     </TrialStatusContext.Provider>
   );

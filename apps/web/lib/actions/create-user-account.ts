@@ -3,8 +3,10 @@
 import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit } from "@/lib/upstash";
 import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN, R2_URL } from "@dub/utils";
+import { TrackClient } from "customerio-node";
 import { flattenValidationErrors } from "next-safe-action";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId, getIP } from "../api/utils";
@@ -13,10 +15,11 @@ import z from "../zod";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
-import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
-import { TrackClient } from "customerio-node";
 
-let cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_TRACK_API_KEY!);
+let cio = new TrackClient(
+  process.env.CUSTOMER_IO_SITE_ID!,
+  process.env.CUSTOMER_IO_TRACK_API_KEY!,
+);
 
 const qrDataToCreateSchema = z.object({
   title: z.string(),
@@ -99,6 +102,9 @@ export const createUserAccountAction = actionClient
 
     if (!user) {
       const generatedUserId = createId({ prefix: "user_" });
+      const createdAt = new Date();
+      const trialEndsAt = new Date(createdAt);
+      trialEndsAt.setDate(trialEndsAt.getDate() + 10);
 
       await prisma.user.create({
         data: {
@@ -106,6 +112,7 @@ export const createUserAccountAction = actionClient
           email,
           passwordHash: await hashPassword(password),
           emailVerified: new Date(),
+          trialEndsAt,
         },
       });
 
