@@ -6,11 +6,10 @@ import {
   CreateLinkMiddleware,
   LinkMiddleware,
 } from "@/lib/middleware";
-import { PublicRoutesMiddleware } from "@/lib/middleware/public-routes.ts";
 import { parse } from "@/lib/middleware/utils";
 import { getUserCountry } from "@/lib/middleware/utils/get-user-country.ts";
 import { getUserViaToken } from "@/lib/middleware/utils/get-user-via-token.ts";
-import { initSessionCookie } from "@/lib/middleware/utils/init-session.ts";
+import { supportedWellKnownFiles } from "@/lib/well-known.ts";
 import {
   ADMIN_HOSTNAMES,
   API_HOSTNAMES,
@@ -20,6 +19,10 @@ import {
 } from "@dub/utils";
 import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
+import {
+  ALLOWED_REGIONS,
+  PUBLIC_ROUTES,
+} from "./app/[domain]/(public)/constants/types.ts";
 import PartnersMiddleware from "./lib/middleware/partners";
 
 export const config = {
@@ -37,23 +40,29 @@ export const config = {
 };
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
-  const { domain, key, fullKey } = parse(req);
+  const { domain, key, fullKey, path } = parse(req);
   const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
 
-  req.cookies.set("test", "test");
-
-  // Инициализируем session cookie для всех пользователей
-  const sessionCookie = initSessionCookie(req, user);
-
   AxiomMiddleware(req, ev);
 
-  PublicRoutesMiddleware(req, country, user, sessionCookie);
+  const isPublicRoute =
+    PUBLIC_ROUTES.includes(path) ||
+    path.startsWith("/help") ||
+    ALLOWED_REGIONS.includes(path.slice(1));
+
+  if (isPublicRoute) {
+    if (APP_HOSTNAMES.has(domain)) {
+      if (user) {
+        return AppMiddleware(req, country, user, isPublicRoute);
+      }
+    }
+  }
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
     console.log("middleware here1");
-    return AppMiddleware(req, country, user, sessionCookie);
+    return AppMiddleware(req, country, user);
   }
 
   // for API
@@ -62,32 +71,30 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return ApiMiddleware(req);
   }
 
+  // for .well-known routes
+  if (path.startsWith("/.well-known/")) {
+    const file = path.split("/.well-known/").pop();
+    if (file && supportedWellKnownFiles.includes(file)) {
+      return NextResponse.rewrite(
+        new URL(`/wellknown/${domain}/${file}`, req.url),
+      );
+    }
+  }
+
   // default redirects for dub.sh
   if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
-    const response = NextResponse.redirect(DEFAULT_REDIRECTS[key]);
-    if (sessionCookie) {
-      response.headers.set("Set-Cookie", sessionCookie);
-    }
-    return response;
+    return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
   }
 
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
     console.log("middleware here3");
-    const response = await AdminMiddleware(req);
-    if (sessionCookie) {
-      response.headers.set("Set-Cookie", sessionCookie);
-    }
-    return response;
+    return AdminMiddleware(req);
   }
 
   if (PARTNERS_HOSTNAMES.has(domain)) {
     console.log("middleware here4");
-    const response = await PartnersMiddleware(req);
-    if (sessionCookie) {
-      response.headers.set("Set-Cookie", sessionCookie);
-    }
-    return response;
+    return PartnersMiddleware(req);
   }
 
   console.log("middleware here5");
