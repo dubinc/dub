@@ -171,7 +171,7 @@ export function PayoutStats() {
             amount: payoutStatusMap?.processed?.amount,
             icon: PayoutStatusBadges.processed.icon,
             iconClassName: PayoutStatusBadges.processed.className,
-            tooltip: tooltip?.processing,
+            tooltip: tooltip?.processed,
             error: !!error,
           },
 
