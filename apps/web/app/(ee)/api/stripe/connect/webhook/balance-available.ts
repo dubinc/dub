@@ -9,7 +9,9 @@ export async function balanceAvailable(event: Stripe.Event) {
   const stripeAccount = event.account;
 
   if (!stripeAccount) {
-    console.error("Stripe account not found. Skipping...");
+    console.error(
+      `Stripe connect account ${stripeAccount} not found. Skipping...`,
+    );
     return;
   }
 
@@ -21,7 +23,7 @@ export async function balanceAvailable(event: Stripe.Event) {
 
   if (!partner) {
     console.error(
-      `Partner not found with stripeConnectId ${stripeAccount}. Skipping...`,
+      `Partner not found with Stripe connect account ${stripeAccount}. Skipping...`,
     );
     return;
   }

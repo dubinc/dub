@@ -5,7 +5,9 @@ export async function payoutPaid(event: Stripe.Event) {
   const stripeAccount = event.account;
 
   if (!stripeAccount) {
-    console.error("Stripe account not found. Skipping...");
+    console.error(
+      `Stripe connect account ${stripeAccount} not found. Skipping...`,
+    );
     return;
   }
 
@@ -17,14 +19,14 @@ export async function payoutPaid(event: Stripe.Event) {
 
   if (!partner) {
     console.error(
-      `Partner not found with stripeConnectId ${stripeAccount}. Skipping...`,
+      `Partner not found with Stripe connect account ${stripeAccount}. Skipping...`,
     );
     return;
   }
 
   const stripePayout = event.data.object as Stripe.Payout;
 
-  await prisma.payout.updateMany({
+  const { count: payoutsCount } = await prisma.payout.updateMany({
     where: {
       status: "sent",
       stripePayoutId: stripePayout.id,
@@ -33,4 +35,24 @@ export async function payoutPaid(event: Stripe.Event) {
       status: "completed",
     },
   });
+
+  if (payoutsCount === 0) {
+    console.error(
+      `No payouts found with Stripe payout ID ${stripePayout.id}. Skipping...`,
+    );
+    return;
+  }
+
+  const payouts = await prisma.payout.findMany({
+    where: {
+      stripePayoutId: stripePayout.id,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  console.log(
+    `Completed payouts for Stripe Connect account ${stripeAccount}: [${payouts.map((p) => p.id).join(", ")}]`,
+  );
 }
