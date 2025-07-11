@@ -3,7 +3,6 @@
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
-import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
@@ -15,8 +14,6 @@ import {
   PAYPAL_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
-import { ReactNode } from "react";
-import { usePartnerPayoutSettingsModal } from "./partner-payout-settings-modal";
 
 const tooltips = {
   stripe: {
@@ -48,18 +45,14 @@ function PayoutStatsCard({
   icon: Icon,
   iconClassName,
   tooltip,
-  sublabel,
   error,
-  showConnectButton,
 }: {
   label: string;
   amount: number;
   icon: any;
   iconClassName?: string;
   tooltip?: string;
-  sublabel?: () => ReactNode;
   error?: boolean;
-  showConnectButton?: boolean;
 }) {
   const { partner } = usePartnerProfile();
 
@@ -119,24 +112,11 @@ function PayoutStatsCard({
                   </>
                 )}
               </span>
-
-              {sublabel && (
-                <span className="items-center gap-6 rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium leading-4 text-neutral-700">
-                  {sublabel()}
-                </span>
-              )}
             </div>
           ) : (
             <div className="h-7 w-20 animate-pulse rounded bg-neutral-200 sm:h-7 sm:w-24" />
           )}
         </div>
-
-        {showConnectButton && (
-          <ConnectPayoutButton
-            className="h-8 w-fit rounded-lg px-2.5 py-2"
-            text="Connect payouts"
-          />
-        )}
       </div>
     </div>
   );
@@ -148,9 +128,6 @@ export function PayoutStats() {
   const { payoutsCount, error } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
   });
-
-  const { PartnerPayoutSettingsModal, setShowPartnerPayoutSettingsModal } =
-    usePartnerPayoutSettingsModal();
 
   const payoutStatusMap = Object.fromEntries(
     payoutsCount?.map((p) => [p.status, p]) || [],
@@ -176,7 +153,6 @@ export function PayoutStats() {
       iconClassName: PayoutStatusBadges.pending.className,
       tooltip: tooltip?.pending,
       error: !!error,
-      showConnectButton: partner && !partner.payoutsEnabledAt,
     },
 
     {
@@ -197,27 +173,6 @@ export function PayoutStats() {
             iconClassName: PayoutStatusBadges.processed.className,
             tooltip: tooltip?.processing,
             error: !!error,
-            sublabel: () => {
-              if (!partner || !payoutsCount || error) {
-                return null;
-              }
-
-              const amount = payoutStatusMap.sent.amount;
-
-              if (amount < partner.minWithdrawalAmount) {
-                return (
-                  <button
-                    onClick={() => setShowPartnerPayoutSettingsModal(true)}
-                    title="Update minimum withdrawal amount"
-                  >
-                    {currencyFormatter(partner.minWithdrawalAmount / 100)}{" "}
-                    minimum
-                  </button>
-                );
-              }
-
-              return "Est: 4 business days";
-            },
           },
 
           {
@@ -242,18 +197,17 @@ export function PayoutStats() {
   ];
 
   return (
-    <>
-      <PartnerPayoutSettingsModal />
-      <div
-        className={cn(
-          "grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200",
-          "grid-cols-1 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-5",
-        )}
-      >
-        {payoutStats.map((stat) => (
-          <PayoutStatsCard key={stat.label} {...stat} />
-        ))}
-      </div>
-    </>
+    <div
+      className={cn(
+        "grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200",
+        "grid-cols-1", // always single column on mobile
+        "sm:grid-cols-2 sm:divide-x sm:divide-y-0", // two columns on small screens
+        "md:grid-cols-5", // five columns on medium+ screens
+      )}
+    >
+      {payoutStats.map((stat) => (
+        <PayoutStatsCard key={stat.label} {...stat} />
+      ))}
+    </div>
   );
 }
