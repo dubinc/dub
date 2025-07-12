@@ -82,7 +82,7 @@ export default function WelcomeEmailPartner({
               </strong>
               :{" "}
               <Link
-                href="https://partners.dub.co/settings/payouts"
+                href="https://partners.dub.co/payouts"
                 className="font-semibold text-black underline underline-offset-4"
               >
                 Connect a payout method
