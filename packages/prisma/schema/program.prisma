@@ -48,6 +48,7 @@ model Program {
   linkStructure                LinkStructure @default(short)
   linkParameter                String? // null for SHORT, "via" for QUERY, "refer" for PATH
   autoApprovePartnersEnabledAt DateTime?
+  couponCodeTrackingEnabledAt  DateTime?
   createdAt                    DateTime      @default(now())
   updatedAt                    DateTime      @updatedAt
 

@@ -5,6 +5,7 @@ import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
+import { deleteStripeCoupon } from "@/lib/stripe/delete-coupon";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -25,7 +26,7 @@ export const deleteDiscountAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await getProgramOrThrow({
+    await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
@@ -127,6 +128,14 @@ export const deleteDiscountAction = authActionClient
               },
             ],
           }),
+
+          // Remove the Stripe coupon if it exists
+          discount.provider === "stripe"
+            ? deleteStripeCoupon({
+                coupon: discount,
+                stripeConnectId: workspace.stripeConnectId,
+              })
+            : Promise.resolve(),
         ]),
       );
     }

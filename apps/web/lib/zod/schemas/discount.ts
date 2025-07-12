@@ -7,11 +7,12 @@ export const DiscountSchema = z.object({
   amount: z.number(),
   type: z.nativeEnum(RewardStructure),
   maxDuration: z.number().nullable(),
-  description: z.string().nullish(),
   couponId: z.string().nullable(),
   couponTestId: z.string().nullable(),
-  partnersCount: z.number().nullish(),
   default: z.boolean(),
+  provider: z.enum(["stripe"]).nullable(),
+  description: z.string().nullish(),
+  partnersCount: z.number().nullish(),
 });
 
 export const DiscountSchemaWithDeprecatedFields = DiscountSchema.extend({
@@ -38,6 +39,7 @@ export const createDiscountSchema = z.object({
     .array(z.string())
     .nullish()
     .describe("Only applicable for default discounts"),
+  provider: z.enum(["stripe"]).nullish(),
 });
 
 export const updateDiscountSchema = createDiscountSchema.extend({
