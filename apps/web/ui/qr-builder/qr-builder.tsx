@@ -450,8 +450,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           )}
                         >
                           <QRCanvas
-                            width={isMobile ? 200 : 300}
-                            height={isMobile ? 200 : 300}
+                            width={isMobile ? 200 : 352}
+                            height={isMobile ? 200 : 352}
                             qrCode={qrCode}
                           />
                         </div>

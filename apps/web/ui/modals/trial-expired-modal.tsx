@@ -1,5 +1,6 @@
 "use client";
 
+import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import { Button, Modal } from "@dub/ui";
@@ -35,8 +36,7 @@ export function TrialExpiredModal({
   const router = useRouter();
   const { slug } = useWorkspace();
 
-  // @TODO: Replace hardcoded trial end date
-  const trialEndDate = "May 10, 2025";
+  const { trialEndDate } = useTrialStatus();
 
   const handleRestoreAccess = () => {
     setShowModal(false);
@@ -98,11 +98,22 @@ export function TrialExpiredModal({
           <div className="w-full space-y-3 sm:space-y-4">
             <div className="text-left">
               <p className="text-sm leading-relaxed text-neutral-800 sm:text-base">
-                <span className="font-medium">After </span>
-                <span className="text-neutral font-bold">{trialEndDate}</span>
-                <span className="font-medium">
-                  , access to the following features has been disabled:
-                </span>
+                {trialEndDate ? (
+                  <>
+                    <span className="font-medium">After </span>
+                    <span className="text-neutral font-bold">
+                      {trialEndDate}
+                    </span>
+                    <span className="font-medium">
+                      , access to the following features has been disabled:
+                    </span>
+                  </>
+                ) : (
+                  <span className="font-medium">
+                    Your free access has ended. The following features are now
+                    disabled:
+                  </span>
+                )}
               </p>
             </div>
 
