@@ -26,7 +26,7 @@ export async function payoutPaid(event: Stripe.Event) {
 
   const stripePayout = event.data.object as Stripe.Payout;
 
-  await prisma.payout.updateMany({
+  const updatedPayouts = await prisma.payout.updateMany({
     where: {
       status: "sent",
       stripePayoutId: stripePayout.id,
@@ -35,4 +35,8 @@ export async function payoutPaid(event: Stripe.Event) {
       status: "completed",
     },
   });
+
+  console.log(
+    `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to "completed" status`,
+  );
 }

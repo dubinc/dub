@@ -105,7 +105,7 @@ export async function balanceAvailable(event: Stripe.Event) {
   // - in the "sent" status
   // - have a stripe transfer id (meaning it was transferred to this connected account)
   // - no stripe payout id (meaning it was not yet withdrawn to the connected bank account)
-  await prisma.payout.updateMany({
+  const updatedPayouts = await prisma.payout.updateMany({
     where: {
       status: "sent",
       stripePayoutId: null,
@@ -118,8 +118,12 @@ export async function balanceAvailable(event: Stripe.Event) {
     },
   });
 
+  console.log(
+    `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to have the stripePayoutId: ${payout.id}`,
+  );
+
   if (partner.email) {
-    sendEmail({
+    const sentEmail = await sendEmail({
       variant: "notifications",
       subject: "Your funds are on their way to your bank",
       email: partner.email,
@@ -128,5 +132,9 @@ export async function balanceAvailable(event: Stripe.Event) {
         amount: payout.amount,
       }),
     });
+
+    console.log(
+      `Sent email to partner ${partner.email} (${stripeAccount}): ${JSON.stringify(sentEmail, null, 2)}`,
+    );
   }
 }
