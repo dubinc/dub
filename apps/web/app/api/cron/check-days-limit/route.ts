@@ -67,11 +67,16 @@ async function handler(req: Request) {
           `;
           const totalClicks = Number(totalClicksResult[0]?.totalUserClicks || 0);
 
+          console.log("featuresAccess", featuresAccess);
+          console.log("totalClicks", totalClicks);
+
           if (!featuresAccess.featuresAccess && totalClicks < 30) {
             // Send the 10-day registration event
             await cio.track(user.id, {
               name: "trial_expired",
-              days: 10,
+              data: {
+                codes: 30,
+              },
             });
 
             // Send Mixpanel event via fetch
