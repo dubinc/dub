@@ -64,7 +64,7 @@ export const checkFeaturesAccessAuthLess = async (
     ]);
   }
 
-  const isTrialOver = now > trialEndsAt;
+  const isTrialOver = now >= trialEndsAt;
 
   return {
     featuresAccess: isSubscribed || !isTrialOver,
