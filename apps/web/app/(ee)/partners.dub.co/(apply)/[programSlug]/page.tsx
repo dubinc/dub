@@ -56,7 +56,11 @@ export default async function ApplyPage({
           {landerData.blocks.map((block, idx) => {
             const Component = BLOCK_COMPONENTS[block.type];
             return Component ? (
-              <Component key={idx} block={block} program={program} />
+              <Component
+                key={idx}
+                block={block}
+                program={{ ...program, rewards, discount }}
+              />
             ) : null;
           })}
         </div>

@@ -1,6 +1,7 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import {
   programLanderSchema,
   programLanderSimpleSchema,
@@ -39,8 +40,15 @@ export const generateLanderAction = authActionClient
       {
         includeDefaultRewards: true,
         includeDefaultDiscount: true,
+        includeLanderData: true,
       },
     );
+
+    const { rewards, discount } = getProgramApplicationRewardsAndDiscount({
+      rewards: program.rewards ?? [],
+      discounts: program.discounts ?? [],
+      landerData: program["landerData"],
+    });
 
     const firecrawl = new FireCrawlApp({
       apiKey: process.env.FIRECRAWL_API_KEY,
@@ -95,9 +103,9 @@ export const generateLanderAction = authActionClient
         // Program details
         `\n\nProgram details:` +
         `\n\nName: ${program.name}\n` +
-        `\nAffiliate rewards: ${program.rewards?.map((reward) => formatRewardDescription({ reward })) || "Unknown"}` +
-        (program.discounts?.length
-          ? `\nDiscounts for referred users: ${formatDiscountDescription({ discount: program.discounts[0] })}`
+        `\nAffiliate rewards: ${rewards.map((reward) => formatRewardDescription({ reward })).join(", ")}` +
+        (discount
+          ? `\nDiscounts for referred users: ${formatDiscountDescription({ discount })}`
           : "") +
         // Existing page
         (landerData

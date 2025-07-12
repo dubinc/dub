@@ -1,6 +1,7 @@
 "use client";
 
-import { ProgramProps } from "@/lib/types";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { ProgramWithLanderDataProps } from "@/lib/types";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { InvoiceDollar } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
@@ -16,19 +17,21 @@ export function EarningsCalculatorBlock({
   showTitleAndDescription = true,
 }: {
   block: z.infer<typeof programLanderEarningsCalculatorBlockSchema>;
-  program: ProgramProps;
+  program: ProgramWithLanderDataProps;
   showTitleAndDescription?: boolean;
 }) {
   const id = useId();
   const [value, setValue] = useState(10);
 
-  // Find the default sale reward
-  const reward = program?.rewards?.find((r) => r.default && r.event === "sale");
+  const { rewards } = getProgramApplicationRewardsAndDiscount({
+    rewards: program.rewards ?? [],
+    discounts: program.discounts ?? [],
+    landerData: program.landerData ?? {},
+  });
 
-  if (!reward) {
-    return null;
-  }
+  if (!rewards.length) return null;
 
+  const reward = rewards[0];
   const rewardAmount = reward.amount ?? 0;
   const revenue = value * ((block.data.productPrice || 30_00) / 100);
 
