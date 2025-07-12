@@ -100,6 +100,7 @@ export default function PartnerPayoutConfirmed({
               )}
               .
             </Text>
+
             <Text className="text-sm leading-6 text-neutral-600">
               The payout is currently being processed and is expected to be
               credited to your account within 5 business days (excluding

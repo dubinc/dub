@@ -4,8 +4,13 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { accountUpdated } from "./account-updated";
 import { balanceAvailable } from "./balance-available";
+import { payoutPaid } from "./payout-paid";
 
-const relevantEvents = new Set(["account.updated", "balance.available"]);
+const relevantEvents = new Set([
+  "account.updated",
+  "balance.available",
+  "payout.paid",
+]);
 
 // POST /api/stripe/connect/webhook – listen to Stripe Connect webhooks (for connected accounts)
 export const POST = async (req: Request) => {
@@ -38,6 +43,9 @@ export const POST = async (req: Request) => {
         break;
       case "balance.available":
         await balanceAvailable(event);
+        break;
+      case "payout.paid":
+        await payoutPaid(event);
         break;
     }
   } catch (error) {
