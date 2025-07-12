@@ -1,0 +1,10 @@
+SCHEMA >
+    `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),
+    `program_id` String `json:$.program_id`,
+    `partner_id` String `json:$.partner_id`,
+    `url` String `json:$.url`,
+    `activity` LowCardinality(String) `json:$.activity`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "timestamp, program_id, partner_id"
