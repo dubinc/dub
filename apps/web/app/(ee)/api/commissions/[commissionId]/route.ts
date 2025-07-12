@@ -8,7 +8,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import {
-  CommissionSchema,
+  CommissionEnrichedSchema,
   updateCommissionSchema,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
@@ -119,6 +119,10 @@ export const PATCH = withWorkspace(
         // or is being updated to refunded, duplicate, canceled, or fraudulent
         ...(finalEarnings === 0 || status ? { payoutId: null } : {}),
       },
+      include: {
+        customer: true,
+        partner: true,
+      },
     });
 
     // If the commission has already been added to a payout, we need to update the payout amount
@@ -178,6 +182,6 @@ export const PATCH = withWorkspace(
       })(),
     );
 
-    return NextResponse.json(CommissionSchema.parse(updatedCommission));
+    return NextResponse.json(CommissionEnrichedSchema.parse(updatedCommission));
   },
 );

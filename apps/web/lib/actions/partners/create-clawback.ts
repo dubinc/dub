@@ -27,6 +27,5 @@ export const createClawbackAction = authActionClient
       amount: -amount,
       quantity: 1,
       user,
-      workspaceId: workspace.id,
     });
   });

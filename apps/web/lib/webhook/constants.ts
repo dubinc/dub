@@ -8,6 +8,12 @@ export const WEBHOOK_EVENT_ID_PREFIX = "evt_";
 
 export const WEBHOOK_REDIS_KEY = "dub:webhooks";
 
+// Only available for Dub Partners
+export const PARTNERS_WEBHOOK_TRIGGERS = [
+  "partner.enrolled",
+  "commission.created",
+] as const;
+
 export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "link.created",
   "link.updated",
@@ -15,6 +21,7 @@ export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "lead.created",
   "sale.created",
   "partner.enrolled",
+  "commission.created",
 ] as const;
 
 export const LINK_LEVEL_WEBHOOK_TRIGGERS = ["link.clicked"] as const;
@@ -32,6 +39,7 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS = {
   "lead.created": "Lead created",
   "sale.created": "Sale created",
   "partner.enrolled": "Partner enrolled",
+  "commission.created": "Commission created",
 } as const;
 
 export const WEBHOOK_FAILURE_NOTIFY_THRESHOLDS = [5, 10, 15] as const;

@@ -13,6 +13,8 @@ import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { Session } from "../auth";
 import { RewardProps } from "../types";
+import { sendWorkspaceWebhook } from "../webhook/publish";
+import { CommissionEnrichedSchema } from "../zod/schemas/commissions";
 import { determinePartnerReward } from "./determine-partner-reward";
 
 export const createPartnerCommission = async ({
@@ -20,7 +22,6 @@ export const createPartnerCommission = async ({
   event,
   partnerId,
   programId,
-  workspaceId,
   linkId,
   customerId,
   eventId,
@@ -38,7 +39,6 @@ export const createPartnerCommission = async ({
   event: CommissionType;
   partnerId: string;
   programId: string;
-  workspaceId?: string;
   linkId?: string;
   customerId?: string;
   eventId?: string;
@@ -48,7 +48,7 @@ export const createPartnerCommission = async ({
   currency?: string;
   description?: string;
   createdAt?: Date;
-  user?: Session["user"]; // user who created the commission
+  user?: Session["user"]; // user who created the manual commission
 }) => {
   let earnings = 0;
   let status: CommissionStatus = "pending";
@@ -177,6 +177,7 @@ export const createPartnerCommission = async ({
         linkId,
         eventId,
         invoiceId,
+        userId: user?.id,
         quantity,
         amount,
         type: event,
@@ -186,11 +187,28 @@ export const createPartnerCommission = async ({
         description,
         createdAt,
       },
+      include: {
+        partner: true,
+        customer: true,
+      },
     });
 
     waitUntil(
       (async () => {
-        const shouldCaptureAuditLog = user && workspaceId;
+        const { workspace } = await prisma.program.findUniqueOrThrow({
+          where: {
+            id: programId,
+          },
+          select: {
+            workspace: {
+              select: {
+                id: true,
+                webhookEnabled: true,
+              },
+            },
+          },
+        });
+
         const isClawback = earnings < 0;
 
         await Promise.allSettled([
@@ -199,9 +217,16 @@ export const createPartnerCommission = async ({
             programId,
           }),
 
-          shouldCaptureAuditLog
+          sendWorkspaceWebhook({
+            workspace,
+            trigger: "commission.created",
+            data: CommissionEnrichedSchema.parse(commission),
+          }),
+
+          // We only capture audit logs for manual commissions
+          user
             ? recordAuditLog({
-                workspaceId,
+                workspaceId: workspace.id,
                 programId,
                 action: isClawback ? "clawback.created" : "commission.created",
                 description: isClawback

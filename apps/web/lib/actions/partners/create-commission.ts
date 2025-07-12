@@ -61,7 +61,6 @@ export const createCommissionAction = authActionClient
         quantity: 1,
         createdAt: date ?? new Date(),
         user,
-        workspaceId: workspace.id,
       });
 
       return;
@@ -182,7 +181,6 @@ export const createCommissionAction = authActionClient
           quantity: 1,
           createdAt: finalLeadEventDate,
           user,
-          workspaceId: workspace.id,
         }),
       ]);
     }
@@ -218,7 +216,6 @@ export const createCommissionAction = authActionClient
           currency: "usd",
           createdAt: saleEventDate,
           user,
-          workspaceId: workspace.id,
         }),
       ]);
     }

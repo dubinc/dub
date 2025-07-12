@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import {
   LINK_LEVEL_WEBHOOK_TRIGGERS,
+  PARTNERS_WEBHOOK_TRIGGERS,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
@@ -119,13 +120,10 @@ export default function AddEditWebhookForm({
   );
 
   const workspaceLevelTriggers = WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter(
-    (trigger) => {
-      if (trigger === "partner.enrolled") {
-        return partnersEnabled;
-      }
-
-      return true;
-    },
+    (trigger) =>
+      PARTNERS_WEBHOOK_TRIGGERS.includes(trigger as any)
+        ? partnersEnabled
+        : true,
   );
 
   return (

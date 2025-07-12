@@ -1,9 +1,6 @@
-import { CommissionResponseSchema } from "@/lib/zod/schemas/commissions";
+import { CommissionResponse } from "@/lib/types";
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
 import { IntegrationHarness } from "../utils/integration";
-
-type Commission = z.infer<typeof CommissionResponseSchema>;
 
 const expectedCommission = {
   id: expect.any(String),
@@ -12,8 +9,11 @@ const expectedCommission = {
   status: expect.any(String),
   currency: expect.any(String),
   type: expect.any(String),
+  quantity: expect.any(Number),
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
+  partner: expect.any(Object),
+  customer: expect.any(Object),
 };
 
 describe.sequential("/commissions/**", async () => {
@@ -25,7 +25,7 @@ describe.sequential("/commissions/**", async () => {
   let testPaidCommissionId: string;
 
   test("GET /commissions", async () => {
-    const { status, data: commissions } = await http.get<Commission[]>({
+    const { status, data: commissions } = await http.get<CommissionResponse[]>({
       path: "/commissions",
       query: {
         status: "processed",
@@ -37,7 +37,12 @@ describe.sequential("/commissions/**", async () => {
     expect(status).toEqual(200);
     expect(Array.isArray(commissions)).toBe(true);
     expect(commissions.length).toBeGreaterThan(0);
-    expect(commissions[0]).toMatchObject(expectedCommission);
+    expect(commissions[0]).toMatchObject({
+      ...expectedCommission,
+      invoiceId: null,
+      description: null,
+    });
+
     // Store the first sale and lead commission's ID for subsequent tests
     testCommissionId = commissions.find((c) => c.type === "sale")!.id;
     testLeadCommissionId = commissions.find((c) => c.type === "lead")!.id;
@@ -46,7 +51,7 @@ describe.sequential("/commissions/**", async () => {
   test("GET /commissions with filters", async () => {
     // Get paid commissions
     const { status: paidStatus, data: paidCommissions } = await http.get<
-      Commission[]
+      CommissionResponse[]
     >({
       path: "/commissions",
       query: {
@@ -68,7 +73,7 @@ describe.sequential("/commissions/**", async () => {
       amount: 5000, // $50.00 in cents
     };
 
-    const { status, data: commission } = await http.patch<Commission>({
+    const { status, data: commission } = await http.patch<CommissionResponse>({
       path: `/commissions/${testCommissionId}`,
       body: toUpdate,
     });
@@ -86,7 +91,7 @@ describe.sequential("/commissions/**", async () => {
       currency: "usd",
     };
 
-    const { status, data: commission } = await http.patch<Commission>({
+    const { status, data: commission } = await http.patch<CommissionResponse>({
       path: `/commissions/${testCommissionId}`,
       body: toUpdate,
     });
@@ -101,7 +106,7 @@ describe.sequential("/commissions/**", async () => {
       currency: "jpy",
     };
 
-    const { status, data: commission } = await http.patch<Commission>({
+    const { status, data: commission } = await http.patch<CommissionResponse>({
       path: `/commissions/${testCommissionId}`,
       body: toUpdate,
     });
@@ -117,7 +122,7 @@ describe.sequential("/commissions/**", async () => {
       amount: 5000,
     };
 
-    const response = await http.patch<Commission>({
+    const response = await http.patch<CommissionResponse>({
       path: `/commissions/${testLeadCommissionId}`,
       body: toUpdate,
     });
@@ -131,7 +136,7 @@ describe.sequential("/commissions/**", async () => {
       amount: 5000,
     };
 
-    const response = await http.patch<Commission>({
+    const response = await http.patch<CommissionResponse>({
       path: `/commissions/${testPaidCommissionId}`,
       body: toUpdate,
     });
@@ -145,7 +150,7 @@ describe.sequential("/commissions/**", async () => {
       status: "refunded",
     };
 
-    const { status, data: commission } = await http.patch<Commission>({
+    const { status, data: commission } = await http.patch<CommissionResponse>({
       path: `/commissions/${testCommissionId}`,
       body: toUpdate,
     });

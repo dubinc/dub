@@ -20,21 +20,11 @@ export const GET = withReferralsEmbedToken(
         programId: programEnrollment.programId,
         partnerId: programEnrollment.partnerId,
       },
-      select: {
-        id: true,
-        type: true,
-        amount: true,
-        quantity: true,
-        earnings: true,
-        currency: true,
-        status: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
         customer: {
           select: {
             id: true,
             email: true,
-            avatar: true,
           },
         },
         link: {
