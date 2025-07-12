@@ -37,7 +37,7 @@ export const checkFeaturesAccessAuthLess = async (
 
   const now = new Date();
   const createdAt = new Date(
-    userData.userCreatedAt.trim().endsWith("Z")
+    userData.userCreatedAt.endsWith("Z")
       ? userData.userCreatedAt
       : `${userData.userCreatedAt}Z`,
   ); // Prisma doesn't return timezone so `new Date` assumes it is local timezone although it is stored in UTC
