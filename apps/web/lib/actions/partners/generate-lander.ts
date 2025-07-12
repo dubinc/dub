@@ -9,13 +9,13 @@ import {
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { anthropic } from "@ai-sdk/anthropic";
+import { prisma } from "@dub/prisma";
 import FireCrawlApp, {
   ErrorResponse,
   ScrapeResponse,
 } from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
 import { z } from "zod";
-import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -32,23 +32,18 @@ export const generateLanderAction = authActionClient
     const { websiteUrl, landerData, prompt } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const program = await getProgramOrThrow(
-      {
-        workspaceId: workspace.id,
-        programId,
+    const program = await prisma.program.findUniqueOrThrow({
+      where: {
+        id: programId,
       },
-      {
-        includeDefaultRewards: true,
-        includeDefaultDiscount: true,
-        includeLanderData: true,
+      include: {
+        rewards: true,
+        discounts: true,
       },
-    );
-
-    const { rewards, discount } = getProgramApplicationRewardsAndDiscount({
-      rewards: program.rewards ?? [],
-      discounts: program.discounts ?? [],
-      landerData: program["landerData"],
     });
+
+    const { rewards, discount } =
+      getProgramApplicationRewardsAndDiscount(program);
 
     const firecrawl = new FireCrawlApp({
       apiKey: process.env.FIRECRAWL_API_KEY,
