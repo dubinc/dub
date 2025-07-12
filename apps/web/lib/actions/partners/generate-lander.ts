@@ -1,6 +1,7 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import {
   programLanderSchema,
   programLanderSimpleSchema,
@@ -8,13 +9,13 @@ import {
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { anthropic } from "@ai-sdk/anthropic";
+import { prisma } from "@dub/prisma";
 import FireCrawlApp, {
   ErrorResponse,
   ScrapeResponse,
 } from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
 import { z } from "zod";
-import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -31,16 +32,18 @@ export const generateLanderAction = authActionClient
     const { websiteUrl, landerData, prompt } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const program = await getProgramOrThrow(
-      {
-        workspaceId: workspace.id,
-        programId,
+    const program = await prisma.program.findUniqueOrThrow({
+      where: {
+        id: programId,
       },
-      {
-        includeDefaultRewards: true,
-        includeDefaultDiscount: true,
+      include: {
+        rewards: true,
+        discounts: true,
       },
-    );
+    });
+
+    const { rewards, discount } =
+      getProgramApplicationRewardsAndDiscount(program);
 
     const firecrawl = new FireCrawlApp({
       apiKey: process.env.FIRECRAWL_API_KEY,
@@ -95,9 +98,9 @@ export const generateLanderAction = authActionClient
         // Program details
         `\n\nProgram details:` +
         `\n\nName: ${program.name}\n` +
-        `\nAffiliate rewards: ${program.rewards?.map((reward) => formatRewardDescription({ reward })) || "Unknown"}` +
-        (program.discounts?.length
-          ? `\nDiscounts for referred users: ${formatDiscountDescription({ discount: program.discounts[0] })}`
+        `\nAffiliate rewards: ${rewards.map((reward) => formatRewardDescription({ reward })).join(", ")}` +
+        (discount
+          ? `\nDiscounts for referred users: ${formatDiscountDescription({ discount })}`
           : "") +
         // Existing page
         (landerData
