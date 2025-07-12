@@ -57,23 +57,5 @@ export async function payoutsItemSucceeded(event: any) {
         status: "paid",
       },
     }),
-
-    // TODO
-    // Fix this after finalizing the email templates
-    // payout.partner.email &&
-    //   sendEmail({
-    //     subject: "You've been paid!",
-    //     email: payout.partner.email,
-    //     react: PartnerPayoutProcessed({
-    //       email: payout.partner.email,
-    //       payout: {
-    //         id: payout.id,
-    //         amount: payout.amount,
-    //         startDate: payout.periodStart,
-    //         endDate: payout.periodEnd,
-    //       },
-    //     }),
-    //     variant: "notifications",
-    //   }),
   ]);
 }

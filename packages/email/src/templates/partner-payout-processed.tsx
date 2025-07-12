@@ -23,8 +23,8 @@ export default function PartnerPayoutProcessed({
   payout = {
     id: "po_8VuCr2i7WnG65d4TNgZO19fT",
     amount: 490,
-    startDate: new Date("2024-11-01"),
-    endDate: new Date("2024-11-30"),
+    periodStart: new Date("2024-11-01"),
+    periodEnd: new Date("2024-11-30"),
   },
   variant = "stripe",
 }: {
@@ -36,8 +36,8 @@ export default function PartnerPayoutProcessed({
   payout: {
     id: string;
     amount: number;
-    startDate?: Date | null;
-    endDate?: Date | null;
+    periodStart?: Date | null;
+    periodEnd?: Date | null;
   };
   variant: "stripe" | "paypal";
 }) {
@@ -46,8 +46,8 @@ export default function PartnerPayoutProcessed({
     maximumFractionDigits: 2,
   });
 
-  const startDate = payout.startDate
-    ? formatDate(payout.startDate, {
+  const startDate = payout.periodStart
+    ? formatDate(payout.periodStart, {
         year: "numeric",
         month: "short",
         day: "numeric",
@@ -55,8 +55,8 @@ export default function PartnerPayoutProcessed({
       })
     : null;
 
-  const endDate = payout.endDate
-    ? formatDate(payout.endDate, {
+  const endDate = payout.periodEnd
+    ? formatDate(payout.periodEnd, {
         year: "numeric",
         month: "short",
         day: "numeric",
