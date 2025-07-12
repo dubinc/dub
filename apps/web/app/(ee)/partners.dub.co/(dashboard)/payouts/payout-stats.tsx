@@ -59,11 +59,11 @@ function PayoutStatsCard({
   const isLoading = amount === undefined || error;
 
   return (
-    <div className="flex flex-col gap-3 p-4">
+    <div className="flex flex-col gap-2 p-3 sm:gap-3 sm:p-4">
       <div className="flex items-center gap-2">
         <div
           className={cn(
-            "flex size-6 items-center justify-center rounded-md",
+            "hidden size-6 items-center justify-center rounded-md sm:flex",
             iconClassName,
           )}
         >
@@ -98,7 +98,7 @@ function PayoutStatsCard({
                 </Tooltip>
               )}
 
-              <span className="h-7 text-base font-medium leading-6 text-neutral-800 sm:text-xl sm:leading-7">
+              <span className="h-5 text-base font-medium leading-6 text-neutral-800 sm:h-7 sm:text-xl sm:leading-7">
                 {error ? (
                   "-"
                 ) : (
@@ -114,7 +114,7 @@ function PayoutStatsCard({
               </span>
             </div>
           ) : (
-            <div className="h-7 w-20 animate-pulse rounded bg-neutral-200 sm:h-7 sm:w-24" />
+            <div className="h-5 w-20 animate-pulse rounded bg-neutral-200 sm:h-7 sm:w-24" />
           )}
         </div>
       </div>
@@ -196,18 +196,39 @@ export function PayoutStats() {
     },
   ];
 
+  // Split payoutStats for mobile layout
+  const topRowStats = payoutStats.slice(0, 3);
+  const bottomRowStats = payoutStats.slice(3);
+
   return (
-    <div
-      className={cn(
-        "grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200",
-        "grid-cols-1", // always single column on mobile
-        "sm:grid-cols-2 sm:divide-x sm:divide-y-0", // two columns on small screens
-        payoutMethod === "stripe" ? "md:grid-cols-5" : "md:grid-cols-3", // five or three columns (depends on payout method) on medium+ screens
-      )}
-    >
-      {payoutStats.map((stat) => (
-        <PayoutStatsCard key={stat.label} {...stat} />
-      ))}
-    </div>
+    <>
+      {/* Mobile: 3 on top, 2 on bottom */}
+      <div className="grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 bg-white md:hidden">
+        <div className="grid grid-cols-3 divide-x divide-neutral-200">
+          {topRowStats.map((stat) => (
+            <PayoutStatsCard key={stat.label} {...stat} />
+          ))}
+        </div>
+        {bottomRowStats.length > 0 && (
+          <div className="grid grid-cols-2 divide-x divide-neutral-200">
+            {bottomRowStats.map((stat) => (
+              <PayoutStatsCard key={stat.label} {...stat} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: all in one row */}
+      <div
+        className={cn(
+          "hidden divide-x divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 bg-white md:grid",
+          payoutMethod === "stripe" ? "md:grid-cols-5" : "md:grid-cols-3",
+        )}
+      >
+        {payoutStats.map((stat) => (
+          <PayoutStatsCard key={stat.label} {...stat} />
+        ))}
+      </div>
+    </>
   );
 }
