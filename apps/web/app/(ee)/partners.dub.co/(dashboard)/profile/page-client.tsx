@@ -44,6 +44,11 @@ export function ProfileSettingsPageClient() {
     <FormWrapper partner={partner}>
       <PageContent
         title="Profile info"
+        titleInfo={{
+          title:
+            "Build a stronger partner profile and increase trust by adding and verifying your website and social accounts.",
+          href: "https://dub.co/help/article/partner-profile",
+        }}
         controls={<Controls formRef={formRef} />}
       >
         <PageWidthWrapper className="mb-20 flex flex-col gap-8">
