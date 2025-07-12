@@ -58,6 +58,8 @@ async function handler(req: Request) {
       users.map(async (user) => {
         try {
           const featuresAccess = await checkFeaturesAccessAuthLess(user.id);
+
+          console.log("user", user);
           
           // Get total clicks for all user's links
           const totalClicksResult = await prisma.$queryRaw<Array<{ totalUserClicks: bigint }>>`
