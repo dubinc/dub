@@ -101,6 +101,10 @@ export async function balanceAvailable(event: Stripe.Event) {
     limit: 100,
   });
 
+  // update all payouts that match the following criteria to have the stripePayoutId:
+  // - in the "sent" status
+  // - have a stripe transfer id (meaning it was transferred to this connected account)
+  // - no stripe payout id (meaning it was not yet withdrawn to the connected bank account)
   await prisma.payout.updateMany({
     where: {
       status: "sent",

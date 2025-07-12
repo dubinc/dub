@@ -60,9 +60,13 @@ export const PayoutStats = memo(() => {
               {payoutsCount ? (
                 <p className="text-content-default font-medium">
                   {currencyFormatter(
-                    (payoutsCount?.find(
-                      (payout) => payout.status === PayoutStatus.pending,
-                    )?.amount || 0) / 100,
+                    (payoutsCount
+                      ?.filter(
+                        (payout) =>
+                          payout.status === PayoutStatus.pending ||
+                          payout.status === PayoutStatus.processing,
+                      )
+                      ?.reduce((acc, p) => acc + p.amount, 0) || 0) / 100,
                     {
                       maximumFractionDigits: 2,
                     },
@@ -74,14 +78,14 @@ export const PayoutStats = memo(() => {
             </div>
           </div>
           <div className="grid gap-1 text-xs">
-            <p className="text-content-subtle font-medium">Total payouts</p>
+            <p className="text-content-subtle font-medium">Received payouts</p>
             {payoutsCount ? (
               <p className="text-content-default font-medium">
                 {currencyFormatter(
                   (payoutsCount
                     ?.filter(
                       (payout) =>
-                        payout.status === PayoutStatus.processing ||
+                        payout.status === PayoutStatus.processed ||
                         payout.status === PayoutStatus.sent ||
                         payout.status === PayoutStatus.completed,
                     )
