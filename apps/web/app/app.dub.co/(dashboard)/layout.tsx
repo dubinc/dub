@@ -4,7 +4,7 @@ import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
 import { constructMetadata } from "@dub/utils";
 import { ReactNode } from "react";
 
-export const dynamic = "force-static";
+// export const dynamic = "force-static";
 export const metadata = constructMetadata();
 
 export default async function Layout({ children }: { children: ReactNode }) {

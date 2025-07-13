@@ -6,6 +6,7 @@ import { getDefaultWorkspace } from "./utils/get-default-workspace";
 
 export default async function NewLinkMiddleware(
   req: NextRequest,
+  response: NextResponse,
   user: UserProps,
 ) {
   const { fullPath } = parse(req);

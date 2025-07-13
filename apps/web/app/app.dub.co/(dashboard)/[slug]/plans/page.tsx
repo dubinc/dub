@@ -1,7 +1,7 @@
 // "use client";
 
+import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { NextPage } from "next";
-import { getUserCookieService } from "../../../../../core/services/cookie/user-session.service.ts";
 
 interface IPlansPageProps {
   params: { slug: string };
@@ -9,9 +9,6 @@ interface IPlansPageProps {
 
 const PlansPage: NextPage<Readonly<IPlansPageProps>> = async ({ params }) => {
   const { sessionId, user } = await getUserCookieService();
-
-  console.log("PlansPage sessionId:", sessionId);
-  console.log("PlansPage user:", user);
 
   // const { user } = useUser();
   // const { data: res, isLoading, mutate } = useGetUserProfileQuery();
@@ -21,7 +18,9 @@ const PlansPage: NextPage<Readonly<IPlansPageProps>> = async ({ params }) => {
   //   return <LayoutLoader />;
   // }
 
-  return <div>{JSON.stringify(user)}</div>;
+  if (sessionId) {
+    return <div>{JSON.stringify(sessionId)}</div>;
+  }
 
   // return (
   //   <Suspense fallback={<LayoutLoader />}>

@@ -12,7 +12,7 @@ const AUTHENTICATED_PATHS = [
   "/account",
 ];
 
-export default async function PartnersMiddleware(req: NextRequest) {
+export default async function PartnersMiddleware(req: NextRequest, response: NextResponse) {
   const { path, fullPath } = parse(req);
 
   const user = await getUserViaToken(req);
@@ -53,5 +53,7 @@ export default async function PartnersMiddleware(req: NextRequest) {
     }
   }
 
-  return NextResponse.rewrite(new URL(`/partners.dub.co${fullPath}`, req.url));
+  return NextResponse.rewrite(new URL(`/partners.dub.co${fullPath}`, req.url), {
+    request: req
+  });
 }

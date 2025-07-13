@@ -6,6 +6,7 @@ import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redire
 
 export default async function WorkspacesMiddleware(
   req: NextRequest,
+  response: NextResponse,
   user: UserProps,
 ) {
   const { path, searchParamsString } = parse(req);

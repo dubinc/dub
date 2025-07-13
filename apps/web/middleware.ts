@@ -44,6 +44,10 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
 
+  // Start with NextResponse.next() to maintain cookie chain
+  let response = NextResponse.next();
+
+  // Apply Axiom middleware
   AxiomMiddleware(req, ev);
 
   const isPublicRoute =
@@ -51,24 +55,24 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     path.startsWith("/help") ||
     ALLOWED_REGIONS.includes(path.slice(1));
 
-  if (isPublicRoute) {
-    if (APP_HOSTNAMES.has(domain)) {
-      if (user) {
-        return AppMiddleware(req, country, user, isPublicRoute);
-      }
+  // Handle public routes for App
+  if (isPublicRoute && APP_HOSTNAMES.has(domain)) {
+    if (user) {
+      return AppMiddleware(req, response, country, user, isPublicRoute);
     }
+    return response;
   }
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
     console.log("middleware here1");
-    return AppMiddleware(req, country, user);
+    return AppMiddleware(req, response, country, user);
   }
 
   // for API
   if (API_HOSTNAMES.has(domain)) {
     console.log("middleware here2");
-    return ApiMiddleware(req);
+    return ApiMiddleware(req, response);
   }
 
   // for .well-known routes
@@ -89,18 +93,18 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
     console.log("middleware here3");
-    return AdminMiddleware(req);
+    return AdminMiddleware(req, response);
   }
 
   if (PARTNERS_HOSTNAMES.has(domain)) {
     console.log("middleware here4");
-    return PartnersMiddleware(req);
+    return PartnersMiddleware(req, response);
   }
 
   console.log("middleware here5");
 
   if (isValidUrl(fullKey)) {
-    return CreateLinkMiddleware(req);
+    return CreateLinkMiddleware(req, response);
   }
 
   return LinkMiddleware(req, ev);

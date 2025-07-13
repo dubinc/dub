@@ -2,7 +2,7 @@ import { parse } from "@/lib/middleware/utils";
 import { APP_DOMAIN, getUrlFromString } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 
-export default function CreateLinkMiddleware(req: NextRequest) {
+export default function CreateLinkMiddleware(req: NextRequest, response: NextResponse) {
   const { domain, fullPath } = parse(req);
 
   const url = getUrlFromString(fullPath.slice(1));

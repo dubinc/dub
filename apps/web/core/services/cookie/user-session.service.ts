@@ -5,16 +5,19 @@ import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { v4 as uuidv4 } from "uuid";
 import { tokenDecode, tokenEncode } from "./user-session-token.service.ts";
 
+// Common cookie settings
+const getCookieSettings = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: "/",
+});
+
 // apply user session cookie after auth
 export const applyUserSession = async (user: ICustomerBody) => {
   const cookieStore = cookies();
 
-  cookieStore.set(ECookieArg.USER, tokenEncode(user), {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-  });
+  cookieStore.set(ECookieArg.USER, tokenEncode(user), getCookieSettings());
 };
 
 // get user cookie
@@ -31,6 +34,7 @@ export const getUserCookieService = () => {
     return { user: null, sessionId };
   }
 
+  // Re-apply user session to refresh cookie
   if (user?.id) {
     applyUserSession(user);
   }
@@ -62,7 +66,7 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
       paymentInfo: { ...body.paymentInfo, customerId: userId },
     };
 
-    cookieStore.set(ECookieArg.USER, tokenEncode(user), { httpOnly: true });
+    cookieStore.set(ECookieArg.USER, tokenEncode(user), getCookieSettings());
 
     return user;
   }
@@ -75,7 +79,7 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
     sessions: { ...user.sessions, ...body.sessions },
   };
 
-  cookieStore.set(ECookieArg.USER, tokenEncode(user), { httpOnly: true });
+  cookieStore.set(ECookieArg.USER, tokenEncode(user), getCookieSettings());
 
   return user;
 };
@@ -84,12 +88,18 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
 export const resetUserCookieService = async () => {
   const cookieStore = cookies();
 
-  cookieStore.set(ECookieArg.USER, "", { httpOnly: true });
+  cookieStore.set(ECookieArg.USER, "", {
+    ...getCookieSettings(),
+    maxAge: 0,
+  });
 };
 
 // sign out user session
 export const resetUserSessionId = async () => {
   const cookieStore = cookies();
 
-  cookieStore.set(ECookieArg.SESSION_ID, "", { httpOnly: true });
+  cookieStore.set(ECookieArg.SESSION_ID, "", {
+    ...getCookieSettings(),
+    maxAge: 0,
+  });
 };

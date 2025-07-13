@@ -2,7 +2,7 @@ import { parse } from "@/lib/middleware/utils";
 import { HOME_DOMAIN } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 
-export default function ApiMiddleware(req: NextRequest) {
+export default function ApiMiddleware(req: NextRequest, response: NextResponse) {
   const { path, fullPath } = parse(req);
 
   // special case for /metatags
@@ -16,5 +16,7 @@ export default function ApiMiddleware(req: NextRequest) {
   }
   // Note: we don't have to account for paths starting with `/api`
   // since they're automatically excluded via our middleware matcher
-  return NextResponse.rewrite(new URL(`/api${fullPath}`, req.url));
+  return NextResponse.rewrite(new URL(`/api${fullPath}`, req.url), {
+    request: req
+  });
 }
