@@ -66,7 +66,7 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
   });
 
   // Group currentInvoicePayouts + previouslyProcessedPayouts by partnerId
-  const payoutsByPartner = [
+  const partnerPayoutsMap = [
     ...currentInvoicePayouts,
     ...previouslyProcessedPayouts,
   ].reduce((map, payout) => {
@@ -82,12 +82,14 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
   }, new Map<string, typeof currentInvoicePayouts>());
 
   // Process payouts for each partner
-  for (const [_, partnerPayouts] of payoutsByPartner) {
+  for (const [_, partnerPayouts] of partnerPayoutsMap) {
     let withdrawalFee = 0;
     const partner = partnerPayouts[0].partner;
 
     const partnerPayoutsIds = partnerPayouts.map((p) => p.id);
 
+    // this is usually just one payout, but we're doing this
+    // just in case there are multiple payouts for the same partner in the same invoice
     const partnerPayoutsForCurrentInvoice = partnerPayouts.filter(
       (p) => p.invoiceId === invoiceId,
     );
