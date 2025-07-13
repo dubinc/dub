@@ -23,7 +23,6 @@ export const handleDomainUpdates = async ({
     await log({
       message: `Domain *${domain}* changed status to *${verified}*`,
       type: "cron",
-      mention: verified,
     });
   }
 
