@@ -82,27 +82,28 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
   }, new Map<string, typeof currentInvoicePayouts>());
 
   // Process payouts for each partner
-  for (const [_, payouts] of payoutsByPartner) {
+  for (const [_, partnerPayouts] of payoutsByPartner) {
     let withdrawalFee = 0;
-    const partner = payouts[0].partner;
+    const partner = partnerPayouts[0].partner;
 
-    const allPayoutIds = payouts.map((p) => p.id);
-    const currentInvoicePayoutIds = payouts
-      .filter((p) => p.invoiceId === invoiceId)
-      .map((p) => p.id);
+    const partnerPayoutsIds = partnerPayouts.map((p) => p.id);
 
-    const totalTransferableAmount = payouts.reduce(
+    const partnerPayoutsForCurrentInvoice = partnerPayouts.filter(
+      (p) => p.invoiceId === invoiceId,
+    );
+
+    const totalTransferableAmount = partnerPayouts.reduce(
       (acc, payout) => acc + payout.amount,
       0,
     );
 
     // If the total transferable amount is less than the partner's minimum withdrawal amount
-    // we only update status for the current invoice payouts to "processed" – no need to create a transfer for now
+    // we only update status for all the partner payouts for the current invoice to "processed" – no need to create a transfer for now
     if (totalTransferableAmount < partner.minWithdrawalAmount) {
       await prisma.payout.updateMany({
         where: {
           id: {
-            in: currentInvoicePayoutIds,
+            in: partnerPayoutsForCurrentInvoice.map((p) => p.id),
           },
         },
         data: {
@@ -138,7 +139,7 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
         // (even though the transfer could technically include payouts from multiple invoices)
         transfer_group: invoiceId,
         destination: partner.stripeConnectId!,
-        description: `Dub Partners payout for ${payouts.map((p) => p.id).join(", ")}`,
+        description: `Dub Partners payout for ${partnerPayoutsIds.join(", ")}`,
       },
       {
         idempotencyKey: `${invoiceId}-${partner.id}`,
@@ -148,15 +149,15 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
     console.log(
       `Transfer of ${currencyFormatter(finalTransferableAmount / 100)} (${transfer.id}) created for partner ${partner.id} for ${pluralize(
         "payout",
-        payouts.length,
-      )} ${payouts.map((p) => p.id).join(", ")}`,
+        partnerPayouts.length,
+      )} ${partnerPayoutsIds.join(", ")}`,
     );
 
     await Promise.allSettled([
       prisma.payout.updateMany({
         where: {
           id: {
-            in: allPayoutIds,
+            in: partnerPayoutsIds,
           },
         },
         data: {
@@ -169,7 +170,7 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
       prisma.commission.updateMany({
         where: {
           payoutId: {
-            in: allPayoutIds,
+            in: partnerPayoutsIds,
           },
         },
         data: {
@@ -184,8 +185,8 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
             email: partner.email,
             react: PartnerPayoutProcessed({
               email: partner.email,
-              program: currentInvoicePayouts[0].program,
-              payout: currentInvoicePayouts[0],
+              program: partnerPayoutsForCurrentInvoice[0].program,
+              payout: partnerPayoutsForCurrentInvoice[0],
               variant: "stripe",
             }),
           })
