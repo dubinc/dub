@@ -134,6 +134,8 @@ export async function sendStripePayouts({ payload }: { payload: Payload }) {
       {
         amount: finalTransferableAmount,
         currency: "usd",
+        // here, `transfer_group` technically only used to associate the transfer with the invoice
+        // (even though the transfer could technically include payouts from multiple invoices)
         transfer_group: invoiceId,
         destination: partner.stripeConnectId!,
         description: `Dub Partners payout for ${payouts.map((p) => p.id).join(", ")}`,
