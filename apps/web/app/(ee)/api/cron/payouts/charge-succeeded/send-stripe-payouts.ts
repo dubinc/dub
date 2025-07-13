@@ -7,24 +7,34 @@ import { sendEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter, pluralize } from "@dub/utils";
-import { Invoice } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { Payload } from "./utils";
 
-export async function sendStripePayouts({
-  payload,
-  invoice,
-}: {
-  payload: Payload;
-  invoice: Invoice;
-}) {
+export async function sendStripePayouts({ payload }: { payload: Payload }) {
   const { invoiceId } = payload;
 
-  const payouts = await prisma.payout.findMany({
-    where: {
-      status: {
-        in: ["processing", "processed"],
+  const commonInclude = Prisma.validator<Prisma.PayoutInclude>()({
+    partner: {
+      select: {
+        id: true,
+        email: true,
+        stripeConnectId: true,
+        minWithdrawalAmount: true,
       },
-      stripeTransferId: null,
+    },
+    program: {
+      select: {
+        id: true,
+        name: true,
+        logo: true,
+      },
+    },
+  });
+
+  const currentInvoicePayouts = await prisma.payout.findMany({
+    where: {
+      invoiceId,
+      status: "processing",
       partner: {
         payoutsEnabledAt: {
           not: null,
@@ -34,34 +44,32 @@ export async function sendStripePayouts({
         },
       },
     },
-    include: {
-      partner: {
-        select: {
-          id: true,
-          email: true,
-          stripeConnectId: true,
-          minWithdrawalAmount: true,
-        },
-      },
-      program: {
-        select: {
-          id: true,
-          name: true,
-          logo: true,
-        },
-      },
-    },
+    include: commonInclude,
   });
 
-  if (payouts.length === 0) {
-    console.log("No payouts for sending via Stripe, skipping...");
+  if (currentInvoicePayouts.length === 0) {
+    console.log("No payouts to be sent via Stripe, skipping...");
     return;
   }
 
-  const latestInvoicePayout = payouts.find((p) => p.invoiceId === invoiceId)!;
+  // get all previously processed payouts for the partners in this invoice
+  // but haven't been transferred to their Stripe Express account yet
+  const previouslyProcessedPayouts = await prisma.payout.findMany({
+    where: {
+      status: "processed",
+      stripeTransferId: null,
+      partnerId: {
+        in: currentInvoicePayouts.map((p) => p.partnerId),
+      },
+    },
+    include: commonInclude,
+  });
 
-  // Group payouts by partnerId
-  const payoutsByPartner = payouts.reduce((map, payout) => {
+  // Group currentInvoicePayouts + previouslyProcessedPayouts by partnerId
+  const partnerPayoutsMap = [
+    ...currentInvoicePayouts,
+    ...previouslyProcessedPayouts,
+  ].reduce((map, payout) => {
     const { partner } = payout;
 
     if (!map.has(partner.id)) {
@@ -71,22 +79,33 @@ export async function sendStripePayouts({
     map.get(partner.id)!.push(payout);
 
     return map;
-  }, new Map<string, typeof payouts>());
+  }, new Map<string, typeof currentInvoicePayouts>());
 
   // Process payouts for each partner
-  for (const [_, payouts] of payoutsByPartner) {
+  for (const [_, partnerPayouts] of partnerPayoutsMap) {
     let withdrawalFee = 0;
-    const partner = payouts[0].partner;
-    const payoutIds = payouts.map((p) => p.id);
-    const totalAmount = payouts.reduce((acc, payout) => acc + payout.amount, 0);
+    const partner = partnerPayouts[0].partner;
 
-    // Total payout amount is less than the minimum withdrawal amount
-    // we only update status to "processed" – no need to create a transfer for now
-    if (totalAmount < partner.minWithdrawalAmount) {
+    const partnerPayoutsIds = partnerPayouts.map((p) => p.id);
+
+    // this is usually just one payout, but we're doing this
+    // just in case there are multiple payouts for the same partner in the same invoice
+    const partnerPayoutsForCurrentInvoice = partnerPayouts.filter(
+      (p) => p.invoiceId === invoiceId,
+    );
+
+    const totalTransferableAmount = partnerPayouts.reduce(
+      (acc, payout) => acc + payout.amount,
+      0,
+    );
+
+    // If the total transferable amount is less than the partner's minimum withdrawal amount
+    // we only update status for all the partner payouts for the current invoice to "processed" – no need to create a transfer for now
+    if (totalTransferableAmount < partner.minWithdrawalAmount) {
       await prisma.payout.updateMany({
         where: {
           id: {
-            in: payoutIds,
+            in: partnerPayoutsForCurrentInvoice.map((p) => p.id),
           },
         },
         data: {
@@ -95,7 +114,7 @@ export async function sendStripePayouts({
       });
 
       console.log(
-        `Total processed payouts (${currencyFormatter(totalAmount / 100)}) for partner ${partner.id} are below the minWithdrawalAmount (${currencyFormatter(partner.minWithdrawalAmount / 100)}), skipping...`,
+        `Total processed payouts (${currencyFormatter(totalTransferableAmount / 100)}) for partner ${partner.id} are below the minWithdrawalAmount (${currencyFormatter(partner.minWithdrawalAmount / 100)}), skipping...`,
       );
 
       continue;
@@ -107,20 +126,22 @@ export async function sendStripePayouts({
     }
 
     // Minus the withdrawal fee from the total amount
-    const updatedBalance = totalAmount - withdrawalFee;
+    const finalTransferableAmount = totalTransferableAmount - withdrawalFee;
 
-    if (updatedBalance <= 0) {
+    if (finalTransferableAmount <= 0) {
       continue;
     }
 
     // Create a transfer for the partner combined payouts and update it as sent
     const transfer = await stripe.transfers.create(
       {
-        amount: updatedBalance,
+        amount: finalTransferableAmount,
         currency: "usd",
+        // here, `transfer_group` technically only used to associate the transfer with the invoice
+        // (even though the transfer could technically include payouts from multiple invoices)
         transfer_group: invoiceId,
         destination: partner.stripeConnectId!,
-        description: `Dub Partners payout for ${payouts.map((p) => p.id).join(", ")}`,
+        description: `Dub Partners payout for ${partnerPayoutsIds.join(", ")}`,
       },
       {
         idempotencyKey: `${invoiceId}-${partner.id}`,
@@ -128,17 +149,17 @@ export async function sendStripePayouts({
     );
 
     console.log(
-      `Transfer of ${currencyFormatter(totalAmount / 100)} (${transfer.id}) created for partner ${partner.id} for ${pluralize(
+      `Transfer of ${currencyFormatter(finalTransferableAmount / 100)} (${transfer.id}) created for partner ${partner.id} for ${pluralize(
         "payout",
-        payouts.length,
-      )} ${payouts.map((p) => p.id).join(", ")}`,
+        partnerPayouts.length,
+      )} ${partnerPayoutsIds.join(", ")}`,
     );
 
     await Promise.allSettled([
       prisma.payout.updateMany({
         where: {
           id: {
-            in: payoutIds,
+            in: partnerPayoutsIds,
           },
         },
         data: {
@@ -151,7 +172,7 @@ export async function sendStripePayouts({
       prisma.commission.updateMany({
         where: {
           payoutId: {
-            in: payoutIds,
+            in: partnerPayoutsIds,
           },
         },
         data: {
@@ -166,8 +187,8 @@ export async function sendStripePayouts({
             email: partner.email,
             react: PartnerPayoutProcessed({
               email: partner.email,
-              program: latestInvoicePayout.program,
-              payout: latestInvoicePayout,
+              program: partnerPayoutsForCurrentInvoice[0].program,
+              payout: partnerPayoutsForCurrentInvoice[0],
               variant: "stripe",
             }),
           })
