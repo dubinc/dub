@@ -1,10 +1,12 @@
 import {
   partnerStackAffiliate,
+  partnerStackCommission,
   partnerStackCustomer,
   partnerStackLink,
 } from "./schemas";
 import {
   PartnerStackAffiliate,
+  PartnerStackCommission,
   PartnerStackCustomer,
   PartnerStackLink,
   PartnerStackListResponse,
@@ -90,5 +92,22 @@ export class PartnerStackApi {
     );
 
     return partnerStackCustomer.array().parse(items);
+  }
+
+  async listCommissions({ startingAfter }: { startingAfter?: string }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("limit", PAGE_LIMIT.toString());
+
+    if (startingAfter) {
+      searchParams.append("starting_after", startingAfter);
+    }
+
+    const {
+      data: { items },
+    } = await this.fetch<PartnerStackListResponse<PartnerStackCommission>>(
+      `/rewards?${searchParams.toString()}`,
+    );
+
+    return partnerStackCommission.array().parse(items);
   }
 }
