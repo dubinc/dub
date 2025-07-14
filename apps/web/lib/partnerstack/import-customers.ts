@@ -45,7 +45,7 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
 
   while (hasMore && processedBatches < MAX_BATCHES) {
     let customers = await partnerStackApi.listCustomers({
-      startingAfter,
+      startingAfter: currentStartingAfter,
     });
 
     customers = customers.filter(({ test }) => !test);
@@ -118,10 +118,10 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
       );
     }
 
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     processedBatches++;
     currentStartingAfter = customers[customers.length - 1].key;
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   delete payload?.startingAfter;
@@ -143,7 +143,9 @@ async function createCustomer({
   customer: PartnerStackCustomer;
 }) {
   if (links.length === 0) {
-    console.log("Link not found for customer, skipping...");
+    console.log(
+      `Link not found for customer. See the details at https://app.partnerstack.com/partners/${customer.partnership_key}/details`,
+    );
     return;
   }
 
