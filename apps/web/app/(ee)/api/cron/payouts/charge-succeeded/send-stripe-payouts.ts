@@ -8,11 +8,8 @@ import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processe
 import { prisma } from "@dub/prisma";
 import { currencyFormatter, pluralize } from "@dub/utils";
 import { Prisma } from "@prisma/client";
-import { Payload } from "./utils";
 
-export async function sendStripePayouts({ payload }: { payload: Payload }) {
-  const { invoiceId } = payload;
-
+export async function sendStripePayouts({ invoiceId }: { invoiceId: string }) {
   const commonInclude = Prisma.validator<Prisma.PayoutInclude>()({
     partner: {
       select: {
