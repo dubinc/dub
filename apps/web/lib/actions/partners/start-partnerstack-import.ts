@@ -9,14 +9,15 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  token: z.string().min(1),
+  publicKey: z.string().min(1),
+  secretKey: z.string().min(1),
 });
 
 export const startPartnerStackImportAction = authActionClient
   .schema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
-    const { token } = parsedInput;
+    const { publicKey, secretKey } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -34,14 +35,20 @@ export const startPartnerStackImportAction = authActionClient
     }
 
     const partnerStackApi = new PartnerStackApi({
-      token,
+      publicKey,
+      secretKey,
     });
 
     await partnerStackApi.testConnection();
 
+    await partnerStackImporter.setCredentials(workspace.id, {
+      publicKey,
+      secretKey,
+    });
+
     await partnerStackImporter.queue({
       programId,
       userId: user.id,
-      action: "import-affiliates",
+      action: "import-partners",
     });
   });

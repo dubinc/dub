@@ -77,7 +77,8 @@ function ImportPartnerStackModal({
 function TokenForm({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
-  const [token, setToken] = useState("");
+  const [publicKey, setPublicKey] = useState("");
+  const [secretKey, setSecretKey] = useState("");
   const { id: workspaceId, slug } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(startPartnerStackImportAction, {
@@ -96,13 +97,14 @@ function TokenForm({ onClose }: { onClose: () => void }) {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!workspaceId || !token) {
+    if (!workspaceId || !publicKey || !secretKey) {
       return;
     }
 
     await executeAsync({
       workspaceId,
-      token,
+      publicKey,
+      secretKey,
     });
   };
 
@@ -110,37 +112,55 @@ function TokenForm({ onClose }: { onClose: () => void }) {
     <form onSubmit={onSubmit} className="flex flex-col space-y-4">
       <div>
         <label
-          htmlFor="token"
+          htmlFor="publicKey"
           className="block text-sm font-medium text-neutral-700"
         >
-          PartnerStack API Key
+          PartnerStack Public Key
         </label>
         <input
           type="password"
-          id="token"
-          value={token}
+          id="publicKey"
+          value={publicKey}
           autoFocus={!isMobile}
-          onChange={(e) => setToken(e.target.value)}
+          onChange={(e) => setPublicKey(e.target.value)}
           className="mt-1 block w-full rounded-md border border-neutral-200 px-3 py-2 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
           required
         />
         <p className="mt-1.5 text-xs text-neutral-500">
           You can find your PartnerStack API key in your{" "}
           <a
-            href="https://app.partnerstack.com/settings/api"
+            href="https://app.partnerstack.com/settings/integrations"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 hover:text-blue-600"
           >
-            API settings
+            Settings
           </a>
         </p>
+      </div>
+
+      <div>
+        <label
+          htmlFor="secretKey"
+          className="block text-sm font-medium text-neutral-700"
+        >
+          PartnerStack Secret Key
+        </label>
+        <input
+          type="password"
+          id="secretKey"
+          value={secretKey}
+          autoFocus={!isMobile}
+          onChange={(e) => setSecretKey(e.target.value)}
+          className="mt-1 block w-full rounded-md border border-neutral-200 px-3 py-2 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+          required
+        />
       </div>
 
       <Button
         text={isPending ? "Starting import..." : "Start Import"}
         loading={isPending}
-        disabled={!token}
+        disabled={!publicKey || !secretKey}
       />
     </form>
   );

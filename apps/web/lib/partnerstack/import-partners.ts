@@ -1,13 +1,13 @@
 import { prisma } from "@dub/prisma";
 import { Program, Reward } from "@dub/prisma/client";
-import { COUNTRY_CODES } from "@dub/utils";
+import { COUNTRIES } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { PartnerStackApi } from "./api";
 import { MAX_BATCHES, partnerStackImporter } from "./importer";
 import { PartnerStackAffiliate, PartnerStackImportPayload } from "./types";
 
-export async function importAffiliates(payload: PartnerStackImportPayload) {
+export async function importPartners(payload: PartnerStackImportPayload) {
   const { programId, startingAfter } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
@@ -23,12 +23,13 @@ export async function importAffiliates(payload: PartnerStackImportPayload) {
     },
   });
 
-  const { token } = await partnerStackImporter.getCredentials(
+  const { publicKey, secretKey } = await partnerStackImporter.getCredentials(
     program.workspaceId,
   );
 
   const partnerStackApi = new PartnerStackApi({
-    token,
+    publicKey,
+    secretKey,
   });
 
   const saleReward = program.rewards.find((r) => r.event === "sale");
@@ -50,9 +51,13 @@ export async function importAffiliates(payload: PartnerStackImportPayload) {
       break;
     }
 
-    if (affiliates.length > 0) {
+    const activeAffiliates = affiliates.filter(
+      (affiliate) => affiliate.stats.CUSTOMER_COUNT > 0,
+    );
+
+    if (activeAffiliates.length > 0) {
       await Promise.allSettled(
-        affiliates.map((affiliate) =>
+        activeAffiliates.map((affiliate) =>
           createPartner({
             program,
             affiliate,
@@ -60,9 +65,6 @@ export async function importAffiliates(payload: PartnerStackImportPayload) {
           }),
         ),
       );
-
-      // TODO:
-      // Remove the partners with 0 leads
     }
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -74,11 +76,10 @@ export async function importAffiliates(payload: PartnerStackImportPayload) {
   await partnerStackImporter.queue({
     ...payload,
     ...(hasMore && { startingAfter: currentStartingAfter }),
-    action: hasMore ? "import-affiliates" : "import-links",
+    action: hasMore ? "import-partners" : "import-links",
   });
 }
 
-// Create partner
 async function createPartner({
   program,
   affiliate,
@@ -88,6 +89,12 @@ async function createPartner({
   affiliate: PartnerStackAffiliate;
   reward?: Pick<Reward, "id" | "event">;
 }) {
+  const countryCode = affiliate.address?.country
+    ? Object.keys(COUNTRIES).find(
+        (key) => COUNTRIES[key] === affiliate.address?.country,
+      )
+    : null;
+
   const partner = await prisma.partner.upsert({
     where: {
       email: affiliate.email,
@@ -96,7 +103,7 @@ async function createPartner({
       id: createId({ prefix: "pn_" }),
       name: `${affiliate.first_name} ${affiliate.last_name}`,
       email: affiliate.email,
-      country: COUNTRY_CODES[affiliate.address.country],
+      country: countryCode,
     },
     update: {
       // do nothing
@@ -120,6 +127,4 @@ async function createPartner({
       status: "approved",
     },
   });
-
-  return partner;
 }

@@ -12,20 +12,32 @@ import {
   PartnerStackListResponse,
 } from "./types";
 
-const PAGE_LIMIT = 100;
+const PAGE_LIMIT = 50;
 
 export class PartnerStackApi {
   private readonly baseUrl = "https://api.partnerstack.com/api/v2";
-  private readonly token: string;
+  private readonly publicKey: string;
+  private readonly secretKey: string;
 
-  constructor({ token }: { token: string }) {
-    this.token = token;
+  constructor({
+    publicKey,
+    secretKey,
+  }: {
+    publicKey: string;
+    secretKey: string;
+  }) {
+    this.publicKey = publicKey;
+    this.secretKey = secretKey;
   }
 
   private async fetch<T>(path: string): Promise<T> {
+    const token = Buffer.from(`${this.publicKey}:${this.secretKey}`).toString(
+      "base64",
+    );
+
     const response = await fetch(`${this.baseUrl}${path}`, {
       headers: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Basic ${token}`,
       },
     });
 

@@ -18,12 +18,13 @@ export async function importLinks(payload: PartnerStackImportPayload) {
     },
   });
 
-  const { token } = await partnerStackImporter.getCredentials(
+  const { publicKey, secretKey } = await partnerStackImporter.getCredentials(
     program.workspaceId,
   );
 
   const partnerStackApi = new PartnerStackApi({
-    token,
+    publicKey,
+    secretKey,
   });
 
   let hasMore = true;
@@ -89,7 +90,7 @@ export async function importLinks(payload: PartnerStackImportPayload) {
   await partnerStackImporter.queue({
     ...payload,
     ...(hasMore && { startingAfter: currentStartingAfter }),
-    action: hasMore ? "import-links" : "import-referrals",
+    action: hasMore ? "import-links" : "import-customers",
   });
 }
 

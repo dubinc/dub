@@ -8,7 +8,8 @@ import {
 } from "./schemas";
 
 export interface PartnerStackConfig {
-  token: string;
+  publicKey: string;
+  secretKey: string;
 }
 
 export interface PartnerStackListResponse<T> {

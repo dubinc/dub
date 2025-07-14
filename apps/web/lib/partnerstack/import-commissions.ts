@@ -15,12 +15,13 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
     },
   });
 
-  const { token } = await partnerStackImporter.getCredentials(
+  const { publicKey, secretKey } = await partnerStackImporter.getCredentials(
     program.workspaceId,
   );
 
   const partnerStackApi = new PartnerStackApi({
-    token,
+    publicKey,
+    secretKey,
   });
 
   let hasMore = true;
