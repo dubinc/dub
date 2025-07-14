@@ -83,7 +83,6 @@ function TokenForm({
   const { id: workspaceId, slug } = useWorkspace();
 
   const [token, setToken] = useState("");
-  const [programId, setProgramId] = useState("");
 
   const { executeAsync: setTokenAsync, isPending: isSettingToken } = useAction(
     setPartnerStackTokenAction,
@@ -111,7 +110,7 @@ function TokenForm({
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!workspaceId || !token || !programId) {
+    if (!workspaceId || !token) {
       return;
     }
 
@@ -119,7 +118,6 @@ function TokenForm({
       // First set the token
       await setTokenAsync({
         workspaceId,
-        partnerstackProgramId: programId,
         token,
       });
 
@@ -166,33 +164,7 @@ function TokenForm({
         </p>
       </div>
 
-      <div>
-        <label
-          htmlFor="programId"
-          className="block text-sm font-medium text-neutral-700"
-        >
-          PartnerStack Program ID
-        </label>
-        <input
-          type="text"
-          id="programId"
-          value={programId}
-          onChange={(e) => setProgramId(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-neutral-200 px-3 py-2 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-          required
-        />
-        <p className="mt-1.5 text-xs text-neutral-500">
-          You can find your program ID in your{" "}
-          <a
-            href="https://app.partnerstack.com/programs"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 hover:text-blue-600"
-          >
-            Programs page
-          </a>
-        </p>
-      </div>
+
 
       <Button
         text={
@@ -203,7 +175,7 @@ function TokenForm({
             : "Start Import"
         }
         loading={isLoading}
-        disabled={!token || !programId || isLoading}
+        disabled={!token || isLoading}
       />
     </form>
   );

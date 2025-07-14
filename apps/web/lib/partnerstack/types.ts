@@ -3,7 +3,7 @@ import { z } from "zod";
 export interface PartnerStackConfig {
   token: string;
   userId: string;
-  partnerstackProgramId: string;
+  partnerstackProgramId?: string;
 }
 
 export interface PartnerStackListResponse<T> {

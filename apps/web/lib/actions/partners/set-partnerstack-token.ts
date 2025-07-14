@@ -7,7 +7,6 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  partnerstackProgramId: z.string().describe("PartnerStack program ID to import."),
   token: z.string(),
 });
 
@@ -15,7 +14,7 @@ export const setPartnerStackTokenAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { token, partnerstackProgramId } = parsedInput;
+    const { token } = parsedInput;
 
     if (!workspace.partnersEnabled) {
       throw new Error("You are not allowed to perform this action.");
@@ -38,7 +37,6 @@ export const setPartnerStackTokenAction = authActionClient
     await partnerstackImporter.setCredentials(workspace.id, {
       userId: user.id,
       token,
-      partnerstackProgramId,
     });
 
     return {
