@@ -1,5 +1,9 @@
-import { partnerStackAffiliate } from "./schemas";
-import { PartnerStackAffiliate, PartnerStackListResponse } from "./types";
+import { partnerStackAffiliate, partnerStackLink } from "./schemas";
+import {
+  PartnerStackAffiliate,
+  PartnerStackLink,
+  PartnerStackListResponse,
+} from "./types";
 
 const PAGE_LIMIT = 100;
 
@@ -54,5 +58,15 @@ export class PartnerStackApi {
     );
 
     return partnerStackAffiliate.array().parse(items);
+  }
+
+  async listLinks({ identifier }: { identifier: string }) {
+    const {
+      data: { items },
+    } = await this.fetch<PartnerStackListResponse<PartnerStackLink>>(
+      `/links/partnership/${identifier}`,
+    );
+
+    return partnerStackLink.array().parse(items);
   }
 }

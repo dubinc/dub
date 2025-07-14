@@ -24,3 +24,9 @@ export const partnerStackAffiliate = z.object({
     country: z.string(),
   }),
 });
+
+export const partnerStackLink = z.object({
+  key: z.string(),
+  dest: z.string(),
+  url: z.string(),
+});
