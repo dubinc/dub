@@ -4,7 +4,7 @@ import { DUB_WORKSPACE_ID } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserViaToken } from "./utils/get-user-via-token";
 
-export default async function AdminMiddleware(req: NextRequest, response: NextResponse) {
+export default async function AdminMiddleware(req: NextRequest) {
   const { path } = parse(req);
 
   const user = await getUserViaToken(req);
@@ -30,6 +30,5 @@ export default async function AdminMiddleware(req: NextRequest, response: NextRe
 
   return NextResponse.rewrite(
     new URL(`/admin.dub.co${path === "/" ? "" : path}`, req.url),
-    { request: req }
   );
 }

@@ -45,18 +45,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
 
-  // Start with NextResponse.next() to maintain cookie chain
-  let response = NextResponse.next();
-
-  userSessionIdInit(req, response);
-
-  if (country) {
-    response.cookies.set("country", country, {
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-  }
+  userSessionIdInit(req);
 
   // Apply Axiom middleware
   AxiomMiddleware(req, ev);
@@ -67,23 +56,30 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     ALLOWED_REGIONS.includes(path.slice(1));
 
   // Handle public routes for App
-  if (isPublicRoute && APP_HOSTNAMES.has(domain)) {
-    if (user) {
-      return AppMiddleware(req, response, user, isPublicRoute);
+  if (isPublicRoute) {
+    if (APP_HOSTNAMES.has(domain)) {
+      if (user) {
+        return AppMiddleware(req, country, user, isPublicRoute);
+      }
     }
-    return response;
+
+    return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url), {
+      headers: {
+        "Set-Cookie": `country=${country}; Path=/; Secure; SameSite=Strict;`,
+      },
+    });
   }
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
     console.log("middleware here1");
-    return AppMiddleware(req, response, user);
+    return AppMiddleware(req, country, user);
   }
 
   // for API
   if (API_HOSTNAMES.has(domain)) {
     console.log("middleware here2");
-    return ApiMiddleware(req, response);
+    return ApiMiddleware(req);
   }
 
   // for .well-known routes
@@ -104,18 +100,18 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
     console.log("middleware here3");
-    return AdminMiddleware(req, response);
+    return AdminMiddleware(req);
   }
 
   if (PARTNERS_HOSTNAMES.has(domain)) {
     console.log("middleware here4");
-    return PartnersMiddleware(req, response);
+    return PartnersMiddleware(req);
   }
 
   console.log("middleware here5");
 
   if (isValidUrl(fullKey)) {
-    return CreateLinkMiddleware(req, response);
+    return CreateLinkMiddleware(req);
   }
 
   return LinkMiddleware(req, ev);

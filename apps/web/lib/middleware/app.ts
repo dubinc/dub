@@ -12,7 +12,7 @@ import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(
   req: NextRequest,
-  response: NextResponse,
+  country?: string,
   user?: UserProps,
   isPublicRoute?: boolean,
 ) {
@@ -21,15 +21,19 @@ export default async function AppMiddleware(
   console.log(path, fullPath);
 
   if (path.startsWith("/embed")) {
-    return EmbedMiddleware(req, response);
+    return EmbedMiddleware(req);
   }
-
   const isWorkspaceInvite =
     req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
   // Initialize session ID for authenticated users
+  let sessionCookie = "";
   if (user) {
-    userSessionIdInit(req, response, user.id);
+    console.log("user via token", user);
+    const sessionInit = userSessionIdInit(req, user.id);
+    if (sessionInit.needsUpdate) {
+      sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict;`;
+    }
   }
 
   // if there's no user and the path isn't /login or /register, redirect to /login
@@ -42,19 +46,24 @@ export default async function AppMiddleware(
     !path.startsWith("/auth/reset-password/") &&
     !path.startsWith("/share/")
   ) {
+    const cookies = [`country=${country}; Path=/; Secure; SameSite=Strict;`];
+    if (sessionCookie) {
+      cookies.push(sessionCookie);
+    }
+
     return NextResponse.rewrite(
       new URL(
         `/login${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
         req.url,
       ),
-      { request: req },
+      { headers: { "Set-Cookie": cookies.join(", ") } },
     );
 
     // if there's a user
   } else if (user) {
     // /new is a special path that creates a new link (or workspace if the user doesn't have one yet)
     if (path === "/new") {
-      return NewLinkMiddleware(req, response, user);
+      return NewLinkMiddleware(req, user);
 
       /* Onboarding redirects
 
@@ -74,7 +83,7 @@ export default async function AppMiddleware(
       if (!step) {
         return NextResponse.redirect(new URL("/onboarding", req.url));
       } else if (step === "completed") {
-        return WorkspacesMiddleware(req, response, user);
+        return WorkspacesMiddleware(req, user);
       }
 
       const defaultWorkspace = await getDefaultWorkspace(user);
@@ -106,18 +115,21 @@ export default async function AppMiddleware(
       path.startsWith("/settings/") ||
       isTopLevelSettingsRedirect(path)
     ) {
-      return WorkspacesMiddleware(req, response, user);
+      return WorkspacesMiddleware(req, user);
     } else if (isPublicRoute) {
-      return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url), {
-        request: req,
-      });
+      return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
     } else if (appRedirect(path)) {
       return NextResponse.redirect(new URL(appRedirect(path), req.url));
     }
   }
 
   // otherwise, rewrite the path to /app
+  const finalCookies = [`country=${country}; Path=/; Secure; SameSite=Strict;`];
+  if (sessionCookie) {
+    finalCookies.push(sessionCookie);
+  }
+
   return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
-    request: req,
+    headers: { "Set-Cookie": finalCookies.join(", ") },
   });
 }

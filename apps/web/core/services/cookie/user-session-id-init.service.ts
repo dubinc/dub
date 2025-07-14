@@ -1,21 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { createId } from "@/lib/api/utils.ts";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 
-export const userSessionIdInit = (
-  request: NextRequest,
-  response: NextResponse,
-  forceId?: string
-) => {
+export const userSessionIdInit = (request: NextRequest, forceId?: string) => {
   let needsUpdate = false;
   let sessionId = "";
 
   const cookieSettings = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    sameSite: 'strict' as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    sameSite: "strict" as const,
   };
 
   if (forceId) {
@@ -23,7 +19,7 @@ export const userSessionIdInit = (
 
     if (currentSessionId !== forceId) {
       request.cookies.set(ECookieArg.SESSION_ID, forceId);
-      response.cookies.set(ECookieArg.SESSION_ID, forceId, cookieSettings);
+      // response.cookies.set(ECookieArg.SESSION_ID, forceId, cookieSettings);
       sessionId = forceId;
       needsUpdate = true;
     } else {
@@ -36,7 +32,7 @@ export const userSessionIdInit = (
       uuid = createId({ prefix: "user_" });
       needsUpdate = true;
       request.cookies.set(ECookieArg.SESSION_ID, uuid);
-      response.cookies.set(ECookieArg.SESSION_ID, uuid, cookieSettings);
+      // response.cookies.set(ECookieArg.SESSION_ID, uuid, cookieSettings);
     }
     sessionId = uuid;
   }
