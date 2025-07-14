@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const partnerStackImportSteps = z.enum([
-  "import-affiliates",
+  "import-partners",
   "import-links",
   "import-customers",
   "import-commissions",
@@ -14,13 +14,20 @@ export const partnerStackImportPayloadSchema = z.object({
   startingAfter: z.string().optional(),
 });
 
-export const partnerStackAffiliate = z.object({
+export const partnerStackPartner = z.object({
   key: z.string(),
   email: z.string(),
   first_name: z.string(),
   last_name: z.string(),
-  address: z.object({
-    country: z.string(),
+  address: z
+    .object({
+      country: z.string().nullable(),
+    })
+    .nullable(),
+  stats: z.object({
+    CUSTOMER_COUNT: z
+      .number()
+      .describe("Only import if CUSTOMER_COUNT is greater than 0."),
   }),
 });
 

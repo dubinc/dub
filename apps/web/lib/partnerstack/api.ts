@@ -1,11 +1,11 @@
 import {
-  partnerStackAffiliate,
+  partnerStackPartner,
   partnerStackCommission,
   partnerStackCustomer,
   partnerStackLink,
 } from "./schemas";
 import {
-  PartnerStackAffiliate,
+  PartnerStackPartner,
   PartnerStackCommission,
   PartnerStackCustomer,
   PartnerStackLink,
@@ -61,7 +61,7 @@ export class PartnerStackApi {
     }
   }
 
-  async listAffiliates({ startingAfter }: { startingAfter?: string }) {
+  async listPartners({ startingAfter }: { startingAfter?: string }) {
     const searchParams = new URLSearchParams();
     searchParams.append("approved_status", "approved");
     searchParams.append("limit", PAGE_LIMIT.toString());
@@ -72,11 +72,11 @@ export class PartnerStackApi {
 
     const {
       data: { items },
-    } = await this.fetch<PartnerStackListResponse<PartnerStackAffiliate>>(
+    } = await this.fetch<PartnerStackListResponse<PartnerStackPartner>>(
       `/partnerships?${searchParams.toString()}`,
     );
 
-    return partnerStackAffiliate.array().parse(items);
+    return partnerStackPartner.array().parse(items);
   }
 
   async listLinks({ identifier }: { identifier: string }) {

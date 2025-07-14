@@ -44,6 +44,7 @@ export async function importLinks(payload: PartnerStackImportPayload) {
         },
       },
     },
+    take: 50,
     skip: currentStartingAfter ? 1 : 0,
     ...(currentStartingAfter && {
       cursor: {
@@ -54,7 +55,8 @@ export async function importLinks(payload: PartnerStackImportPayload) {
 
   if (enrollments.length === 0) {
     hasMore = false;
-    console.log("No enrollments found.");
+  } else {
+    currentStartingAfter = enrollments[enrollments.length - 1].id;
   }
 
   for (const { partner } of enrollments) {
@@ -64,7 +66,7 @@ export async function importLinks(payload: PartnerStackImportPayload) {
     }
 
     const links = await partnerStackApi.listLinks({
-      identifier: partner.email!,
+      identifier: partner.email,
     });
 
     if (links.length === 0) {
@@ -84,7 +86,7 @@ export async function importLinks(payload: PartnerStackImportPayload) {
       ),
     );
 
-    currentStartingAfter = enrollments[enrollments.length - 1].id;
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
   await partnerStackImporter.queue({
@@ -110,7 +112,7 @@ async function createPartnerLink({
   const key = link.url.split("/").pop();
 
   if (!key) {
-    console.error("No key found in the link", link);
+    console.error(`No key found in the link ${link.url}`);
     return null;
   }
 

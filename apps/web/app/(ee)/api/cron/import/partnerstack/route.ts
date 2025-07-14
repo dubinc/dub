@@ -1,9 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { importAffiliates } from "@/lib/partnerstack/import-affiliates";
-import { importCommissions } from "@/lib/partnerstack/import-commissions";
 import { importCustomers } from "@/lib/partnerstack/import-customers";
 import { importLinks } from "@/lib/partnerstack/import-links";
+import { importPartners } from "@/lib/partnerstack/import-partners";
 import { partnerStackImportPayloadSchema } from "@/lib/partnerstack/schemas";
 import { NextResponse } from "next/server";
 
@@ -21,8 +20,8 @@ export async function POST(req: Request) {
     const payload = partnerStackImportPayloadSchema.parse(JSON.parse(rawBody));
 
     switch (payload.action) {
-      case "import-affiliates":
-        await importAffiliates(payload);
+      case "import-partners":
+        await importPartners(payload);
         break;
       case "import-links":
         await importLinks(payload);
@@ -30,9 +29,9 @@ export async function POST(req: Request) {
       case "import-customers":
         await importCustomers(payload);
         break;
-      case "import-commissions":
-        await importCommissions(payload);
-        break;
+      // case "import-commissions":
+      //   await importCommissions(payload);
+      //   break;
     }
 
     return NextResponse.json("OK");

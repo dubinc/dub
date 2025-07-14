@@ -7,7 +7,7 @@ import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { PartnerStackApi } from "./api";
 import { MAX_BATCHES, partnerStackImporter } from "./importer";
 import {
-  PartnerStackAffiliate,
+  PartnerStackPartner,
   PartnerStackCustomer,
   PartnerStackImportPayload,
 } from "./types";
@@ -127,7 +127,7 @@ async function createCustomer({
   partner,
 }: {
   customer: PartnerStackCustomer;
-  partner: PartnerStackAffiliate;
+  partner: PartnerStackPartner;
   workspace: Pick<Project, "id" | "stripeConnectId">;
   links: Pick<Link, "id" | "key" | "domain" | "url">[];
 }) {

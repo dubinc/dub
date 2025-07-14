@@ -5,7 +5,7 @@ import { createId } from "../api/create-id";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { PartnerStackApi } from "./api";
 import { MAX_BATCHES, partnerStackImporter } from "./importer";
-import { PartnerStackAffiliate, PartnerStackImportPayload } from "./types";
+import { PartnerStackImportPayload, PartnerStackPartner } from "./types";
 
 export async function importPartners(payload: PartnerStackImportPayload) {
   const { programId, startingAfter } = payload;
@@ -42,25 +42,25 @@ export async function importPartners(payload: PartnerStackImportPayload) {
   let currentStartingAfter = startingAfter;
 
   while (hasMore && processedBatches < MAX_BATCHES) {
-    const affiliates = await partnerStackApi.listAffiliates({
+    const partners = await partnerStackApi.listPartners({
       startingAfter: currentStartingAfter,
     });
 
-    if (affiliates.length === 0) {
+    if (partners.length === 0) {
       hasMore = false;
       break;
     }
 
-    const activeAffiliates = affiliates.filter(
-      (affiliate) => affiliate.stats.CUSTOMER_COUNT > 0,
+    const activePartners = partners.filter(
+      ({ stats }) => stats.CUSTOMER_COUNT > 0,
     );
 
-    if (activeAffiliates.length > 0) {
+    if (activePartners.length > 0) {
       await Promise.allSettled(
-        activeAffiliates.map((affiliate) =>
+        activePartners.map((partner) =>
           createPartner({
             program,
-            affiliate,
+            partner,
             reward,
           }),
         ),
@@ -70,7 +70,7 @@ export async function importPartners(payload: PartnerStackImportPayload) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     processedBatches++;
-    currentStartingAfter = affiliates[affiliates.length - 1].key;
+    currentStartingAfter = partners[partners.length - 1].key;
   }
 
   await partnerStackImporter.queue({
@@ -82,27 +82,27 @@ export async function importPartners(payload: PartnerStackImportPayload) {
 
 async function createPartner({
   program,
-  affiliate,
+  partner,
   reward,
 }: {
   program: Program;
-  affiliate: PartnerStackAffiliate;
+  partner: PartnerStackPartner;
   reward?: Pick<Reward, "id" | "event">;
 }) {
-  const countryCode = affiliate.address?.country
+  const countryCode = partner.address?.country
     ? Object.keys(COUNTRIES).find(
-        (key) => COUNTRIES[key] === affiliate.address?.country,
+        (key) => COUNTRIES[key] === partner.address?.country,
       )
     : null;
 
-  const partner = await prisma.partner.upsert({
+  const { id: partnerId } = await prisma.partner.upsert({
     where: {
-      email: affiliate.email,
+      email: partner.email,
     },
     create: {
       id: createId({ prefix: "pn_" }),
-      name: `${affiliate.first_name} ${affiliate.last_name}`,
-      email: affiliate.email,
+      name: `${partner.first_name} ${partner.last_name}`,
+      email: partner.email,
       country: countryCode,
     },
     update: {
@@ -113,13 +113,13 @@ async function createPartner({
   await prisma.programEnrollment.upsert({
     where: {
       partnerId_programId: {
-        partnerId: partner.id,
+        partnerId,
         programId: program.id,
       },
     },
     create: {
       programId: program.id,
-      partnerId: partner.id,
+      partnerId,
       status: "approved",
       ...(reward && { [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id }),
     },
