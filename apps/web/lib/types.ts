@@ -187,6 +187,8 @@ export interface UserProps {
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;
+  twoFactorConfirmedAt: Date | null;
+  twoFactorRecoveryCodes: string | null;
 }
 
 export interface WorkspaceUserProps extends UserProps {

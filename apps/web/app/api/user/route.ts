@@ -39,6 +39,8 @@ export const GET = withSession(async ({ session }) => {
         defaultPartnerId: true,
         passwordHash: true,
         createdAt: true,
+        twoFactorConfirmedAt: true,
+        twoFactorRecoveryCodes: true,
       },
     }),
 

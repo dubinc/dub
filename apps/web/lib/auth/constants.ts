@@ -8,3 +8,5 @@ export const FRAMER_API_HOST =
   process.env.NODE_ENV === "production"
     ? "https://api.framer.com"
     : "https://api.development.framer.com";
+
+export const TWO_FA_COOKIE_NAME = "dub_2fa_token";
