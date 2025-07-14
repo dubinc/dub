@@ -45,7 +45,12 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
 
-  userSessionIdInit(req);
+  // Initialize session ID for all users (both new and existing)
+  const sessionInit = userSessionIdInit(req);
+  let sessionCookie = "";
+  if (sessionInit.needsUpdate) {
+    sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict;`;
+  }
 
   // Apply Axiom middleware
   AxiomMiddleware(req, ev);
@@ -63,9 +68,14 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
       }
     }
 
+    const cookies = [`country=${country}; Path=/; Secure; SameSite=Strict;`];
+    if (sessionCookie) {
+      cookies.push(sessionCookie);
+    }
+
     return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url), {
       headers: {
-        "Set-Cookie": `country=${country}; Path=/; Secure; SameSite=Strict;`,
+        "Set-Cookie": cookies.join(", "),
       },
     });
   }

@@ -7,12 +7,12 @@ export const userSessionIdInit = (request: NextRequest, forceId?: string) => {
   let needsUpdate = false;
   let sessionId = "";
 
-  const cookieSettings = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    sameSite: "strict" as const,
-  };
+  // const cookieSettings = {
+  //   httpOnly: true,
+  //   secure: process.env.NODE_ENV === "production",
+  //   path: "/",
+  //   sameSite: "strict" as const,
+  // };
 
   if (forceId) {
     const currentSessionId = request.cookies.get(ECookieArg.SESSION_ID)?.value;
