@@ -14,8 +14,8 @@ export interface PartnerStackListResponse<T> {
   };
 }
 
-export type PartnerStackAffiliate = z.infer<typeof partnerStackAffiliate>;
-
 export type PartnerStackImportPayload = z.infer<
   typeof partnerStackImportPayloadSchema
 >;
+
+export type PartnerStackAffiliate = z.infer<typeof partnerStackAffiliate>;
