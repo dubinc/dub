@@ -3,7 +3,8 @@ import {
   MIN_WITHDRAWAL_AMOUNT_CENTS,
 } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
-import { sendEmail } from "@dub/email";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter, pluralize } from "@dub/utils";
@@ -176,23 +177,29 @@ export async function sendStripePayouts({ invoiceId }: { invoiceId: string }) {
           status: "paid",
         },
       }),
-
-      partner.email
-        ? sendEmail({
-            variant: "notifications",
-            subject: "You've been paid!",
-            email: partner.email,
-            react: PartnerPayoutProcessed({
-              email: partner.email,
-              program: partnerPayoutsForCurrentInvoice[0].program,
-              payout: partnerPayoutsForCurrentInvoice[0],
-              variant: "stripe",
-            }),
-          })
-        : Promise.resolve(),
     ]);
 
     // sleep for 250ms
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
+
+  const resendBatch = await resend?.batch.send(
+    currentInvoicePayouts
+      .filter((p) => p.partner.email)
+      .map((p) => {
+        return {
+          from: VARIANT_TO_FROM_MAP.notifications,
+          to: p.partner.email!,
+          subject: "You've been paid!",
+          react: PartnerPayoutProcessed({
+            email: p.partner.email!,
+            program: p.program,
+            payout: p,
+            variant: "stripe",
+          }),
+        };
+      }),
+  );
+
+  console.log("Sent Resend batch emails", JSON.stringify(resendBatch, null, 2));
 }
