@@ -1,21 +1,14 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { importAffiliates } from "@/lib/tolt/import-affiliates";
+import { importAffiliates } from "@/lib/partnerstack/import-affiliates";
+import { partnerStackImportPayloadSchema } from "@/lib/partnerstack/schemas";
 import { importCommissions } from "@/lib/tolt/import-commissions";
 import { importLinks } from "@/lib/tolt/import-links";
 import { importReferrals } from "@/lib/tolt/import-referrals";
-import { importSteps } from "@/lib/tolt/importer";
 import { updateStripeCustomers } from "@/lib/tolt/update-stripe-customers";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 export const dynamic = "force-dynamic";
-
-const schema = z.object({
-  action: importSteps,
-  programId: z.string(),
-  startingAfter: z.string().optional(),
-});
 
 export async function POST(req: Request) {
   try {
@@ -26,9 +19,9 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { action, ...payload } = schema.parse(JSON.parse(rawBody));
+    const payload = partnerStackImportPayloadSchema.parse(JSON.parse(rawBody));
 
-    switch (action) {
+    switch (payload.action) {
       case "import-affiliates":
         await importAffiliates(payload);
         break;

@@ -2,7 +2,7 @@ import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
-import { partnerStackImportPayload } from "./schemas";
+import { partnerStackImportPayloadSchema } from "./schemas";
 import { PartnerStackConfig } from "./types";
 
 export const MAX_BATCHES = 5;
@@ -32,7 +32,7 @@ class PartnerStackImporter {
     return await redis.del(`${CACHE_KEY_PREFIX}:${workspaceId}`);
   }
 
-  async queue(body: z.infer<typeof partnerStackImportPayload>) {
+  async queue(body: z.infer<typeof partnerStackImportPayloadSchema>) {
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/partnerstack`,
       body,
