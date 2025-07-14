@@ -13,7 +13,6 @@ import WorkspacesMiddleware from "./workspaces";
 export default async function AppMiddleware(
   req: NextRequest,
   response: NextResponse,
-  country?: string,
   user?: UserProps,
   isPublicRoute?: boolean,
 ) {
@@ -21,25 +20,15 @@ export default async function AppMiddleware(
   console.log("here1");
   console.log(path, fullPath);
 
-  // Set country cookie
-  if (country) {
-    response.cookies.set('country', country, {
-      path: '/',
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-    });
-  }
-
   if (path.startsWith("/embed")) {
     return EmbedMiddleware(req, response);
   }
-  
+
   const isWorkspaceInvite =
     req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
   // Initialize session ID for authenticated users
   if (user) {
-    console.log("user via token", user);
     userSessionIdInit(req, response, user.id);
   }
 
@@ -58,7 +47,7 @@ export default async function AppMiddleware(
         `/login${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
         req.url,
       ),
-      { request: req }
+      { request: req },
     );
 
     // if there's a user
@@ -120,7 +109,7 @@ export default async function AppMiddleware(
       return WorkspacesMiddleware(req, response, user);
     } else if (isPublicRoute) {
       return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url), {
-        request: req
+        request: req,
       });
     } else if (appRedirect(path)) {
       return NextResponse.redirect(new URL(appRedirect(path), req.url));
@@ -129,6 +118,6 @@ export default async function AppMiddleware(
 
   // otherwise, rewrite the path to /app
   return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
-    request: req
+    request: req,
   });
 }

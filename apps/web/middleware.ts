@@ -23,6 +23,7 @@ import {
   ALLOWED_REGIONS,
   PUBLIC_ROUTES,
 } from "./app/[domain]/(public)/constants/types.ts";
+import { userSessionIdInit } from "./core/services/cookie/user-session-id-init.service.ts";
 import PartnersMiddleware from "./lib/middleware/partners";
 
 export const config = {
@@ -47,6 +48,16 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // Start with NextResponse.next() to maintain cookie chain
   let response = NextResponse.next();
 
+  userSessionIdInit(req, response);
+
+  if (country) {
+    response.cookies.set("country", country, {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+  }
+
   // Apply Axiom middleware
   AxiomMiddleware(req, ev);
 
@@ -58,7 +69,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // Handle public routes for App
   if (isPublicRoute && APP_HOSTNAMES.has(domain)) {
     if (user) {
-      return AppMiddleware(req, response, country, user, isPublicRoute);
+      return AppMiddleware(req, response, user, isPublicRoute);
     }
     return response;
   }
@@ -66,7 +77,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   // for App
   if (APP_HOSTNAMES.has(domain)) {
     console.log("middleware here1");
-    return AppMiddleware(req, response, country, user);
+    return AppMiddleware(req, response, user);
   }
 
   // for API

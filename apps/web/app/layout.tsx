@@ -15,12 +15,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { sessionId, user } = getUserCookieService();
-  
-  console.log("RootLayout sessionId:", sessionId);
-  console.log("RootLayout user:", user);
-  console.log("RootLayout user exists:", !!user);
-  console.log("RootLayout sessionId exists:", !!sessionId);
+  const { sessionId } = getUserCookieService();
 
   return (
     <html lang="en" className={cn(inter.className)}>
@@ -28,7 +23,9 @@ export default function RootLayout({
         <Theme>
           <RootProviders>{children}</RootProviders>
           <GtmInitializerComponent />
-          <AnalyticInitializerComponent sessionId={sessionId || "fallback-session"} />
+          <AnalyticInitializerComponent
+            sessionId={sessionId || "fallback-session"}
+          />
         </Theme>
       </body>
     </html>

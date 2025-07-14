@@ -8,8 +8,8 @@ import { tokenDecode, tokenEncode } from "./user-session-token.service.ts";
 // Common cookie settings
 const getCookieSettings = () => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
   path: "/",
 });
 
@@ -32,11 +32,6 @@ export const getUserCookieService = () => {
 
   if (!user?.id) {
     return { user: null, sessionId };
-  }
-
-  // Re-apply user session to refresh cookie
-  if (user?.id) {
-    applyUserSession(user);
   }
 
   return { user, sessionId };
@@ -88,18 +83,12 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
 export const resetUserCookieService = async () => {
   const cookieStore = cookies();
 
-  cookieStore.set(ECookieArg.USER, "", {
-    ...getCookieSettings(),
-    maxAge: 0,
-  });
+  cookieStore.delete(ECookieArg.USER);
 };
 
 // sign out user session
 export const resetUserSessionId = async () => {
   const cookieStore = cookies();
 
-  cookieStore.set(ECookieArg.SESSION_ID, "", {
-    ...getCookieSettings(),
-    maxAge: 0,
-  });
+  cookieStore.delete(ECookieArg.SESSION_ID);
 };
