@@ -43,6 +43,7 @@ import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
+import { SidebarUsage } from "./usage";
 import { useProgramApplicationsCount } from "./use-program-applications-count";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
@@ -439,7 +440,7 @@ export function AppSidebarNav({
         showConversionGuides: canTrackConversions && customersCount === 0,
       }}
       toolContent={toolContent}
-      newsContent={newsContent}
+      newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}
       switcher={<WorkspaceDropdown />}
     />
   );
