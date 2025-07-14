@@ -39,15 +39,20 @@ export const partnerStackLink = z.object({
 
 export const partnerStackCustomer = z.object({
   key: z.string(),
-  customer_key: z.string().describe("External ID."),
   name: z.string(),
   email: z.string(),
   provider_key: z
     .string()
+    .nullable()
     .describe("A unique identifier given by a payment provider."),
+  customer_key: z
+    .string()
+    .nullable()
+    .describe("External customer key that can be configured on creation."),
+  test: z.boolean().describe("True if created by a test."),
+  partnership_key: z.string(),
   created_at: z.number(),
   updated_at: z.number(),
-  test: z.boolean().describe("True if created by a test."),
 });
 
 export const partnerStackCommission = z.object({

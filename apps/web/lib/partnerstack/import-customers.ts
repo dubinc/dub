@@ -3,14 +3,15 @@ import { nanoid } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
+import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { PartnerStackApi } from "./api";
-import { MAX_BATCHES, partnerStackImporter } from "./importer";
 import {
-  PartnerStackPartner,
-  PartnerStackCustomer,
-  PartnerStackImportPayload,
-} from "./types";
+  MAX_BATCHES,
+  PARTNER_IDS_KEY_PREFIX,
+  partnerStackImporter,
+} from "./importer";
+import { PartnerStackCustomer, PartnerStackImportPayload } from "./types";
 
 export async function importCustomers(payload: PartnerStackImportPayload) {
   const { programId, startingAfter } = payload;
@@ -20,12 +21,17 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
       id: programId,
     },
     select: {
-      workspaceId: true,
+      workspace: {
+        select: {
+          id: true,
+          stripeConnectId: true,
+        },
+      },
     },
   });
 
   const { publicKey, secretKey } = await partnerStackImporter.getCredentials(
-    program.workspaceId,
+    program.workspace.id,
   );
 
   const partnerStackApi = new PartnerStackApi({
@@ -38,80 +44,87 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
   let currentStartingAfter = startingAfter;
 
   while (hasMore && processedBatches < MAX_BATCHES) {
-    const customers = await partnerStackApi.listCustomers({
+    let customers = await partnerStackApi.listCustomers({
       startingAfter,
     });
+
+    customers = customers.filter(({ test }) => !test);
 
     if (customers.length === 0) {
       hasMore = false;
       break;
     }
 
-    const partners = await prisma.partner.findMany({
-      where: {
-        email: {
-          in: customers.map(({ partner }) => partner.email),
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
+    const partnerKeys = [
+      ...new Set(customers.map(({ partnership_key }) => partnership_key)),
+    ];
 
-    const programEnrollments = await prisma.programEnrollment.findMany({
-      where: {
-        partnerId: {
-          in: partners.map((partner) => partner.id),
-        },
-        programId,
-      },
-      select: {
-        partner: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-        links: {
-          select: {
-            id: true,
-            key: true,
-            domain: true,
-            url: true,
-          },
-        },
-      },
-    });
+    let partnerKeysToId =
+      (await redis.hmget<Record<string, string | null>>(
+        `${PARTNER_IDS_KEY_PREFIX}:${programId}`,
+        ...partnerKeys,
+      )) || {};
 
-    const partnerEmailToLinks = new Map<
-      string,
-      (typeof programEnrollments)[0]["links"]
-    >();
-
-    for (const { partner, links } of programEnrollments) {
-      if (!partner.email) {
-        continue;
-      }
-
-      partnerEmailToLinks.set(partner.email, links);
-    }
-
-    await Promise.allSettled(
-      customers.map(({ partner, ...customer }) =>
-        createCustomer({
-          workspace,
-          customer,
-          partner,
-          links: partnerEmailToLinks.get(partner.email) ?? [],
-        }),
-      ),
+    partnerKeysToId = Object.fromEntries(
+      Object.entries(partnerKeysToId).filter(([_, id]) => id !== null),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const partnerIds = Object.values(partnerKeysToId).filter(
+      (id): id is string => id !== null,
+    );
+
+    if (partnerIds.length > 0) {
+      const programEnrollments = await prisma.programEnrollment.findMany({
+        where: {
+          partnerId: {
+            in: partnerIds,
+          },
+          programId,
+        },
+        select: {
+          partnerId: true,
+          links: {
+            select: {
+              id: true,
+              key: true,
+              domain: true,
+              url: true,
+            },
+          },
+        },
+      });
+
+      const partnerIdToLinks = new Map<
+        string,
+        (typeof programEnrollments)[number]["links"]
+      >();
+
+      for (const { partnerId, links } of programEnrollments) {
+        const existing = partnerIdToLinks.get(partnerId) ?? [];
+        partnerIdToLinks.set(partnerId, [...existing, ...links]);
+      }
+
+      await Promise.allSettled(
+        customers.map((customer) => {
+          const partnerId = partnerKeysToId[customer.partnership_key];
+          const links = partnerId ? partnerIdToLinks.get(partnerId) ?? [] : [];
+
+          return createCustomer({
+            workspace: program.workspace,
+            links,
+            customer,
+          });
+        }),
+      );
+    }
 
     processedBatches++;
     currentStartingAfter = customers[customers.length - 1].key;
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
+
+  delete payload?.startingAfter;
 
   await partnerStackImporter.queue({
     ...payload,
@@ -121,37 +134,33 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
 }
 
 async function createCustomer({
-  customer,
   workspace,
   links,
-  partner,
+  customer,
 }: {
-  customer: PartnerStackCustomer;
-  partner: PartnerStackPartner;
   workspace: Pick<Project, "id" | "stripeConnectId">;
   links: Pick<Link, "id" | "key" | "domain" | "url">[];
+  customer: PartnerStackCustomer;
 }) {
   if (links.length === 0) {
-    console.log("Link not found for referral, skipping...", {
-      customerEmail: customer.email,
-      partnerEmail: partner.email,
-    });
+    console.log("Link not found for customer, skipping...");
     return;
   }
 
-  const customerFound = await prisma.customer.findUnique({
+  if (!customer.email) {
+    console.log("Customer email not found, skipping...");
+    return;
+  }
+
+  const customerFound = await prisma.customer.findFirst({
     where: {
-      projectId_externalId: {
-        projectId: workspace.id,
-        externalId: customer.customer_id,
-      },
+      projectId: workspace.id,
+      email: customer.email,
     },
   });
 
   if (customerFound) {
-    console.log(
-      `A customer already exists with customer_id ${customer.customer_id}`,
-    );
+    console.log(`A customer already exists with email ${customer.email}`);
     return;
   }
 
@@ -204,7 +213,7 @@ async function createCustomer({
         country: clickEvent.country,
         clickedAt: new Date(customer.created_at),
         createdAt: new Date(customer.created_at),
-        externalId: customer.customer_id,
+        externalId: customer.customer_key,
       },
     });
 

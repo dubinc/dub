@@ -2,9 +2,14 @@ import { prisma } from "@dub/prisma";
 import { Program, Reward } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
 import { createId } from "../api/create-id";
+import { redis } from "../upstash";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { PartnerStackApi } from "./api";
-import { MAX_BATCHES, partnerStackImporter } from "./importer";
+import {
+  MAX_BATCHES,
+  PARTNER_IDS_KEY_PREFIX,
+  partnerStackImporter,
+} from "./importer";
 import { PartnerStackImportPayload, PartnerStackPartner } from "./types";
 
 export async function importPartners(payload: PartnerStackImportPayload) {
@@ -73,6 +78,8 @@ export async function importPartners(payload: PartnerStackImportPayload) {
     currentStartingAfter = partners[partners.length - 1].key;
   }
 
+  delete payload?.startingAfter;
+
   await partnerStackImporter.queue({
     ...payload,
     ...(hasMore && { startingAfter: currentStartingAfter }),
@@ -126,5 +133,12 @@ async function createPartner({
     update: {
       status: "approved",
     },
+  });
+
+  // PS doesn't return the partner email address in the customers response
+  // so we need to update keep a map of partner_key (PS) -> partner_id (Dub)
+  // and use it to identify the partner in the customers response
+  await redis.hset(`${PARTNER_IDS_KEY_PREFIX}:${program.id}`, {
+    [partner.key]: partnerId,
   });
 }

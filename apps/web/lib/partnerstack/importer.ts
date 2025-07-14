@@ -5,9 +5,10 @@ import { z } from "zod";
 import { partnerStackImportPayloadSchema } from "./schemas";
 import { PartnerStackConfig } from "./types";
 
-export const MAX_BATCHES = 1;
+export const MAX_BATCHES = 5;
 export const CACHE_EXPIRY = 60 * 60 * 24;
-export const CACHE_KEY_PREFIX = "partnerstack:import";
+export const CACHE_KEY_PREFIX = "partnerstack:import"; // Fix this
+export const PARTNER_IDS_KEY_PREFIX = "partnerstack:import:partner_ids"; // Fix this
 
 class PartnerStackImporter {
   async setCredentials(workspaceId: string, payload: PartnerStackConfig) {
