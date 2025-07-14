@@ -1,4 +1,3 @@
-import { setPartnerStackTokenAction } from "@/lib/actions/partners/set-partnerstack-token";
 import { startPartnerStackImportAction } from "@/lib/actions/partners/start-partnerstack-import";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Logo, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
@@ -52,7 +51,9 @@ function ImportPartnerStackModal({
           <ArrowRight className="h-5 w-5 text-neutral-600" />
           <Logo />
         </div>
-        <h3 className="text-lg font-medium">Import Your PartnerStack Program</h3>
+        <h3 className="text-lg font-medium">
+          Import Your PartnerStack Program
+        </h3>
         <p className="text-center text-sm text-neutral-500">
           Import your existing PartnerStack program into{" "}
           {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
@@ -73,39 +74,24 @@ function ImportPartnerStackModal({
   );
 }
 
-function TokenForm({
-  onClose,
-}: {
-  onClose: () => void;
-}) {
-  const { isMobile } = useMediaQuery();
+function TokenForm({ onClose }: { onClose: () => void }) {
   const router = useRouter();
+  const { isMobile } = useMediaQuery();
+  const [token, setToken] = useState("");
   const { id: workspaceId, slug } = useWorkspace();
 
-  const [token, setToken] = useState("");
-
-  const { executeAsync: setTokenAsync, isPending: isSettingToken } = useAction(
-    setPartnerStackTokenAction,
-    {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
+  const { executeAsync, isPending } = useAction(startPartnerStackImportAction, {
+    onSuccess: () => {
+      onClose();
+      toast.success(
+        "Successfully added program to import queue! We will send you an email when your program has been fully imported.",
+      );
+      router.push(`/${slug}/program/partners`);
     },
-  );
-
-  const { executeAsync: startImportAsync, isPending: isStartingImport } =
-    useAction(startPartnerStackImportAction, {
-      onSuccess: () => {
-        onClose();
-        toast.success(
-          "Successfully added program to import queue! We will send you an email when your program has been fully imported.",
-        );
-        router.push(`/${slug}/program/partners`);
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-    });
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,24 +100,11 @@ function TokenForm({
       return;
     }
 
-    try {
-      // First set the token
-      await setTokenAsync({
-        workspaceId,
-        token,
-      });
-
-      // Then start the import
-      await startImportAsync({
-        workspaceId,
-      });
-    } catch (error) {
-      // Error handling is done in the action callbacks
-      console.error("Import error:", error);
-    }
+    await executeAsync({
+      workspaceId,
+      token,
+    });
   };
-
-  const isLoading = isSettingToken || isStartingImport;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col space-y-4">
@@ -164,18 +137,10 @@ function TokenForm({
         </p>
       </div>
 
-
-
       <Button
-        text={
-          isLoading
-            ? isSettingToken
-              ? "Validating credentials..."
-              : "Starting import..."
-            : "Start Import"
-        }
-        loading={isLoading}
-        disabled={!token || isLoading}
+        text={isPending ? "Starting import..." : "Start Import"}
+        loading={isPending}
+        disabled={!token}
       />
     </form>
   );
@@ -200,4 +165,4 @@ export function useImportPartnerStackModal() {
     setShowImportPartnerStackModal,
     ImportPartnerStackModal: ImportPartnerStackModalCallback,
   };
-} 
+}

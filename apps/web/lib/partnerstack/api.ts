@@ -8,8 +8,8 @@ export class PartnerStackApi {
     this.token = token;
   }
 
-  private async fetch<T>(url: string): Promise<T> {
-    const response = await fetch(url, {
+  private async fetch<T>(path: string): Promise<T> {
+    const response = await fetch(`${this.baseUrl}${path}`, {
       headers: {
         Authorization: `Bearer ${this.token}`,
       },
@@ -26,11 +26,9 @@ export class PartnerStackApi {
     return await response.json();
   }
 
-  async testConnection(): Promise<boolean> {
+  async testConnection() {
     try {
-      // Test the API connection by making a simple request
-      // We'll use a basic endpoint to validate the token
-      await this.fetch(`${this.baseUrl}/test`);
+      await this.fetch("/customers?limit=1");
       return true;
     } catch (error) {
       throw new Error("Invalid PartnerStack API token.");

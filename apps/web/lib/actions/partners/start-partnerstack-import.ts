@@ -2,18 +2,21 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { partnerstackImporter } from "@/lib/partnerstack/importer";
-import { authActionClient } from "../safe-action";
+import { PartnerStackApi } from "@/lib/partnerstack/api";
+import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { z } from "zod";
+import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
+  token: z.string().min(1),
 });
 
 export const startPartnerStackImportAction = authActionClient
   .schema(schema)
-  .action(async ({ ctx }) => {
-    const { workspace } = ctx;
+  .action(async ({ ctx, parsedInput }) => {
+    const { workspace, user } = ctx;
+    const { token } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -30,16 +33,15 @@ export const startPartnerStackImportAction = authActionClient
       throw new Error("Program URL is not set.");
     }
 
-    const credentials = await partnerstackImporter.getCredentials(workspace.id);
-
-    if (!credentials) {
-      throw new Error(
-        "PartnerStack credentials not found. Please restart the import process.",
-      );
-    }
-
-    await partnerstackImporter.queue({
-      action: "import-affiliates",
-      programId,
+    const partnerStackApi = new PartnerStackApi({
+      token,
     });
-  }); 
+
+    await partnerStackApi.testConnection();
+
+    await partnerStackImporter.queue({
+      programId,
+      userId: user.id,
+      action: "import-affiliates",
+    });
+  });
