@@ -1,3 +1,5 @@
+"use server";
+
 import { cookies, headers } from "next/headers";
 
 import { ICustomerBody } from "core/integration/payment/config";
@@ -13,19 +15,12 @@ const getCookieSettings = () => ({
   path: "/",
 });
 
-// apply user session cookie after auth
-export const applyUserSession = async (user: ICustomerBody) => {
-  const cookieStore = cookies();
-
-  cookieStore.set(ECookieArg.USER, tokenEncode(user), getCookieSettings());
-};
-
 // get user cookie
-export const getUserCookieService = () => {
+export const getUserCookieService = async () => {
   const cookieStore = cookies();
 
-  const user = tokenDecode<ICustomerBody>(
-    cookieStore.get(ECookieArg.USER)?.value || "{}",
+  const user = await tokenDecode<ICustomerBody>(
+    cookieStore.get(ECookieArg.USER)?.value || "{}"
   );
 
   const sessionId = cookieStore.get(ECookieArg.SESSION_ID)?.value;
@@ -42,8 +37,8 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
   const cookieStore = cookies();
   const headerStore = await headers();
 
-  let user = tokenDecode<ICustomerBody>(
-    cookieStore.get(ECookieArg.USER)?.value || "{}",
+  let user = await tokenDecode<ICustomerBody>(
+    cookieStore.get(ECookieArg.USER)?.value || "{}"
   );
 
   if (!user?.id) {
@@ -61,7 +56,7 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
       paymentInfo: { ...body.paymentInfo, customerId: userId },
     };
 
-    cookieStore.set(ECookieArg.USER, tokenEncode(user), getCookieSettings());
+    cookieStore.set(ECookieArg.USER, await tokenEncode(user), getCookieSettings());
 
     return user;
   }
@@ -74,7 +69,7 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
     sessions: { ...user.sessions, ...body.sessions },
   };
 
-  cookieStore.set(ECookieArg.USER, tokenEncode(user), getCookieSettings());
+  cookieStore.set(ECookieArg.USER, await tokenEncode(user), getCookieSettings());
 
   return user;
 };

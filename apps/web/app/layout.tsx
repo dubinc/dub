@@ -10,12 +10,12 @@ import RootProviders from "./providers";
 
 export const metadata = constructMetadata();
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { sessionId } = getUserCookieService();
+  const { sessionId } = await getUserCookieService();
 
   return (
     <html lang="en" className={cn(inter.className)}>
