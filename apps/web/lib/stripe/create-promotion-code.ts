@@ -3,11 +3,11 @@ import { stripeAppClient } from ".";
 // Create a promotion code on Stripe for connected accounts
 export async function createStripePromotionCode({
   couponId,
-  linkKey,
+  code,
   stripeConnectId,
 }: {
   couponId: string;
-  linkKey: string;
+  code: string;
   stripeConnectId: string | null;
 }) {
   if (!stripeConnectId) {
@@ -25,7 +25,7 @@ export async function createStripePromotionCode({
     return await stripe.promotionCodes.create(
       {
         coupon: couponId,
-        code: linkKey.toUpperCase(),
+        code: code.toUpperCase(),
       },
       {
         stripeAccount: stripeConnectId,

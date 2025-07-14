@@ -18,8 +18,7 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const body = schema.parse(JSON.parse(rawBody));
-    const { discountId } = body;
+    const { discountId } = schema.parse(JSON.parse(rawBody));
 
     const discount = await prisma.discount.findUnique({
       where: {
@@ -31,33 +30,27 @@ export async function POST(req: Request) {
       return new Response("Discount not found.");
     }
 
-    const { provider, programId, couponId } = discount;
-
-    if (provider !== "stripe") {
-      return new Response("Discount is not a link-based coupon code.");
+    if (!discount.couponId) {
+      return new Response("couponId doesn't set for the discount.");
     }
 
-    if (!couponId) {
-      return new Response("Discount coupon ID not found.");
-    }
-
-    const workspace = await prisma.project.findUnique({
+    const workspace = await prisma.project.findUniqueOrThrow({
       where: {
-        defaultProgramId: programId,
+        defaultProgramId: discount.programId,
       },
       select: {
         stripeConnectId: true,
       },
     });
 
-    if (!workspace?.stripeConnectId) {
-      return new Response("Workspace not found.");
+    if (!workspace.stripeConnectId) {
+      return new Response("stripeConnectId doesn't exist for the workspace.");
     }
 
     const enrollments = await prisma.programEnrollment.findMany({
       where: {
-        programId,
-        couponId: discount.id,
+        programId: discount.programId,
+        discountId: discount.id,
       },
       select: {
         partnerId: true,
@@ -70,7 +63,7 @@ export async function POST(req: Request) {
 
     const links = await prisma.link.findMany({
       where: {
-        programId,
+        programId: discount.programId,
         partnerId: {
           in: enrollments.map(({ partnerId }) => partnerId),
         },
@@ -84,7 +77,6 @@ export async function POST(req: Request) {
       return new Response("No links found.");
     }
 
-    const { stripeConnectId } = workspace;
     const linksChunks = chunk(links, 20);
     const failedRequests: Error[] = [];
 
@@ -92,9 +84,9 @@ export async function POST(req: Request) {
       const results = await Promise.allSettled(
         linksChunk.map(({ key }) =>
           createStripePromotionCode({
-            couponId,
-            linkKey: key,
-            stripeConnectId,
+            code: key,
+            couponId: discount.couponId!,
+            stripeConnectId: workspace.stripeConnectId,
           }),
         ),
       );
