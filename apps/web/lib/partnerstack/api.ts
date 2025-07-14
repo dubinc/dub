@@ -12,7 +12,7 @@ import {
   PartnerStackListResponse,
 } from "./types";
 
-const PAGE_LIMIT = 50;
+const PAGE_LIMIT = 100;
 
 export class PartnerStackApi {
   private readonly baseUrl = "https://api.partnerstack.com/api/v2";
