@@ -6,7 +6,6 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { qstash } from "@/lib/cron";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
-import { Discount } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
@@ -62,23 +61,18 @@ export const updateDiscountAction = authActionClient
       }
     }
 
-    let updatedDiscount: Discount | undefined = undefined;
-
-    // Stripe doesn't support updating the standard coupon fields
-    if (discount.provider !== "stripe") {
-      updatedDiscount = await prisma.discount.update({
-        where: {
-          id: discountId,
-        },
-        data: {
-          amount,
-          type,
-          maxDuration,
-          couponId,
-          couponTestId,
-        },
-      });
-    }
+    const updatedDiscount = await prisma.discount.update({
+      where: {
+        id: discountId,
+      },
+      data: {
+        amount,
+        type,
+        maxDuration,
+        couponId,
+        couponTestId,
+      },
+    });
 
     // Update partners associated with the discount
     if (discount.default) {

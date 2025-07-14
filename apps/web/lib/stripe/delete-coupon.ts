@@ -1,26 +1,16 @@
-import { Discount } from "@prisma/client";
 import { stripeAppClient } from ".";
 
 // Delete a coupon on Stripe for connected accounts
 export async function deleteStripeCoupon({
-  coupon,
+  couponId,
   stripeConnectId,
 }: {
-  coupon: Pick<Discount, "couponId">;
+  couponId: string;
   stripeConnectId: string | null;
 }) {
   if (!stripeConnectId) {
     console.error(
       "stripeConnectId not found for the workspace. Stripe coupon creation skipped.",
-    );
-    return;
-  }
-
-  const { couponId } = coupon;
-
-  if (!couponId) {
-    console.error(
-      "couponId not found for the discount. Stripe coupon deletion skipped.",
     );
     return;
   }

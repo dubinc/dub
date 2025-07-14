@@ -25,27 +25,19 @@ export async function createStripeCoupon({
   const duration =
     maxDuration === null ? "forever" : maxDuration === 1 ? "once" : "repeating";
 
-  try {
-    return await stripe.coupons.create(
-      {
-        currency: "usd",
-        duration,
-        ...(duration === "repeating" && {
-          duration_in_months: maxDuration!,
-        }),
-        ...(type === "percentage"
-          ? { percent_off: amount }
-          : { amount_off: amount }),
-      },
-      {
-        stripeAccount: stripeConnectId,
-      },
-    );
-  } catch (error) {
-    console.error(
-      `Failed to create Stripe coupon for ${stripeConnectId}: ${error}`,
-    );
-
-    throw new Error(error instanceof Error ? error.message : "Unknown error");
-  }
+  return await stripe.coupons.create(
+    {
+      currency: "usd",
+      duration,
+      ...(duration === "repeating" && {
+        duration_in_months: maxDuration!,
+      }),
+      ...(type === "percentage"
+        ? { percent_off: amount }
+        : { amount_off: amount }),
+    },
+    {
+      stripeAccount: stripeConnectId,
+    },
+  );
 }

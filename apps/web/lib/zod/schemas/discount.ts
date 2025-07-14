@@ -10,7 +10,6 @@ export const DiscountSchema = z.object({
   couponId: z.string().nullable(),
   couponTestId: z.string().nullable(),
   default: z.boolean(),
-  provider: z.enum(["stripe"]).nullable(),
   description: z.string().nullish(),
   partnersCount: z.number().nullish(),
 });
@@ -39,7 +38,6 @@ export const createDiscountSchema = z.object({
     .array(z.string())
     .nullish()
     .describe("Only applicable for default discounts"),
-  provider: z.enum(["stripe"]).nullish(),
 });
 
 export const updateDiscountSchema = createDiscountSchema.extend({

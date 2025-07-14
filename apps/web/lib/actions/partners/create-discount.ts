@@ -3,7 +3,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
 import { createStripeCoupon } from "@/lib/stripe/create-coupon";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
@@ -26,18 +25,12 @@ export const createDiscountAction = authActionClient
       isDefault,
       includedPartnerIds,
       excludedPartnerIds,
-      provider,
     } = parsedInput;
 
     includedPartnerIds = includedPartnerIds || [];
     excludedPartnerIds = excludedPartnerIds || [];
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
 
     // A program can have only one default discount
     if (isDefault) {
@@ -84,10 +77,10 @@ export const createDiscountAction = authActionClient
       }
     }
 
-    // Create Stripe coupon for link-based coupon codes
     let stripeCoupon: Stripe.Coupon | null = null;
+    const shouldCreateCouponOnStripe = !couponId && !couponTestId;
 
-    if (provider === "stripe") {
+    if (shouldCreateCouponOnStripe) {
       if (!workspace.stripeConnectId) {
         throw new Error(
           "Make sure you have connected your Stripe account to your workspace to create a coupon.",
@@ -95,19 +88,17 @@ export const createDiscountAction = authActionClient
       }
 
       const response = await createStripeCoupon({
+        stripeConnectId: workspace.stripeConnectId,
         coupon: {
           amount,
           type,
           maxDuration: maxDuration ?? null,
         },
-        stripeConnectId: workspace.stripeConnectId,
       });
 
-      if (!response) {
-        throw new Error("Failed to create a coupon on Stripe.");
+      if (response) {
+        stripeCoupon = response;
       }
-
-      stripeCoupon = response;
     }
 
     const discount = await prisma.discount.create({
@@ -120,7 +111,6 @@ export const createDiscountAction = authActionClient
         couponId: stripeCoupon?.id ?? couponId,
         couponTestId,
         default: isDefault,
-        provider,
       },
     });
 
@@ -179,18 +169,6 @@ export const createDiscountAction = authActionClient
                 url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
                 body: {
                   discountId: discount.id,
-                },
-              })
-            : Promise.resolve(),
-
-          // Enable the coupon-code tracking if not already enabled
-          stripeCoupon && !program.couponCodeTrackingEnabledAt
-            ? prisma.program.update({
-                where: {
-                  id: programId,
-                },
-                data: {
-                  couponCodeTrackingEnabledAt: new Date(),
                 },
               })
             : Promise.resolve(),
