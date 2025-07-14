@@ -3,7 +3,7 @@ import { z } from "zod";
 export const partnerStackImportSteps = z.enum([
   "import-affiliates",
   "import-links",
-  "import-referrals",
+  "import-customers",
   "import-commissions",
   "update-stripe-customers",
 ]);
@@ -29,4 +29,17 @@ export const partnerStackLink = z.object({
   key: z.string(),
   dest: z.string(),
   url: z.string(),
+});
+
+export const partnerStackCustomer = z.object({
+  key: z.string(),
+  customer_key: z.string().describe("External ID."),
+  name: z.string(),
+  email: z.string(),
+  provider_key: z
+    .string()
+    .describe("A unique identifier given by a payment provider."),
+  test: z.boolean().describe("True if created by a test partner."),
+  created_at: z.number(),
+  updated_at: z.number(),
 });

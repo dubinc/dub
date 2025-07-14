@@ -1,10 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { importAffiliates } from "@/lib/partnerstack/import-affiliates";
+import { importCustomers } from "@/lib/partnerstack/import-customers";
 import { importLinks } from "@/lib/partnerstack/import-links";
 import { partnerStackImportPayloadSchema } from "@/lib/partnerstack/schemas";
 import { importCommissions } from "@/lib/tolt/import-commissions";
-import { importReferrals } from "@/lib/tolt/import-referrals";
 import { updateStripeCustomers } from "@/lib/tolt/update-stripe-customers";
 import { NextResponse } from "next/server";
 
@@ -28,8 +28,8 @@ export async function POST(req: Request) {
       case "import-links":
         await importLinks(payload);
         break;
-      case "import-referrals":
-        await importReferrals(payload);
+      case "import-customers":
+        await importCustomers(payload);
         break;
       case "import-commissions":
         await importCommissions(payload);

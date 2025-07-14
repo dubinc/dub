@@ -1,6 +1,11 @@
-import { partnerStackAffiliate, partnerStackLink } from "./schemas";
+import {
+  partnerStackAffiliate,
+  partnerStackCustomer,
+  partnerStackLink,
+} from "./schemas";
 import {
   PartnerStackAffiliate,
+  PartnerStackCustomer,
   PartnerStackLink,
   PartnerStackListResponse,
 } from "./types";
@@ -68,5 +73,22 @@ export class PartnerStackApi {
     );
 
     return partnerStackLink.array().parse(items);
+  }
+
+  async listCustomers({ startingAfter }: { startingAfter?: string }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("limit", PAGE_LIMIT.toString());
+
+    if (startingAfter) {
+      searchParams.append("starting_after", startingAfter);
+    }
+
+    const {
+      data: { items },
+    } = await this.fetch<PartnerStackListResponse<PartnerStackCustomer>>(
+      `/customers?${searchParams.toString()}`,
+    );
+
+    return partnerStackCustomer.array().parse(items);
   }
 }

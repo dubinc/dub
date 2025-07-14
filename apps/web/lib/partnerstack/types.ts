@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   partnerStackAffiliate,
+  partnerStackCustomer,
   partnerStackImportPayloadSchema,
   partnerStackLink,
 } from "./schemas";
@@ -22,3 +23,5 @@ export type PartnerStackImportPayload = z.infer<
 export type PartnerStackAffiliate = z.infer<typeof partnerStackAffiliate>;
 
 export type PartnerStackLink = z.infer<typeof partnerStackLink>;
+
+export type PartnerStackCustomer = z.infer<typeof partnerStackCustomer>;
