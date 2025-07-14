@@ -209,14 +209,14 @@ export function PayoutMethodsDropdown() {
         setOpenPopover={setOpenPopover}
       >
         {isBankAccountLoading || isPartnerLoading ? (
-          <div className="rounded-lg border border-neutral-200">
+          <div className="w-full rounded-lg border border-neutral-200">
             <PayoutMethodSkeleton />
           </div>
         ) : (
           <button
             onClick={() => setOpenPopover(!openPopover)}
             className={cn(
-              "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75",
+              "flex w-full items-center justify-between rounded-lg bg-white p-2 text-left text-sm transition-all duration-75",
               "border border-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-black/50",
             )}
           >

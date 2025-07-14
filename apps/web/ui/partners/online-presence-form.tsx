@@ -12,7 +12,6 @@ import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import {
   AnimatedSizeContainer,
-  BadgeCheck2Fill,
   Button,
   CircleCheckFill,
   Globe,
@@ -20,7 +19,6 @@ import {
   Instagram,
   LinkedIn,
   TikTok,
-  Trash,
   Twitter,
   YouTube,
 } from "@dub/ui";
@@ -38,6 +36,7 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { OnlinePresenceCard } from "./online-presence-card";
 
 const onlinePresenceSchema = z.object({
   website: parseUrlSchemaAllowEmpty().optional(),
@@ -551,7 +550,7 @@ function FormRow({
         partner.youtubeViewCount > 0
           ? `${nFormatter(partner.youtubeViewCount)} views`
           : null,
-      ].filter(Boolean);
+      ].filter(Boolean) as string[];
     }
     return null;
   }, [partner, property, isVerified]);
@@ -569,37 +568,14 @@ function FormRow({
               <span className="text-content-emphasis text-sm font-medium">
                 {label}
               </span>
-              <div className="border-subtle flex items-center justify-between rounded-lg border bg-white p-3">
-                <div className="flex items-center gap-3">
-                  <div className="border-subtle flex size-8 items-center justify-center rounded-full border">
-                    <Icon className="size-4" />
-                  </div>
-                  <div className="flex flex-col text-xs">
-                    <div className="flex items-center gap-1">
-                      <span className="text-content-emphasis block font-semibold">
-                        {prefix}
-                        {value}
-                      </span>
-                      <BadgeCheck2Fill className="size-3.5 text-green-600" />
-                    </div>
-                    {info && info.length > 0 && (
-                      <div className="text-content-subtle font-medium">
-                        {info.join(" • ")}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    icon={<Trash className="size-4" />}
-                    className="text-content-subtle hover:text-content-default size-8 p-0"
-                    onClick={() => {
-                      setValue(property, "", { shouldDirty: true });
-                    }}
-                  />
-                </div>
-              </div>
+              <OnlinePresenceCard
+                icon={Icon}
+                prefix={prefix}
+                value={value ?? ""}
+                verified
+                info={info ?? undefined}
+                onRemove={() => setValue(property, "", { shouldDirty: true })}
+              />
             </div>
           ) : (
             <label className={cn("flex flex-col gap-1.5")}>

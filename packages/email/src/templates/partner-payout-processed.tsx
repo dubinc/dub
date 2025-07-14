@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function PartnerPayoutSent({
+export default function PartnerPayoutProcessed({
   email = "panic@thedis.co",
   program = {
     name: "Acme",
@@ -23,9 +23,10 @@ export default function PartnerPayoutSent({
   payout = {
     id: "po_8VuCr2i7WnG65d4TNgZO19fT",
     amount: 490,
-    startDate: new Date("2024-11-01"),
-    endDate: new Date("2024-11-30"),
+    periodStart: new Date("2024-11-01"),
+    periodEnd: new Date("2024-11-30"),
   },
+  variant = "stripe",
 }: {
   email: string;
   program: {
@@ -35,17 +36,18 @@ export default function PartnerPayoutSent({
   payout: {
     id: string;
     amount: number;
-    startDate?: Date | null;
-    endDate?: Date | null;
+    periodStart?: Date | null;
+    periodEnd?: Date | null;
   };
+  variant: "stripe" | "paypal";
 }) {
   const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
-  const startDate = payout.startDate
-    ? formatDate(payout.startDate, {
+  const startDate = payout.periodStart
+    ? formatDate(payout.periodStart, {
         year: "numeric",
         month: "short",
         day: "numeric",
@@ -53,8 +55,8 @@ export default function PartnerPayoutSent({
       })
     : null;
 
-  const endDate = payout.endDate
-    ? formatDate(payout.endDate, {
+  const endDate = payout.periodEnd
+    ? formatDate(payout.periodEnd, {
         year: "numeric",
         month: "short",
         day: "numeric",
@@ -70,11 +72,7 @@ export default function PartnerPayoutSent({
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
             <Section className="mt-8">
-              <Img
-                src={program.logo || "https://assets.dub.co/logo.png"}
-                height="32"
-                alt={program.name}
-              />
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
 
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
@@ -82,8 +80,9 @@ export default function PartnerPayoutSent({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              <strong className="text-black">{program.name}</strong> has sent
-              you <strong className="text-black">{saleAmountInDollars}</strong>
+              Good news! <strong className="text-black">{program.name}</strong>{" "}
+              has sent you{" "}
+              <strong className="text-black">{saleAmountInDollars}</strong>
               {startDate && endDate ? (
                 <>
                   {" "}
@@ -95,16 +94,19 @@ export default function PartnerPayoutSent({
                 "."
               )}
             </Text>
+
             <Text className="text-sm leading-6 text-neutral-600">
-              The funds are on their way to your account.
+              {variant === "stripe"
+                ? "If the balance in your Stripe Express account is above your minimum withdrawal amount, they'll automatically begin transferring to your bank account. You can change your minimum withdrawal amount any time in your payout settings."
+                : "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete."}
             </Text>
 
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
-                href={`https://partners.dub.co/settings/payouts?payoutId=${payout.id}`}
+                href="https://partners.dub.co/payouts"
               >
-                View payout
+                View payouts
               </Link>
             </Section>
             <Footer email={email} />

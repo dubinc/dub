@@ -21,7 +21,7 @@ export const trackLeadRequestSchema = z.object({
       "The name of the lead event to track. Can also be used as a unique identifier to associate a given lead event for a customer for a subsequent sale event (via the `leadEventName` prop in `/track/sale`).",
     )
     .openapi({ example: "Sign up" }),
-  externalId: z
+  customerExternalId: z
     .string()
     .trim()
     .max(100)
