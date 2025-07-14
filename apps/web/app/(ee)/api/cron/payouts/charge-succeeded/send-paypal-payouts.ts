@@ -3,11 +3,8 @@ import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { Payload } from "./utils";
 
-export async function sendPaypalPayouts({ payload }: { payload: Payload }) {
-  const { invoiceId } = payload;
-
+export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
   const payouts = await prisma.payout.findMany({
     where: {
       invoiceId,
