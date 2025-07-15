@@ -74,7 +74,7 @@ export async function importLinks(payload: PartnerStackImportPayload) {
       continue;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       links.map(async (link) =>
         createPartnerLink({
           workspace: program.workspace as WorkspaceProps,
