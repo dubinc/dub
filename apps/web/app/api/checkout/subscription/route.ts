@@ -2,6 +2,7 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { withSession } from "@/lib/auth";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import {
   ICreateSubscriptionBody,
@@ -13,20 +14,22 @@ import {
 } from "core/integration/payment/config";
 import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
-import { updateUserCookieService } from "core/services/cookie/user-session.service.ts";
+import {
+  getUserCookieService,
+  updateUserCookieService,
+} from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
-import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
-import { addDays, format } from 'date-fns';
+import { addDays, format } from "date-fns";
 
 const getPeriod = (paymentPlan: string) => {
   const periodMap = {
-    'PRICE_MONTH_PLAN': '1 month',
-    'PRICE_QUARTER_PLAN': '3 months',
-    'PRICE_YEAR_PLAN': '12 months',
+    PRICE_MONTH_PLAN: "1 month",
+    PRICE_QUARTER_PLAN: "3 months",
+    PRICE_YEAR_PLAN: "12 months",
   };
-  
+
   return periodMap[paymentPlan];
-}
+};
 
 const paymentService = new PaymentService();
 
@@ -36,7 +39,17 @@ export const POST = withSession(
     req,
     session: authSession,
   }): Promise<NextResponse<ICreateSubscriptionRes>> => {
+    const { user } = await getUserCookieService();
+
+    if (!user || !authSession?.user) {
+      return NextResponse.json(
+        { success: false, error: "User not found" },
+        { status: 400 },
+      );
+    }
+
     const body: ICreateSubscriptionBody = await req.json();
+
     if (!body.payment?.orderId || !body.payment?.id) {
       return NextResponse.json(
         { success: false, error: "Payment info not found" },
@@ -44,16 +57,9 @@ export const POST = withSession(
       );
     }
 
-    const user = await updateUserCookieService({
+    const updatedUser = await updateUserCookieService({
       currency: { currencyForPay: body.payment.currencyCode },
     });
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: "User not found" },
-        { status: 400 },
-      );
-    }
 
     const { priceForPay: price } = getPaymentPlanPrice({
       paymentPlan: body.paymentPlan,
@@ -77,19 +83,17 @@ export const POST = withSession(
       ...user.sessions,
 
       //**** for analytics ****//
-      email: authSession.user.email,
+      email: user!.email!,
       flow_type: "internal",
       locale: "en",
       mixpanel_user_id:
-        authSession.user.id ||
-        cookieStore.get(ECookieArg.SESSION_ID)?.value ||
-        null,
+        user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
       plan_name: body.paymentPlan,
       //**** for analytics ****//
 
       //**** fields for subscription system ****//
       sub_user_id_primer: user?.paymentInfo?.customerId || null,
-      sub_order_country: user.currency?.countryCode || null,
+      sub_order_country: updatedUser.currency?.countryCode || null,
       ipAddress: getUserIp(headerStore)!,
       subscriptionType: `APP_SUBSCRIPTION`,
       application: `${process.env.NEXT_PUBLIC_PAYMENT_ENV}`,
@@ -105,7 +109,7 @@ export const POST = withSession(
       const { tokenOnboardingData, paymentMethodToken } =
         await paymentService.createClientSubscription({
           user: {
-            email: user.email || authSession.user.email || "",
+            email: user.email || "",
             country: user.currency?.countryCode || "",
             externalId: user.paymentInfo?.customerId || "",
             nationalDocumentId: body?.nationalDocumentId,
@@ -163,7 +167,7 @@ export const POST = withSession(
       await Promise.all([
         prisma.user.update({
           where: {
-            id: authSession.user.id,
+            id: user.id,
           },
           data: {
             paymentData: {
@@ -174,16 +178,19 @@ export const POST = withSession(
           },
         }),
         await sendEmail({
-          email: user.email || authSession.user.email,
+          email: user!.email!,
           subject: "Welcome to GetQR",
           template: CUSTOMER_IO_TEMPLATES.SUBSCRIPTION_ACTIVE,
           messageData: {
             period: getPeriod(body.paymentPlan),
             price: (price / 100).toFixed(2),
             currency: user.currency?.currencyForPay as string,
-            next_billing_date: format(addDays(new Date(), period), 'yyyy-MM-dd'),
+            next_billing_date: format(
+              addDays(new Date(), period),
+              "yyyy-MM-dd",
+            ),
           },
-          customerId: authSession.user.id,
+          customerId: user.id,
         }),
       ]);
 

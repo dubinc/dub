@@ -1,4 +1,3 @@
-import { UserProps } from "@/lib/types.ts";
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { capitalizeFirstLetter } from "@/ui/plans/utils.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
@@ -6,6 +5,7 @@ import { Button } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { Flex, Heading, Text } from "@radix-ui/themes";
 import { FC } from "react";
+import { ICustomerBody } from "../../../core/integration/payment/config";
 
 interface IPopularQrInfo {
   qrCodeDemo: any;
@@ -13,7 +13,7 @@ interface IPopularQrInfo {
   mostScannedQR: QrStorageData | null;
   isTrialOver: boolean;
   handleScroll: () => void;
-  authUser: UserProps;
+  user: ICustomerBody;
 }
 
 export const PopularQrInfo: FC<IPopularQrInfo> = ({
@@ -22,9 +22,9 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
   mostScannedQR,
   isTrialOver,
   handleScroll,
-  authUser,
+  user,
 }) => {
-  const hasSubscription = !!authUser?.paymentData?.paymentInfo?.subscriptionId;
+  const hasSubscription = !!user?.paymentInfo?.subscriptionId;
 
   return (
     <Flex

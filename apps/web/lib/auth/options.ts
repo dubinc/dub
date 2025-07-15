@@ -1,3 +1,4 @@
+import { convertSessionUserToCustomerBody, Session } from "@/lib/auth/utils.ts";
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
@@ -19,7 +20,10 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
-import { getUserCookieService } from "../../core/services/cookie/user-session.service.ts";
+import {
+  applyUserSession,
+  getUserCookieService,
+} from "../../core/services/cookie/user-session.service.ts";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
@@ -555,6 +559,12 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
+      const customerUser = convertSessionUserToCustomerBody(
+        message.user as Session["user"],
+      );
+
+      await applyUserSession(customerUser);
+
       if (message.isNewUser) {
         const email = message.user.email as string;
         const user = await prisma.user.findUnique({

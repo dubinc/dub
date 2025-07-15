@@ -20,7 +20,7 @@ export const getUserCookieService = async () => {
   const cookieStore = cookies();
 
   const user = await tokenDecode<ICustomerBody>(
-    cookieStore.get(ECookieArg.USER)?.value || "{}"
+    cookieStore.get(ECookieArg.USER)?.value || "{}",
   );
 
   const sessionId = cookieStore.get(ECookieArg.SESSION_ID)?.value;
@@ -38,7 +38,7 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
   const headerStore = await headers();
 
   let user = await tokenDecode<ICustomerBody>(
-    cookieStore.get(ECookieArg.USER)?.value || "{}"
+    cookieStore.get(ECookieArg.USER)?.value || "{}",
   );
 
   if (!user?.id) {
@@ -56,7 +56,11 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
       paymentInfo: { ...body.paymentInfo, customerId: userId },
     };
 
-    cookieStore.set(ECookieArg.USER, await tokenEncode(user), getCookieSettings());
+    cookieStore.set(
+      ECookieArg.USER,
+      await tokenEncode(user),
+      getCookieSettings(),
+    );
 
     return user;
   }
@@ -69,9 +73,20 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
     sessions: { ...user.sessions, ...body.sessions },
   };
 
-  cookieStore.set(ECookieArg.USER, await tokenEncode(user), getCookieSettings());
+  cookieStore.set(
+    ECookieArg.USER,
+    await tokenEncode(user),
+    getCookieSettings(),
+  );
 
   return user;
+};
+
+// apply user session cookie after auth
+export const applyUserSession = async (user: ICustomerBody) => {
+  const cookieStore = cookies();
+
+  cookieStore.set(ECookieArg.USER, await tokenEncode(user), { httpOnly: true });
 };
 
 // sign out user cookie
