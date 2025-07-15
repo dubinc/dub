@@ -1,3 +1,4 @@
+import { convertSessionUserToCustomerBody, Session } from "@/lib/auth/utils.ts";
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
@@ -5,8 +6,6 @@ import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
-import { subscribe } from "@dub/email/resend/subscribe";
-import { WelcomeEmail } from "@dub/email/templates/welcome-email";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -19,6 +18,11 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
+import { ECookieArg } from "../../core/interfaces/cookie.interface.ts";
+import {
+  applyUserSession,
+  getUserCookieService,
+} from "../../core/services/cookie/user-session.service.ts";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
@@ -28,7 +32,6 @@ import {
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
-import { trackLead } from "./track-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -36,8 +39,10 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
   return {
     ...PrismaAdapter(p),
     createUser: async (data: any) => {
-      const generatedUserId = createId({ prefix: "user_" });
       const cookieStore = cookies();
+      const { sessionId } = await getUserCookieService();
+
+      const generatedUserId = sessionId ?? createId({ prefix: "user_" });
       const qrDataCookie = cookieStore.get("processed-qr-data")?.value;
 
       const user = await p.user.create({
@@ -94,29 +99,31 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       sendVerificationRequest({ identifier, url }) {
-        prisma.user.findUnique({
-          where: {
-            email: identifier,
-          },
-          select: {
-            id: true,
-          },
-        }).then((user) => {
-          if (process.env.NODE_ENV === "development") {
-            console.log(`Login link: ${url}`);
-            return;
-          } else {
-            sendEmail({
+        prisma.user
+          .findUnique({
+            where: {
               email: identifier,
-              subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-              template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
-              messageData: {
-                url,
-              },
-              customerId: user?.id,
-            });
-          }
-        });
+            },
+            select: {
+              id: true,
+            },
+          })
+          .then((user) => {
+            if (process.env.NODE_ENV === "development") {
+              console.log(`Login link: ${url}`);
+              return;
+            } else {
+              sendEmail({
+                email: identifier,
+                subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+                template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
+                messageData: {
+                  url,
+                },
+                customerId: user?.id,
+              });
+            }
+          });
       },
     }),
     GoogleProvider({
@@ -550,6 +557,14 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
+      const cookieStore = cookies();
+
+      const customerUser = convertSessionUserToCustomerBody(
+        message.user as Session["user"],
+      );
+
+      await applyUserSession(customerUser);
+
       if (message.isNewUser) {
         const email = message.user.email as string;
         const user = await prisma.user.findUnique({
@@ -562,6 +577,7 @@ export const authOptions: NextAuthOptions = {
             createdAt: true,
           },
         });
+
         if (!user) {
           return;
         }
@@ -569,27 +585,59 @@ export const authOptions: NextAuthOptions = {
         // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
         if (
           user.createdAt &&
-          new Date(user.createdAt).getTime() > Date.now() - 10000 &&
-          process.env.NEXT_PUBLIC_IS_DUB
+          new Date(user.createdAt).getTime() > Date.now() - 20000
+          // process.env.NEXT_PUBLIC_IS_DUB
         ) {
-          waitUntil(
-            Promise.allSettled([
-              subscribe({ email, name: user.name || undefined }),
-              sendEmail({
+          if (message?.account?.provider === "google") {
+            cookieStore.set(
+              ECookieArg.OAUTH_FLOW,
+              JSON.stringify({
+                flow: "signup",
+                provider: "google",
                 email,
-                replyTo: "steven.tey@dub.co",
-                subject: "Welcome to Dub.co!",
-                react: WelcomeEmail({
-                  email,
-                  name: user.name || null,
-                }),
-                // send the welcome email 5 minutes after the user signed up
-                scheduledAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-                marketing: true,
+                userId: user.id,
               }),
-              trackLead(user),
-            ]),
-          );
+              {
+                httpOnly: true,
+                maxAge: 60,
+              },
+            );
+          }
+
+          // waitUntil(
+          //   Promise.allSettled([
+          //     subscribe({ email, name: user.name || undefined }),
+          //     sendEmail({
+          //       email,
+          //       replyTo: "steven.tey@dub.co",
+          //       subject: "Welcome to Dub.co!",
+          //       react: WelcomeEmail({
+          //         email,
+          //         name: user.name || null,
+          //       }),
+          //       // send the welcome email 5 minutes after the user signed up
+          //       scheduledAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+          //       marketing: true,
+          //     }),
+          //     trackLead(user),
+          //   ]),
+          // );
+        } else {
+          if (message?.account?.provider === "google") {
+            cookieStore.set(
+              ECookieArg.OAUTH_FLOW,
+              JSON.stringify({
+                flow: "login",
+                provider: "google",
+                email,
+                userId: user.id,
+              }),
+              {
+                httpOnly: true,
+                maxAge: 60,
+              },
+            );
+          }
         }
       }
       // lazily backup user avatar to R2

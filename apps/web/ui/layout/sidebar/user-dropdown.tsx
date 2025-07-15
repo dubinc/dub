@@ -1,5 +1,6 @@
 "use client";
 
+import { resetUserCookieSession } from "@/lib/actions/reset-user-cookie-session.ts";
 import useUser from "@/lib/swr/use-user.ts";
 import { Avatar, Icon, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -24,6 +25,7 @@ export default function UserDropdown() {
         page_name: "profile",
         content_value: "account_details",
         email: user?.email,
+        event_category: "Authorized",
       },
       sessionId: user?.id,
     });
@@ -35,6 +37,7 @@ export default function UserDropdown() {
           page_name: "profile",
           element_name: "account_details",
           email: user?.email,
+          event_category: "Authorized",
         },
         sessionId: user?.id,
       });
@@ -51,8 +54,17 @@ export default function UserDropdown() {
         element_name: "account_details",
         email: user?.email,
         content_value: optionType,
+        event_category: "Authorized",
       },
       sessionId: user?.id,
+    });
+  };
+
+  const logout = async () => {
+    handleUserOptionClick("logout");
+    await resetUserCookieSession();
+    signOut({
+      callbackUrl: "/",
     });
   };
 
@@ -108,12 +120,7 @@ export default function UserDropdown() {
             type="button"
             label="Logout"
             icon={LogOut}
-            onClick={() => {
-              handleUserOptionClick("logout");
-              signOut({
-                callbackUrl: "/",
-              });
-            }}
+            onClick={logout}
           />
         </div>
       }

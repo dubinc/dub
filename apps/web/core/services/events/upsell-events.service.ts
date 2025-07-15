@@ -42,7 +42,7 @@ export const generateTrackingUpsellEvent = ({
     payment_processor: user?.paymentInfo?.paymentProcessor ?? null,
     subscription_id: user?.paymentInfo?.subscriptionId ?? null,
     country: user?.currency?.countryCode,
-    event_category: "WebPurchase",
+    event_category: "Authorized",
     ...additionalParams,
   };
 

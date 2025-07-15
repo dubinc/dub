@@ -2,7 +2,6 @@
 
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import useQrs from "@/lib/swr/use-qrs.ts";
-import { UserProps } from "@/lib/types";
 import { FAQ_ITEMS_PAYWALL } from "@/ui/landing/components/faq-section/config.ts";
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PaymentComponent } from "@/ui/plans/components/payment-component.tsx";
@@ -16,16 +15,10 @@ import { ICustomerBody } from "core/integration/payment/config";
 import { FC, useMemo, useRef } from "react";
 
 interface IPlansContentProps {
-  cookieUser: ICustomerBody;
-  reloadUserCookie: () => void;
-  authUser: UserProps;
+  user: ICustomerBody;
 }
 
-const PlansContent: FC<Readonly<IPlansContentProps>> = ({
-  cookieUser,
-  reloadUserCookie,
-  authUser,
-}) => {
+const PlansContent: FC<Readonly<IPlansContentProps>> = ({ user }) => {
   const { qrs } = useQrs();
   const { isTrialOver } = useTrialStatus();
   const paymentSectionRef = useRef<HTMLDivElement>(null);
@@ -67,7 +60,7 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
 
       <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
         <PopularQrInfo
-          authUser={authUser}
+          user={user}
           qrCodeDemo={qrCodeDemo}
           demoProps={demoProps}
           mostScannedQR={mostScannedQR}
@@ -77,9 +70,7 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
 
         <div ref={paymentSectionRef}>
           <PaymentComponent
-            cookieUser={cookieUser}
-            reloadUserCookie={reloadUserCookie}
-            authUser={authUser}
+            user={user}
             isTrialOver={isTrialOver}
             onScrollToPayment={handleScrollToPayment}
           />

@@ -16,16 +16,11 @@ declare global {
   }
 }
 
-// interface IWorkflowVersion {
-//   user_token?: string;
-// }
-
 // interface
 interface TrackClientEventsParams<T> {
   event: EAnalyticEvents;
   sessionId?: string;
   user?: ICustomerBody | null;
-  // params?: T & IWorkflowVersion;
   params?: T;
 }
 
@@ -77,6 +72,7 @@ export const trackClientEvents = <T extends Dict>(
   const values = {
     env: `${process.env.NEXT_PUBLIC_APP_ENV}`,
     mixpanel_user_id: sessionId || user?.id || getDistinctId(),
+    locale: "en",
     ...utm,
     ...params,
   };

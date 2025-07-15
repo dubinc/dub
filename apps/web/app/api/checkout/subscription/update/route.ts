@@ -11,7 +11,10 @@ import {
 } from "core/integration/payment/config";
 import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
-import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
+import {
+  getUserCookieService,
+  updateUserCookieService,
+} from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -30,10 +33,10 @@ export const POST = withSession(
     req,
     session: authSession,
   }): Promise<NextResponse<IUpdateSubscriptionRes>> => {
-    const user = authSession?.user;
-    const paymentData = user?.paymentData;
+    const authUser = authSession?.user;
+    const paymentData = authUser?.paymentData;
 
-    if (!user || !paymentData?.paymentInfo?.customerId) {
+    if (!authUser || !paymentData?.paymentInfo?.customerId) {
       return NextResponse.json(
         {
           success: false,
@@ -55,19 +58,20 @@ export const POST = withSession(
     const headerStore = headers();
     const cookieStore = cookies();
 
+    const { user } = await getUserCookieService();
+
     const subProcessorData = await paymentService.getProcessorByCustomerId(
       user!.id! || cookieStore.get(ECookieArg.SESSION_ID)!.value!,
     );
 
-    const { user: cookieUser } = await getUserCookieService();
     const { priceForPay } = getPaymentPlanPrice({
       paymentPlan: body.paymentPlan,
-      user: cookieUser,
+      user,
     });
 
     const chargePeriodDays = getChargePeriodDaysIdByPlan({
       paymentPlan: body.paymentPlan,
-      user: cookieUser!,
+      user: user!,
     });
 
     try {
@@ -89,11 +93,11 @@ export const POST = withSession(
             ...(paymentData?.sessions && { ...paymentData.sessions }),
 
             //**** for analytics ****//
-            email: user.email || null,
+            email: user?.email || null,
             flow_type: "internal",
             locale: "en",
             mixpanel_user_id:
-              user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
+              user?.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
             plan_name: body.paymentPlan,
             //**** for analytics ****//
 
@@ -110,20 +114,28 @@ export const POST = withSession(
         },
       );
 
-      await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          paymentData: {
-            ...user?.paymentData,
-            paymentInfo: {
-              ...user?.paymentData?.paymentInfo,
-              subscriptionPlanCode: body.paymentPlan,
+      await Promise.all([
+        prisma.user.update({
+          where: {
+            id: authUser.id,
+          },
+          data: {
+            paymentData: {
+              ...authUser?.paymentData,
+              paymentInfo: {
+                ...authUser?.paymentData?.paymentInfo,
+                subscriptionPlanCode: body.paymentPlan,
+              },
             },
           },
-        },
-      });
+        }),
+        updateUserCookieService({
+          paymentInfo: {
+            ...user?.paymentInfo,
+            subscriptionPlanCode: body.paymentPlan,
+          },
+        }),
+      ]);
 
       return NextResponse.json({ success: true });
     } catch (error: any) {

@@ -9,6 +9,7 @@ import {
 import { parse } from "@/lib/middleware/utils";
 import { getUserCountry } from "@/lib/middleware/utils/get-user-country.ts";
 import { getUserViaToken } from "@/lib/middleware/utils/get-user-via-token.ts";
+import { supportedWellKnownFiles } from "@/lib/well-known.ts";
 import {
   ADMIN_HOSTNAMES,
   API_HOSTNAMES,
@@ -22,6 +23,7 @@ import {
   ALLOWED_REGIONS,
   PUBLIC_ROUTES,
 } from "./app/[domain]/(public)/constants/types.ts";
+import { userSessionIdInit } from "./core/services/cookie/user-session-id-init.service.ts";
 import PartnersMiddleware from "./lib/middleware/partners";
 
 export const config = {
@@ -39,16 +41,18 @@ export const config = {
 };
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
-  const { domain, path, key, fullKey } = parse(req);
+  const { domain, key, fullKey, path } = parse(req);
   const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
 
-  console.log("here");
-  console.log(domain, path, key, fullKey);
-  console.log(APP_HOSTNAMES.has(domain));
-  console.log(process.env.NEXT_PUBLIC_VERCEL_ENV);
-  console.log(process.env.NEXT_PUBLIC_APP_DOMAIN);
+  // Initialize session ID for all users (both new and existing)
+  const sessionInit = userSessionIdInit(req);
+  let sessionCookie = "";
+  if (sessionInit.needsUpdate) {
+    sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict;`;
+  }
 
+  // Apply Axiom middleware
   AxiomMiddleware(req, ev);
 
   const isPublicRoute =
@@ -56,7 +60,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     path.startsWith("/help") ||
     ALLOWED_REGIONS.includes(path.slice(1));
 
-  // Try to fix public routes locally
+  // Handle public routes for App
   if (isPublicRoute) {
     if (APP_HOSTNAMES.has(domain)) {
       if (user) {
@@ -64,9 +68,14 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
       }
     }
 
+    const cookies = [`country=${country}; Path=/; Secure; SameSite=Strict;`];
+    if (sessionCookie) {
+      cookies.push(sessionCookie);
+    }
+
     return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url), {
       headers: {
-        "Set-Cookie": `country=${country}; Path=/; Secure; SameSite=Strict;`,
+        "Set-Cookie": cookies.join(", "),
       },
     });
   }
@@ -81,6 +90,16 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   if (API_HOSTNAMES.has(domain)) {
     console.log("middleware here2");
     return ApiMiddleware(req);
+  }
+
+  // for .well-known routes
+  if (path.startsWith("/.well-known/")) {
+    const file = path.split("/.well-known/").pop();
+    if (file && supportedWellKnownFiles.includes(file)) {
+      return NextResponse.rewrite(
+        new URL(`/wellknown/${domain}/${file}`, req.url),
+      );
+    }
   }
 
   // default redirects for dub.sh

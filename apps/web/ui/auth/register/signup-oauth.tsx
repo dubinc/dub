@@ -2,7 +2,6 @@
 
 import { saveQrDataToCookieAction } from "@/lib/actions/save-qr-data-to-cookie";
 import { showMessage } from "@/ui/auth/helpers.ts";
-import { useAuthTracking } from "@/ui/modals/auth-modal.tsx";
 import { prepareRegistrationQrData } from "@/ui/qr-builder/helpers";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { Button, Github, Google, useLocalStorage } from "@dub/ui";
@@ -24,7 +23,6 @@ export const SignUpOAuth = ({
   const [clickedGithub, setClickedGithub] = useState(false);
 
   const [isUploading, setIsUploading] = useState(false);
-  const { trackAuthClick } = useAuthTracking("signup");
 
   const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
@@ -73,11 +71,20 @@ export const SignUpOAuth = ({
           onClick={async () => {
             await handleQrDataProcessing();
 
-            trackAuthClick("google");
+            trackClientEvents({
+              event: EAnalyticEvents.ELEMENT_CLICKED,
+              params: {
+                element_name: "signup",
+                content_value: "google",
+                event_category: "unAuthorized",
+              },
+            });
+
             trackClientEvents({
               event: EAnalyticEvents.SIGNUP_ATTEMPT,
               params: {
                 method: "google",
+                event_category: "unAuthorized",
               },
             });
             setClickedGoogle(true);

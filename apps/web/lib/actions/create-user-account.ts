@@ -8,6 +8,7 @@ import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN, R2_URL } from "@dub/utils";
 import { TrackClient } from "customerio-node";
 import { flattenValidationErrors } from "next-safe-action";
+import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId, getIP } from "../api/utils";
 import { hashPassword } from "../auth/password";
@@ -100,8 +101,13 @@ export const createUserAccountAction = actionClient
       },
     });
 
-    if (!user) {
-      const generatedUserId = createId({ prefix: "user_" });
+      if (user) {
+          throw new Error("User with this email already exists");
+      }
+
+      const { sessionId } = await getUserCookieService();
+      const generatedUserId = sessionId ?? createId({ prefix: "user_" });
+
       const createdAt = new Date();
       const trialEndsAt = new Date(createdAt);
       trialEndsAt.setDate(trialEndsAt.getDate() + 10);
@@ -116,60 +122,59 @@ export const createUserAccountAction = actionClient
         },
       });
 
-      // @CUSTOM_FEATURE: creation of a workspace immediately after registration to skip onboarding
-      const workspaceResponse = await createWorkspaceForUser({
-        prismaClient: prisma,
-        userId: generatedUserId,
-        email,
-      });
+    // @CUSTOM_FEATURE: creation of a workspace immediately after registration to skip onboarding
+    const workspaceResponse = await createWorkspaceForUser({
+      prismaClient: prisma,
+      userId: generatedUserId,
+      email,
+    });
 
-      if (qrDataToCreate) {
-        const linkUrl = qrDataToCreate?.file
-          ? `${R2_URL}/qrs-content/${qrDataToCreate.file}`
-          : (qrDataToCreate!.styles!.data! as string);
+    if (qrDataToCreate) {
+      const linkUrl = qrDataToCreate?.file
+        ? `${R2_URL}/qrs-content/${qrDataToCreate.file}`
+        : (qrDataToCreate!.styles!.data! as string);
 
-        const { createdQr } = await createQrWithLinkUniversal({
-          qrData: {
-            data: qrDataToCreate.styles.data as string,
-            qrType: qrDataToCreate.qrType as any,
-            title: qrDataToCreate.title,
-            description: undefined,
-            styles: qrDataToCreate.styles,
-            frameOptions: qrDataToCreate.frameOptions,
-            file: qrDataToCreate.file,
-            fileName: qrDataToCreate.fileName,
-            fileSize: qrDataToCreate.fileSize,
-            link: {
-              url: linkUrl,
-            },
-          },
-          linkData: {
+      const { createdQr } = await createQrWithLinkUniversal({
+        qrData: {
+          data: qrDataToCreate.styles.data as string,
+          qrType: qrDataToCreate.qrType as any,
+          title: qrDataToCreate.title,
+          description: undefined,
+          styles: qrDataToCreate.styles,
+          frameOptions: qrDataToCreate.frameOptions,
+          file: qrDataToCreate.file,
+          fileName: qrDataToCreate.fileName,
+          fileSize: qrDataToCreate.fileSize,
+          link: {
             url: linkUrl,
           },
-          workspace: workspaceResponse as Pick<
-            WorkspaceProps,
-            "id" | "plan" | "flags"
-          >,
-          userId: generatedUserId,
-          fileId: qrDataToCreate.file || undefined,
-          homePageDemo: true,
-        });
+        },
+        linkData: {
+          url: linkUrl,
+        },
+        workspace: workspaceResponse as Pick<
+          WorkspaceProps,
+          "id" | "plan" | "flags"
+        >,
+        userId: generatedUserId,
+        fileId: qrDataToCreate.file || undefined,
+        homePageDemo: true,
+      });
 
         await cio.identify(generatedUserId, {
           email: email,
         });
 
-        await sendEmail({
-          email: email,
-          subject: "Welcome to GetQR",
-          template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-          messageData: {
-            qr_name: createdQr.title || "Untitled QR",
-            qr_type: createdQr.qrType,
-            url: HOME_DOMAIN,
-          },
-          customerId: generatedUserId,
-        });
-      }
+      await sendEmail({
+        email: email,
+        subject: "Welcome to GetQR",
+        template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+        messageData: {
+          qr_name: createdQr.title || "Untitled QR",
+          qr_type: createdQr.qrType,
+          url: HOME_DOMAIN,
+        },
+        customerId: generatedUserId,
+      });
     }
   });

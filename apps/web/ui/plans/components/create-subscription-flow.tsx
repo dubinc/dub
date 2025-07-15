@@ -20,9 +20,8 @@ import { toast } from "sonner";
 
 interface ICreateSubscriptionProps {
   amount: number;
-  cookieUser: ICustomerBody;
+  user: ICustomerBody;
   selectedPlan: IPricingPlan;
-  checkoutKey: string;
   isUpdatingToken: boolean;
 }
 
@@ -30,9 +29,8 @@ const pageName = "profile";
 
 export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   amount,
-  cookieUser,
+  user,
   selectedPlan,
-  checkoutKey,
   isUpdatingToken,
 }) => {
   const paymentTypeRef = useRef<string | null>(null);
@@ -51,8 +49,9 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       params: {
         page_name: pageName,
         content_value: paymentMethodType,
+        event_category: "Authorized",
       },
-      sessionId: cookieUser.id,
+      sessionId: user.id,
     });
   };
 
@@ -68,8 +67,9 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       params: {
         page_name: pageName,
         element_name: paymentMethodType,
+        event_category: "Authorized",
       },
-      sessionId: cookieUser.id,
+      sessionId: user.id,
     });
   };
 
@@ -79,22 +79,24 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       params: {
         page_name: pageName,
         content_value: "card",
+        event_category: "Authorized",
       },
-      sessionId: cookieUser.id,
+      sessionId: user.id,
     });
     trackClientEvents({
       event: EAnalyticEvents.ELEMENT_OPENED,
       params: {
         page_name: pageName,
         element_name: "CardDetails",
+        event_category: "Authorized",
       },
-      sessionId: cookieUser.id,
+      sessionId: user.id,
     });
   };
 
   const onPaymentAttempt = () => {
     generateCheckoutFormPaymentEvents({
-      user: cookieUser!,
+      user,
       stage: "attempt",
       price: amount,
       flowType: "internal",
@@ -125,7 +127,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       toast.error("Subscription creation failed!");
 
       return generateCheckoutFormPaymentEvents({
-        user: cookieUser!,
+        user,
         data: {
           ...data,
           ...res,
@@ -141,7 +143,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     toast.success("Subscription created successfully!");
 
     generateCheckoutFormPaymentEvents({
-      user: cookieUser!,
+      user,
       data,
       flowType: "internal",
       planCode: selectedPlan.paymentPlan,
@@ -172,7 +174,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     setIsSubscriptionCreation(false);
 
     generateCheckoutFormPaymentEvents({
-      user: cookieUser!,
+      user,
       data: eventData,
       flowType: "internal",
       planCode: selectedPlan.paymentPlan,
@@ -185,12 +187,17 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
   return (
     <>
-      {!isUpdatingToken && (
+      {isUpdatingToken ? (
+        <div className="flex items-center justify-center py-4">
+          <Text size="2" className="text-neutral-600">
+            Updating payment information...
+          </Text>
+        </div>
+      ) : (
         <CheckoutFormComponent
-          key={checkoutKey}
           locale="en"
           theme="light"
-          user={cookieUser}
+          user={user}
           paymentPlan={selectedPlan.paymentPlan}
           onPaymentAttempt={onPaymentAttempt}
           handleCheckoutSuccess={handlePaymentSuccess}
@@ -203,13 +210,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           }}
         />
       )}
-      {isUpdatingToken && (
-        <div className="flex items-center justify-center py-4">
-          <Text size="2" className="text-neutral-600">
-            Updating payment information...
-          </Text>
-        </div>
-      )}
+
       <Modal
         showModal={isSubscriptionCreation}
         preventDefaultClose

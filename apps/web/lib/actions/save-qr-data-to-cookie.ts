@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { ECookieArg } from "../../core/interfaces/cookie.interface.ts";
 import z from "../zod";
 import { actionClient } from "./safe-action";
 
@@ -36,14 +37,28 @@ export const saveQrDataToCookieAction = actionClient
   .action(async ({ parsedInput }) => {
     const { qrData } = parsedInput;
 
+    const cookieStore = cookies();
+
     try {
-      cookies().set("processed-qr-data", JSON.stringify(qrData), {
+      cookieStore.set("processed-qr-data", JSON.stringify(qrData), {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
-        maxAge: 60 * 60, // 1 час
+        maxAge: 60 * 60,
         path: "/",
       });
+
+      // hack for sessionId receiving in next-auth callback context
+      const sessionId = cookieStore.get(ECookieArg.SESSION_ID)?.value;
+      if (sessionId) {
+        cookieStore.set(ECookieArg.SESSION_ID, sessionId, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "lax",
+          path: "/",
+        });
+      }
+      // hack for sessionId receiving in next-auth callback context
 
       return { success: true };
     } catch (error) {

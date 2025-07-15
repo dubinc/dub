@@ -53,6 +53,7 @@ export function AuthModal({
         event: EAnalyticEvents.ELEMENT_OPENED,
         params: {
           element_name: authType,
+          event_category: "unAuthorized",
         },
       });
     }
@@ -228,22 +229,4 @@ export function useAuthModal() {
     }),
     [AuthModalCallback, showModal],
   );
-}
-
-// Hook for tracking auth-related clicks
-export function useAuthTracking(authType?: AuthType) {
-  const trackAuthClick = useCallback(
-    (contentValue: string) => {
-      trackClientEvents({
-        event: EAnalyticEvents.ELEMENT_CLICKED,
-        params: {
-          element_name: authType || "signup", // Default to signup if not specified
-          content_value: contentValue,
-        },
-      });
-    },
-    [authType],
-  );
-
-  return { trackAuthClick };
 }

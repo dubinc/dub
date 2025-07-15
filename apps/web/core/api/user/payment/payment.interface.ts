@@ -13,15 +13,21 @@ export interface ICreateSessionRes extends IDataRes {
   };
 }
 
-export interface ICreatePaymentBody extends Partial<ICreateSessionBody> {
+export interface IUpdateSessionBody {
   paymentPlan: TPaymentPlan;
+  email?: string;
+  metadata?: { [key: string]: string | number | boolean | undefined };
 }
 
-export interface ICreatePaymentRes extends IDataRes {
+export interface IUpdateSessionRes extends IDataRes {
   data?: {
-    paymentId: string;
-    status: ICreatePrimerClientPaymentRes["status"];
-  } | null;
+    clientToken: string;
+    clientTokenExpirationDate: string;
+  };
+}
+
+export interface ICreatePaymentBody extends Partial<ICreateSessionBody> {
+  paymentPlan: TPaymentPlan;
 }
 
 export interface ICreatePaymentRes extends IDataRes {

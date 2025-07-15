@@ -29,7 +29,6 @@ export default async function AppMiddleware(
   // Initialize session ID for authenticated users
   let sessionCookie = "";
   if (user) {
-    console.log("user via token", user);
     const sessionInit = userSessionIdInit(req, user.id);
     if (sessionInit.needsUpdate) {
       sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict;`;

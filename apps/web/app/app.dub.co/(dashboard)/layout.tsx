@@ -1,18 +1,23 @@
+import { getSession } from "@/lib/auth";
 import { TrialStatusProvider } from "@/lib/contexts/trial-status-context";
 import { MainNav } from "@/ui/layout/main-nav";
 import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
-// import { NewsRSC } from "@/ui/layout/sidebar/news-rsc";
-// import { ReferButton } from "@/ui/layout/sidebar/refer-button";
-// import Toolbar from "@/ui/layout/toolbar/toolbar";
 import { constructMetadata } from "@dub/utils";
+import { OauthTrackerComponent } from "core/integration/analytic/components/oauth-tracker.component.tsx";
 import { ClientSessionComponent } from "core/integration/payment/client/client-session";
+import { ECookieArg } from "core/interfaces/cookie.interface.ts";
+import { cookies } from "next/headers";
 import { ReactNode } from "react";
-import { AnalyticInitializerComponent } from "./analytic-initializer.component.tsx";
 
-export const dynamic = "force-static";
+// export const dynamic = "force-static";
 export const metadata = constructMetadata();
 
 export default async function Layout({ children }: { children: ReactNode }) {
+  const { user } = await getSession();
+  const cookieStore = cookies();
+
+  const oauthFlowCookie = cookieStore.get(ECookieArg.OAUTH_FLOW)?.value;
+
   return (
     <TrialStatusProvider>
       <div className="min-h-screen w-full bg-white">
@@ -30,9 +35,8 @@ export default async function Layout({ children }: { children: ReactNode }) {
           {children}
         </MainNav>
       </div>
-      {/*<Toolbar show={["onboarding"]} />*/}
-      <ClientSessionComponent />
-      <AnalyticInitializerComponent />
+      {!user?.paymentData?.paymentInfo?.sub && <ClientSessionComponent />}
+      {oauthFlowCookie && <OauthTrackerComponent oauthData={oauthFlowCookie} />}
     </TrialStatusProvider>
   );
 }

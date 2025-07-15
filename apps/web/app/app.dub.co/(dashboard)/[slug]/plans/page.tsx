@@ -1,12 +1,9 @@
-"use client";
-
-import useUser from "@/lib/swr/use-user.ts";
-import LayoutLoader from "@/ui/layout/layout-loader";
+import { convertSessionUserToCustomerBody, getSession } from "@/lib/auth";
+import LayoutLoader from "@/ui/layout/layout-loader.tsx";
 import { PageContent } from "@/ui/layout/page-content";
 import PlansContent from "@/ui/plans/plans-content.tsx";
-import { LoadingSpinner, MaxWidthWrapper } from "@dub/ui";
-import { useGetUserProfileQuery } from "core/api/user/user.hook.tsx";
-import { IUserProfileRes } from "core/api/user/user.interface.ts";
+import { MaxWidthWrapper } from "@dub/ui";
+import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { NextPage } from "next";
 import { Suspense } from "react";
 
@@ -14,28 +11,21 @@ interface IPlansPageProps {
   params: { slug: string };
 }
 
-const PlansPage: NextPage<Readonly<IPlansPageProps>> = ({ params }) => {
-  const { user } = useUser();
-  const { data: res, isLoading, mutate } = useGetUserProfileQuery();
-  const { data: cookieUser } = res as IUserProfileRes;
+const PlansPage: NextPage<Readonly<IPlansPageProps>> = async ({ params }) => {
+  const { user: cookieUser } = await getUserCookieService();
+  const { user: authUser } = await getSession();
 
-  if (isLoading || !user?.id) {
-    return <LayoutLoader />;
-  }
+  const user = authUser.paymentData
+    ? convertSessionUserToCustomerBody(authUser)
+    : cookieUser;
+
+  console.log("PlansPage user: ", user);
 
   return (
     <Suspense fallback={<LayoutLoader />}>
       <PageContent title="Plans and Payments">
         <MaxWidthWrapper>
-          {user ? (
-            <PlansContent
-              authUser={user}
-              cookieUser={cookieUser!}
-              reloadUserCookie={mutate}
-            />
-          ) : (
-            <LoadingSpinner />
-          )}
+          <PlansContent user={user!} />
         </MaxWidthWrapper>
       </PageContent>
     </Suspense>

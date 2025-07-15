@@ -5,20 +5,20 @@ import { Button } from "@dub/ui";
 import { useCreateUserPaymentMutation } from "core/api/user/payment/payment.hook";
 import { useUpdateSubscriptionMutation } from "core/api/user/subscription/subscription.hook";
 import { pollPaymentStatus } from "core/integration/payment/client/services/payment-status.service.ts";
+import { ICustomerBody } from "core/integration/payment/config";
 import { IGetPrimerClientPaymentInfoRes } from "core/integration/payment/server";
+import { generateTrackingUpsellEvent } from "core/services/events/upsell-events.service.ts";
 import { FC, useState } from "react";
 import { toast } from "sonner";
-import { ICustomerBody } from "core/integration/payment/config";
-import { generateTrackingUpsellEvent } from "core/services/events/upsell-events.service.ts";
 
 interface IUpdateSubscriptionProps {
-  cookieUser: ICustomerBody;
+  user: ICustomerBody;
   currentSubscriptionPlan: string | undefined;
   selectedPlan: IPricingPlan;
 }
 
 export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
-  cookieUser,
+  user,
   currentSubscriptionPlan,
   selectedPlan,
 }) => {
@@ -32,7 +32,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
     setIsUpdateProcessing(true);
 
     generateTrackingUpsellEvent({
-      user: cookieUser!,
+      user,
       paymentPlan: selectedPlan.paymentPlan,
       stage: "attempt",
     });
@@ -45,7 +45,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
       setIsUpdateProcessing(false);
 
       generateTrackingUpsellEvent({
-        user: cookieUser!,
+        user,
         paymentPlan: selectedPlan.paymentPlan,
         stage: "error",
         paymentId: info?.id ?? createPaymentRes?.data?.paymentId,
@@ -63,7 +63,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
       await triggerUpdateSubscription({ paymentPlan: selectedPlan.paymentPlan })
         .then(() => {
           generateTrackingUpsellEvent({
-            user: cookieUser!,
+            user,
             paymentPlan: selectedPlan.paymentPlan,
             stage: "success",
             paymentId: info?.id,

@@ -7,9 +7,9 @@ import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Heading, Text } from "@radix-ui/themes";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { FC, useState } from "react";
-import { trackClientEvents } from "../../../../core/integration/analytic";
-import { EAnalyticEvents } from "../../../../core/integration/analytic/interfaces/analytic.interface.ts";
 import { QrTabsDetailedImage } from "./components/qr-tabs-detailed-image.tsx";
 import { QrTabsDetailedTitle } from "./components/qr-tabs-detailed-title.tsx";
 
@@ -31,6 +31,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
         page_name: "landing",
         content_value: newActiveTab,
         content_group: "carousel",
+        event_category: "unAuthorized",
       },
     });
 
