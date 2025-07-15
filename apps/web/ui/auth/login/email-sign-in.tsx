@@ -1,6 +1,5 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { showMessage } from "@/ui/auth/helpers";
-import { useAuthTracking } from "@/ui/modals/auth-modal";
 import { MessageType } from "@/ui/modals/auth-modal.tsx";
 import { Button, Input, useMediaQuery } from "@dub/ui";
 import { InputPassword } from "@dub/ui/icons";
@@ -30,7 +29,6 @@ export const EmailSignIn = ({
   const { isMobile } = useMediaQuery();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { trackAuthClick } = useAuthTracking("login");
 
   const {
     showPasswordField,
@@ -55,8 +53,15 @@ export const EmailSignIn = ({
         onSubmit={async (e) => {
           e.preventDefault();
 
-          // Track email click
-          trackAuthClick("email");
+          trackClientEvents({
+            event: EAnalyticEvents.ELEMENT_CLICKED,
+            params: {
+              element_name: "login",
+              content_value: "email",
+              event_category: "unAuthorized",
+            },
+          });
+
           trackClientEvents({
             event: EAnalyticEvents.LOGIN_ATTEMPT,
             params: {

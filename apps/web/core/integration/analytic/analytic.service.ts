@@ -72,6 +72,7 @@ export const trackClientEvents = <T extends Dict>(
   const values = {
     env: `${process.env.NEXT_PUBLIC_APP_ENV}`,
     mixpanel_user_id: sessionId || user?.id || getDistinctId(),
+    locale: "en",
     ...utm,
     ...params,
   };

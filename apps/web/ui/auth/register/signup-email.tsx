@@ -5,7 +5,7 @@ import z from "@/lib/zod";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
 import { showMessage } from "@/ui/auth/helpers";
 import { ERegistrationStep } from "@/ui/auth/register/constants";
-import { MessageType, useAuthTracking } from "@/ui/modals/auth-modal.tsx";
+import { MessageType } from "@/ui/modals/auth-modal.tsx";
 import { Button, Input } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
@@ -23,7 +23,6 @@ export const SignUpEmail = ({
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
 }) => {
   const { setStep, setEmail, setPassword, step } = useRegisterContext();
-  const { trackAuthClick } = useAuthTracking("signup");
 
   const {
     register,
@@ -57,7 +56,15 @@ export const SignUpEmail = ({
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
-        trackAuthClick("email");
+        trackClientEvents({
+          event: EAnalyticEvents.ELEMENT_CLICKED,
+          params: {
+            element_name: "signup",
+            content_value: "email",
+            event_category: "unAuthorized",
+          },
+        });
+
         trackClientEvents({
           event: EAnalyticEvents.SIGNUP_ATTEMPT,
           params: {

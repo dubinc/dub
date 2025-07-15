@@ -230,22 +230,3 @@ export function useAuthModal() {
     [AuthModalCallback, showModal],
   );
 }
-
-// Hook for tracking auth-related clicks
-export function useAuthTracking(authType?: AuthType) {
-  const trackAuthClick = useCallback(
-    (contentValue: string) => {
-      trackClientEvents({
-        event: EAnalyticEvents.ELEMENT_CLICKED,
-        params: {
-          element_name: authType || "signup", // Default to signup if not specified
-          content_value: contentValue,
-          event_category: "unAuthorized",
-        },
-      });
-    },
-    [authType],
-  );
-
-  return { trackAuthClick };
-}
