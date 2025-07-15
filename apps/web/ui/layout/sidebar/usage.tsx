@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CSSProperties, forwardRef, useMemo, useState } from "react";
 
-export function Usage() {
+export function SidebarUsage() {
   const { slug } = useParams() as { slug?: string };
 
   return slug ? <UsageInner /> : null;

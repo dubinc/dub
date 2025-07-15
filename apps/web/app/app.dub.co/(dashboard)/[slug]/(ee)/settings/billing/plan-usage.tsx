@@ -25,6 +25,7 @@ import {
   INFINITY_NUMBER,
   nFormatter,
 } from "@dub/utils";
+import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { CSSProperties, useMemo } from "react";
@@ -112,7 +113,12 @@ export default function PlanUsage() {
     <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
         <div>
-          <h2 className="text-xl font-medium">{capitalize(plan)} Plan</h2>
+          <h2 className="text-xl font-medium">
+            {plan && isLegacyBusinessPlan(plan, payoutsLimit ?? 0)
+              ? "Business (Legacy)"
+              : capitalize(plan)}{" "}
+            Plan
+          </h2>
           {billingStart && billingEnd && (
             <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
               <>
