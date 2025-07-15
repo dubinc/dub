@@ -219,7 +219,7 @@ async function createCustomer({
         country: clickEvent.country,
         clickedAt: new Date(customer.created_at),
         createdAt: new Date(customer.created_at),
-        externalId: customer.customer_key,
+        externalId: customer.customer_key || customer.email,
       },
     });
 
