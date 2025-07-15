@@ -44,8 +44,14 @@ const enrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
 const commissionWebhookEventSchemaExtended = CommissionEnrichedSchema.extend({
   createdAt: z.string().transform((str) => new Date(str)),
   updatedAt: z.string().transform((str) => new Date(str)),
-  customer: customerSchemaExtended.nullish(),
-  partner: enrolledPartnerSchemaExtended,
+  partner: CommissionEnrichedSchema.shape.partner.extend({
+    payoutsEnabledAt: z
+      .string()
+      .transform((str) => (str ? new Date(str) : null))
+      .nullable(),
+    createdAt: z.string().transform((str) => new Date(str)),
+  }),
+  customer: customerSchemaExtended,
 });
 
 const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
