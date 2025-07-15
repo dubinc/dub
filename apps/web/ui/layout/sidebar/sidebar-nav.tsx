@@ -203,15 +203,17 @@ export function SidebarNav<T extends Record<any, any>>({
               </div>
 
               {/* Fixed bottom sections */}
-              <div className="flex flex-col gap-2 p-3 pt-0">
+              <div className="flex flex-col gap-2">
                 {data.showConversionGuides && (
-                  <Link
-                    href={`/${data.slug}/guides`}
-                    className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
-                  >
-                    <BookOpen className="size-4" />
-                    Set up conversion tracking
-                  </Link>
+                  <div className="px-3 pb-2">
+                    <Link
+                      href={`/${data.slug}/guides`}
+                      className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
+                    >
+                      <BookOpen className="size-4" />
+                      Set up conversion tracking
+                    </Link>
+                  </div>
                 )}
 
                 <AnimatePresence>

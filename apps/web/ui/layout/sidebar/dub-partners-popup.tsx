@@ -142,10 +142,9 @@ function DubPartnersPopupInner({
           <div className="mt-4 grid w-full grid-cols-2 gap-2">
             <Link
               href={`/${slug}/guides`}
-              target="_blank"
               className="flex h-7 items-center justify-center whitespace-nowrap rounded-md bg-white/10 px-2.5 text-xs text-white transition-colors duration-150 hover:bg-white/15"
             >
-              Quickstart guide
+              Quickstart guides
             </Link>
             <Link
               href={`/${slug}/program/new`}
