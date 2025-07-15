@@ -7,8 +7,8 @@ import { PartnerStackConfig } from "./types";
 
 export const MAX_BATCHES = 5;
 export const CACHE_EXPIRY = 60 * 60 * 24;
-export const CACHE_KEY_PREFIX = "partnerstack:import"; // Fix this
-export const PARTNER_IDS_KEY_PREFIX = "partnerstack:import:partner_ids"; // Fix this
+export const CACHE_KEY_PREFIX = "partnerStack:import";
+export const PARTNER_IDS_KEY_PREFIX = "partnerStack:import:partnerIds";
 
 class PartnerStackImporter {
   async setCredentials(workspaceId: string, payload: PartnerStackConfig) {
