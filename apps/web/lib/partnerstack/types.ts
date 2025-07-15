@@ -1,10 +1,10 @@
 import { z } from "zod";
 import {
-  partnerStackPartner,
   partnerStackCommission,
   partnerStackCustomer,
   partnerStackImportPayloadSchema,
   partnerStackLink,
+  partnerStackPartner,
 } from "./schemas";
 
 export interface PartnerStackConfig {
