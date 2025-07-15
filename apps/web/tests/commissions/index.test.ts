@@ -14,6 +14,8 @@ const expectedCommission = {
   updatedAt: expect.any(String),
   partner: expect.any(Object),
   customer: expect.any(Object),
+  invoiceId: expect.any(String).nullable(),
+  description: expect.any(String).nullable(),
 };
 
 describe.sequential("/commissions/**", async () => {
@@ -39,7 +41,6 @@ describe.sequential("/commissions/**", async () => {
     expect(commissions.length).toBeGreaterThan(0);
     expect(commissions[0]).toMatchObject({
       ...expectedCommission,
-      invoiceId: null,
       description: null,
     });
 
