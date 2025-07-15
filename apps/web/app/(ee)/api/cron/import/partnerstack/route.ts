@@ -37,6 +37,8 @@ export async function POST(req: Request) {
       case "update-stripe-customers":
         await updateStripeCustomers(payload);
         break;
+      default:
+        throw new Error(`Unknown action: ${payload.action}`);
     }
 
     return NextResponse.json("OK");
