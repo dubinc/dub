@@ -164,6 +164,11 @@ export const POST = withSession(
         },
       });
 
+      const clonedUser = structuredClone(updatedUser);
+
+      delete clonedUser?.paymentInfo?.clientToken;
+      delete clonedUser?.paymentInfo?.clientTokenExpirationDate;
+
       await Promise.all([
         prisma.user.update({
           where: {
@@ -171,7 +176,7 @@ export const POST = withSession(
           },
           data: {
             paymentData: {
-              paymentInfo: updatedUser.paymentInfo,
+              paymentInfo: clonedUser.paymentInfo,
               currency: updatedUser.currency,
               sessions: updatedUser.sessions,
             },
