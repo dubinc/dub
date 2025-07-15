@@ -1,5 +1,6 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { webhookCache } from "@/lib/webhook/cache";
@@ -72,6 +73,10 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
 
   const workspaceLinks = workspace.links;
   const workspaceUsers = workspace.users.map(({ user }) => user);
+
+  const isBlacklistedCancellation = await isBlacklistedEmail(
+    workspaceUsers.filter(({ email }) => email).map(({ email }) => email!),
+  );
 
   const pipeline = redis.pipeline();
   // remove root domain redirect for all domains from Redis
@@ -155,15 +160,22 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         url: "",
       })),
     ),
+    // Log the deletion
     log({
       message:
-        ":cry: Workspace *`" + workspace.slug + "`* deleted their subscription",
+        ":cry: Workspace *`" +
+        workspace.slug +
+        "`* deleted their subscription" +
+        (isBlacklistedCancellation ? " (blacklisted / banned)" : ""),
       type: "cron",
       mention: true,
     }),
-    sendCancellationFeedback({
-      owners: workspaceUsers,
-    }),
+
+    // Don't send feedback if the user was blacklisted / banned
+    !isBlacklistedCancellation &&
+      sendCancellationFeedback({
+        owners: workspaceUsers,
+      }),
 
     // Disable the webhooks
     prisma.webhook.updateMany({
