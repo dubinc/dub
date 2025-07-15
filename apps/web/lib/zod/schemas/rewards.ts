@@ -79,3 +79,59 @@ export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   lead: "leadRewardId",
   sale: "saleRewardId",
 });
+
+///// Reward modifier schema //////
+
+const operatorTypeSchema = z.enum([
+  "equals_to",
+  "not_equals",
+  "in",
+  "not_in",
+  "starts_with",
+  "ends_with",
+  "greater_than",
+  "less_than",
+  "greater_than_or_equal",
+  "less_than_or_equal",
+]);
+
+const logicOperatorSchema = z.enum(["AND", "OR"]);
+
+const fieldTypeSchema = z.enum(["customer", "sale"]);
+
+const fieldSchema = z.enum(["country", "productId"]);
+
+// A condition can be met if the field value matches the value
+export const rewardConditionSchema = z.object({
+  type: fieldTypeSchema,
+  field: fieldSchema,
+  operator: operatorTypeSchema,
+  value: z.union([
+    z.string(),
+    z.number(),
+    z.array(z.string()),
+    z.array(z.number()),
+  ]),
+});
+
+// A modifier can have multiple conditions that must be met for the modifier to be applied
+export const rewardModifierSchema = z.object({
+  operator: logicOperatorSchema,
+  amount: z.number().int().min(0),
+  conditions: z.array(rewardConditionSchema).min(1),
+});
+
+// The context in which a reward modifier is evaluated
+export const rewardContextSchema = z.object({
+  customer: z
+    .object({
+      country: z.string(),
+    })
+    .optional(),
+
+  sale: z
+    .object({
+      productId: z.string(),
+    })
+    .optional(),
+});

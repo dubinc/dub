@@ -62,6 +62,10 @@ export const createPartnerCommission = async ({
         event: event as EventType,
         partnerId,
         programId,
+        context: {
+          customer: { country: "US" },
+          // sale: { productId: "123" },
+        },
       });
     }
 
