@@ -134,7 +134,7 @@ export const PATCH = withWorkspace(
         throw new DubApiError({
           code: "bad_request",
           message:
-            "Partners are not enabled on this workspace to use the following triggers: " +
+            "Dub Partners is not enabled on this workspace, which is required to use the following webhook triggers: " +
             PARTNERS_WEBHOOK_TRIGGERS.join(", "),
         });
       }
