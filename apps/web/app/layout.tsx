@@ -23,9 +23,7 @@ export default async function RootLayout({
         <Theme>
           <RootProviders>{children}</RootProviders>
           <GtmInitializerComponent />
-          <AnalyticInitializerComponent
-            sessionId={sessionId || "fallback-session"}
-          />
+          {sessionId && <AnalyticInitializerComponent sessionId={sessionId} />}
         </Theme>
       </body>
     </html>

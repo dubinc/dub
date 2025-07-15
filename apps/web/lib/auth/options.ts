@@ -6,8 +6,6 @@ import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
-import { subscribe } from "@dub/email/resend/subscribe";
-import { WelcomeEmail } from "@dub/email/templates/welcome-email";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -20,6 +18,7 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
+import { ECookieArg } from "../../core/interfaces/cookie.interface.ts";
 import {
   applyUserSession,
   getUserCookieService,
@@ -33,7 +32,6 @@ import {
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
-import { trackLead } from "./track-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -559,6 +557,8 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
+      const cookieStore = cookies();
+
       const customerUser = convertSessionUserToCustomerBody(
         message.user as Session["user"],
       );
@@ -577,6 +577,7 @@ export const authOptions: NextAuthOptions = {
             createdAt: true,
           },
         });
+
         if (!user) {
           return;
         }
@@ -584,27 +585,59 @@ export const authOptions: NextAuthOptions = {
         // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
         if (
           user.createdAt &&
-          new Date(user.createdAt).getTime() > Date.now() - 10000 &&
-          process.env.NEXT_PUBLIC_IS_DUB
+          new Date(user.createdAt).getTime() > Date.now() - 20000
+          // process.env.NEXT_PUBLIC_IS_DUB
         ) {
-          waitUntil(
-            Promise.allSettled([
-              subscribe({ email, name: user.name || undefined }),
-              sendEmail({
+          if (message?.account?.provider === "google") {
+            cookieStore.set(
+              ECookieArg.OAUTH_FLOW,
+              JSON.stringify({
+                flow: "signup",
+                provider: "google",
                 email,
-                replyTo: "steven.tey@dub.co",
-                subject: "Welcome to Dub.co!",
-                react: WelcomeEmail({
-                  email,
-                  name: user.name || null,
-                }),
-                // send the welcome email 5 minutes after the user signed up
-                scheduledAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-                marketing: true,
+                userId: user.id,
               }),
-              trackLead(user),
-            ]),
-          );
+              {
+                httpOnly: true,
+                maxAge: 60,
+              },
+            );
+          }
+
+          // waitUntil(
+          //   Promise.allSettled([
+          //     subscribe({ email, name: user.name || undefined }),
+          //     sendEmail({
+          //       email,
+          //       replyTo: "steven.tey@dub.co",
+          //       subject: "Welcome to Dub.co!",
+          //       react: WelcomeEmail({
+          //         email,
+          //         name: user.name || null,
+          //       }),
+          //       // send the welcome email 5 minutes after the user signed up
+          //       scheduledAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+          //       marketing: true,
+          //     }),
+          //     trackLead(user),
+          //   ]),
+          // );
+        } else {
+          if (message?.account?.provider === "google") {
+            cookieStore.set(
+              ECookieArg.OAUTH_FLOW,
+              JSON.stringify({
+                flow: "login",
+                provider: "google",
+                email,
+                userId: user.id,
+              }),
+              {
+                httpOnly: true,
+                maxAge: 60,
+              },
+            );
+          }
         }
       }
       // lazily backup user avatar to R2
