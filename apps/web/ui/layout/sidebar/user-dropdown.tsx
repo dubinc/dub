@@ -109,7 +109,7 @@ export default function UserDropdown() {
                 icon="ion:card-outline"
               />
             )}
-            href={`/${slug}/plans`}
+            href={`/account/plans`}
             onClick={() => {
               handleUserOptionClick("plans_and_payments");
               setOpenPopover(false);
