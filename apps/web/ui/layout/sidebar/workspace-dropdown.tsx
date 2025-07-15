@@ -11,6 +11,7 @@ import {
 } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -45,6 +46,12 @@ export function WorkspaceDropdown() {
     if (slug && workspaces && selectedWorkspace) {
       return {
         ...selectedWorkspace,
+        plan: isLegacyBusinessPlan(
+          selectedWorkspace.plan,
+          selectedWorkspace.payoutsLimit ?? 0,
+        )
+          ? "business (legacy)"
+          : selectedWorkspace.plan,
         image:
           selectedWorkspace.logo ||
           `https://avatar.vercel.sh/${selectedWorkspace.id}`,
