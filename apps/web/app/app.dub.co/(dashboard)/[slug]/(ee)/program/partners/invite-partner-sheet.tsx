@@ -24,7 +24,7 @@ import { cn } from "@dub/utils/src";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, memo, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -378,7 +378,7 @@ function EmailPreview() {
       >
         <div className="mt-2 overflow-hidden rounded-md border border-neutral-200 bg-white">
           <div className="grid grid-cols-1 gap-4 p-6 pb-10">
-            <MemoBlurImage
+            <BlurImage
               src={program?.logo || "https://assets.dub.co/logo.png"}
               alt={program?.name || "Dub"}
               className="my-2 size-8 rounded-full"
@@ -412,8 +412,6 @@ function EmailPreview() {
     </div>
   );
 }
-
-const MemoBlurImage = memo(BlurImage);
 
 export function InvitePartnerSheet({
   isOpen,

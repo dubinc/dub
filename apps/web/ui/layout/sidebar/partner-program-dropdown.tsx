@@ -16,16 +16,12 @@ import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import {
-  memo,
   PropsWithChildren,
   useCallback,
   useMemo,
   useRef,
   useState,
 } from "react";
-
-// Helps prevent flickering from re-rendering. We might be able to just add this to `BlurImage` itself in the future.
-const MemoBlurImage = memo(BlurImage);
 
 export function PartnerProgramDropdown() {
   const { programSlug } = useParams() as { programSlug?: string };
@@ -108,7 +104,7 @@ export function PartnerProgramDropdown() {
         >
           <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
             {selectedProgram?.logo && (
-              <MemoBlurImage
+              <BlurImage
                 src={selectedProgram.logo}
                 referrerPolicy="no-referrer"
                 width={40}
@@ -134,7 +130,7 @@ export function PartnerProgramDropdown() {
 function PartnerDropdownPlaceholder() {
   return (
     <div className="flex w-full animate-pulse items-center gap-x-2.5 rounded-lg px-2 py-1.5">
-      <div className="size-5 animate-pulse rounded-full bg-neutral-200" />
+      <div className="size-6 animate-pulse rounded-full bg-neutral-200" />
       <div className="h-7 w-28 grow animate-pulse rounded-md bg-neutral-200" />
       <ChevronsUpDown className="h-4 w-4 text-neutral-400" aria-hidden="true" />
     </div>
@@ -208,7 +204,7 @@ function ProgramList({
             >
               <div className="flex flex-col gap-0.5">
                 <Command.List>
-                  {programs.map(({ slug, name, logo }) => (
+                  {programs.map(({ id, slug, name, logo }) => (
                     <Command.Item
                       key={slug}
                       asChild
@@ -230,8 +226,8 @@ function ProgramList({
                         onClick={() => setOpenPopover(false)}
                         tabIndex={-1}
                       >
-                        <MemoBlurImage
-                          src={logo || `${OG_AVATAR_URL}${name}`}
+                        <BlurImage
+                          src={logo || `https://avatar.vercel.sh/${id}`}
                           width={40}
                           height={40}
                           alt={name}

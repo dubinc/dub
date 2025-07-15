@@ -48,7 +48,7 @@ import {
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { memo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 const integrationSettings = {
@@ -278,7 +278,7 @@ export default function IntegrationPageClient({
               <CarouselContent>
                 {integration.screenshots.map((src, idx) => (
                   <CarouselItem key={idx}>
-                    <BlurImageMemo
+                    <BlurImage
                       src={src}
                       alt={`Screenshot ${idx + 1} of ${integration.name}`}
                       width={900}
@@ -310,7 +310,7 @@ export default function IntegrationPageClient({
                         )
                       }
                     >
-                      <BlurImageMemo
+                      <BlurImage
                         src={src}
                         alt={`Screenshot ${idx + 1} thumbnail`}
                         width={900}
@@ -335,5 +335,3 @@ export default function IntegrationPageClient({
     </MaxWidthWrapper>
   );
 }
-
-const BlurImageMemo = memo(BlurImage);
