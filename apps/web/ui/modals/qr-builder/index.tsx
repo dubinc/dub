@@ -64,7 +64,7 @@ export function QRBuilderModal({
   };
 
   const modalContent = (
-    <div className="flex h-full flex-col gap-2 overflow-y-auto bg-white md:h-fit">
+    <div className="flex h-full flex-col gap-2 overflow-y-auto bg-white">
       {isProcessing && (
         <div className="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-white/50 backdrop-blur-sm">
           <LoaderCircle className="text-secondary h-8 w-8 animate-spin" />
@@ -129,7 +129,8 @@ export function QRBuilderModal({
     <Modal
       showModal={showQRBuilderModal}
       setShowModal={setShowQRBuilderModal}
-      className="h-[90vh] max-h-[90vh] w-full max-w-6xl overflow-hidden"
+      desktopOnly
+      className="border-border-500 w-full max-w-6xl overflow-hidden"
     >
       {modalContent}
     </Modal>

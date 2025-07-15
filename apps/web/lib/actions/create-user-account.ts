@@ -8,7 +8,7 @@ import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN, R2_URL } from "@dub/utils";
 import { TrackClient } from "customerio-node";
 import { flattenValidationErrors } from "next-safe-action";
-import { getUserCookieService } from "../../core/services/cookie/user-session.service.ts";
+import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId, getIP } from "../api/utils";
 import { hashPassword } from "../auth/password";
@@ -101,21 +101,26 @@ export const createUserAccountAction = actionClient
       },
     });
 
-    if (user) {
-      throw new Error("User with this email already exists");
-    }
+      if (user) {
+          throw new Error("User with this email already exists");
+      }
 
-    const { sessionId } = await getUserCookieService();
-    const generatedUserId = sessionId ?? createId({ prefix: "user_" });
+      const { sessionId } = await getUserCookieService();
+      const generatedUserId = sessionId ?? createId({ prefix: "user_" });
 
-    await prisma.user.create({
-      data: {
-        id: generatedUserId,
-        email,
-        passwordHash: await hashPassword(password),
-        emailVerified: new Date(),
-      },
-    });
+      const createdAt = new Date();
+      const trialEndsAt = new Date(createdAt);
+      trialEndsAt.setDate(trialEndsAt.getDate() + 10);
+
+      await prisma.user.create({
+        data: {
+          id: generatedUserId,
+          email,
+          passwordHash: await hashPassword(password),
+          emailVerified: new Date(),
+          trialEndsAt,
+        },
+      });
 
     // @CUSTOM_FEATURE: creation of a workspace immediately after registration to skip onboarding
     const workspaceResponse = await createWorkspaceForUser({
@@ -156,12 +161,9 @@ export const createUserAccountAction = actionClient
         homePageDemo: true,
       });
 
-      await cio.identify(generatedUserId, {
-        email: email,
-      });
-      await cio.track(generatedUserId, {
-        name: "user_created",
-      });
+        await cio.identify(generatedUserId, {
+          email: email,
+        });
 
       await sendEmail({
         email: email,

@@ -20,7 +20,7 @@ export default function SettingsPageClient() {
           name: "name",
           defaultValue:
             status === "loading" ? undefined : session?.user?.name || "",
-          placeholder: "Steve Jobs",
+          placeholder: "New User",
           maxLength: 32,
         }}
         helpText="Max 32 characters."
@@ -49,7 +49,7 @@ export default function SettingsPageClient() {
           name: "email",
           type: "email",
           defaultValue: session?.user?.email || undefined,
-          placeholder: "panic@thedis.co",
+          placeholder: "example@domain.com",
         }}
         // helpText={<UpdateSubscription />}
         helpText={""}
