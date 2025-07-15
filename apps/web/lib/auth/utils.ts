@@ -54,3 +54,29 @@ export function generateOTP() {
 
   return otp;
 }
+
+export const convertSessionUserToCustomerBody = (
+  sessionUser: Session["user"],
+  options?: {
+    ip?: string;
+    iat?: number;
+    currency?: ICustomerBody["currency"];
+    paymentInfo?: ICustomerBody["paymentInfo"];
+    sessions?: ICustomerBody["sessions"];
+  },
+): ICustomerBody => {
+  const customerBody: ICustomerBody = {
+    id: sessionUser.id,
+    email: sessionUser.email,
+    ip: options?.ip,
+    iat: options?.iat,
+    currency: options?.currency || sessionUser.paymentData?.currency,
+    paymentInfo: {
+      customerId: sessionUser.id,
+      ...(options?.paymentInfo || sessionUser.paymentData?.paymentInfo),
+    },
+    sessions: options?.sessions || sessionUser.paymentData?.sessions,
+  };
+
+  return customerBody;
+};

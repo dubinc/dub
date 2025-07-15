@@ -23,7 +23,7 @@ export const ClientSessionComponent: FC = () => {
     if (!isLoading && user?.success) {
       if (
         user?.data?.currency?.currencyForPay &&
-        !user?.data?.paymentInfo?.clientToken &&
+        // !user?.data?.paymentInfo?.clientToken &&
         !triggeredClientSession.current
       ) {
         triggeredClientSession.current = true;

@@ -1,4 +1,4 @@
-import useUser from "@/lib/swr/use-user.ts";
+import { UserProps } from "@/lib/types.ts";
 import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
@@ -32,6 +32,7 @@ import { useQrCustomization } from "./hooks/use-qr-customization.ts";
 
 interface IQRBuilderProps {
   props?: QrStorageData;
+  user?: UserProps;
   homepageDemo?: boolean;
   handleSaveQR?: (data: QRBuilderData) => Promise<void>;
   isProcessing?: boolean;
@@ -48,11 +49,17 @@ export const QRBuilderStepsTitles = [
 export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
   forwardRef(
     (
-      { props, homepageDemo, handleSaveQR, isProcessing, isEdit, initialStep },
+      {
+        props,
+        user,
+        homepageDemo,
+        handleSaveQR,
+        isProcessing,
+        isEdit,
+        initialStep,
+      },
       ref,
     ) => {
-      const { user } = useUser();
-
       // ===== PROPS & CONSTANTS =====
       const { isMobile } = useMediaQuery();
 
@@ -122,11 +129,21 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   filteredInputValues as Record<string, string>,
                 ),
           );
-          setFiles(
-            (inputValues.filesImage ||
-              inputValues.filesPDF ||
-              inputValues.filesVideo) as File[],
-          );
+
+          let files: File[] | null = null;
+          switch (qrType) {
+            case EQRType.PDF:
+              files = (inputValues.filesPDF as File[]) || null;
+              break;
+            case EQRType.IMAGE:
+              files = (inputValues.filesImage as File[]) || null;
+              break;
+            case EQRType.VIDEO:
+              files = (inputValues.filesVideo as File[]) || null;
+              break;
+          }
+
+          setFiles(files);
           handleScroll();
         },
         [setData],
@@ -208,7 +225,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             page_name: homepageDemo ? "landing" : "profile",
             content_value: type,
             content_group: "choose_type",
-            ...(user ? { email: user?.email } : {}),
+            event_category: "unAuthorized",
+            ...(user
+              ? { email: user?.email, event_category: "Authorized" }
+              : {}),
           },
           ...(user ? { sessionId: user?.id } : {}),
         });
@@ -234,7 +254,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   ? "save"
                   : "create",
               content_group: "complete_content",
-              ...(user ? { email: user?.email } : {}),
+              event_category: "unAuthorized",
+              ...(user
+                ? { email: user?.email, event_category: "Authorized" }
+                : {}),
             },
             ...(user ? { sessionId: user?.id } : {}),
           });
@@ -251,7 +274,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               page_name: homepageDemo ? "landing" : "profile",
               content_value: "continue",
               content_group: "complete_content",
-              ...(user ? { email: user?.email } : {}),
+              event_category: "unAuthorized",
+              ...(user
+                ? { email: user?.email, event_category: "Authorized" }
+                : {}),
             },
             ...(user ? { sessionId: user?.id } : {}),
           });
@@ -357,6 +383,12 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           options={options}
                           homepageDemo={homepageDemo}
                           handlers={handlers}
+                          frameOptions={{
+                            id: selectedSuggestedFrame,
+                            color: frameColor,
+                            textColor: frameTextColor,
+                            text: frameText,
+                          }}
                         />
                       </Flex>
                     )}
@@ -434,8 +466,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           )}
                         >
                           <QRCanvas
-                            width={isMobile ? 200 : 300}
-                            height={isMobile ? 200 : 300}
+                            width={isMobile ? 200 : 352}
+                            height={isMobile ? 200 : 352}
                             qrCode={qrCode}
                           />
                         </div>

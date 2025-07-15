@@ -1,38 +1,36 @@
-import jwt from "jsonwebtoken";
-import zlib from "zlib";
+import { SignJWT, jwtVerify } from "jose";
+import pako from "pako";
 
-const JWT_SECRET = `${process.env.NEXT_PUBLIC_JWT_SECRET || "super-secret-key"}`;
+const JWT_SECRET = `${process.env.JWT_SECRET || "super-secret-key"}`;
+const secret = new TextEncoder().encode(JWT_SECRET);
 
 // token encode
-export const tokenEncode = (payload: object): string => {
-  const compressedPayload = zlib
-    .deflateSync(JSON.stringify(payload))
-    .toString("base64");
-  return jwt.sign({ data: compressedPayload }, JWT_SECRET);
+export const tokenEncode = async (payload: object): Promise<string> => {
+  const compressedPayload = Buffer.from(
+    pako.deflate(JSON.stringify(payload)),
+  ).toString("base64");
+
+  const jwt = await new SignJWT({ data: compressedPayload })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .sign(secret);
+
+  return jwt;
 };
 
-export const tokenDecode = <T>(token: string): T | null => {
+export const tokenDecode = async <T>(token: string): Promise<T | null> => {
   try {
-    const { data } = jwt.verify(token, JWT_SECRET) as { data: string };
+    const { payload } = await jwtVerify(token, secret);
+    const data = payload.data as string;
 
-    try {
-      const decompressedPayload = JSON.parse(
-        zlib.inflateSync(Buffer.from(data, "base64")).toString(),
-      );
+    const buffer = Buffer.from(data, "base64");
+    const uint8Array = new Uint8Array(buffer);
+    const decompressedPayload = JSON.parse(
+      pako.inflate(uint8Array, { to: "string" }),
+    );
 
-      return decompressedPayload as T;
-    } catch {
-      // eslint-disable-next-line no-console
-      console.warn(
-        "Token is in old format, attempting to decode as standard JWT",
-      );
-      return JSON.parse(data) as T;
-    }
+    return decompressedPayload as T;
   } catch {
-    try {
-      return jwt.verify(token, JWT_SECRET) as T;
-    } catch {
-      return null;
-    }
+    return null;
   }
 };

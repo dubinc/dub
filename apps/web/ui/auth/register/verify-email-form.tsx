@@ -43,12 +43,12 @@ export const VerifyEmailForm = ({
 
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
-      // Track successful signup
       trackClientEvents({
         event: EAnalyticEvents.SIGNUP_SUCCESS,
         params: {
           method: "email",
-          email: email,
+          email,
+          event_category: "unAuthorized",
         },
       });
 

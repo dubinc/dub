@@ -12,6 +12,7 @@ export const CustomerSupport = () => {
       params: {
         page_name: "landing",
         content_value: contentValue,
+        event_category: "unAuthorized",
       },
     });
   };

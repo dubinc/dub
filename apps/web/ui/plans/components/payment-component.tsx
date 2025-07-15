@@ -1,6 +1,5 @@
 "use client";
 
-import { UserProps } from "@/lib/types";
 import { PricingPlanCard } from "@/ui/plans/components/pricing-plan-card.tsx";
 import { IPricingPlan, PRICING_PLANS } from "@/ui/plans/constants.ts";
 import * as RadioGroup from "@radix-ui/react-radio-group";
@@ -10,29 +9,25 @@ import {
   getPaymentPlanPrice,
   ICustomerBody,
 } from "core/integration/payment/config";
-import { apiInstance } from "core/lib/rest-api";
-import { FC, useMemo, useState } from "react";
-import { v4 as uuidV4 } from "uuid";
+import { FC, useState } from "react";
+import { useUpdateUserSessionMutation } from "../../../core/api/user/payment/payment.hook.tsx";
 import { CreateSubscriptionFlow } from "./create-subscription-flow.tsx";
 import { UpdateSubscriptionFlow } from "./update-subscription-flow.tsx";
 
 interface IPaymentComponentProps {
-  cookieUser: ICustomerBody;
-  reloadUserCookie: () => void;
-  authUser: UserProps;
+  user: ICustomerBody;
   isTrialOver: boolean;
   onScrollToPayment?: () => void;
 }
 
 export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
-  cookieUser,
-  reloadUserCookie,
-  authUser,
+  user,
   isTrialOver,
 }) => {
-  const hasSubscription = !!authUser?.paymentData?.paymentInfo?.subscriptionId;
-  const currentSubscriptionPlan =
-    authUser?.paymentData?.paymentInfo?.subscriptionPlanCode;
+  const { trigger: triggerUpdateUserSession } = useUpdateUserSessionMutation();
+
+  const hasSubscription = !!user?.paymentInfo?.subscriptionId;
+  const currentSubscriptionPlan = user?.paymentInfo?.subscriptionPlanCode;
 
   const [isUpdatingToken, setIsUpdatingToken] = useState(false);
 
@@ -44,50 +39,18 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
 
   const { priceForView: totalPriceForView, priceForPay } = getPaymentPlanPrice({
     paymentPlan: selectedPlan.paymentPlan,
-    user: cookieUser,
+    user,
   });
 
-  const totalChargePrice = getCalculatePriceForView(
-    totalPriceForView,
-    cookieUser,
-  );
-
-  const checkoutKey = useMemo(() => {
-    return `${selectedPlan.id}-${
-      cookieUser.paymentInfo?.clientToken?.slice(0, 10) || "no-token"
-    }`;
-  }, [selectedPlan.id, cookieUser.paymentInfo?.clientToken]);
+  const totalChargePrice = getCalculatePriceForView(totalPriceForView, user);
 
   const updateClientToken = async (newPlan: IPricingPlan) => {
-    const user = cookieUser;
-
-    const { priceForPay } = getPaymentPlanPrice({
-      paymentPlan: newPlan.paymentPlan,
-      user,
-    });
-
     setIsUpdatingToken(true);
 
     try {
-      await apiInstance.patch("checkout/session", {
-        json: {
-          clientToken: user.paymentInfo?.clientToken,
-          currencyCode: user?.currency?.currencyForPay,
-          amount: priceForPay,
-          order: {
-            lineItems: [
-              {
-                itemId: uuidV4(),
-                amount: priceForPay,
-                quantity: 1,
-              },
-            ],
-            countryCode: user?.currency?.countryCode || "",
-          },
-        },
+      await triggerUpdateUserSession({
+        paymentPlan: newPlan.paymentPlan,
       });
-
-      await reloadUserCookie();
     } finally {
       setIsUpdatingToken(false);
     }
@@ -131,7 +94,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
           {PRICING_PLANS.map((plan) => (
             <PricingPlanCard
               key={plan.id}
-              user={cookieUser}
+              user={user}
               plan={plan}
               isSelected={selectedPlan.id === plan.id}
             />
@@ -144,21 +107,18 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
         </Text>
 
         <div>
-          {!hasSubscription && (
-            <CreateSubscriptionFlow
-              amount={priceForPay}
-              key={checkoutKey}
-              cookieUser={cookieUser}
-              selectedPlan={selectedPlan}
-              checkoutKey={checkoutKey}
-              isUpdatingToken={isUpdatingToken}
-            />
-          )}
-          {hasSubscription && (
+          {hasSubscription ? (
             <UpdateSubscriptionFlow
-              cookieUser={cookieUser}
+              user={user}
               currentSubscriptionPlan={currentSubscriptionPlan}
               selectedPlan={selectedPlan}
+            />
+          ) : (
+            <CreateSubscriptionFlow
+              user={user}
+              amount={priceForPay}
+              selectedPlan={selectedPlan}
+              isUpdatingToken={isUpdatingToken}
             />
           )}
         </div>

@@ -25,7 +25,7 @@ export const QRCodeDemoPlaceholder: FC = () => {
         <path
           d="M15 75C15 67.268 21.268 61 29 61H241C248.732 61 255 67.268 255 75V352H15V75Z"
           fill="white"
-          shape-rendering="crispEdges"
+          shapeRendering="crispEdges"
         />
         <rect x="29" y="75" width="212" height="148" rx="6" fill="#D3E1E1" />
         <g opacity="0.2">
@@ -97,7 +97,7 @@ export const QRCodeDemoPlaceholder: FC = () => {
           width="264"
           height="315"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
           <feFlood flood-opacity="0" result="BackgroundImageFix" />
           <feColorMatrix

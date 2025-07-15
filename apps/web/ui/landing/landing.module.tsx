@@ -22,6 +22,7 @@ export const LandingModule = () => {
         page_name: "landing",
         content_value: "create_qr",
         element_no: type,
+        event_category: "unAuthorized",
       },
     });
 

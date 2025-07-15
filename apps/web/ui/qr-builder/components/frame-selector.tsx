@@ -9,6 +9,7 @@ import {
   preloadAllFrames,
 } from "@/ui/qr-builder/constants/customization/frames.ts";
 import { isValidHex } from "@/ui/qr-builder/helpers/is-valid-hex.ts";
+import { FrameOptions } from "@/ui/qr-builder/types/types.ts";
 import { Button, Input } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { Flex, Text } from "@radix-ui/themes";
@@ -46,6 +47,7 @@ interface IFrameSelectorProps {
   onFrameTextColorChange: (color: string) => void;
   onFrameTextChange: (text: string) => void;
   isMobile: boolean;
+  frameOptions: FrameOptions;
 }
 
 export const FrameSelector: FC<IFrameSelectorProps> = ({
@@ -56,27 +58,38 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
   onFrameTextColorChange,
   onFrameTextChange,
   isMobile,
+  frameOptions,
 }) => {
   useEffect(() => {
     preloadAllFrames();
   }, []);
 
-  const [frameColor, setFrameColor] = useState<string>(BLACK_COLOR);
+  const [frameColor, setFrameColor] = useState<string>(
+    frameOptions?.color || BLACK_COLOR,
+  );
   const [frameColorValid, setFrameColorValid] = useState<boolean>(true);
-  const [frameTextColor, setFrameTextColor] = useState<string | null>(null);
+  const [frameTextColor, setFrameTextColor] = useState<string | null>(
+    frameOptions?.textColor || null,
+  );
   const [frameTextColorValid, setFrameTextColorValid] = useState<boolean>(true);
-  const [frameText, setFrameText] = useState<string>(FRAME_TEXT);
+  const [frameText, setFrameText] = useState<string>(
+    frameOptions?.text ?? FRAME_TEXT
+  );
 
   const selectedFrame = FRAMES.find((f) => f.type === selectedSuggestedFrame);
   const defaultTextColor = selectedFrame?.defaultTextColor || WHITE_COLOR;
 
   const currentFrameTextColor = frameTextColor || defaultTextColor;
 
-  // Reset text color when frame changes as frame can have different text color
   useEffect(() => {
-    setFrameTextColor(null);
-    onFrameTextColorChange(defaultTextColor);
-  }, [selectedSuggestedFrame, defaultTextColor]);
+    if (frameOptions) {
+      setFrameColor(frameOptions.color || BLACK_COLOR);
+      if (frameOptions.textColor) {
+        setFrameTextColor(frameOptions.textColor);
+      }
+      setFrameText(frameOptions?.text ?? FRAME_TEXT);
+    }
+  }, [frameOptions]);
 
   const handleFrameColorChange = (color: string) => {
     setFrameColor(color);

@@ -59,10 +59,24 @@ async function handler(req: Request) {
         try {
           const featuresAccess = await checkFeaturesAccessAuthLess(user.id);
 
-          if (!featuresAccess.featuresAccess) {
+          console.log("user", user);
+          
+          // Get total clicks for all user's links
+          const totalClicksResult = await prisma.$queryRaw<Array<{ totalUserClicks: bigint }>>`
+            SELECT (SELECT SUM(clicks) FROM Link WHERE userId = ${user.id}) as totalUserClicks
+          `;
+          const totalClicks = Number(totalClicksResult[0]?.totalUserClicks || 0);
+
+          console.log("featuresAccess", featuresAccess);
+          console.log("totalClicks", totalClicks);
+
+          if (!featuresAccess.featuresAccess && totalClicks < 30) {
             // Send the 10-day registration event
             await cio.track(user.id, {
-              name: "day_limit_reached",
+              name: "trial_expired",
+              data: {
+                codes: 30,
+              },
             });
 
             // Send Mixpanel event via fetch
@@ -72,11 +86,12 @@ async function handler(req: Request) {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify([{
-                event: EAnalyticEvents.DAY_LIMIT_REACHED,
+                event: EAnalyticEvents.TRIAL_EXPIRED,
                 properties: {
                   distinct_id: user.id,
                   email: user.email,
                   mixpanel_user_id: user.id,
+                  days: 10,
                   timestamp: new Date().toISOString(),
                   token: process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN,
                 },
