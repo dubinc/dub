@@ -95,38 +95,6 @@ const evaluateCondition = ({
         return fieldValue.endsWith(condition.value);
       }
       return false;
-    case "greater_than":
-      if (
-        typeof fieldValue === "number" &&
-        typeof condition.value === "number"
-      ) {
-        return fieldValue > condition.value;
-      }
-      return false;
-    case "less_than":
-      if (
-        typeof fieldValue === "number" &&
-        typeof condition.value === "number"
-      ) {
-        return fieldValue < condition.value;
-      }
-      return false;
-    case "greater_than_or_equal":
-      if (
-        typeof fieldValue === "number" &&
-        typeof condition.value === "number"
-      ) {
-        return fieldValue >= condition.value;
-      }
-      return false;
-    case "less_than_or_equal":
-      if (
-        typeof fieldValue === "number" &&
-        typeof condition.value === "number"
-      ) {
-        return fieldValue <= condition.value;
-      }
-      return false;
     default:
       return false;
   }
