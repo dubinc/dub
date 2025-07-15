@@ -5,6 +5,7 @@ export const partnerStackImportSteps = z.enum([
   "import-links",
   "import-customers",
   "import-commissions",
+  "update-stripe-customers",
 ]);
 
 export const partnerStackImportPayloadSchema = z.object({
@@ -57,20 +58,19 @@ export const partnerStackCustomer = z.object({
 
 export const partnerStackCommission = z.object({
   key: z.string(),
-  amount_usd: z.number().describe("The amount of the reward in cents (USD)."),
-  approved: z.boolean(),
-  created_at: z.string(),
-  currency: z.string(),
-  customer: z.object({
-    email: z.string(),
-    external_key: z.string(),
-  }),
-  invoice: z.object({
-    key: z.string(),
-  }),
-  transaction: z.object({
-    amount: z.number().describe("The amount of the transaction."),
-  }),
+  amount: z.number().describe("The amount of the reward in cents (USD)."),
+  created_at: z.number(),
+  customer: z
+    .object({
+      email: z.string(),
+      external_key: z.string().nullable(),
+    })
+    .nullable(),
+  transaction: z
+    .object({
+      amount: z.number().describe("The amount of the transaction."),
+      currency: z.string(),
+    })
+    .nullable(),
   reward_status: z.enum(["hold", "pending", "approved", "declined", "paid"]),
-  test: z.boolean().describe("True if created by a test."),
 });

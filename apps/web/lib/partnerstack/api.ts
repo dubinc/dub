@@ -1,15 +1,15 @@
 import {
-  partnerStackPartner,
   partnerStackCommission,
   partnerStackCustomer,
   partnerStackLink,
+  partnerStackPartner,
 } from "./schemas";
 import {
-  PartnerStackPartner,
   PartnerStackCommission,
   PartnerStackCustomer,
   PartnerStackLink,
   PartnerStackListResponse,
+  PartnerStackPartner,
 } from "./types";
 
 const PAGE_LIMIT = 100;
