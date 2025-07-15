@@ -6,11 +6,10 @@ import {
   rewardModifierSchema,
 } from "../zod/schemas/rewards";
 
-type RewardModifier = z.infer<typeof rewardModifierSchema>;
 type RewardContext = z.infer<typeof rewardContextSchema>;
 type RewardCondition = z.infer<typeof rewardConditionSchema>;
 
-export const evaluateRewardModifier = ({
+export const evaluateRewardRules = ({
   modifier,
   context,
 }: {
@@ -41,8 +40,6 @@ export const evaluateRewardModifier = ({
       fieldValue,
     });
   });
-
-  console.log("conditionsMet", conditionsMet);
 
   return conditionsMet ? parsedModifier.amount : null;
 };

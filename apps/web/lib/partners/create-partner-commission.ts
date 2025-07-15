@@ -7,12 +7,14 @@ import {
 import { log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
+import { z } from "zod";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { Session } from "../auth";
 import { RewardProps } from "../types";
+import { rewardContextSchema } from "../zod/schemas/rewards";
 import { determinePartnerReward } from "./determine-partner-reward";
 
 export const createPartnerCommission = async ({
@@ -31,6 +33,7 @@ export const createPartnerCommission = async ({
   description,
   createdAt,
   user,
+  context,
 }: {
   // we optionally let the caller pass in a reward to avoid a db call
   // (e.g. in aggregate-clicks route)
@@ -49,6 +52,7 @@ export const createPartnerCommission = async ({
   description?: string;
   createdAt?: Date;
   user?: Session["user"]; // user who created the commission
+  context?: z.infer<typeof rewardContextSchema>;
 }) => {
   let earnings = 0;
   let status: CommissionStatus = "pending";
@@ -62,10 +66,7 @@ export const createPartnerCommission = async ({
         event: event as EventType,
         partnerId,
         programId,
-        context: {
-          customer: { country: "US" },
-          // sale: { productId: "123" },
-        },
+        context,
       });
     }
 

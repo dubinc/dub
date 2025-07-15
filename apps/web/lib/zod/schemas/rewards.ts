@@ -125,13 +125,13 @@ export const rewardModifierSchema = z.object({
 export const rewardContextSchema = z.object({
   customer: z
     .object({
-      country: z.string(),
+      country: z.string().nullable(),
     })
     .optional(),
 
   sale: z
     .object({
-      productId: z.string(),
+      productId: z.string().nullable(),
     })
     .optional(),
 });
