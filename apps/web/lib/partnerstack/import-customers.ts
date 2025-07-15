@@ -131,6 +131,10 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
     ...(hasMore && { startingAfter: currentStartingAfter }),
     action: hasMore ? "import-customers" : "import-commissions",
   });
+
+  if (!hasMore) {
+    await redis.del(`${PARTNER_IDS_KEY_PREFIX}:${programId}`);
+  }
 }
 
 async function createCustomer({

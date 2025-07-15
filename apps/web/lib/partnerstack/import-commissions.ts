@@ -30,7 +30,7 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
 
   while (hasMore && processedBatches < MAX_BATCHES) {
     const commissions = await partnerStackApi.listCommissions({
-      startingAfter,
+      startingAfter: currentStartingAfter,
     });
 
     if (commissions.length === 0) {

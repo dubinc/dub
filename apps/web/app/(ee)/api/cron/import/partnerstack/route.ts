@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { importCommissions } from "@/lib/partnerstack/import-commissions";
 import { importCustomers } from "@/lib/partnerstack/import-customers";
 import { importLinks } from "@/lib/partnerstack/import-links";
 import { importPartners } from "@/lib/partnerstack/import-partners";
@@ -29,9 +30,9 @@ export async function POST(req: Request) {
       case "import-customers":
         await importCustomers(payload);
         break;
-      // case "import-commissions":
-      //   await importCommissions(payload);
-      //   break;
+      case "import-commissions":
+        await importCommissions(payload);
+        break;
     }
 
     return NextResponse.json("OK");

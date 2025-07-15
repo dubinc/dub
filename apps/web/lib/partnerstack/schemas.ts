@@ -57,7 +57,9 @@ export const partnerStackCustomer = z.object({
 
 export const partnerStackCommission = z.object({
   key: z.string(),
-  amount: z.number().describe("The amount of the reward in cents (USD)."),
+  amount_usd: z.number().describe("The amount of the reward in cents (USD)."),
+  approved: z.boolean(),
+  created_at: z.string(),
   currency: z.string(),
   customer: z.object({
     email: z.string(),
