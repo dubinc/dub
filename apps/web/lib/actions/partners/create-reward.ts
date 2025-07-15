@@ -23,6 +23,7 @@ export const createRewardAction = authActionClient
       isDefault,
       includedPartnerIds,
       excludedPartnerIds,
+      modifiers,
     } = parsedInput;
 
     includedPartnerIds = includedPartnerIds || [];
@@ -83,6 +84,7 @@ export const createRewardAction = authActionClient
         amount,
         maxDuration,
         default: isDefault,
+        modifiers,
       },
     });
 

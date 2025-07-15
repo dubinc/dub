@@ -23,6 +23,7 @@ export const updateRewardAction = authActionClient
       type,
       includedPartnerIds,
       excludedPartnerIds,
+      modifiers,
     } = parsedInput;
 
     includedPartnerIds = includedPartnerIds || [];
@@ -66,6 +67,7 @@ export const updateRewardAction = authActionClient
         type,
         amount,
         maxDuration,
+        modifiers,
       },
     });
 
