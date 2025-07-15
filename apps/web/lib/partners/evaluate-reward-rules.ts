@@ -22,7 +22,8 @@ export const evaluateRewardRules = ({
 
   const parsedModifier = rewardModifierSchema.parse(modifier);
 
-  const conditionsMet = parsedModifier.conditions.every((condition) => {
+  // Evaluate each condition
+  const conditionResults = parsedModifier.conditions.map((condition) => {
     let fieldValue = undefined;
 
     if (condition.type === "customer") {
@@ -40,6 +41,14 @@ export const evaluateRewardRules = ({
       fieldValue,
     });
   });
+
+  // Apply the operator logic to the condition results
+  let conditionsMet = false;
+  if (parsedModifier.operator === "AND") {
+    conditionsMet = conditionResults.every((result) => result);
+  } else if (parsedModifier.operator === "OR") {
+    conditionsMet = conditionResults.some((result) => result);
+  }
 
   return conditionsMet ? parsedModifier.amount : null;
 };
