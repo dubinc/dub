@@ -3,4 +3,5 @@ export enum ECookieArg {
   LOCALE = "NEXT_LOCALE",
   SESSION_ID = "session-id",
   OAUTH_FLOW = "oauth-flow",
+  PROCESSED_QR_DATA = "processed-qr-data",
 }

@@ -8,8 +8,15 @@ import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
+import { HOME_DOMAIN } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
+import { ECookieArg } from "core/interfaces/cookie.interface.ts";
+import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
+import {
+  applyUserSession,
+  getUserCookieService,
+} from "core/services/cookie/user-session.service.ts";
 import { User, type NextAuthOptions } from "next-auth";
 import { AdapterUser } from "next-auth/adapters";
 import { JWT } from "next-auth/jwt";
@@ -18,11 +25,6 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
-import { ECookieArg } from "../../core/interfaces/cookie.interface.ts";
-import {
-  applyUserSession,
-  getUserCookieService,
-} from "../../core/services/cookie/user-session.service.ts";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
@@ -43,7 +45,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       const { sessionId } = await getUserCookieService();
 
       const generatedUserId = sessionId ?? createId({ prefix: "user_" });
-      const qrDataCookie = cookieStore.get("processed-qr-data")?.value;
+      const qrDataCookie = cookieStore.get(ECookieArg.PROCESSED_QR_DATA)?.value;
 
       const user = await p.user.create({
         data: {
@@ -84,7 +86,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
             homePageDemo: true,
           });
 
-          cookieStore.delete("processed-qr-data");
+          cookieStore.delete(ECookieArg.PROCESSED_QR_DATA);
         } catch (error) {
           console.error("Error processing QR data from cookie:", error);
         }
@@ -602,26 +604,34 @@ export const authOptions: NextAuthOptions = {
                 maxAge: 60,
               },
             );
-          }
 
-          // waitUntil(
-          //   Promise.allSettled([
-          //     subscribe({ email, name: user.name || undefined }),
-          //     sendEmail({
-          //       email,
-          //       replyTo: "steven.tey@dub.co",
-          //       subject: "Welcome to Dub.co!",
-          //       react: WelcomeEmail({
-          //         email,
-          //         name: user.name || null,
-          //       }),
-          //       // send the welcome email 5 minutes after the user signed up
-          //       scheduledAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-          //       marketing: true,
-          //     }),
-          //     trackLead(user),
-          //   ]),
-          // );
+            const qrDataCookie = cookieStore.get(
+              ECookieArg.PROCESSED_QR_DATA,
+            )?.value!;
+            const qrDataToCreate = JSON.parse(qrDataCookie);
+
+            waitUntil(
+              Promise.all([
+                CustomerIOClient.identify(user.id, {
+                  email,
+                }),
+
+                sendEmail({
+                  email: email,
+                  subject: "Welcome to GetQR",
+                  template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+                  messageData: {
+                    qr_name: qrDataToCreate.title || "Untitled QR",
+                    qr_type: qrDataToCreate.qrType,
+                    url: HOME_DOMAIN,
+                  },
+                  customerId: user.id,
+                }),
+              ]),
+            );
+
+            cookieStore.delete(ECookieArg.PROCESSED_QR_DATA);
+          }
         } else {
           if (message?.account?.provider === "google") {
             cookieStore.set(

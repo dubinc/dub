@@ -40,7 +40,7 @@ export const saveQrDataToCookieAction = actionClient
     const cookieStore = cookies();
 
     try {
-      cookieStore.set("processed-qr-data", JSON.stringify(qrData), {
+      cookieStore.set(ECookieArg.PROCESSED_QR_DATA, JSON.stringify(qrData), {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
