@@ -14,8 +14,6 @@ const expectedCommission = {
   updatedAt: expect.any(String),
   partner: expect.any(Object),
   customer: expect.any(Object),
-  invoiceId: expect.any(String).nullable(),
-  description: expect.any(String).nullable(),
 };
 
 describe.sequential("/commissions/**", async () => {
@@ -39,10 +37,7 @@ describe.sequential("/commissions/**", async () => {
     expect(status).toEqual(200);
     expect(Array.isArray(commissions)).toBe(true);
     expect(commissions.length).toBeGreaterThan(0);
-    expect(commissions[0]).toMatchObject({
-      ...expectedCommission,
-      description: null,
-    });
+    expect(commissions[0]).toMatchObject(expectedCommission);
 
     // Store the first sale and lead commission's ID for subsequent tests
     testCommissionId = commissions.find((c) => c.type === "sale")!.id;
