@@ -467,8 +467,6 @@ export type FolderWithPermissions = {
 
 export type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
 
-// Rewards
-
 export type RewardProps = z.infer<typeof RewardSchema>;
 
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;

@@ -107,6 +107,11 @@ export async function createNewCustomer(event: Stripe.Event) {
       eventId: leadData.event_id,
       customerId: customer.id,
       quantity: 1,
+      context: {
+        customer: {
+          country: customer.country,
+        },
+      },
     });
   }
 

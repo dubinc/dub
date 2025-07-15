@@ -252,6 +252,11 @@ export const POST = withWorkspace(
               eventId: leadEventId,
               customerId: customer.id,
               quantity: eventQuantity ?? 1,
+              context: {
+                customer: {
+                  country: customer.country,
+                },
+              },
             });
           }
 

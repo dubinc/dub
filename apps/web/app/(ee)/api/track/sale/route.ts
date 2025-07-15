@@ -225,6 +225,11 @@ export const POST = withWorkspace(
             quantity: 1,
             invoiceId,
             currency,
+            context: {
+              customer: {
+                country: customer.country,
+              },
+            },
           });
 
           if (commission) {

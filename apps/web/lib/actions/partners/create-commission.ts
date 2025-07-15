@@ -183,6 +183,11 @@ export const createCommissionAction = authActionClient
           createdAt: finalLeadEventDate,
           user,
           workspaceId: workspace.id,
+          context: {
+            customer: {
+              country: customer.country,
+            },
+          },
         }),
       ]);
     }
@@ -219,6 +224,11 @@ export const createCommissionAction = authActionClient
           createdAt: saleEventDate,
           user,
           workspaceId: workspace.id,
+          context: {
+            customer: {
+              country: customer.country,
+            },
+          },
         }),
       ]);
     }
