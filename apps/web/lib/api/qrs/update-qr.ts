@@ -17,23 +17,12 @@ export async function updateQr(
     styles,
     frameOptions,
     archived,
-    file,
-    fileName,
-    fileSize,
+    fileId,
   }: Partial<NewQrProps>,
-  fileId: string | null,
 ) {
   const qr = await getQr({
     qrId: id,
   });
-
-  const isChangedFromFileToText = FILE_QR_TYPES.includes(qr.qrType as EQRType) && !FILE_QR_TYPES.includes(qrType as EQRType);
-
-  if (isChangedFromFileToText && qr.fileId) {
-    await storage.delete(`qrs-content/${qr.fileId}`);
-  }
-
-  const newFileId = file ? fileId : (isChangedFromFileToText ? null : qr.fileId);
 
   const updatedQr = await prisma.qr.update({
     where: {
@@ -47,22 +36,13 @@ export async function updateQr(
       styles,
       frameOptions,
       archived: archived || false,
-      fileId: newFileId,
-      fileName,
-      fileSize,
+      fileId,
     },
     include: {
       link: true,
       user: true,
     },
   });
-
-  if (FILE_QR_TYPES.includes(qrType as EQRType) && file) {
-    if (qr.fileId) {
-      await storage.delete(`qrs-content/${qr.fileId}`);
-    }
-    await storage.upload(`qrs-content/${fileId}`, file);
-  }
 
   return updatedQr;
 }

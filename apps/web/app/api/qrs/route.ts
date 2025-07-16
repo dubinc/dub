@@ -71,12 +71,9 @@ export const POST = withWorkspace(
       }
     }
 
-    const isFileType = FILE_QR_TYPES.includes(body.qrType as EQRType);
-    const fileId = isFileType ? crypto.randomUUID() : null;
-
     const linkData = {
       ...body.link,
-      url: body.file ? `${R2_URL}/qrs-content/${fileId}` : body.link.url,
+      url: body.fileId ? `${R2_URL}/qrs-content/${body.fileId}` : body.link.url,
     };
 
     const { createdQr } = await createQrWithLinkUniversal({
@@ -84,7 +81,6 @@ export const POST = withWorkspace(
       linkData,
       workspace,
       userId: session?.user?.id,
-      fileId,
       onLinkCreated: async (createdLink) => {
         if (createdLink.projectId && createdLink.userId) {
           waitUntil(
