@@ -64,7 +64,11 @@ import {
   ProgramSchema,
   ProgramWithLanderDataSchema,
 } from "./zod/schemas/programs";
-import { rewardContextSchema, RewardSchema } from "./zod/schemas/rewards";
+import {
+  rewardConditionSchema,
+  rewardContextSchema,
+  RewardSchema,
+} from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
   trackSaleResponseSchema,
@@ -491,3 +495,5 @@ export interface FolderLinkCount {
 }
 
 export type RewardContext = z.infer<typeof rewardContextSchema>;
+
+export type RewardCondition = z.infer<typeof rewardConditionSchema>;

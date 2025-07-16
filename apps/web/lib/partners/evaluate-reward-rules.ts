@@ -1,14 +1,6 @@
 import { Prisma } from "@dub/prisma/client";
-import { z } from "zod";
-import {
-  rewardConditionSchema,
-  rewardContextSchema,
-  rewardModifierSchema,
-} from "../zod/schemas/rewards";
-import { RewardContext } from "../types";
-
-
-type RewardCondition = z.infer<typeof rewardConditionSchema>;
+import { RewardCondition, RewardContext } from "../types";
+import { rewardModifierSchema } from "../zod/schemas/rewards";
 
 export const evaluateRewardRules = ({
   modifier,
