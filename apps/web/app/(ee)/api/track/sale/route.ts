@@ -226,9 +226,7 @@ export const POST = withWorkspace(
             invoiceId,
             currency,
             context: {
-              customer: {
-                country: customer.country,
-              },
+              customer,
             },
           });
 
