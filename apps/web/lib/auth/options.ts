@@ -380,6 +380,7 @@ export const authOptions: NextAuthOptions = {
       options: {
         httpOnly: true,
         sameSite: "lax",
+        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
         path: "/",
         // When working on localhost, the cookie domain must be omitted entirely (https://stackoverflow.com/a/1188145)
         // domain: VERCEL_DEPLOYMENT
