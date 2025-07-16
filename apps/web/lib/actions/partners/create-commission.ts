@@ -61,7 +61,6 @@ export const createCommissionAction = authActionClient
         quantity: 1,
         createdAt: date ?? new Date(),
         user,
-        workspaceId: workspace.id,
       });
 
       return;
@@ -182,21 +181,16 @@ export const createCommissionAction = authActionClient
           quantity: 1,
           createdAt: finalLeadEventDate,
           user,
-          workspaceId: workspace.id,
-          context: {
-            customer: {
-              country: customer.country,
-            },
-          },
         }),
       ]);
     }
 
     // Record sale
-    const shouldRecordSale = saleAmount && saleEventDate;
+    const shouldRecordSale = saleAmount;
 
     if (shouldRecordSale && leadEvent) {
       const saleEventId = nanoid(16);
+      const saleDate = new Date(saleEventDate ?? Date.now());
 
       await Promise.allSettled([
         recordSaleWithTimestamp({
@@ -207,7 +201,7 @@ export const createCommissionAction = authActionClient
           customer_id: customerId,
           payment_processor: "custom",
           currency: "usd",
-          timestamp: new Date(saleEventDate).toISOString(),
+          timestamp: saleDate.toISOString(),
         }),
 
         createPartnerCommission({
@@ -221,14 +215,8 @@ export const createCommissionAction = authActionClient
           quantity: 1,
           invoiceId,
           currency: "usd",
-          createdAt: saleEventDate,
+          createdAt: saleDate,
           user,
-          workspaceId: workspace.id,
-          context: {
-            customer: {
-              country: customer.country,
-            },
-          },
         }),
       ]);
     }
