@@ -37,7 +37,7 @@ export const POST = withWorkspace(
     if (!customerExternalId) {
       throw new DubApiError({
         code: "bad_request",
-        message: "externalId is required",
+        message: "customerExternalId is required",
       });
     }
 

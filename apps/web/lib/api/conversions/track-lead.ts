@@ -35,7 +35,7 @@ export const trackLead = async ({
   customerAvatar,
   metadata,
   mode,
-  rawBody, // log this in TinyBird
+  rawBody,
   workspace,
 }: TrackLeadParams) => {
   const stringifiedEventName = eventName.toLowerCase().replace(" ", "-");
