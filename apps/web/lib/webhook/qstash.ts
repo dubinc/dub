@@ -9,7 +9,7 @@ import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { createWebhookSignature } from "./signature";
 import { prepareWebhookPayload } from "./transform";
-import { EventDataProps } from "./types";
+import { WebhookEventPayload } from "./types";
 import { identifyWebhookReceiver } from "./utils";
 
 // Send webhooks to multiple webhooks
@@ -20,7 +20,7 @@ export const sendWebhooks = async ({
 }: {
   webhooks: Pick<Webhook, "id" | "url" | "secret">[];
   trigger: WebhookTrigger;
-  data: EventDataProps;
+  data: WebhookEventPayload;
 }) => {
   if (webhooks.length === 0) {
     return;
