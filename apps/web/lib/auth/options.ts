@@ -634,7 +634,10 @@ export const authOptions: NextAuthOptions = {
             cookieStore.delete(ECookieArg.PROCESSED_QR_DATA);
           }
         } else {
-          if (message?.account?.provider === "google") {
+          const hasOauthFlowCookie = !!cookieStore.get(ECookieArg.OAUTH_FLOW)
+            ?.value;
+
+          if (message?.account?.provider === "google" && !hasOauthFlowCookie) {
             cookieStore.set(
               ECookieArg.OAUTH_FLOW,
               JSON.stringify({
