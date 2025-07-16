@@ -36,6 +36,7 @@ export async function updateQr(
     include: {
       link: true,
       user: true,
+      file: true,
     },
   });
 

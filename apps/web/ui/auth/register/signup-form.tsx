@@ -21,7 +21,7 @@ export const SignUpForm = ({
   // "github"
 }) => {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 p-1">
       <SignUpOAuth sessionId={sessionId} methods={methods} />
       {methods.length && (
         <div className="my-2 flex flex-shrink items-center justify-center gap-2">

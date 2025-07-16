@@ -28,8 +28,6 @@ model Qr {
   workspaceId     String?
 
   fileId          String?
-  fileName        String?
-  fileSize        Int?       // Original file size in bytes
   file            File?      @relation(fields: [fileId], references: [id], onDelete: SetNull)
 
   linkId          String?
