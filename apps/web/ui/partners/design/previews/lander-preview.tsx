@@ -1,5 +1,7 @@
 "use client";
 
+import useDiscounts from "@/lib/swr/use-discounts";
+import useRewards from "@/lib/swr/use-rewards";
 import { ProgramLanderData, ProgramWithLanderDataProps } from "@/lib/types";
 import { useEditHeroModal } from "@/ui/partners/design/modals/edit-hero-modal";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
@@ -48,6 +50,9 @@ export function LanderPreview({
   const scrolled = useScroll(0, { container: scrollRef });
 
   const { isGeneratingLander } = useBrandingContext();
+
+  const { rewards } = useRewards();
+  const { discounts } = useDiscounts();
 
   const { setValue, getValues } = useBrandingFormContext();
   const { landerData, brandColor, logo, wordmark } = {
@@ -331,7 +336,15 @@ export function LanderPreview({
                       {...{ inert: "" }}
                     >
                       <div className="px-6">
-                        <Component block={block} program={program} />
+                        <Component
+                          block={block}
+                          program={{
+                            ...program,
+                            rewards,
+                            discounts,
+                            landerData,
+                          }}
+                        />
                       </div>
                     </div>
                   </div>

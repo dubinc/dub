@@ -23,6 +23,11 @@ export function ProfileSocialPageClient() {
   return (
     <PageContent
       title="Website and socials"
+      titleInfo={{
+        title:
+          "Build a stronger partner profile and increase trust by adding and verifying your website and social accounts.",
+        href: "https://dub.co/help/article/partner-profile-sites",
+      }}
       controls={
         <Button
           text="Save changes"

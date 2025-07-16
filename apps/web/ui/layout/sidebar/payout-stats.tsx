@@ -25,19 +25,19 @@ export const PayoutStats = memo(() => {
 
   return (
     <AnimatedSizeContainer height>
-      <div className="border-border-default rounded-lg border p-2 pt-1">
+      <div className="border-border-default grid gap-3 border-t p-3">
         <Link
-          className="group flex items-center justify-between gap-2 px-2 py-2"
+          className="group flex items-center justify-between gap-2"
           href="/settings/payouts"
         >
-          <div className="text-content-emphasis flex items-center gap-2 text-sm font-semibold">
+          <div className="text-content-default flex items-center gap-2 text-sm font-semibold">
             <MoneyBills2 className="size-4" />
             Payouts
           </div>
           <ChevronRight className="text-content-muted group-hover:text-content-default size-3 transition-[color,transform] group-hover:translate-x-0.5 [&_*]:stroke-2" />
         </Link>
 
-        <div className="mt-2 flex flex-col gap-4 px-2">
+        <div className="flex flex-col gap-4">
           <div className="grid gap-1 text-xs">
             <p className="text-content-subtle font-medium">Upcoming payouts</p>
             <div className="flex items-center gap-1">
@@ -60,9 +60,13 @@ export const PayoutStats = memo(() => {
               {payoutsCount ? (
                 <p className="text-content-default font-medium">
                   {currencyFormatter(
-                    (payoutsCount?.find(
-                      (payout) => payout.status === PayoutStatus.pending,
-                    )?.amount || 0) / 100,
+                    (payoutsCount
+                      ?.filter(
+                        (payout) =>
+                          payout.status === PayoutStatus.pending ||
+                          payout.status === PayoutStatus.processing,
+                      )
+                      ?.reduce((acc, p) => acc + p.amount, 0) || 0) / 100,
                     {
                       maximumFractionDigits: 2,
                     },
@@ -74,15 +78,16 @@ export const PayoutStats = memo(() => {
             </div>
           </div>
           <div className="grid gap-1 text-xs">
-            <p className="text-content-subtle font-medium">Total payouts</p>
+            <p className="text-content-subtle font-medium">Received payouts</p>
             {payoutsCount ? (
               <p className="text-content-default font-medium">
                 {currencyFormatter(
                   (payoutsCount
                     ?.filter(
                       (payout) =>
-                        payout.status === PayoutStatus.completed ||
-                        payout.status === PayoutStatus.processing,
+                        payout.status === PayoutStatus.processed ||
+                        payout.status === PayoutStatus.sent ||
+                        payout.status === PayoutStatus.completed,
                     )
                     ?.reduce((acc, p) => acc + p.amount, 0) ?? 0) / 100,
                   {

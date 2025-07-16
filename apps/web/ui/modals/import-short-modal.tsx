@@ -206,8 +206,9 @@ function ImportShortModal({
             <div className="flex flex-col items-center justify-center gap-2">
               <ServerOff className="h-6 w-6 text-neutral-500" />
               <p className="max-w-md text-center text-sm text-neutral-500">
-                We weren't able to retrieve any links from your Short.io
-                account.
+                Unfortunately, Short.io has been blocking our servers in
+                production. Please reach out to support and we'll help you
+                import your links.
               </p>
               <a
                 href="mailto:support@dub.co?subject=I%20need%20help%20with%20importing%20my%20Short.io%20links"

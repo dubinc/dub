@@ -14,11 +14,14 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const [stripeBalanceData, dubProcessingPayouts] = await Promise.all([
+    const [stripeBalanceData, toBeSentPayouts] = await Promise.all([
       stripe.balance.retrieve(),
       prisma.payout.aggregate({
         where: {
-          status: "processing",
+          status: {
+            in: ["processing", "processed"],
+          },
+          stripeTransferId: null,
         },
         _sum: {
           amount: true,
@@ -41,17 +44,18 @@ export async function GET(req: Request) {
       currentAvailableBalance,
       currentPendingBalance,
       currentNetBalance,
-      dubProcessingPayouts,
+      toBeSentPayouts,
       stripeBalanceData,
     });
 
     let reservedBalance = 50000; // keep at least $500 in the account
 
-    const totalProcessingPayouts = dubProcessingPayouts._sum.amount;
-    if (totalProcessingPayouts) {
-      // add the processing payouts to the reserved balance (to make sure we have enough balance
+    const totalToBeSentPayouts = toBeSentPayouts._sum.amount;
+    if (totalToBeSentPayouts) {
+      // add the total payouts that are still to be sent to connected accounts
+      // to the reserved balance (to make sure we have enough balance
       // to pay out partners when chargeSucceeded webhook is triggered)
-      reservedBalance += totalProcessingPayouts;
+      reservedBalance += totalToBeSentPayouts;
     }
 
     const balanceToWithdraw = currentNetBalance - reservedBalance;

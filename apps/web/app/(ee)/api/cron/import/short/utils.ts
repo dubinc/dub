@@ -144,13 +144,16 @@ export const importLinksFromShort = async ({
     links: linksToCreate.map(({ tags, ...rest }) => {
       return {
         ...rest,
-        ...(importTags && {
-          tagIds: tags
-            .map(
-              (tag: string) => allTags.find((t) => t.name === tag)?.id ?? null,
-            )
-            .filter(Boolean),
-        }),
+        ...(importTags &&
+          Array.isArray(tags) &&
+          tags.length > 0 && {
+            tagIds: tags
+              .map(
+                (tag: string) =>
+                  allTags.find((t) => t.name === tag)?.id ?? null,
+              )
+              .filter(Boolean),
+          }),
       };
     }),
     skipRedisCache: true,
