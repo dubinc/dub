@@ -20,15 +20,7 @@ export const createQrBodySchema = z.object({
   styles: z.record(z.any()).optional(), // Json
   frameOptions: z.record(z.any()).optional(), // Json
   archived: z.boolean().optional(),
-  file: z.string().nullish().describe("The file the link leads to"),
-  fileName: z
-    .string()
-    .nullish()
-    .describe("The original name of the uploaded file"),
-  fileSize: z
-    .number()
-    .nullish()
-    .describe("The original size of the uploaded file"),
+  fileId: z.string().optional().describe("The file the link leads to"),
   link: createLinkBodySchema,
 });
 

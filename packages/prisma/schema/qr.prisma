@@ -29,7 +29,8 @@ model Qr {
 
   fileId          String?
   fileName        String?
-  fileSize        Int?        // Original file size in bytes
+  fileSize        Int?       // Original file size in bytes
+  file            File?      @relation(fields: [fileId], references: [id], onDelete: SetNull)
 
   linkId          String?
   link            Link?      @relation(fields: [linkId], references: [id])

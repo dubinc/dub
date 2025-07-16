@@ -18,25 +18,32 @@ export const convertQRBuilderDataToServer = async (
   qrBuilderData: QRBuilderData,
   options: {
     domain: string;
-    fileToBase64?: (file: File) => Promise<string>;
   },
 ): Promise<NewQrProps> => {
-  const { domain, fileToBase64 } = options;
+  const { domain } = options;
 
   const data = qrBuilderData.styles.data || "";
 
-  let file: string | null = null;
-  let fileName: string | null = null;
-  let fileSize: number | null = null;
+  let fileId: string | undefined;
 
   if (qrBuilderData.files && qrBuilderData.files.length > 0) {
     const firstFile = qrBuilderData.files[0];
-    fileName = firstFile.name;
-    fileSize = firstFile.size;
 
-    if (fileToBase64) {
-      file = await fileToBase64(firstFile);
+    const formData = new FormData();
+    formData.append("file", firstFile);
+
+    const response = await fetch(process.env.NEXT_PUBLIC_FILES_HANDLER_URL!, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to upload file");
     }
+
+    const respData = await response.json();
+
+    fileId = respData.file.id;
   }
 
   return {
@@ -45,9 +52,7 @@ export const convertQRBuilderDataToServer = async (
     title: qrBuilderData.title,
     styles: qrBuilderData.styles,
     frameOptions: qrBuilderData.frameOptions,
-    file,
-    fileName,
-    fileSize,
+    fileId,
     link: {
       url: data,
       domain,
@@ -103,10 +108,9 @@ export const convertQRForUpdate = async (
   newQRData: QRBuilderData,
   options: {
     domain: string;
-    fileToBase64?: (file: File) => Promise<string>;
   },
 ): Promise<QRUpdateResult> => {
-  const { domain, fileToBase64 } = options;
+  const { domain } = options;
 
   const titleChanged = newQRData.title !== originalQR.title;
   const qrTypeChanged = newQRData.qrType !== originalQR.qrType;
@@ -126,37 +130,35 @@ export const convertQRForUpdate = async (
   const dataChanged = newData !== originalData;
 
   const hasNewFiles = newQRData.files && newQRData.files.length > 0;
-  const hasExistingFiles = originalQR.fileId && originalQR.fileName;
-  const filesChanged = hasNewFiles;
+  const hasExistingFiles = originalQR.fileId;
 
   const hasChanges =
     titleChanged ||
     dataChanged ||
     qrTypeChanged ||
     frameOptionsChanged ||
-    filesChanged;
+    hasNewFiles;
 
-  let file: string | null = null;
-  let fileName: string | null = null;
-  let fileSize: number | null = null;
-  let existingFileInfo: QRUpdateResult["existingFileInfo"] | undefined;
+  let fileId: string | undefined;
 
   if (hasNewFiles) {
     const firstFile = newQRData.files[0];
-    fileName = firstFile.name;
-    fileSize = firstFile.size;
 
-    if (fileToBase64) {
-      file = await fileToBase64(firstFile);
+    const formData = new FormData();
+    formData.append("file", firstFile);
+
+    const response = await fetch(process.env.NEXT_PUBLIC_FILES_HANDLER_URL!, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to upload file");
     }
-  } else if (hasExistingFiles) {
-    fileName = originalQR.fileName;
-    fileSize = originalQR.fileSize;
-    existingFileInfo = {
-      fileId: originalQR.fileId,
-      fileName: originalQR.fileName,
-      fileSize: originalQR.fileSize,
-    };
+
+    const respData = await response.json();
+
+    fileId = respData.file.id;
   }
 
   const linkUrl = hasNewFiles || hasExistingFiles ? "" : newData;
@@ -167,9 +169,7 @@ export const convertQRForUpdate = async (
     title: newQRData.title,
     styles: newQRData.styles,
     frameOptions: newQRData.frameOptions,
-    file,
-    fileName,
-    fileSize,
+    fileId,
     link: {
       url: linkUrl,
       domain,
@@ -185,9 +185,8 @@ export const convertQRForUpdate = async (
       data: dataChanged,
       qrType: qrTypeChanged,
       frameOptions: frameOptionsChanged,
-      files: filesChanged,
+      files: hasNewFiles,
     },
     updateData,
-    existingFileInfo,
   };
 };
