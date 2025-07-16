@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { EventType, ProgramEnrollment, Reward } from "@dub/prisma/client";
 import { RewardContext } from "../types";
+import { rewardConditionsSchema } from "../zod/schemas/reward-conditions";
 import { RewardSchema } from "../zod/schemas/rewards";
 import { evaluateRewardConditions } from "./evaluate-reward-conditions";
 
@@ -47,13 +48,15 @@ export const determinePartnerReward = async ({
 
   // evaluate reward rules (if any)
   if (partnerReward.modifiers && context) {
-    const rewardAmount = evaluateRewardConditions({
-      conditions: partnerReward.modifiers,
+    const conditions = rewardConditionsSchema.parse(partnerReward.modifiers);
+
+    const conditionsMet = evaluateRewardConditions({
+      conditions,
       context,
     });
 
-    if (rewardAmount) {
-      partnerReward.amount = rewardAmount;
+    if (conditionsMet) {
+      partnerReward.amount = conditions.amount;
     }
   }
 

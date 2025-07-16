@@ -256,6 +256,9 @@ export const POST = withWorkspace(
                 customer: {
                   country: customer.country,
                 },
+                sale: {
+                  productId: metadata?.productId as string,
+                },
               },
             });
           }

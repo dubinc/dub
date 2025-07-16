@@ -1,22 +1,18 @@
-import { Prisma } from "@dub/prisma/client";
-import { RewardCondition, RewardContext } from "../types";
-import { rewardConditionsSchema } from "../zod/schemas/reward-conditions";
+import { RewardCondition, RewardConditions, RewardContext } from "../types";
 
 export const evaluateRewardConditions = ({
   conditions,
   context,
 }: {
-  conditions: Prisma.JsonValue;
+  conditions: RewardConditions;
   context: RewardContext;
 }) => {
   if (!conditions || !context) {
-    return null;
+    return false;
   }
 
-  const parsedConditions = rewardConditionsSchema.parse(conditions);
-
   // Evaluate each condition
-  const conditionResults = parsedConditions.conditions.map((condition) => {
+  const conditionResults = conditions.conditions.map((condition) => {
     let fieldValue = undefined;
 
     if (condition.entity === "customer") {
@@ -37,13 +33,19 @@ export const evaluateRewardConditions = ({
 
   // Apply the operator logic to the condition results
   let conditionsMet = false;
-  if (parsedConditions.operator === "AND") {
+  if (conditions.operator === "AND") {
     conditionsMet = conditionResults.every((result) => result);
-  } else if (parsedConditions.operator === "OR") {
+  } else if (conditions.operator === "OR") {
     conditionsMet = conditionResults.some((result) => result);
   }
 
-  return conditionsMet ? parsedConditions.amount : null;
+  console.log("conditions", {
+    conditions,
+    conditionResults,
+    conditionsMet,
+  });
+
+  return conditionsMet;
 };
 
 const evaluateCondition = ({

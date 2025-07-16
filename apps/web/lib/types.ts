@@ -66,6 +66,7 @@ import {
 } from "./zod/schemas/programs";
 import {
   rewardConditionSchema,
+  rewardConditionsSchema,
   rewardContextSchema,
 } from "./zod/schemas/reward-conditions";
 import { RewardSchema } from "./zod/schemas/rewards";
@@ -497,3 +498,5 @@ export interface FolderLinkCount {
 export type RewardContext = z.infer<typeof rewardContextSchema>;
 
 export type RewardCondition = z.infer<typeof rewardConditionSchema>;
+
+export type RewardConditions = z.infer<typeof rewardConditionsSchema>;
