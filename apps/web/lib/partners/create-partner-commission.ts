@@ -7,7 +7,6 @@ import {
 import { log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
-import { z } from "zod";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
@@ -16,7 +15,6 @@ import { Session } from "../auth";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionEnrichedSchema } from "../zod/schemas/commissions";
-import { rewardContextSchema } from "../zod/schemas/rewards";
 import { determinePartnerReward } from "./determine-partner-reward";
 
 export const createPartnerCommission = async ({
@@ -53,7 +51,7 @@ export const createPartnerCommission = async ({
   createdAt?: Date;
   user?: Session["user"]; // user who created the manual commission
   context?: RewardContext;
-}) => { 
+}) => {
   let earnings = 0;
   let status: CommissionStatus = "pending";
 
