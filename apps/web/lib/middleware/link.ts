@@ -28,11 +28,11 @@ import {
 import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { recordClickCache } from "../api/links/record-click-cache";
-import { isSingularTrackingUrl } from "../integrations/singular/utils";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
 import { crawlBitly } from "./utils/crawl-bitly";
+import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
 export default async function LinkMiddleware(
@@ -82,7 +82,6 @@ export default async function LinkMiddleware(
 
   let cachedLink = await linkCache.get({ domain, key });
   let isPartnerLink = Boolean(cachedLink?.programId && cachedLink?.partnerId);
-  let isSingularLink = isSingularTrackingUrl(cachedLink?.url);
 
   if (!cachedLink) {
     let linkData = await getLinkViaEdge({
@@ -115,7 +114,6 @@ export default async function LinkMiddleware(
     }
 
     isPartnerLink = Boolean(linkData.programId && linkData.partnerId);
-    isSingularLink = isSingularTrackingUrl(linkData.url);
 
     // format link to fit the RedisLinkProps interface
     cachedLink = formatRedisLink(linkData as any);
@@ -175,6 +173,9 @@ export default async function LinkMiddleware(
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
   const shouldIndex = isDubDomain(domain) || doIndex === true;
+
+  // special case for Singular tracking URLs
+  const isSingularLink = isSingularTrackingUrl(cachedLink.url);
 
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
