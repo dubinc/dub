@@ -42,7 +42,6 @@ export const LandingModule: FC<Readonly<ILandingModuleProps>> = ({
   return (
     <main className="relative mx-auto min-h-screen w-full pb-6 md:pb-12">
       <QRTabs ref={qrGenerationBlockRef} sessionId={sessionId} />
-      {sessionId && <div>Session ID: {sessionId}</div>}
       <GetQRInfoCardsSection />
       <QrTabsDetailed
         sessionId={sessionId}
