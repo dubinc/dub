@@ -3,9 +3,16 @@ import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 
+// TODO:
+// See if we can use {CONVERTED_REVENUE}
+
 const singularRevenueEventSchema = z.object({
   event_name: z.string().min(1),
-  revenue: z.number(),
+  revenue: z
+    .string()
+    .min(1)
+    .transform((val) => Number(val)),
+  currency: trackSaleRequestSchema.shape.currency,
   event_attributes: z
     .string()
     .transform((val) => {
@@ -18,8 +25,6 @@ const singularRevenueEventSchema = z.object({
     .pipe(
       z.object({
         customer_external_id: trackSaleRequestSchema.shape.customerExternalId,
-        amount: trackSaleRequestSchema.shape.amount,
-        currency: trackSaleRequestSchema.shape.currency,
         payment_processor: trackSaleRequestSchema.shape.paymentProcessor,
         invoice_id: trackSaleRequestSchema.shape.invoiceId,
         lead_event_name: trackSaleRequestSchema.shape.leadEventName,
@@ -33,12 +38,11 @@ export const trackSingularSaleEvent = async (
   console.log("[Singular] Revenue event received", searchParams);
 
   const {
-    revenue,
     event_name: eventName,
+    revenue: amount,
+    currency,
     event_attributes: {
       customer_external_id: customerExternalId,
-      amount,
-      currency,
       payment_processor: paymentProcessor,
       invoice_id: invoiceId,
       lead_event_name: leadEventName,
@@ -69,5 +73,6 @@ export const trackSingularSaleEvent = async (
     leadEventName,
     workspace,
     rawBody: searchParams,
+    metadata: null,
   });
 };
