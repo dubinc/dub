@@ -28,10 +28,10 @@ const singularLeadEventSchema = z.object({
 });
 
 export const trackSingularLeadEvent = async ({
-  searchParams,
+  queryParams,
   workspace,
 }: {
-  searchParams: Record<string, string>;
+  queryParams: Record<string, string>;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
 }) => {
   const {
@@ -45,7 +45,7 @@ export const trackSingularLeadEvent = async ({
       event_quantity: eventQuantity,
       mode,
     },
-  } = singularLeadEventSchema.parse(searchParams);
+  } = singularLeadEventSchema.parse(queryParams);
 
   return await trackLead({
     clickId,
@@ -57,7 +57,7 @@ export const trackSingularLeadEvent = async ({
     eventQuantity,
     mode,
     workspace,
-    rawBody: searchParams,
+    rawBody: queryParams,
     metadata: null,
   });
 };

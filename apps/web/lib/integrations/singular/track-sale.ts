@@ -33,10 +33,10 @@ const singularRevenueEventSchema = z.object({
 });
 
 export const trackSingularSaleEvent = async ({
-  searchParams,
+  queryParams,
   workspace,
 }: {
-  searchParams: Record<string, string>;
+  queryParams: Record<string, string>;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
 }) => {
   const {
@@ -49,7 +49,7 @@ export const trackSingularSaleEvent = async ({
       invoice_id: invoiceId,
       lead_event_name: leadEventName,
     },
-  } = singularRevenueEventSchema.parse(searchParams);
+  } = singularRevenueEventSchema.parse(queryParams);
 
   return await trackSale({
     customerExternalId,
@@ -60,7 +60,7 @@ export const trackSingularSaleEvent = async ({
     invoiceId,
     leadEventName,
     workspace,
-    rawBody: searchParams,
+    rawBody: queryParams,
     metadata: null,
   });
 };

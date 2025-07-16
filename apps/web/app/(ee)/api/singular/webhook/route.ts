@@ -39,10 +39,10 @@ export const GET = async (req: Request) => {
       });
     }
 
-    const searchParams = getSearchParams(req.url);
+    const queryParams = getSearchParams(req.url);
 
     const { dub_token: token, dub_workspace_id: workspaceId } =
-      authSchema.parse(searchParams);
+      authSchema.parse(queryParams);
 
     if (token !== singularToken) {
       throw new DubApiError({
@@ -69,7 +69,7 @@ export const GET = async (req: Request) => {
       });
     }
 
-    const { event_name: eventName } = searchParams;
+    const { event_name: eventName } = queryParams;
 
     if (!supportedEvents.includes(eventName)) {
       throw new DubApiError({
@@ -82,12 +82,12 @@ export const GET = async (req: Request) => {
 
     if (dubEvent === "lead") {
       await trackSingularLeadEvent({
-        searchParams,
+        queryParams,
         workspace,
       });
     } else if (dubEvent === "sale") {
       await trackSingularSaleEvent({
-        searchParams,
+        queryParams,
         workspace,
       });
     } else {
