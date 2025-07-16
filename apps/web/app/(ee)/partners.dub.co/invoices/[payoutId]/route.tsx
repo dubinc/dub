@@ -190,6 +190,9 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
             <Text style={tw("text-sm text-neutral-500 leading-6")}>
               San Francisco, CA 94114
             </Text>
+            <Text style={tw("text-sm text-neutral-500 leading-6")}>
+              Tax ID: US EIN {process.env.DUB_EIN}
+            </Text>
             <Text style={tw("text-sm text-neutral-800 leading-6")}>
               Invoice Number: <Text style={tw("font-bold")}>{payout.id}</Text>
             </Text>

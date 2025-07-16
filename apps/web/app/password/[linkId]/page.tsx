@@ -120,7 +120,7 @@ export default async function PasswordProtectedLinkPage({
           <PasswordForm />
         </div>
         <Link
-          href={createHref("/home", link.domain, {
+          href={createHref("/links", link.domain, {
             utm_source: "Password Protected Link",
             utm_medium: "Link Password Page",
             utm_campaign: link.domain,
