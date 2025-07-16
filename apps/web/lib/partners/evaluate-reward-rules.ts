@@ -5,8 +5,9 @@ import {
   rewardContextSchema,
   rewardModifierSchema,
 } from "../zod/schemas/rewards";
+import { RewardContext } from "../types";
 
-type RewardContext = z.infer<typeof rewardContextSchema>;
+
 type RewardCondition = z.infer<typeof rewardConditionSchema>;
 
 export const evaluateRewardRules = ({

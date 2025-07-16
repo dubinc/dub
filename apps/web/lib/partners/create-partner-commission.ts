@@ -13,7 +13,7 @@ import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { Session } from "../auth";
-import { RewardProps } from "../types";
+import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionEnrichedSchema } from "../zod/schemas/commissions";
 import { rewardContextSchema } from "../zod/schemas/rewards";
@@ -51,9 +51,9 @@ export const createPartnerCommission = async ({
   currency?: string;
   description?: string;
   createdAt?: Date;
-  context?: z.infer<typeof rewardContextSchema>;
   user?: Session["user"]; // user who created the manual commission
-}) => {
+  context?: RewardContext;
+}) => { 
   let earnings = 0;
   let status: CommissionStatus = "pending";
 

@@ -1,9 +1,6 @@
 import { evaluateRewardRules } from "@/lib/partners/evaluate-reward-rules";
-import { rewardContextSchema } from "@/lib/zod/schemas/rewards";
+import { RewardContext } from "@/lib/types";
 import { describe, expect, test } from "vitest";
-import { z } from "zod";
-
-type RewardContext = z.infer<typeof rewardContextSchema>;
 
 describe("evaluateRewardRules", () => {
   describe("AND operator", () => {
