@@ -31,7 +31,8 @@ export default async function AppMiddleware(
   if (user) {
     const sessionInit = userSessionIdInit(req, user.id);
     if (sessionInit.needsUpdate) {
-      sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict;`;
+      // sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict;`;
+      sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; HttpOnly; Secure; SameSite=Lax;`;
     }
   }
 
@@ -45,7 +46,7 @@ export default async function AppMiddleware(
     !path.startsWith("/auth/reset-password/") &&
     !path.startsWith("/share/")
   ) {
-    const cookies = [`country=${country}; Path=/; Secure; SameSite=Strict;`];
+    const cookies = [`country=${country}; Secure; SameSite=Lax;`];
     if (sessionCookie) {
       cookies.push(sessionCookie);
     }
@@ -123,7 +124,7 @@ export default async function AppMiddleware(
   }
 
   // otherwise, rewrite the path to /app
-  const finalCookies = [`country=${country}; Path=/; Secure; SameSite=Strict;`];
+  const finalCookies = [`country=${country}; Secure; SameSite=Lax;`];
   if (sessionCookie) {
     finalCookies.push(sessionCookie);
   }

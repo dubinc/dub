@@ -42,6 +42,7 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, key, fullKey, path } = parse(req);
+
   const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
 
@@ -68,7 +69,8 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
       }
     }
 
-    const cookies = [`country=${country}; Path=/; Secure; SameSite=Strict;`];
+    // const cookies = [`country=${country}; Path=/; Secure; SameSite=Strict;`];
+    const cookies = [`country=${country}; Secure; SameSite=Lax;`];
     if (sessionCookie) {
       cookies.push(sessionCookie);
     }

@@ -304,8 +304,8 @@ importers:
         specifier: ^4.24.4
         version: 4.24.4(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0)
       next-axiom:
-        specifier: ^1.6.0
-        version: 1.6.0(next@14.3.0-canary.42)(react@18.2.0)
+        specifier: 1.9.2
+        version: 1.9.2(next@14.3.0-canary.42)(react@18.2.0)
       next-plausible:
         specifier: ^3.12.0
         version: 3.12.0(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0)
@@ -11381,6 +11381,16 @@ packages:
         optional: true
     dev: false
 
+  /@vercel/functions@2.2.3:
+    resolution: {integrity: sha512-Z6xwsxM/57/92PLW2HoLLmVw4+Nb5OZzMzDA4qfkksWgG1k5dGV7kvP1TDEOlW3WHjqWtfPJBcd61dE2p0mbxQ==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      '@aws-sdk/credential-provider-web-identity': '*'
+    peerDependenciesMeta:
+      '@aws-sdk/credential-provider-web-identity':
+        optional: true
+    dev: false
+
   /@vercel/og@0.6.3:
     resolution: {integrity: sha512-aoCrC9FqkeA+WEEb9CwSmjD0rGlFeNqbUsI41JPmKWR9Hx6FFn86tvH96O5HZMF6VAXTGHxa3nPH3BokROpdgA==}
     engines: {node: '>=16'}
@@ -18150,17 +18160,20 @@ packages:
       uuid: 8.3.2
     dev: false
 
-  /next-axiom@1.6.0(next@14.3.0-canary.42)(react@18.2.0):
-    resolution: {integrity: sha512-kdquFyc8jE+2ZYwdwG9fkctLpvVOBZXjSNj6WR3tNmmH6oCZo8ktKiZoJBi8gjCKPBGu5Lce1GexZ55Pkeb62Q==}
+  /next-axiom@1.9.2(next@14.3.0-canary.42)(react@18.2.0):
+    resolution: {integrity: sha512-M0CKNJ39WQ8Hrb+OuBHDdC2Yev7pu0B5z296ZMT8W6IiPCW2FHCLS8naVzGH8Fyia58zNTeVXQaZ33THAoQWSQ==}
     engines: {node: '>=18'}
     peerDependencies:
       next: '>=14.0'
       react: '>=18.0.0'
     dependencies:
+      '@vercel/functions': 2.2.3
       next: 14.3.0-canary.42(@babel/core@7.28.0)(@opentelemetry/api@1.8.0)(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
       use-deep-compare: 1.3.0(react@18.2.0)
       whatwg-fetch: 3.6.20
+    transitivePeerDependencies:
+      - '@aws-sdk/credential-provider-web-identity'
     dev: false
 
   /next-plausible@3.12.0(next@14.3.0-canary.42)(react-dom@18.2.0)(react@18.2.0):

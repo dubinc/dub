@@ -17,13 +17,17 @@ export default async function RootLayout({
 }) {
   const { sessionId } = await getUserCookieService();
 
+  console.log("--------------- sessionId", sessionId);
+
   return (
     <html lang="en" className={cn(inter.className)}>
       <body>
         <Theme>
           <RootProviders>{children}</RootProviders>
+
           <GtmInitializerComponent />
-          {sessionId && <AnalyticInitializerComponent sessionId={sessionId} />}
+          
+          <AnalyticInitializerComponent sessionId={sessionId || ""} />
         </Theme>
       </body>
     </html>
