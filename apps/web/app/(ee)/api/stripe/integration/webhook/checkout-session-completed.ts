@@ -339,7 +339,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       invoiceId,
       currency: saleData.currency,
       context: {
-        customer,
+        customer: {
+          country: customer.country,
+        },
+        sale: {
+          productId: charge.metadata?.productId,
+        },
       },
     });
 

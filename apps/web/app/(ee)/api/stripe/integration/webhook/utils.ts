@@ -108,7 +108,9 @@ export async function createNewCustomer(event: Stripe.Event) {
       customerId: customer.id,
       quantity: 1,
       context: {
-        customer,
+        customer: {
+          country: customer.country,
+        },
       },
     });
   }

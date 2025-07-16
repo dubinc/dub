@@ -190,7 +190,12 @@ export async function invoicePaid(event: Stripe.Event) {
       invoiceId,
       currency: saleData.currency,
       context: {
-        customer,
+        customer: {
+          country: customer.country,
+        },
+        sale: {
+          productId: invoice.lines.data[0]?.pricing?.price_details?.product,
+        },
       },
     });
 

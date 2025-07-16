@@ -182,7 +182,9 @@ export const createCommissionAction = authActionClient
           createdAt: finalLeadEventDate,
           user,
           context: {
-            customer,
+            customer: {
+              country: customer.country,
+            },
           },
         }),
       ]);
@@ -221,7 +223,9 @@ export const createCommissionAction = authActionClient
           createdAt: saleDate,
           user,
           context: {
-            customer,
+            customer: {
+              country: customer.country,
+            },
           },
         }),
       ]);

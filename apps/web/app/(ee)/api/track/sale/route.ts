@@ -226,7 +226,12 @@ export const POST = withWorkspace(
             invoiceId,
             currency,
             context: {
-              customer,
+              customer: {
+                country: customer.country,
+              },
+              sale: {
+                productId: metadata?.productId as string,
+              },
             },
           });
 

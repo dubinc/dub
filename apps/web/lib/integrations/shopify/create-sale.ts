@@ -138,7 +138,9 @@ export async function createShopifySale({
       invoiceId: saleData.invoice_id,
       currency: saleData.currency,
       context: {
-        customer,
+        customer: {
+          country: customer.country,
+        },
       },
     });
 
