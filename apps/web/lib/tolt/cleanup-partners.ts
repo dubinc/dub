@@ -65,6 +65,9 @@ export async function cleanupPartners({ programId }: { programId: string }) {
           partnerId: {
             in: partnerIdsToRemove,
           },
+          programId: {
+            not: programId,
+          },
         },
         select: {
           partnerId: true,
