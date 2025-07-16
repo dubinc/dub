@@ -1,6 +1,7 @@
 import { NewQrProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { createId } from "../utils";
+import { EQRType } from '@/ui/qr-builder/constants/get-qr-config';
 
 export async function createQr(
   {
@@ -20,7 +21,7 @@ export async function createQr(
     data: {
       id: createId({ prefix: "qr_" }),
       qrType,
-      data: url,
+      data: qrType === EQRType.WIFI ? data : url,
       title,
       description,
       styles,
