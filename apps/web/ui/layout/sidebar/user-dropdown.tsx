@@ -5,7 +5,10 @@ import useUser from "@/lib/swr/use-user.ts";
 import { Avatar, Icon, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon as IconifyIcon } from "@iconify/react";
-import { trackClientEvents } from "core/integration/analytic";
+import {
+  resetAnalyticSession,
+  trackClientEvents,
+} from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -59,6 +62,7 @@ export default function UserDropdown() {
   };
 
   const logout = async () => {
+    resetAnalyticSession();
     handleUserOptionClick("logout");
     await resetUserCookieSession();
     signOut({
