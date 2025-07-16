@@ -226,6 +226,13 @@ export const analyticsQuerySchema = z
       .describe(
         "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
       ),
+    metadata: z
+      .record(z.string(), z.string())
+      .optional()
+      .describe(
+        "Filter by event metadata key-value pairs. Format: key=value. Only available for lead and sale events.",
+      )
+      .openapi({ example: { product: "premium" } }),
   })
   .merge(utmTagsSchema);
 
