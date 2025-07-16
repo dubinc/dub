@@ -58,6 +58,38 @@ export async function cleanupPartners({ programId }: { programId: string }) {
           },
         });
       });
+
+      // Remove partners that are not enrolled in any other program
+      const otherProgramEnrollments = await prisma.programEnrollment.findMany({
+        where: {
+          partnerId: {
+            in: partnerIdsToRemove,
+          },
+        },
+        select: {
+          partnerId: true,
+        },
+      });
+
+      const enrolledPartnerIds = otherProgramEnrollments.map(
+        ({ partnerId }) => partnerId,
+      );
+
+      const removablePartnerIds = partnerIdsToRemove.filter(
+        (partnerId) => !enrolledPartnerIds.includes(partnerId),
+      );
+
+      if (removablePartnerIds.length > 0) {
+        console.log("Removing partners", removablePartnerIds);
+
+        await prisma.partner.deleteMany({
+          where: {
+            id: {
+              in: removablePartnerIds,
+            },
+          },
+        });
+      }
     }
 
     start += PARTNER_IDS_PER_BATCH;
