@@ -49,7 +49,6 @@ const commissionWebhookEventSchemaExtended = CommissionEnrichedSchema.extend({
       .string()
       .transform((str) => (str ? new Date(str) : null))
       .nullable(),
-    createdAt: z.string().transform((str) => new Date(str)),
   }),
   customer: customerSchemaExtended,
 });
