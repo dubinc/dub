@@ -57,14 +57,6 @@ export async function cleanupPartners({ programId }: { programId: string }) {
             },
           },
         });
-
-        await tx.partner.deleteMany({
-          where: {
-            id: {
-              in: partnerIdsToRemove,
-            },
-          },
-        });
       });
     }
 
