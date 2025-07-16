@@ -14,9 +14,7 @@ export type TProcessedQRData = {
   styles: Options;
   frameOptions: FrameOptions;
   qrType: EQRType;
-  file?: string | null;
-  fileName?: string | null;
-  fileSize?: number | null;
+  fileId?: string;
 };
 
 export const prepareRegistrationQrData = async (
@@ -29,7 +27,7 @@ export const prepareRegistrationQrData = async (
 
   const files = getFiles();
   if (!files || files.length === 0) {
-    return { ...qrDataToCreate, file: null };
+    return { ...qrDataToCreate };
   }
 
   try {
@@ -57,14 +55,14 @@ export const prepareRegistrationQrData = async (
     console.log("response from files handler", response);
     return {
       ...qrDataToCreate,
-      file: fileId || null,
+      fileId,
     };
   } catch (error) {
     console.error("Error uploading file:", error);
     const errorMessage = "Failed to upload file. Please try again.";
     onError?.(errorMessage);
 
-    return { ...qrDataToCreate, file: null };
+    return { ...qrDataToCreate };
   } finally {
     onUploadEnd?.();
   }
