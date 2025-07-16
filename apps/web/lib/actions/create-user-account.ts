@@ -102,15 +102,25 @@ export const createUserAccountAction = actionClient
     const trialEndsAt = new Date(createdAt);
     trialEndsAt.setDate(trialEndsAt.getDate() + 10);
 
-    await prisma.user.create({
-      data: {
-        id: generatedUserId,
-        email,
-        passwordHash: await hashPassword(password),
-        emailVerified: new Date(),
-        trialEndsAt,
-      },
-    });
+    console.log('generatedUserId', generatedUserId);
+    console.log(qrDataToCreate);
+
+    try {
+      await prisma.user.create({
+        data: {
+          id: generatedUserId,
+          email,
+          passwordHash: await hashPassword(password),
+          emailVerified: new Date(),
+          trialEndsAt,
+        },
+      });
+    } catch (error) {
+      console.error('Error creating user', error);
+      throw new Error('Failed to create user');
+    }
+
+    console.log('here');
 
     // @CUSTOM_FEATURE: creation of a workspace immediately after registration to skip onboarding
     const workspaceResponse = await createWorkspaceForUser({
