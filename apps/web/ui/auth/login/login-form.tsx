@@ -14,7 +14,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { EmailSignIn } from "./email-sign-in";
-import { GoogleButton } from "./google-button";
+import { GoogleLoginButton } from "./google-button";
 
 export const authMethods = [
   "google",
@@ -66,11 +66,13 @@ export const LoginFormContext = createContext<{
 });
 
 export default function LoginForm({
+  sessionId,
   methods = [...authMethods],
   redirectTo,
   authModal,
   setAuthModalMessage,
 }: {
+  sessionId: string;
   methods?: AuthMethod[];
   redirectTo?: string;
   authModal?: boolean;
@@ -122,7 +124,7 @@ export default function LoginForm({
   }[] = [
     {
       method: "google",
-      component: GoogleButton,
+      component: () => <GoogleLoginButton sessionId={sessionId} />,
     },
     // {
     //   method: "github",
@@ -130,7 +132,7 @@ export default function LoginForm({
     // },
     {
       method: "email",
-      component: EmailSignIn,
+      component: () => <EmailSignIn sessionId={sessionId} />,
       props: { redirectTo, authModal, setAuthModalMessage },
     },
     // {

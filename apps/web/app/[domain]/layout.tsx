@@ -13,14 +13,18 @@
 
 import { Footer } from "@/ui/landing/components/footer";
 import { Header } from "@/ui/landing/components/header.tsx";
-import { ReactNode } from "react";
+import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 
-export default function Layout({ children }: { children: ReactNode }) {
+const Layout = async ({ children }) => {
+  const { sessionId } = await getUserCookieService();
+
   return (
     <div className="flex min-h-screen flex-col bg-neutral-50/80">
-      <Header />
+      <Header sessionId={sessionId!} />
       {children}
-      <Footer />
+      <Footer sessionId={sessionId!} />
     </div>
   );
-}
+};
+
+export default Layout;

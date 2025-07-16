@@ -1,13 +1,17 @@
 import { LoginContent } from "@/ui/auth/login/login-content.tsx";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import { APP_DOMAIN, constructMetadata } from "@dub/utils";
+import { NextPage } from "next";
+import { getUserCookieService } from "../../../../core/services/cookie/user-session.service.ts";
 
 export const metadata = constructMetadata({
   title: `Log in to ${process.env.NEXT_PUBLIC_APP_NAME}`,
   canonicalUrl: `${APP_DOMAIN}/login`,
 });
 
-export default function LoginPage() {
+const LoginPage: NextPage = async () => {
+  const { sessionId } = await getUserCookieService();
+
   return (
     <AuthLayout>
       {/*<div className="border-border-500 w-full max-w-md overflow-hidden border-y sm:rounded-2xl sm:border sm:shadow-sm">*/}
@@ -29,7 +33,9 @@ export default function LoginPage() {
       {/*    Sign up*/}
       {/*  </Link>*/}
       {/*</p>*/}
-      <LoginContent />
+      <LoginContent sessionId={sessionId!} />
     </AuthLayout>
   );
-}
+};
+
+export default LoginPage;

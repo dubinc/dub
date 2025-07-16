@@ -10,13 +10,11 @@ import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.i
 import { LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { ComponentPropsWithoutRef, ElementType, useState } from "react";
 
 export default function UserDropdown() {
   const { user } = useUser();
   const [openPopover, setOpenPopover] = useState(false);
-  const { slug } = useParams() as { slug?: string };
 
   const handleAvatarClick = () => {
     trackClientEvents({

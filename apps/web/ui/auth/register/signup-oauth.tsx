@@ -13,8 +13,10 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export const SignUpOAuth = ({
+  sessionId,
   methods,
 }: {
+  sessionId: string;
   methods: ("email" | "google" | "github")[];
 }) => {
   const searchParams = useSearchParams();
@@ -78,6 +80,7 @@ export const SignUpOAuth = ({
                 content_value: "google",
                 event_category: "unAuthorized",
               },
+              sessionId,
             });
 
             trackClientEvents({
@@ -86,6 +89,7 @@ export const SignUpOAuth = ({
                 method: "google",
                 event_category: "unAuthorized",
               },
+              sessionId,
             });
             setClickedGoogle(true);
 

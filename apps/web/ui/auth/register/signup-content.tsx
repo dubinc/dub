@@ -11,13 +11,14 @@ import { SignUpForm } from "./signup-form";
 import { VerifyEmailForm } from "./verify-email-form";
 
 type SignUpContentProps = {
+  sessionId: string;
   authModal?: boolean;
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
   onStepChange?: (step: ERegistrationStep) => void;
   switchAuthType?: (type: AuthType) => void;
 };
 
-function SignUpStep({ authModal = false }) {
+function SignUpStep({ sessionId, authModal = false }) {
   return (
     <>
       <motion.div
@@ -46,13 +47,13 @@ function SignUpStep({ authModal = false }) {
           "px-0 py-0 sm:px-0": authModal,
         })}
       >
-        <SignUpForm authModal={authModal} />
+        <SignUpForm sessionId={sessionId} authModal={authModal} />
       </motion.div>
     </>
   );
 }
 
-function VerifyStep({ authModal = false, setAuthModalMessage }) {
+function VerifyStep({ sessionId, authModal = false, setAuthModalMessage }) {
   const { email } = useRegisterContext();
 
   return (
@@ -85,6 +86,7 @@ function VerifyStep({ authModal = false, setAuthModalMessage }) {
         })}
       >
         <VerifyEmailForm
+          sessionId={sessionId}
           authModal={authModal}
           setAuthModalMessage={setAuthModalMessage}
         />
@@ -94,6 +96,7 @@ function VerifyStep({ authModal = false, setAuthModalMessage }) {
 }
 
 function RegisterContent({
+  sessionId,
   authModal = false,
   setAuthModalMessage,
   onStepChange,
@@ -119,9 +122,10 @@ function RegisterContent({
         })}
       >
         {step === ERegistrationStep.SIGNUP ? (
-          <SignUpStep authModal={authModal} />
+          <SignUpStep authModal={authModal} sessionId={sessionId} />
         ) : (
           <VerifyStep
+            sessionId={sessionId}
             authModal={authModal}
             setAuthModalMessage={setAuthModalMessage}
           />
@@ -150,6 +154,7 @@ function RegisterContent({
 }
 
 export function SignUpContent({
+  sessionId,
   authModal = false,
   setAuthModalMessage,
   onStepChange,
@@ -158,6 +163,7 @@ export function SignUpContent({
   return (
     <RegisterProvider>
       <RegisterContent
+        sessionId={sessionId}
         authModal={authModal}
         setAuthModalMessage={setAuthModalMessage}
         onStepChange={onStepChange}

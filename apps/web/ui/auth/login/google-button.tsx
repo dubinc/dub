@@ -4,10 +4,16 @@ import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import { FC, useContext } from "react";
 import { LoginFormContext } from "./login-form";
 
-export function GoogleButton() {
+interface IGoogleButtonProps {
+  sessionId: string;
+}
+
+export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
+  sessionId,
+}) => {
   const searchParams = useSearchParams();
   // const router = useRouter();
   const next = searchParams?.get("next");
@@ -27,6 +33,7 @@ export function GoogleButton() {
             content_value: "google",
             event_category: "unAuthorized",
           },
+          sessionId,
         });
 
         trackClientEvents({
@@ -35,6 +42,7 @@ export function GoogleButton() {
             method: "google",
             event_category: "unAuthorized",
           },
+          sessionId,
         });
         setClickedMethod("google");
         setLastUsedAuthMethod("google");
@@ -45,13 +53,6 @@ export function GoogleButton() {
         });
 
         if (response?.ok) {
-          // trackClientEvents({
-          //   event: EAnalyticEvents.LOGIN_SUCCESS,
-          //   params: {
-          //     method: "google",
-          //     event_category: "Authorized",
-          //   },
-          // });
           // router.push(response.url || next || "/workspaces");
         } else if (response?.error) {
           // Handle error if needed
@@ -65,4 +66,4 @@ export function GoogleButton() {
       className="border-border-500"
     />
   );
-}
+};

@@ -14,10 +14,12 @@ import { QrTabsDetailedImage } from "./components/qr-tabs-detailed-image.tsx";
 import { QrTabsDetailedTitle } from "./components/qr-tabs-detailed-title.tsx";
 
 interface IQrTabsDetailedProps {
+  sessionId: string;
   handleScrollButtonClick: (type: "1" | "2") => void;
 }
 
 export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
+  sessionId,
   handleScrollButtonClick,
 }) => {
   const { isMobile } = useMediaQuery();
@@ -33,6 +35,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
         content_group: "carousel",
         event_category: "unAuthorized",
       },
+      sessionId,
     });
 
     setActiveTab(newActiveTab);

@@ -7,12 +7,14 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 
 type LoginContentProps = {
+  sessionId: string;
   authModal?: boolean;
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
   switchAuthType?: (type: AuthType) => void;
 };
 
 export function LoginContent({
+  sessionId,
   authModal = false,
   setAuthModalMessage,
   switchAuthType,
@@ -49,6 +51,7 @@ export function LoginContent({
           })}
         >
           <LoginForm
+            sessionId={sessionId}
             setAuthModalMessage={setAuthModalMessage}
             authModal={authModal}
           />

@@ -7,8 +7,13 @@ import {
   GENERAL_LINKS,
   LEGAL_LINKS,
 } from "app/[domain]/(public)/constants/types";
+import { FC } from "react";
 
-export const Footer = () => (
+interface IFooterProps {
+  sessionId: string;
+}
+
+export const Footer: FC<Readonly<IFooterProps>> = ({ sessionId }) => (
   <footer className="mt-auto w-full">
     <div className="border-t-border-300 bg-primary-100 w-full border-t py-6 lg:py-12">
       <div className="mx-auto flex w-full max-w-7xl flex-col max-[1320px]:px-6 max-md:px-4">
@@ -17,7 +22,7 @@ export const Footer = () => (
             <Logo />
             <SocialMedia />
           </div>
-          <CustomerSupport />
+          <CustomerSupport sessionId={sessionId} />
           <div className="flex flex-col gap-4 max-md:mt-6 md:flex-row md:gap-20">
             <div>
               <Links title="Legal" links={LEGAL_LINKS} />

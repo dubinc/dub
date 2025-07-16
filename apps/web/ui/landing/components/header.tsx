@@ -3,9 +3,14 @@
 import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
 import { Button, Text } from "@radix-ui/themes";
+import { FC } from "react";
 
-export const Header = () => {
-  const { AuthModal, showModal } = useAuthModal();
+interface IHeaderProps {
+  sessionId: string;
+}
+
+export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
+  const { AuthModal, showModal } = useAuthModal({ sessionId });
 
   return (
     <>
