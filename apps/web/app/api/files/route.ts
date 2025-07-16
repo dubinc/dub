@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(FileSchema.parse(file));
+    return NextResponse.json(file);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
