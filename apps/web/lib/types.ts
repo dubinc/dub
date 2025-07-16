@@ -67,8 +67,8 @@ import {
 import {
   rewardConditionSchema,
   rewardContextSchema,
-  RewardSchema,
-} from "./zod/schemas/rewards";
+} from "./zod/schemas/reward-conditions";
+import { RewardSchema } from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
   trackSaleResponseSchema,
