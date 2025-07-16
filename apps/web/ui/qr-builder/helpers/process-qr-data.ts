@@ -39,21 +39,25 @@ export const prepareRegistrationQrData = async (
     const formData = new FormData();
     formData.append("file", firstFile);
 
-    const response = await fetch("/api/qrs/upload", {
+    console.log('files handler url', process.env.NEXT_PUBLIC_FILES_HANDLER_URL);
+
+    const response = await fetch(process.env.NEXT_PUBLIC_FILES_HANDLER_URL!, {
       method: "POST",
       body: formData,
     });
 
     if (!response.ok) {
+      console.error("Failed to upload file", response);
       throw new Error("Failed to upload file");
     }
 
-    const { fileId } = await response.json();
+    const respData = await response.json();
+    const { file: { id: fileId } } = respData;
+
+    console.log("response from files handler", response);
     return {
       ...qrDataToCreate,
-      file: fileId,
-      fileName: firstFile.name,
-      fileSize: firstFile.size,
+      file: fileId || null,
     };
   } catch (error) {
     console.error("Error uploading file:", error);

@@ -37,15 +37,7 @@ const qrDataToCreateSchema = z.object({
     "app",
     "feedback",
   ]),
-  file: z.string().nullish().describe("The file ID for the uploaded content"),
-  fileName: z
-    .string()
-    .nullish()
-    .describe("The original name of the uploaded file"),
-  fileSize: z
-    .number()
-    .nullish()
-    .describe("The original size of the uploaded file"),
+  fileId: z.string().optional().describe("The file the link leads to"),
 });
 
 const schema = signUpSchema.extend({
@@ -128,8 +120,8 @@ export const createUserAccountAction = actionClient
     });
 
     if (qrDataToCreate) {
-      const linkUrl = qrDataToCreate?.file
-        ? `${R2_URL}/qrs-content/${qrDataToCreate.file}`
+      const linkUrl = qrDataToCreate?.fileId
+        ? `${R2_URL}/qrs-content/${qrDataToCreate.fileId}`
         : (qrDataToCreate!.styles!.data! as string);
 
       const { createdQr } = await createQrWithLinkUniversal({
@@ -140,9 +132,7 @@ export const createUserAccountAction = actionClient
           description: undefined,
           styles: qrDataToCreate.styles,
           frameOptions: qrDataToCreate.frameOptions,
-          file: qrDataToCreate.file,
-          fileName: qrDataToCreate.fileName,
-          fileSize: qrDataToCreate.fileSize,
+          fileId: qrDataToCreate.fileId,
           link: {
             url: linkUrl,
           },
@@ -155,8 +145,6 @@ export const createUserAccountAction = actionClient
           "id" | "plan" | "flags"
         >,
         userId: generatedUserId,
-        fileId: qrDataToCreate.file || undefined,
-        homePageDemo: true,
       });
 
       CustomerIOClient.identify(generatedUserId, {

@@ -63,8 +63,8 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       if (qrDataCookie) {
         try {
           const qrDataToCreate = JSON.parse(qrDataCookie);
-          const linkUrl = qrDataToCreate?.file
-            ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.file}`
+          const linkUrl = qrDataToCreate?.fileId
+            ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.fileId}`
             : qrDataToCreate.styles?.data;
 
           await createQrWithLinkUniversal({
@@ -74,16 +74,12 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
               title: qrDataToCreate.title,
               styles: qrDataToCreate.styles,
               frameOptions: qrDataToCreate.frameOptions,
-              file: qrDataToCreate.file,
-              fileName: qrDataToCreate.fileName,
-              fileSize: qrDataToCreate.fileSize,
+              fileId: qrDataToCreate.fileId,
               link: { url: linkUrl },
             },
             linkData: { url: linkUrl },
             workspace: workspace as any,
             userId: generatedUserId,
-            fileId: qrDataToCreate.file,
-            homePageDemo: true,
           });
         } catch (error) {
           console.error("Error processing QR data from cookie:", error);

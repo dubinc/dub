@@ -1,0 +1,11 @@
+model File {
+  id              String     @id @default(cuid())
+  name            String?
+  size            Int?        // Original file size in bytes
+  extension       String?
+
+  qrs             Qr[]
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}

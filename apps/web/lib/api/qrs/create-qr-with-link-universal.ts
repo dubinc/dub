@@ -24,8 +24,6 @@ export async function createQrWithLinkUniversal({
   linkData,
   workspace,
   userId,
-  fileId,
-  homePageDemo = false,
   onLinkCreated,
 }: CreateQrWithLinkOptions) {
   const { link, error, code } = await processLink({
@@ -53,8 +51,6 @@ export async function createQrWithLinkUniversal({
       createdLink.shortLink,
       createdLink.id,
       createdLink.userId,
-      fileId || null,
-      homePageDemo,
     );
 
     return { createdLink, createdQr };

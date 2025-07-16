@@ -1,8 +1,6 @@
 import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { processLink, updateLink } from "@/lib/api/links";
-import { linkCache } from "@/lib/api/links/cache";
-import { includeTags } from "@/lib/api/links/include-tags.ts";
 import { deleteQr } from '@/lib/api/qrs/delete-qr';
 import { getQr } from "@/lib/api/qrs/get-qr";
 import { updateQr } from "@/lib/api/qrs/update-qr";
@@ -47,14 +45,13 @@ export const PATCH = withWorkspace(
     const body = updateQrBodySchema.parse(await parseRequestBody(req)) || {};
 
     // Create a new fileId only if there is a new file
-    const fileId = body.file ? crypto.randomUUID() : (qr.fileId || null);
 
     try {
       // Define the correct URL for the link
       let linkUrl: string;
-      if (body.file) {
+      if (body.fileId) {
         // There is a new file - use the new URL
-        linkUrl = `${R2_URL}/qrs-content/${fileId}`;
+        linkUrl = `${R2_URL}/qrs-content/${body.fileId}`;
       } else if (qr.fileId) {
         // There is no new file, but there is an existing file - use the existing URL
         linkUrl = `${R2_URL}/qrs-content/${qr.fileId}`;
@@ -100,7 +97,7 @@ export const PATCH = withWorkspace(
         updatedLink: processedLink,
       });
 
-      const updatedQr = await updateQr(params.qrId, body, fileId);
+      const updatedQr = await updateQr(params.qrId, body);
 
       return NextResponse.json(
         { qr: updatedQr },
