@@ -33,7 +33,9 @@ const LoginPage: NextPage = async () => {
       {/*    Sign up*/}
       {/*  </Link>*/}
       {/*</p>*/}
-      <LoginContent sessionId={sessionId} />
+      <LoginContent sessionId={sessionId!} />
     </AuthLayout>
   );
 };
+
+export default LoginPage;
