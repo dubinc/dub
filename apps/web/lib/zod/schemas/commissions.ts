@@ -4,7 +4,6 @@ import { z } from "zod";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
-import { ProgramEnrollmentSchema } from "./programs";
 import { parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
@@ -30,11 +29,14 @@ export const CommissionSchema = z.object({
 // Represents the commission object used in webhook and API responses (/api/commissions/**)
 export const CommissionEnrichedSchema = CommissionSchema.merge(
   z.object({
-    partner: PartnerSchema.merge(
-      ProgramEnrollmentSchema.pick({
-        status: true,
-      }),
-    ),
+    partner: PartnerSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      payoutsEnabledAt: true,
+      country: true,
+    }),
     customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
   }),
 );
