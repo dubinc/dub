@@ -13,22 +13,22 @@ export function LayoutSidebar(props: SVGProps<SVGSVGElement>) {
         d="M3 12H21"
         stroke="#2C3345"
         stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M3 18H21"
         stroke="#2C3345"
         stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M3 6H21"
         stroke="#2C3345"
         stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
 

@@ -162,7 +162,7 @@ const Chart = ({ data }) => {
       <polyline
         fill="url(#customGradient)"
         stroke="currentColor"
-        stroke-width="3"
+        strokeWidth="3"
         points={points}
       />
     </svg>

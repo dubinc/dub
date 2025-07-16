@@ -50,7 +50,6 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
         >
           <InputWithLabel
             id={field.id}
-            homePageDemo={homePageDemo}
             initFromPlaceholder={field.initFromPlaceholder}
             tooltip={field.tooltip}
             {...field}
