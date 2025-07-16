@@ -24,9 +24,11 @@ import { useRegisterContext } from "./context";
 import { ResendOtp } from "./resend-otp";
 
 export const VerifyEmailForm = ({
+  sessionId,
   authModal = false,
   setAuthModalMessage,
 }: {
+  sessionId: string;
   authModal?: boolean;
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
 }) => {
@@ -50,6 +52,7 @@ export const VerifyEmailForm = ({
           email,
           event_category: "unAuthorized",
         },
+        sessionId,
       });
 
       showMessage(

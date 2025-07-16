@@ -11,17 +11,21 @@ import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useState } from "react";
+import { FC, useContext, useState } from "react";
 import { errorCodes, LoginFormContext } from "./login-form";
 
-export const EmailSignIn = ({
-  redirectTo,
-  authModal,
-  setAuthModalMessage,
-}: {
+interface IEmailSignInProps {
+  sessionId: string;
   redirectTo?: string;
   authModal?: boolean;
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
+}
+
+export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
+  sessionId,
+  redirectTo,
+  authModal,
+  setAuthModalMessage,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,6 +64,7 @@ export const EmailSignIn = ({
               content_value: "email",
               event_category: "unAuthorized",
             },
+            sessionId,
           });
 
           trackClientEvents({
@@ -69,6 +74,7 @@ export const EmailSignIn = ({
               email: email,
               event_category: "unAuthorized",
             },
+            sessionId,
           });
 
           // Check if the user can enter a password, and if so display the field
@@ -177,6 +183,7 @@ export const EmailSignIn = ({
                 email: email,
                 event_category: "Authorized",
               },
+              sessionId,
             });
             router.push(response?.url || redirectTo || "/workspaces");
           }

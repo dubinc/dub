@@ -16,9 +16,11 @@ import { useRegisterContext } from "./context";
 type SignUpProps = z.infer<typeof signUpSchema>;
 
 export const SignUpEmail = ({
+  sessionId,
   authModal,
   setAuthModalMessage,
 }: {
+  sessionId;
   authModal?: boolean;
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
 }) => {
@@ -63,6 +65,7 @@ export const SignUpEmail = ({
             content_value: "email",
             event_category: "unAuthorized",
           },
+          sessionId,
         });
 
         trackClientEvents({
@@ -72,6 +75,7 @@ export const SignUpEmail = ({
             email: data.email,
             event_category: "unAuthorized",
           },
+          sessionId,
         });
         await executeAsync(data);
       })}

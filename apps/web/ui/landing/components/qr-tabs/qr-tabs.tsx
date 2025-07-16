@@ -6,11 +6,17 @@ import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { Rating } from "@/ui/qr-rating/rating.tsx";
 import { useLocalStorage, useMediaQuery } from "@dub/ui";
-import { forwardRef, useEffect } from "react";
+import { FC, forwardRef, Ref, useEffect } from "react";
 import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
 
-export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
-  const { AuthModal, showModal } = useAuthModal();
+interface IQRTabsProps {
+  sessionId: string;
+}
+
+export const QRTabs: FC<
+  Readonly<IQRTabsProps> & { ref?: Ref<HTMLDivElement> }
+> = forwardRef(({ sessionId }, ref) => {
+  const { AuthModal, showModal } = useAuthModal({ sessionId });
 
   const [, setQrDataToCreate] = useLocalStorage<QRBuilderData | null>(
     `qr-data-to-create`,
@@ -58,7 +64,11 @@ export const QRTabs = forwardRef<HTMLDivElement>((_, ref) => {
       >
         <QrTabsTitle />
 
-        <QrBuilder handleSaveQR={handleSaveQR} homepageDemo />
+        <QrBuilder
+          sessionId={sessionId}
+          handleSaveQR={handleSaveQR}
+          homepageDemo
+        />
 
         <Rating />
 

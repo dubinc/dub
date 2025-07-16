@@ -4,7 +4,7 @@ import { FAQ_ITEMS_HOMEPAGE } from "@/ui/landing/components/faq-section/config.t
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PricingSection } from "@/ui/landing/components/pricing/pricing-plans.tsx";
 import { ReviewsSection } from "@/ui/landing/components/reviews/reviews-section.tsx";
-import { useRef } from "react";
+import { FC, useRef } from "react";
 import { trackClientEvents } from "../../core/integration/analytic";
 import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 import { GetQRFeaturesCardsSection } from "./components/get-qr-features-cards/get-qr-features.tsx";
@@ -12,7 +12,13 @@ import { GetQRInfoCardsSection } from "./components/get-qr-info-cards/get-qr-inf
 import { QrTabsDetailed } from "./components/qr-tabs-detailed/qr-tabs-detailed.tsx";
 import { QRTabs } from "./components/qr-tabs/qr-tabs.tsx";
 
-export const LandingModule = () => {
+interface ILandingModuleProps {
+  sessionId: string;
+}
+
+export const LandingModule: FC<Readonly<ILandingModuleProps>> = ({
+  sessionId,
+}) => {
   const qrGenerationBlockRef = useRef<HTMLDivElement>(null);
 
   const handleScrollButtonClick = (type: "1" | "2") => {
@@ -24,6 +30,7 @@ export const LandingModule = () => {
         element_no: type,
         event_category: "unAuthorized",
       },
+      sessionId,
     });
 
     qrGenerationBlockRef.current?.scrollIntoView({
@@ -34,9 +41,12 @@ export const LandingModule = () => {
 
   return (
     <main className="relative mx-auto min-h-screen w-full pb-6 md:pb-12">
-      <QRTabs ref={qrGenerationBlockRef} />
+      <QRTabs ref={qrGenerationBlockRef} sessionId={sessionId} />
       <GetQRInfoCardsSection />
-      <QrTabsDetailed handleScrollButtonClick={handleScrollButtonClick} />
+      <QrTabsDetailed
+        sessionId={sessionId}
+        handleScrollButtonClick={handleScrollButtonClick}
+      />
       <GetQRFeaturesCardsSection />
       <ReviewsSection />
       <PricingSection handleScrollButtonClick={handleScrollButtonClick} />

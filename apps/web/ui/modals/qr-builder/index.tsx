@@ -88,6 +88,7 @@ export function QRBuilderModal({
       </div>
       <Theme>
         <QrBuilder
+          sessionId={user.id}
           isEdit={!!props}
           props={props}
           user={user}

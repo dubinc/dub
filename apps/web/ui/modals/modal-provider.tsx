@@ -26,11 +26,11 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
+import { AuthType } from "./auth-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useImportRewardfulModal } from "./import-rewardful-modal";
 import { useLinkBuilder } from "./link-builder";
 import { useWelcomeModal } from "./welcome-modal";
-import { AuthType } from "./auth-modal";
 
 export const ModalContext = createContext<{
   setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
@@ -56,15 +56,29 @@ export const ModalContext = createContext<{
   showAuthModal: () => {},
 });
 
-export function ModalProvider({ children }: { children: ReactNode }) {
+export function ModalProvider({
+  sessionId,
+  children,
+}: {
+  sessionId: string;
+  children: ReactNode;
+}) {
   return (
     <Suspense>
-      <ModalProviderClient>{children}</ModalProviderClient>
+      <ModalProviderClient sessionId={sessionId}>
+        {children}
+      </ModalProviderClient>
     </Suspense>
   );
 }
 
-function ModalProviderClient({ children }: { children: ReactNode }) {
+function ModalProviderClient({
+  sessionId,
+  children,
+}: {
+  sessionId: string;
+  children: ReactNode;
+}) {
   const searchParams = useSearchParams();
   const newLinkValues = useMemo(() => {
     const newLink = searchParams.get("newLink");
@@ -104,7 +118,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
   const { setShowImportRewardfulModal, ImportRewardfulModal } =
     useImportRewardfulModal();
-  const { AuthModal, showModal: showAuthModal } = useAuthModal();
+  const { AuthModal, showModal: showAuthModal } = useAuthModal({ sessionId });
 
   useEffect(
     () =>

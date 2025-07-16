@@ -5,6 +5,7 @@ import { SignUpEmail } from "./signup-email";
 import { SignUpOAuth } from "./signup-oauth";
 
 export const SignUpForm = ({
+  sessionId,
   methods = [
     "email",
     "google",
@@ -13,6 +14,7 @@ export const SignUpForm = ({
   authModal,
   setAuthModalMessage,
 }: {
+  sessionId: string;
   methods?: ("email" | "google")[];
   authModal?: boolean;
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
@@ -20,7 +22,7 @@ export const SignUpForm = ({
 }) => {
   return (
     <div className="flex flex-col gap-3">
-      <SignUpOAuth methods={methods} />
+      <SignUpOAuth sessionId={sessionId} methods={methods} />
       {methods.length && (
         <div className="my-2 flex flex-shrink items-center justify-center gap-2">
           <div className="border-border-500 grow basis-0 border-b" />
@@ -32,6 +34,7 @@ export const SignUpForm = ({
       )}
       {methods.includes("email") && (
         <SignUpEmail
+          sessionId={sessionId}
           authModal={authModal}
           setAuthModalMessage={setAuthModalMessage}
         />

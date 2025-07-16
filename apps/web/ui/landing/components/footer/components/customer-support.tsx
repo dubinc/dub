@@ -4,8 +4,15 @@ import HelpPhone from "@/ui/shared/icons/customer-support.tsx";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import Link from "next/link";
+import { FC } from "react";
 
-export const CustomerSupport = () => {
+interface ICustomerSupportProps {
+  sessionId: string;
+}
+
+export const CustomerSupport: FC<Readonly<ICustomerSupportProps>> = ({
+  sessionId,
+}) => {
   const onClickHandler = (contentValue: string) => {
     trackClientEvents({
       event: EAnalyticEvents.PAGE_CLICKED,
@@ -14,6 +21,7 @@ export const CustomerSupport = () => {
         content_value: contentValue,
         event_category: "unAuthorized",
       },
+      sessionId,
     });
   };
 

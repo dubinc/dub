@@ -85,8 +85,6 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
             fileId: qrDataToCreate.file,
             homePageDemo: true,
           });
-
-          cookieStore.delete(ECookieArg.PROCESSED_QR_DATA);
         } catch (error) {
           console.error("Error processing QR data from cookie:", error);
         }

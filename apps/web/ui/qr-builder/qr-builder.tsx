@@ -31,6 +31,7 @@ import { getFiles, setFiles } from "./helpers/file-store.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
 
 interface IQRBuilderProps {
+  sessionId: string;
   props?: QrStorageData;
   user?: UserProps;
   homepageDemo?: boolean;
@@ -50,6 +51,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
   forwardRef(
     (
       {
+        sessionId,
         props,
         user,
         homepageDemo,
@@ -230,7 +232,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               ? { email: user?.email, event_category: "Authorized" }
               : {}),
           },
-          ...(user ? { sessionId: user?.id } : {}),
+          sessionId,
         });
 
         setSelectedQRType(type);
@@ -259,7 +261,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 ? { email: user?.email, event_category: "Authorized" }
                 : {}),
             },
-            ...(user ? { sessionId: user?.id } : {}),
+            sessionId,
           });
 
           onSaveClick();
@@ -279,7 +281,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 ? { email: user?.email, event_category: "Authorized" }
                 : {}),
             },
-            ...(user ? { sessionId: user?.id } : {}),
+            sessionId,
           });
 
           handleNextStep();

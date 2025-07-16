@@ -24,6 +24,7 @@ export type AuthType = "login" | "signup";
 export type MessageType = "success" | "error" | null;
 
 type AuthModalProps = {
+  sessionId: string;
   showAuthModal: boolean;
   setShowAuthModal: Dispatch<SetStateAction<boolean>>;
   authType: AuthType;
@@ -31,6 +32,7 @@ type AuthModalProps = {
 };
 
 export function AuthModal({
+  sessionId,
   showAuthModal,
   setShowAuthModal,
   authType,
@@ -55,6 +57,7 @@ export function AuthModal({
           element_name: authType,
           event_category: "unAuthorized",
         },
+        sessionId,
       });
     }
   }, [showAuthModal, authType]);
@@ -167,6 +170,7 @@ export function AuthModal({
                 >
                   <LoginContent
                     authModal
+                    sessionId={sessionId}
                     setAuthModalMessage={setAuthModalMessage}
                     switchAuthType={switchAuthType}
                   />
@@ -181,6 +185,7 @@ export function AuthModal({
                 >
                   <SignUpContent
                     authModal
+                    sessionId={sessionId}
                     setAuthModalMessage={setAuthModalMessage}
                     onStepChange={updateStep}
                     switchAuthType={switchAuthType}
@@ -202,7 +207,7 @@ export function AuthModal({
   );
 }
 
-export function useAuthModal() {
+export function useAuthModal({ sessionId }: { sessionId: string }) {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authType, setAuthType] = useState<AuthType>("login");
 
@@ -214,13 +219,14 @@ export function useAuthModal() {
   const AuthModalCallback = useCallback(() => {
     return (
       <AuthModal
+        sessionId={sessionId}
         showAuthModal={showAuthModal}
         setShowAuthModal={setShowAuthModal}
         authType={authType}
         setAuthType={setAuthType}
       />
     );
-  }, [showAuthModal, setShowAuthModal, authType, setAuthType]);
+  }, [sessionId, showAuthModal, setShowAuthModal, authType, setAuthType]);
 
   return useMemo(
     () => ({
