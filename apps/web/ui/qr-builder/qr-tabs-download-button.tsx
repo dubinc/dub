@@ -1,4 +1,4 @@
-import { Button } from "@radix-ui/themes";
+import { Button } from "@dub/ui";
 import { FC } from "react";
 
 interface IQrTabsDownloadButtonProps {
@@ -13,13 +13,11 @@ export const QrTabsDownloadButton: FC<IQrTabsDownloadButtonProps> = ({
   return (
     <Button
       size="4"
-      color={"blue"}
-      variant="solid"
-      disabled={isQrDisabled}
+      color="blue"
       className="w-full"
       onClick={onRegistrationClick}
-    >
-      Download QR code
-    </Button>
+      disabled={isQrDisabled}
+      text="Download QR code"
+    />
   );
 };
