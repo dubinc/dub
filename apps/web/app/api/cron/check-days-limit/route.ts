@@ -1,13 +1,11 @@
+import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { NextResponse } from "next/server";
-import { TrackClient } from 'customerio-node';
-import { checkFeaturesAccessAuthLess } from '@/lib/actions/check-features-access-auth-less';
-import { EAnalyticEvents } from 'core/integration/analytic/interfaces/analytic.interface';
-
-const cio = new TrackClient(process.env.CUSTOMER_IO_SITE_ID!, process.env.CUSTOMER_IO_TRACK_API_KEY!);
+import { CustomerIOClient } from "../../../../core/lib/customerio/customerio.config.ts";
 
 /*
     This route is used to check users registered between 10 days 1 hour ago and 10 days ago and send customer.io events.
@@ -22,7 +20,7 @@ async function handler(req: Request) {
     // Calculate the date range for users registered between 10 days 1 hour ago and 10 days ago
     const tenDaysAgo = new Date();
     tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
-    
+
     const tenDaysOneHourAgo = new Date(tenDaysAgo);
     tenDaysOneHourAgo.setHours(tenDaysOneHourAgo.getHours() - 1);
 
@@ -44,7 +42,8 @@ async function handler(req: Request) {
 
     if (users.length === 0) {
       await log({
-        message: "No users found registered between 10 days 1 hour ago and 10 days ago",
+        message:
+          "No users found registered between 10 days 1 hour ago and 10 days ago",
         type: "cron",
       });
       return NextResponse.json({
@@ -60,19 +59,23 @@ async function handler(req: Request) {
           const featuresAccess = await checkFeaturesAccessAuthLess(user.id);
 
           console.log("user", user);
-          
+
           // Get total clicks for all user's links
-          const totalClicksResult = await prisma.$queryRaw<Array<{ totalUserClicks: bigint }>>`
+          const totalClicksResult = await prisma.$queryRaw<
+            Array<{ totalUserClicks: bigint }>
+          >`
             SELECT (SELECT SUM(clicks) FROM Link WHERE userId = ${user.id}) as totalUserClicks
           `;
-          const totalClicks = Number(totalClicksResult[0]?.totalUserClicks || 0);
+          const totalClicks = Number(
+            totalClicksResult[0]?.totalUserClicks || 0,
+          );
 
           console.log("featuresAccess", featuresAccess);
           console.log("totalClicks", totalClicks);
 
           if (!featuresAccess.featuresAccess && totalClicks < 30) {
             // Send the 10-day registration event
-            await cio.track(user.id, {
+            await CustomerIOClient.track(user.id, {
               name: "trial_expired",
               data: {
                 codes: 30,
@@ -80,26 +83,33 @@ async function handler(req: Request) {
             });
 
             // Send Mixpanel event via fetch
-            const mixpanelResponse = await fetch('https://api.mixpanel.com/track', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify([{
-                event: EAnalyticEvents.TRIAL_EXPIRED,
-                properties: {
-                  distinct_id: user.id,
-                  email: user.email,
-                  mixpanel_user_id: user.id,
-                  days: 10,
-                  timestamp: new Date().toISOString(),
-                  token: process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN,
+            const mixpanelResponse = await fetch(
+              "https://api.mixpanel.com/track",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
                 },
-              }]),
-            });
+                body: JSON.stringify([
+                  {
+                    event: EAnalyticEvents.TRIAL_EXPIRED,
+                    properties: {
+                      distinct_id: user.id,
+                      email: user.email,
+                      mixpanel_user_id: user.id,
+                      days: 10,
+                      timestamp: new Date().toISOString(),
+                      token: process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN,
+                    },
+                  },
+                ]),
+              },
+            );
 
             if (!mixpanelResponse.ok) {
-              throw new Error(`Mixpanel request failed: ${mixpanelResponse.status} ${await mixpanelResponse.text()}`);
+              throw new Error(
+                `Mixpanel request failed: ${mixpanelResponse.status} ${await mixpanelResponse.text()}`,
+              );
             }
           }
 
@@ -111,11 +121,17 @@ async function handler(req: Request) {
           });
           return { success: false, userId: user.id, error: error.message };
         }
-      })
+      }),
     );
 
-    const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
-    const failed = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length;
+    const successful = results.filter(
+      (r) => r.status === "fulfilled" && r.value.success,
+    ).length;
+    const failed = results.filter(
+      (r) =>
+        r.status === "rejected" ||
+        (r.status === "fulfilled" && !r.value.success),
+    ).length;
 
     await log({
       message: `Processed ${users.length} users registered between 10 days 1 hour ago and 10 days ago. Successful: ${successful}, Failed: ${failed}`,
@@ -138,4 +154,4 @@ async function handler(req: Request) {
   }
 }
 
-export { handler as GET, handler as POST }; 
+export { handler as GET, handler as POST };

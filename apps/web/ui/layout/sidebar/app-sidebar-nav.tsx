@@ -11,7 +11,6 @@ import {
   ConnectedDots4,
   CubeSettings,
   Gear2,
-  Gift,
   Globe,
   Key,
   Receipt2,
@@ -19,7 +18,8 @@ import {
   Users6,
   Webhook,
 } from "@dub/ui/icons";
-import { Icon } from "@iconify/react";
+import { cn } from "@dub/utils";
+import { Icon, Icon as IconifyIcon } from "@iconify/react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
@@ -265,20 +265,22 @@ const NAV_AREAS: SidebarNavAreas<{
             href: "/account/settings",
             exact: true,
           },
+          {
+            name: "Plans and Payments",
+            icon: ({ className }: { className: string }) => (
+              <IconifyIcon
+                className={cn("h-4 w-4 text-neutral-200", className)}
+                icon="ion:card-outline"
+              />
+            ),
+            href: "/account/plans",
+            exact: true,
+          },
           // {
           //   name: "Security",
           //   icon: ShieldCheck,
           //   href: "/account/settings/security",
           // },
-          ...(session?.user?.["dubPartnerId"]
-            ? [
-                {
-                  name: "Referrals",
-                  icon: Gift,
-                  href: "/account/settings/referrals",
-                },
-              ]
-            : []),
         ],
       },
     ],
@@ -302,7 +304,9 @@ export function AppSidebarNav({
   const { isTrialOver } = useTrialStatus();
 
   const currentArea = useMemo(() => {
-    return pathname.startsWith("/account/settings")
+    return ["/account/settings", "/account/plans"].some((p) =>
+      pathname.startsWith(p),
+    )
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"

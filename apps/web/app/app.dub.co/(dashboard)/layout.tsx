@@ -17,6 +17,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
   const cookieStore = cookies();
 
   const oauthFlowCookie = cookieStore.get(ECookieArg.OAUTH_FLOW)?.value;
+  const parsedOauthFlowInfo = JSON.parse(oauthFlowCookie ?? "{}");
 
   return (
     <TrialStatusProvider>
@@ -36,7 +37,9 @@ export default async function Layout({ children }: { children: ReactNode }) {
         </MainNav>
       </div>
       {!user?.paymentData?.paymentInfo?.sub && <ClientSessionComponent />}
-      {oauthFlowCookie && <OauthTrackerComponent oauthData={oauthFlowCookie} />}
+      {oauthFlowCookie && (
+        <OauthTrackerComponent oauthData={parsedOauthFlowInfo} />
+      )}
     </TrialStatusProvider>
   );
 }

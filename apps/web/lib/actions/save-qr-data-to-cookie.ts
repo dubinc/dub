@@ -40,12 +40,12 @@ export const saveQrDataToCookieAction = actionClient
     const cookieStore = cookies();
 
     try {
-      cookieStore.set("processed-qr-data", JSON.stringify(qrData), {
+      cookieStore.set(ECookieArg.PROCESSED_QR_DATA, JSON.stringify(qrData), {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
-        maxAge: 60 * 60,
-        path: "/",
+        maxAge: 180,
+        // path: "/",
       });
 
       // hack for sessionId receiving in next-auth callback context
@@ -55,7 +55,7 @@ export const saveQrDataToCookieAction = actionClient
           httpOnly: true,
           secure: true,
           sameSite: "lax",
-          path: "/",
+          // path: "/",
         });
       }
       // hack for sessionId receiving in next-auth callback context

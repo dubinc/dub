@@ -22,8 +22,10 @@ export default async function RootLayout({
       <body>
         <Theme>
           <RootProviders>{children}</RootProviders>
+
           <GtmInitializerComponent />
-          {sessionId && <AnalyticInitializerComponent sessionId={sessionId} />}
+
+          <AnalyticInitializerComponent sessionId={sessionId || ""} />
         </Theme>
       </body>
     </html>

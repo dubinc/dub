@@ -116,7 +116,8 @@ export const withSession = (handler: WithSessionHandler) =>
 
         const searchParams = getSearchParams(req.url);
 
-        console.log("withSession session:", session);
+        // TODO: remove this after testing
+        // console.log("withSession session:", session);
 
         return await handler({ req, params, searchParams, session });
       } catch (error) {

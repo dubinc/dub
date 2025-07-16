@@ -8,12 +8,12 @@ import { v4 as uuidv4 } from "uuid";
 import { tokenDecode, tokenEncode } from "./user-session-token.service.ts";
 
 // Common cookie settings
-const getCookieSettings = () => ({
+const getCookieSettings = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
-  path: "/",
-});
+  // path: "/",
+};
 
 // get user cookie
 export const getUserCookieService = async () => {
@@ -56,11 +56,8 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
       paymentInfo: { ...body.paymentInfo, customerId: userId },
     };
 
-    cookieStore.set(
-      ECookieArg.USER,
-      await tokenEncode(user),
-      getCookieSettings(),
-    );
+    const token = await tokenEncode(user);
+    cookieStore.set(ECookieArg.USER, token, getCookieSettings);
 
     return user;
   }
@@ -73,11 +70,8 @@ export const updateUserCookieService = async (body: Partial<ICustomerBody>) => {
     sessions: { ...user.sessions, ...body.sessions },
   };
 
-  cookieStore.set(
-    ECookieArg.USER,
-    await tokenEncode(user),
-    getCookieSettings(),
-  );
+  const token = await tokenEncode(user);
+  cookieStore.set(ECookieArg.USER, token, getCookieSettings);
 
   return user;
 };
