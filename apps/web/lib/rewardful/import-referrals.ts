@@ -123,15 +123,31 @@ async function createReferral({
     return;
   }
 
-  const customerFound = await prisma.customer.findUnique({
+  const customerFoundStripeId = await prisma.customer.findUnique({
     where: {
       stripeCustomerId: referral.stripe_customer_id,
     },
   });
 
-  if (customerFound) {
+  if (customerFoundStripeId) {
     console.log(
       `A customer already exists with Stripe customer ID ${referral.stripe_customer_id}`,
+    );
+    return;
+  }
+
+  const customerFoundExternalId = await prisma.customer.findUnique({
+    where: {
+      projectId_externalId: {
+        projectId: workspace.id,
+        externalId: referral.customer.id,
+      },
+    },
+  });
+
+  if (customerFoundExternalId) {
+    console.log(
+      `A customer already exists with external ID ${referral.customer.id}`,
     );
     return;
   }
@@ -166,28 +182,28 @@ async function createReferral({
 
   const customerId = createId({ prefix: "cus_" });
 
-  await Promise.all([
-    prisma.customer.create({
-      data: {
-        id: customerId,
-        name:
-          // if name is null/undefined or starts with cus_, use email as name
-          !referral.customer.name || referral.customer.name.startsWith("cus_")
-            ? referral.customer.email
-            : referral.customer.name,
-        email: referral.customer.email,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-        clickId: clickEvent.click_id,
-        linkId: link.id,
-        country: clickEvent.country,
-        clickedAt: new Date(referral.created_at),
-        createdAt: new Date(referral.became_lead_at),
-        externalId: referral.customer.id,
-        stripeCustomerId: referral.stripe_customer_id,
-      },
-    }),
+  await prisma.customer.create({
+    data: {
+      id: customerId,
+      name:
+        // if name is null/undefined or starts with cus_, use email as name
+        !referral.customer.name || referral.customer.name.startsWith("cus_")
+          ? referral.customer.email
+          : referral.customer.name,
+      email: referral.customer.email,
+      projectId: workspace.id,
+      projectConnectId: workspace.stripeConnectId,
+      clickId: clickEvent.click_id,
+      linkId: link.id,
+      country: clickEvent.country,
+      clickedAt: new Date(referral.created_at),
+      createdAt: new Date(referral.became_lead_at),
+      externalId: referral.customer.id,
+      stripeCustomerId: referral.stripe_customer_id,
+    },
+  });
 
+  await Promise.all([
     recordLeadWithTimestamp({
       ...clickEvent,
       event_id: nanoid(16),
