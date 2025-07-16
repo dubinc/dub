@@ -596,7 +596,7 @@ export const authOptions: NextAuthOptions = {
               }),
               {
                 httpOnly: true,
-                maxAge: 60,
+                maxAge: 30,
               },
             );
 
@@ -638,7 +638,7 @@ export const authOptions: NextAuthOptions = {
               }),
               {
                 httpOnly: true,
-                maxAge: 60,
+                maxAge: 30,
               },
             );
           }
