@@ -83,6 +83,7 @@ export const createUserAccountAction = actionClient
       throw new Error("Invalid verification code entered.");
     }
 
+    // ToDo: add to prisma tx
     await prisma.emailVerificationToken.delete({
       where: {
         identifier: email,
@@ -90,11 +91,13 @@ export const createUserAccountAction = actionClient
       },
     });
 
+    // ToDo: replace user creation
     const user = await prisma.user.findUnique({
       where: {
         email,
       },
     });
+    // ToDo: add to prisma tx
 
     if (user) {
       throw new Error("User with this email already exists");
@@ -156,11 +159,11 @@ export const createUserAccountAction = actionClient
         homePageDemo: true,
       });
 
-      await CustomerIOClient.identify(generatedUserId, {
+      CustomerIOClient.identify(generatedUserId, {
         email,
-      });
+      }).finally();
 
-      await sendEmail({
+      sendEmail({
         email: email,
         subject: "Welcome to GetQR",
         template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
@@ -170,6 +173,6 @@ export const createUserAccountAction = actionClient
           url: HOME_DOMAIN,
         },
         customerId: generatedUserId,
-      });
+      }).finally();
     }
   });
