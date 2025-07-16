@@ -39,12 +39,15 @@ export const prepareRegistrationQrData = async (
     const formData = new FormData();
     formData.append("file", firstFile);
 
+    console.log('files handler url', process.env.NEXT_PUBLIC_FILES_HANDLER_URL);
+
     const response = await fetch(process.env.NEXT_PUBLIC_FILES_HANDLER_URL!, {
       method: "POST",
       body: formData,
     });
 
     if (!response.ok) {
+      console.error("Failed to upload file", response);
       throw new Error("Failed to upload file");
     }
 
