@@ -40,7 +40,6 @@ export const GET = async (req: Request) => {
     }
 
     const searchParams = getSearchParams(req.url);
-    console.log("[Singular] Postback received", searchParams);
 
     const { dub_token: token, dub_workspace_id: workspaceId } =
       authSchema.parse(searchParams);
