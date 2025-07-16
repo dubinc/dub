@@ -38,9 +38,4 @@ export type QRUpdateResult = {
     files: boolean;
   };
   updateData: UpdateQrProps;
-  existingFileInfo?: {
-    fileId: string | null;
-    fileName: string | null;
-    fileSize: number | null;
-  };
 };
