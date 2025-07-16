@@ -27,13 +27,9 @@ export default async function AppMiddleware(
     req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
   // Initialize session ID for authenticated users
-  let sessionCookie = "";
+  let sessionInit: ReturnType<typeof userSessionIdInit> | null = null;
   if (user) {
-    const sessionInit = userSessionIdInit(req, user.id);
-    if (sessionInit.needsUpdate) {
-      // sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict;`;
-      sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; HttpOnly; Secure; SameSite=Lax;`;
-    }
+    sessionInit = userSessionIdInit(req, user.id);
   }
 
   // if there's no user and the path isn't /login or /register, redirect to /login
@@ -46,18 +42,31 @@ export default async function AppMiddleware(
     !path.startsWith("/auth/reset-password/") &&
     !path.startsWith("/share/")
   ) {
-    const cookies = [`country=${country}; Secure; SameSite=Lax;`];
-    if (sessionCookie) {
-      cookies.push(sessionCookie);
-    }
-
-    return NextResponse.rewrite(
+    const response = NextResponse.rewrite(
       new URL(
         `/login${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
         req.url,
       ),
-      { headers: { "Set-Cookie": cookies.join(", ") } },
     );
+
+    // Set country cookie
+    if (country) {
+      response.cookies.set("country", country, {
+        secure: true,
+        sameSite: "lax",
+      });
+    }
+
+    // Set session cookie if needed
+    if (sessionInit?.needsUpdate) {
+      response.cookies.set(sessionInit.cookieName, sessionInit.sessionId, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+      });
+    }
+
+    return response;
 
     // if there's a user
   } else if (user) {
@@ -124,12 +133,25 @@ export default async function AppMiddleware(
   }
 
   // otherwise, rewrite the path to /app
-  const finalCookies = [`country=${country}; Secure; SameSite=Lax;`];
-  if (sessionCookie) {
-    finalCookies.push(sessionCookie);
+  const response = NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
+
+  // Set country cookie
+  if (country) {
+    response.cookies.set("country", country, {
+      secure: true,
+      sameSite: "lax",
+    });
   }
 
-  return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url), {
-    headers: { "Set-Cookie": finalCookies.join(", ") },
-  });
+  // Set session cookie if needed
+  if (sessionInit?.needsUpdate) {
+    response.cookies.set(sessionInit.cookieName, sessionInit.sessionId, {
+      path: "/",
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+    });
+  }
+
+  return response;
 }

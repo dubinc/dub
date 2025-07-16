@@ -69,17 +69,26 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
       }
     }
 
-    // const cookies = [`country=${country}; Path=/; Secure; SameSite=Strict;`];
-    const cookies = [`country=${country}; Secure; SameSite=Lax;`];
-    if (sessionCookie) {
-      cookies.push(sessionCookie);
+    const response = NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
+    
+    // Set country cookie
+    if (country) {
+      response.cookies.set("country", country, {
+        secure: true,
+        sameSite: "lax",
+      });
+    }
+    
+    // Set session cookie if needed
+    if (sessionInit.needsUpdate) {
+      response.cookies.set(sessionInit.cookieName, sessionInit.sessionId, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+      });
     }
 
-    return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url), {
-      headers: {
-        "Set-Cookie": cookies.join(", "),
-      },
-    });
+    return response;
   }
 
   // for App
