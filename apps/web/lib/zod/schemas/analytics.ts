@@ -287,6 +287,7 @@ export const analyticsFilterTB = z
       tenantId: true,
       folderId: true,
       sortBy: true,
+      metadata: true,
     }),
   );
 
