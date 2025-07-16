@@ -11,6 +11,8 @@ interface IPlansPageProps {
   params: { slug: string };
 }
 
+export const revalidate = 0;
+
 const PlansPage: NextPage<Readonly<IPlansPageProps>> = async ({ params }) => {
   const { user: cookieUser } = await getUserCookieService();
   const { user: authUser } = await getSession();
@@ -18,8 +20,6 @@ const PlansPage: NextPage<Readonly<IPlansPageProps>> = async ({ params }) => {
   const user = authUser.paymentData
     ? convertSessionUserToCustomerBody(authUser)
     : cookieUser;
-
-  console.log("PlansPage user: ", user);
 
   return (
     <Suspense fallback={<LayoutLoader />}>

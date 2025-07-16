@@ -46,17 +46,17 @@ export const saveQrDataToCookieAction = actionClient
         // path: "/",
       });
 
-      // hack for sessionId receiving in next-auth callback context
-      const sessionId = cookieStore.get(ECookieArg.SESSION_ID)?.value;
-      if (sessionId) {
-        cookieStore.set(ECookieArg.SESSION_ID, sessionId, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "lax",
-          // path: "/",
-        });
-      }
-      // hack for sessionId receiving in next-auth callback context
+      // // hack for sessionId receiving in next-auth callback context
+      // const sessionId = cookieStore.get(ECookieArg.SESSION_ID)?.value;
+      // if (sessionId) {
+      //   cookieStore.set(ECookieArg.SESSION_ID, sessionId, {
+      //     httpOnly: true,
+      //     secure: true,
+      //     sameSite: "lax",
+      //     // path: "/",
+      //   });
+      // }
+      // // hack for sessionId receiving in next-auth callback context
 
       return { success: true };
     } catch (error) {
