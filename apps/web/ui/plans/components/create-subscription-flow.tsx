@@ -51,7 +51,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
         content_value: paymentMethodType,
         event_category: "Authorized",
       },
-      sessionId: user.id,
+      sessionId: user?.id,
     });
   };
 
@@ -69,7 +69,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
         element_name: paymentMethodType,
         event_category: "Authorized",
       },
-      sessionId: user.id,
+      sessionId: user?.id,
     });
   };
 
@@ -81,7 +81,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
         content_value: "card",
         event_category: "Authorized",
       },
-      sessionId: user.id,
+      sessionId: user?.id,
     });
     trackClientEvents({
       event: EAnalyticEvents.ELEMENT_OPENED,
@@ -90,7 +90,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
         element_name: "CardDetails",
         event_category: "Authorized",
       },
-      sessionId: user.id,
+      sessionId: user?.id,
     });
   };
 
