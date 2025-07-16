@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { createId, parseRequestBody } from "@/lib/api/utils";
-import { createFileBodySchema, FileSchema } from "@/lib/zod/schemas/files";
+import { createFileBodySchema } from "@/lib/zod/schemas/files";
 import { prisma } from "@dub/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(FileSchema.parse(file));
+    return NextResponse.json(file);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
