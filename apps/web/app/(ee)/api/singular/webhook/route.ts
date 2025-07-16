@@ -27,7 +27,7 @@ const authSchema = z.object({
     .describe(" Unique to identify the advertiser."),
 });
 
-const singularToken = process.env.SINGULAR_TOKEN;
+const singularToken = process.env.SINGULAR_WEBHOOK_TOKEN;
 
 // GET /api/singular/webhook – listen to Postback events from Singular
 export const GET = async (req: Request) => {
@@ -35,7 +35,8 @@ export const GET = async (req: Request) => {
     if (!singularToken) {
       throw new DubApiError({
         code: "bad_request",
-        message: "SINGULAR_TOKEN is not set in the environment variables.",
+        message:
+          "SINGULAR_WEBHOOK_TOKEN is not set in the environment variables.",
       });
     }
 
