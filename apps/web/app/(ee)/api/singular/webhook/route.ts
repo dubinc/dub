@@ -1,8 +1,10 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { trackSingularLeadEvent } from "@/lib/integrations/singular/track-lead";
 import { trackSingularSaleEvent } from "@/lib/integrations/singular/track-sale";
+import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const singularToDubEvent = {
   sng_complete_registration: "lead",
@@ -14,12 +16,59 @@ const singularToDubEvent = {
 
 const supportedEvents = Object.keys(singularToDubEvent);
 
+const authSchema = z.object({
+  dub_token: z
+    .string()
+    .min(1)
+    .describe("Global token to identify Singular events."),
+  dub_workspace_id: z
+    .string()
+    .min(1)
+    .describe(" Unique to identify the advertiser."),
+});
+
+const singularToken = process.env.SINGULAR_TOKEN;
+
 // GET /api/singular/webhook – listen to Postback events from Singular
 export const GET = async (req: Request) => {
   try {
-    const searchParams = getSearchParams(req.url);
+    if (!singularToken) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "SINGULAR_TOKEN is not set in the environment variables.",
+      });
+    }
 
+    const searchParams = getSearchParams(req.url);
     console.log("[Singular] Postback received", searchParams);
+
+    const { dub_token: token, dub_workspace_id: workspaceId } =
+      authSchema.parse(searchParams);
+
+    if (token !== singularToken) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Invalid token.",
+      });
+    }
+
+    const workspace = await prisma.project.findUnique({
+      where: {
+        id: workspaceId,
+      },
+      select: {
+        id: true,
+        stripeConnectId: true,
+        webhookEnabled: true,
+      },
+    });
+
+    if (!workspace) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Workspace ${workspaceId} not found.`,
+      });
+    }
 
     const { event_name: eventName } = searchParams;
 
@@ -33,9 +82,15 @@ export const GET = async (req: Request) => {
     const dubEvent = singularToDubEvent[eventName];
 
     if (dubEvent === "lead") {
-      await trackSingularLeadEvent(searchParams);
+      await trackSingularLeadEvent({
+        searchParams,
+        workspace,
+      });
     } else if (dubEvent === "sale") {
-      await trackSingularSaleEvent(searchParams);
+      await trackSingularSaleEvent({
+        searchParams,
+        workspace,
+      });
     } else {
       throw new DubApiError({
         code: "bad_request",

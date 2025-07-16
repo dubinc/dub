@@ -1,6 +1,6 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
+import { WorkspaceProps } from "@/lib/types";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
-import { prisma } from "@dub/prisma";
 import { z } from "zod";
 
 const singularLeadEventSchema = z.object({
@@ -27,11 +27,13 @@ const singularLeadEventSchema = z.object({
     ),
 });
 
-export const trackSingularLeadEvent = async (
-  searchParams: Record<string, string>,
-) => {
-  console.log("[Singular] Lead event received", searchParams);
-
+export const trackSingularLeadEvent = async ({
+  searchParams,
+  workspace,
+}: {
+  searchParams: Record<string, string>;
+  workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
+}) => {
   const {
     dub_id: clickId,
     event_name: eventName,
@@ -44,20 +46,6 @@ export const trackSingularLeadEvent = async (
       mode,
     },
   } = singularLeadEventSchema.parse(searchParams);
-
-  // TODO: Fix this
-  const workspaceId = "clrei1gld0002vs9mzn93p8ik";
-
-  const workspace = await prisma.project.findUniqueOrThrow({
-    where: {
-      id: workspaceId,
-    },
-    select: {
-      id: true,
-      stripeConnectId: true,
-      webhookEnabled: true,
-    },
-  });
 
   return await trackLead({
     clickId,
