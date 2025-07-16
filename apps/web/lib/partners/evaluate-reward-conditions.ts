@@ -1,28 +1,28 @@
 import { Prisma } from "@dub/prisma/client";
 import { RewardCondition, RewardContext } from "../types";
-import { rewardModifierSchema } from "../zod/schemas/rewards";
+import { rewardConditionsSchema } from "../zod/schemas/reward-conditions";
 
-export const evaluateRewardRules = ({
-  modifier,
+export const evaluateRewardConditions = ({
+  conditions,
   context,
 }: {
-  modifier: Prisma.JsonValue;
+  conditions: Prisma.JsonValue;
   context: RewardContext;
 }) => {
-  if (!modifier || !context) {
+  if (!conditions || !context) {
     return null;
   }
 
-  const parsedModifier = rewardModifierSchema.parse(modifier);
+  const parsedConditions = rewardConditionsSchema.parse(conditions);
 
   // Evaluate each condition
-  const conditionResults = parsedModifier.conditions.map((condition) => {
+  const conditionResults = parsedConditions.conditions.map((condition) => {
     let fieldValue = undefined;
 
-    if (condition.type === "customer") {
-      fieldValue = context.customer?.[condition.field];
-    } else if (condition.type === "sale") {
-      fieldValue = context.sale?.[condition.field];
+    if (condition.entity === "customer") {
+      fieldValue = context.customer?.[condition.attribute];
+    } else if (condition.entity === "sale") {
+      fieldValue = context.sale?.[condition.attribute];
     }
 
     if (fieldValue === undefined) {
@@ -37,13 +37,13 @@ export const evaluateRewardRules = ({
 
   // Apply the operator logic to the condition results
   let conditionsMet = false;
-  if (parsedModifier.operator === "AND") {
+  if (parsedConditions.operator === "AND") {
     conditionsMet = conditionResults.every((result) => result);
-  } else if (parsedModifier.operator === "OR") {
+  } else if (parsedConditions.operator === "OR") {
     conditionsMet = conditionResults.some((result) => result);
   }
 
-  return conditionsMet ? parsedModifier.amount : null;
+  return conditionsMet ? parsedConditions.amount : null;
 };
 
 const evaluateCondition = ({
@@ -58,20 +58,6 @@ const evaluateCondition = ({
       return fieldValue === condition.value;
     case "not_equals":
       return fieldValue !== condition.value;
-    case "in":
-      if (Array.isArray(condition.value)) {
-        return (condition.value as (string | number)[]).includes(
-          fieldValue as string | number,
-        );
-      }
-      return false;
-    case "not_in":
-      if (Array.isArray(condition.value)) {
-        return !(condition.value as (string | number)[]).includes(
-          fieldValue as string | number,
-        );
-      }
-      return true;
     case "starts_with":
       if (
         typeof fieldValue === "string" &&
@@ -88,6 +74,20 @@ const evaluateCondition = ({
         return fieldValue.endsWith(condition.value);
       }
       return false;
+    case "in":
+      if (Array.isArray(condition.value)) {
+        return (condition.value as (string | number)[]).includes(
+          fieldValue as string | number,
+        );
+      }
+      return false;
+    case "not_in":
+      if (Array.isArray(condition.value)) {
+        return !(condition.value as (string | number)[]).includes(
+          fieldValue as string | number,
+        );
+      }
+      return true;
     default:
       return false;
   }

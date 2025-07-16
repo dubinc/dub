@@ -1,4 +1,4 @@
-import { evaluateRewardRules } from "@/lib/partners/evaluate-reward-rules";
+import { evaluateRewardRules } from "@/lib/partners/evaluate-reward-conditions";
 import { RewardContext } from "@/lib/types";
 import { describe, expect, test } from "vitest";
 
