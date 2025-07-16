@@ -578,11 +578,11 @@ export const authOptions: NextAuthOptions = {
         if (!user) {
           return;
         }
-        // only send the welcome email if the user was created in the last 10s
+        // only send the welcome email if the user was created in the last 15s
         // (this is a workaround because the `isNewUser` flag is triggered when a user does `dangerousEmailAccountLinking`)
         if (
           user.createdAt &&
-          new Date(user.createdAt).getTime() > Date.now() - 20000
+          new Date(user.createdAt).getTime() > Date.now() - 15000
           // process.env.NEXT_PUBLIC_IS_DUB
         ) {
           if (message?.account?.provider === "google") {
@@ -596,7 +596,7 @@ export const authOptions: NextAuthOptions = {
               }),
               {
                 httpOnly: true,
-                maxAge: 30,
+                maxAge: 20,
               },
             );
 
@@ -623,27 +623,30 @@ export const authOptions: NextAuthOptions = {
 
             cookieStore.delete(ECookieArg.PROCESSED_QR_DATA);
           }
-        } else {
-          const hasOauthFlowCookie = !!cookieStore.get(ECookieArg.OAUTH_FLOW)
-            ?.value;
+        }
+      } else {
+        const hasOauthFlowCookie = !!cookieStore.get(ECookieArg.OAUTH_FLOW)
+          ?.value;
 
-          if (message?.account?.provider === "google" && !hasOauthFlowCookie) {
-            cookieStore.set(
-              ECookieArg.OAUTH_FLOW,
-              JSON.stringify({
-                flow: "login",
-                provider: "google",
-                email,
-                userId: user.id,
-              }),
-              {
-                httpOnly: true,
-                maxAge: 30,
-              },
-            );
-          }
+        if (message?.account?.provider === "google" && !hasOauthFlowCookie) {
+          const { id, email } = message.user;
+
+          cookieStore.set(
+            ECookieArg.OAUTH_FLOW,
+            JSON.stringify({
+              flow: "login",
+              provider: "google",
+              email,
+              userId: id,
+            }),
+            {
+              httpOnly: true,
+              maxAge: 20,
+            },
+          );
         }
       }
+
       // lazily backup user avatar to R2
       const currentImage = message.user.image;
       if (currentImage && !isStored(currentImage)) {

@@ -99,7 +99,6 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       user,
       stage: "attempt",
       price: amount,
-      flowType: "internal",
       planCode: selectedPlan.paymentPlan,
       paymentType: paymentTypeRef.current!,
       toxic: false,
@@ -132,7 +131,6 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           ...data,
           ...res,
         },
-        flowType: "internal",
         planCode: selectedPlan.paymentPlan,
         price: amount,
         stage: "error",
@@ -145,7 +143,6 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     generateCheckoutFormPaymentEvents({
       user,
       data,
-      flowType: "internal",
       planCode: selectedPlan.paymentPlan,
       price: amount,
       stage: "success",
@@ -176,7 +173,6 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     generateCheckoutFormPaymentEvents({
       user,
       data: eventData,
-      flowType: "internal",
       planCode: selectedPlan.paymentPlan,
       price: amount,
       stage: "error",

@@ -12,7 +12,6 @@ interface ICheckoutFormEventProps {
   user: ICustomerBody;
   data?: ICheckoutFormSuccess | TPrimerClientErrorData;
   price: number;
-  flowType: "internal" | "card_update";
   planCode: TPaymentPlan;
   stage: "attempt" | "success" | "error";
   subscriptionId?: string | null;
@@ -26,7 +25,6 @@ interface ICheckoutFormEventProps {
 export const generateCheckoutFormPaymentEvents = ({
   user,
   data,
-  flowType,
   planCode,
   price,
   stage,
@@ -45,8 +43,9 @@ export const generateCheckoutFormPaymentEvents = ({
     customer_id: user.id,
     mixpanel_user_id: user.id,
     country: user.currency?.countryCode,
-    flow_type: flowType,
-    plan_code: planCode,
+    flow_type: "internal",
+    payment_subtype: "FIRST_PAYMENT",
+    plan_name: planCode,
     subscription_id: subscriptionId,
     event_category: "Authorized",
     toxic,
