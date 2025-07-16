@@ -4,7 +4,12 @@ import { NextRequest } from "next/server";
 
 export const getFinalUrl = (
   url: string,
-  { req, clickId, via }: { req: NextRequest; clickId?: string; via?: string },
+  {
+    req,
+    clickId,
+    via,
+    cl,
+  }: { req: NextRequest; clickId?: string; via?: string; cl?: string },
 ) => {
   // query is the query string (e.g. d.to/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
@@ -19,6 +24,11 @@ export const getFinalUrl = (
 
   if (via) {
     urlObj.searchParams.set("via", via);
+  }
+
+  // for Singular tracking links
+  if (cl) {
+    urlObj.searchParams.set("cl", cl);
   }
 
   if (clickId) {

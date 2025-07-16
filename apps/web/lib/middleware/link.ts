@@ -28,6 +28,7 @@ import {
 import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { recordClickCache } from "../api/links/record-click-cache";
+import { isSingularTrackingUrl } from "../integrations/singular/utils";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
@@ -81,6 +82,7 @@ export default async function LinkMiddleware(
 
   let cachedLink = await linkCache.get({ domain, key });
   let isPartnerLink = Boolean(cachedLink?.programId && cachedLink?.partnerId);
+  let isSingularLink = isSingularTrackingUrl(cachedLink?.url);
 
   if (!cachedLink) {
     let linkData = await getLinkViaEdge({
@@ -113,6 +115,7 @@ export default async function LinkMiddleware(
     }
 
     isPartnerLink = Boolean(linkData.programId && linkData.partnerId);
+    isSingularLink = isSingularTrackingUrl(linkData.url);
 
     // format link to fit the RedisLinkProps interface
     cachedLink = formatRedisLink(linkData as any);
@@ -338,6 +341,7 @@ export default async function LinkMiddleware(
               req,
               ...(shouldCacheClickId && { clickId }),
               ...(isPartnerLink && { via: key }),
+              ...(isSingularLink && { cl: clickId }),
             }),
           )}`,
           req.url,
@@ -376,6 +380,7 @@ export default async function LinkMiddleware(
               req,
               ...(shouldCacheClickId && { clickId }),
               ...(isPartnerLink && { via: key }),
+              ...(isSingularLink && { cl: clickId }),
             }),
           )}`,
           req.url,
@@ -414,6 +419,7 @@ export default async function LinkMiddleware(
           req,
           ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
+          ...(isSingularLink && { cl: clickId }),
         }),
         {
           headers: {
@@ -448,6 +454,7 @@ export default async function LinkMiddleware(
           req,
           ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
+          ...(isSingularLink && { cl: clickId }),
         }),
         {
           headers: {
@@ -482,6 +489,7 @@ export default async function LinkMiddleware(
           req,
           ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
+          ...(isSingularLink && { cl: clickId }),
         }),
         {
           headers: {
@@ -516,6 +524,7 @@ export default async function LinkMiddleware(
           req,
           ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
+          ...(isSingularLink && { cl: clickId }),
         }),
         {
           headers: {
