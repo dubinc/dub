@@ -1,23 +1,23 @@
-import { evaluateRewardRules } from "@/lib/partners/evaluate-reward-conditions";
+import { evaluateRewardConditions } from "@/lib/partners/evaluate-reward-conditions";
 import { RewardContext } from "@/lib/types";
 import { describe, expect, test } from "vitest";
 
-describe("evaluateRewardRules", () => {
+describe("evaluateRewardConditions", () => {
   describe("AND operator", () => {
-    test("should return amount when all conditions are met", () => {
-      const modifier = {
+    test("should return true when all conditions are met", () => {
+      const conditions = {
         operator: "AND" as const,
         amount: 5000,
         conditions: [
           {
-            type: "customer" as const,
-            field: "country" as const,
+            entity: "customer" as const,
+            attribute: "country" as const,
             operator: "equals_to" as const,
             value: "US",
           },
           {
-            type: "sale" as const,
-            field: "productId" as const,
+            entity: "sale" as const,
+            attribute: "productId" as const,
             operator: "equals_to" as const,
             value: "premium",
           },
@@ -33,24 +33,28 @@ describe("evaluateRewardRules", () => {
         },
       };
 
-      const result = evaluateRewardRules({ modifier, context });
-      expect(result).toBe(5000);
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBe(true);
     });
 
-    test("should return null when one condition is not met", () => {
-      const modifier = {
+    test("should return false when one condition is not met", () => {
+      const conditions = {
         operator: "AND" as const,
         amount: 5000,
         conditions: [
           {
-            type: "customer" as const,
-            field: "country" as const,
+            entity: "customer" as const,
+            attribute: "country" as const,
             operator: "equals_to" as const,
             value: "US",
           },
           {
-            type: "sale" as const,
-            field: "productId" as const,
+            entity: "sale" as const,
+            attribute: "productId" as const,
             operator: "equals_to" as const,
             value: "premium",
           },
@@ -66,24 +70,28 @@ describe("evaluateRewardRules", () => {
         },
       };
 
-      const result = evaluateRewardRules({ modifier, context });
-      expect(result).toBeNull();
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBe(false);
     });
 
-    test("should return null when all conditions are not met", () => {
-      const modifier = {
+    test("should return false when all conditions are not met", () => {
+      const conditions = {
         operator: "AND" as const,
         amount: 5000,
         conditions: [
           {
-            type: "customer" as const,
-            field: "country" as const,
+            entity: "customer" as const,
+            attribute: "country" as const,
             operator: "equals_to" as const,
             value: "US",
           },
           {
-            type: "sale" as const,
-            field: "productId" as const,
+            entity: "sale" as const,
+            attribute: "productId" as const,
             operator: "equals_to" as const,
             value: "premium",
           },
@@ -99,26 +107,30 @@ describe("evaluateRewardRules", () => {
         },
       };
 
-      const result = evaluateRewardRules({ modifier, context });
-      expect(result).toBeNull();
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBe(false);
     });
   });
 
   describe("OR operator", () => {
-    test("should return amount when one condition is met", () => {
-      const modifier = {
+    test("should return true when one condition is met", () => {
+      const conditions = {
         operator: "OR" as const,
         amount: 5000,
         conditions: [
           {
-            type: "customer" as const,
-            field: "country" as const,
+            entity: "customer" as const,
+            attribute: "country" as const,
             operator: "equals_to" as const,
             value: "US",
           },
           {
-            type: "sale" as const,
-            field: "productId" as const,
+            entity: "sale" as const,
+            attribute: "productId" as const,
             operator: "equals_to" as const,
             value: "premium",
           },
@@ -134,24 +146,28 @@ describe("evaluateRewardRules", () => {
         },
       };
 
-      const result = evaluateRewardRules({ modifier, context });
-      expect(result).toBe(5000);
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBe(true);
     });
 
-    test("should return amount when all conditions are met", () => {
-      const modifier = {
+    test("should return true when all conditions are met", () => {
+      const conditions = {
         operator: "OR" as const,
         amount: 5000,
         conditions: [
           {
-            type: "customer" as const,
-            field: "country" as const,
+            entity: "customer" as const,
+            attribute: "country" as const,
             operator: "equals_to" as const,
             value: "US",
           },
           {
-            type: "sale" as const,
-            field: "productId" as const,
+            entity: "sale" as const,
+            attribute: "productId" as const,
             operator: "equals_to" as const,
             value: "premium",
           },
@@ -167,24 +183,28 @@ describe("evaluateRewardRules", () => {
         },
       };
 
-      const result = evaluateRewardRules({ modifier, context });
-      expect(result).toBe(5000);
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBe(true);
     });
 
-    test("should return null when no conditions are met", () => {
-      const modifier = {
+    test("should return false when no conditions are met", () => {
+      const conditions = {
         operator: "OR" as const,
         amount: 5000,
         conditions: [
           {
-            type: "customer" as const,
-            field: "country" as const,
+            entity: "customer" as const,
+            attribute: "country" as const,
             operator: "equals_to" as const,
             value: "US",
           },
           {
-            type: "sale" as const,
-            field: "productId" as const,
+            entity: "sale" as const,
+            attribute: "productId" as const,
             operator: "equals_to" as const,
             value: "premium",
           },
@@ -200,21 +220,25 @@ describe("evaluateRewardRules", () => {
         },
       };
 
-      const result = evaluateRewardRules({ modifier, context });
-      expect(result).toBeNull();
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBe(false);
     });
   });
 
   describe("condition operators", () => {
     describe("equals_to", () => {
       test("should match exact string values", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "customer" as const,
-              field: "country" as const,
+              entity: "customer" as const,
+              attribute: "country" as const,
               operator: "equals_to" as const,
               value: "US",
             },
@@ -227,18 +251,22 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBe(5000);
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(true);
       });
 
       test("should not match different string values", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "customer" as const,
-              field: "country" as const,
+              entity: "customer" as const,
+              attribute: "country" as const,
               operator: "equals_to" as const,
               value: "US",
             },
@@ -251,20 +279,24 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBeNull();
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(false);
       });
     });
 
     describe("not_equals", () => {
       test("should match when values are different", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "customer" as const,
-              field: "country" as const,
+              entity: "customer" as const,
+              attribute: "country" as const,
               operator: "not_equals" as const,
               value: "US",
             },
@@ -277,18 +309,22 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBe(5000);
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(true);
       });
 
       test("should not match when values are the same", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "customer" as const,
-              field: "country" as const,
+              entity: "customer" as const,
+              attribute: "country" as const,
               operator: "not_equals" as const,
               value: "US",
             },
@@ -301,20 +337,24 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBeNull();
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(false);
       });
     });
 
     describe("in", () => {
       test("should match when value is in array", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "customer" as const,
-              field: "country" as const,
+              entity: "customer" as const,
+              attribute: "country" as const,
               operator: "in" as const,
               value: ["US", "CA", "UK"],
             },
@@ -327,18 +367,22 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBe(5000);
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(true);
       });
 
       test("should not match when value is not in array", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "customer" as const,
-              field: "country" as const,
+              entity: "customer" as const,
+              attribute: "country" as const,
               operator: "in" as const,
               value: ["US", "CA", "UK"],
             },
@@ -351,20 +395,24 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBeNull();
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(false);
       });
     });
 
     describe("not_in", () => {
       test("should match when value is not in array", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "customer" as const,
-              field: "country" as const,
+              entity: "customer" as const,
+              attribute: "country" as const,
               operator: "not_in" as const,
               value: ["US", "CA", "UK"],
             },
@@ -377,18 +425,22 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBe(5000);
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(true);
       });
 
       test("should not match when value is in array", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "customer" as const,
-              field: "country" as const,
+              entity: "customer" as const,
+              attribute: "country" as const,
               operator: "not_in" as const,
               value: ["US", "CA", "UK"],
             },
@@ -401,20 +453,24 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBeNull();
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(false);
       });
     });
 
     describe("starts_with", () => {
       test("should match when string starts with value", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "sale" as const,
-              field: "productId" as const,
+              entity: "sale" as const,
+              attribute: "productId" as const,
               operator: "starts_with" as const,
               value: "premium",
             },
@@ -427,18 +483,22 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBe(5000);
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(true);
       });
 
       test("should not match when string does not start with value", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "sale" as const,
-              field: "productId" as const,
+              entity: "sale" as const,
+              attribute: "productId" as const,
               operator: "starts_with" as const,
               value: "premium",
             },
@@ -451,20 +511,24 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBeNull();
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(false);
       });
     });
 
     describe("ends_with", () => {
       test("should match when string ends with value", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "sale" as const,
-              field: "productId" as const,
+              entity: "sale" as const,
+              attribute: "productId" as const,
               operator: "ends_with" as const,
               value: "2024",
             },
@@ -477,18 +541,22 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBe(5000);
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(true);
       });
 
       test("should not match when string does not end with value", () => {
-        const modifier = {
+        const conditions = {
           operator: "AND" as const,
           amount: 5000,
           conditions: [
             {
-              type: "sale" as const,
-              field: "productId" as const,
+              entity: "sale" as const,
+              attribute: "productId" as const,
               operator: "ends_with" as const,
               value: "2024",
             },
@@ -501,50 +569,62 @@ describe("evaluateRewardRules", () => {
           },
         };
 
-        const result = evaluateRewardRules({ modifier, context });
-        expect(result).toBeNull();
+        const result = evaluateRewardConditions({
+          conditions,
+          context,
+        });
+
+        expect(result).toBe(false);
       });
     });
   });
 
   describe("edge cases", () => {
-    test("should return null when modifier is null", () => {
+    test("should return false when conditions is null", () => {
       const context: RewardContext = {
         customer: {
           country: "US",
         },
       };
 
-      const result = evaluateRewardRules({ modifier: null, context });
-      expect(result).toBeNull();
+      const result = evaluateRewardConditions({
+        conditions: null as any,
+        context,
+      });
+
+      expect(result).toBe(false);
     });
 
-    test("should return null when context is null", () => {
-      const modifier = {
+    test("should return false when context is null", () => {
+      const conditions = {
         operator: "AND" as const,
         amount: 5000,
         conditions: [
           {
-            type: "customer" as const,
-            field: "country" as const,
+            entity: "customer" as const,
+            attribute: "country" as const,
             operator: "equals_to" as const,
             value: "US",
           },
         ],
       };
 
-      const result = evaluateRewardRules({ modifier, context: null as any });
-      expect(result).toBeNull();
+      const result = evaluateRewardConditions({
+        conditions,
+        context: null as any,
+      });
+
+      expect(result).toBe(false);
     });
 
-    test("should return null when field value is undefined", () => {
-      const modifier = {
+    test("should return false when field value is undefined", () => {
+      const conditions = {
         operator: "AND" as const,
         amount: 5000,
         conditions: [
           {
-            type: "customer" as const,
-            field: "country" as const,
+            entity: "customer" as const,
+            attribute: "country" as const,
             operator: "equals_to" as const,
             value: "US",
           },
@@ -557,18 +637,22 @@ describe("evaluateRewardRules", () => {
         },
       };
 
-      const result = evaluateRewardRules({ modifier, context });
-      expect(result).toBeNull();
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBe(false);
     });
 
-    test("should return null when customer object is missing", () => {
-      const modifier = {
+    test("should return false when customer object is missing", () => {
+      const conditions = {
         operator: "AND" as const,
         amount: 5000,
         conditions: [
           {
-            type: "customer" as const,
-            field: "country" as const,
+            entity: "customer" as const,
+            attribute: "country" as const,
             operator: "equals_to" as const,
             value: "US",
           },
@@ -579,18 +663,22 @@ describe("evaluateRewardRules", () => {
         // customer object is missing
       };
 
-      const result = evaluateRewardRules({ modifier, context });
-      expect(result).toBeNull();
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBe(false);
     });
 
-    test("should return null when sale object is missing", () => {
-      const modifier = {
+    test("should return false when sale object is missing", () => {
+      const conditions = {
         operator: "AND" as const,
         amount: 5000,
         conditions: [
           {
-            type: "sale" as const,
-            field: "productId" as const,
+            entity: "sale" as const,
+            attribute: "productId" as const,
             operator: "equals_to" as const,
             value: "premium",
           },
@@ -601,26 +689,30 @@ describe("evaluateRewardRules", () => {
         // sale object is missing
       };
 
-      const result = evaluateRewardRules({ modifier, context });
-      expect(result).toBeNull();
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBe(false);
     });
   });
 
   describe("complex scenarios", () => {
     test("should handle multiple conditions with mixed operators", () => {
-      const modifier = {
+      const conditions = {
         operator: "AND" as const,
         amount: 5000,
         conditions: [
           {
-            type: "customer" as const,
-            field: "country" as const,
+            entity: "customer" as const,
+            attribute: "country" as const,
             operator: "in" as const,
             value: ["US", "CA", "UK"],
           },
           {
-            type: "sale" as const,
-            field: "productId" as const,
+            entity: "sale" as const,
+            attribute: "productId" as const,
             operator: "starts_with" as const,
             value: "premium",
           },
@@ -636,24 +728,28 @@ describe("evaluateRewardRules", () => {
         },
       };
 
-      const result = evaluateRewardRules({ modifier, context });
-      expect(result).toBe(5000);
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBe(true);
     });
 
     test("should handle OR with multiple conditions where only one is true", () => {
-      const modifier = {
+      const conditions = {
         operator: "OR" as const,
         amount: 5000,
         conditions: [
           {
-            type: "customer" as const,
-            field: "country" as const,
+            entity: "customer" as const,
+            attribute: "country" as const,
             operator: "equals_to" as const,
             value: "FR", // This will be false
           },
           {
-            type: "sale" as const,
-            field: "productId" as const,
+            entity: "sale" as const,
+            attribute: "productId" as const,
             operator: "equals_to" as const,
             value: "premium", // This will be true
           },
@@ -669,8 +765,12 @@ describe("evaluateRewardRules", () => {
         },
       };
 
-      const result = evaluateRewardRules({ modifier, context });
-      expect(result).toBe(5000);
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBe(true);
     });
   });
 });
