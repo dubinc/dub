@@ -14,9 +14,7 @@ export type TProcessedQRData = {
   styles: Options;
   frameOptions: FrameOptions;
   qrType: EQRType;
-  file?: string | null;
-  fileName?: string | null;
-  fileSize?: number | null;
+  fileId?: string;
 };
 
 export const prepareRegistrationQrData = async (
@@ -29,7 +27,7 @@ export const prepareRegistrationQrData = async (
 
   const files = getFiles();
   if (!files || files.length === 0) {
-    return { ...qrDataToCreate, file: null };
+    return { ...qrDataToCreate };
   }
 
   try {
@@ -39,28 +37,32 @@ export const prepareRegistrationQrData = async (
     const formData = new FormData();
     formData.append("file", firstFile);
 
-    const response = await fetch("/api/qrs/upload", {
+    console.log('files handler url', process.env.NEXT_PUBLIC_FILES_HANDLER_URL);
+
+    const response = await fetch(process.env.NEXT_PUBLIC_FILES_HANDLER_URL!, {
       method: "POST",
       body: formData,
     });
 
     if (!response.ok) {
+      console.error("Failed to upload file", response);
       throw new Error("Failed to upload file");
     }
 
-    const { fileId } = await response.json();
+    const respData = await response.json();
+    const { file: { id: fileId } } = respData;
+
+    console.log("response from files handler", response);
     return {
       ...qrDataToCreate,
-      file: fileId,
-      fileName: firstFile.name,
-      fileSize: firstFile.size,
+      fileId,
     };
   } catch (error) {
     console.error("Error uploading file:", error);
     const errorMessage = "Failed to upload file. Please try again.";
     onError?.(errorMessage);
 
-    return { ...qrDataToCreate, file: null };
+    return { ...qrDataToCreate };
   } finally {
     onUploadEnd?.();
   }

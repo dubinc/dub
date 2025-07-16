@@ -28,10 +28,6 @@ export const useQrOperations = () => {
 
         const serverData = await convertQRBuilderDataToServer(qrBuilderData, {
           domain: SHORT_DOMAIN!,
-          fileToBase64: async (file: File) => {
-            const result = await fileToBase64(file);
-            return typeof result === "string" ? result : "";
-          },
         });
 
         const res = await fetch(`/api/qrs?workspaceId=${workspaceId}`, {
@@ -76,10 +72,6 @@ export const useQrOperations = () => {
           qrBuilderData,
           {
             domain,
-            fileToBase64: async (file: File) => {
-              const result = await fileToBase64(file);
-              return typeof result === "string" ? result : "";
-            },
           },
         );
 

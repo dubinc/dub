@@ -26,9 +26,7 @@ const schema = z.object({
       "app",
       "feedback",
     ]),
-    file: z.string().nullish(),
-    fileName: z.string().nullish(),
-    fileSize: z.number().nullish(),
+    fileId: z.string().optional(),
   }),
 });
 

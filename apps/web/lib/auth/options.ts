@@ -63,8 +63,8 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       if (qrDataCookie) {
         try {
           const qrDataToCreate = JSON.parse(qrDataCookie);
-          const linkUrl = qrDataToCreate?.file
-            ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.file}`
+          const linkUrl = qrDataToCreate?.fileId
+            ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.fileId}`
             : qrDataToCreate.styles?.data;
 
           await createQrWithLinkUniversal({
@@ -74,16 +74,12 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
               title: qrDataToCreate.title,
               styles: qrDataToCreate.styles,
               frameOptions: qrDataToCreate.frameOptions,
-              file: qrDataToCreate.file,
-              fileName: qrDataToCreate.fileName,
-              fileSize: qrDataToCreate.fileSize,
+              fileId: qrDataToCreate.fileId,
               link: { url: linkUrl },
             },
             linkData: { url: linkUrl },
             workspace: workspace as any,
             userId: generatedUserId,
-            fileId: qrDataToCreate.file,
-            homePageDemo: true,
           });
 
           cookieStore.delete(ECookieArg.PROCESSED_QR_DATA);
@@ -611,25 +607,21 @@ export const authOptions: NextAuthOptions = {
             )?.value!;
             const qrDataToCreate = JSON.parse(qrDataCookie);
 
-            waitUntil(
-              Promise.all([
-                CustomerIOClient.identify(user.id, {
-                  email,
-                }),
+            await CustomerIOClient.identify(user.id, {
+              email,
+            });
 
-                sendEmail({
-                  email: email,
-                  subject: "Welcome to GetQR",
-                  template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-                  messageData: {
-                    qr_name: qrDataToCreate.title || "Untitled QR",
-                    qr_type: qrDataToCreate.qrType,
-                    url: HOME_DOMAIN,
-                  },
-                  customerId: user.id,
-                }),
-              ]),
-            );
+            await sendEmail({
+              email: email,
+              subject: "Welcome to GetQR",
+              template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+              messageData: {
+                qr_name: qrDataToCreate.title || "Untitled QR",
+                qr_type: qrDataToCreate.qrType,
+                url: HOME_DOMAIN,
+              },
+              customerId: user.id,
+            });
 
             cookieStore.delete(ECookieArg.PROCESSED_QR_DATA);
           }

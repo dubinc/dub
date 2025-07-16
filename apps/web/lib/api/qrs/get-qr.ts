@@ -11,6 +11,7 @@ export const getQr = async ({ qrId }: GetQrParams) => {
     include: {
       link: true,
       user: true,
+      file: true,
     }
   });
 
