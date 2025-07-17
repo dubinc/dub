@@ -1,6 +1,6 @@
 import { REDIRECTION_QUERY_PARAM } from "@dub/utils/src/constants";
 import { getUrlFromStringIfValid } from "@dub/utils/src/functions";
-import { NextRequest } from "next/server";
+import { NextRequest, userAgent } from "next/server";
 
 export const getFinalUrl = (
   url: string,
@@ -9,7 +9,16 @@ export const getFinalUrl = (
     clickId,
     via,
     cl,
-  }: { req: NextRequest; clickId?: string; via?: string; cl?: string },
+    ua,
+    ip,
+  }: {
+    req: NextRequest;
+    clickId?: string;
+    via?: string;
+    cl?: string;
+    ua?: ReturnType<typeof userAgent>;
+    ip?: string;
+  },
 ) => {
   // query is the query string (e.g. d.to/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
@@ -29,6 +38,8 @@ export const getFinalUrl = (
   // for Singular tracking links
   if (cl) {
     urlObj.searchParams.set("cl", cl);
+    urlObj.searchParams.set("ua", ua?.ua ?? "");
+    urlObj.searchParams.set("ip", ip ?? "");
   }
 
   if (clickId) {
