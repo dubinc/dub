@@ -4,7 +4,7 @@ import { log } from "@dub/utils";
 import { stripeAppClient } from "../stripe";
 import { MAX_BATCHES, toltImporter } from "./importer";
 
-const CUSTOMERS_PER_BATCH = 20;
+const CUSTOMERS_PER_BATCH = 5;
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
@@ -56,7 +56,7 @@ export async function updateStripeCustomers({
         email: true,
       },
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
       take: CUSTOMERS_PER_BATCH,
       skip: startingAfter ? 1 : 0,
@@ -67,12 +67,16 @@ export async function updateStripeCustomers({
       }),
     });
 
+    console.log(
+      `Found ${customers.length} customers without stripeCustomerId.`,
+    );
+
     if (customers.length === 0) {
       hasMore = false;
       break;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       customers.map((customer) =>
         searchStripeAndUpdateCustomer({
           workspace,
@@ -138,4 +142,8 @@ async function searchStripeAndUpdateCustomer({
       stripeCustomerId: stripeCustomer.id,
     },
   });
+
+  console.log(
+    `Updated customer ${customer.email} with Stripe customer ID ${stripeCustomer.id}`,
+  );
 }
