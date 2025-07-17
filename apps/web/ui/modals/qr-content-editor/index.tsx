@@ -82,19 +82,13 @@ export function QRContentEditorModal({
   });
 
   useEffect(() => {
-    console.log("parsedInputValues", parsedInputValues);
-    console.log(qrCode);
-    console.log(selectedQRType);
-    console.log(parsedInputValues && Object.keys(parsedInputValues).length > 0);
     const valuesWithQrName = {
       ...parsedInputValues,
       [`qrName-${selectedQRType}`]: qrCode?.title || "QR Code",
     };
 
-    console.log("valuesWithQrName", valuesWithQrName);
-
     methods.reset(valuesWithQrName);
-  }, [parsedInputValues, methods, qrCode]);
+  }, [parsedInputValues, methods, qrCode, selectedQRType]);
 
   const [isHiddenNetwork, setIsHiddenNetwork] = useState(false);
 
