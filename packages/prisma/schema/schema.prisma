@@ -29,8 +29,6 @@ model User {
   defaultPartnerId String? // the user's default partner ID
   dubPartnerId     String? // this user's dub partner ID
 
-  trialEndsAt     DateTime?
-
   paymentData     Json?
 
   // relational data

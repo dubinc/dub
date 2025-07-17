@@ -1,7 +1,5 @@
 "use client";
 
-import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import { Button, Modal } from "@dub/ui";
 import { useRouter } from "next/navigation";
@@ -34,9 +32,6 @@ export function TrialExpiredModal({
   setShowModal,
 }: ITrialExpiredModalProps) {
   const router = useRouter();
-  const { slug } = useWorkspace();
-
-  const { trialEndDate } = useTrialStatus();
 
   const handleRestoreAccess = () => {
     setShowModal(false);
@@ -64,7 +59,7 @@ export function TrialExpiredModal({
         <div className="flex flex-col items-center space-y-4 text-center sm:space-y-6">
           <div className="space-y-3">
             <h2 className="text-neutral text-xl font-bold tracking-tight sm:text-2xl">
-              Your free access has ended — it's time to upgrade
+              Free Access Has Ended — Upgrade to Keep Going
             </h2>
           </div>
 
@@ -97,37 +92,29 @@ export function TrialExpiredModal({
 
           <div className="w-full space-y-3 sm:space-y-4">
             <div className="text-left">
-              <p className="text-sm leading-relaxed text-neutral-800 sm:text-base">
-                {trialEndDate ? (
-                  <>
-                    <span className="font-medium">After </span>
-                    <span className="text-neutral font-bold">
-                      {trialEndDate}
-                    </span>
-                    <span className="font-medium">
-                      , access to the following features has been disabled:
-                    </span>
-                  </>
-                ) : (
-                  <span className="font-medium">
-                    Your free access has ended. The following features are now
-                    disabled:
-                  </span>
-                )}
+              <p className="text-medium text-sm leading-relaxed text-neutral-800 sm:text-base">
+                Free access has expired because you’ve either used GetQR for 10
+                days or created 30 QR codes.
+                <br />
+                <br />
+                <span className="text-neutral">
+                  Because of this, the following features are now disabled:
+                </span>
               </p>
             </div>
 
             <ul className="space-y-2 sm:space-y-3">
-              <FeatureItem text="Your dynamic QR codes will no longer be scannable." />
-              <FeatureItem text="You will not be able to create new QR codes or edit existing ones." />
-              <FeatureItem text="You will lose access to all of your tracking metrics." />
-              <FeatureItem text="Downloads will no longer be available." />
+              <FeatureItem text="Your dynamic QR codes are no longer scannable." />
+              <FeatureItem text="You can’t create new codes or edit existing ones." />
+              <FeatureItem text="Detailed tracking metrics are inaccessible." />
+              <FeatureItem text="Asset downloads are disabled." />
             </ul>
           </div>
 
           <div className="w-full space-y-3 pt-2 sm:space-y-4">
             <p className="text-left text-sm font-medium leading-relaxed text-neutral-700 md:text-center md:text-base">
-              To keep using GetQR without limits, please upgrade to a paid plan.
+              Upgrade now to restore full access and continue enjoying all GetQR
+              features!
             </p>
 
             <Button
