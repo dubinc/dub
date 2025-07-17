@@ -1,6 +1,5 @@
 "use client";
 
-import DeleteAccountSection from "@/ui/account/delete-account";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import UserId from "@/ui/account/user-id";
 import { Form } from "@dub/ui";
@@ -77,7 +76,7 @@ export default function SettingsPageClient() {
       <UserId />
       {/* @USEFUL_FEATURE: workspace settings */}
       {/*<UpdateDefaultWorkspace />*/}
-      <DeleteAccountSection />
+      {/*<DeleteAccountSection />*/}
     </>
   );
 }
