@@ -55,6 +55,7 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
       break;
     }
 
+    // Identify the Partner on Dub from PS partnership_key
     const partnerKeys = [
       ...new Set(customers.map(({ partnership_key }) => partnership_key)),
     ];
@@ -158,10 +159,19 @@ async function createCustomer({
     return;
   }
 
-  const customerFound = await prisma.customer.findFirst({
+  // Find the customer by email address
+  let customerFound = await prisma.customer.findFirst({
     where: {
-      projectId: workspace.id,
-      email: customer.email,
+      OR: [
+        {
+          projectId: workspace.id,
+          email: customer.email,
+        },
+        {
+          projectId: workspace.id,
+          externalId: customer.customer_key,
+        },
+      ],
     },
   });
 
