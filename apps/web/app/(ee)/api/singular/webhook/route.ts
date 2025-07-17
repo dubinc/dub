@@ -1,4 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { refundSingularSaleEvent } from "@/lib/integrations/singular/refund-sale";
 import { trackSingularLeadEvent } from "@/lib/integrations/singular/track-lead";
 import { trackSingularSaleEvent } from "@/lib/integrations/singular/track-sale";
 import { prisma } from "@dub/prisma";
@@ -11,6 +12,7 @@ const singularToDubEvent = {
   sng_subscribe: "sale",
   sng_ecommerce_purchase: "sale",
   __iap__: "sale", // In-app purchase
+  Refund: "refund",
   "Copy GAID": "lead", // Singular Device Assist
   "copy IDFA": "lead", // Singular Device Assist
 };
@@ -42,6 +44,8 @@ export const GET = async (req: Request) => {
     }
 
     const queryParams = getSearchParams(req.url);
+
+    console.log(queryParams);
 
     const { dub_token: token, dub_workspace_id: workspaceId } =
       authSchema.parse(queryParams);
@@ -89,6 +93,11 @@ export const GET = async (req: Request) => {
       });
     } else if (dubEvent === "sale") {
       await trackSingularSaleEvent({
+        queryParams,
+        workspace,
+      });
+    } else if (dubEvent === "refund") {
+      await refundSingularSaleEvent({
         queryParams,
         workspace,
       });
