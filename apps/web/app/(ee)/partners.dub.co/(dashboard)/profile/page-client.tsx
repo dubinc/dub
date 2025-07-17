@@ -198,7 +198,9 @@ function ProfileForm({
   });
 
   const completedPayoutsCount =
-    payoutsCount?.find((payout) => payout.status === "completed")?.count ?? 0;
+    payoutsCount
+      ?.filter((payout) => ["sent", "completed"].includes(payout.status))
+      .reduce((acc, payout) => acc + payout.count, 0) ?? 0;
 
   const { handleKeyDown } = useEnterSubmit();
 
