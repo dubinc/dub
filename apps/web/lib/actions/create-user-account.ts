@@ -98,7 +98,7 @@ export const createUserAccountAction = actionClient
     const { sessionId } = await getUserCookieService();
     const generatedUserId = sessionId ?? createId({ prefix: "user_" });
 
-    console.log('generatedUserId', generatedUserId);
+    console.log("generatedUserId", generatedUserId);
     console.log(qrDataToCreate);
 
     try {
@@ -111,11 +111,11 @@ export const createUserAccountAction = actionClient
         },
       });
     } catch (error) {
-      console.error('Error creating user', error);
-      throw new Error('Failed to create user');
+      console.error("Error creating user", error);
+      throw new Error("Failed to create user");
     }
 
-    console.log('here');
+    console.log("here");
 
     // @CUSTOM_FEATURE: creation of a workspace immediately after registration to skip onboarding
     const workspaceResponse = await createWorkspaceForUser({
@@ -152,11 +152,11 @@ export const createUserAccountAction = actionClient
         userId: generatedUserId,
       });
 
-      CustomerIOClient.identify(generatedUserId, {
+      await CustomerIOClient.identify(generatedUserId, {
         email,
-      }).finally();
+      });
 
-      sendEmail({
+      await sendEmail({
         email: email,
         subject: "Welcome to GetQR",
         template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
@@ -166,6 +166,6 @@ export const createUserAccountAction = actionClient
           url: HOME_DOMAIN,
         },
         customerId: generatedUserId,
-      }).finally();
+      });
     }
   });
