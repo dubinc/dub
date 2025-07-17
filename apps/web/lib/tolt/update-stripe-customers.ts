@@ -4,7 +4,7 @@ import { log } from "@dub/utils";
 import { stripeAppClient } from "../stripe";
 import { MAX_BATCHES, toltImporter } from "./importer";
 
-const CUSTOMERS_PER_BATCH = 5;
+const CUSTOMERS_PER_BATCH = 10;
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
