@@ -169,10 +169,13 @@ export function useQrCustomization(
 
   useEffect(() => {
     if (initialData) {
+      console.log("initialData", initialData);
       let parsedData = parseQRData(
         initialData.data,
         initialData.qrType as EQRType,
       );
+
+      console.log("parsedData", parsedData);
 
       // Merge in preloaded files for file QRs types if present on dashboard
       if (
