@@ -110,15 +110,17 @@ export const authOptions: NextAuthOptions = {
               return;
             }
 
-            return await sendEmail({
-              email: identifier,
-              subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-              template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
-              messageData: {
-                url,
-              },
-              customerId: user?.id,
-            });
+            waitUntil(
+              sendEmail({
+                email: identifier,
+                subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+                template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
+                messageData: {
+                  url,
+                },
+                customerId: user?.id,
+              }),
+            );
           });
       },
     }),
@@ -605,21 +607,24 @@ export const authOptions: NextAuthOptions = {
             )?.value!;
             const qrDataToCreate = JSON.parse(qrDataCookie);
 
-            await CustomerIOClient.identify(user.id, {
-              email,
-            });
-
-            await sendEmail({
-              email: email,
-              subject: "Welcome to GetQR",
-              template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-              messageData: {
-                qr_name: qrDataToCreate.title || "Untitled QR",
-                qr_type: qrDataToCreate.qrType,
-                url: HOME_DOMAIN,
-              },
-              customerId: user.id,
-            });
+            waitUntil(
+              Promise.all([
+                CustomerIOClient.identify(user.id, {
+                  email,
+                }),
+                sendEmail({
+                  email: email,
+                  subject: "Welcome to GetQR",
+                  template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+                  messageData: {
+                    qr_name: qrDataToCreate?.title || "Untitled QR",
+                    qr_type: qrDataToCreate?.qrType,
+                    url: HOME_DOMAIN,
+                  },
+                  customerId: user.id,
+                }),
+              ]),
+            );
 
             cookieStore.delete(ECookieArg.PROCESSED_QR_DATA);
           }

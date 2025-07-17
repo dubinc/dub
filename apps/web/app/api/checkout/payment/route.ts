@@ -83,7 +83,6 @@ export const POST = withSession(
       sub_order_country: paymentData.currency?.countryCode || null,
       ipAddress: getUserIp(headerStore)!,
       subscriptionType: "APP_SUBSCRIPTION",
-      entity_id: body.paymentPlan,
       application: `${process.env.NEXT_PUBLIC_PAYMENT_ENV}`,
       ...subProcessorData,
       //**** fields for subscription system ****//

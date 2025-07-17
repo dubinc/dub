@@ -6,6 +6,7 @@ import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN, R2_URL } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { flattenValidationErrors } from "next-safe-action";
@@ -152,20 +153,23 @@ export const createUserAccountAction = actionClient
         userId: generatedUserId,
       });
 
-      await CustomerIOClient.identify(generatedUserId, {
-        email,
-      });
-
-      await sendEmail({
-        email: email,
-        subject: "Welcome to GetQR",
-        template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-        messageData: {
-          qr_name: createdQr.title || "Untitled QR",
-          qr_type: createdQr.qrType,
-          url: HOME_DOMAIN,
-        },
-        customerId: generatedUserId,
-      });
+      waitUntil(
+        Promise.all([
+          CustomerIOClient.identify(generatedUserId, {
+            email,
+          }),
+          sendEmail({
+            email: email,
+            subject: "Welcome to GetQR",
+            template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+            messageData: {
+              qr_name: createdQr.title || "Untitled QR",
+              qr_type: createdQr.qrType,
+              url: HOME_DOMAIN,
+            },
+            customerId: generatedUserId,
+          }),
+        ]),
+      );
     }
   });
