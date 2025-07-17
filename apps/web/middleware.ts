@@ -59,7 +59,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const isPublicRoute =
     PUBLIC_ROUTES.includes(path) ||
     path.startsWith("/help") ||
-    ALLOWED_REGIONS.includes(path.slice(1));
+    ALLOWED_REGIONS.includes(path.slice(1).toLowerCase());
 
   // Handle public routes for App
   if (isPublicRoute) {
@@ -69,8 +69,10 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
       }
     }
 
-    const response = NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
-    
+    const response = NextResponse.rewrite(
+      new URL(`/${domain}${path}`, req.url),
+    );
+
     // Set country cookie
     if (country) {
       response.cookies.set("country", country, {
@@ -78,7 +80,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
         sameSite: "lax",
       });
     }
-    
+
     // Set session cookie if needed
     if (sessionInit.needsUpdate) {
       response.cookies.set(sessionInit.cookieName, sessionInit.sessionId, {
