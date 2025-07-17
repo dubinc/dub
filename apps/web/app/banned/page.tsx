@@ -63,7 +63,7 @@ export default async function BannedPage({
             </ButtonLink>
             <ButtonLink
               variant="secondary"
-              href={createHref("/home", params.domain, {
+              href={createHref("/links", params.domain, {
                 ...UTM_PARAMS,
                 utm_campaign: params.domain,
                 utm_content: "Learn more",

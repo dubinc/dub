@@ -44,11 +44,11 @@ export const ProgramHelpSupport = memo(() => {
   if (supportItems.length === 0) return null;
 
   return (
-    <div className="border-border-default grid gap-1 rounded-lg border p-2">
-      <p className="text-content-emphasis text-balance px-2.5 py-2 text-sm font-semibold">
+    <div className="border-border-default grid gap-2 border-t p-3">
+      <div className="text-content-default px-2 text-sm font-semibold">
         {program.name.length <= 12 ? `${program.name} ` : ""}
         Program Support
-      </p>
+      </div>
       <div className="grid grid-cols-1">
         {supportItems.map(({ icon: Icon, label, href }) => (
           <a

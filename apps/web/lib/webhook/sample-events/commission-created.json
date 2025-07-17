@@ -1,0 +1,33 @@
+{
+  "id": "cm_1K09DJTBCRT24P6BRD515CK29",
+  "type": "sale",
+  "amount": 50000,
+  "earnings": 10000,
+  "currency": "usd",
+  "status": "pending",
+  "invoiceId": null,
+  "description": null,
+  "quantity": 1,
+  "userId": "cludszk1h0000wmd2e0ea2b0p",
+  "createdAt": "2025-07-16T10:48:14.722Z",
+  "updatedAt": "2025-07-16T10:48:14.960Z",
+  "partner": {
+    "id": "pn_1K06X6FX2GRB31NCM2VVCGJ72",
+    "name": "Matthew Hayden",
+    "email": "matthew@example.com",
+    "image": null,
+    "payoutsEnabledAt": null,
+    "country": "US"
+  },
+  "customer": {
+    "id": "cus_1K09DJDEACR47NPYC93RM43WF",
+    "externalId": "TaMD05AnuyqeI",
+    "name": "David",
+    "email": "david@example.com",
+    "avatar": null,
+    "country": "US",
+    "sales": 1,
+    "saleAmount": 50000,
+    "createdAt": "2025-07-16T10:48:01.739Z"
+  }
+}
