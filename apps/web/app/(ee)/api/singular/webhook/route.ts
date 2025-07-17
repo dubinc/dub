@@ -10,6 +10,7 @@ const singularToDubEvent = {
   sng_complete_registration: "lead",
   sng_subscribe: "sale",
   sng_ecommerce_purchase: "sale",
+  __iap__: "sale", // In-app purchase
   "Copy GAID": "lead", // Singular Device Assist
   "copy IDFA": "lead", // Singular Device Assist
 };
@@ -27,12 +28,12 @@ const authSchema = z.object({
     .describe(" Unique to identify the advertiser."),
 });
 
-const singularToken = process.env.SINGULAR_WEBHOOK_TOKEN;
+const singularWebhookToken = process.env.SINGULAR_WEBHOOK_TOKEN;
 
 // GET /api/singular/webhook – listen to Postback events from Singular
 export const GET = async (req: Request) => {
   try {
-    if (!singularToken) {
+    if (!singularWebhookToken) {
       throw new DubApiError({
         code: "bad_request",
         message:
@@ -45,10 +46,10 @@ export const GET = async (req: Request) => {
     const { dub_token: token, dub_workspace_id: workspaceId } =
       authSchema.parse(queryParams);
 
-    if (token !== singularToken) {
+    if (token !== singularWebhookToken) {
       throw new DubApiError({
         code: "unauthorized",
-        message: "Invalid token.",
+        message: "Invalid Singular webhook token. Skipping event processing.",
       });
     }
 
