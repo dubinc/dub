@@ -182,15 +182,13 @@ async function createCommission({
   const trackedCommission = await prisma.commission.findFirst({
     where: {
       programId,
-      type: "sale",
-      customer: {
-        id: customerFound.id,
-      },
-      amount: Number(sale.amount),
       createdAt: {
         gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
         lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
       },
+      customerId: customerFound.id,
+      type: "sale",
+      amount: Number(sale.amount),
     },
   });
 
