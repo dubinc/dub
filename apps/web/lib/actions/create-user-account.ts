@@ -98,10 +98,6 @@ export const createUserAccountAction = actionClient
     const { sessionId } = await getUserCookieService();
     const generatedUserId = sessionId ?? createId({ prefix: "user_" });
 
-    const createdAt = new Date();
-    const trialEndsAt = new Date(createdAt);
-    trialEndsAt.setDate(trialEndsAt.getDate() + 10);
-
     console.log('generatedUserId', generatedUserId);
     console.log(qrDataToCreate);
 
@@ -112,7 +108,6 @@ export const createUserAccountAction = actionClient
           email,
           passwordHash: await hashPassword(password),
           emailVerified: new Date(),
-          trialEndsAt,
         },
       });
     } catch (error) {
