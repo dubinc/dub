@@ -65,26 +65,32 @@ export async function importLinks(payload: PartnerStackImportPayload) {
       continue;
     }
 
-    const links = await partnerStackApi.listLinks({
-      identifier: partner.email,
-    });
+    try {
+      const links = await partnerStackApi.listLinks({
+        identifier: partner.email,
+      });
 
-    if (links.length === 0) {
-      console.log(`No links found for partner ${partner.email}`);
-      continue;
+      if (links.length === 0) {
+        console.log(`No links found for partner ${partner.email}`);
+        continue;
+      }
+
+      await Promise.allSettled(
+        links.map(async (link) =>
+          createPartnerLink({
+            workspace: program.workspace as WorkspaceProps,
+            program,
+            partner,
+            link,
+            userId,
+          }),
+        ),
+      );
+    } catch (error) {
+      console.log(
+        `Partner ${partner.email} doesn't exist on PartnerStack, skipping...`,
+      );
     }
-
-    await Promise.allSettled(
-      links.map(async (link) =>
-        createPartnerLink({
-          workspace: program.workspace as WorkspaceProps,
-          program,
-          partner,
-          link,
-          userId,
-        }),
-      ),
-    );
 
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
