@@ -274,6 +274,7 @@ export const analyticsFilterTB = z
       .optional()
       .describe("The folder IDs to retrieve analytics for."),
     isMegaFolder: z.boolean().optional(),
+    filters: z.any(),
   })
   .merge(
     analyticsQuerySchema.pick({
@@ -300,7 +301,6 @@ export const analyticsFilterTB = z
       tenantId: true,
       folderId: true,
       sortBy: true,
-      metadata: true,
     }),
   );
 
@@ -312,7 +312,6 @@ export const eventsFilterTB = analyticsFilterTB
       limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
       sortBy: z.enum(["timestamp"]).default("timestamp"),
-      filters: z.any()
     }),
   );
 

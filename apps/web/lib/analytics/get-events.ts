@@ -22,44 +22,8 @@ import {
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
 import { EventsFilters } from "./types";
+import { parseFiltersFromQuery } from "./utils/analytics-query-parser";
 import { getStartEndDates } from "./utils/get-start-end-dates";
-
-interface Filter {
-  operand: string;
-  operator: "equals"; // can be expanded later
-  value: string;
-}
-
-const extractFiltersFromQuery = (query: EventsFilters["query"]) => {
-  if (!query) {
-    return undefined;
-  }
-
-  const result = z
-    .object({
-      metadata: z.record(z.string(), z.string()),
-    })
-    .safeParse(query);
-
-  if (!result.success) {
-    console.log(`Ignoring the invalid query ${JSON.stringify(query)}`);
-    return undefined;
-  }
-
-  const filters: Filter[] = Object.entries(result.data.metadata)
-    .slice(0, 1)
-    .map(([key, value]) => {
-      return {
-        operand: key,
-        operator: "equals",
-        value,
-      };
-    });
-
-  console.log("filters", filters);
-
-  return filters;
-};
 
 // Fetch data for /api/events
 export const getEvents = async (params: EventsFilters) => {
@@ -116,7 +80,7 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
-  const filters = extractFiltersFromQuery(query);
+  const filters = parseFiltersFromQuery(query);
 
   const response = await pipe({
     ...params,
