@@ -118,8 +118,16 @@ async function createCommission({
 
   const customer = await prisma.customer.findFirst({
     where: {
-      projectId: workspaceId,
-      email: commission.customer.email,
+      OR: [
+        {
+          projectId: workspaceId,
+          email: commission.customer.email,
+        },
+        {
+          projectId: workspaceId,
+          externalId: commission.customer.external_key,
+        },
+      ],
     },
     include: {
       link: true,
