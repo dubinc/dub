@@ -3,7 +3,7 @@ import { toltImporter } from "./importer";
 
 const PARTNER_IDS_PER_BATCH = 100;
 
-// Remove partners that have no leads from the program
+// Remove partners with no leads and clean up orphaned partners
 export async function cleanupPartners({ programId }: { programId: string }) {
   let hasMore = true;
   let start = 0;
@@ -83,14 +83,37 @@ export async function cleanupPartners({ programId }: { programId: string }) {
       );
 
       if (removablePartnerIds.length > 0) {
-        console.log("Removing partners", removablePartnerIds);
-
-        await prisma.partner.deleteMany({
-          where: {
-            id: {
-              in: removablePartnerIds,
+        await prisma.$transaction(async (tx) => {
+          // Find partners that have no user account
+          const partnersWithoutUserAccount = await tx.partner.findMany({
+            where: {
+              id: {
+                in: removablePartnerIds,
+              },
+              users: {
+                none: {},
+              },
             },
-          },
+            select: {
+              id: true,
+              email: true,
+            },
+          });
+
+          if (partnersWithoutUserAccount.length > 0) {
+            await tx.partner.deleteMany({
+              where: {
+                id: {
+                  in: partnersWithoutUserAccount.map(({ id }) => id),
+                },
+              },
+            });
+
+            console.log(
+              "Removed the following partners",
+              partnersWithoutUserAccount,
+            );
+          }
         });
       }
     }
