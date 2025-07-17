@@ -107,10 +107,12 @@ async function createPartnerLink({
   partnerId: string;
   userId: string;
 }) {
-  const linkFound = await prisma.link.findFirst({
+  const linkFound = await prisma.link.findUnique({
     where: {
-      domain: program.domain!,
-      key: link.value,
+      domain_key: {
+        domain: program.domain!,
+        key: link.value,
+      },
     },
     select: {
       partnerId: true,
