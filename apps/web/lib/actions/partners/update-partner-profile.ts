@@ -78,11 +78,13 @@ export const updatePartnerProfileAction = authPartnerActionClient
       partner.stripeConnectId
     ) {
       // Partner is not able to update their country, profile type, or company name
-      // if they have already have a Stripe Express account + any completed payouts
+      // if they have already have a Stripe Express account + any sent / completed payouts
       const completedPayoutsCount = await prisma.payout.count({
         where: {
           partnerId: partner.id,
-          status: "completed",
+          status: {
+            in: ["sent", "completed"],
+          },
         },
       });
 

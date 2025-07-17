@@ -99,7 +99,7 @@ export function LinkControls({
     useMoveLinkToFolderModal({ link, onSuccess: onMoveSuccess });
 
   const isRootLink = link.key === "_root";
-  const isProgramLink = link.programId !== null;
+  const isProgramLinkWithLeads = link.programId !== null && link.leads > 0;
   const folderId = link.folderId || searchParams.get("folderId");
 
   // Duplicate link Modal
@@ -178,7 +178,7 @@ export function LinkControls({
         case "x":
           canManageLink &&
             !isRootLink &&
-            !isProgramLink &&
+            !isProgramLinkWithLeads &&
             setShowDeleteLinkModal(true);
           break;
         case "b":
@@ -343,14 +343,14 @@ export function LinkControls({
                   icon={<Delete className="size-4" />}
                   shortcut="X"
                   className="h-9 px-2 font-medium"
-                  disabled={isRootLink || isProgramLink}
+                  disabled={isRootLink || isProgramLinkWithLeads}
                   disabledTooltip={
                     !canManageLink
                       ? "You don't have permission to delete this link."
                       : isRootLink
                         ? "You can't delete a custom domain link. You can delete the domain instead."
-                        : isProgramLink
-                          ? "You can't delete a link that's part of a program."
+                        : isProgramLinkWithLeads
+                          ? "You can't delete a partner link that has existing leads. We recommend archiving it instead."
                           : undefined
                   }
                 />
