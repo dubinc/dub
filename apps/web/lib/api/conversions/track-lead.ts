@@ -38,7 +38,7 @@ export const trackLead = async ({
   rawBody,
   workspace,
 }: TrackLeadParams) => {
-  const stringifiedEventName = eventName.toLowerCase().replace(" ", "-");
+  const stringifiedEventName = eventName.toLowerCase().replaceAll(" ", "-");
 
   // deduplicate lead events – only record 1 unique event for the same customer and event name
   const ok = await redis.set(

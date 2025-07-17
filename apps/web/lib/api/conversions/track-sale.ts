@@ -93,7 +93,7 @@ export const trackSale = async ({
     // otherwise, we check for all cached lead events for that customer
 
     const cachedLeadEvent = await redis.get<LeadEventTB>(
-      `leadCache:${customer.id}${leadEventName ? `:${leadEventName.toLowerCase().replace(" ", "-")}` : ""}`,
+      `leadCache:${customer.id}${leadEventName ? `:${leadEventName.toLowerCase().replaceAll(" ", "-")}` : ""}`,
     );
 
     if (!cachedLeadEvent) {

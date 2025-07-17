@@ -55,6 +55,22 @@ export const GET = async (req: Request) => {
       });
     }
 
+    const { event_name: eventName } = queryParams;
+
+    if (!eventName) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "event_name is required.",
+      });
+    }
+
+    if (!supportedEvents.includes(eventName)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Event ${eventName} is not supported by Singular <> Dub integration.`,
+      });
+    }
+
     const workspace = await prisma.project.findUnique({
       where: {
         id: workspaceId,
@@ -73,15 +89,6 @@ export const GET = async (req: Request) => {
       });
     }
 
-    const { event_name: eventName } = queryParams;
-
-    if (!supportedEvents.includes(eventName)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Event ${eventName} is not supported by Singular <> Dub integration.`,
-      });
-    }
-
     const dubEvent = singularToDubEvent[eventName];
 
     if (dubEvent === "lead") {
@@ -93,11 +100,6 @@ export const GET = async (req: Request) => {
       await trackSingularSaleEvent({
         queryParams,
         workspace,
-      });
-    } else {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Event ${eventName} is not supported by Singular <> Dub integration.`,
       });
     }
 
