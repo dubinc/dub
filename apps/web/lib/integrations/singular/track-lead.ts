@@ -56,8 +56,8 @@ export const trackSingularLeadEvent = async ({
     customerName,
     eventQuantity,
     mode,
+    metadata: null,
     workspace,
     rawBody: queryParams,
-    metadata: null,
   });
 };
