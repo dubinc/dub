@@ -59,8 +59,8 @@ export const trackSingularSaleEvent = async ({
     paymentProcessor,
     invoiceId,
     leadEventName,
+    metadata: null,
     workspace,
     rawBody: queryParams,
-    metadata: null,
   });
 };
