@@ -136,7 +136,7 @@ async function createPartner({
   });
 
   // PS doesn't return the partner email address in the customers response
-  // so we need to update keep a map of partner_key (PS) -> partner_id (Dub)
+  // so we need to keep a map of partner_key (PS) -> partner_id (Dub)
   // and use it to identify the partner in the customers response
   await redis.hset(`${PARTNER_IDS_KEY_PREFIX}:${program.id}`, {
     [partner.key]: partnerId,
