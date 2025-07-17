@@ -78,7 +78,7 @@ async function handler(req: Request) {
             await CustomerIOClient.track(user.id, {
               name: "trial_expired",
               data: {
-                codes: 30,
+                days: 10,
               },
             });
 
