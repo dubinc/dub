@@ -108,18 +108,19 @@ export const authOptions: NextAuthOptions = {
             if (process.env.NODE_ENV === "development") {
               console.log(`Login link: ${url}`);
               return;
-            } else {
-              sendEmail({
-                email: identifier,
-                subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-                template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
-                messageData: {
-                  url,
-                },
-                customerId: user?.id,
-              });
             }
-          });
+
+            return sendEmail({
+              email: identifier,
+              subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+              template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
+              messageData: {
+                url,
+              },
+              customerId: user?.id,
+            });
+          })
+          .finally();
       },
     }),
     GoogleProvider({
