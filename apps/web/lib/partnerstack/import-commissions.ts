@@ -118,22 +118,14 @@ async function createCommission({
 
   const customer = await prisma.customer.findFirst({
     where: {
+      projectId: workspaceId,
       OR: [
-        {
-          projectId: workspaceId,
-          email: commission.customer.email,
-        },
-        {
-          projectId: workspaceId,
-          externalId: commission.customer.external_key,
-        },
+        { email: commission.customer.email },
+        { externalId: commission.customer.external_key },
       ],
     },
     include: {
       link: true,
-    },
-    orderBy: {
-      id: "asc",
     },
   });
 
@@ -152,15 +144,13 @@ async function createCommission({
   const trackedCommission = await prisma.commission.findFirst({
     where: {
       programId,
-      type: "sale",
-      customer: {
-        id: customer.id,
-      },
-      amount: commission.transaction.amount,
       createdAt: {
         gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
         lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
       },
+      customerId: customer.id,
+      type: "sale",
+      amount: commission.transaction.amount,
     },
   });
 
