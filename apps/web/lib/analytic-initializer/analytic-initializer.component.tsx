@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import {
   initPeopleAnalytic,
   setPeopleAnalytic,
-} from "../core/integration/analytic";
+} from "../../core/integration/analytic";
 
 interface IAnalyticInitializerProps {
   sessionId: string;

@@ -1,11 +1,11 @@
+import { AnalyticInitializerComponent } from "@/lib/analytic-initializer/analytic-initializer.component.tsx";
 import { inter } from "@/styles/fonts";
 import "@/styles/globals.css";
 import { cn, constructMetadata } from "@dub/utils";
 import { Theme } from "@radix-ui/themes";
 import "@radix-ui/themes/styles.css";
-import { GtmInitializerComponent } from "core/integration/analytic/components/gtm-initializer";
+import { AnalyticScriptsComponent } from "core/integration/analytic/components/analytic-scripts";
 import { getUserCookieService } from "../core/services/cookie/user-session.service.ts";
-import { AnalyticInitializerComponent } from "./analytic-initializer.component.tsx";
 import RootProviders from "./providers";
 
 export const metadata = constructMetadata();
@@ -23,8 +23,7 @@ export default async function RootLayout({
         <Theme>
           <RootProviders>{children}</RootProviders>
 
-          <GtmInitializerComponent />
-
+          <AnalyticScriptsComponent />
           <AnalyticInitializerComponent sessionId={sessionId || ""} />
         </Theme>
       </body>
