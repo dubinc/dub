@@ -160,7 +160,7 @@ async function createCustomer({
   }
 
   // Find the customer by email address
-  let customerFound = await prisma.customer.findFirst({
+  const customerFound = await prisma.customer.findFirst({
     where: {
       OR: [
         {
