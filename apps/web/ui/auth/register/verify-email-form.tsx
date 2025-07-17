@@ -50,7 +50,7 @@ export const VerifyEmailForm = ({
         params: {
           method: "email",
           email,
-          event_category: "unAuthorized",
+          event_category: "nonAuthorized",
         },
         sessionId,
       });

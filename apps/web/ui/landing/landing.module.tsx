@@ -28,7 +28,7 @@ export const LandingModule: FC<Readonly<ILandingModuleProps>> = ({
         page_name: "landing",
         content_value: "create_qr",
         element_no: type,
-        event_category: "unAuthorized",
+        event_category: "nonAuthorized",
       },
       sessionId,
     });

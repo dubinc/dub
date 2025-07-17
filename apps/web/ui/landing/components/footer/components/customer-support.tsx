@@ -19,7 +19,7 @@ export const CustomerSupport: FC<Readonly<ICustomerSupportProps>> = ({
       params: {
         page_name: "landing",
         content_value: contentValue,
-        event_category: "unAuthorized",
+        event_category: "nonAuthorized",
       },
       sessionId,
     });

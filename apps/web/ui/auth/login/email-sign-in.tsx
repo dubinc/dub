@@ -62,7 +62,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
             params: {
               element_name: "login",
               content_value: "email",
-              event_category: "unAuthorized",
+              event_category: "nonAuthorized",
             },
             sessionId,
           });
@@ -72,7 +72,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
             params: {
               method: "email",
               email: email,
-              event_category: "unAuthorized",
+              event_category: "nonAuthorized",
             },
             sessionId,
           });

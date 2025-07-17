@@ -78,7 +78,7 @@ export const SignUpOAuth = ({
               params: {
                 element_name: "signup",
                 content_value: "google",
-                event_category: "unAuthorized",
+                event_category: "nonAuthorized",
               },
               sessionId,
             });
@@ -87,7 +87,7 @@ export const SignUpOAuth = ({
               event: EAnalyticEvents.SIGNUP_ATTEMPT,
               params: {
                 method: "google",
-                event_category: "unAuthorized",
+                event_category: "nonAuthorized",
               },
               sessionId,
             });

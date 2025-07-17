@@ -227,7 +227,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             page_name: homepageDemo ? "landing" : "profile",
             content_value: type,
             content_group: "choose_type",
-            event_category: "unAuthorized",
+            event_category: "nonAuthorized",
             ...(user
               ? { email: user?.email, event_category: "Authorized" }
               : {}),
@@ -256,7 +256,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                   ? "save"
                   : "create",
               content_group: "complete_content",
-              event_category: "unAuthorized",
+              event_category: "nonAuthorized",
               ...(user
                 ? { email: user?.email, event_category: "Authorized" }
                 : {}),
@@ -276,7 +276,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               page_name: homepageDemo ? "landing" : "profile",
               content_value: "continue",
               content_group: "complete_content",
-              event_category: "unAuthorized",
+              event_category: "nonAuthorized",
               ...(user
                 ? { email: user?.email, event_category: "Authorized" }
                 : {}),

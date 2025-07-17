@@ -63,7 +63,7 @@ export const SignUpEmail = ({
           params: {
             element_name: "signup",
             content_value: "email",
-            event_category: "unAuthorized",
+            event_category: "nonAuthorized",
           },
           sessionId,
         });
@@ -73,7 +73,7 @@ export const SignUpEmail = ({
           params: {
             method: "email",
             email: data.email,
-            event_category: "unAuthorized",
+            event_category: "nonAuthorized",
           },
           sessionId,
         });

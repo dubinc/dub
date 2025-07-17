@@ -33,7 +33,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
         page_name: "landing",
         content_value: newActiveTab,
         content_group: "carousel",
-        event_category: "unAuthorized",
+        event_category: "nonAuthorized",
       },
       sessionId,
     });

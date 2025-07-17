@@ -55,7 +55,7 @@ export function AuthModal({
         event: EAnalyticEvents.ELEMENT_OPENED,
         params: {
           element_name: authType,
-          event_category: "unAuthorized",
+          event_category: "nonAuthorized",
         },
         sessionId,
       });

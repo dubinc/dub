@@ -31,7 +31,7 @@ export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
           params: {
             element_name: "login",
             content_value: "google",
-            event_category: "unAuthorized",
+            event_category: "nonAuthorized",
           },
           sessionId,
         });
@@ -40,7 +40,7 @@ export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
           event: EAnalyticEvents.LOGIN_ATTEMPT,
           params: {
             method: "google",
-            event_category: "unAuthorized",
+            event_category: "nonAuthorized",
           },
           sessionId,
         });
