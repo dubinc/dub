@@ -7,16 +7,16 @@ interface Filter {
   value: string;
 }
 
+const querySchema = z.object({
+  metadata: z.record(z.string(), z.string()),
+});
+
 export const parseFiltersFromQuery = (query: EventsFilters["query"]) => {
   if (!query) {
     return undefined;
   }
 
-  const result = z
-    .object({
-      metadata: z.record(z.string(), z.string()),
-    })
-    .safeParse(query);
+  const result = querySchema.safeParse(query);
 
   if (!result.success) {
     console.log(`Ignoring the invalid query ${JSON.stringify(query)}`);
