@@ -29,8 +29,8 @@ export function SendVerificationCodeForm({
     formState: { isSubmitting },
   } = useForm({
     defaultValues: {
-      sourceEmail: partner?.email || "",
-      targetEmail: "",
+      sourceEmail: "",
+      targetEmail: partner?.email || "",
     },
   });
 

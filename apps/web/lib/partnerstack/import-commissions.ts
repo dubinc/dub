@@ -13,7 +13,7 @@ const toDubStatus: Record<
   PartnerStackCommission["reward_status"],
   CommissionStatus
 > = {
-  hold: "pending",
+  hold: "fraud",
   pending: "pending",
   approved: "processed",
   declined: "canceled",
