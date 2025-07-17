@@ -78,4 +78,10 @@ export const PROGRAM_IMPORT_SOURCES = [
     image: "https://assets.dub.co/misc/icons/tolt.svg",
     helpUrl: "https://dub.co/help/article/migrating-from-tolt",
   },
+  {
+    id: "partnerstack",
+    value: "PartnerStack",
+    image: "https://assets.dub.co/misc/icons/partnerstack.svg",
+    helpUrl: "https://dub.co/help/article/migrating-from-partnerstack",
+  },
 ] as const;

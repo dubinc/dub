@@ -27,8 +27,6 @@ export const getPartnerAndDiscount = async ({
     };
   }
 
-  console.time("getPartnerAndDiscount");
-
   const { rows } = await conn.execute<QueryResult>(
     `SELECT 
       Partner.id,
@@ -46,8 +44,6 @@ export const getPartnerAndDiscount = async ({
     WHERE ProgramEnrollment.partnerId = ? AND ProgramEnrollment.programId = ? LIMIT 1`,
     [partnerId, programId],
   );
-
-  console.timeEnd("getPartnerAndDiscount");
 
   const result =
     rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
