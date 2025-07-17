@@ -56,21 +56,15 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       break;
     }
 
-    const activePartners = partners.filter(
-      ({ stats }) => stats.CUSTOMER_COUNT > 0,
+    await Promise.allSettled(
+      partners.map((partner) =>
+        createPartner({
+          program,
+          partner,
+          reward,
+        }),
+      ),
     );
-
-    if (activePartners.length > 0) {
-      await Promise.allSettled(
-        activePartners.map((partner) =>
-          createPartner({
-            program,
-            partner,
-            reward,
-          }),
-        ),
-      );
-    }
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -96,11 +90,22 @@ async function createPartner({
   partner: PartnerStackPartner;
   reward?: Pick<Reward, "id" | "event">;
 }) {
+  if (partner.stats.CUSTOMER_COUNT === 0) {
+    console.log(`No leads found for partner ${partner.email}`);
+    return;
+  }
+
   const countryCode = partner.address?.country
     ? Object.keys(COUNTRIES).find(
         (key) => COUNTRIES[key] === partner.address?.country,
       )
     : null;
+
+  if (!countryCode && partner.address?.country) {
+    console.log(
+      `Country code not found for country ${partner.address.country}`,
+    );
+  }
 
   const { id: partnerId } = await prisma.partner.upsert({
     where: {
