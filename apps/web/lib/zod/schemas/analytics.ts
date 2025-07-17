@@ -237,9 +237,10 @@ export const analyticsQuerySchema = z
       })
       .optional()
       .describe(
-        "Filter by event metadata key-value pairs. Format: key=value. Only available for lead and sale events.",
+        "Filter by event metadata key-value pairs as a JSON string. Only available for lead and sale events.",
       )
       .openapi({
+        type: "object",
         example: {
           metadata: {
             eventType: "project_transfer",
@@ -274,7 +275,10 @@ export const analyticsFilterTB = z
       .optional()
       .describe("The folder IDs to retrieve analytics for."),
     isMegaFolder: z.boolean().optional(),
-    filters: z.any(),
+    filters: z
+      .string()
+      .optional()
+      .describe("The filters to apply to the analytics."),
   })
   .merge(
     analyticsQuerySchema.pick({
