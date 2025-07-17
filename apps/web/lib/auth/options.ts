@@ -104,13 +104,13 @@ export const authOptions: NextAuthOptions = {
               id: true,
             },
           })
-          .then((user) => {
+          .then(async (user) => {
             if (process.env.NODE_ENV === "development") {
               console.log(`Login link: ${url}`);
               return;
             }
 
-            return sendEmail({
+            return await sendEmail({
               email: identifier,
               subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
               template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
@@ -119,8 +119,7 @@ export const authOptions: NextAuthOptions = {
               },
               customerId: user?.id,
             });
-          })
-          .finally();
+          });
       },
     }),
     GoogleProvider({
