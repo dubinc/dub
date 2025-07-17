@@ -133,6 +133,15 @@ SQL >
             AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
         {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
+        
+        {% if defined(filters) %}
+            {% for item in JSON(filters, '[]') %}
+                {% if item.get('operator', '') == 'equals' %}
+                    AND JSONExtractString(metadata, {{ item.get('operand', '') }}) = {{ item.get('value', '') }}
+                {% end %}
+            {% end %}
+        {% end %}
+
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
     {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
@@ -174,6 +183,15 @@ SQL >
         {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%') {% end %}
         {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%') {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
+
+        {% if defined(filters) %}
+            {% for item in JSON(filters, '[]') %}
+                {% if item.get('operator', '') == 'equals' %}
+                    AND JSONExtractString(metadata, {{ item.get('operand', '') }}) = {{ item.get('value', '') }}
+                {% end %}
+            {% end %}
+        {% end %}
+
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
     {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}

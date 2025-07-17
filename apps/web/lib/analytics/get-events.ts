@@ -24,6 +24,43 @@ import {
 import { EventsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
+interface Filter {
+  operand: string;
+  operator: "equals"; // can be expanded later
+  value: string;
+}
+
+const extractFiltersFromQuery = (query: EventsFilters["query"]) => {
+  if (!query) {
+    return undefined;
+  }
+
+  const result = z
+    .object({
+      metadata: z.record(z.string(), z.string()),
+    })
+    .safeParse(query);
+
+  if (!result.success) {
+    console.log(`Ignoring the invalid query ${JSON.stringify(query)}`);
+    return undefined;
+  }
+
+  const filters: Filter[] = Object.entries(result.data.metadata)
+    .slice(0, 1)
+    .map(([key, value]) => {
+      return {
+        operand: key,
+        operator: "equals",
+        value,
+      };
+    });
+
+  console.log("filters", filters);
+
+  return filters;
+};
+
 // Fetch data for /api/events
 export const getEvents = async (params: EventsFilters) => {
   let {
@@ -39,6 +76,7 @@ export const getEvents = async (params: EventsFilters) => {
     order,
     sortOrder,
     dataAvailableFrom,
+    query,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -78,6 +116,8 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
+  const filters = extractFiltersFromQuery(query);
+
   const response = await pipe({
     ...params,
     eventType,
@@ -89,6 +129,7 @@ export const getEvents = async (params: EventsFilters) => {
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+    filters: filters ? JSON.stringify(filters) : undefined,
   });
 
   const [linksMap, customersMap] = await Promise.all([

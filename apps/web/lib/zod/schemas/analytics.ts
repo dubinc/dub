@@ -226,13 +226,26 @@ export const analyticsQuerySchema = z
       .describe(
         "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
       ),
-    metadata: z
-      .record(z.string(), z.string())
+    query: z
+      .string()
+      .transform((v) => {
+        try {
+          return JSON.parse(v);
+        } catch (e) {
+          return undefined;
+        }
+      })
       .optional()
       .describe(
         "Filter by event metadata key-value pairs. Format: key=value. Only available for lead and sale events.",
       )
-      .openapi({ example: { product: "premium" } }),
+      .openapi({
+        example: {
+          metadata: {
+            eventType: "project_transfer",
+          },
+        },
+      }),
   })
   .merge(utmTagsSchema);
 
@@ -299,6 +312,7 @@ export const eventsFilterTB = analyticsFilterTB
       limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
       sortBy: z.enum(["timestamp"]).default("timestamp"),
+      filters: z.any()
     }),
   );
 
