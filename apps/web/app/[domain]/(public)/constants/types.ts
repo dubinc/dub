@@ -15,7 +15,7 @@ export const GENERAL_LINKS = [
   // { href: "https://hint.app/pricing", text: "Pricing" },
 ];
 
-export const ALLOWED_REGIONS = ["au", "ka", "eu", "uk", "us"];
+export const ALLOWED_REGIONS = ["au", "ca", "eu", "uk", "us"];
 
 export const PUBLIC_ROUTES = [
   "/",
