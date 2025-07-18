@@ -62,7 +62,7 @@ export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
             console.error("Google sign in error:", response.error);
             setClickedMethod(undefined);
           }
-        }, 500);
+        }, 1000);
       }}
       loading={clickedMethod === "google"}
       disabled={clickedMethod && clickedMethod !== "google"}
