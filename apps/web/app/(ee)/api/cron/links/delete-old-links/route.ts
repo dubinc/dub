@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { pluralize } from "@dub/utils";
@@ -13,7 +14,7 @@ const MAX_DOMAIN_BATCHES = 1_000;
 // GET /api/cron/links/delete-old-links
 export async function GET(req: Request) {
   try {
-    // await verifyVercelSignature(req);
+    await verifyVercelSignature(req);
 
     let processedBatches = 0;
     let cursor: string | null = null;
