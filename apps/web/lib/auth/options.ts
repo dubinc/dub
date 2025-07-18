@@ -3,7 +3,7 @@ import { convertSessionUserToCustomerBody, Session } from "@/lib/auth/utils.ts";
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
-import { UserProps } from "@/lib/types";
+import { NewQrProps, UserProps } from "@/lib/types";
 import { ratelimit, redis } from "@/lib/upstash";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
@@ -46,19 +46,17 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
 
       const generatedUserId = sessionId ?? createId({ prefix: "user_" });
       console.log("CustomPrismaAdapter generatedUserId:", generatedUserId);
-      const qrDataRedis: string | null = await redis.get(
+      const qrDataToCreate: NewQrProps | null = await redis.get(
         `${ERedisArg.QR_DATA_REG}:${generatedUserId}`,
       );
-      console.log("CustomPrismaAdapter qrDataRedis:", qrDataRedis);
+      console.log("CustomPrismaAdapter qrDataRedis:", qrDataToCreate);
       const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
         email: data.email,
       });
 
-      if (qrDataRedis) {
+      if (qrDataToCreate) {
         try {
-          const qrDataToCreate = JSON.parse(qrDataRedis);
-          console.log("CustomPrismaAdapter qrDataToCreate:", qrDataToCreate);
           const linkUrl = qrDataToCreate?.fileId
             ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.fileId}`
             : qrDataToCreate.styles?.data;
@@ -79,7 +77,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
           });
           console.log("createUser: QR successfully created");
         } catch (error) {
-          console.error("Error processing QR data from cookie:", error);
+          console.error("Error processing QR data from redis:", error);
         }
       }
 
@@ -601,21 +599,9 @@ export const authOptions: NextAuthOptions = {
               },
             );
 
-            const qrDataRedis: string | null = await redis.get(
+            const qrDataToCreate: NewQrProps | null = await redis.get(
               `${ERedisArg.QR_DATA_REG}:${user.id}`,
             );
-
-            let qrDataToCreate: any = null;
-            if (qrDataRedis) {
-              try {
-                qrDataToCreate = JSON.parse(qrDataRedis);
-              } catch (error) {
-                console.error(
-                  "signIn event: Error parsing QR data from cookie:",
-                  error,
-                );
-              }
-            }
 
             waitUntil(
               Promise.all([
@@ -628,7 +614,7 @@ export const authOptions: NextAuthOptions = {
                   template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
                   messageData: {
                     qr_name: qrDataToCreate?.title || "Untitled QR",
-                    qr_type: qrDataToCreate?.qrType,
+                    qr_type: qrDataToCreate?.qrType || "",
                     url: HOME_DOMAIN,
                   },
                   customerId: user.id,
