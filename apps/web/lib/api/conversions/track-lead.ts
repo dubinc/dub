@@ -33,8 +33,8 @@ export const trackLead = async ({
   customerName,
   customerEmail,
   customerAvatar,
-  metadata,
   mode,
+  metadata,
   rawBody,
   workspace,
 }: TrackLeadParams) => {

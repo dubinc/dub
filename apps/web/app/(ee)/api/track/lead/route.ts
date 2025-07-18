@@ -44,15 +44,15 @@ export const POST = withWorkspace(
     const response = await trackLead({
       clickId,
       eventName,
-      customerEmail,
-      customerAvatar,
+      eventQuantity,
       customerExternalId,
       customerName,
-      eventQuantity,
-      metadata,
+      customerEmail,
+      customerAvatar,
       mode,
-      workspace,
+      metadata,
       rawBody: body,
+      workspace,
     });
 
     return NextResponse.json(response);
