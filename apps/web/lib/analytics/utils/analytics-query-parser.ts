@@ -13,7 +13,10 @@ interface InternalFilter {
 }
 
 // Query parser that can parse the query string into a list of filters
-export const parseFiltersFromQuery = (query: EventsFilters["query"]) => {
+export const parseFiltersFromQuery = (
+  query: EventsFilters["query"],
+  allowedOperands = ["metadata"],
+) => {
   if (!query) {
     return undefined;
   }
@@ -37,8 +40,19 @@ export const parseFiltersFromQuery = (query: EventsFilters["query"]) => {
       continue;
     }
 
-    // We only allow metadata filters for now
-    if (!filter.operand.startsWith("metadata.")) {
+    const isAllowed = allowedOperands.some((allowed) => {
+      if (filter.operand === allowed) {
+        return true;
+      }
+
+      if (filter.operand.startsWith(`${allowed}.`)) {
+        return true;
+      }
+
+      return false;
+    });
+
+    if (!isAllowed) {
       continue;
     }
 
@@ -93,6 +107,7 @@ function parseCondition(condition: string): InternalFilter | null {
 function mapOperator(operator: string): InternalFilter["operator"] {
   switch (operator) {
     case ":":
+    case "=":
       return "equals";
     case ">":
       return "greaterThan";
