@@ -4,7 +4,7 @@ import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
-import { ratelimit, redis } from "@/lib/upstash";
+import { ratelimit } from "@/lib/upstash";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
@@ -52,8 +52,6 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
         email: data.email,
       });
 
-      waitUntil(redis.set(`onboarding-step:${generatedUserId}`, "completed"));
-
       if (qrDataCookie) {
         try {
           const qrDataToCreate = JSON.parse(qrDataCookie);
@@ -80,6 +78,8 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
         }
       }
 
+      // waitUntil(redis.set(`onboarding-step:${generatedUserId}`, "completed"));
+      //
       return user;
     },
   };
