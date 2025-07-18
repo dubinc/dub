@@ -48,12 +48,6 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       const qrDataCookie = cookieStore.get(ECookieArg.PROCESSED_QR_DATA)?.value;
 
       console.log("createUser: QR data cookie exists:", !!qrDataCookie);
-      if (qrDataCookie) {
-        console.log(
-          "createUser: QR data cookie content length:",
-          qrDataCookie.length,
-        );
-      }
 
       const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
@@ -63,25 +57,11 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       if (qrDataCookie) {
         try {
           const qrDataToCreate = JSON.parse(qrDataCookie);
-          console.log("createUser: Parsed QR data:", {
-            title: qrDataToCreate?.title,
-            qrType: qrDataToCreate?.qrType,
-            hasStyles: !!qrDataToCreate?.styles,
-            hasFrameOptions: !!qrDataToCreate?.frameOptions,
-            fileId: qrDataToCreate?.fileId,
-          });
-
-          // Проверяем обязательные поля
-          if (!qrDataToCreate?.qrType || !qrDataToCreate?.title) {
-            console.error("createUser: Missing required QR data fields");
-            return user;
-          }
+          console.log("createUser: Parsed QR data:", qrDataToCreate);
 
           const linkUrl = qrDataToCreate?.fileId
             ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.fileId}`
             : qrDataToCreate.styles?.data;
-
-          console.log("createUser: Link URL for QR:", linkUrl);
 
           await createQrWithLinkUniversal({
             qrData: {
