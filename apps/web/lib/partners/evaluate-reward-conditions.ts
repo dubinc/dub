@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// Represend an individual reward condition
 export const rewardConditionSchema = z.object({
   entity: z.enum(["customer", "sale"]),
   attribute: z.enum(["country", "productId"]),
@@ -20,14 +19,18 @@ export const rewardConditionSchema = z.object({
   ]),
 });
 
-// Individual condition can be combined using AND/OR operator
 export const rewardConditionsSchema = z.object({
   operator: z.enum(["AND", "OR"]).default("AND"),
   conditions: z.array(rewardConditionSchema).min(1),
   amount: z.number().int().min(0),
 });
 
-// The context in which a reward condition is evaluated
+export const rewardConditionsArraySchema = z
+  .array(rewardConditionsSchema)
+  .min(1);
+
+// rewardConditionSchema -> rewardConditionsSchema -> rewardConditionsArraySchema
+
 export const rewardContextSchema = z.object({
   customer: z
     .object({
@@ -45,53 +48,61 @@ export const rewardContextSchema = z.object({
 export type RewardContext = z.infer<typeof rewardContextSchema>;
 export type RewardCondition = z.infer<typeof rewardConditionSchema>;
 export type RewardConditions = z.infer<typeof rewardConditionsSchema>;
+export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
 
 export const evaluateRewardConditions = ({
   conditions,
   context,
 }: {
-  conditions: RewardConditions;
+  conditions: RewardConditionsArray;
   context: RewardContext;
 }) => {
   if (!conditions || !context) {
-    return false;
+    return null;
   }
 
-  // Evaluate each condition
-  const conditionResults = conditions.conditions.map((condition) => {
-    let fieldValue = undefined;
+  for (const conditionGroup of conditions) {
+    // Evaluate each condition in the group
+    const conditionResults = conditionGroup.conditions.map((condition) => {
+      let fieldValue = undefined;
 
-    if (condition.entity === "customer") {
-      fieldValue = context.customer?.[condition.attribute];
-    } else if (condition.entity === "sale") {
-      fieldValue = context.sale?.[condition.attribute];
-    }
+      if (condition.entity === "customer") {
+        fieldValue = context.customer?.[condition.attribute];
+      } else if (condition.entity === "sale") {
+        fieldValue = context.sale?.[condition.attribute];
+      }
 
-    if (fieldValue === undefined) {
-      return false;
-    }
+      if (fieldValue === undefined) {
+        return false;
+      }
 
-    return evaluateCondition({
-      condition,
-      fieldValue,
+      return evaluateCondition({
+        condition,
+        fieldValue,
+      });
     });
-  });
 
-  // Apply the operator logic to the condition results
-  let conditionsMet = false;
-  if (conditions.operator === "AND") {
-    conditionsMet = conditionResults.every((result) => result);
-  } else if (conditions.operator === "OR") {
-    conditionsMet = conditionResults.some((result) => result);
+    // Apply the operator logic to the condition results
+    let conditionsMet = false;
+    if (conditionGroup.operator === "AND") {
+      conditionsMet = conditionResults.every((result) => result);
+    } else if (conditionGroup.operator === "OR") {
+      conditionsMet = conditionResults.some((result) => result);
+    }
+
+    console.log("conditionGroup", {
+      conditionGroup,
+      conditionResults,
+      conditionsMet,
+    });
+
+    // If this condition group matches, return it
+    if (conditionsMet) {
+      return conditionGroup;
+    }
   }
 
-  console.log("conditions", {
-    conditions,
-    conditionResults,
-    conditionsMet,
-  });
-
-  return conditionsMet;
+  return null;
 };
 
 const evaluateCondition = ({
