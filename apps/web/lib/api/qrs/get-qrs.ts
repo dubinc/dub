@@ -1,4 +1,3 @@
-import { checkTrialOver } from "@/lib/trial/check-trial-over";
 import z from "@/lib/zod";
 import { getLinksQuerySchemaBase } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
