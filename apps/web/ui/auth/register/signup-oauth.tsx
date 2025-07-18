@@ -95,11 +95,9 @@ export const SignUpOAuth = ({
             });
             setClickedGoogle(true);
 
-            setTimeout(async () => {
-              await signIn("google", {
-                ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-              });
-            }, 1000);
+            signIn("google", {
+              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+            });
           }}
           loading={clickedGoogle || isUploading}
           icon={<Google className="h-4 w-4" />}
