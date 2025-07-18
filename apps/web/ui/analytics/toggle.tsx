@@ -29,24 +29,23 @@ import {
   useMediaQuery,
   useRouterStuff,
   useScroll,
-  UTM_PARAMETERS,
 } from "@dub/ui";
 import {
   Cube,
   CursorRays,
   FlagWavy,
-  Folder,
+  // Folder,
   Globe2,
   Hyperlink,
   LinkBroken,
   LocationPin,
-  Magic,
+  // Magic,
   MapPosition,
   MobilePhone,
   OfficeBuilding,
   QRCode,
   ReferredVia,
-  Tag,
+  // Tag,
   Window,
 } from "@dub/ui/icons";
 import {
@@ -73,9 +72,9 @@ import {
   useState,
 } from "react";
 import { useDebounce } from "use-debounce";
-import { FolderIcon } from "../folders/folder-icon";
+// import { FolderIcon } from "../folders/folder-icon";
 import { LinkIcon } from "../links/link-icon";
-import TagBadge from "../links/tag-badge";
+// import TagBadge from "../links/tag-badge";
 import { AnalyticsContext } from "./analytics-provider";
 import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
@@ -289,79 +288,79 @@ export default function Toggle({
 
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
     () => [
-      {
-        key: "ai",
-        icon: Magic,
-        label: "Ask AI",
-        separatorAfter: true,
-        options:
-          aiFilterSuggestions?.map(({ icon, value }) => ({
-            value,
-            label: value,
-            icon,
-          })) ?? null,
-      },
+      // {
+      //   key: "ai",
+      //   icon: Magic,
+      //   label: "Ask AI",
+      //   separatorAfter: true,
+      //   options:
+      //     aiFilterSuggestions?.map(({ icon, value }) => ({
+      //       value,
+      //       label: value,
+      //       icon,
+      //     })) ?? null,
+      // },
       ...(dashboardProps
         ? []
         : [
-            ...(flags?.linkFolders
-              ? [
-                  {
-                    key: "folderId",
-                    icon: Folder,
-                    label: "Folder",
-                    shouldFilter: !foldersAsync,
-                    getOptionIcon: (value, props) => {
-                      const folderName = props.option?.label;
-                      const folder = folders?.find(
-                        ({ name }) => name === folderName,
-                      );
-
-                      return folder ? (
-                        <FolderIcon
-                          folder={folder}
-                          shape="square"
-                          iconClassName="size-3"
-                        />
-                      ) : null;
-                    },
-                    options:
-                      folders?.map((folder) => ({
-                        value: folder.id,
-                        icon: (
-                          <FolderIcon
-                            folder={folder}
-                            shape="square"
-                            iconClassName="size-3"
-                          />
-                        ),
-                        label: folder.name,
-                      })) ?? null,
-                  },
-                ]
-              : []),
-            {
-              key: "tagIds",
-              icon: Tag,
-              label: "Tag",
-              multiple: true,
-              shouldFilter: !tagsAsync,
-              getOptionIcon: (value, props) => {
-                const tagColor =
-                  props.option?.data?.color ??
-                  tags?.find(({ id }) => id === value)?.color;
-                return tagColor ? (
-                  <TagBadge color={tagColor} withIcon className="sm:p-1" />
-                ) : null;
-              },
-              options:
-                tags?.map(({ id, name, color }) => ({
-                  value: id,
-                  icon: <TagBadge color={color} withIcon className="sm:p-1" />,
-                  label: name,
-                  data: { color },
-                })) ?? null,
-            },
+            // ...(flags?.linkFolders
+            //   ? [
+            //       {
+            //         key: "folderId",
+            //         icon: Folder,
+            //         label: "Folder",
+            //         shouldFilter: !foldersAsync,
+            //         getOptionIcon: (value, props) => {
+            //           const folderName = props.option?.label;
+            //           const folder = folders?.find(
+            //             ({ name }) => name === folderName,
+            //           );
+            //
+            //           return folder ? (
+            //             <FolderIcon
+            //               folder={folder}
+            //               shape="square"
+            //               iconClassName="size-3"
+            //             />
+            //           ) : null;
+            //         },
+            //         options:
+            //           folders?.map((folder) => ({
+            //             value: folder.id,
+            //             icon: (
+            //               <FolderIcon
+            //                 folder={folder}
+            //                 shape="square"
+            //                 iconClassName="size-3"
+            //               />
+            //             ),
+            //             label: folder.name,
+            //           })) ?? null,
+            //       },
+            //     ]
+            //   : []),
+            // {
+            //   key: "tagIds",
+            //   icon: Tag,
+            //   label: "Tag",
+            //   multiple: true,
+            //   shouldFilter: !tagsAsync,
+            //   getOptionIcon: (value, props) => {
+            //     const tagColor =
+            //       props.option?.data?.color ??
+            //       tags?.find(({ id }) => id === value)?.color;
+            //     return tagColor ? (
+            //       <TagBadge color={tagColor} withIcon className="sm:p-1" />
+            //     ) : null;
+            //   },
+            //   options:
+            //     tags?.map(({ id, name, color }) => ({
+            //       value: id,
+            //       icon: <TagBadge color={color} withIcon className="sm:p-1" />,
+            //       label: name,
+            //       data: { color },
+            //     })) ?? null,
+            // },
             {
               key: "domain",
               icon: Globe2,
@@ -613,22 +612,22 @@ export default function Toggle({
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
-      ...(UTM_PARAMETERS.filter(({ key }) => key !== "ref").map(
-        ({ key, label, icon: Icon }) => ({
-          key,
-          icon: Icon,
-          label: `UTM ${label}`,
-          getOptionIcon: (value) => (
-            <Icon display={value} className="h-4 w-4" />
-          ),
-          options:
-            utmData[key]?.map((dt) => ({
-              value: dt[key],
-              label: dt[key],
-              right: nFormatter(dt.count, { full: true }),
-            })) ?? null,
-        }),
-      ) ?? []),
+      // ...(UTM_PARAMETERS.filter(({ key }) => key !== "ref").map(
+      //   ({ key, label, icon: Icon }) => ({
+      //     key,
+      //     icon: Icon,
+      //     label: `UTM ${label}`,
+      //     getOptionIcon: (value) => (
+      //       <Icon display={value} className="h-4 w-4" />
+      //     ),
+      //     options:
+      //       utmData[key]?.map((dt) => ({
+      //         value: dt[key],
+      //         label: dt[key],
+      //         right: nFormatter(dt.count, { full: true }),
+      //       })) ?? null,
+      //   }),
+      // ) ?? []),
     ],
     [
       dashboardProps,
