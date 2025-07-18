@@ -48,10 +48,6 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // Initialize session ID for all users (both new and existing)
   const sessionInit = userSessionIdInit(req);
-  let sessionCookie = "";
-  if (sessionInit.needsUpdate) {
-    sessionCookie = `${sessionInit.cookieName}=${sessionInit.sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict;`;
-  }
 
   // Apply Axiom middleware
   AxiomMiddleware(req, ev);

@@ -42,8 +42,6 @@ export const saveQrDataToCookieAction = actionClient
         httpOnly: true,
         secure: true,
         sameSite: "lax",
-        maxAge: 600, // 10 минут вместо 3
-        path: "/", // явно указываем path
       });
 
       // // hack for sessionId receiving in next-auth callback context

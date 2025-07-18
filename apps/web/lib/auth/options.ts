@@ -653,10 +653,10 @@ export const authOptions: NextAuthOptions = {
               ]),
             );
 
-            if (qrDataCookie) {
-              cookieStore.delete(ECookieArg.PROCESSED_QR_DATA);
-              console.log("signIn event: QR data cookie deleted");
-            }
+            // if (qrDataCookie) {
+            //   cookieStore.delete(ECookieArg.PROCESSED_QR_DATA);
+            //   console.log("signIn event: QR data cookie deleted");
+            // }
           }
         }
       } else {
