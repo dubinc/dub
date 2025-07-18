@@ -1,4 +1,3 @@
-import { checkTrialOver } from "@/lib/trial/check-trial-over";
 import z from "@/lib/zod";
 import { getLinksQuerySchemaBase } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
@@ -15,16 +14,6 @@ export async function getQrs({
   // support legacy sort param
   if (sort && sort !== "createdAt") {
     sortBy = sort;
-  }
-
-  if (userId) {
-    const isTrialOver = await checkTrialOver(userId);
-    if (isTrialOver) {
-      await prisma.link.updateMany({
-        where: { userId },
-        data: { archived: true },
-      });
-    }
   }
 
   // Map qrs sort options to database fields
