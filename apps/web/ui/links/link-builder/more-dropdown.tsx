@@ -72,7 +72,7 @@ export function MoreDropdown() {
       setOpenPopover(false);
       if (option.type === "modal") modalCallbacks[option.key]?.(true);
       else if (enabled && option.remove) option.remove(setValue);
-      else if (enabled && option.enable) option.enable(setValue);
+      else if (!enabled && option.enable) option.enable(setValue);
       else
         setValue(option.key as any, !data[option.key], { shouldDirty: true });
     },
