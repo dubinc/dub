@@ -25,6 +25,7 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
+import { ERedisArg } from "../../core/interfaces/redis.interface.ts";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
@@ -46,9 +47,8 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       const generatedUserId = sessionId ?? createId({ prefix: "user_" });
 
       const qrDataRedis: string | null = await redis.get(
-        `qr-code:${generatedUserId}`,
+        `${ERedisArg.QR_DATA_REG}:${generatedUserId}`,
       );
-      console.log("CustomPrismaAdapter cachedQrData:", qrDataRedis);
 
       const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
@@ -602,7 +602,7 @@ export const authOptions: NextAuthOptions = {
             );
 
             const qrDataRedis: string | null = await redis.get(
-              `qr-code:${user.id}`,
+              `${ERedisArg.QR_DATA_REG}:${user.id}`,
             );
 
             let qrDataToCreate: any = null;
