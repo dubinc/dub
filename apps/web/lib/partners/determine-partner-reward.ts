@@ -1,9 +1,11 @@
 import { prisma } from "@dub/prisma";
 import { EventType, ProgramEnrollment, Reward } from "@dub/prisma/client";
-import { RewardContext } from "../types";
-import { rewardConditionsSchema } from "../zod/schemas/reward-conditions";
 import { RewardSchema } from "../zod/schemas/rewards";
-import { evaluateRewardConditions } from "./evaluate-reward-conditions";
+import {
+  RewardContext,
+  evaluateRewardConditions,
+  rewardConditionsArraySchema,
+} from "./evaluate-reward-conditions";
 
 const REWARD_EVENT_COLUMN_MAPPING = {
   [EventType.click]: "clickReward",
@@ -46,17 +48,21 @@ export const determinePartnerReward = async ({
     return null;
   }
 
-  // evaluate reward rules (if any)
   if (partnerReward.modifiers && context) {
-    const conditions = rewardConditionsSchema.parse(partnerReward.modifiers);
+    const modifiers = rewardConditionsArraySchema.safeParse(
+      partnerReward.modifiers,
+    );
 
-    const conditionsMet = evaluateRewardConditions({
-      conditions,
-      context,
-    });
+    // Parse the conditions before evaluating them
+    if (modifiers.success) {
+      const matchingCondition = evaluateRewardConditions({
+        conditions: modifiers.data,
+        context,
+      });
 
-    if (conditionsMet) {
-      partnerReward.amount = conditions.amount;
+      if (matchingCondition) {
+        partnerReward.amount = matchingCondition.amount;
+      }
     }
   }
 
