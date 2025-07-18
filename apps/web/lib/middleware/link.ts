@@ -32,6 +32,7 @@ import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
 import { crawlBitly } from "./utils/crawl-bitly";
+import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
 export default async function LinkMiddleware(
@@ -167,7 +168,9 @@ export default async function LinkMiddleware(
   // if the following is true, we need to cache the clickId data (so it's available for subsequent /track/lead requests):
   // - trackConversion is enabled
   // - it's a partner link
-  const shouldCacheClickId = trackConversion || isPartnerLink;
+  // - it's a Singular tracking URL
+  const shouldCacheClickId =
+    trackConversion || isPartnerLink || isSingularTrackingUrl(url);
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
@@ -295,6 +298,7 @@ export default async function LinkMiddleware(
   }
 
   const isBot = detectBot(req);
+  const ua = userAgent(req);
 
   const { country } =
     process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
@@ -393,7 +397,7 @@ export default async function LinkMiddleware(
     );
 
     // redirect to iOS link if it is specified and the user is on an iOS device
-  } else if (ios && userAgent(req).os?.name === "iOS") {
+  } else if (ios && ua.os?.name === "iOS") {
     ev.waitUntil(
       recordClick({
         req,
@@ -427,7 +431,7 @@ export default async function LinkMiddleware(
     );
 
     // redirect to Android link if it is specified and the user is on an Android device
-  } else if (android && userAgent(req).os?.name === "Android") {
+  } else if (android && ua.os?.name === "Android") {
     ev.waitUntil(
       recordClick({
         req,

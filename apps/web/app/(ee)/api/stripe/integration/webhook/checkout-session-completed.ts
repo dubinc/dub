@@ -9,15 +9,13 @@ import {
   recordLead,
   recordSale,
 } from "@/lib/tinybird";
+import { ClickEventTB, LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   transformLeadEventData,
   transformSaleEventData,
 } from "@/lib/webhook/transform";
-import z from "@/lib/zod";
-import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { Customer } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
@@ -41,8 +39,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   let customer: Customer | null = null;
   let existingCustomer: Customer | null = null;
-  let clickEvent: z.infer<typeof clickEventSchemaTB> | null = null;
-  let leadEvent: z.infer<typeof leadEventSchemaTB>;
+  let clickEvent: ClickEventTB | null = null;
+  let leadEvent: LeadEventTB;
   let linkId: string;
 
   /*
