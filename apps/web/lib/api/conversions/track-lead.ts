@@ -203,7 +203,7 @@ export const trackLead = async ({
             include: includeTags,
           }),
 
-          // update workspace usage
+          // update workspace events usage
           prisma.project.update({
             where: {
               id: workspace.id,

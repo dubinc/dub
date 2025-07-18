@@ -27,7 +27,7 @@ import {
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
-import { trackLead } from "./track-lead";
+import { trackDubLead } from "./track-dub-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -529,7 +529,7 @@ export const authOptions: NextAuthOptions = {
         waitUntil(
           Promise.allSettled([
             // track lead if dub_id cookie is present
-            trackLead(user),
+            trackDubLead(user),
             // trigger welcome workflow 15 minutes after the user signed up
             qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/welcome-user`,
