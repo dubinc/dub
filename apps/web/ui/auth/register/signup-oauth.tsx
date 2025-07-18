@@ -64,9 +64,7 @@ export const SignUpOAuth = ({
     }
   };
 
-  const handleGoogleClick = async () => () => {
-    setClickedGoogle(true);
-
+  const handleGoogleClick = async () => {
     trackClientEvents({
       event: EAnalyticEvents.ELEMENT_CLICKED,
       params: {
@@ -101,7 +99,11 @@ export const SignUpOAuth = ({
         <Button
           variant="secondary"
           text="Continue with Google"
-          onClick={handleGoogleClick}
+          onClick={async () => {
+            setClickedGoogle(true);
+
+            await handleGoogleClick();
+          }}
           loading={clickedGoogle || isUploading}
           icon={<Google className="h-4 w-4" />}
           className="border-border-500"

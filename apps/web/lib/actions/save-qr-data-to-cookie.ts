@@ -30,6 +30,8 @@ const schema = z.object({
   }),
 });
 
+const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
+
 export const saveQrDataToCookieAction = actionClient
   .schema(schema)
   .action(async ({ parsedInput }) => {
@@ -41,17 +43,26 @@ export const saveQrDataToCookieAction = actionClient
       if (qrData) {
         console.log("saveQrDataToCookieAction QR data:", qrData);
       }
+      
       cookieStore.set(ECookieArg.PROCESSED_QR_DATA, JSON.stringify(qrData), {
         httpOnly: true,
-        secure: true,
+        secure: VERCEL_DEPLOYMENT,
         sameSite: "lax",
+        maxAge: 60 * 10, // 10 минут - достаточно для OAuth флоу
+        path: "/",
+        domain: VERCEL_DEPLOYMENT ? `.getqr.com` : undefined,
       });
 
-      if (cookieStore.get("ECookieArg.PROCESSED_QR_DATA")?.value) {
-        console.log("saveQrDataToCookieAction QR saved to cookies:", qrData);
+
+      const savedCookie = cookieStore.get(ECookieArg.PROCESSED_QR_DATA)?.value;
+      if (savedCookie) {
+        console.log("saveQrDataToCookieAction QR saved to cookies successfully:", qrData);
+        return { success: true };
+      } else {
+        console.error("saveQrDataToCookieAction Failed to save QR data to cookie");
+        throw new Error("Cookie not saved");
       }
 
-      return { success: true };
     } catch (error) {
       console.error("Error saving QR data to cookie:", error);
       throw new Error("Failed to save QR data");

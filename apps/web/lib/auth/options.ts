@@ -9,7 +9,6 @@ import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { PrismaClient } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
@@ -37,7 +36,7 @@ import { validatePassword } from "./password";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
-const CustomPrismaAdapter = (p: PrismaClient) => {
+const CustomPrismaAdapter = (p: typeof prisma) => {
   return {
     ...PrismaAdapter(p),
     createUser: async (data: any) => {
@@ -48,6 +47,8 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       const qrDataCookie = cookieStore.get(ECookieArg.PROCESSED_QR_DATA)?.value;
 
       console.log("createUser: QR data cookie exists:", !!qrDataCookie);
+      console.log("createUser: sessionId:", sessionId);
+      console.log("createUser: all cookies:", Object.fromEntries(cookieStore.getAll().map(c => [c.name, c.value?.substring(0, 100)])));
 
       const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
@@ -605,13 +606,19 @@ export const authOptions: NextAuthOptions = {
               ECookieArg.PROCESSED_QR_DATA,
             )?.value;
 
+            console.log("signIn event: QR data cookie exists:", !!qrDataCookie);
+            console.log("signIn event: QR data cookie length:", qrDataCookie?.length);
+
             let qrDataToCreate: any = null;
             if (qrDataCookie) {
               try {
                 qrDataToCreate = JSON.parse(qrDataCookie);
+                console.log("signIn event: Successfully parsed QR data:", qrDataToCreate);
               } catch (error) {
-                console.error("Error parsing QR data from cookie:", error);
+                console.error("signIn event: Error parsing QR data from cookie:", error);
               }
+            } else {
+              console.log("signIn event: No QR data cookie found");
             }
 
             waitUntil(
