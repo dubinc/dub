@@ -4,11 +4,12 @@ import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash";
+import { ratelimit, redis } from "@/lib/upstash";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { PrismaClient } from "@prisma/client/extension";
 import { waitUntil } from "@vercel/functions";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
@@ -36,29 +37,26 @@ import { validatePassword } from "./password";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
-const CustomPrismaAdapter = (p: typeof prisma) => {
+const CustomPrismaAdapter = (p: PrismaClient) => {
   return {
     ...PrismaAdapter(p),
     createUser: async (data: any) => {
-      const cookieStore = cookies();
       const { sessionId } = await getUserCookieService();
 
       const generatedUserId = sessionId ?? createId({ prefix: "user_" });
-      const qrDataCookie = cookieStore.get(ECookieArg.PROCESSED_QR_DATA)?.value;
 
-      console.log("createUser: QR data cookie exists:", !!qrDataCookie);
-      console.log("createUser: sessionId:", sessionId);
-      console.log("createUser: all cookies:", Object.fromEntries(cookieStore.getAll().map(c => [c.name, c.value?.substring(0, 100)])));
+      const qrDataRedis: string | null = await redis.get(
+        `qr-data:${generatedUserId}`,
+      );
 
       const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
         email: data.email,
       });
 
-      if (qrDataCookie) {
+      if (qrDataRedis) {
         try {
-          const qrDataToCreate = JSON.parse(qrDataCookie);
-          console.log("createUser: Parsed QR data:", qrDataToCreate);
+          const qrDataToCreate = JSON.parse(qrDataRedis);
 
           const linkUrl = qrDataToCreate?.fileId
             ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.fileId}`
@@ -84,8 +82,8 @@ const CustomPrismaAdapter = (p: typeof prisma) => {
         }
       }
 
-      // waitUntil(redis.set(`onboarding-step:${generatedUserId}`, "completed"));
-      //
+      waitUntil(redis.set(`onboarding-step:${generatedUserId}`, "completed"));
+
       return user;
     },
   };
@@ -602,23 +600,20 @@ export const authOptions: NextAuthOptions = {
               },
             );
 
-            const qrDataCookie = cookieStore.get(
-              ECookieArg.PROCESSED_QR_DATA,
-            )?.value;
-
-            console.log("signIn event: QR data cookie exists:", !!qrDataCookie);
-            console.log("signIn event: QR data cookie length:", qrDataCookie?.length);
+            const qrDataRedis: string | null = await redis.get(
+              `qr-data:${user.id}`,
+            );
 
             let qrDataToCreate: any = null;
-            if (qrDataCookie) {
+            if (qrDataRedis) {
               try {
-                qrDataToCreate = JSON.parse(qrDataCookie);
-                console.log("signIn event: Successfully parsed QR data:", qrDataToCreate);
+                qrDataToCreate = JSON.parse(qrDataRedis);
               } catch (error) {
-                console.error("signIn event: Error parsing QR data from cookie:", error);
+                console.error(
+                  "signIn event: Error parsing QR data from cookie:",
+                  error,
+                );
               }
-            } else {
-              console.log("signIn event: No QR data cookie found");
             }
 
             waitUntil(
@@ -639,11 +634,6 @@ export const authOptions: NextAuthOptions = {
                 }),
               ]),
             );
-
-            // if (qrDataCookie) {
-            //   cookieStore.delete(ECookieArg.PROCESSED_QR_DATA);
-            //   console.log("signIn event: QR data cookie deleted");
-            // }
           }
         }
       } else {

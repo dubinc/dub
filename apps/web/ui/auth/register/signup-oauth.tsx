@@ -1,6 +1,6 @@
 "use client";
 
-import { saveQrDataToCookieAction } from "@/lib/actions/save-qr-data-to-cookie";
+import { saveQrDataToRedisAction } from "@/lib/actions/save-qr-data-to-redis.ts";
 import { showMessage } from "@/ui/auth/helpers.ts";
 import { prepareRegistrationQrData } from "@/ui/qr-builder/helpers";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
@@ -29,7 +29,7 @@ export const SignUpOAuth = ({
   const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
 
-  const { execute: saveQrDataToCookie } = useAction(saveQrDataToCookieAction);
+  const { execute: saveQrDataToRedis } = useAction(saveQrDataToRedisAction);
 
   useEffect(() => {
     // when leave page, reset state
@@ -53,7 +53,7 @@ export const SignUpOAuth = ({
 
       if (processedData) {
         setQrDataToCreate(null);
-        saveQrDataToCookie({ qrData: processedData });
+        saveQrDataToRedis({ sessionId, qrData: processedData });
       }
 
       return processedData;
