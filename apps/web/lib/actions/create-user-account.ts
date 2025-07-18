@@ -1,8 +1,8 @@
 "use server";
 
+import { verifyAndCreateUser } from "@/lib/actions/verify-and-create-user.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
-import { ratelimit } from "@/lib/upstash";
-import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
+import { ratelimit, redis } from "@/lib/upstash";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN, R2_URL } from "@dub/utils";
@@ -12,7 +12,6 @@ import { getUserCookieService } from "core/services/cookie/user-session.service.
 import { flattenValidationErrors } from "next-safe-action";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId, getIP } from "../api/utils";
-import { hashPassword } from "../auth/password";
 import z from "../zod";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -62,6 +61,9 @@ export const createUserAccountAction = actionClient
       throw new Error("Too many requests. Please try again later.");
     }
 
+    const { sessionId } = await getUserCookieService();
+    const generatedUserId = sessionId ?? createId({ prefix: "user_" });
+
     const verificationToken = await prisma.emailVerificationToken.findUnique({
       where: {
         identifier: email,
@@ -76,100 +78,70 @@ export const createUserAccountAction = actionClient
       throw new Error("Invalid verification code entered.");
     }
 
-    // ToDo: add to prisma tx
-    await prisma.emailVerificationToken.delete({
-      where: {
-        identifier: email,
-        token: code,
-      },
-    });
-
-    // ToDo: replace user creation
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
-    // ToDo: add to prisma tx
-
-    if (user) {
-      throw new Error("User with this email already exists");
-    }
-
-    const { sessionId } = await getUserCookieService();
-    const generatedUserId = sessionId ?? createId({ prefix: "user_" });
-
-    console.log("generatedUserId", generatedUserId);
-    console.log(qrDataToCreate);
-
-    try {
-      await prisma.user.create({
-        data: {
-          id: generatedUserId,
-          email,
-          passwordHash: await hashPassword(password),
-          emailVerified: new Date(),
-        },
-      });
-    } catch (error) {
-      console.error("Error creating user", error);
-      throw new Error("Failed to create user");
-    }
-
-    console.log("here");
-
-    // @CUSTOM_FEATURE: creation of a workspace immediately after registration to skip onboarding
-    const workspaceResponse = await createWorkspaceForUser({
-      prismaClient: prisma,
-      userId: generatedUserId,
-      email,
-    });
-
-    if (qrDataToCreate) {
-      const linkUrl = qrDataToCreate?.fileId
-        ? `${R2_URL}/qrs-content/${qrDataToCreate.fileId}`
-        : (qrDataToCreate!.styles!.data! as string);
-
-      const { createdQr } = await createQrWithLinkUniversal({
-        qrData: {
-          data: qrDataToCreate.styles.data as string,
-          qrType: qrDataToCreate.qrType as any,
-          title: qrDataToCreate.title,
-          description: undefined,
-          styles: qrDataToCreate.styles,
-          frameOptions: qrDataToCreate.frameOptions,
-          fileId: qrDataToCreate.fileId,
-          link: {
-            url: linkUrl,
-          },
-        },
-        linkData: {
-          url: linkUrl,
-        },
-        workspace: workspaceResponse as Pick<
-          WorkspaceProps,
-          "id" | "plan" | "flags"
-        >,
+    const { workspace: workspaceResponse, user: createdUser } =
+      await verifyAndCreateUser({
         userId: generatedUserId,
+        email,
+        code,
+        password,
       });
 
-      waitUntil(
-        Promise.all([
-          CustomerIOClient.identify(generatedUserId, {
-            email,
-          }),
-          sendEmail({
-            email: email,
-            subject: "Welcome to GetQR",
-            template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-            messageData: {
-              qr_name: createdQr.title || "Untitled QR",
-              qr_type: createdQr.qrType,
-              url: HOME_DOMAIN,
-            },
-            customerId: generatedUserId,
-          }),
-        ]),
-      );
-    }
+    waitUntil(
+      Promise.all([
+        ...(qrDataToCreate
+          ? [
+              (async () => {
+                const linkUrl = qrDataToCreate?.fileId
+                  ? `${R2_URL}/qrs-content/${qrDataToCreate.fileId}`
+                  : (qrDataToCreate!.styles!.data! as string);
+
+                await createQrWithLinkUniversal({
+                  qrData: {
+                    data: qrDataToCreate?.styles?.data as string,
+                    qrType: qrDataToCreate?.qrType as any,
+                    title: qrDataToCreate?.title,
+                    description: undefined,
+                    styles: qrDataToCreate?.styles,
+                    frameOptions: qrDataToCreate?.frameOptions,
+                    fileId: qrDataToCreate?.fileId,
+                    link: {
+                      url: linkUrl,
+                    },
+                  },
+                  linkData: {
+                    url: linkUrl,
+                  },
+                  workspace: workspaceResponse as Pick<
+                    WorkspaceProps,
+                    "id" | "plan" | "flags"
+                  >,
+                  userId: generatedUserId,
+                });
+              })(),
+            ]
+          : []),
+
+        // Set onboarding step to completed (outside transaction as it's Redis)
+        redis.set(`onboarding-step:${generatedUserId}`, "completed"),
+        CustomerIOClient.identify(generatedUserId, {
+          email,
+        }),
+        sendEmail({
+          email: email,
+          subject: "Welcome to GetQR",
+          template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+          messageData: {
+            qr_name: qrDataToCreate?.title || "Untitled QR",
+            qr_type: qrDataToCreate?.qrType || "Indefined type",
+            url: HOME_DOMAIN,
+          },
+          customerId: generatedUserId,
+        }),
+      ]),
+    );
+
+    return {
+      user: createdUser,
+      workspace: workspaceResponse,
+    };
   });

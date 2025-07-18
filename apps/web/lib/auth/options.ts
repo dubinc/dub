@@ -1,10 +1,10 @@
+import { verifyAndCreateUser } from "@/lib/actions/verify-and-create-user.ts";
 import { convertSessionUserToCustomerBody, Session } from "@/lib/auth/utils.ts";
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
-import { createWorkspaceForUser } from "@/lib/utils/create-workspace";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
@@ -47,15 +47,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       const generatedUserId = sessionId ?? createId({ prefix: "user_" });
       const qrDataCookie = cookieStore.get(ECookieArg.PROCESSED_QR_DATA)?.value;
 
-      const user = await p.user.create({
-        data: {
-          ...data,
-          id: generatedUserId,
-        },
-      });
-
-      const workspace = await createWorkspaceForUser({
-        prismaClient: p,
+      const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
         email: data.email,
       });
