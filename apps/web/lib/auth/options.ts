@@ -48,6 +48,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       const qrDataRedis: string | null = await redis.get(
         `qr-code:${generatedUserId}`,
       );
+      console.log("CustomPrismaAdapter cachedQrData:", qrDataRedis);
 
       const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
@@ -57,7 +58,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       if (qrDataRedis) {
         try {
           const qrDataToCreate = JSON.parse(qrDataRedis);
-
+          console.log("CustomPrismaAdapter qrDataToCreate:", qrDataToCreate);
           const linkUrl = qrDataToCreate?.fileId
             ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.fileId}`
             : qrDataToCreate.styles?.data;
