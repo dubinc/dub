@@ -29,43 +29,51 @@ export async function verifyAndCreateUser({
       });
     }
 
-    const workspaceRes = await tx.project.create({
-      data: {
-        name: email,
-        slug: slugify(email),
-        users: {
-          create: {
-            userId,
-            role: "owner",
-            notificationPreference: {
-              create: {},
+    let workspaceRes;
+    try {
+      workspaceRes = await tx.project.create({
+        data: {
+          name: email,
+          slug: slugify(email),
+          users: {
+            create: {
+              userId,
+              role: "owner",
+              notificationPreference: {
+                create: {},
+              },
+            },
+          },
+          billingCycleStart: new Date().getDate(),
+          invoicePrefix: generateRandomString(8),
+          inviteCode: nanoid(24),
+          defaultDomains: {
+            create: {},
+          },
+        },
+        include: {
+          users: {
+            where: {
+              userId,
+            },
+            select: {
+              role: true,
+            },
+          },
+          domains: {
+            select: {
+              slug: true,
+              primary: true,
             },
           },
         },
-        billingCycleStart: new Date().getDate(),
-        invoicePrefix: generateRandomString(8),
-        inviteCode: nanoid(24),
-        defaultDomains: {
-          create: {},
-        },
-      },
-      include: {
-        users: {
-          where: {
-            userId,
-          },
-          select: {
-            role: true,
-          },
-        },
-        domains: {
-          select: {
-            slug: true,
-            primary: true,
-          },
-        },
-      },
-    });
+      });
+    } catch (error: any) {
+      if (error?.code === "P2002") {
+        throw new Error("User with this email already exists");
+      }
+      throw error;
+    }
 
     let createdUser;
     try {

@@ -47,18 +47,20 @@ export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
         setClickedMethod("google");
         setLastUsedAuthMethod("google");
 
-        const response = await signIn("google", {
-          redirect: false,
-          callbackUrl: next || "/workspaces",
-        });
+        setTimeout(async () => {
+          const response = await signIn("google", {
+            redirect: false,
+            callbackUrl: next || "/workspaces",
+          });
 
-        if (response?.ok) {
-          // router.push(response.url || next || "/workspaces");
-        } else if (response?.error) {
-          // Handle error if needed
-          console.error("Google sign in error:", response.error);
-          setClickedMethod(undefined);
-        }
+          if (response?.ok) {
+            // router.push(response.url || next || "/workspaces");
+          } else if (response?.error) {
+            // Handle error if needed
+            console.error("Google sign in error:", response.error);
+            setClickedMethod(undefined);
+          }
+        }, 500);
       }}
       loading={clickedMethod === "google"}
       disabled={clickedMethod && clickedMethod !== "google"}
