@@ -168,14 +168,13 @@ export default async function LinkMiddleware(
   // if the following is true, we need to cache the clickId data (so it's available for subsequent /track/lead requests):
   // - trackConversion is enabled
   // - it's a partner link
-  const shouldCacheClickId = trackConversion || isPartnerLink;
+  // - it's a Singular tracking URL
+  const shouldCacheClickId =
+    trackConversion || isPartnerLink || isSingularTrackingUrl(url);
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
   const shouldIndex = isDubDomain(domain) || doIndex === true;
-
-  // special case for Singular tracking URLs
-  const isSingularLink = isSingularTrackingUrl(cachedLink.url);
 
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
@@ -344,11 +343,6 @@ export default async function LinkMiddleware(
               req,
               ...(shouldCacheClickId && { clickId }),
               ...(isPartnerLink && { via: key }),
-              ...(isSingularLink && {
-                cl: clickId,
-                ua,
-                ip,
-              }),
             }),
           )}`,
           req.url,
@@ -387,11 +381,6 @@ export default async function LinkMiddleware(
               req,
               ...(shouldCacheClickId && { clickId }),
               ...(isPartnerLink && { via: key }),
-              ...(isSingularLink && {
-                cl: clickId,
-                ua,
-                ip,
-              }),
             }),
           )}`,
           req.url,
@@ -430,11 +419,6 @@ export default async function LinkMiddleware(
           req,
           ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
-          ...(isSingularLink && {
-            cl: clickId,
-            ua,
-            ip,
-          }),
         }),
         {
           headers: {
@@ -469,11 +453,6 @@ export default async function LinkMiddleware(
           req,
           ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
-          ...(isSingularLink && {
-            cl: clickId,
-            ua,
-            ip,
-          }),
         }),
         {
           headers: {
@@ -508,11 +487,6 @@ export default async function LinkMiddleware(
           req,
           ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
-          ...(isSingularLink && {
-            cl: clickId,
-            ua,
-            ip,
-          }),
         }),
         {
           headers: {
@@ -547,11 +521,6 @@ export default async function LinkMiddleware(
           req,
           ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
-          ...(isSingularLink && {
-            cl: clickId,
-            ua,
-            ip,
-          }),
         }),
         {
           headers: {
