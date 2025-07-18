@@ -157,16 +157,22 @@ export default async function LinkMiddleware(
       },
     );
 
+    console.log("here1");
+    console.log(linkData);
+
     if (linkData?.archived) {
       return redirectToQrDisabledPlug;
     }
 
     if (linkData?.userId) {
-      const { featuresAccess } = await checkFeaturesAccessAuthLess(
+      const featuresAccess = await checkFeaturesAccessAuthLess(
         linkData.userId,
       );
 
-      if (!featuresAccess) {
+      console.log("here2");
+      console.log(featuresAccess);
+
+      if (!featuresAccess.featuresAccess) {
         return redirectToQrDisabledPlug;
       }
     }
@@ -189,17 +195,23 @@ export default async function LinkMiddleware(
       },
     );
 
+    console.log("here3");
+    console.log(linkData);
+
     if (linkData?.archived) {
       return redirectToQrDisabledPlug;
     }
 
     // Check user restrictions
     if (linkData?.userId) {
-      const { featuresAccess } = await checkFeaturesAccessAuthLess(
+      const featuresAccess = await checkFeaturesAccessAuthLess(
         linkData.userId,
       );
+      
+      console.log("here4");
+      console.log(featuresAccess);
 
-      if (!featuresAccess) {
+      if (!featuresAccess.featuresAccess) {
         return redirectToQrDisabledPlug;
       }
     }
