@@ -41,11 +41,11 @@ export const E2E_CUSTOMER_EXTERNAL_ID_2 = "cus_pqc8qRtofpu6ZqvutyNDGAU2";
 export const E2E_REWARD = {
   id: "rw_1JYPP77NNDG6TVPAJDKNZREQN",
   event: "sale",
-  amount: 1500,
+  amount: 1000,
   modifiers: [
     {
       operator: "AND",
-      amount: 2500,
+      amount: 3000,
       conditions: [
         {
           entity: "sale",

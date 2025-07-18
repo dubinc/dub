@@ -110,7 +110,7 @@ describe("POST /track/sale", async () => {
       path: "/track/sale",
       body: {
         ...sale,
-        amount: randomValue([2000, 3000, 5000]),
+        amount: 2000,
         customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
         invoiceId: regularInvoiceId,
         metadata: {
@@ -125,7 +125,7 @@ describe("POST /track/sale", async () => {
       path: "/track/sale",
       body: {
         ...sale,
-        amount: randomValue([2000, 3000, 5000]),
+        amount: 3000,
         customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
         invoiceId: premiumInvoiceId,
         metadata: {
