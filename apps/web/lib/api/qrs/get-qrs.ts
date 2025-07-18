@@ -17,16 +17,6 @@ export async function getQrs({
     sortBy = sort;
   }
 
-  if (userId) {
-    const isTrialOver = await checkTrialOver(userId);
-    if (isTrialOver) {
-      await prisma.link.updateMany({
-        where: { userId },
-        data: { archived: true },
-      });
-    }
-  }
-
   // Map qrs sort options to database fields
   const sortMapping = {
     lastScanned: "lastClicked",
