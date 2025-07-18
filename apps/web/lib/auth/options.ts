@@ -46,7 +46,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       const generatedUserId = sessionId ?? createId({ prefix: "user_" });
 
       const qrDataRedis: string | null = await redis.get(
-        `qr-data:${generatedUserId}`,
+        `qr-code:${generatedUserId}`,
       );
 
       const { user, workspace } = await verifyAndCreateUser({
@@ -601,7 +601,7 @@ export const authOptions: NextAuthOptions = {
             );
 
             const qrDataRedis: string | null = await redis.get(
-              `qr-data:${user.id}`,
+              `qr-code:${user.id}`,
             );
 
             let qrDataToCreate: any = null;
