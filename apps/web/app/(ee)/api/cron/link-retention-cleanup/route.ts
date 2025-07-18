@@ -11,7 +11,7 @@ const DOMAINS_PER_BATCH = 10;
 const MAX_DOMAIN_BATCHES = 1_000;
 
 // This route is used to delete old links for domains with linkRetentionDays set
-// GET /api/cron/links/delete-old-links
+// GET /api/cron/link-retention-cleanup
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);

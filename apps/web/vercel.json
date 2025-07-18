@@ -49,7 +49,7 @@
       "schedule": "0 0 * * *"
     },
     {
-      "path": "/api/cron/links/delete-old-links",
+      "path": "/api/cron/link-retention-cleanup",
       "schedule": "0 0 * * *"
     }
   ],
