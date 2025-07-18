@@ -494,9 +494,3 @@ export interface FolderLinkCount {
   folderId: string;
   _count: number;
 }
-
-export type RewardContext = z.infer<typeof rewardContextSchema>;
-
-export type RewardCondition = z.infer<typeof rewardConditionSchema>;
-
-export type RewardConditions = z.infer<typeof rewardConditionsSchema>;
