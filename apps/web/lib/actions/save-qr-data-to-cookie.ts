@@ -47,7 +47,7 @@ export const saveQrDataToCookieAction = actionClient
         sameSite: "lax",
       });
 
-      if (cookieStore.get("ECookieArg.PROCESSED_QR_DATA")) {
+      if (cookieStore.get("ECookieArg.PROCESSED_QR_DATA")?.value) {
         console.log("saveQrDataToCookieAction QR saved to cookies:", qrData);
       }
 
