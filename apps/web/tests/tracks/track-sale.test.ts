@@ -1,4 +1,4 @@
-import { CommissionResponse, TrackSaleResponse } from "@/lib/types";
+import { TrackSaleResponse } from "@/lib/types";
 import { randomValue } from "@dub/utils";
 import { randomId } from "tests/utils/helpers";
 import {
@@ -43,6 +43,25 @@ const randomSaleAmount = () => {
   return randomValue([400, 900, 1900]);
 };
 
+// Helper function to verify commission details
+const verifyCommission = async (
+  http: any,
+  invoiceId: string,
+  expectedAmount: number,
+  expectedEarnings: number,
+) => {
+  const { status, data: commissions } = await http.get({
+    path: "/commissions",
+    query: { invoiceId },
+  });
+
+  expect(status).toEqual(200);
+  expect(commissions).toHaveLength(1);
+  expect(commissions[0].invoiceId).toEqual(invoiceId);
+  expect(commissions[0].amount).toEqual(expectedAmount);
+  expect(commissions[0].earnings).toEqual(expectedEarnings);
+};
+
 describe("POST /track/sale", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
@@ -85,38 +104,53 @@ describe("POST /track/sale", async () => {
     });
   });
 
-  test("track a sale with premium product ID (should create commission)", async () => {
-    const newInvoiceId = `INV_${randomId()}`;
-    const response = await http.post<TrackSaleResponse>({
+  test("track a sale with regular vs premium product ID (should create the right commission)", async () => {
+    const regularInvoiceId = `INV_${randomId()}`;
+    const response1 = await http.post<TrackSaleResponse>({
       path: "/track/sale",
       body: {
         ...sale,
         amount: randomValue([2000, 3000, 5000]),
         customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
-        invoiceId: newInvoiceId,
+        invoiceId: regularInvoiceId,
+        metadata: {
+          productId: "regularProductId",
+        },
+      },
+    });
+    expect(response1.status).toEqual(200);
+
+    const premiumInvoiceId = `INV_${randomId()}`;
+    const response2 = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...sale,
+        amount: randomValue([2000, 3000, 5000]),
+        customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
+        invoiceId: premiumInvoiceId,
         metadata: {
           productId: "premiumProductId",
         },
       },
     });
+    expect(response2.status).toEqual(200);
 
-    expect(response.status).toEqual(200);
+    // pause for 2 seconds for data to be fully processed
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // pause for 3 seconds for data to be fully processed
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    const { status, data: commissions } = await http.get<CommissionResponse[]>({
-      path: "/commissions",
-      query: {
-        invoiceId: newInvoiceId,
-      },
-    });
-
-    expect(status).toEqual(200);
-    expect(commissions).toHaveLength(1);
-    expect(commissions[0].invoiceId).toEqual(newInvoiceId);
-    expect(commissions[0].amount).toEqual(sale.amount);
-    expect(commissions[0].earnings).toEqual(E2E_REWARD.modifiers[0].amount);
+    // Verify commissions
+    await verifyCommission(
+      http,
+      regularInvoiceId,
+      response1.data.sale?.amount!,
+      E2E_REWARD.amount,
+    );
+    await verifyCommission(
+      http,
+      premiumInvoiceId,
+      response2.data.sale?.amount!,
+      E2E_REWARD.modifiers[0].amount,
+    );
   });
 
   test("track a sale with an externalId that does not exist (should return null customer and sale)", async () => {
