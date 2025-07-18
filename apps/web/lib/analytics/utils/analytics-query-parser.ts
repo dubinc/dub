@@ -33,9 +33,16 @@ export const parseFiltersFromQuery = (query: EventsFilters["query"]) => {
 
     const filter = parseCondition(trimmedCondition);
 
-    if (filter) {
-      filters.push(filter);
+    if (!filter) {
+      continue;
     }
+
+    // We only allow metadata filters for now
+    if (!filter.operand.startsWith("metadata.")) {
+      continue;
+    }
+
+    filters.push(filter);
   }
 
   return filters.length > 0 ? filters : undefined;
