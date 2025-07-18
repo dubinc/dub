@@ -2,7 +2,13 @@ import { EventsFilters } from "../types";
 
 interface InternalFilter {
   operand: string;
-  operator: "=" | ">" | "<" | ">=" | "<=" | "!=";
+  operator:
+    | "equals"
+    | "notEquals"
+    | "greaterThan"
+    | "lessThan"
+    | "greaterThanOrEqual"
+    | "lessThanOrEqual";
   value: string;
 }
 
@@ -59,10 +65,12 @@ function parseCondition(condition: string): InternalFilter | null {
   if (fieldOrMetadata.startsWith("metadata")) {
     const keyPath = fieldOrMetadata.replace(/^metadata/, "");
 
-    operand = keyPath
+    const extractedKey = keyPath
       .replace(/^\[['"]|['"]\]$/g, "") // Remove leading [' or [" and trailing '] or "]
       .replace(/\[['"]/g, ".") // Replace [' or [" with .
       .replace(/['"]\]/g, ""); // Remove trailing '] or "]
+
+    operand = `metadata.${extractedKey}`;
   } else {
     operand = fieldOrMetadata;
   }
@@ -78,19 +86,19 @@ function parseCondition(condition: string): InternalFilter | null {
 function mapOperator(operator: string): InternalFilter["operator"] {
   switch (operator) {
     case ":":
-      return "=";
+      return "equals";
     case ">":
-      return ">";
+      return "greaterThan";
     case "<":
-      return "<";
+      return "lessThan";
     case ">=":
-      return ">=";
+      return "greaterThanOrEqual";
     case "<=":
-      return "<=";
+      return "lessThanOrEqual";
     case "!=":
-      return "!=";
+      return "notEquals";
     default:
       // For unsupported operators, default to equals
-      return "=";
+      return "equals";
   }
 }

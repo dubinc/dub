@@ -51,14 +51,14 @@ describe("Analytics Query Parser", () => {
       it("should parse simple nested property", () => {
         const result = parseFiltersFromQuery("metadata['key']:value");
         expect(result).toEqual([
-          { operand: "key", operator: "=", value: "value" },
+          { operand: "metadata.key", operator: "=", value: "value" },
         ]);
       });
 
       it("should parse nested property with double quotes", () => {
         const result = parseFiltersFromQuery('metadata["key"]:"quoted value"');
         expect(result).toEqual([
-          { operand: "key", operator: "=", value: "quoted value" },
+          { operand: "metadata.key", operator: "=", value: "quoted value" },
         ]);
       });
 
@@ -67,7 +67,7 @@ describe("Analytics Query Parser", () => {
           "metadata['level1']['level2']['level3']:value",
         );
         expect(result).toEqual([
-          { operand: "level1.level2.level3", operator: "=", value: "value" },
+          { operand: "metadata.level1.level2.level3", operator: "=", value: "value" },
         ]);
       });
 
@@ -76,7 +76,7 @@ describe("Analytics Query Parser", () => {
           "metadata['user']['preferences']['theme']:dark",
         );
         expect(result).toEqual([
-          { operand: "user.preferences.theme", operator: "=", value: "dark" },
+          { operand: "metadata.user.preferences.theme", operator: "=", value: "dark" },
         ]);
       });
     });
@@ -92,7 +92,7 @@ describe("Analytics Query Parser", () => {
       it("should parse equals operator (:) for nested property", () => {
         const result = parseFiltersFromQuery("metadata['key']:value");
         expect(result).toEqual([
-          { operand: "key", operator: "=", value: "value" },
+          { operand: "metadata.key", operator: "=", value: "value" },
         ]);
       });
 
@@ -134,7 +134,7 @@ describe("Analytics Query Parser", () => {
       it("should parse not equals operator for nested property", () => {
         const result = parseFiltersFromQuery("metadata['status']!=completed");
         expect(result).toEqual([
-          { operand: "status", operator: "!=", value: "completed" },
+          { operand: "metadata.status", operator: "!=", value: "completed" },
         ]);
       });
     });
@@ -172,8 +172,8 @@ describe("Analytics Query Parser", () => {
           "metadata['product_id']:123 AND metadata['category']:electronics",
         );
         expect(result).toEqual([
-          { operand: "product_id", operator: "=", value: "123" },
-          { operand: "category", operator: "=", value: "electronics" },
+          { operand: "metadata.product_id", operator: "=", value: "123" },
+          { operand: "metadata.category", operator: "=", value: "electronics" },
         ]);
       });
 
@@ -183,7 +183,7 @@ describe("Analytics Query Parser", () => {
         );
         expect(result).toEqual([
           { operand: "amount", operator: ">", value: "100" },
-          { operand: "user_type", operator: "=", value: "premium" },
+          { operand: "metadata.user_type", operator: "=", value: "premium" },
         ]);
       });
     });
@@ -263,7 +263,7 @@ describe("Analytics Query Parser", () => {
         );
         expect(result).toEqual([
           { operand: "amount", operator: ">=", value: "100" },
-          { operand: "category", operator: "=", value: "electronics" },
+          { operand: "metadata.category", operator: "=", value: "electronics" },
           { operand: "status", operator: "=", value: "completed" },
         ]);
       });
@@ -273,8 +273,8 @@ describe("Analytics Query Parser", () => {
           "metadata['user_type']:premium AND metadata['region']:us AND amount>50",
         );
         expect(result).toEqual([
-          { operand: "user_type", operator: "=", value: "premium" },
-          { operand: "region", operator: "=", value: "us" },
+          { operand: "metadata.user_type", operator: "=", value: "premium" },
+          { operand: "metadata.region", operator: "=", value: "us" },
           { operand: "amount", operator: ">", value: "50" },
         ]);
       });
@@ -284,8 +284,8 @@ describe("Analytics Query Parser", () => {
           "metadata['source']:website AND metadata['campaign']:summer2024 AND status:qualified",
         );
         expect(result).toEqual([
-          { operand: "source", operator: "=", value: "website" },
-          { operand: "campaign", operator: "=", value: "summer2024" },
+          { operand: "metadata.source", operator: "=", value: "website" },
+          { operand: "metadata.campaign", operator: "=", value: "summer2024" },
           { operand: "status", operator: "=", value: "qualified" },
         ]);
       });

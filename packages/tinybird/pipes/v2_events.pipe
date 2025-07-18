@@ -136,8 +136,24 @@ SQL >
         
         {% if defined(filters) %}
             {% for item in JSON(filters, '[]') %}
-                {% if item.get('operator', '') == 'equals' %}
-                    AND JSONExtractString(metadata, {{ item.get('operand', '') }}) = {{ item.get('value', '') }}
+                {% if item.get('operand', '').startswith('metadata.') %}
+                    {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                    {% set operator = item.get('operator', 'equals') %}
+                    {% set value = item.get('value', '') %}
+                    
+                    {% if operator == 'equals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
+                    {% elif operator == 'notEquals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
+                    {% elif operator == 'greaterThan' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
+                    {% elif operator == 'lessThan' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
+                    {% elif operator == 'greaterThanOrEqual' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
+                    {% elif operator == 'lessThanOrEqual' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+                    {% end %}
                 {% end %}
             {% end %}
         {% end %}
@@ -186,8 +202,24 @@ SQL >
 
         {% if defined(filters) %}
             {% for item in JSON(filters, '[]') %}
-                {% if item.get('operator', '') == 'equals' %}
-                    AND JSONExtractString(metadata, {{ item.get('operand', '') }}) = {{ item.get('value', '') }}
+                {% if item.get('operand', '').startswith('metadata.') %}
+                    {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                    {% set operator = item.get('operator', 'equals') %}
+                    {% set value = item.get('value', '') %}
+                    
+                    {% if operator == 'equals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
+                    {% elif operator == 'notEquals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
+                    {% elif operator == 'greaterThan' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
+                    {% elif operator == 'lessThan' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
+                    {% elif operator == 'greaterThanOrEqual' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
+                    {% elif operator == 'lessThanOrEqual' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+                    {% end %}
                 {% end %}
             {% end %}
         {% end %}
