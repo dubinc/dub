@@ -1,0 +1,25 @@
+DESCRIPTION >
+	Get partner activities
+
+TOKEN "get_partner_activities_endpoint_read" READ
+
+NODE endpoint
+SQL >
+
+    %
+    SELECT *
+    FROM dub_partner_activities
+    WHERE
+        program_id
+        = {{
+            String(
+                programId,
+                'prog_CYCu7IMAapjkRpTnr8F1azjN',
+                description="The ID of the program",
+                required=True,
+            )
+        }}
+        ORDER BY timestamp DESC
+        limit 25
+
+
