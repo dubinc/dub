@@ -1,11 +1,11 @@
 import { prisma } from "@dub/prisma";
 import { EventType, ProgramEnrollment, Reward } from "@dub/prisma/client";
-import { RewardSchema } from "../zod/schemas/rewards";
+import { RewardContext } from "../types";
 import {
-  RewardContext,
-  evaluateRewardConditions,
   rewardConditionsArraySchema,
-} from "./evaluate-reward-conditions";
+  RewardSchema,
+} from "../zod/schemas/rewards";
+import { evaluateRewardConditions } from "./evaluate-reward-conditions";
 
 const REWARD_EVENT_COLUMN_MAPPING = {
   [EventType.click]: "clickReward",
