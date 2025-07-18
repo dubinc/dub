@@ -162,16 +162,8 @@ async function createCustomer({
   // Find the customer by email address
   const customerFound = await prisma.customer.findFirst({
     where: {
-      OR: [
-        {
-          projectId: workspace.id,
-          email: customer.email,
-        },
-        {
-          projectId: workspace.id,
-          externalId: customer.customer_key,
-        },
-      ],
+      projectId: workspace.id,
+      OR: [{ email: customer.email }, { externalId: customer.customer_key }],
     },
   });
 
