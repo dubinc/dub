@@ -3,6 +3,7 @@
 import { PROGRAM_IMPORT_SOURCES } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useExportPartnersModal } from "@/ui/modals/export-partners-modal";
+import { useImportPartnerStackModal } from "@/ui/modals/import-partnerstack-modal";
 import { useImportRewardfulModal } from "@/ui/modals/import-rewardful-modal";
 import { useImportToltModal } from "@/ui/modals/import-tolt-modal";
 import { Download, ThreeDots } from "@/ui/shared/icons";
@@ -17,6 +18,7 @@ export function ImportExportButtons() {
 
   const { ImportToltModal } = useImportToltModal();
   const { ImportRewardfulModal } = useImportRewardfulModal();
+  const { ImportPartnerStackModal } = useImportPartnerStackModal();
 
   const { ExportPartnersModal, setShowExportPartnersModal } =
     useExportPartnersModal();
@@ -25,10 +27,11 @@ export function ImportExportButtons() {
     <>
       <ImportToltModal />
       <ImportRewardfulModal />
+      <ImportPartnerStackModal />
       <ExportPartnersModal />
       <Popover
         content={
-          <div className="w-full md:w-52">
+          <div className="w-full md:w-56">
             <div className="grid gap-px p-2">
               <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                 Import Partners

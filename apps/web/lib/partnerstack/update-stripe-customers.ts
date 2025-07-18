@@ -1,9 +1,11 @@
+import { sendEmail } from "@dub/email";
+import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { Customer, Project } from "@dub/prisma/client";
 import { log } from "@dub/utils";
-import Stripe from "stripe";
 import { stripeAppClient } from "../stripe";
-import { MAX_BATCHES, toltImporter } from "./importer";
+import { MAX_BATCHES, partnerStackImporter } from "./importer";
+import { PartnerStackImportPayload } from "./types";
 
 const CUSTOMERS_PER_BATCH = 20;
 
@@ -11,20 +13,19 @@ const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
 });
 
-// Tolt API doesn't return the Stripe customer ID,
+// PartnerStack API doesn't return the Stripe customer ID,
 // so we'll search for Stripe customers by email and update the customer record with the Stripe customer ID, if found.
-export async function updateStripeCustomers({
-  programId,
-  startingAfter,
-}: {
-  programId: string;
-  startingAfter?: string;
-}) {
-  const { workspace } = await prisma.program.findUniqueOrThrow({
+export async function updateStripeCustomers(
+  payload: PartnerStackImportPayload,
+) {
+  const { programId, userId, startingAfter } = payload;
+
+  const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
     select: {
+      name: true,
       workspace: {
         select: {
           id: true,
@@ -44,6 +45,7 @@ export async function updateStripeCustomers({
 
   let hasMore = true;
   let processedBatches = 0;
+  let currentStartingAfter = startingAfter;
 
   while (hasMore && processedBatches < MAX_BATCHES) {
     const customers = await prisma.customer.findMany({
@@ -60,10 +62,10 @@ export async function updateStripeCustomers({
         createdAt: "asc",
       },
       take: CUSTOMERS_PER_BATCH,
-      skip: startingAfter ? 1 : 0,
-      ...(startingAfter && {
+      skip: currentStartingAfter ? 1 : 0,
+      ...(currentStartingAfter && {
         cursor: {
-          id: startingAfter,
+          id: currentStartingAfter,
         },
       }),
     });
@@ -85,14 +87,46 @@ export async function updateStripeCustomers({
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     processedBatches++;
-    startingAfter = customers[customers.length - 1].id;
+    currentStartingAfter = customers[customers.length - 1].id;
   }
 
-  await toltImporter.queue({
-    programId,
-    action: hasMore ? "update-stripe-customers" : "cleanup-partners",
-    ...(hasMore && { startingAfter }),
+  if (hasMore) {
+    await partnerStackImporter.queue({
+      ...payload,
+      startingAfter: currentStartingAfter,
+      action: "update-stripe-customers",
+    });
+    return;
+  }
+
+  const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
+    where: {
+      userId_projectId: {
+        userId,
+        projectId: workspace.id,
+      },
+    },
+    select: {
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
   });
+
+  if (workspaceUser && workspaceUser.user.email) {
+    await sendEmail({
+      email: workspaceUser.user.email,
+      subject: "PartnerStack program imported",
+      react: CampaignImported({
+        email: workspaceUser.user.email,
+        workspace,
+        program,
+        provider: "PartnerStack",
+      }),
+    });
+  }
 }
 
 async function searchStripeAndUpdateCustomer({
@@ -116,31 +150,20 @@ async function searchStripeAndUpdateCustomer({
     return null;
   }
 
-  let stripeCustomer: Stripe.Customer;
-
   if (stripeCustomers.data.length > 1) {
-    // look for the one with metadata.tolt_referral set
-    const toltReferralStripeCustomer = stripeCustomers.data.find(
-      (customer) => customer.metadata.tolt_referral,
+    await log({
+      message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug}`,
+      type: "errors",
+    });
+
+    console.error(
+      `Stripe search returned multiple customers for ${customer.email}`,
     );
 
-    if (toltReferralStripeCustomer) {
-      stripeCustomer = toltReferralStripeCustomer;
-    } else {
-      await log({
-        message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.tolt_referral set`,
-        type: "errors",
-      });
-
-      console.error(
-        `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.tolt_referral set`,
-      );
-
-      return null;
-    }
+    return null;
   }
 
-  stripeCustomer = stripeCustomers.data[0];
+  const stripeCustomer = stripeCustomers.data[0];
 
   await prisma.customer.update({
     where: {
