@@ -64,41 +64,44 @@ export const SignUpOAuth = ({
     }
   };
 
+  const handleGoogleClick = async () => () => {
+    setClickedGoogle(true);
+
+    trackClientEvents({
+      event: EAnalyticEvents.ELEMENT_CLICKED,
+      params: {
+        page_name: "landing",
+        element_name: "signup",
+        content_value: "google",
+        event_category: "nonAuthorized",
+      },
+      sessionId,
+    });
+
+    trackClientEvents({
+      event: EAnalyticEvents.SIGNUP_ATTEMPT,
+      params: {
+        page_name: "landing",
+        method: "google",
+        event_category: "nonAuthorized",
+      },
+      sessionId,
+    });
+
+    handleQrDataProcessing().then(() =>
+      signIn("google", {
+        ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+      }),
+    );
+  };
+
   return (
     <>
       {methods.includes("google") && (
         <Button
           variant="secondary"
           text="Continue with Google"
-          onClick={async () => {
-            await handleQrDataProcessing();
-
-            trackClientEvents({
-              event: EAnalyticEvents.ELEMENT_CLICKED,
-              params: {
-                page_name: "landing",
-                element_name: "signup",
-                content_value: "google",
-                event_category: "nonAuthorized",
-              },
-              sessionId,
-            });
-
-            trackClientEvents({
-              event: EAnalyticEvents.SIGNUP_ATTEMPT,
-              params: {
-                page_name: "landing",
-                method: "google",
-                event_category: "nonAuthorized",
-              },
-              sessionId,
-            });
-            setClickedGoogle(true);
-
-            signIn("google", {
-              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-            });
-          }}
+          onClick={handleGoogleClick}
           loading={clickedGoogle || isUploading}
           icon={<Google className="h-4 w-4" />}
           className="border-border-500"
