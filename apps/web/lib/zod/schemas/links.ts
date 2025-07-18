@@ -454,6 +454,12 @@ export const createLinkBodySchema = z.object({
     .string()
     .nullish()
     .describe("The date and time when the tests were or will be completed."),
+  linkRetentionCleanupDisabledAt: z
+    .string()
+    .nullish()
+    .describe(
+      "For domains that have link retention settings enabled, the date and time when the retention cleanup was disabled for this link.",
+    ),
 });
 
 export const createLinkBodySchemaAsync = createLinkBodySchema.extend({

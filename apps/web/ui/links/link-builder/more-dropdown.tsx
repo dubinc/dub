@@ -1,3 +1,4 @@
+import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useABTestingModal } from "@/ui/modals/link-builder/ab-testing-modal";
 import { useAdvancedModal } from "@/ui/modals/link-builder/advanced-modal";
@@ -23,15 +24,23 @@ export function MoreDropdown() {
 
   const data = watch();
 
+  const { allWorkspaceDomains } = useDomains();
+
   const options = useMemo(() => {
     return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...MORE_ITEMS].filter(
       (option) => {
         if (option.key === "testVariants") return flags?.abTesting;
         if (option.key === "partnerId") return Boolean(defaultProgramId);
+        if (option.key === "linkRetentionCleanupDisabledAt")
+          return Boolean(
+            allWorkspaceDomains.find((d) => d.slug === data.domain)
+              ?.linkRetentionDays,
+          );
+
         return true;
       },
     );
-  }, [data, isMobile, flags, defaultProgramId]);
+  }, [data, isMobile, flags, defaultProgramId, allWorkspaceDomains]);
 
   const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();
@@ -55,8 +64,15 @@ export function MoreDropdown() {
       const option = options.find(({ shortcutKey }) => shortcutKey === e.key);
       if (!option) return;
 
+      const enabled =
+        "enabled" in option && typeof option.enabled === "function"
+          ? option.enabled(data)
+          : data[option.key];
+
       setOpenPopover(false);
       if (option.type === "modal") modalCallbacks[option.key]?.(true);
+      else if (enabled && option.remove) option.remove(setValue);
+      else if (enabled && option.enable) option.enable(setValue);
       else
         setValue(option.key as any, !data[option.key], { shouldDirty: true });
     },
@@ -89,9 +105,11 @@ export function MoreDropdown() {
                   onClick={() => {
                     setOpenPopover(false);
 
-                    if (option.type === "modal") {
+                    if (option.type === "modal")
                       modalCallbacks[option.key]?.(true);
-                    } else
+                    else if (enabled && option.remove) option.remove(setValue);
+                    else if (!enabled && option.enable) option.enable(setValue);
+                    else
                       setValue(option.key as any, !enabled, {
                         shouldDirty: true,
                       });
