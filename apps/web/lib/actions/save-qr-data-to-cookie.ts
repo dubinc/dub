@@ -38,23 +38,18 @@ export const saveQrDataToCookieAction = actionClient
     const cookieStore = cookies();
 
     try {
+      if (qrData) {
+        console.log("saveQrDataToCookieAction QR data:", qrData);
+      }
       cookieStore.set(ECookieArg.PROCESSED_QR_DATA, JSON.stringify(qrData), {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
       });
 
-      // // hack for sessionId receiving in next-auth callback context
-      // const sessionId = cookieStore.get(ECookieArg.SESSION_ID)?.value;
-      // if (sessionId) {
-      //   cookieStore.set(ECookieArg.SESSION_ID, sessionId, {
-      //     httpOnly: true,
-      //     secure: true,
-      //     sameSite: "lax",
-      //     // path: "/",
-      //   });
-      // }
-      // // hack for sessionId receiving in next-auth callback context
+      if (cookieStore.get("ECookieArg.PROCESSED_QR_DATA")) {
+        console.log("saveQrDataToCookieAction QR saved to cookies:", qrData);
+      }
 
       return { success: true };
     } catch (error) {

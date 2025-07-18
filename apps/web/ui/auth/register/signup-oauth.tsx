@@ -53,7 +53,7 @@ export const SignUpOAuth = ({
 
       if (processedData) {
         setQrDataToCreate(null);
-        await saveQrDataToCookie({ qrData: processedData });
+        saveQrDataToCookie({ qrData: processedData });
       }
 
       return processedData;
@@ -95,9 +95,11 @@ export const SignUpOAuth = ({
             });
             setClickedGoogle(true);
 
-            signIn("google", {
-              ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-            });
+            setTimeout(async () => {
+              await signIn("google", {
+                ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+              });
+            }, 1000);
           }}
           loading={clickedGoogle || isUploading}
           icon={<Google className="h-4 w-4" />}
