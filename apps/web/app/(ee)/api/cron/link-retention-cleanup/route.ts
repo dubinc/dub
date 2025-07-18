@@ -46,7 +46,7 @@ export async function GET(req: Request) {
       if (domains.length === 0) break;
 
       for (const domain of domains) {
-        if (domain.linkRetentionDays)
+        if (domain.linkRetentionDays && domain.linkRetentionDays > 0)
           await deleteOldLinks(domain.slug, domain.linkRetentionDays);
       }
 
