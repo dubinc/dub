@@ -2,7 +2,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  CommissionResponseSchema,
+  CommissionEnrichedSchema,
   getCommissionsQuerySchema,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
@@ -38,12 +38,12 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const commissions = await prisma.commission.findMany({
     where: invoiceId
       ? {
-          programId,
           invoiceId,
+          programId,
         }
       : {
           earnings: {
-            gt: 0,
+            not: 0,
           },
           programId,
           partnerId,
@@ -66,6 +66,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   });
 
   return NextResponse.json(
-    z.array(CommissionResponseSchema).parse(commissions),
+    z.array(CommissionEnrichedSchema).parse(commissions),
   );
 });

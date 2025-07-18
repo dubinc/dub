@@ -1,17 +1,14 @@
-import { Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Crown } from "lucide-react";
 import { PropsWithChildren, ReactNode } from "react";
 
 export function StepPage({
   children,
-  icon: Icon,
   title,
   description,
   paidPlanRequired,
   className,
 }: PropsWithChildren<{
-  icon?: Icon;
   title: ReactNode;
   description: ReactNode;
   paidPlanRequired?: boolean;
@@ -25,28 +22,17 @@ export function StepPage({
         className,
       )}
     >
-      {Icon && <StepIcon icon={Icon} />}
       {paidPlanRequired && (
-        <div className="mt-6 flex items-center gap-1.5 rounded-full bg-neutral-200/50 px-2.5 py-0.5 text-xs font-medium text-neutral-700 shadow-inner">
+        <div className="mb-3 flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600">
           <Crown className="size-3" />
           Paid plan required
         </div>
       )}
-      <h1 className="mt-4 text-center text-2xl font-medium leading-tight">
-        {title}
-      </h1>
-      <div className="mt-1.5 text-center text-base leading-tight text-neutral-500">
+      <h1 className="text-center text-xl font-semibold">{title}</h1>
+      <div className="mt-2 text-balance text-center text-base text-neutral-500">
         {description}
       </div>
       <div className="mt-8 w-full">{children}</div>
-    </div>
-  );
-}
-
-function StepIcon({ icon: Icon }: { icon: Icon }) {
-  return (
-    <div className="rounded-full border border-neutral-200 bg-white p-2.5">
-      <Icon className="size-[18px]" />
     </div>
   );
 }

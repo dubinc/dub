@@ -74,6 +74,7 @@ export const DUB_DOMAINS = [
             "calendly.com",
             "calendar.app.google",
             "calendar.google.com",
+            "calendar.notion.so",
             "chillipiper.com",
             "fantastical.app",
             "hubspot.com",
@@ -142,17 +143,6 @@ export const DUB_DOMAINS = [
           allowedHostnames: ["figma.com"],
           description:
             "Branded domain for Figma links (portfolios, prototypes, presentations, etc.).",
-          projectId: DUB_WORKSPACE_ID,
-        },
-        {
-          id: "clugy7euh000a11h6ignmj42o",
-          slug: "loooooooo.ng",
-          verified: true,
-          primary: false,
-          archived: true,
-          placeholder: "https://d.to/long",
-          description:
-            "Branded domain for lengthening links instead of shortening them (April Fool's Prank).",
           projectId: DUB_WORKSPACE_ID,
         },
       ]

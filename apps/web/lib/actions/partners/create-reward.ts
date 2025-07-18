@@ -1,88 +1,75 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { createRewardSchema } from "@/lib/zod/schemas/rewards";
+import {
+  createRewardSchema,
+  REWARD_EVENT_COLUMN_MAPPING,
+} from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    const { partnerIds, event, amount, type, maxDuration, maxAmount } =
-      parsedInput;
+    const { workspace, user } = ctx;
+    let {
+      event,
+      amount,
+      type,
+      maxDuration,
+      isDefault,
+      includedPartnerIds,
+      excludedPartnerIds,
+    } = parsedInput;
+
+    includedPartnerIds = includedPartnerIds || [];
+    excludedPartnerIds = excludedPartnerIds || [];
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
-
-    if (maxAmount && maxAmount < amount) {
-      throw new Error(
-        "Max reward amount cannot be less than the reward amount.",
-      );
-    }
-
-    let programEnrollments: { id: string }[] = [];
-
-    // only one program-wide reward is allowed for each event
-    if (!partnerIds || partnerIds.length === 0) {
-      const programWideRewardCount = await prisma.reward.count({
+    // Only one default reward is allowed for each event
+    if (isDefault) {
+      const defaultReward = await prisma.reward.findFirst({
         where: {
-          event,
           programId,
-          partners: {
-            none: {},
-          },
+          event,
+          default: true,
         },
       });
 
-      if (programWideRewardCount > 0) {
+      if (defaultReward) {
         throw new Error(
-          `There is an existing program-wide ${event} reward already. Either update the existing reward to be partner-specific or create a partner-specific reward.`,
+          `There is an existing default ${event} reward already. A program can only have one ${event} default reward.`,
         );
       }
     }
 
-    if (partnerIds) {
-      programEnrollments = await prisma.programEnrollment.findMany({
+    const finalPartnerIds = [...includedPartnerIds, ...excludedPartnerIds];
+
+    if (finalPartnerIds && finalPartnerIds.length > 0) {
+      const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId,
           partnerId: {
-            in: partnerIds,
+            in: finalPartnerIds,
           },
         },
         select: {
-          id: true,
+          partnerId: true,
         },
       });
 
-      if (programEnrollments.length !== partnerIds.length) {
-        throw new Error("Invalid partner IDs provided.");
-      }
+      const invalidPartnerIds = finalPartnerIds.filter(
+        (id) =>
+          !programEnrollments.some((enrollment) => enrollment.partnerId === id),
+      );
 
-      // only one partner-specific reward is allowed for each event for a partner
-      const existingRewardCount = await prisma.partnerReward.count({
-        where: {
-          reward: {
-            event,
-            programId,
-          },
-          programEnrollment: {
-            partnerId: {
-              in: partnerIds,
-            },
-          },
-        },
-      });
-
-      if (existingRewardCount > 0) {
+      if (invalidPartnerIds.length > 0) {
         throw new Error(
-          `Some of these partners already have an existing partner-specific ${event} reward. Remove those partners to continue.`,
+          `Invalid partner IDs provided (partners must be enrolled in the program): ${invalidPartnerIds.join(", ")}`,
         );
       }
     }
@@ -95,32 +82,49 @@ export const createRewardAction = authActionClient
         type,
         amount,
         maxDuration,
-        maxAmount,
-        ...(programEnrollments && {
-          partners: {
-            createMany: {
-              data: programEnrollments.map(({ id }) => ({
-                programEnrollmentId: id,
-              })),
-            },
-          },
-        }),
+        default: isDefault,
       },
     });
 
-    // set the default reward if it doesn't exist
-    if (
-      !program.defaultRewardId &&
-      ["lead", "sale"].includes(event) &&
-      (!partnerIds || partnerIds.length === 0)
-    ) {
-      await prisma.program.update({
-        where: {
-          id: programId,
-        },
-        data: {
-          defaultRewardId: reward.id,
-        },
-      });
-    }
+    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+
+    await prisma.programEnrollment.updateMany({
+      where: {
+        programId,
+        ...(reward.default
+          ? {
+              [rewardIdColumn]: null,
+              ...(excludedPartnerIds.length > 0 && {
+                partnerId: {
+                  notIn: excludedPartnerIds,
+                },
+              }),
+            }
+          : {
+              partnerId: {
+                in: includedPartnerIds,
+              },
+            }),
+      },
+      data: {
+        [rewardIdColumn]: reward.id,
+      },
+    });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "reward.created",
+        description: `Reward ${reward.id} created`,
+        actor: user,
+        targets: [
+          {
+            type: "reward",
+            id: reward.id,
+            metadata: reward,
+          },
+        ],
+      }),
+    );
   });

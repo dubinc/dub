@@ -29,6 +29,9 @@ export async function POST(req: Request) {
     const links = await prisma.link.findMany({
       where: { domain, projectId: currentWorkspaceId },
       take: 100,
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     // No remaining links to transfer

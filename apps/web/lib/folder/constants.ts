@@ -45,5 +45,4 @@ export const unsortedLinks: FolderSummary = {
   id: "unsorted",
   name: "Links",
   accessLevel: "write",
-  linkCount: -1,
 };

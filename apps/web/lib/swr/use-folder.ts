@@ -5,7 +5,7 @@ import useWorkspace from "./use-workspace";
 
 export default function useFolder({
   folderId,
-  enabled,
+  enabled = true,
 }: {
   folderId?: string | null;
   enabled?: boolean;

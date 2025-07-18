@@ -4,7 +4,7 @@ import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { sendEmail } from "@dub/email";
-import { LinksImported } from "@dub/email/templates/links-imported";
+import LinksImported from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, linkConstructorSimple } from "@dub/utils";
 
@@ -144,15 +144,19 @@ export const importLinksFromShort = async ({
     links: linksToCreate.map(({ tags, ...rest }) => {
       return {
         ...rest,
-        ...(importTags && {
-          tagIds: tags
-            .map(
-              (tag: string) => allTags.find((t) => t.name === tag)?.id ?? null,
-            )
-            .filter(Boolean),
-        }),
+        ...(importTags &&
+          Array.isArray(tags) &&
+          tags.length > 0 && {
+            tagIds: tags
+              .map(
+                (tag: string) =>
+                  allTags.find((t) => t.name === tag)?.id ?? null,
+              )
+              .filter(Boolean),
+          }),
       };
     }),
+    skipRedisCache: true,
   });
 
   count += importedLinks.length;

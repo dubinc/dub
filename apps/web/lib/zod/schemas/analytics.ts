@@ -66,7 +66,7 @@ export const analyticsPathParamsSchema = z.object({
   endpoint: oldAnalyticsEndpoints.optional(),
 });
 
-// Query schema for /api/analytics endpoint
+// Query schema for GET /analytics and GET /events endpoints
 export const analyticsQuerySchema = z
   .object({
     event: analyticsEvents,
@@ -75,16 +75,23 @@ export const analyticsQuerySchema = z
       .string()
       .optional()
       .describe("The domain to filter analytics for."),
-    key: z.string().optional().describe("The short link slug."),
+    key: z
+      .string()
+      .optional()
+      .describe(
+        "The slug of the short link to retrieve analytics for. Must be used along with the corresponding `domain` of the short link to fetch analytics for a specific short link.",
+      ),
     linkId: z
       .string()
       .optional()
-      .describe("The unique ID of the short link on Dub."),
+      .describe(
+        "The unique ID of the short link on Dub to retrieve analytics for.",
+      ),
     externalId: z
       .string()
       .optional()
       .describe(
-        "This is the ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
+        "The ID of the link in the your database. Must be prefixed with 'ext_' when passed as a query parameter.",
       ),
     tenantId: z
       .string()
@@ -133,7 +140,9 @@ export const analyticsQuerySchema = z
     country: z
       .enum(COUNTRY_CODES)
       .optional()
-      .describe("The country to retrieve analytics for.")
+      .describe(
+        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. Learn more: https://d.to/geo",
+      )
       .openapi({ ref: "countryCode" }),
     city: z
       .string()
@@ -270,11 +279,12 @@ export const analyticsFilterTB = z
       partnerId: true,
       tenantId: true,
       folderId: true,
+      sortBy: true,
     }),
   );
 
 export const eventsFilterTB = analyticsFilterTB
-  .omit({ granularity: true, timezone: true, page: true })
+  .omit({ granularity: true, timezone: true, page: true, sortBy: true })
   .and(
     z.object({
       offset: z.coerce.number().default(0),
@@ -291,7 +301,7 @@ const sortOrder = z
   .describe("The sort order. The default is `desc`.");
 
 export const eventsQuerySchema = analyticsQuerySchema
-  .omit({ groupBy: true })
+  .omit({ groupBy: true, sortBy: true })
   .extend({
     event: z
       .enum(EVENT_TYPES)

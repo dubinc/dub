@@ -25,13 +25,31 @@ export async function deletePartner({ partnerId }: { partnerId: string }) {
     return;
   }
 
-  const links = partner.programs[0].links;
+  const links = partner.programs.length > 0 ? partner.programs[0].links : [];
 
-  await prisma.customer.deleteMany({
-    where: {
-      linkId: {
-        in: links.map((link) => link.id),
+  if (links.length > 0) {
+    await prisma.customer.deleteMany({
+      where: {
+        linkId: {
+          in: links.map((link) => link.id),
+        },
       },
+    });
+
+    await bulkDeleteLinks(links);
+
+    await prisma.link.deleteMany({
+      where: {
+        id: {
+          in: links.map((link) => link.id),
+        },
+      },
+    });
+  }
+
+  await prisma.commission.deleteMany({
+    where: {
+      partnerId: partner.id,
     },
   });
 
@@ -41,27 +59,11 @@ export async function deletePartner({ partnerId }: { partnerId: string }) {
     },
   });
 
-  await prisma.commission.deleteMany({
-    where: {
-      partnerId: partner.id,
-    },
-  });
-
-  await prisma.link.deleteMany({
-    where: {
-      id: {
-        in: links.map((link) => link.id),
-      },
-    },
-  });
-
   await prisma.partner.delete({
     where: {
       id: partner.id,
     },
   });
-
-  await bulkDeleteLinks(links);
 
   if (partner.stripeConnectId) {
     await stripe.accounts.del(partner.stripeConnectId);

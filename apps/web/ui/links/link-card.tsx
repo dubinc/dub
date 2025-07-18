@@ -4,7 +4,6 @@ import {
   CardList,
   ExpandingArrow,
   useIntersectionObserver,
-  useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import Link from "next/link";
@@ -49,7 +48,6 @@ export const LinkCard = memo(({ link }: { link: ResponseLink }) => {
 
 const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
   const { variant, loading } = useContext(CardList.Context);
-  const { isMobile } = useMediaQuery();
   const ref = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
@@ -57,9 +55,6 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
   const selectedFolderId = searchParams.get("folderId");
   const { slug, defaultFolderId } = useWorkspace();
   const { queryParams } = useRouterStuff();
-
-  const entry = useIntersectionObserver(ref);
-  const isInView = entry?.isIntersecting;
 
   const showFolderIcon = useMemo(() => {
     return Boolean(
@@ -79,25 +74,22 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
     [slug, link.domain, link.key],
   );
 
+  const entry = useIntersectionObserver(ref);
+  const isInView = entry?.isIntersecting;
+
   useEffect(() => {
     if (isInView) router.prefetch(editUrl);
-  }, [isInView, editUrl]);
+  }, [isInView]);
 
   return (
     <>
       <CardList.Card
         key={link.id}
-        onClick={
-          !isMobile
-            ? (e) => {
-                if (e.metaKey || e.ctrlKey) window.open(editUrl, "_blank");
-                else router.push(editUrl);
-              }
-            : undefined
-        }
-        onAuxClick={
-          !isMobile ? () => window.open(editUrl, "_blank") : undefined
-        }
+        onClick={(e) => {
+          if (e.metaKey || e.ctrlKey) window.open(editUrl, "_blank");
+          else router.push(editUrl);
+        }}
+        onAuxClick={() => window.open(editUrl, "_blank")}
         outerClassName="overflow-hidden"
         innerClassName="p-0"
         {...(variant === "loose" &&

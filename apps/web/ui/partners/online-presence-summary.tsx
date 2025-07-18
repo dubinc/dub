@@ -1,19 +1,30 @@
 import { EnrolledPartnerProps } from "@/lib/types";
-import { Tooltip } from "@dub/ui";
-import { BadgeCheck2Fill } from "@dub/ui/icons";
-import { cn, getPrettyUrl } from "@dub/utils";
+import {
+  Globe,
+  Icon,
+  Instagram,
+  LinkedIn,
+  TikTok,
+  Twitter,
+  YouTube,
+} from "@dub/ui/icons";
+import { cn, getPrettyUrl, nFormatter } from "@dub/utils";
 import { Fragment } from "react";
+import { OnlinePresenceCard } from "./online-presence-card";
 
 const fields: {
   label: string;
+  icon: Icon;
   data: (partner: EnrolledPartnerProps) => {
     value: string | null;
     verified: boolean;
     href: string | null;
+    info?: string[];
   };
 }[] = [
   {
     label: "Website",
+    icon: Globe,
     data: (partner) => ({
       value: partner.website ? getPrettyUrl(partner.website) : null,
       verified: !!partner.websiteVerifiedAt,
@@ -21,15 +32,25 @@ const fields: {
     }),
   },
   {
-    label: "Youtube",
+    label: "YouTube",
+    icon: YouTube,
     data: (partner) => ({
       value: partner.youtube ? `@${partner.youtube}` : null,
       verified: !!partner.youtubeVerifiedAt,
       href: `https://youtube.com/@${partner.youtube}`,
+      info: [
+        partner.youtubeSubscriberCount > 0
+          ? `${nFormatter(partner.youtubeSubscriberCount)} subscribers`
+          : null,
+        partner.youtubeViewCount > 0
+          ? `${nFormatter(partner.youtubeViewCount)} views`
+          : null,
+      ].filter(Boolean),
     }),
   },
   {
-    label: "Twitter",
+    label: "X/Twitter",
+    icon: Twitter,
     data: (partner) => ({
       value: partner.twitter ? `@${partner.twitter}` : null,
       verified: !!partner.twitterVerifiedAt,
@@ -38,6 +59,7 @@ const fields: {
   },
   {
     label: "LinkedIn",
+    icon: LinkedIn,
     data: (partner) => ({
       value: partner.linkedin,
       verified: !!partner.linkedinVerifiedAt,
@@ -46,6 +68,7 @@ const fields: {
   },
   {
     label: "Instagram",
+    icon: Instagram,
     data: (partner) => ({
       value: partner.instagram ? `@${partner.instagram}` : null,
       verified: !!partner.instagramVerifiedAt,
@@ -54,6 +77,7 @@ const fields: {
   },
   {
     label: "Tiktok",
+    icon: TikTok,
     data: (partner) => ({
       value: partner.tiktok ? `@${partner.tiktok}` : null,
       verified: !!partner.tiktokVerifiedAt,
@@ -70,36 +94,32 @@ export function OnlinePresenceSummary({
   className?: string;
 }) {
   const fieldData = fields
-    .map((field) => ({ label: field.label, ...field.data(partner) }))
+    .map((field) => ({
+      label: field.label,
+      icon: field.icon,
+      ...field.data(partner),
+    }))
     .filter((field) => field.value && field.href);
 
   return fieldData.length ? (
     <div
       className={cn(
-        "grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-1 text-sm md:gap-x-16",
+        "grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-5 text-sm md:gap-x-16",
         className,
       )}
     >
-      {fieldData.map(({ label, value, verified, href }) => {
+      {fieldData.map(({ label, icon: Icon, value, verified, href, info }) => {
         return (
           <Fragment key={label}>
-            <span className="font-medium text-neutral-600">{label}</span>
+            <span className="text-content-default font-medium">{label}</span>
             <div>
-              <a
-                target="_blank"
-                href={href!}
-                rel="noopener noreferrer"
-                className="inline-flex h-7 max-w-full items-center gap-1 rounded-lg px-2 text-neutral-600 hover:bg-neutral-50"
-              >
-                <span className="min-w-0 truncate">{value}</span>
-                {verified && (
-                  <Tooltip content="Verified" disableHoverableContent>
-                    <div>
-                      <BadgeCheck2Fill className="size-4 text-green-600" />
-                    </div>
-                  </Tooltip>
-                )}
-              </a>
+              <OnlinePresenceCard
+                icon={Icon}
+                value={value ?? ""}
+                verified={verified}
+                info={info}
+                href={href ?? undefined}
+              />
             </div>
           </Fragment>
         );

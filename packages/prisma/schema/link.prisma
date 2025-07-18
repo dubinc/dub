@@ -7,6 +7,7 @@ model Link {
   archived        Boolean   @default(false) // whether the link is archived or not
   expiresAt       DateTime? // when the link expires – stored on Redis via ttl
   expiredUrl      String?   @db.Text // URL to redirect the user to when the link is expired
+  disabledAt      DateTime? // when the link was disabled (redirects back to fallbackUrl, doesn't show up in analytics)
   password        String? // password to access the link
   trackConversion Boolean   @default(false) // whether to track conversions or not
 
@@ -23,9 +24,9 @@ model Link {
   utm_term     String? // UTM term for the link (e.g. dub)
   utm_content  String? // UTM content for the link (e.g. description)
 
-  // Link cloaking/masking via rewrite
   rewrite Boolean @default(false) // whether to rewrite the link or not
 
+  evergreen Boolean? // true means it's evergreen (for domain.linkRetentionDays); default is null (not applicable)
   doIndex Boolean @default(false) // we don't index short links by default
 
   // Custom device targeting
@@ -88,7 +89,7 @@ model Link {
   @@index([projectId, url(length: 500)]) // for upserting a link by URL
   @@index([projectId, folderId, archived, createdAt(sort: Desc)]) // most getLinksForWorkspace queries
   @@index([programId, partnerId]) // for getting a referral link (programId + partnerId)
+  @@index([domain, createdAt]) // for bulk link deletion workflows (by domain) + deleting old short-lived links
   @@index(folderId) // used in /api/folders
-  @@index(userId) // for relation to User table
-  @@index([domain, createdAt]) // used for deleting old links
+  @@index(userId) // for relation to User table, used in /api/cron/cleanup too
 }

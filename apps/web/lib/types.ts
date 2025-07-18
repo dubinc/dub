@@ -23,7 +23,7 @@ import {
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import { clickEventResponseSchema } from "./zod/schemas/clicks";
-import { CommissionResponseSchema } from "./zod/schemas/commissions";
+import { CommissionEnrichedSchema } from "./zod/schemas/commissions";
 import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
   CustomerEnrichedSchema,
@@ -45,7 +45,7 @@ import {
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   createPartnerSchema,
-  EnrolledPartnerSchemaWithExpandedFields,
+  EnrolledPartnerSchemaExtended,
   PartnerSchema,
 } from "./zod/schemas/partners";
 import {
@@ -53,6 +53,7 @@ import {
   PayoutResponseSchema,
   PayoutSchema,
 } from "./zod/schemas/payouts";
+import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
   PartnerProgramInviteSchema,
@@ -61,6 +62,7 @@ import {
   ProgramMetricsSchema,
   ProgramPartnerLinkSchema,
   ProgramSchema,
+  ProgramWithLanderDataSchema,
 } from "./zod/schemas/programs";
 import { RewardSchema } from "./zod/schemas/rewards";
 import {
@@ -117,7 +119,10 @@ export interface RedisLinkProps {
   programId?: string;
   partnerId?: string;
   partner?: Pick<PartnerProps, "id" | "name" | "image">;
-  discount?: Pick<DiscountProps, "id" | "amount" | "type" | "maxDuration">;
+  discount?: Pick<
+    DiscountProps,
+    "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
+  >;
   testVariants?: z.infer<typeof ABTestVariantsSchema>;
   testCompletedAt?: Date;
 }
@@ -378,7 +383,7 @@ export type CommissionsCount = Record<
   }
 >;
 
-export type CommissionResponse = z.infer<typeof CommissionResponseSchema>;
+export type CommissionResponse = z.infer<typeof CommissionEnrichedSchema>;
 
 export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
@@ -395,12 +400,18 @@ export type PartnerProfileCustomerProps = z.infer<
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
 export type EnrolledPartnerProps = z.infer<
-  typeof EnrolledPartnerSchemaWithExpandedFields
+  typeof EnrolledPartnerSchemaExtended
 >;
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
+
+export type ProgramLanderData = z.infer<typeof programLanderSchema>;
+
+export type ProgramWithLanderDataProps = z.infer<
+  typeof ProgramWithLanderDataSchema
+>;
 
 export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
 
@@ -454,10 +465,7 @@ export type FolderWithPermissions = {
   permissions: FolderPermission[];
 };
 
-export type FolderSummary = Pick<
-  Folder,
-  "id" | "name" | "accessLevel" | "linkCount"
->;
+export type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
 
 // Rewards
 
@@ -470,3 +478,16 @@ export type ProgramData = z.infer<typeof programDataSchema>;
 export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
 
 export type PayoutMethod = "stripe" | "paypal";
+
+export type PaymentMethodOption = {
+  currency?: string;
+  mandate_options?: {
+    payment_schedule?: string;
+    transaction_type?: string;
+  };
+};
+
+export interface FolderLinkCount {
+  folderId: string;
+  _count: number;
+}

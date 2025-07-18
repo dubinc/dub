@@ -7,8 +7,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   createPartnerSchema,
-  EnrolledPartnerSchema,
-  EnrolledPartnerSchemaWithExpandedFields,
+  EnrolledPartnerSchemaExtended,
   partnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
@@ -19,23 +18,14 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { includeExpandedFields } = searchParams;
-
     const partners = await getPartners({
       ...partnersQuerySchema.parse(searchParams),
       workspaceId: workspace.id,
       programId,
-      includeExpandedFields: includeExpandedFields === "true",
     });
 
     return NextResponse.json(
-      z
-        .array(
-          includeExpandedFields
-            ? EnrolledPartnerSchemaWithExpandedFields
-            : EnrolledPartnerSchema,
-        )
-        .parse(partners),
+      z.array(EnrolledPartnerSchemaExtended).parse(partners),
     );
   },
   {
@@ -53,8 +43,9 @@ export const GET = withWorkspace(
 // POST /api/partners - add a partner for a program
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     const {
-      programId,
       name,
       email,
       username,

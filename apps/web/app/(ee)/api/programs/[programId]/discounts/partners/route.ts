@@ -11,14 +11,20 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const { discountId } = discountPartnersQuerySchema.parse(searchParams);
 
-  await getDiscountOrThrow({
+  const discount = await getDiscountOrThrow({
     programId,
     discountId,
   });
 
+  // For the default discount, return only non-eligible partners
+  // For additional discounts, return all eligible partners
   const partners = await prisma.programEnrollment.findMany({
     where: {
-      discountId,
+      programId,
+      discountId: discount.default ? null : discountId,
+      status: {
+        in: ["approved", "invited"],
+      },
     },
     select: {
       partner: {
@@ -28,6 +34,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
           image: true,
           email: true,
         },
+      },
+    },
+    orderBy: {
+      partner: {
+        name: "asc",
       },
     },
   });

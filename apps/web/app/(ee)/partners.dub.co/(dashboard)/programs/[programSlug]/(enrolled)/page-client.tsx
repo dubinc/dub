@@ -9,13 +9,13 @@ import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
   buttonVariants,
-  MaxWidthWrapper,
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
@@ -87,7 +87,7 @@ export default function ProgramPageClient() {
   });
 
   return (
-    <MaxWidthWrapper className="pb-10">
+    <PageWidthWrapper className="pb-10">
       <AnimatePresence mode="wait" initial={false}>
         {!hideDetails && (
           <motion.div
@@ -221,7 +221,7 @@ export default function ProgramPageClient() {
           <EarningsTablePartner limit={10} />
         </div>
       </ProgramOverviewContext.Provider>
-    </MaxWidthWrapper>
+    </PageWidthWrapper>
   );
 }
 
@@ -468,7 +468,7 @@ function BrandedChart({
 
 function ViewMoreButton({ href }: { href: string }) {
   return (
-    <div className="-mr-2 pr-2 [mask-image:linear-gradient(270deg,transparent,black_8px)] [mask-origin:padding-box]">
+    <div className="-mr-2 overflow-hidden pr-2 [mask-image:linear-gradient(270deg,transparent,black_8px)] [mask-origin:padding-box]">
       <div className="overflow-visible transition-all duration-200 focus-within:w-[82px] focus-within:opacity-100 group-hover:w-[82px] group-hover:opacity-100 sm:w-0 sm:opacity-0">
         <Link
           href={href}

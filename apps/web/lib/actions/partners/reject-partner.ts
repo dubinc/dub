@@ -1,20 +1,17 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import z from "../../zod";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
-
-const rejectPartnerSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string(),
-});
 
 // Reject a pending partner
 export const rejectPartnerAction = authActionClient
   .schema(rejectPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { partnerId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -25,6 +22,9 @@ export const rejectPartnerAction = authActionClient
           partnerId,
           programId,
         },
+      },
+      include: {
+        partner: true,
       },
     });
 
@@ -41,5 +41,20 @@ export const rejectPartnerAction = authActionClient
       },
     });
 
-    // TODO: [partners] Notify partner of rejection?
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "partner_application.rejected",
+        description: `Partner application rejected for ${partnerId}`,
+        actor: user,
+        targets: [
+          {
+            type: "partner",
+            id: partnerId,
+            metadata: programEnrollment.partner,
+          },
+        ],
+      }),
+    );
   });

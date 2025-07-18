@@ -4,7 +4,6 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps } from "@/lib/types";
-import EditColumnsButton from "@/ui/analytics/events/edit-columns-button";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
@@ -14,6 +13,7 @@ import {
   Button,
   buttonVariants,
   CopyText,
+  EditColumnsButton,
   Filter,
   LinkLogo,
   MenuItem,
@@ -360,8 +360,9 @@ export function CustomerTable() {
               : "No customers have been recorded for your workspace yet. Learn how to track your first customer."
           }
           {...(!isFiltered && {
-            learnMoreHref: "https://dub.co/help/article/customer-insights",
-            learnMoreText: "Read the guide",
+            learnMoreHref: `/${workspaceSlug}/guides`,
+            learnMoreTarget: "_self",
+            learnMoreText: "Read the guides",
           })}
           cardContent={() => (
             <>

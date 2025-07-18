@@ -28,6 +28,9 @@ export async function POST(req: Request) {
         folderId,
       },
       take: MAX_LINKS_PER_BATCH,
+      orderBy: {
+        createdAt: "desc", // TODO we need to add [folderId, createdAt] index on Link table
+      },
       include: includeTags,
     });
 

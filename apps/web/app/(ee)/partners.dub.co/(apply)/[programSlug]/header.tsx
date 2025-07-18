@@ -48,7 +48,7 @@ export function Header({
 
       <div className="flex items-center gap-2">
         {showLogin && !session?.user && status !== "loading" && (
-          <Link href={`/login?next=${pathname}`}>
+          <Link href={`/${program.slug}/login?next=${pathname}`}>
             <Button
               type="button"
               variant="secondary"

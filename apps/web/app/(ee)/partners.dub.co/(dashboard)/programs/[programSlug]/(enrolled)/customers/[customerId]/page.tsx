@@ -1,13 +1,13 @@
 import { PageContent } from "@/ui/layout/page-content";
-import { MaxWidthWrapper } from "@dub/ui";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramCustomerPageClient } from "./page-client";
 
 export default function ProgramCustomer() {
   return (
-    <PageContent hideReferButton>
-      <MaxWidthWrapper className="flex flex-col gap-6">
+    <PageContent>
+      <PageWidthWrapper className="flex flex-col gap-6 pb-10">
         <ProgramCustomerPageClient />
-      </MaxWidthWrapper>
+      </PageWidthWrapper>
     </PageContent>
   );
 }

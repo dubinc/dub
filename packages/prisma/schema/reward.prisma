@@ -1,37 +1,33 @@
-model Reward {
-  id        String @id @default(cuid())
-  programId String
+enum EventType {
+  click
+  lead
+  sale
+}
 
+enum RewardStructure {
+  percentage
+  flat
+}
+
+model Reward {
+  id          String          @id @default(cuid())
+  programId   String
   name        String?
   description String?
   event       EventType
-  type        CommissionType @default(percentage)
-  amount      Int            @default(0)
-  maxDuration Int?  // in months (0 -> not recurring, null -> infinite)
-  maxAmount     Int? // how much a partner can receive payouts (in cents)
+  type        RewardStructure @default(percentage)
+  amount      Int             @default(0)
+  maxDuration Int? // in months (0 -> not recurring, null -> infinite)
+  maxAmount   Int? // how much a partner can receive payouts (in cents)
+  default     Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  program          Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  clickEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
+  leadEnrollments  ProgramEnrollment[] @relation("LeadRewardEnrollments")
+  saleEnrollments  ProgramEnrollment[] @relation("SaleRewardEnrollments")
 
-  defaultForProgram Program?        @relation("ProgramDefaultReward")
-  program           Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partners          PartnerReward[]
-
-  @@index(programId)
-  @@index(event) // used in /api/cron/aggregate-clicks
-}
-
-model PartnerReward {
-  id                  String @id @default(cuid())
-  programEnrollmentId String
-  rewardId            String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  programEnrollment ProgramEnrollment @relation(fields: [programEnrollmentId], references: [id], onDelete: Cascade)
-  reward            Reward            @relation(fields: [rewardId], references: [id], onDelete: Cascade)
-
-  @@unique([programEnrollmentId, rewardId])
-  @@index(rewardId)
+  @@index([programId, event])
+  @@index(event) // used in aggregate-clicks cron job
 }

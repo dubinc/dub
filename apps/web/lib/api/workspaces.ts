@@ -64,53 +64,69 @@ export async function deleteWorkspace(
 export async function deleteWorkspaceAdmin(
   workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
 ) {
-  const [defaultDomainLinks, customDomains] = await Promise.all([
-    prisma.link.findMany({
+  while (true) {
+    const defaultDomainLinks = await prisma.link.findMany({
       where: {
+        projectId: workspace.id,
         domain: {
           in: DUB_DOMAINS_ARRAY,
         },
-        projectId: workspace.id,
       },
       select: {
         id: true,
         domain: true,
         key: true,
       },
-    }),
-    prisma.domain.findMany({
-      where: {
-        projectId: workspace.id,
-      },
-      select: {
-        slug: true,
-      },
-    }),
-  ]);
+      take: 100,
+    });
 
-  const [redisRes, prismaRes] = await Promise.allSettled([
-    linkCache.expireMany(defaultDomainLinks),
-    prisma.link.updateMany({
-      where: {
-        id: {
-          in: defaultDomainLinks.map((link) => link.id),
+    if (defaultDomainLinks.length === 0) {
+      break;
+    }
+
+    const [redisRes, prismaRes] = await Promise.allSettled([
+      linkCache.expireMany(defaultDomainLinks),
+      prisma.link.updateMany({
+        where: {
+          id: {
+            in: defaultDomainLinks.map((link) => link.id),
+          },
         },
-      },
-      data: {
-        projectId: LEGAL_WORKSPACE_ID,
-        userId: LEGAL_USER_ID,
-      },
-    }),
-  ]);
+        data: {
+          projectId: LEGAL_WORKSPACE_ID,
+          userId: LEGAL_USER_ID,
+        },
+      }),
+    ]);
+
+    console.log(
+      `Banned ${defaultDomainLinks.length} default domain links for ${workspace.slug}`,
+      redisRes,
+      prismaRes,
+    );
+  }
+
+  const customDomains = await prisma.domain.findMany({
+    where: {
+      projectId: workspace.id,
+    },
+    select: {
+      slug: true,
+    },
+  });
 
   // delete all domains, links, and uploaded images associated with the workspace
   const deleteDomainsLinksResponse = await Promise.allSettled(
     customDomains.map(({ slug }) =>
       markDomainAsDeleted({
         domain: slug,
-        workspaceId: workspace.id,
       }),
     ),
+  );
+
+  console.log(
+    `Deleted ${customDomains.length} custom domains for ${workspace.slug}`,
+    deleteDomainsLinksResponse,
   );
 
   const deleteWorkspaceResponse = await Promise.allSettled([
@@ -128,9 +144,9 @@ export async function deleteWorkspaceAdmin(
     }),
   ]);
 
+  console.log(`Deleted workspace ${workspace.slug}`, deleteWorkspaceResponse);
+
   return {
-    redisRes,
-    prismaRes,
     deleteDomainsLinksResponse,
     deleteWorkspaceResponse,
   };

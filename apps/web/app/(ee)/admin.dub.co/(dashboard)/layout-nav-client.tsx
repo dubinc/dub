@@ -27,6 +27,10 @@ const tabs = [
     href: "/payouts",
     label: "Payouts",
   },
+  {
+    href: "/revenue",
+    label: "Revenue",
+  },
 ];
 
 export function AdminNav() {

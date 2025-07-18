@@ -8,48 +8,41 @@ import z from "node_modules/zod/lib";
 
 // GET /api/embed/referrals/leaderboard – get leaderboard for a program
 export const GET = withReferralsEmbedToken(async ({ program }) => {
-  const partners = await prisma.$queryRaw`
-      SELECT 
-        p.id,
-        p.name,
-        COALESCE(metrics.totalClicks, 0) as totalClicks,
-        COALESCE(metrics.totalLeads, 0) as totalLeads,
-        COALESCE(metrics.totalSales, 0) as totalSales,
-        COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount
-      FROM 
-        ProgramEnrollment pe
-      INNER JOIN 
-        Partner p ON p.id = pe.partnerId
-      LEFT JOIN (
-        SELECT 
-          partnerId,
-          SUM(clicks) as totalClicks,
-          SUM(leads) as totalLeads,
-          SUM(sales) as totalSales,
-          SUM(saleAmount) as totalSaleAmount
-        FROM Link
-        WHERE programId = ${program.id}
-        GROUP BY partnerId
-      ) metrics ON metrics.partnerId = pe.partnerId
-      WHERE 
-        pe.programId = ${program.id}
-        AND pe.status = 'approved'
-      ORDER BY 
-        totalSaleAmount DESC,
-        totalLeads DESC,
-        totalClicks DESC
-      LIMIT 20`;
+  const partners = await prisma.programEnrollment.findMany({
+    where: {
+      programId: program.id,
+      status: "approved",
+      totalCommissions: {
+        gt: 0,
+      },
+    },
+    orderBy: {
+      totalCommissions: "desc",
+    },
+    take: 100,
+  });
 
-  // @ts-ignore
   const response = partners.map((partner) => ({
     id: partner.id,
     name: generateRandomName(partner.id),
     image: `${OG_AVATAR_URL}${partner.id}`,
-    clicks: Number(partner.totalClicks),
-    leads: Number(partner.totalLeads),
-    sales: Number(partner.totalSales),
-    saleAmount: Number(partner.totalSaleAmount),
+    totalCommissions: Number(partner.totalCommissions),
   }));
+
+  // if less than 20, append some dummy data
+  if (response.length < 20) {
+    response.push(
+      ...Array.from({ length: 20 - response.length }).map((_, index) => {
+        const randomName = generateRandomName(index.toString());
+        return {
+          id: randomName,
+          name: randomName,
+          image: `${OG_AVATAR_URL}${randomName}`,
+          totalCommissions: 0,
+        };
+      }),
+    );
+  }
 
   return NextResponse.json(z.array(LeaderboardPartnerSchema).parse(response));
 });

@@ -12,7 +12,7 @@ import {
   Text,
 } from "@react-email/components";
 
-export function FeedbackEmail({
+export default function FeedbackEmail({
   email = "panic@thedis.co",
   feedback = "I love Dub!",
 }: {
@@ -42,5 +42,3 @@ export function FeedbackEmail({
     </Html>
   );
 }
-
-export default FeedbackEmail;

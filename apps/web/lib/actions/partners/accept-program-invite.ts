@@ -25,6 +25,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
       data: {
         status: "approved",
+        createdAt: new Date(),
       },
       include: {
         links: true,

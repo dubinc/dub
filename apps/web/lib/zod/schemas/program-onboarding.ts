@@ -1,4 +1,5 @@
-import { CommissionType, LinkStructure } from "@dub/prisma/client";
+import { ToltProgramSchema } from "@/lib/tolt/schemas";
+import { LinkStructure, RewardStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
 import { updateProgramSchema } from "./programs";
@@ -29,11 +30,15 @@ export const programRewardSchema = z
         commission_percent: z.number().nullable(),
       })
       .nullish(),
+    tolt: ToltProgramSchema.extend({
+      maskedToken: z.string(),
+      affiliates: z.number(),
+    }).nullish(),
   })
   .merge(
     z.object({
       defaultRewardType: z.enum(["lead", "sale"]).default("lead"),
-      type: z.nativeEnum(CommissionType).nullish(),
+      type: z.nativeEnum(RewardStructure).nullish(),
       amount: z.number().min(0).nullish(),
       maxDuration: maxDurationSchema,
     }),
@@ -45,16 +50,12 @@ export const programInvitePartnersSchema = z.object({
     .array(
       z.object({
         email: z.string().email("Please enter a valid email"),
-        key: z.string().min(1, "Please enter a referral key"),
       }),
     )
     .max(10, "You can only invite up to 10 partners.")
     .nullable()
     .transform(
-      (partners) =>
-        partners?.filter(
-          (partner) => partner.email.trim() && partner.key.trim(),
-        ) || null,
+      (partners) => partners?.filter((partner) => partner.email.trim()) || null,
     ),
 });
 
@@ -136,37 +137,37 @@ export const PROGRAM_ONBOARDING_STEPS = [
   {
     stepNumber: 1,
     label: "Getting started",
-    href: "/programs/new",
+    href: "/program/new",
     step: "get-started",
   },
   {
     stepNumber: 2,
     label: "Configure rewards",
-    href: "/programs/new/rewards",
+    href: "/program/new/rewards",
     step: "configure-reward",
   },
   {
     stepNumber: 3,
     label: "Invite partners",
-    href: "/programs/new/partners",
+    href: "/program/new/partners",
     step: "invite-partners",
   },
   {
     stepNumber: 4,
     label: "Help and Support",
-    href: "/programs/new/support",
+    href: "/program/new/support",
     step: "help-and-support",
   },
   {
     stepNumber: 5,
     label: "Connect Dub",
-    href: "/programs/new/connect",
+    href: "/program/new/connect",
     step: "connect",
   },
   {
     stepNumber: 6,
     label: "Overview",
-    href: "/programs/new/overview",
+    href: "/program/new/overview",
     step: "create-program",
   },
 ] as const;

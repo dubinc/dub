@@ -1,5 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { determineCustomerDiscount } from "@/lib/api/customers/determine-customer-discount";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -30,9 +29,7 @@ import { NextResponse } from "next/server";
 interface CustomerResponse extends Customer {
   link: Link & {
     programEnrollment: ProgramEnrollment & {
-      program: Program & {
-        defaultDiscount: Discount;
-      };
+      program: Program;
       partner: Partner;
       discount: Discount | null;
     };
@@ -96,11 +93,6 @@ export const GET = withWorkspace(
                 include: {
                   programEnrollment: {
                     include: {
-                      program: {
-                        include: {
-                          defaultDiscount: true,
-                        },
-                      },
                       partner: {
                         select: {
                           id: true,
@@ -119,48 +111,6 @@ export const GET = withWorkspace(
         : {}),
     })) as CustomerResponse[];
 
-    const discounts: Map<string, Discount | null> = new Map();
-
-    if (includeExpandedFields) {
-      const firstPurchases = await prisma.commission.findMany({
-        where: {
-          customerId: {
-            in: customers.map((customer) => customer.id),
-          },
-          type: "sale",
-        },
-        select: {
-          customerId: true,
-          createdAt: true,
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-        distinct: ["customerId"],
-      });
-
-      const firstPurchaseMap = new Map(
-        firstPurchases.map((purchase) => [purchase.customerId, purchase]),
-      );
-
-      customers.forEach((customer) => {
-        discounts.set(
-          customer.id,
-          determineCustomerDiscount({
-            customerLink: customer.link,
-            firstPurchase: firstPurchaseMap.get(customer.id),
-          }),
-        );
-      });
-    }
-
-    const processedCustomers = customers.map((customer) => {
-      return {
-        ...customer,
-        discount: discounts.get(customer.id),
-      };
-    });
-
     const responseSchema = includeExpandedFields
       ? CustomerEnrichedSchema.merge(
           z.object({
@@ -169,9 +119,11 @@ export const GET = withWorkspace(
         )
       : CustomerSchema;
 
-    return NextResponse.json(
-      responseSchema.array().parse(processedCustomers.map(transformCustomer)),
-    );
+    const response = responseSchema
+      .array()
+      .parse(customers.map(transformCustomer));
+
+    return NextResponse.json(response);
   },
   {
     requiredPlan: [

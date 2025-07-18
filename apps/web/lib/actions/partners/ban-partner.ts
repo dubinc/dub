@@ -1,6 +1,8 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { linkCache } from "@/lib/api/links/cache";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
@@ -8,7 +10,7 @@ import {
   banPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import { PartnerBanned } from "@dub/email/templates/partner-banned";
+import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
@@ -17,7 +19,7 @@ import { authActionClient } from "../safe-action";
 export const banPartnerAction = authActionClient
   .schema(banPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { partnerId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -25,6 +27,7 @@ export const banPartnerAction = authActionClient
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
+      includePartner: true,
     });
 
     if (programEnrollment.status === "banned") {
@@ -52,6 +55,9 @@ export const banPartnerAction = authActionClient
           status: "banned",
           bannedAt: new Date(),
           bannedReason: parsedInput.reason,
+          clickRewardId: null,
+          leadRewardId: null,
+          saleRewardId: null,
         },
       }),
 
@@ -72,43 +78,17 @@ export const banPartnerAction = authActionClient
 
     waitUntil(
       (async () => {
-        // Send email to partner
-        const partner = await prisma.partner.findUniqueOrThrow({
-          where: {
-            id: partnerId,
-          },
-          select: {
-            email: true,
-            name: true,
-          },
-        });
+        // sync total commissions
+        await syncTotalCommissions({ partnerId, programId });
+
+        const { program, partner } = programEnrollment;
 
         if (!partner.email) {
           console.error("Partner has no email address.");
           return;
         }
 
-        const { program } = programEnrollment;
-
         const supportEmail = program.supportEmail || "support@dub.co";
-
-        await sendEmail({
-          subject: `You've been banned from the ${program.name} Partner Program`,
-          email: partner.email,
-          replyTo: supportEmail,
-          react: PartnerBanned({
-            partner: {
-              name: partner.name,
-              email: partner.email,
-            },
-            program: {
-              name: program.name,
-              supportEmail,
-            },
-            bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
-          }),
-          variant: "notifications",
-        });
 
         // Delete links from cache
         const links = await prisma.link.findMany({
@@ -120,6 +100,41 @@ export const banPartnerAction = authActionClient
         });
 
         await linkCache.deleteMany(links);
+
+        await Promise.allSettled([
+          sendEmail({
+            subject: `You've been banned from the ${program.name} Partner Program`,
+            email: partner.email,
+            replyTo: supportEmail,
+            react: PartnerBanned({
+              partner: {
+                name: partner.name,
+                email: partner.email,
+              },
+              program: {
+                name: program.name,
+                supportEmail,
+              },
+              bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
+            }),
+            variant: "notifications",
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "partner.banned",
+            description: `Partner ${partnerId} banned`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: partnerId,
+                metadata: partner,
+              },
+            ],
+          }),
+        ]);
       })(),
     );
   });

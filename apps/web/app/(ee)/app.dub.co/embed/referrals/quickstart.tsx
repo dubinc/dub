@@ -19,15 +19,18 @@ const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
 export function ReferralsEmbedQuickstart({
   program,
   link,
-  onViewResources,
+  hasResources,
+  setSelectedTab,
 }: {
   program: Program;
-  link: ReferralsEmbedLink;
-  onViewResources?: () => void;
+  link: ReferralsEmbedLink | undefined;
+  hasResources: boolean;
+  setSelectedTab: (tab: "Links" | "Resources") => void;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
-  const payoutsDisabled = link.saleAmount === 0;
+
+  const payoutsDisabled = !link || link.saleAmount === 0;
 
   const items = [
     {
@@ -37,27 +40,35 @@ export function ReferralsEmbedQuickstart({
       cta: (
         <Button
           className={BUTTON_CLASSNAME}
-          onClick={() => copyToClipboard(link.shortLink)}
-          text={copied ? "Copied link" : "Copy link"}
+          onClick={() => {
+            if (link) {
+              copyToClipboard(link.shortLink);
+            } else {
+              setSelectedTab("Links");
+            }
+          }}
+          text={link ? (copied ? "Copied link" : "Copy link") : "Create a link"}
           icon={
-            <div className="relative size-4">
-              <div
-                className={cn(
-                  "absolute inset-0 transition-[transform,opacity]",
-                  copied && "translate-y-1 opacity-0",
-                )}
-              >
-                <Copy className="size-4" />
+            link ? (
+              <div className="relative size-4">
+                <div
+                  className={cn(
+                    "absolute inset-0 transition-[transform,opacity]",
+                    copied && "translate-y-1 opacity-0",
+                  )}
+                >
+                  <Copy className="size-4" />
+                </div>
+                <div
+                  className={cn(
+                    "absolute inset-0 transition-[transform,opacity]",
+                    !copied && "translate-y-1 opacity-0",
+                  )}
+                >
+                  <Check className="size-4" />
+                </div>
               </div>
-              <div
-                className={cn(
-                  "absolute inset-0 transition-[transform,opacity]",
-                  !copied && "translate-y-1 opacity-0",
-                )}
-              >
-                <Check className="size-4" />
-              </div>
-            </div>
+            ) : undefined
           }
         />
       ),
@@ -70,16 +81,18 @@ export function ReferralsEmbedQuickstart({
       cta: (
         <Button
           className="h-9 rounded-lg"
-          text={onViewResources ? "View resources" : "No resources"}
-          disabled={!onViewResources}
-          onClick={onViewResources}
+          text={hasResources ? "View resources" : "No resources"}
+          disabled={!hasResources}
+          onClick={() => {
+            setSelectedTab("Resources");
+          }}
         />
       ),
     },
     {
       title: "Receive earnings",
       description:
-        "After you payouts are connected, you'll get paid out automatically for all your sales.",
+        "After your payouts are connected, you'll get paid out automatically for all your sales.",
       illustration: <ConnectPayouts logo={program.logo ?? DUB_LOGO} />,
       cta: (
         <Button
@@ -90,7 +103,7 @@ export function ReferralsEmbedQuickstart({
               : undefined
           }
           onClick={() =>
-            window.open("https://partners.dub.co/settings/payouts", "_blank")
+            window.open("https://partners.dub.co/payouts", "_blank")
           }
           text="Connect payouts"
         />

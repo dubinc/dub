@@ -1,5 +1,4 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
 import { EnrolledPartnerProps } from "../types";
@@ -15,16 +14,16 @@ export default function useRewardPartners({
   query?: z.infer<typeof rewardPartnersPartialQuerySchema>;
   enabled?: boolean;
 }) {
-  const { programId } = useParams();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const { data, error, isLoading } = useSWR<EnrolledPartnerProps[]>(
-    enabled && workspaceId && programId
-      ? `/api/programs/${programId}/rewards/partners?${new URLSearchParams({
-          workspaceId,
-          programId,
-          ...query,
-        } as Record<string, any>).toString()}`
+    enabled && workspaceId && defaultProgramId
+      ? `/api/programs/${defaultProgramId}/rewards/partners?${new URLSearchParams(
+          {
+            workspaceId,
+            ...query,
+          } as Record<string, any>,
+        ).toString()}`
       : null,
     fetcher,
     {

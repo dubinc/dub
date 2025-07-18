@@ -1,6 +1,5 @@
 "use client";
 
-import { PAYOUT_FEES } from "@/lib/partners/constants";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
@@ -8,8 +7,8 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import { buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
-  CircleDollar,
   CirclePercentage,
+  CreditCard,
   CrownSmall,
   CursorRays,
   Folder5,
@@ -26,6 +25,7 @@ import {
   INFINITY_NUMBER,
   nFormatter,
 } from "@dub/utils";
+import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { CSSProperties, useMemo } from "react";
@@ -39,11 +39,12 @@ export default function PlanUsage() {
     defaultProgramId,
     usage,
     usageLimit,
-    salesUsage,
-    salesLimit,
     linksUsage,
     linksLimit,
     totalLinks,
+    payoutsUsage,
+    payoutsLimit,
+    payoutFee,
     domains,
     domainsLimit,
     foldersUsage,
@@ -58,8 +59,6 @@ export default function PlanUsage() {
     programId: defaultProgramId ?? undefined,
     status: "approved",
   });
-
-  const payoutFees = plan ? PAYOUT_FEES[plan.toLowerCase()]?.ach : null;
 
   const { data: tags } = useTagsCount();
   const { users } = useUsers();
@@ -98,15 +97,6 @@ export default function PlanUsage() {
         usage: linksUsage,
         limit: linksLimit,
       },
-      {
-        id: "revenue",
-        icon: CircleDollar,
-        title: "Revenue tracked",
-        usage: salesUsage,
-        limit: salesLimit,
-        unit: "$",
-        requiresUpgrade: plan === "free" || plan === "pro",
-      },
     ];
     if (totalLinks && totalLinks > 10_000) {
       // Find the links tab and move it to the first position
@@ -117,22 +107,18 @@ export default function PlanUsage() {
       }
     }
     return tabs;
-  }, [
-    plan,
-    usage,
-    usageLimit,
-    linksUsage,
-    linksLimit,
-    totalLinks,
-    salesUsage,
-    salesLimit,
-  ]);
+  }, [plan, usage, usageLimit, linksUsage, linksLimit, totalLinks]);
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
         <div>
-          <h2 className="text-xl font-medium">{capitalize(plan)} Plan</h2>
+          <h2 className="text-xl font-medium">
+            {plan && isLegacyBusinessPlan(plan, payoutsLimit ?? 0)
+              ? "Business (Legacy)"
+              : capitalize(plan)}{" "}
+            Plan
+          </h2>
           {billingStart && billingEnd && (
             <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
               <>
@@ -170,7 +156,7 @@ export default function PlanUsage() {
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
         <div>
-          <div className="grid gap-4 p-6 sm:grid-cols-3 md:p-8 lg:gap-6">
+          <div className="grid gap-4 p-6 sm:grid-cols-2 md:p-8 lg:gap-6">
             {usageTabs.map((tab) => (
               <UsageTabCard key={tab.id} {...tab} />
             ))}
@@ -215,29 +201,27 @@ export default function PlanUsage() {
             href={`/${slug}/settings/people`}
           />
         </div>
-        {partnersEnabled && (
-          <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-2">
+        {partnersEnabled && defaultProgramId && (
+          <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3">
             <UsageCategory
               title="Partners"
               icon={Users6}
               usage={partnersCount}
               usageLimit={INFINITY_NUMBER}
-              href={
-                defaultProgramId
-                  ? `/${slug}/programs/${defaultProgramId}/partners`
-                  : undefined
-              }
+              href={`/${slug}/program/partners`}
+            />
+            <UsageCategory
+              title="Partner payouts"
+              icon={CreditCard}
+              usage={payoutsUsage}
+              usageLimit={payoutsLimit}
+              unit="$"
+              href={`/${slug}/program/payouts`}
             />
             <UsageCategory
               title="Payout fees"
               icon={CirclePercentage}
-              usage={
-                plan
-                  ? payoutFees
-                    ? `${Math.round(payoutFees * 100)}%`
-                    : "-"
-                  : undefined
-              }
+              usage={plan && payoutFee && `${payoutFee * 100}%`}
               href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
             />
           </div>
@@ -288,7 +272,7 @@ function UsageTabCard({
       : [usageProp, limitProp];
 
   const loading = usage === undefined || limit === undefined;
-  const unlimited = limit !== undefined && limit >= INFINITY_NUMBER;
+  const unlimited = limitProp !== undefined && limitProp >= INFINITY_NUMBER; // using limitProp here cause payouts is divided by 100
   const warning = !loading && !unlimited && usage >= limit * 0.9;
   const remaining = !loading && !unlimited ? Math.max(0, limit - usage) : 0;
 
@@ -403,8 +387,9 @@ function UsageCategory(data: {
   usage?: number | string;
   usageLimit?: number;
   href?: string;
+  unit?: string;
 }) {
-  let { title, icon: Icon, usage, usageLimit, href } = data;
+  let { title, icon: Icon, usage, usageLimit, unit, href } = data;
 
   const As = href ? Link : "div";
 
@@ -425,7 +410,9 @@ function UsageCategory(data: {
         {usage || usage === 0 ? (
           <p>
             {typeof usage === "number"
-              ? nFormatter(usage, { full: true })
+              ? `${unit ?? ""}${nFormatter(usage / (unit === "$" ? 100 : 1), {
+                  full: true,
+                })}`
               : usage}
           </p>
         ) : (
@@ -437,7 +424,12 @@ function UsageCategory(data: {
             <p className="text-neutral-500">
               {usageLimit && usageLimit >= INFINITY_NUMBER
                 ? "∞"
-                : nFormatter(usageLimit, { full: true })}
+                : `${unit ?? ""}${nFormatter(
+                    usageLimit / (unit === "$" ? 100 : 1),
+                    {
+                      full: true,
+                    },
+                  )}`}
             </p>
           </>
         )}

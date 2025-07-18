@@ -1,4 +1,3 @@
-import { determineCustomerDiscount } from "@/lib/api/customers/determine-customer-discount";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
@@ -13,7 +12,6 @@ import {
 } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
-import { Discount } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -34,40 +32,11 @@ export const GET = withWorkspace(
       },
     );
 
-    let discount: Discount | null = null;
-
-    if (includeExpandedFields) {
-      const firstPurchase = await prisma.commission.findFirst({
-        where: {
-          customerId: customer.id,
-          type: "sale",
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-        select: {
-          createdAt: true,
-        },
-      });
-
-      discount = determineCustomerDiscount({
-        customerLink: customer.link,
-        firstPurchase,
-      });
-    }
-
     const responseSchema = includeExpandedFields
       ? CustomerEnrichedSchema
       : CustomerSchema;
 
-    return NextResponse.json(
-      responseSchema.parse(
-        transformCustomer({
-          ...customer,
-          ...(includeExpandedFields ? { discount } : {}),
-        }),
-      ),
-    );
+    return NextResponse.json(responseSchema.parse(transformCustomer(customer)));
   },
   {
     requiredPlan: [
@@ -143,28 +112,6 @@ export const PATCH = withWorkspace(
         );
       }
 
-      let discount: Discount | null = null;
-
-      if (includeExpandedFields) {
-        const firstPurchase = await prisma.commission.findFirst({
-          where: {
-            customerId: customer.id,
-            type: "sale",
-          },
-          orderBy: {
-            createdAt: "asc",
-          },
-          select: {
-            createdAt: true,
-          },
-        });
-
-        discount = determineCustomerDiscount({
-          customerLink: customer.link,
-          firstPurchase,
-        });
-      }
-
       const responseSchema = includeExpandedFields
         ? CustomerEnrichedSchema
         : CustomerSchema;
@@ -174,7 +121,6 @@ export const PATCH = withWorkspace(
           transformCustomer({
             ...customer,
             ...updatedCustomer,
-            ...(includeExpandedFields ? { discount } : {}),
           }),
         ),
       );

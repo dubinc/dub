@@ -23,6 +23,7 @@ export * from "./nanoid";
 export * from "./nformatter";
 export * from "./normalize-string";
 export * from "./pluralize";
+export * from "./promises";
 export * from "./punycode";
 export * from "./random-value";
 export * from "./regex-escape";

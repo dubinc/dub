@@ -3,7 +3,7 @@
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { ProgramProps } from "@/lib/types";
+import { DiscountProps, ProgramProps, RewardProps } from "@/lib/types";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
@@ -14,12 +14,21 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-export function ProgramSidebar({ program }: { program: ProgramProps }) {
+export function ProgramSidebar({
+  program,
+  applicationRewards,
+  applicationDiscount,
+}: {
+  program: ProgramProps;
+  applicationRewards: RewardProps[];
+  applicationDiscount: DiscountProps | null;
+}) {
   const router = useRouter();
 
   const { programEnrollment, loading: isLoadingProgramEnrollment } =
     useProgramEnrollment({
       swrOpts: {
+        keepPreviousData: true,
         shouldRetryOnError: (err) => err.status !== 404,
         revalidateOnFocus: false,
       },
@@ -111,9 +120,18 @@ export function ProgramSidebar({ program }: { program: ProgramProps }) {
           <div className="h-24 w-full animate-pulse rounded-md bg-neutral-100" />
         ) : (
           <ProgramRewardList
-            rewards={programEnrollment?.rewards ?? program.rewards ?? []}
+            rewards={
+              (programEnrollment?.status === "approved"
+                ? programEnrollment.rewards
+                : null) ??
+              applicationRewards ??
+              program.rewards ??
+              []
+            }
             discount={
-              programEnrollment?.discount ?? program.discounts?.[0] ?? null
+              programEnrollment?.discount ?? applicationDiscount !== undefined
+                ? applicationDiscount
+                : program.discounts?.[0] ?? null
             }
             className="bg-neutral-100"
           />

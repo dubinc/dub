@@ -1,3 +1,5 @@
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
+import { stripeAppClient } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
@@ -6,7 +8,27 @@ export async function chargeRefunded(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Charge;
   const stripeAccountId = event.account as string;
 
-  if (!charge.invoice) {
+  const stripe = stripeAppClient({
+    livemode: event.livemode,
+  });
+
+  // Charge doesn't have invoice property, so we need to get the invoice from the payment intent
+  const invoicePayments = await stripe.invoicePayments.list(
+    {
+      payment: {
+        payment_intent: charge.payment_intent as string,
+        type: "payment_intent",
+      },
+    },
+    {
+      stripeAccount: stripeAccountId,
+    },
+  );
+
+  const invoicePayment =
+    invoicePayments.data.length > 0 ? invoicePayments.data[0] : null;
+
+  if (!invoicePayment || !invoicePayment.invoice) {
     return `Charge ${charge.id} has no invoice, skipping...`;
   }
 
@@ -30,9 +52,9 @@ export async function chargeRefunded(event: Stripe.Event) {
 
   const commission = await prisma.commission.findUnique({
     where: {
-      programId_invoiceId: {
+      invoiceId_programId: {
+        invoiceId: invoicePayment.invoice as string,
         programId: workspace.programs[0].id,
-        invoiceId: charge.invoice as string,
       },
     },
     select: {
@@ -40,11 +62,13 @@ export async function chargeRefunded(event: Stripe.Event) {
       status: true,
       payoutId: true,
       earnings: true,
+      partnerId: true,
+      programId: true,
     },
   });
 
   if (!commission) {
-    return `Commission not found for invoice ${charge.invoice}`;
+    return `Commission not found for invoice ${invoicePayment.invoice}`;
   }
 
   if (commission.status === "paid") {
@@ -80,6 +104,12 @@ export async function chargeRefunded(event: Stripe.Event) {
       status: "refunded",
       payoutId: null,
     },
+  });
+
+  // sync total commissions for the partner in the program
+  await syncTotalCommissions({
+    partnerId: commission.partnerId,
+    programId: commission.programId,
   });
 
   return `Commission ${commission.id} updated to status "refunded"`;

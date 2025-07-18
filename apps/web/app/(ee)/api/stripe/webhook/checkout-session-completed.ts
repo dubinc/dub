@@ -1,12 +1,13 @@
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { inviteUser } from "@/lib/api/users";
+import { tokenCache } from "@/lib/auth/token-cache";
 import { limiter } from "@/lib/cron/limiter";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { sendEmail } from "@dub/email";
-import { UpgradeEmail } from "@dub/email/templates/upgrade-email";
+import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/client";
 import { getPlanFromPriceId, log } from "@dub/utils";
@@ -62,12 +63,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       plan: planName,
       usageLimit: plan.limits.clicks!,
       linksLimit: plan.limits.links!,
+      payoutsLimit: plan.limits.payouts!,
       domainsLimit: plan.limits.domains!,
       aiLimit: plan.limits.ai!,
       tagsLimit: plan.limits.tags!,
       foldersLimit: plan.limits.folders!,
       usersLimit: plan.limits.users!,
-      salesLimit: plan.limits.sales!,
+      paymentFailedAt: null,
     },
     select: {
       users: {
@@ -84,6 +86,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           user: {
             isMachine: false,
           },
+        },
+      },
+      restrictedTokens: {
+        select: {
+          hashedKey: true,
         },
       },
     },
@@ -129,6 +136,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       data: {
         dublink: true,
       },
+    }),
+    // expire tokens cache
+    tokenCache.expireMany({
+      hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
   ]);
 }

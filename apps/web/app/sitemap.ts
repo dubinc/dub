@@ -19,6 +19,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         landerData: {
           not: Prisma.JsonNull,
         },
+        landerPublishedAt: {
+          not: null,
+        },
       },
     });
 

@@ -1,17 +1,17 @@
 import { ElementType } from "react";
 import {
   Book2Fill,
+  BriefcaseFill,
   BulletListFill,
   DiamondTurnRightFill,
   DubAnalyticsIcon,
   DubLinksIcon,
   DubPartnersIcon,
+  EnvelopeFill,
   FeatherFill,
   Github,
   Go,
-  HeadsetFill,
-  HeartFill,
-  HexadecagonStar,
+  LifeRing,
   LinkedIn,
   MicrophoneFill,
   Php,
@@ -27,6 +27,7 @@ import {
 } from "./icons";
 import { DubApiIcon } from "./icons/dub-api";
 import { Elxo } from "./icons/elxo";
+import { Logo } from "./logo";
 
 export type NavItemChild = {
   title: string;
@@ -46,7 +47,7 @@ export const FEATURES_LIST = [
     title: "Dub Links",
     description: "Short links with superpowers",
     icon: DubLinksIcon,
-    href: "/home",
+    href: "/links",
   },
   {
     title: "Dub Partners",
@@ -161,22 +162,28 @@ export const SOLUTIONS: NavItemChildren = [
 
 export const RESOURCES = [
   {
+    icon: LifeRing,
+    title: "Help Center",
+    description: "Answers to your questions",
+    href: "/help",
+  },
+  {
     icon: Book2Fill,
     title: "Docs",
     description: "Platform documentation",
     href: "/docs/introduction",
   },
   {
-    icon: HeadsetFill,
-    title: "Help Center",
-    description: "Answers to your questions",
-    href: "/help",
-  },
-  {
-    icon: HeartFill,
+    icon: UsersFill,
     title: "About",
     description: "Company, values, and team",
     href: "/about",
+  },
+  {
+    icon: BriefcaseFill,
+    title: "Careers",
+    description: "Join our global, remote team",
+    href: "/careers",
   },
   {
     icon: FeatherFill,
@@ -191,10 +198,16 @@ export const RESOURCES = [
     href: "/changelog",
   },
   {
-    icon: HexadecagonStar,
-    title: "Dub Brand",
+    icon: Logo,
+    title: "Brand Guidelines",
     description: "Logos, wordmark, etc.",
     href: "/brand",
+  },
+  {
+    icon: EnvelopeFill,
+    title: "Contact",
+    description: "Reach out to support or sales",
+    href: "/contact",
   },
 ];
 

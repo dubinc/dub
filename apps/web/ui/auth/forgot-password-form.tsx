@@ -26,23 +26,24 @@ export const ForgotPasswordForm = () => {
   });
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex w-full flex-col gap-3">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           executeAsync({ email });
         }}
       >
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6">
           <label>
-            <span className="text-sm font-medium text-neutral-700">Email</span>
+            <span className="text-content-emphasis mb-2 block text-sm font-medium leading-none">
+              Email
+            </span>
             <Input
               type="email"
               autoFocus={!isMobile}
               value={email}
               placeholder="panic@thedis.co"
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1"
             />
           </label>
           <Button

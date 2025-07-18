@@ -130,7 +130,6 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
 
   const { partner, loading: isLoadingPartner } = usePartner({
     partnerId: link?.partnerId ?? null,
-    programId: link?.programId ?? null,
   });
 
   const [isChangingLink, setIsChangingLink] = useState(false);

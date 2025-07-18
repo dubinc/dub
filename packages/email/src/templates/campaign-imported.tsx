@@ -14,24 +14,22 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function CampaignImported({
+export default function CampaignImported({
   email = "panic@thedis.co",
   provider = "Rewardful",
   workspace = {
     slug: "acme",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Cal",
   },
 }: {
   email: string;
-  provider: "Rewardful";
+  provider: "Rewardful" | "Tolt" | "PartnerStack";
   workspace: {
     slug: string;
   };
   program: {
-    id: string;
     name: string;
   };
 }) {
@@ -51,7 +49,7 @@ export function CampaignImported({
             <Text className="text-sm leading-6 text-black">
               We have successfully imported your {provider} campaign{" "}
               <Link
-                href={`https://app.dub.co/${workspace.slug}/programs/${program.id}/partners`}
+                href={`https://app.dub.co/${workspace.slug}/program/partners`}
                 className="font-medium text-blue-600 no-underline"
               >
                 {program.name}↗
@@ -65,5 +63,3 @@ export function CampaignImported({
     </Html>
   );
 }
-
-export default CampaignImported;

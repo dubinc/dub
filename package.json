@@ -30,7 +30,8 @@
   },
   "resolutions": {
     "@radix-ui/react-dialog": "1.0.5",
-    "@radix-ui/react-popover": "1.0.7"
+    "@radix-ui/react-popover": "1.0.7",
+    "chrono-node": "2.7.5"
   },
   "packageManager": "pnpm@8.6.10"
 }

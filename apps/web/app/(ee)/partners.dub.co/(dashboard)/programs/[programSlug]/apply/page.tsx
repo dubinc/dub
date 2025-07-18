@@ -1,9 +1,10 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { PageContent } from "@/ui/layout/page-content";
-import { BLOCK_COMPONENTS } from "@/ui/partners/lander-blocks";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { BackLink } from "@/ui/shared/back-link";
-import { MaxWidthWrapper } from "@dub/ui";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { ProgramSidebar } from "./program-sidebar";
@@ -15,19 +16,26 @@ export default async function ProgramDetailsPage({
 }) {
   const program = await getProgram({
     slug: programSlug,
-    include: ["rewards", "defaultDiscount"],
+    include: ["allRewards", "allDiscounts"],
   });
 
-  if (!program) notFound();
+  if (!program) {
+    notFound();
+  }
+
+  const { rewards, discount } =
+    getProgramApplicationRewardsAndDiscount(program);
 
   return (
     <PageContent>
-      <MaxWidthWrapper className="mb-10 mt-4">
+      <PageWidthWrapper className="mb-10 mt-4">
         <BackLink href="/programs">Programs</BackLink>
         <div className="mt-8 grid grid-cols-1 gap-x-16 gap-y-10 lg:grid-cols-[300px_minmax(0,600px)]">
-          <div>
-            <ProgramSidebar program={program} />
-          </div>
+          <ProgramSidebar
+            program={program}
+            applicationRewards={rewards}
+            applicationDiscount={discount}
+          />
           <div>
             <div
               className="relative"
@@ -58,11 +66,7 @@ export default async function ProgramDetailsPage({
                     .blocks.map((block, idx) => {
                       const Component = BLOCK_COMPONENTS[block.type];
                       return Component ? (
-                        <Component
-                          key={idx}
-                          block={block}
-                          logo={program.logo}
-                        />
+                        <Component key={idx} block={block} program={program} />
                       ) : null;
                     })}
                 </div>
@@ -70,7 +74,7 @@ export default async function ProgramDetailsPage({
             </div>
           </div>
         </div>
-      </MaxWidthWrapper>
+      </PageWidthWrapper>
     </PageContent>
   );
 }

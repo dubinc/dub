@@ -11,11 +11,11 @@ export function Form() {
     <div>
       <InviteTeammatesForm
         onSuccess={() => {
-          continueTo("plan");
+          continueTo("usage");
         }}
         saveOnly
       />
-      <LaterButton next="plan" className="mt-4" />
+      <LaterButton next="usage" className="mt-4" />
     </div>
   );
 }

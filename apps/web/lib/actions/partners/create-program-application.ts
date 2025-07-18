@@ -118,11 +118,27 @@ async function createApplicationAndEnrollment({
   ]);
 
   waitUntil(
-    notifyPartnerApplication({
-      partner,
-      program,
-      application,
-    }),
+    (async () => {
+      await Promise.all([
+        notifyPartnerApplication({
+          partner,
+          program,
+          application,
+        }),
+
+        // Auto-approve the partner
+        program.autoApprovePartnersEnabledAt
+          ? qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/auto-approve-partner`,
+              delay: 5 * 60,
+              body: {
+                programId: program.id,
+                partnerId: partner.id,
+              },
+            })
+          : Promise.resolve(null),
+      ]);
+    })(),
   );
 
   return {

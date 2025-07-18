@@ -10,10 +10,9 @@ import {
   Icon,
   Incognito,
   InputPassword,
-  Webhook,
   WindowSearch,
 } from "@dub/ui/icons";
-import { Settings } from "lucide-react";
+import { Settings, User2 } from "lucide-react";
 
 type MoreItem = {
   key: string;
@@ -50,13 +49,15 @@ export const MORE_ITEMS: MoreItem[] = [
     type: "boolean",
   },
   {
-    key: "webhookIds",
-    icon: Webhook,
-    label: "Webhooks",
-    shortcutKey: "w",
-    enabled: (data) => Boolean(data.webhookIds?.length),
+    key: "partnerId",
+    icon: User2,
+    label: "Assign to Partner",
+    shortcutKey: "b",
     type: "modal",
+    enabled: (data) => Boolean(data.partnerId),
     add: false,
+    description: "Assign this link to a partner.",
+    learnMoreUrl: "https://dub.co/help/article/dub-partners",
   },
   {
     key: "advanced",

@@ -2,8 +2,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { validateScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { tokenCache } from "@/lib/auth/token-cache";
 import { tokenSchema, updateTokenSchema } from "@/lib/zod/schemas/token";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/tokens/:id - get info about a specific token
@@ -82,24 +84,18 @@ export const PATCH = withWorkspace(
         ...(name && { name }),
         ...(scopes && { scopes: [...new Set(scopes)].join(" ") }),
       },
-      select: {
-        id: true,
-        name: true,
-        partialKey: true,
-        scopes: true,
-        lastUsed: true,
-        createdAt: true,
-        updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            isMachine: true,
-          },
-        },
+      include: {
+        user: true,
       },
     });
+
+    // update tokens cache
+    waitUntil(
+      tokenCache.set({
+        hashedKey: token.hashedKey,
+        token,
+      }),
+    );
 
     return NextResponse.json(tokenSchema.parse(token));
   },
@@ -118,6 +114,7 @@ export const DELETE = withWorkspace(
       },
       select: {
         id: true,
+        hashedKey: true,
         user: {
           select: {
             id: true,
@@ -134,6 +131,13 @@ export const DELETE = withWorkspace(
         },
       });
     }
+
+    // delete tokens cache
+    waitUntil(
+      tokenCache.delete({
+        hashedKey: token.hashedKey,
+      }),
+    );
 
     return NextResponse.json({
       id: token.id,

@@ -1,15 +1,22 @@
 import { prisma } from "@dub/prisma";
-import { CommissionType, EventType } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
-import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "../partners/constants";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 
 export async function importCampaign({ programId }: { programId: string }) {
-  const { defaultRewardId, workspaceId } =
+  const { workspaceId, rewards: defaultSaleReward } =
     await prisma.program.findUniqueOrThrow({
       where: {
         id: programId,
+      },
+      include: {
+        rewards: {
+          where: {
+            event: EventType.sale,
+            default: true,
+          },
+        },
       },
     });
 
@@ -35,8 +42,8 @@ export async function importCampaign({ programId }: { programId: string }) {
     maxDuration: max_commission_period_months,
     type:
       reward_type === "amount"
-        ? CommissionType.flat
-        : CommissionType.percentage,
+        ? RewardStructure.flat
+        : RewardStructure.percentage,
     amount:
       reward_type === "amount" ? commission_amount_cents : commission_percent,
   };
@@ -50,25 +57,20 @@ export async function importCampaign({ programId }: { programId: string }) {
   if (!rewardFound) {
     const reward = await prisma.reward.create({
       data: {
-        id: createId({ prefix: "rw_" }),
         ...newReward,
+        id: createId({ prefix: "rw_" }),
+        default: !defaultSaleReward.length,
       },
     });
 
-    // if there's no default reward, set this as the default reward
-    // it also means that this is a newly imported program
-    if (!defaultRewardId) {
+    // if there's no default reward, means that this is a newly imported program
+    if (!defaultSaleReward.length) {
       await prisma.program.update({
         where: {
           id: programId,
         },
         data: {
-          defaultRewardId: reward.id,
-          // minimum payout amount is the max of the Rewardful campaign minimum payout and Dub's minimum payout ($100)
-          minPayoutAmount: Math.max(
-            minimum_payout_cents,
-            DUB_MIN_PAYOUT_AMOUNT_CENTS,
-          ),
+          minPayoutAmount: minimum_payout_cents,
           holdingPeriodDays: days_until_commissions_are_due,
         },
       });
@@ -81,9 +83,7 @@ export async function importCampaign({ programId }: { programId: string }) {
 
   return await rewardfulImporter.queue({
     programId,
-    // we will only need to assign rewardId to affiliates
-    // if it's not the defaultRewardId of the program (there's already a defaultRewardId)
-    ...(defaultRewardId && { rewardId }),
+    ...(rewardId && { rewardId }),
     action: "import-affiliates",
   });
 }

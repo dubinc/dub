@@ -30,7 +30,7 @@ export function ReferralsEmbedLinksList({
   const [partnerLinks, setPartnerLinks] = useState<ReferralsEmbedLink[]>(links);
 
   const { data: refreshedLinks, isLoading } = useSWR<ReferralsEmbedLink[]>(
-    `/api/embed/referrals/links`,
+    "/api/embed/referrals/links",
     (url) =>
       fetcher(url, {
         headers: {
@@ -125,14 +125,22 @@ export function ReferralsEmbedLinksList({
     emptyState: (
       <AnimatedEmptyState
         title="No links found"
-        description="No referral links found for you."
+        description="You don't have any referral links yet. Create a link to start earning commissions."
         cardContent={() => (
           <>
             <Users className="text-content-default size-4" />
-            <div className="bg-bg-emphasis h-2.5 w-24 min-w-0 rounded-sm" />
+            <div className="bg-bg-emphasis h-2.5 w-40 rounded-sm" />
           </>
         )}
-        className="border-none md:min-h-fit"
+        className="max-w-xs border-none md:min-h-fit"
+        addButton={
+          <Button
+            text="Create link"
+            variant="primary"
+            onClick={onCreateLink}
+            className="bg-bg-inverted h-9 rounded-md hover:bg-neutral-800"
+          />
+        }
       />
     ),
     thClassName: "border-l-0",
@@ -151,7 +159,9 @@ export function ReferralsEmbedLinksList({
         table={table}
         containerClassName="border-none max-h-[26rem] overflow-auto"
       />
-      <div className="from-bg-default pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t sm:bottom-0" />
+      {links.length > 0 && (
+        <div className="from-bg-default pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t sm:bottom-0" />
+      )}
     </motion.div>
   );
 }

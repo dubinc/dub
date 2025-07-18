@@ -1,61 +1,56 @@
 "use client";
 
-import useLinks from "@/lib/swr/use-links";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { CheckCircleFill } from "@/ui/shared/icons";
-import { Button } from "@dub/ui";
-import { Globe2, LoadingSpinner } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
-import { Crown } from "lucide-react";
-import { ReactNode, useEffect, useState } from "react";
+import { OnboardingStep } from "@/lib/onboarding/types";
+import { Button, Crown } from "@dub/ui";
+import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { ReactNode } from "react";
 import { LaterButton } from "../../later-button";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function DefaultDomainSelector() {
-  const { loading: isWorkspaceLoading } = useWorkspace();
-  const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
+  const searchParams = useSearchParams();
+  const workspaceSlug = searchParams.get("workspace");
 
-  const [selectedOption, setSelectedOption] = useState<"custom" | "register">(
-    "custom",
-  );
-
-  return isWorkspaceLoading ? (
-    <div className="mt-12 flex w-full justify-center">
-      <LoadingSpinner />
-    </div>
-  ) : (
+  return (
     <>
-      <div className="animate-fade-in mx-auto grid w-full max-w-[312px] gap-4 sm:max-w-2xl sm:grid-cols-2">
+      <div className="animate-fade-in mx-auto grid w-full max-w-[312px] gap-4 sm:max-w-[600px] sm:grid-cols-2">
         <DomainOption
+          step="domain/custom"
+          icon="https://assets.dub.co/icons/link.webp"
           title="Connect a custom domain"
-          example="acme.com"
-          onClick={() => setSelectedOption("custom")}
-          isSelected={selectedOption === "custom"}
+          description="Already have a domain? Connect it to Dub in just a few clicks"
+          cta="Connect domain"
         />
         <DomainOption
+          step="domain/register"
+          icon="https://assets.dub.co/icons/crown.webp"
           title={
             <>
               Claim a free{" "}
-              <span className="rounded border border-green-800/10 bg-lime-100 p-1 font-mono text-xs">
+              <span className="rounded border border-neutral-800/10 bg-neutral-100 px-1 py-0.5 font-mono text-xs">
                 .link
               </span>{" "}
               domain
             </>
           }
-          example="acme.link"
-          onClick={() => setSelectedOption("register")}
-          isSelected={selectedOption === "register"}
-          paidPlanRequired={true}
+          description={
+            <>
+              Register a domain like{" "}
+              <span className="font-mono font-semibold text-neutral-900">
+                {workspaceSlug && workspaceSlug.length < 8
+                  ? workspaceSlug
+                  : "company"}
+                .link
+              </span>{" "}
+              – free for 1 year
+            </>
+          }
+          cta="Claim .link domain"
+          paidPlanRequired
         />
       </div>
       <div className="mx-auto mt-8 w-full max-w-sm">
-        <Button
-          type="button"
-          variant="primary"
-          onClick={() => continueTo(`domain/${selectedOption}`)}
-          loading={isLoading || isSuccessful}
-          text="Continue"
-        />
         <LaterButton next="invite" className="mt-4" />
       </div>
     </>
@@ -63,75 +58,51 @@ export function DefaultDomainSelector() {
 }
 
 function DomainOption({
+  step,
+  icon,
   title,
-  example,
-  onClick,
-  isSelected,
+  description,
+  cta,
   paidPlanRequired,
 }: {
+  step: OnboardingStep;
+  icon: string;
   title: ReactNode;
-  example: string;
-  onClick: () => void;
-  isSelected: boolean;
+  description: ReactNode;
+  cta: string;
   paidPlanRequired?: boolean;
 }) {
-  const { links } = useLinks({ sort: "createdAt", pageSize: 1 });
-
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (links?.length) {
-      try {
-        const url = links[0].url;
-        fetch(`/api/metatags?url=${url}`).then(async (res) => {
-          if (res.ok) {
-            const results = await res.json();
-            setPreviewImage(results.image);
-          }
-        });
-      } catch (_) {}
-    }
-  }, [links]);
-
+  const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
   return (
-    <div
-      className={cn(
-        "relative flex flex-col gap-2 rounded-lg border border-neutral-300 px-10 pb-4 pt-9 transition-all",
-        isSelected && "border-transparent bg-black/[0.03] ring-2 ring-black",
-      )}
-      role="button"
-      onClick={onClick}
-      aria-selected={isSelected}
-    >
-      {isSelected && (
-        <CheckCircleFill className="absolute left-2 top-2 size-5 text-black" />
-      )}
-      <div className="flex w-full flex-col gap-2 rounded-md border border-neutral-300 bg-neutral-100 p-2 [mask-image:linear-gradient(to_bottom,black_50%,transparent_95%)]">
-        <div className="relative rounded border-neutral-200 bg-white px-2 py-1.5 text-center text-sm font-medium text-neutral-800">
-          <Globe2 className="absolute left-2 top-1/2 size-4 -translate-y-1/2" />
-          {example}
-        </div>
-        <div className="overflow-hidden rounded border border-neutral-300">
-          <div className="aspect-[1.9/1] w-full overflow-hidden bg-neutral-200">
-            {previewImage && (
-              <img
-                src={previewImage}
-                alt=""
-                className="size-full object-cover"
-              />
-            )}
-          </div>
-        </div>
-      </div>
-      <span className="text-center text-sm font-medium text-neutral-800">
-        {title}
-      </span>
+    <div className="relative flex h-full flex-col items-center gap-6 rounded-xl border border-neutral-300 p-8 pt-10 transition-all">
       {paidPlanRequired && (
-        <span className="flex items-center justify-center gap-1 text-center text-xs font-normal text-neutral-500/80">
-          <Crown className="size-4" />
+        <div className="absolute right-2 top-2 flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-600">
+          <Crown className="size-3" />
           Paid plan required
-        </span>
+        </div>
       )}
+      <div className="relative size-36">
+        <Image
+          src={icon}
+          alt=""
+          fill
+          className="object-contain"
+          fetchPriority="high"
+        />
+      </div>
+      <div className="space-y-2 text-center text-sm">
+        <span className="font-semibold text-neutral-900">{title}</span>
+        <p className="text-neutral-500">{description}</p>
+      </div>
+      <div className="flex w-full grow flex-col justify-end gap-2">
+        <Button
+          type="button"
+          variant="primary"
+          onClick={() => continueTo(step)}
+          loading={isLoading || isSuccessful}
+          text={cta}
+        />
+      </div>
     </div>
   );
 }

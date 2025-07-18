@@ -2,7 +2,15 @@
 
 import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { Button, Combobox, Table, useTable } from "@dub/ui";
+import { EventType } from "@dub/prisma/client";
+import {
+  Button,
+  CircleWarning,
+  Combobox,
+  Table,
+  Tooltip,
+  useTable,
+} from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -13,6 +21,10 @@ interface RewardPartnersTableProps {
   partnerIds: string[];
   setPartnerIds: (value: string[]) => void;
   loading: boolean;
+  mode?: "include" | "exclude";
+  label?: string;
+  event: EventType;
+  rewardId?: string;
 }
 
 export function RewardPartnersTable({
@@ -20,11 +32,24 @@ export function RewardPartnersTable({
   setPartnerIds,
   rewardPartners,
   loading,
+  mode = "include",
+  label = mode === "include" ? "Eligible partners" : "Non-eligible partners",
+  event,
+  rewardId,
 }: RewardPartnersTableProps) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
   const [selectedPartners, setSelectedPartners] = useState<
-    Pick<EnrolledPartnerProps, "id" | "name" | "email" | "image">[]
+    Pick<
+      EnrolledPartnerProps,
+      | "id"
+      | "name"
+      | "email"
+      | "image"
+      | "clickRewardId"
+      | "leadRewardId"
+      | "saleRewardId"
+    >[]
   >([]);
 
   // Get filtered partners for the combobox
@@ -36,7 +61,10 @@ export function RewardPartnersTable({
 
   // Create a map for faster partner lookups
   const partnersMap = useMemo(() => {
-    if (!searchPartners) return new Map();
+    if (!searchPartners) {
+      return new Map();
+    }
+
     return new Map(
       searchPartners.map((partner) => [
         partner.id,
@@ -45,6 +73,9 @@ export function RewardPartnersTable({
           name: partner.name,
           email: partner.email,
           image: partner.image,
+          clickRewardId: partner.clickRewardId,
+          leadRewardId: partner.leadRewardId,
+          saleRewardId: partner.saleRewardId,
         },
       ]),
     );
@@ -128,21 +159,37 @@ export function RewardPartnersTable({
     columns: [
       {
         header: "Partner",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <img
-              src={row.original.image || `${OG_AVATAR_URL}${row.original.name}`}
-              alt={row.original.name}
-              className="size-6 shrink-0 rounded-full"
-            />
-            <span className="truncate text-sm text-neutral-700">
-              {row.original.name}
-            </span>
-          </div>
-        ),
-        size: 150,
-        minSize: 150,
-        maxSize: 150,
+        cell: ({ row }) => {
+          const existingRewardId = row.original[`${event}RewardId`];
+          const isOnAnotherReward =
+            !!existingRewardId && (!rewardId || existingRewardId !== rewardId);
+
+          return (
+            <div className="flex items-center gap-2">
+              <img
+                src={
+                  row.original.image || `${OG_AVATAR_URL}${row.original.name}`
+                }
+                alt={row.original.name}
+                className="size-6 shrink-0 rounded-full"
+              />
+              <span className="truncate text-sm text-neutral-700">
+                {row.original.name}
+              </span>
+
+              {isOnAnotherReward && (
+                <Tooltip content="This partner is currently on another reward and will be updated to this one.">
+                  <div className="flex items-center justify-center rounded-md bg-orange-100 px-1.5 py-1">
+                    <CircleWarning className="size-4 text-orange-500" />
+                  </div>
+                </Tooltip>
+              )}
+            </div>
+          );
+        },
+        size: 180,
+        minSize: 180,
+        maxSize: 180,
       },
       {
         header: "Email",
@@ -151,9 +198,9 @@ export function RewardPartnersTable({
             {row.original.email}
           </div>
         ),
-        size: 210,
-        minSize: 210,
-        maxSize: 210,
+        size: 160,
+        minSize: 160,
+        maxSize: 160,
       },
       {
         id: "actions",
@@ -185,7 +232,7 @@ export function RewardPartnersTable({
     tdClassName: () => cn("border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `eligible partner${p ? "s" : ""}`,
+    resourceName: (p) => `partner${p ? "s" : ""}`,
     getRowId: (row: EnrolledPartnerProps) => row.id,
     loading,
     rowCount: selectedPartners?.length || 0,
@@ -193,9 +240,7 @@ export function RewardPartnersTable({
 
   return (
     <div className="flex flex-col gap-3">
-      <label className="text-sm font-medium text-neutral-800">
-        Eligible partners
-      </label>
+      <label className="text-sm font-medium text-neutral-800">{label}</label>
 
       <Combobox
         options={partnersOptions}

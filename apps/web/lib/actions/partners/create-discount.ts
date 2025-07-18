@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
@@ -13,50 +14,71 @@ import { authActionClient } from "../safe-action";
 export const createDiscountAction = authActionClient
   .schema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    const { partnerIds, amount, type, maxDuration, couponId, couponTestId } =
-      parsedInput;
+    const { workspace, user } = ctx;
+    let {
+      amount,
+      type,
+      maxDuration,
+      couponId,
+      couponTestId,
+      isDefault,
+      includedPartnerIds,
+      excludedPartnerIds,
+    } = parsedInput;
+
+    includedPartnerIds = includedPartnerIds || [];
+    excludedPartnerIds = excludedPartnerIds || [];
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await getProgramOrThrow({
+    await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
-    let isDefault = true;
+    // A program can have only one default discount
+    if (isDefault) {
+      const defaultDiscount = await prisma.discount.findFirst({
+        where: {
+          programId,
+          default: true,
+        },
+      });
 
-    if (partnerIds) {
+      if (defaultDiscount) {
+        throw new Error(
+          "There is an existing default discount already. A program can only have one default discount.",
+        );
+      }
+    }
+
+    const finalPartnerIds = [...includedPartnerIds, ...excludedPartnerIds];
+
+    if (finalPartnerIds && finalPartnerIds.length > 0) {
       const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           programId,
           partnerId: {
-            in: partnerIds,
+            in: finalPartnerIds,
           },
         },
         select: {
-          id: true,
+          partnerId: true,
           discountId: true,
+          partner: true,
         },
       });
 
-      if (programEnrollments.length !== partnerIds.length) {
-        throw new Error("Invalid partner IDs provided.");
-      }
-
-      const partnersWithDiscounts = programEnrollments.filter(
-        (pe) => pe.discountId,
+      const invalidPartnerIds = finalPartnerIds.filter(
+        (id) =>
+          !programEnrollments.some((enrollment) => enrollment.partnerId === id),
       );
 
-      if (partnersWithDiscounts.length > 0) {
-        throw new Error("Partners cannot belong to more than one discount.");
+      if (invalidPartnerIds.length > 0) {
+        throw new Error(
+          `Invalid partner IDs provided: ${invalidPartnerIds.join(", ")}`,
+        );
       }
-
-      isDefault = false;
-    }
-
-    if (program.defaultDiscountId && isDefault) {
-      throw new Error("A program can have only one default discount.");
     }
 
     const discount = await prisma.discount.create({
@@ -68,43 +90,61 @@ export const createDiscountAction = authActionClient
         maxDuration,
         couponId,
         couponTestId,
+        default: isDefault,
       },
     });
 
-    if (partnerIds && partnerIds.length > 0) {
-      await prisma.programEnrollment.updateMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIds,
-          },
-        },
-        data: {
-          discountId: discount.id,
-        },
-      });
-    }
-
-    if (isDefault) {
-      await prisma.program.update({
-        where: {
-          id: programId,
-        },
-        data: {
-          defaultDiscountId: discount.id,
-        },
-      });
-    }
+    await prisma.programEnrollment.updateMany({
+      where: {
+        programId,
+        ...(discount.default
+          ? {
+              discountId: null,
+              ...(excludedPartnerIds.length > 0 && {
+                partnerId: {
+                  notIn: excludedPartnerIds,
+                },
+              }),
+            }
+          : {
+              partnerId: {
+                in: includedPartnerIds,
+              },
+            }),
+      },
+      data: {
+        discountId: discount.id,
+      },
+    });
 
     waitUntil(
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-        body: {
-          programId,
-          discountId: discount.id,
-          isDefault,
-          action: "discount-created",
-        },
-      }),
+      (async () => {
+        await Promise.allSettled([
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+            body: {
+              programId,
+              discountId: discount.id,
+              isDefault,
+              action: "discount-created",
+            },
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "discount.created",
+            description: `Discount ${discount.id} created`,
+            actor: user,
+            targets: [
+              {
+                type: "discount",
+                id: discount.id,
+                metadata: discount,
+              },
+            ],
+          }),
+        ]);
+      })(),
     );
   });

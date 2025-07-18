@@ -4,7 +4,7 @@ import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { sendEmail } from "@dub/email";
-import { LinksImported } from "@dub/email/templates/links-imported";
+import LinksImported from "@dub/email/templates/links-imported";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, linkConstructorSimple } from "@dub/utils";
 
@@ -69,6 +69,7 @@ export const importLinksFromRebrandly = async ({
   folderId,
   tagsToId,
   rebrandlyApiKey,
+  createdAfter,
   lastLinkId = null,
   count = 0,
 }: {
@@ -79,13 +80,20 @@ export const importLinksFromRebrandly = async ({
   folderId?: string;
   tagsToId?: Record<string, string>;
   rebrandlyApiKey: string;
+  createdAfter?: string;
   lastLinkId?: string | null;
   count?: number;
 }) => {
   const links = await fetch(
-    `https://api.rebrandly.com/v1/links?domain.id=${domainId}&orderBy=createdAt&orderDir=asc&limit=25${
-      lastLinkId ? `&last=${lastLinkId}` : ""
-    }`,
+    `https://api.rebrandly.com/v1/links?${new URLSearchParams({
+      domain: domainId.toString(),
+      orderBy: "createdAt",
+      orderDir: "desc",
+      limit: "25",
+      ...(lastLinkId && { last: lastLinkId }),
+      ...(createdAfter && { dateFrom: createdAfter }),
+      // ...(createdBefore && { dateTo: createdBefore }), // TODO add this in the future
+    })}`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -227,7 +235,10 @@ export const importLinksFromRebrandly = async ({
     );
 
     // bulk create links
-    await bulkCreateLinks({ links: linksToCreate });
+    await bulkCreateLinks({
+      links: linksToCreate,
+      skipRedisCache: true,
+    });
 
     count += importedLinks.length;
 
@@ -249,6 +260,7 @@ export const importLinksFromRebrandly = async ({
         domain,
         folderId,
         importTags: tagsToId ? true : false,
+        createdAfter,
         lastLinkId: newLastLinkId,
         count,
       },

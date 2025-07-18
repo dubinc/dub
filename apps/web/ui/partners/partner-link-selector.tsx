@@ -5,7 +5,7 @@ import { LinkProps } from "@/lib/types";
 import { Combobox, LinkLogo, Tooltip } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
-import { useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 const getLinkOption = (link: LinkProps) => ({
@@ -30,6 +30,7 @@ export function PartnerLinkSelector({
   onCreate,
   error,
   optional = false,
+  disabledTooltip,
 }: {
   selectedLinkId: string | null;
   setSelectedLinkId: (id: string) => void;
@@ -38,6 +39,7 @@ export function PartnerLinkSelector({
   onCreate?: (search: string) => Promise<boolean>;
   error?: boolean;
   optional?: boolean;
+  disabledTooltip?: string | ReactNode;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -100,6 +102,7 @@ export function PartnerLinkSelector({
             error &&
               "border-red-500 focus:border-red-500 focus:ring-red-500 data-[state=open]:ring-red-500 data-[state=open]:border-red-500",
           ),
+          disabledTooltip,
         }}
         shouldFilter={false}
         onCreate={onCreate}

@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function InvalidDomain({
+export default function InvalidDomain({
   email = "panic@thedis.co",
   domain = "dub.sh",
   workspaceSlug = "dub",
@@ -87,5 +87,3 @@ export function InvalidDomain({
     </Html>
   );
 }
-
-export default InvalidDomain;

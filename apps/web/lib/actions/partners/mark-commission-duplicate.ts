@@ -1,8 +1,11 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -15,7 +18,7 @@ const markCommissionDuplicateSchema = z.object({
 export const markCommissionDuplicateAction = authActionClient
   .schema(markCommissionDuplicateSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { commissionId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -38,6 +41,10 @@ export const markCommissionDuplicateAction = authActionClient
 
     if (commission.status === "paid") {
       throw new Error("You cannot mark a paid commission as duplicate.");
+    }
+
+    if (commission.type === "custom") {
+      throw new Error("You cannot mark a custom commission as duplicate.");
     }
 
     // there is a payout associated with this sale
@@ -65,6 +72,32 @@ export const markCommissionDuplicateAction = authActionClient
         payoutId: null,
       },
     });
+
+    waitUntil(
+      (async () => {
+        await Promise.allSettled([
+          syncTotalCommissions({
+            partnerId: commission.partnerId,
+            programId,
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "commission.marked_duplicate",
+            description: `Commission ${commissionId} marked as duplicate`,
+            actor: user,
+            targets: [
+              {
+                type: "commission",
+                id: commissionId,
+                metadata: commission,
+              },
+            ],
+          }),
+        ]);
+      })(),
+    );
 
     // TODO: We might want to store the history of the sale status changes
     // TODO: Send email to the partner informing them about the sale status change

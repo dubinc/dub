@@ -6,6 +6,7 @@ import { generateRandomName } from "@/lib/names";
 import {
   recordLeadWithTimestamp,
   recordSaleWithTimestamp,
+  tb,
 } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
@@ -34,10 +35,22 @@ type PayloadItem = {
   creationDate: Date;
 };
 
-const FRAMER_WORKSPACE_ID = "xxx";
-// TODO: delete when migration is complete
+const FRAMER_WORKSPACE_ID = "clsvopiw0000ejy0grp821me0";
 const CACHE_KEY = "framerMigratedExternalIdEventNames";
 const DOMAIN = "framer.link";
+
+const getFramerLeadEvents = tb.buildPipe({
+  pipe: "get_framer_lead_events",
+  parameters: z.object({
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(","))),
+    customerIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(","))),
+  }),
+  data: z.any(),
+});
 
 // POST /api/cron/framer/backfill-leads-batch
 export const POST = withWorkspace(async ({ req, workspace }) => {
@@ -57,43 +70,56 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       (p) => `${p.externalId}:${p.eventName}`,
     );
 
-    const [existsResults, links] = await Promise.all([
-      redis.smismember(CACHE_KEY, externalIdEventNames),
-      prisma.link.findMany({
-        where: {
-          shortLink: {
-            in: originalPayload.map((p) =>
-              linkConstructorSimple({
-                domain: DOMAIN,
-                key: p.via,
-              }),
-            ),
+    const [existsResults, existingLinks, existingCustomers] = await Promise.all(
+      [
+        redis.smismember(CACHE_KEY, externalIdEventNames),
+        prisma.link.findMany({
+          where: {
+            shortLink: {
+              in: originalPayload.map((p) =>
+                linkConstructorSimple({
+                  domain: DOMAIN,
+                  key: p.via,
+                }),
+              ),
+            },
           },
-        },
-        select: {
-          id: true,
-          key: true,
-          url: true,
-          domain: true,
-          programId: true,
-          partnerId: true,
-        },
-      }),
-    ]);
+          select: {
+            id: true,
+            key: true,
+            url: true,
+            domain: true,
+            programId: true,
+            partnerId: true,
+          },
+        }),
+        prisma.customer.findMany({
+          where: {
+            projectId: workspace.id,
+            externalId: {
+              in: originalPayload.map((p) => p.externalId),
+            },
+          },
+        }),
+      ],
+    );
+
+    const { data: existingLeadEventsForLinks } = await getFramerLeadEvents({
+      linkIds: existingLinks.map((l) => l.id),
+      customerIds: existingCustomers.map((c) => c.id),
+    });
 
     let validEntries: PayloadItem[] = [];
-    let invalidEntries: (PayloadItem & { error: string })[] = [];
+    let invalidEntries: (PayloadItem & { error: string; clickId?: string })[] =
+      [];
 
     originalPayload.map((p, index) => {
-      if (existsResults[index]) {
-        invalidEntries.push({
-          ...p,
-          error: "Already backfilled.",
-        });
-        return;
-      }
+      const existingLinkData = existingLinks.find((l) => l.key === p.via);
+      const existingCustomerData = existingCustomers.find(
+        (c) => c.externalId === p.externalId,
+      );
 
-      if (!links.some((l) => l.key === p.via)) {
+      if (!existingLinkData) {
         invalidEntries.push({
           ...p,
           error: `Link for via tag ${p.via} not found.`,
@@ -101,8 +127,29 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
         return;
       }
 
+      if (existsResults[index]) {
+        // get the lead event data for the existing customer
+        const leadEventData = existingLeadEventsForLinks.find(
+          (e) =>
+            e.link_id === existingLinkData.id &&
+            e.customer_id === existingCustomerData?.id &&
+            e.event_name === p.eventName,
+        );
+
+        console.log({ leadEventData });
+
+        invalidEntries.push({
+          ...p,
+          error: "Already backfilled.",
+          clickId: leadEventData?.click_id,
+        });
+        return;
+      }
+
       if (
-        links.some((l) => l.key === p.via && (!l.partnerId || !l.programId))
+        existingLinks.some(
+          (l) => l.key === p.via && (!l.partnerId || !l.programId),
+        )
       ) {
         invalidEntries.push({
           ...p,
@@ -114,7 +161,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       validEntries.push(p);
     });
 
-    const linkMap = new Map(links.map((l) => [l.key, l]));
+    const linkMap = new Map(existingLinks.map((l) => [l.key, l]));
 
     const customerData = validEntries.map((p) => {
       return {

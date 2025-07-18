@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
@@ -15,8 +16,9 @@ import { NextResponse } from "next/server";
 // POST /api/tokens/embed/referrals - create a new embed token for the given partner/tenant
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     const {
-      programId,
       partnerId,
       tenantId,
       partner: partnerProps,
@@ -39,7 +41,7 @@ export const POST = withWorkspace(
     // if there is no programEnrollment associated with the partnerId or tenantId, and partnerProps are provided
     // check if the partner exists based on the email – if not, create them, if yes, enroll them
     if (!programEnrollment && partnerProps) {
-      const program = await prisma.program.findUnique({
+      const program = await prisma.program.findUniqueOrThrow({
         where: {
           id: programId,
         },
@@ -47,19 +49,10 @@ export const POST = withWorkspace(
           id: true,
           workspaceId: true,
           defaultFolderId: true,
-          defaultRewardId: true,
-          defaultDiscountId: true,
           domain: true,
           url: true,
         },
       });
-
-      if (!program || program.workspaceId !== workspace.id) {
-        throw new DubApiError({
-          message: `Program with ID ${programId} not found.`,
-          code: "not_found",
-        });
-      }
 
       const partner = await prisma.partner.findUnique({
         where: {

@@ -17,4 +17,4 @@ export function Plus2(props: SVGProps<SVGSVGElement>) {
       />
     </svg>
   );
-} 
+}

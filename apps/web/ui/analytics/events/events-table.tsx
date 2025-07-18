@@ -8,6 +8,7 @@ import EmptyState from "@/ui/shared/empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   CopyText,
+  EditColumnsButton,
   LinkLogo,
   Table,
   Tooltip,
@@ -24,6 +25,7 @@ import {
   cn,
   currencyFormatter,
   fetcher,
+  formatDateTimeSmart,
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
@@ -36,7 +38,6 @@ import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
-import EditColumnsButton from "./edit-columns-button";
 import { EventsContext } from "./events-provider";
 import { EXAMPLE_EVENTS_DATA } from "./example-data";
 import { RowMenuButton } from "./row-menu-button";
@@ -97,13 +98,7 @@ export default function EventsTable({
               })}
             >
               <div className="w-full truncate">
-                {getValue().toLocaleTimeString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                  hour12: true,
-                })}
+                {formatDateTimeSmart(getValue())}
               </div>
             </Tooltip>
           ),
@@ -113,7 +108,7 @@ export default function EventsTable({
           id: "saleAmount",
           header: "Amount",
           accessorKey: "sale.amount",
-          size: 120,
+          size: 160,
           cell: ({ getValue }) => (
             <div className="flex items-center gap-2">
               <span>

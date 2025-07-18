@@ -41,16 +41,17 @@ export const getLinkWithPartner = async ({
         Partner.id as partnerId,
         Partner.name as partnerName,
         Partner.image as partnerImage,
-        COALESCE(PartnerDiscount.id, ProgramDiscount.id) as discountId,
-        COALESCE(PartnerDiscount.amount, ProgramDiscount.amount) as discountAmount,
-        COALESCE(PartnerDiscount.type, ProgramDiscount.type) as discountType,
-        COALESCE(PartnerDiscount.maxDuration, ProgramDiscount.maxDuration) as discountMaxDuration
+        PartnerDiscount.id as discountId,
+        PartnerDiscount.amount as discountAmount,
+        PartnerDiscount.type as discountType,
+        PartnerDiscount.maxDuration as discountMaxDuration,
+        PartnerDiscount.couponId as discountCouponId,
+        PartnerDiscount.couponTestId as discountCouponTestId
        FROM Link
        LEFT JOIN ProgramEnrollment ON ProgramEnrollment.programId = Link.programId AND ProgramEnrollment.partnerId = Link.partnerId
        LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
        LEFT JOIN Discount PartnerDiscount ON ProgramEnrollment.discountId = PartnerDiscount.id
        LEFT JOIN Program ON Program.id = Link.programId
-       LEFT JOIN Discount ProgramDiscount ON ProgramDiscount.id = Program.defaultDiscountId
        WHERE Link.domain = ? AND Link.key = ?`,
       [domain, keyToQuery],
     )) || {};
@@ -72,6 +73,8 @@ export const getLinkWithPartner = async ({
     discountAmount,
     discountType,
     discountMaxDuration,
+    discountCouponId,
+    discountCouponTestId,
     ...rest
   } = link;
 
@@ -93,6 +96,8 @@ export const getLinkWithPartner = async ({
             amount: discountAmount,
             type: discountType,
             maxDuration: discountMaxDuration,
+            couponId: discountCouponId,
+            couponTestId: discountCouponTestId,
           }
         : null,
   };

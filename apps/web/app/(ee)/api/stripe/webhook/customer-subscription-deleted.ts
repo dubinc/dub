@@ -1,4 +1,6 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
+import { tokenCache } from "@/lib/auth/token-cache";
+import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { webhookCache } from "@/lib/webhook/cache";
@@ -52,6 +54,11 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
           },
         },
       },
+      restrictedTokens: {
+        select: {
+          hashedKey: true,
+        },
+      },
     },
   });
 
@@ -66,6 +73,10 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
 
   const workspaceLinks = workspace.links;
   const workspaceUsers = workspace.users.map(({ user }) => user);
+
+  const isBlacklistedCancellation = await isBlacklistedEmail(
+    workspaceUsers.filter(({ email }) => email).map(({ email }) => email!),
+  );
 
   const pipeline = redis.pipeline();
   // remove root domain redirect for all domains from Redis
@@ -87,12 +98,12 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         plan: "free",
         usageLimit: FREE_PLAN.limits.clicks!,
         linksLimit: FREE_PLAN.limits.links!,
+        payoutsLimit: FREE_PLAN.limits.payouts!,
         domainsLimit: FREE_PLAN.limits.domains!,
         aiLimit: FREE_PLAN.limits.ai!,
         tagsLimit: FREE_PLAN.limits.tags!,
         foldersLimit: FREE_PLAN.limits.folders!,
         usersLimit: FREE_PLAN.limits.users!,
-        salesLimit: FREE_PLAN.limits.sales!,
         paymentFailedAt: null,
         foldersUsage: 0,
       },
@@ -149,15 +160,22 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         url: "",
       })),
     ),
+    // Log the deletion
     log({
       message:
-        ":cry: Workspace *`" + workspace.slug + "`* deleted their subscription",
+        ":cry: Workspace *`" +
+        workspace.slug +
+        "`* deleted their subscription" +
+        (isBlacklistedCancellation ? " (blacklisted / banned)" : ""),
       type: "cron",
       mention: true,
     }),
-    sendCancellationFeedback({
-      owners: workspaceUsers,
-    }),
+
+    // Don't send feedback if the user was blacklisted / banned
+    !isBlacklistedCancellation &&
+      sendCancellationFeedback({
+        owners: workspaceUsers,
+      }),
 
     // Disable the webhooks
     prisma.webhook.updateMany({
@@ -176,6 +194,11 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       data: {
         webhookEnabled: false,
       },
+    }),
+
+    // expire tokens cache
+    tokenCache.expireMany({
+      hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
   ]);
 

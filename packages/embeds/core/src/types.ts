@@ -32,11 +32,20 @@ export type DubEmbedOptions = {
   };
 };
 
-export interface IframeMessage {
+export type IframeMessage = {
   originator?: "Dub";
-  event?: "ERROR";
-  data?: {
-    code: string;
-    message: string;
-  };
-}
+} & (
+  | {
+      event?: "ERROR";
+      data?: {
+        code: string;
+        message: string;
+      };
+    }
+  | {
+      event?: "PAGE_HEIGHT";
+      data: {
+        height: number;
+      };
+    }
+);

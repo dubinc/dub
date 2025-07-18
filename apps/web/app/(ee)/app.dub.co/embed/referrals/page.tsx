@@ -1,6 +1,7 @@
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { Button, Copy, Wordmark } from "@dub/ui";
 import { Suspense } from "react";
+import { DynamicHeightMessenger } from "./dynamic-height-messenger";
 import { ReferralsEmbedPageClient } from "./page-client";
 import { parseThemeOptions, ThemeOptions } from "./theme-options";
 import { getReferralsEmbedData } from "./utils";
@@ -8,30 +9,52 @@ import { getReferralsEmbedData } from "./utils";
 export default function ReferralsEmbedPage({
   searchParams,
 }: {
-  searchParams: { token: string; themeOptions?: string };
+  searchParams: {
+    token: string;
+    themeOptions?: string;
+    dynamicHeight?: string;
+  };
 }) {
-  const { token, themeOptions: themeOptionsRaw } = searchParams;
+  const {
+    token,
+    themeOptions: themeOptionsRaw,
+    dynamicHeight: dynamicHeightRaw,
+  } = searchParams;
 
   const themeOptions = parseThemeOptions(themeOptionsRaw);
+  const dynamicHeight = !!dynamicHeightRaw && dynamicHeightRaw !== "false";
 
   return (
-    <Suspense fallback={<EmbedInlineLoading themeOptions={themeOptions} />}>
-      <ReferralsEmbedRSC token={token} themeOptions={themeOptions} />
-    </Suspense>
+    <>
+      <Suspense fallback={<EmbedInlineLoading themeOptions={themeOptions} />}>
+        <ReferralsEmbedRSC
+          token={token}
+          themeOptions={themeOptions}
+          dynamicHeight={dynamicHeight}
+        />
+      </Suspense>
+      {dynamicHeight && <DynamicHeightMessenger />}
+    </>
   );
 }
 
 async function ReferralsEmbedRSC({
   token,
   themeOptions,
+  dynamicHeight,
 }: {
   token: string;
   themeOptions: ThemeOptions;
+  dynamicHeight: boolean;
 }) {
   const embedData = await getReferralsEmbedData(token);
 
   return (
-    <ReferralsEmbedPageClient {...embedData} themeOptions={themeOptions} />
+    <ReferralsEmbedPageClient
+      {...embedData}
+      themeOptions={themeOptions}
+      dynamicHeight={dynamicHeight}
+    />
   );
 }
 
@@ -64,7 +87,7 @@ function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
             <div className="bg-bg-muted h-6 w-40 rounded-md" />
           </div>
           <a
-            href="https://dub.partners"
+            href="https://dub.co/partners"
             target="_blank"
             className="hover:text-content-default text-content-subtle mt-4 flex items-center justify-center gap-1.5 transition-colors duration-75 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0"
           >

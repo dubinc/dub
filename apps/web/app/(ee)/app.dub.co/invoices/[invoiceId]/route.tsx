@@ -39,14 +39,7 @@ export const GET = withSession(async ({ session, params }) => {
     where: {
       id: invoiceId,
     },
-    select: {
-      id: true,
-      amount: true,
-      fee: true,
-      total: true,
-      status: true,
-      number: true,
-      createdAt: true,
+    include: {
       payouts: {
         select: {
           periodStart: true,
@@ -60,7 +53,7 @@ export const GET = withSession(async ({ session, params }) => {
           },
         },
         orderBy: {
-          periodStart: "desc",
+          amount: "desc",
         },
       },
       workspace: {
@@ -93,13 +86,40 @@ export const GET = withSession(async ({ session, params }) => {
 
   if (invoice.workspace.stripeId) {
     try {
-      customer = (await stripe.customers.retrieve(
-        invoice.workspace.stripeId!,
-      )) as Stripe.Customer;
+      const response = await stripe.customers.retrieve(
+        invoice.workspace.stripeId,
+        {
+          expand: ["tax_ids"],
+        },
+      );
+      customer = response as Stripe.Customer;
     } catch (error) {
       console.error(error);
     }
   }
+
+  const { amount: chargeAmount, currency: chargeCurrency } =
+    invoice.stripeChargeMetadata
+      ? (invoice.stripeChargeMetadata as unknown as Stripe.Charge)
+      : { amount: undefined, currency: undefined };
+
+  const earliestPeriodStart = invoice.payouts.reduce(
+    (acc, payout) => {
+      if (!acc) return payout.periodStart;
+      if (!payout.periodStart) return acc;
+      return payout.periodStart < (acc as Date) ? payout.periodStart : acc;
+    },
+    null as Date | null,
+  );
+
+  const latestPeriodEnd = invoice.payouts.reduce(
+    (acc, payout) => {
+      if (!acc) return payout.periodEnd;
+      if (!payout.periodEnd) return acc;
+      return payout.periodEnd > (acc as Date) ? payout.periodEnd : acc;
+    },
+    null as Date | null,
+  );
 
   const invoiceMetadata = [
     {
@@ -117,15 +137,36 @@ export const GET = withSession(async ({ session, params }) => {
     },
     {
       label: "Payout period",
-      value: `${formatDate(startOfMonth(invoice.createdAt), {
-        month: "short",
-        year: "numeric",
-      })} - ${formatDate(endOfMonth(invoice.createdAt), {
+      value: `${formatDate(
+        startOfMonth(earliestPeriodStart || invoice.createdAt),
+        {
+          month: "short",
+          year: "numeric",
+        },
+      )} - ${formatDate(endOfMonth(latestPeriodEnd || invoice.createdAt), {
         month: "short",
         year: "numeric",
       })}`,
     },
   ];
+
+  const EU_CUSTOMER =
+    customer?.address?.country &&
+    EU_COUNTRY_CODES.includes(customer.address.country);
+  const AU_CUSTOMER =
+    customer?.address?.country && customer.address.country === "AU";
+
+  const nonUsdTransactionDisplay =
+    chargeAmount && chargeCurrency && chargeCurrency !== "usd"
+      ? ` (${currencyFormatter(
+          chargeAmount / 100,
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          },
+          chargeCurrency.toUpperCase(),
+        )})`
+      : "";
 
   const invoiceSummaryDetails = [
     {
@@ -144,23 +185,24 @@ export const GET = withSession(async ({ session, params }) => {
     },
     {
       label: "Invoice total",
-      value: currencyFormatter(invoice.total / 100, {
+      value: `${currencyFormatter(invoice.total / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      }),
+      })}${nonUsdTransactionDisplay}`,
     },
-    // if customer is in EU, add VAT reverse charge note:
-    // Reverse charge: VAT to be accounted for by the recipient under Article 196 of Directive 2006/112/EC.
-    ...(customer?.address?.country &&
-    EU_COUNTRY_CODES.includes(customer.address.country)
+    // if customer is in EU or AU, add VAT/GST reverse charge note
+    ...(EU_CUSTOMER || AU_CUSTOMER
       ? [
           {
-            label: "VAT reverse charge",
+            label: `${AU_CUSTOMER ? "GST" : "VAT"} reverse charge`,
             value: "Tax to be paid on reverse charge basis.",
           },
         ]
       : []),
   ];
+
+  // Get the first tax ID if available
+  const primaryTaxId = customer?.tax_ids?.data?.[0];
 
   const addresses = [
     {
@@ -185,6 +227,7 @@ export const GET = withSession(async ({ session, params }) => {
         state: customer?.shipping?.address?.state,
         postalCode: customer?.shipping?.address?.postal_code,
         email: customer?.email,
+        taxId: primaryTaxId ? `Tax ID: ${primaryTaxId.value}` : undefined,
       },
     },
   ];
@@ -227,6 +270,7 @@ export const GET = withSession(async ({ session, params }) => {
               address.line1,
               address.line2,
               cityStatePostal,
+              address.taxId,
               address.email,
             ].filter((record) => record && record.length > 0);
 
@@ -283,68 +327,70 @@ export const GET = withSession(async ({ session, params }) => {
           </View>
         </View>
 
-        <View style={tw("mb-6 border border-neutral-200 rounded-xl")}>
-          <View style={tw("flex-row border-neutral-200 border-b")}>
-            <Text
-              style={tw("w-2/6 p-3.5 text-sm font-medium text-neutral-700")}
-            >
-              Partner
-            </Text>
-            <Text
-              style={tw("w-2/6 p-3.5 text-sm font-medium text-neutral-700")}
-            >
-              Period
-            </Text>
-            <Text
-              style={tw("w-1/6 p-3.5 text-sm font-medium text-neutral-700")}
-            >
-              Amount
-            </Text>
-          </View>
-
-          {invoice.payouts.map((payout, index) => (
-            <View
-              key={index}
-              style={tw(
-                `flex-row text-sm font-medium text-neutral-700 border-neutral-200 items-center ${index + 1 === invoice.payouts.length ? "" : "border-b"}`,
-              )}
-            >
-              <View style={tw("flex-row items-center gap-2 w-2/6 p-3.5")}>
-                <Image
-                  src={
-                    payout.partner.image ??
-                    `${OG_AVATAR_URL}${payout.partner.name}`
-                  }
-                  style={tw("w-5 h-5 rounded-full")}
-                />
-                <Text>{payout.partner.name}</Text>
-              </View>
-              <Text style={tw("w-2/6 p-3.5")}>
-                {payout.periodStart && payout.periodEnd ? (
-                  <>
-                    {formatDate(payout.periodStart, {
-                      month: "short",
-                      year:
-                        new Date(payout.periodStart).getFullYear() ===
-                        new Date(payout.periodEnd).getFullYear()
-                          ? undefined
-                          : "numeric",
-                    })}
-                    -{formatDate(payout.periodEnd, { month: "short" })}
-                  </>
-                ) : (
-                  "-"
-                )}
+        {invoice.payouts.length > 0 && (
+          <View style={tw("mb-6 border border-neutral-200 rounded-xl")}>
+            <View style={tw("flex-row border-neutral-200 border-b")}>
+              <Text
+                style={tw("w-2/6 p-3.5 text-sm font-medium text-neutral-700")}
+              >
+                Partner
               </Text>
-              <Text style={tw("w-1/6 p-3.5")}>
-                {currencyFormatter(payout.amount / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+              <Text
+                style={tw("w-2/6 p-3.5 text-sm font-medium text-neutral-700")}
+              >
+                Period
+              </Text>
+              <Text
+                style={tw("w-1/6 p-3.5 text-sm font-medium text-neutral-700")}
+              >
+                Amount
               </Text>
             </View>
-          ))}
-        </View>
+
+            {invoice.payouts.map((payout, index) => (
+              <View
+                key={index}
+                style={tw(
+                  `flex-row text-sm font-medium text-neutral-700 border-neutral-200 items-center ${index + 1 === invoice.payouts.length ? "" : "border-b"}`,
+                )}
+              >
+                <View style={tw("flex-row items-center gap-2 w-2/6 p-3.5")}>
+                  <Image
+                    src={
+                      payout.partner.image ??
+                      `${OG_AVATAR_URL}${payout.partner.name}`
+                    }
+                    style={tw("w-5 h-5 rounded-full")}
+                  />
+                  <Text>{payout.partner.name}</Text>
+                </View>
+                <Text style={tw("w-2/6 p-3.5")}>
+                  {payout.periodStart && payout.periodEnd ? (
+                    <>
+                      {formatDate(payout.periodStart, {
+                        month: "short",
+                        year:
+                          new Date(payout.periodStart).getFullYear() ===
+                          new Date(payout.periodEnd).getFullYear()
+                            ? undefined
+                            : "numeric",
+                      })}
+                      -{formatDate(payout.periodEnd, { month: "short" })}
+                    </>
+                  ) : (
+                    "-"
+                  )}
+                </Text>
+                <Text style={tw("w-1/6 p-3.5")}>
+                  {currencyFormatter(payout.amount / 100, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         <View
           style={tw(

@@ -1,15 +1,5 @@
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 const { withAxiom } = require("next-axiom");
-const path = require("path");
-
-const REDIRECT_SEGMENTS = [
-  "pricing",
-  "blog",
-  "help",
-  "changelog",
-  "tools",
-  "_static",
-];
 
 /** @type {import('next').NextConfig} */
 module.exports = withAxiom({
@@ -20,11 +10,15 @@ module.exports = withAxiom({
     "@dub/email",
     "@boxyhq/saml-jackson",
   ],
-  ...(process.env.NODE_ENV === "production" && {
-    experimental: {
-      esmExternals: "loose",
-    },
-  }),
+  experimental: {
+    optimizePackageImports: [
+      "@dub/email",
+      "@dub/ui",
+      "@dub/utils",
+      "@team-plain/typescript-sdk",
+    ],
+    esmExternals: "loose",
+  },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
@@ -138,34 +132,6 @@ module.exports = withAxiom({
         permanent: true,
         statusCode: 301,
       },
-      ...REDIRECT_SEGMENTS.map(
-        (segment) => (
-          {
-            source: `/${segment}`,
-            has: [
-              {
-                type: "host",
-                value: "dub.sh",
-              },
-            ],
-            destination: `https://dub.co/${segment}`,
-            permanent: true,
-            statusCode: 301,
-          },
-          {
-            source: `/${segment}/:path*`,
-            has: [
-              {
-                type: "host",
-                value: "dub.sh",
-              },
-            ],
-            destination: `https://dub.co/${segment}/:path*`,
-            permanent: true,
-            statusCode: 301,
-          }
-        ),
-      ),
       {
         source: "/",
         has: [

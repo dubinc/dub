@@ -1,8 +1,6 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
-let eventIds: string[] = [];
-
 async function main() {
   const payouts = await prisma.payout.findMany({
     where: {

@@ -1,9 +1,10 @@
-import { DUB_THUMBNAIL, DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Img,
   Link,
@@ -14,7 +15,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function WelcomeEmail({
+export default function WelcomeEmail({
   name = "Brendon Urie",
   email = "panic@thedis.co",
 }: {
@@ -31,65 +32,92 @@ export function WelcomeEmail({
             <Section className="mt-8">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
-            <Heading className="mx-0 my-7 p-0 text-xl font-medium text-black">
-              Welcome to Dub
+            <Heading className="mx-0 my-7 p-0 text-xl font-semibold text-black">
+              Welcome {name || "to Dub"}!
             </Heading>
-            <Section className="my-8">
-              <Img src={DUB_THUMBNAIL} alt="Dub" className="max-w-[500px]" />
-            </Section>
-            <Text className="text-sm leading-6 text-black">
-              Thanks for signing up{name && `, ${name}`}!
+            <Text className="mb-8 text-sm leading-6 text-gray-600">
+              Thank you for signing up for Dub! You can now start creating short
+              links, track conversions, and explore our API.
             </Text>
-            <Text className="text-sm leading-6 text-black">
-              My name is Steven, and I'm the founder of Dub - the modern link
-              attribution platform for short links, conversion tracking, and
-              affiliate programs. We're excited to have you on board!
-            </Text>
-            <Text className="text-sm leading-6 text-black">
-              Here are a few things you can do:
-            </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ Create a{" "}
-              <Link
-                href="https://app.dub.co?newWorkspace=true"
-                className="font-medium text-blue-600 no-underline"
-              >
-                new workspace
-              </Link>{" "}
-              and{" "}
+
+            <Hr />
+
+            <Heading className="mx-0 my-6 p-0 text-lg font-semibold text-black">
+              Getting started
+            </Heading>
+
+            <Text className="mb-4 text-sm leading-6 text-gray-600">
+              <strong className="font-medium text-black">
+                1. Set up your domain
+              </strong>
+              :{" "}
               <Link
                 href="https://dub.co/help/article/how-to-add-custom-domain"
-                className="font-medium text-blue-600 no-underline"
+                className="font-semibold text-black underline underline-offset-4"
               >
-                add your custom domain
-              </Link>
-            </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ Create your first{" "}
-              <Link
-                href="https://dub.co/help/article/how-to-create-link"
-                className="font-medium text-blue-600 no-underline"
-              >
-                short link
-              </Link>
-            </Text>
-            <Text className="ml-1 text-sm leading-4 text-black">
-              ◆ Check out our{" "}
-              <Link
-                href="https://dub.co/api"
-                className="font-medium text-blue-600 no-underline"
-              >
-                API documentation
+                Add a custom domain
               </Link>{" "}
-              for programmatic link generation
+              or{" "}
+              <Link
+                href="https://dub.co/help/article/free-dot-link-domain"
+                className="font-semibold text-black underline underline-offset-4"
+              >
+                claim a free .link domain
+              </Link>{" "}
+              and start creating your short links.
             </Text>
-            <Text className="text-sm leading-6 text-black">
-              Let me know if you have any questions or feedback. I'm always
-              happy to help!
+
+            <Text className="mb-4 text-sm leading-6 text-gray-600">
+              <strong className="font-medium text-black">
+                2. View analytics
+              </strong>
+              : Monitor{" "}
+              <Link
+                href="https://dub.co/help/article/dub-analytics"
+                className="font-semibold text-black underline underline-offset-4"
+              >
+                click data
+              </Link>{" "}
+              in real time to see what's working.
             </Text>
-            <Text className="text-sm font-light leading-6 text-neutral-400">
-              Steven from Dub
+
+            <Text className="mb-4 text-sm leading-6 text-gray-600">
+              <strong className="font-medium text-black">
+                3. Track conversions
+              </strong>
+              : Measure how your links convert to signups and sales with our
+              built-in{" "}
+              <Link
+                href="https://dub.co/help/article/dub-conversions"
+                className="font-semibold text-black underline underline-offset-4"
+              >
+                conversion tracking API
+              </Link>
+              .
             </Text>
+
+            <Text className="mb-8 text-sm leading-6 text-gray-600">
+              <strong className="font-medium text-black">
+                4. Explore the API
+              </strong>
+              :{" "}
+              <Link
+                href="https://dub.co/docs/introduction"
+                className="font-semibold text-black underline underline-offset-4"
+              >
+                Check out our docs
+              </Link>{" "}
+              for programmatic link creation.
+            </Text>
+
+            <Section className="mb-8">
+              <Link
+                className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                href="https://app.dub.co"
+              >
+                Go to your dashboard
+              </Link>
+            </Section>
 
             <Footer email={email} marketing />
           </Container>
@@ -98,5 +126,3 @@ export function WelcomeEmail({
     </Html>
   );
 }
-
-export default WelcomeEmail;

@@ -30,7 +30,8 @@ export const POST = withWorkspace(
     const body = await parseRequestBody(req);
 
     let {
-      externalId,
+      customerExternalId: newExternalId,
+      externalId: oldExternalId, // deprecated
       customerId: oldCustomerId, // deprecated
       paymentProcessor,
       invoiceId,
@@ -42,6 +43,7 @@ export const POST = withWorkspace(
     } = trackSaleRequestSchema
       .extend({
         // add backwards compatibility
+        customerExternalId: z.string().nullish(),
         externalId: z.string().nullish(),
         customerId: z.string().nullish(),
       })
@@ -63,7 +65,7 @@ export const POST = withWorkspace(
       }
     }
 
-    const customerExternalId = externalId || oldCustomerId;
+    const customerExternalId = newExternalId || oldExternalId || oldCustomerId;
 
     if (!customerExternalId) {
       throw new DubApiError({
@@ -184,9 +186,6 @@ export const POST = withWorkspace(
             data: {
               usage: {
                 increment: 1,
-              },
-              salesUsage: {
-                increment: amount,
               },
             },
           }),

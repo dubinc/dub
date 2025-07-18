@@ -45,6 +45,10 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
     return null;
   }
 
+  if (row.original.type === "custom") {
+    return null;
+  }
+
   return (
     <>
       <MarkCommissionDuplicateModal />

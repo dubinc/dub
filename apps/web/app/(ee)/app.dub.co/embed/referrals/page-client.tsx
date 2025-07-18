@@ -43,6 +43,7 @@ export function ReferralsEmbedPageClient({
   earnings,
   stats,
   themeOptions,
+  dynamicHeight,
 }: {
   program: Program;
   links: ReferralsEmbedLink[];
@@ -59,6 +60,7 @@ export function ReferralsEmbedPageClient({
     saleAmount: number;
   };
   themeOptions: ThemeOptions;
+  dynamicHeight: boolean;
 }) {
   const resources = programResourcesSchema.parse(
     program.resources ?? { logos: [], colors: [], files: [] },
@@ -101,15 +103,19 @@ export function ReferralsEmbedPageClient({
   const destinationDomain = program.url
     ? getDomainWithoutWWW(program.url)!
     : "";
-  const partnerLink = constructPartnerLink({
-    program,
-    linkKey: links[0].key,
-  });
+
+  const partnerLink =
+    links.length > 0
+      ? constructPartnerLink({
+          program,
+          linkKey: links[0].key,
+        })
+      : undefined;
 
   return (
     <div
       style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
-      className="flex min-h-screen flex-col"
+      className={cn("flex flex-col", !dynamicHeight && "min-h-screen")}
     >
       <div className="relative z-0 p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
@@ -125,40 +131,51 @@ export function ReferralsEmbedPageClient({
             <input
               type="text"
               readOnly
-              value={getPrettyUrl(partnerLink)}
+              value={
+                partnerLink ? getPrettyUrl(partnerLink) : "No referral link"
+              }
               className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
             />
-            <Button
-              icon={
-                <div className="relative size-4">
-                  <div
-                    className={cn(
-                      "absolute inset-0 transition-[transform,opacity]",
-                      copied && "translate-y-1 opacity-0",
-                    )}
-                  >
-                    <Copy className="size-4" />
+            {partnerLink ? (
+              <Button
+                icon={
+                  <div className="relative size-4">
+                    <div
+                      className={cn(
+                        "absolute inset-0 transition-[transform,opacity]",
+                        copied && "translate-y-1 opacity-0",
+                      )}
+                    >
+                      <Copy className="size-4" />
+                    </div>
+                    <div
+                      className={cn(
+                        "absolute inset-0 transition-[transform,opacity]",
+                        !copied && "translate-y-1 opacity-0",
+                      )}
+                    >
+                      <Check className="size-4" />
+                    </div>
                   </div>
-                  <div
-                    className={cn(
-                      "absolute inset-0 transition-[transform,opacity]",
-                      !copied && "translate-y-1 opacity-0",
-                    )}
-                  >
-                    <Check className="size-4" />
-                  </div>
-                </div>
-              }
-              text={copied ? "Copied link" : "Copy link"}
-              className="xs:w-fit"
-              onClick={() => {
-                if (partnerLink) {
-                  copyToClipboard(partnerLink);
                 }
-              }}
-            />
+                text={copied ? "Copied link" : "Copy link"}
+                className="xs:w-fit"
+                onClick={() => {
+                  copyToClipboard(partnerLink);
+                }}
+              />
+            ) : (
+              <Button
+                text="Create a link"
+                onClick={() => {
+                  setSelectedTab("Links");
+                }}
+                className="xs:w-fit"
+              />
+            )}
           </div>
-          {program.linkStructure === "query" && (
+
+          {partnerLink && program.linkStructure === "query" && (
             <QueryLinkStructureHelpText
               program={program}
               linkKey={links[0].key}
@@ -186,7 +203,7 @@ export function ReferralsEmbedPageClient({
           </div>
           <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
             <a
-              href="https://dub.partners"
+              href="https://dub.co/partners"
               target="_blank"
               className="hover:text-content-default text-content-subtle bg-bg-default border-border-subtle flex w-fit items-center gap-1.5 rounded-md border px-2 py-1 transition-colors duration-75"
             >
@@ -233,10 +250,9 @@ export function ReferralsEmbedPageClient({
               {selectedTab === "Quickstart" ? (
                 <ReferralsEmbedQuickstart
                   program={program}
-                  link={links[0]}
-                  onViewResources={
-                    hasResources ? () => setSelectedTab("Resources") : undefined
-                  }
+                  link={partnerLink ? links[0] : undefined}
+                  hasResources={hasResources}
+                  setSelectedTab={setSelectedTab}
                 />
               ) : selectedTab === "Earnings" ? (
                 <ReferralsEmbedEarnings salesCount={stats.sales} />

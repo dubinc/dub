@@ -19,10 +19,12 @@ import { authActionClient } from "../safe-action";
 export const createCommissionAction = authActionClient
   .schema(createCommissionSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
 
     const {
       partnerId,
+      date,
+      amount,
       linkId,
       invoiceId,
       customerId,
@@ -34,20 +36,40 @@ export const createCommissionAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [programEnrollment, customer] = await Promise.all([
+    const [{ partner, links }, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
         programId,
         partnerId,
       }),
 
-      prisma.customer.findUniqueOrThrow({
-        where: {
-          id: customerId,
-        },
-      }),
+      customerId
+        ? prisma.customer.findUniqueOrThrow({
+            where: {
+              id: customerId,
+            },
+          })
+        : Promise.resolve(null),
     ]);
 
-    const { partner, links } = programEnrollment;
+    // Create a custom commission
+    if (!linkId) {
+      await createPartnerCommission({
+        event: "custom",
+        partnerId,
+        programId,
+        amount: amount ?? 0,
+        quantity: 1,
+        createdAt: date ?? new Date(),
+        user,
+      });
+
+      return;
+    }
+
+    // Create a lead or sale commission
+    if (!customerId || !customer) {
+      throw new Error("Customer not found.");
+    }
 
     if (customer.projectId !== workspace.id) {
       throw new Error(`Customer ${customerId} not found.`);
@@ -64,9 +86,9 @@ export const createCommissionAction = authActionClient
     if (invoiceId) {
       const commission = await prisma.commission.findUnique({
         where: {
-          programId_invoiceId: {
-            programId,
+          invoiceId_programId: {
             invoiceId,
+            programId,
           },
         },
         select: {
@@ -158,15 +180,17 @@ export const createCommissionAction = authActionClient
           amount: 0,
           quantity: 1,
           createdAt: finalLeadEventDate,
+          user,
         }),
       ]);
     }
 
     // Record sale
-    const shouldRecordSale = saleAmount && saleEventDate;
+    const shouldRecordSale = saleAmount;
 
     if (shouldRecordSale && leadEvent) {
       const saleEventId = nanoid(16);
+      const saleDate = new Date(saleEventDate ?? Date.now());
 
       await Promise.allSettled([
         recordSaleWithTimestamp({
@@ -177,7 +201,7 @@ export const createCommissionAction = authActionClient
           customer_id: customerId,
           payment_processor: "custom",
           currency: "usd",
-          timestamp: new Date(saleEventDate).toISOString(),
+          timestamp: saleDate.toISOString(),
         }),
 
         createPartnerCommission({
@@ -191,7 +215,8 @@ export const createCommissionAction = authActionClient
           quantity: 1,
           invoiceId,
           currency: "usd",
-          createdAt: saleEventDate,
+          createdAt: saleDate,
+          user,
         }),
       ]);
     }

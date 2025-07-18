@@ -8,9 +8,11 @@ import { IntervalOptions } from "@/lib/analytics/types";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Button, CardList, useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
+import { CursorRays, Hyperlink } from "@dub/ui/icons";
 import { useParams } from "next/navigation";
 import { createContext, useContext, useMemo } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
@@ -101,13 +103,30 @@ export function ProgramLinksPageClient() {
               </div>
             ) : loading ? (
               <LinkCardSkeleton />
+            ) : links?.length === 0 ? (
+              <AnimatedEmptyState
+                title="No links yet"
+                description="Get started by creating your first partner link to track your referrals."
+                cardContent={
+                  <>
+                    <Hyperlink className="size-4 text-neutral-700" />
+                    <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+                    <div className="xs:flex hidden grow items-center justify-end gap-1.5 text-neutral-500">
+                      <CursorRays className="size-3.5" />
+                    </div>
+                  </>
+                }
+                addButton={
+                  <Button
+                    text="Create Link"
+                    onClick={() => setShowPartnerLinkModal(true)}
+                    shortcut="C"
+                  />
+                }
+              />
             ) : (
               links?.map((link) => (
-                <PartnerLinkCard
-                  key={link.id}
-                  link={link}
-                  isDefaultLink={link.id === defaultLinkId}
-                />
+                <PartnerLinkCard key={link.id} link={link} />
               ))
             )}
           </CardList>
@@ -120,7 +139,6 @@ export function ProgramLinksPageClient() {
 function LinkCardSkeleton() {
   return (
     <CardList.Card innerClassName="px-0 py-0" hoverStateEnabled={false}>
-      <div className="h-[33px] rounded-t-xl bg-neutral-50"></div>
       <div className="p-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">

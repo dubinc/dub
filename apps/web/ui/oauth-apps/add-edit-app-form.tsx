@@ -147,12 +147,12 @@ export default function AddOAuthAppForm({
   const handleUpload = async (file: File) => {
     setScreenshots((prev) => [...prev, { file, uploading: true }]);
 
-    const response = await fetch(
-      `/api/oauth/apps/upload-url?workspaceId=${workspaceId}`,
-      {
-        method: "POST",
-      },
-    );
+    const response = await fetch(`/api/workspaces/${workspaceId}/upload-url`, {
+      method: "POST",
+      body: JSON.stringify({
+        folder: "integration-screenshots",
+      }),
+    });
 
     if (!response.ok) {
       toast.error("Failed to get signed URL for screenshot upload.");

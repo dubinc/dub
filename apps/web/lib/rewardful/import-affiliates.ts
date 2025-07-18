@@ -1,8 +1,9 @@
 import { prisma } from "@dub/prisma";
-import { Program } from "@dub/prisma/client";
+import { Program, Reward } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
+import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate } from "./types";
@@ -33,6 +34,16 @@ export async function importAffiliates({
   let hasMoreAffiliates = true;
   let processedBatches = 0;
 
+  const reward = await prisma.reward.findUniqueOrThrow({
+    where: {
+      id: rewardId,
+    },
+    select: {
+      id: true,
+      event: true,
+    },
+  });
+
   while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
     const affiliates = await rewardfulApi.listAffiliates({
       campaignId,
@@ -46,12 +57,8 @@ export async function importAffiliates({
 
     const activeAffiliates = affiliates.filter(
       (affiliate) =>
-        // only active affiliates
-        affiliate.state === "active" &&
-        // have more than 1 lead or joined in the last 6 months
-        (affiliate.leads > 0 ||
-          new Date(affiliate.created_at) >
-            new Date(Date.now() - 6 * 30 * 24 * 60 * 60 * 1000)),
+        // only active affiliates and have more than 1 lead
+        affiliate.state === "active" && affiliate.leads > 0,
     );
 
     if (activeAffiliates.length > 0) {
@@ -61,13 +68,12 @@ export async function importAffiliates({
             program,
             affiliate,
             userId,
-            rewardId,
+            reward,
           }),
         ),
       );
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
     currentPage++;
     processedBatches++;
   }
@@ -87,12 +93,12 @@ async function createPartnerAndLinks({
   program,
   affiliate,
   userId,
-  rewardId,
+  reward,
 }: {
   program: Program;
   affiliate: RewardfulAffiliate;
   userId: string;
-  rewardId?: string;
+  reward: Pick<Reward, "id" | "event">;
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -100,7 +106,7 @@ async function createPartnerAndLinks({
     },
     create: {
       id: createId({ prefix: "pn_" }),
-      name: `${affiliate.first_name} ${affiliate.last_name}`,
+      name: `${affiliate.first_name}${affiliate.last_name && affiliate.last_name !== "Unknown" ? ` ${affiliate.last_name}` : ""}`,
       email: affiliate.email,
     },
     update: {},
@@ -117,6 +123,7 @@ async function createPartnerAndLinks({
       programId: program.id,
       partnerId: partner.id,
       status: "approved",
+      ...(reward && { [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id }),
     },
     update: {
       status: "approved",
@@ -149,19 +156,4 @@ async function createPartnerAndLinks({
       projectId: program.workspaceId,
     })),
   });
-
-  if (rewardId) {
-    const partnerReward = {
-      programEnrollmentId: programEnrollment.id,
-      rewardId,
-    };
-
-    await prisma.partnerReward.upsert({
-      where: {
-        programEnrollmentId_rewardId: partnerReward,
-      },
-      create: partnerReward,
-      update: {},
-    });
-  }
 }

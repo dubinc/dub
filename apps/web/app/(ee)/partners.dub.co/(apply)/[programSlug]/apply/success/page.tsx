@@ -10,6 +10,8 @@ import { Header } from "../../header";
 import { CTAButtons } from "./cta-buttons";
 import { Screenshot } from "./screenshot";
 
+export const dynamic = "force-dynamic";
+
 const FEATURES = [
   {
     icon: Store,

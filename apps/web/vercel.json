@@ -33,12 +33,24 @@
       "schedule": "0 0,12 * * *"
     },
     {
-      "path": "/api/cron/payouts/reminders",
+      "path": "/api/cron/partner-program-summary",
+      "schedule": "0 13 1 * *"
+    },
+    {
+      "path": "/api/cron/payouts/reminders/partners",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/payouts/reminders/program-owners",
+      "schedule": "0 13 25-31,1-5 * *"
+    },
+    {
+      "path": "/api/cron/online-presence/youtube",
+      "schedule": "0 0 * * *"
     }
   ],
   "functions": {
-    "app/api/cron/**/*.ts": {
+    "app/(ee)/api/cron/**/*.ts": {
       "maxDuration": 300
     }
   }

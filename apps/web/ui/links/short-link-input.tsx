@@ -3,19 +3,19 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
-import { Lock, Random } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
+  ArrowTurnRight2,
   ButtonTooltip,
   Combobox,
   LinkedIn,
   LoadingCircle,
   Magic,
+  PenWriting,
   Tooltip,
   Twitter,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { ArrowTurnRight2 } from "@dub/ui/icons";
 import {
   cn,
   DUB_DOMAINS,
@@ -42,7 +42,7 @@ import {
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import { FreeDotLinkBanner } from "../domains/free-dot-link-banner";
-import { AlertCircleFill } from "../shared/icons";
+import { AlertCircleFill, Random } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import { useAvailableDomains } from "./use-available-domains";
 
@@ -219,7 +219,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
                 ) && setLockKey(false);
               }}
             >
-              <Lock className="h-3 w-3" />
+              <PenWriting className="size-3.5" />
             </button>
           ) : (
             <div className="flex items-center gap-1">

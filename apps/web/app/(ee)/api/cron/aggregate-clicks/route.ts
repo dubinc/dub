@@ -30,39 +30,32 @@ export async function GET(req: Request) {
     end.setDate(end.getDate() - 1);
     end.setHours(23, 59, 59, 999);
 
-    const rewards = await prisma.reward.findMany({
+    const clickRewards = await prisma.reward.findMany({
       where: {
         event: "click",
       },
-      // click rewards are always partner-specific for now
-      // but in the future we need to account for program-wide click rewards
       include: {
-        partners: {
-          select: {
-            programEnrollment: {
-              select: {
-                partnerId: true,
-              },
-            },
-          },
-        },
+        clickEnrollments: true,
       },
     });
 
-    if (!rewards.length) {
+    if (!clickRewards.length) {
       return NextResponse.json({
         message: "No programs with click rewards found. Skipping...",
       });
     }
 
-    for (const reward of rewards) {
-      const partnerIds = reward.partners.map(
-        ({ programEnrollment }) => programEnrollment.partnerId,
-      );
+    for (const { programId, clickEnrollments, ...reward } of clickRewards) {
+      const partnerIds = clickEnrollments.map(({ partnerId }) => partnerId);
+
+      if (!partnerIds || partnerIds.length === 0) {
+        console.log("No partnerIds found for program", { programId });
+        continue;
+      }
 
       const links = await prisma.link.findMany({
         where: {
-          programId: reward.programId,
+          programId,
           partnerId: {
             in: partnerIds,
           },
@@ -117,6 +110,7 @@ export async function GET(req: Request) {
           linkId,
           quantity,
         });
+
         await createPartnerCommission({
           reward,
           event: "click",

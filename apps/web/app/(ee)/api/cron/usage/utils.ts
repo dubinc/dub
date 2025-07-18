@@ -4,7 +4,7 @@ import { limiter } from "@/lib/cron/limiter";
 import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { WorkspaceProps } from "@/lib/types";
 import { sendEmail } from "@dub/email";
-import { ClicksSummary } from "@dub/email/templates/clicks-summary";
+import ClicksSummary from "@dub/email/templates/clicks-summary";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -92,7 +92,7 @@ export const updateUsage = async () => {
             usage: 0,
           }),
           linksUsage: 0,
-          salesUsage: 0,
+          payoutsUsage: 0,
           aiUsage: 0,
           sentEmails: {
             deleteMany: {

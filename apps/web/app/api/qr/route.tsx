@@ -73,7 +73,9 @@ const getQRCodeLogo = async ({
     return DUB_QR_LOGO;
   }
 
-  const workspace = await getWorkspaceViaEdge(shortLink.projectId);
+  const workspace = await getWorkspaceViaEdge({
+    workspaceId: shortLink.projectId,
+  });
 
   if (workspace?.plan === "free") {
     return DUB_QR_LOGO;

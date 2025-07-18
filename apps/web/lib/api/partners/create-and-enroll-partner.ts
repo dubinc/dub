@@ -7,10 +7,12 @@ import {
   CreatePartnerProps,
   ProgramPartnerLinkProps,
   ProgramProps,
+  RewardProps,
   WorkspaceProps,
 } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
@@ -25,24 +27,21 @@ export const createAndEnrollPartner = async ({
   workspace,
   link,
   partner,
-  rewardId,
+  reward,
   discountId,
   tenantId,
   status = "approved",
   skipEnrollmentCheck = false,
   enrolledAt,
 }: {
-  program: Pick<
-    ProgramProps,
-    "id" | "defaultFolderId" | "defaultRewardId" | "defaultDiscountId"
-  >;
+  program: Pick<ProgramProps, "id" | "defaultFolderId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
     CreatePartnerProps,
     "email" | "name" | "image" | "country" | "description"
   >;
-  rewardId?: string;
+  reward?: Pick<RewardProps, "id" | "event">;
   discountId?: string;
   tenantId?: string;
   status?: ProgramEnrollmentStatus;
@@ -86,6 +85,39 @@ export const createAndEnrollPartner = async ({
     }
   }
 
+  const [defaultRewards, allDiscounts] = await prisma.$transaction([
+    prisma.reward.findMany({
+      where: {
+        programId: program.id,
+        // if a specific reward is provided, exclude it from the default rewards because it'll be added below
+        ...(reward && {
+          event: {
+            not: reward.event,
+          },
+        }),
+        default: true,
+      },
+    }),
+    prisma.discount.findMany({
+      where: {
+        programId: program.id,
+      },
+    }),
+  ]);
+
+  const finalAssignedRewards = {
+    ...Object.fromEntries(
+      defaultRewards.map((r) => [REWARD_EVENT_COLUMN_MAPPING[r.event], r.id]),
+    ),
+    ...(reward && {
+      [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
+    }),
+  };
+
+  const finalAssignedDiscount = discountId
+    ? allDiscounts.find((d) => d.id === discountId)?.id // we need to filter by this in case an invalid discountId is passed
+    : allDiscounts.find((d) => d.default)?.id;
+
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
       create: {
@@ -97,18 +129,8 @@ export const createAndEnrollPartner = async ({
             id: link.id,
           },
         },
-        ...(rewardId &&
-          rewardId !== program.defaultRewardId && {
-            rewards: {
-              create: {
-                rewardId,
-              },
-            },
-          }),
-        ...(discountId &&
-          discountId !== program.defaultDiscountId && {
-            discountId,
-          }),
+        ...finalAssignedRewards,
+        discountId: finalAssignedDiscount,
         ...(enrolledAt && {
           createdAt: enrolledAt,
         }),
@@ -124,7 +146,7 @@ export const createAndEnrollPartner = async ({
     create: {
       ...payload,
       id: createId({ prefix: "pn_" }),
-      name: partner.name,
+      name: partner.name || partner.email,
       email: partner.email,
       image: partner.image && !isStored(partner.image) ? null : partner.image,
       country: partner.country,

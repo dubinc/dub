@@ -4,7 +4,11 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
 import { RewardfulConfig } from "./types";
 
-export const MAX_BATCHES = 5;
+// Rewardful rate limit is 45 requests per 30 seconds
+// so we should be able to safely request up to 10 batches at a time
+export const MAX_BATCHES = 10;
+
+// cache rewardful credentials for 24 hours
 export const CACHE_EXPIRY = 60 * 60 * 24;
 export const CACHE_KEY_PREFIX = "rewardful:import";
 

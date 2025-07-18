@@ -1,6 +1,6 @@
 "use client";
 import { Badge, Copy, Tick, useCopyToClipboard } from "@dub/ui";
-import { capitalize, currencyFormatter, nFormatter } from "@dub/utils";
+import { capitalize, nFormatter } from "@dub/utils";
 import { toast } from "sonner";
 
 export interface UserInfoProps {
@@ -12,14 +12,21 @@ export interface UserInfoProps {
     plan: string;
     clicks: number;
     links: number;
-    sales: number;
-    folders: number;
+    totalClicks: number;
+    totalLinks: number;
   }[];
   impersonateUrl: {
     app: string;
     partners: string;
   };
 }
+
+const items = [
+  { id: "clicks", label: "Clicks" },
+  { id: "links", label: "Links" },
+  { id: "totalClicks", label: "Total Clicks" },
+  { id: "totalLinks", label: "Total Links" },
+];
 
 export default function UserInfo({ data }: { data: UserInfoProps }) {
   return (
@@ -53,30 +60,16 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
                 {capitalize(workspace.plan)}
               </span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="font-medium text-neutral-700">Folders</span>
-              <span className="text-neutral-500">
-                {nFormatter(workspace.folders, { full: true })}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="font-medium text-neutral-700">Links</span>
-              <span className="text-neutral-500">
-                {nFormatter(workspace.links, { full: true })}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="font-medium text-neutral-700">Clicks</span>
-              <span className="text-neutral-500">
-                {nFormatter(workspace.clicks, { full: true })}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="font-medium text-neutral-700">Sales</span>
-              <span className="text-neutral-500">
-                {currencyFormatter(workspace.sales / 100)}
-              </span>
-            </div>
+            {items.map((item) => (
+              <div className="flex justify-between text-sm">
+                <span className="font-medium text-neutral-700">
+                  {item.label}
+                </span>
+                <span className="text-neutral-500">
+                  {nFormatter(workspace[item.id], { full: true })}
+                </span>
+              </div>
+            ))}
           </div>
         ))}
       </div>

@@ -12,7 +12,7 @@ export type ExpandedLink = Link & {
   partner?: Pick<PartnerProps, "id" | "name" | "image"> | null;
   discount?: Pick<
     DiscountProps,
-    "id" | "amount" | "type" | "maxDuration"
+    "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
   > | null;
 };
 

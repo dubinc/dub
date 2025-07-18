@@ -35,11 +35,6 @@ export const getCustomerOrThrow = async (
               include: {
                 programEnrollment: {
                   include: {
-                    program: {
-                      include: {
-                        defaultDiscount: true,
-                      },
-                    },
                     partner: true,
                     discount: true,
                   },

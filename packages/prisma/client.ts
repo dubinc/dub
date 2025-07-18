@@ -15,6 +15,7 @@ export {
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
+  RewardStructure,
   Role,
   WebhookReceiver,
 } from "@prisma/client";

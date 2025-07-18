@@ -16,7 +16,7 @@ import { NextResponse } from "next/server";
 // GET /api/folders - get all folders for a workspace
 export const GET = withWorkspace(
   async ({ workspace, headers, session, searchParams }) => {
-    const { search, includeLinkCount, pageSize, page } =
+    const { search, pageSize, page } =
       listFoldersQuerySchema.parse(searchParams);
 
     const folders = await getFolders({
@@ -25,7 +25,6 @@ export const GET = withWorkspace(
       search,
       pageSize,
       page,
-      includeLinkCount,
     });
 
     return NextResponse.json(FolderSchema.array().parse(folders), {

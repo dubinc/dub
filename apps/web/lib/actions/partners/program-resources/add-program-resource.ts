@@ -1,8 +1,9 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { storage } from "@/lib/storage";
-import { uploadedImageSchema } from "@/lib/zod/schemas/misc";
+import { uploadedImageAllowSVGSchema } from "@/lib/zod/schemas/misc";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
@@ -16,14 +17,13 @@ import { authActionClient } from "../../safe-action";
 // Base schema for all resource types
 const baseResourceSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   name: z.string().min(1, "Name is required"),
 });
 
 // Schema for logo resources
 const logoResourceSchema = baseResourceSchema.extend({
   resourceType: z.literal("logo"),
-  file: uploadedImageSchema,
+  file: uploadedImageAllowSVGSchema,
   extension: z.string().nullish(),
 });
 
@@ -51,7 +51,8 @@ export const addProgramResourceAction = authActionClient
   .schema(addResourceSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
-    const { programId, name, resourceType } = parsedInput;
+    const { name, resourceType } = parsedInput;
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     // Verify the program exists and belongs to the workspace
     const program = await prisma.program.findUnique({

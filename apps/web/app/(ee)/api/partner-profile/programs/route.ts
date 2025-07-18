@@ -1,43 +1,32 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
+import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
+import { Reward } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// GET /api/partner-profile/programs - get all enrolled programs for a given partnerId
+// GET /api/partner-profile/programs - get all program enrollments for a given partnerId
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
+  const { includeRewardsDiscounts, status } =
+    partnerProfileProgramsQuerySchema.parse(searchParams);
+
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: partner.id,
+      ...(status && { status }),
     },
     include: {
-      program: searchParams.includeRewardsDiscounts
+      links: {
+        take: 1,
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
+      program: includeRewardsDiscounts
         ? {
             include: {
-              rewards: {
-                where: {
-                  OR: [
-                    // program-wide rewards
-                    {
-                      partners: {
-                        none: {},
-                      },
-                    },
-
-                    // partner-specific rewards
-                    {
-                      partners: {
-                        some: {
-                          programEnrollment: {
-                            partnerId: partner.id,
-                          },
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-
               discounts: {
                 where: {
                   OR: [
@@ -62,19 +51,36 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             },
           }
         : true,
-      links: {
-        take: 1,
-        orderBy: {
-          createdAt: "asc",
-        },
+      ...(includeRewardsDiscounts && {
+        clickReward: true,
+        leadReward: true,
+        saleReward: true,
+      }),
+    },
+    orderBy: [
+      {
+        totalCommissions: "desc",
       },
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
+      {
+        createdAt: "asc",
+      },
+    ],
   });
 
-  return NextResponse.json(
-    z.array(ProgramEnrollmentSchema).parse(programEnrollments),
-  );
+  const response = programEnrollments.map((enrollment) => {
+    return {
+      ...enrollment,
+      rewards: includeRewardsDiscounts
+        ? sortRewardsByEventOrder(
+            [
+              enrollment.clickReward,
+              enrollment.leadReward,
+              enrollment.saleReward,
+            ].filter((r): r is Reward => r !== null),
+          )
+        : [],
+    };
+  });
+
+  return NextResponse.json(z.array(ProgramEnrollmentSchema).parse(response));
 });

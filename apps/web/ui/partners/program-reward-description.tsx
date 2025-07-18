@@ -7,7 +7,6 @@ export function ProgramRewardDescription({
   discount,
   amountClassName,
   periodClassName,
-  hideIfZero = true,
 }: {
   reward?: Pick<
     RewardProps,
@@ -16,11 +15,10 @@ export function ProgramRewardDescription({
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
-  hideIfZero?: boolean; // if true, don't display the reward description if the reward amount is 0
 }) {
   return (
     <>
-      {reward && (reward.amount > 0 || !hideIfZero)
+      {reward
         ? reward.description || (
             <>
               Earn{" "}
@@ -30,23 +28,30 @@ export function ProgramRewardDescription({
                   type: reward.type,
                 })}{" "}
               </strong>
-              for each {reward.event}
+              {reward.event === "sale" && reward.maxDuration === 0 ? (
+                <>for the first sale</>
+              ) : (
+                <>per {reward.event}</>
+              )}
               {reward.maxDuration === null ? (
-                <strong className={cn("font-semibold", periodClassName)}>
+                <>
                   {" "}
-                  for the customer's lifetime.
-                </strong>
+                  for the{" "}
+                  <strong className={cn("font-semibold", periodClassName)}>
+                    customer's lifetime
+                  </strong>
+                </>
               ) : reward.maxDuration && reward.maxDuration > 1 ? (
                 <>
-                  , and again{" "}
+                  {" "}
+                  for{" "}
                   <strong className={cn("font-semibold", periodClassName)}>
-                    every month for {reward.maxDuration} months
+                    {reward.maxDuration % 12 === 0
+                      ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
+                      : `${reward.maxDuration} months`}
                   </strong>
-                  .
                 </>
-              ) : (
-                "."
-              )}
+              ) : null}
             </>
           )
         : null}
@@ -75,7 +80,6 @@ export function ProgramRewardDescription({
             ) : (
               " for their first purchase"
             )}
-            .
           </strong>
         </>
       ) : null}

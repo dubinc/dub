@@ -2,9 +2,9 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useABTestingModal } from "@/ui/modals/link-builder/ab-testing-modal";
 import { useAdvancedModal } from "@/ui/modals/link-builder/advanced-modal";
 import { useExpirationModal } from "@/ui/modals/link-builder/expiration-modal";
+import { usePartnersModal } from "@/ui/modals/link-builder/partners-modal";
 import { usePasswordModal } from "@/ui/modals/link-builder/password-modal";
 import { useTargetingModal } from "@/ui/modals/link-builder/targeting-modal";
-import { useWebhooksModal } from "@/ui/modals/link-builder/webhooks-modal";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { Button, Popover, SimpleTooltipContent, useMediaQuery } from "@dub/ui";
 import { Dots } from "@dub/ui/icons";
@@ -16,34 +16,37 @@ import { LinkFormData } from "./link-builder-provider";
 import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
 export function MoreDropdown() {
-  const { flags } = useWorkspace();
+  const { flags, defaultProgramId } = useWorkspace();
   const { isMobile } = useMediaQuery();
-
-  const { watch, setValue } = useFormContext<LinkFormData>();
-  const data = watch();
-
   const [openPopover, setOpenPopover] = useState(false);
+  const { watch, setValue } = useFormContext<LinkFormData>();
+
+  const data = watch();
 
   const options = useMemo(() => {
     return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...MORE_ITEMS].filter(
-      (option) => (option.key === "testVariants" ? flags?.abTesting : true),
+      (option) => {
+        if (option.key === "testVariants") return flags?.abTesting;
+        if (option.key === "partnerId") return Boolean(defaultProgramId);
+        return true;
+      },
     );
-  }, [data, isMobile, flags]);
+  }, [data, isMobile, flags, defaultProgramId]);
 
   const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();
   const { TargetingModal, setShowTargetingModal } = useTargetingModal();
   const { ExpirationModal, setShowExpirationModal } = useExpirationModal();
-  const { WebhooksModal, setShowWebhooksModal } = useWebhooksModal();
   const { AdvancedModal, setShowAdvancedModal } = useAdvancedModal();
+  const { PartnersModal, setShowPartnerModal } = usePartnersModal();
 
   const modalCallbacks = {
     testVariants: setShowABTestingModal,
     password: setShowPasswordModal,
     targeting: setShowTargetingModal,
     expiresAt: setShowExpirationModal,
-    webhookIds: setShowWebhooksModal,
     advanced: setShowAdvancedModal,
+    partnerId: setShowPartnerModal,
   };
 
   useLinkBuilderKeyboardShortcut(
@@ -66,8 +69,8 @@ export function MoreDropdown() {
       <PasswordModal />
       <TargetingModal />
       <ExpirationModal />
-      <WebhooksModal />
       <AdvancedModal />
+      <PartnersModal />
       <Popover
         align="start"
         content={

@@ -6,8 +6,12 @@ export default function ProgramPage() {
   return (
     <PageContent
       title="Overview"
-      hideReferButton
-      titleControls={<HideProgramDetailsButton />}
+      titleInfo={{
+        title:
+          "Learn how to measure your performance, manage your referral links, and view your earnings for a program on Dub.",
+        href: "https://dub.co/help/article/navigating-partner-program",
+      }}
+      controls={<HideProgramDetailsButton />}
     >
       <ProgramPageClient />
     </PageContent>

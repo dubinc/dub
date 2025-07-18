@@ -1,12 +1,15 @@
+"use client";
+
 import { unsortedLinks } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useFolder from "@/lib/swr/use-folder";
 import useFolders from "@/lib/swr/use-folders";
+import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FolderSummary } from "@/lib/types";
+import { FolderLinkCount, FolderSummary } from "@/lib/types";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { Button, Combobox, TooltipContent, useRouterStuff } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -62,6 +65,13 @@ export const FolderDropdown = ({
     if (folders && !useAsync && folders.length >= FOLDERS_MAX_PAGE_SIZE)
       setUseAsync(true);
   }, [folders, useAsync]);
+
+  const { data: folderLinksCount } = useLinksCount<FolderLinkCount[]>({
+    query: {
+      groupBy: "folderId",
+    },
+    ignoreParams: true,
+  });
 
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -122,7 +132,15 @@ export const FolderDropdown = ({
         value: folder.id,
         label: folder.name,
         icon: <FolderIcon className="mr-1" folder={folder} shape="square" />,
-        meta: folder,
+        meta: {
+          ...folder,
+          linksCount:
+            folderLinksCount?.find(
+              ({ folderId }) =>
+                folderId === folder.id ||
+                (folder.id === "unsorted" && folderId === null),
+            )?._count || 0,
+        },
         first: folder.id === "unsorted",
       })),
       {
@@ -160,7 +178,7 @@ export const FolderDropdown = ({
 
   if (folderId && folderId !== "unsorted" && !selectedFolderData) {
     // if (true) {
-    return loadingPlaceholder ?? <FolderSwitcherPlaceholder />;
+    return loadingPlaceholder ?? <FolderDropdownPlaceholder />;
   }
 
   return (
@@ -210,10 +228,12 @@ export const FolderDropdown = ({
           ) : undefined
         }
         optionRight={(option) =>
-          option.value === "unsorted" ? (
-            <div className="rounded bg-neutral-100 p-1">
-              <div className="text-xs font-normal text-black">Unsorted</div>
-            </div>
+          option.meta && option.meta.linksCount ? (
+            <span className="text-xs text-neutral-500">
+              {option.meta.type === "mega"
+                ? "10,000+"
+                : nFormatter(option.meta.linksCount, { full: true })}
+            </span>
           ) : undefined
         }
         caret={
@@ -222,12 +242,12 @@ export const FolderDropdown = ({
         buttonProps={{
           className: cn(
             "group flex items-center gap-2 rounded-lg px-2 py-1 w-fit",
-            variant === "inline" && "border-none !ring-0",
+            variant === "inline" && "border-none !ring-0 bg-transparent",
             "transition-all hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100",
             buttonClassName,
           ),
           textWrapperClassName: cn(
-            "min-w-0 truncate text-left text-xl font-semibold leading-7 text-neutral-900 md:text-2xl",
+            "min-w-0 truncate text-left text-lg font-semibold leading-7 text-content-emphasis",
             buttonTextClassName,
           ),
         }}
@@ -268,6 +288,6 @@ export const FolderDropdown = ({
   );
 };
 
-const FolderSwitcherPlaceholder = () => {
+const FolderDropdownPlaceholder = () => {
   return <div className="h-10 w-40 animate-pulse rounded-lg bg-neutral-200" />;
 };

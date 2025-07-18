@@ -42,10 +42,7 @@ export async function POST(req: Request) {
       while (true) {
         const links = await prisma.link.findMany({
           where: {
-            programId,
-            programEnrollment: {
-              discountId: isDefault ? null : discountId,
-            },
+            programEnrollment: { discountId },
           },
           select: {
             domain: true,

@@ -2,13 +2,13 @@ import useUsage from "@/lib/swr/use-usage";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EmptyState, LoadingSpinner } from "@dub/ui";
 import { Bars, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { CircleDollar, CursorRays, Hyperlink } from "@dub/ui/icons";
+import { CursorRays, Hyperlink } from "@dub/ui/icons";
 import { formatDate, nFormatter } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { useSearchParams } from "next/navigation";
 import { ComponentProps, Fragment, useMemo } from "react";
 
-const RESOURCES = ["links", "events", "revenue"] as const;
+const RESOURCES = ["links", "events"] as const;
 const resourceEmptyStates: Record<
   (typeof RESOURCES)[number],
   ComponentProps<typeof EmptyState>
@@ -23,11 +23,6 @@ const resourceEmptyStates: Record<
     icon: CursorRays,
     title: "Events Tracked",
     description: "No events have been tracked in the current billing cycle.",
-  },
-  revenue: {
-    icon: CircleDollar,
-    title: "Revenue Tracked",
-    description: "No revenue has been tracked in the current billing cycle.",
   },
 };
 
@@ -51,7 +46,7 @@ export function UsageChart() {
     () =>
       usage?.map(({ date, value }) => ({
         date: new Date(date),
-        values: { usage: resource === "revenue" ? value / 100 : value },
+        values: { usage: value },
       })),
     [usage, resource],
   );
@@ -93,7 +88,6 @@ export function UsageChart() {
                         </p>
                       </div>
                       <p className="text-right font-medium text-neutral-900">
-                        {resource === "revenue" && "$"}
                         {nFormatter(d.values.usage, { full: true })}
                       </p>
                     </Fragment>
@@ -107,12 +101,7 @@ export function UsageChart() {
               <stop stopColor="#3b82f6" stopOpacity={0.9} offset="100%" />
             </LinearGradient>
             <XAxis highlightLast={false} />
-            <YAxis
-              showGridLines
-              tickFormat={
-                resource === "revenue" ? (v) => `$${nFormatter(v)}` : nFormatter
-              }
-            />
+            <YAxis showGridLines tickFormat={nFormatter} />
             <Bars
               seriesStyles={[
                 {

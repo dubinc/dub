@@ -3,7 +3,7 @@ import { parseRequestBody, ratelimitOrThrow } from "@/lib/api/utils";
 import { hashPassword } from "@/lib/auth/password";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
-import { PasswordUpdated } from "@dub/email/templates/password-updated";
+import PasswordUpdated from "@dub/email/templates/password-updated";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";

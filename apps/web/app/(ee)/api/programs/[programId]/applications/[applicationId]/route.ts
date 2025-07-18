@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
@@ -7,14 +8,16 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   const application = await prisma.programApplication.findUnique({
-    where: { id: params.applicationId },
+    where: {
+      id: params.applicationId,
+    },
   });
 
   if (!application || application.programId !== programId) {
-    return NextResponse.json(
-      { error: "Application not found" },
-      { status: 404 },
-    );
+    throw new DubApiError({
+      code: "not_found",
+      message: `Application ${params.applicationId} not found.`,
+    });
   }
 
   return NextResponse.json(application);

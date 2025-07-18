@@ -15,7 +15,7 @@ export function PartnerRowItem({
   showPayoutsEnabled?: boolean;
   showPermalink?: boolean;
 }) {
-  const { slug, programId } = useParams();
+  const { slug } = useParams();
   const As = showPermalink ? Link : "div";
 
   return (
@@ -70,7 +70,7 @@ export function PartnerRowItem({
         />
       )}
       <As
-        href={`/${slug}/programs/${programId}/partners?partnerId=${partner.id}`}
+        href={`/${slug}/program/partners?partnerId=${partner.id}`}
         {...(showPermalink && { target: "_blank" })}
         className={cn(
           "min-w-0 truncate",

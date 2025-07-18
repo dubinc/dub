@@ -27,10 +27,11 @@ import {
 } from "next/server";
 import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
-import { clickCache } from "../api/links/click-cache";
+import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { crawlBitly } from "./utils/crawl-bitly";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
 export default async function LinkMiddleware(
@@ -88,11 +89,8 @@ export default async function LinkMiddleware(
     });
 
     if (!linkData) {
-      // TODO: remove this once everything is migrated over
       if (domain === "buff.ly") {
-        return NextResponse.rewrite(
-          new URL(`/api/links/crawl/bitly/${domain}/${key}`, req.url),
-        );
+        return await crawlBitly(req);
       }
 
       // check if domain has notFoundUrl configured
@@ -122,7 +120,7 @@ export default async function LinkMiddleware(
     ev.waitUntil(
       (async () => {
         if (!isPartnerLink) {
-          linkCache.set(linkData as any);
+          await linkCache.set(linkData as any);
           return;
         }
 
@@ -132,7 +130,7 @@ export default async function LinkMiddleware(
         });
 
         // we'll use this data on /track/click
-        linkCache.set({
+        await linkCache.set({
           ...(linkData as any),
           ...(partner && { partner }),
           ...(discount && { discount }),
@@ -166,10 +164,10 @@ export default async function LinkMiddleware(
 
   const url = testUrl || cachedLink.url;
 
-  // we only pass the clickId if:
+  // if the following is true, we need to cache the clickId data (so it's available for subsequent /track/lead requests):
   // - trackConversion is enabled
   // - it's a partner link
-  const shouldPassClickId = trackConversion || isPartnerLink;
+  const shouldCacheClickId = trackConversion || isPartnerLink;
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
@@ -249,10 +247,10 @@ export default async function LinkMiddleware(
   let clickId = cookieStore.get(dubIdCookieName)?.value;
   if (!clickId) {
     // if we need to pass the clickId, check if clickId is cached in Redis
-    if (shouldPassClickId) {
+    if (shouldCacheClickId) {
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-      clickId = (await clickCache.get({ domain, key, ip })) || undefined;
+      clickId = (await recordClickCache.get({ domain, key, ip })) || undefined;
     }
 
     // if there's still no clickId, generate a new one
@@ -280,7 +278,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -328,7 +326,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -338,7 +336,7 @@ export default async function LinkMiddleware(
           `/deeplink/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              ...(shouldPassClickId && { clickId }),
+              ...(shouldCacheClickId && { clickId }),
               ...(isPartnerLink && { via: key }),
             }),
           )}`,
@@ -366,7 +364,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -376,7 +374,7 @@ export default async function LinkMiddleware(
           `/cloaked/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              ...(shouldPassClickId && { clickId }),
+              ...(shouldCacheClickId && { clickId }),
               ...(isPartnerLink && { via: key }),
             }),
           )}`,
@@ -406,7 +404,7 @@ export default async function LinkMiddleware(
         url: ios,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -414,7 +412,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(ios, {
           req,
-          ...(shouldPassClickId && { clickId }),
+          ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
         }),
         {
@@ -440,7 +438,7 @@ export default async function LinkMiddleware(
         url: android,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -448,7 +446,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(android, {
           req,
-          ...(shouldPassClickId && { clickId }),
+          ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
         }),
         {
@@ -474,7 +472,7 @@ export default async function LinkMiddleware(
         url: geo[country],
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -482,7 +480,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(geo[country], {
           req,
-          ...(shouldPassClickId && { clickId }),
+          ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
         }),
         {
@@ -508,7 +506,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        shouldPassClickId,
+        shouldCacheClickId,
       }),
     );
 
@@ -516,7 +514,7 @@ export default async function LinkMiddleware(
       NextResponse.redirect(
         getFinalUrl(url, {
           req,
-          ...(shouldPassClickId && { clickId }),
+          ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
         }),
         {

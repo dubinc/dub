@@ -78,7 +78,6 @@ export async function notifyPartnerSale({
 
   const data = {
     program: {
-      id: program.id,
       name: program.name,
       slug: program.slug,
       logo: program.logo,

@@ -1,8 +1,7 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getReward } from "@/lib/fetchers/get-reward";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { Wordmark } from "@dub/ui";
 import { APP_DOMAIN } from "@dub/utils";
 import { constructMetadata } from "@dub/utils/src/functions";
@@ -15,30 +14,30 @@ export async function generateMetadata({
 }: {
   params: { programSlug: string };
 }) {
-  const program = await getProgram({ slug: programSlug });
+  const program = await getProgram({
+    slug: programSlug,
+    include: ["allRewards", "allDiscounts"],
+  });
 
-  if (!program || !program.defaultRewardId) {
+  if (!program) {
     notFound();
   }
 
-  const reward = await getReward({ id: program.defaultRewardId });
+  const { rewards } = getProgramApplicationRewardsAndDiscount(program);
 
   return constructMetadata({
     title: `${program.name} Affiliate Program`,
-    description: `Join the ${program.name} affiliate program and earn ${formatRewardDescription(
-      { reward },
-    )} by referring ${program.name} to your friends and followers.`,
+    description: `Join the ${program.name} affiliate program and ${
+      rewards.length > 0
+        ? formatRewardDescription({ reward: rewards[0] }).toLowerCase()
+        : "earn commissions"
+    } by referring ${program.name} to your friends and followers.`,
     image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}`,
   });
 }
 
 export async function generateStaticParams() {
   const programs = await prisma.program.findMany({
-    where: {
-      landerData: {
-        not: Prisma.JsonNull,
-      },
-    },
     select: {
       slug: true,
     },
@@ -67,7 +66,7 @@ export default async function ApplyLayout({
         {/* Footer */}
         <footer className="mt-14 flex flex-col items-center gap-4 py-6 text-center text-xs text-neutral-500">
           <Link
-            href="https://dub.partners"
+            href="https://dub.co/partners"
             target="_blank"
             className="flex items-center gap-1.5 whitespace-nowrap"
           >

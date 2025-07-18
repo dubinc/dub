@@ -34,14 +34,16 @@ export async function verifySignature({
   const certUrl = headers.get("paypal-cert-url");
 
   if (!transmissionId || !transmissionSig || !timeStamp || !certUrl) {
-    console.error("Missing required headers for signature verification");
+    console.error(
+      "[PayPal] Missing required headers for signature verification",
+    );
     return false;
   }
 
   const certPem = await downloadAndCache(certUrl);
 
   if (!certPem) {
-    console.error("Failed to download or cache PayPal certificate");
+    console.error("[PayPal] Failed to download or cache PayPal certificate");
     return false;
   }
 

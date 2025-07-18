@@ -87,7 +87,9 @@ export function RegisterDomainForm({
   const registerDomain = async (domain: string) => {
     setIsRegistering(true);
 
-    const baseUrl = saveOnly ? "/api/domains/saved" : "/api/domains/register";
+    const baseUrl = saveOnly
+      ? "/api/domains/client/saved"
+      : "/api/domains/client/register";
 
     const response = await fetch(
       `${baseUrl}?domain=${domain}&workspaceId=${workspace.id}`,

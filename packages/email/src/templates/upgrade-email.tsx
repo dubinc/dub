@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function UpgradeEmail({
+export default function UpgradeEmail({
   name = "Brendon Urie",
   email = "panic@thedis.co",
   plan = "Business",
@@ -60,7 +60,7 @@ export function UpgradeEmail({
             </Text>
             {planDetails.features?.map((feature) => (
               <Text className="ml-1 text-sm leading-4 text-black">
-                ◆{" "}
+                ✦{" "}
                 {feature.tooltip?.href ? (
                   <Link href={feature.tooltip.href}>{feature.text}</Link>
                 ) : (
@@ -82,5 +82,3 @@ export function UpgradeEmail({
     </Html>
   );
 }
-
-export default UpgradeEmail;

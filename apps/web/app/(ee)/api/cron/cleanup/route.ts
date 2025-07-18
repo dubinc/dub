@@ -1,8 +1,9 @@
 import { markDomainAsDeleted } from "@/lib/api/domains";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
-import { deletePartner } from "@/lib/api/partners/delete-partner";
+import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { unsubscribe } from "@dub/email/resend";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -24,7 +25,7 @@ export async function GET(req: Request) {
 
     const oneHourAgo = new Date(Date.now() - 1000 * 60 * 60);
 
-    const [links, domains, tags, partners] = await Promise.all([
+    const [links, domains, tags, partners, users] = await Promise.all([
       prisma.link.findMany({
         where: {
           userId: E2E_USER_ID,
@@ -81,10 +82,16 @@ export async function GET(req: Request) {
         },
         select: {
           id: true,
-          programs: {
-            where: {
-              programId: E2E_PROGRAM_ID,
-            },
+        },
+      }),
+
+      prisma.user.findMany({
+        where: {
+          email: {
+            endsWith: "@dub-internal-test.com",
+          },
+          createdAt: {
+            lt: oneHourAgo,
           },
         },
       }),
@@ -110,7 +117,6 @@ export async function GET(req: Request) {
         domains.map(({ slug }) =>
           markDomainAsDeleted({
             domain: slug,
-            workspaceId: E2E_WORKSPACE_ID,
           }),
         ),
       );
@@ -129,13 +135,26 @@ export async function GET(req: Request) {
 
     // Delete the partners
     if (partners.length > 0) {
-      await Promise.all(
-        partners.map((partner) =>
-          deletePartner({
-            partnerId: partner.id,
-          }),
-        ),
-      );
+      await bulkDeletePartners({
+        partnerIds: partners.map((partner) => partner.id),
+      });
+    }
+
+    if (users.length > 0) {
+      await prisma.user.deleteMany({
+        where: {
+          id: {
+            in: users.map((user) => user.id),
+          },
+        },
+      });
+
+      for (const user of users) {
+        if (user.email) {
+          const res = await unsubscribe({ email: user.email });
+          console.log("Unsubscribed user", user.email, res);
+        }
+      }
     }
 
     console.log("Removed the following items.", {
@@ -143,6 +162,7 @@ export async function GET(req: Request) {
       domains: domains.length,
       tags: tags.length,
       partners: partners.length,
+      users: users.length,
     });
 
     return NextResponse.json({ status: "OK" });

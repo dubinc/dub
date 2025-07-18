@@ -1,8 +1,9 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { sendEmail } from "@dub/email";
-import { PartnerInvite } from "@dub/email/templates/partner-invite";
+import PartnerInvite from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";
@@ -16,7 +17,7 @@ export const resendProgramInviteAction = authActionClient
   .schema(resendProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partnerId } = parsedInput;
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -48,7 +49,7 @@ export const resendProgramInviteAction = authActionClient
       );
     }
 
-    await Promise.all([
+    await Promise.allSettled([
       sendEmail({
         subject: `${program.name} invited you to join Dub Partners`,
         email: partner.email!,
@@ -56,6 +57,7 @@ export const resendProgramInviteAction = authActionClient
           email: partner.email!,
           program: {
             name: program.name,
+            slug: program.slug,
             logo: program.logo,
           },
         }),
@@ -68,6 +70,21 @@ export const resendProgramInviteAction = authActionClient
         data: {
           createdAt: new Date(),
         },
+      }),
+
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "partner.invite_resent",
+        description: `Partner ${partner.id} invite resent`,
+        actor: user,
+        targets: [
+          {
+            type: "partner",
+            id: partner.id,
+            metadata: partner,
+          },
+        ],
       }),
     ]);
   });

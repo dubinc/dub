@@ -21,13 +21,7 @@ export const trackLeadRequestSchema = z.object({
       "The name of the lead event to track. Can also be used as a unique identifier to associate a given lead event for a customer for a subsequent sale event (via the `leadEventName` prop in `/track/sale`).",
     )
     .openapi({ example: "Sign up" }),
-  eventQuantity: z
-    .number()
-    .nullish()
-    .describe(
-      "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
-    ),
-  externalId: z
+  customerExternalId: z
     .string()
     .trim()
     .max(100)
@@ -54,6 +48,12 @@ export const trackLeadRequestSchema = z.object({
     .nullish()
     .default(null)
     .describe("The avatar URL of the customer."),
+  eventQuantity: z
+    .number()
+    .nullish()
+    .describe(
+      "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
+    ),
   mode: z
     .enum(["async", "wait"])
     .default("async")

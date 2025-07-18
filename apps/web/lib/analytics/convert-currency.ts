@@ -1,6 +1,6 @@
 import { redis } from "../upstash/redis";
 
-const ZERO_DECIMAL_CURRENCIES = [
+export const ZERO_DECIMAL_CURRENCIES = [
   "BIF",
   "CLP",
   "DJF",

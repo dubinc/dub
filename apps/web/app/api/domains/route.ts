@@ -41,11 +41,11 @@ export const GET = withWorkspace(
     const links = includeLink
       ? await prisma.link.findMany({
           where: {
-            key: {
-              in: ["_root", "akoJCU0="],
-            },
             domain: {
               in: domains.map((domain) => domain.slug),
+            },
+            key: {
+              in: ["_root", "akoJCU0="],
             },
           },
           include: {

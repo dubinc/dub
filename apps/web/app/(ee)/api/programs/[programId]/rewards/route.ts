@@ -6,31 +6,25 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // GET /api/programs/[programId]/rewards - get all rewards for a program
-export const GET = withWorkspace(async ({ workspace, params }) => {
+export const GET = withWorkspace(async ({ workspace }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   const rewards = await prisma.reward.findMany({
     where: {
       programId,
     },
-    include: {
-      _count: {
-        select: {
-          partners: true,
-        },
+    orderBy: [
+      {
+        default: "desc",
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+      {
+        event: "desc",
+      },
+      {
+        createdAt: "desc",
+      },
+    ],
   });
 
-  const rewardsWithPartnersCount = rewards.map((reward) => ({
-    ...reward,
-    partnersCount: reward._count.partners,
-  }));
-
-  return NextResponse.json(
-    z.array(RewardSchema).parse(rewardsWithPartnersCount),
-  );
+  return NextResponse.json(z.array(RewardSchema).parse(rewards));
 });

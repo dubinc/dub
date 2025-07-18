@@ -3,7 +3,7 @@ import z from "@/lib/zod";
 import { R2_URL } from "@dub/utils";
 import { fileTypeFromBuffer } from "file-type";
 
-export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24];
+export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24, 36];
 
 export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 
@@ -90,20 +90,36 @@ export const base64ImageSchema = z
   )
   .transform((v) => v || null);
 
+// Base64 encoded raster image or SVG
+export const base64ImageAllowSVGSchema = z
+  .string()
+  .trim()
+  .regex(/^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);base64,/, {
+    message:
+      "Invalid image format, supports only png, jpeg, jpg, gif, webp, svg.",
+  })
+  .transform((v) => v || null);
+
+export const uploadedImageUrlSchema = z
+  .string()
+  .url()
+  .trim()
+  .refine((url) => url.startsWith(R2_URL), {
+    message: `URL must start with ${R2_URL}`,
+  });
+
 // Base64 encoded image or R2_URL
 // This schema contains an async refinement check for base64 image validation,
 // which requires using parseAsync() instead of parse() when validating
 export const uploadedImageSchema = z
-  .union([
-    base64ImageSchema,
-    z
-      .string()
-      .url()
-      .trim()
-      .refine((url) => url.startsWith(R2_URL), {
-        message: `URL must start with ${R2_URL}`,
-      }),
-  ])
+  .union([base64ImageSchema, uploadedImageUrlSchema])
+  .transform((v) => v || null);
+
+// Base64 encoded image/SVG or R2_URL
+// This schema contains an async refinement check for base64 image validation,
+// which requires using parseAsync() instead of parse() when validating
+export const uploadedImageAllowSVGSchema = z
+  .union([base64ImageAllowSVGSchema, uploadedImageUrlSchema])
   .transform((v) => v || null);
 
 export const publicHostedImageSchema = z

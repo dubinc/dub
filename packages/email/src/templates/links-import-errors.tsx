@@ -19,7 +19,7 @@ import { Footer } from "../components/footer";
 
 const MAX_ERROR_LINKS = 20;
 
-export function LinksImportErrors({
+export default function LinksImportErrors({
   email,
   provider = "CSV",
   errorLinks = [
@@ -124,5 +124,3 @@ export function LinksImportErrors({
     </Html>
   );
 }
-
-export default LinksImportErrors;

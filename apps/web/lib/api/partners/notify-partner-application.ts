@@ -1,6 +1,6 @@
 import { limiter } from "@/lib/cron/limiter";
 import { sendEmail } from "@dub/email";
-import { PartnerApplicationReceived } from "@dub/email/templates/partner-application-received";
+import PartnerApplicationReceived from "@dub/email/templates/partner-application-received";
 import { prisma } from "@dub/prisma";
 import { Partner, Program, ProgramApplication } from "@dub/prisma/client";
 
@@ -57,8 +57,10 @@ export async function notifyPartnerApplication({
               comments: application.comments,
             },
             program: {
-              id: program.id,
               name: program.name,
+              autoApprovePartners: program.autoApprovePartnersEnabledAt
+                ? true
+                : false,
             },
             workspace: {
               slug: project.slug,

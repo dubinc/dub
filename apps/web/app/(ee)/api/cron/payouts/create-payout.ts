@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
-import { Payout } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
+import { endOfMonth } from "date-fns";
 
 export const createPayout = async ({
   programId,
@@ -51,17 +52,22 @@ export const createPayout = async ({
 
   const { holdingPeriodDays } = programEnrollment.program;
 
-  await prisma.$transaction(async (tx) => {
-    const commissions = await tx.commission.findMany({
+  const commonWhere: Prisma.CommissionWhereInput = {
+    programId,
+    partnerId,
+    status: "pending",
+    payoutId: null,
+  };
+
+  const [commissions, clawbacks] = await Promise.all([
+    // Find all pending commissions
+    // We only process commissions that were created before the holding period
+    prisma.commission.findMany({
       where: {
         earnings: {
           gt: 0,
         },
-        programId,
-        partnerId,
-        status: "pending",
-        payoutId: null,
-        // Only process commissions that were created before the holding period
+        ...commonWhere,
         ...(holdingPeriodDays > 0 && {
           createdAt: {
             lt: new Date(Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000),
@@ -76,66 +82,70 @@ export const createPayout = async ({
       orderBy: {
         createdAt: "asc",
       },
-    });
+    }),
 
-    if (!commissions.length) {
-      console.log("No pending commissions found for processing payout.", {
-        programId,
-        partnerId,
-        holdingPeriodDays,
-      });
+    // Find all pending clawbacks
+    // We don't wait for the holding period to be over for clawbacks
+    prisma.commission.findMany({
+      where: {
+        earnings: {
+          lt: 0,
+        },
+        ...commonWhere,
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        earnings: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    }),
+  ]);
 
-      return;
-    }
+  if (commissions.length === 0 && clawbacks.length === 0) {
+    return;
+  }
 
-    // earliest commission date
-    const periodStart = commissions[0].createdAt;
+  console.log(
+    `Found ${commissions.length} pending commissions for partner ${partnerId} in program ${programId}.`,
+  );
 
-    // end of the month of the latest commission date
-    // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
-    let periodEnd = commissions[commissions.length - 1].createdAt;
-    periodEnd = new Date(periodEnd.getFullYear(), periodEnd.getMonth() + 1);
+  console.log(
+    `Found ${clawbacks.length} pending clawbacks for partner ${partnerId} in program ${programId}.`,
+  );
 
-    const totalAmount = commissions.reduce(
-      (total, { earnings }) => total + earnings,
-      0,
-    );
+  // sort the commissions and clawbacks by createdAt
+  const allCommissions = [...commissions, ...clawbacks].sort(
+    (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+  );
 
-    if (totalAmount === 0) {
-      console.log("Total amount is 0, skipping payout.", {
-        programId,
-        partnerId,
-        totalAmount,
-      });
+  // earliest commission date
+  const periodStart = allCommissions[0].createdAt;
 
-      return;
-    }
+  // end of the month of the latest commission date
+  // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
+  const periodEnd = endOfMonth(
+    allCommissions[allCommissions.length - 1].createdAt,
+  );
 
-    // check if the partner has another pending payout
-    const existingPayout = await tx.payout.findFirst({
+  await prisma.$transaction(async (tx) => {
+    // check if the partner has another pending payout (take the latest entry)
+    let payout = await tx.payout.findFirst({
       where: {
         programId,
         partnerId,
         status: "pending",
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-    let payout: Payout | null = null;
-
-    if (existingPayout) {
-      payout = await tx.payout.update({
-        where: {
-          id: existingPayout.id,
-        },
-        data: {
-          amount: {
-            increment: totalAmount,
-          },
-          periodEnd,
-          description: existingPayout.description ?? "Dub Partners payout",
-        },
-      });
-    } else {
+    // if the partner has no pending payout, create a new one
+    if (!payout) {
+      console.log("No existing payout found, creating new one.");
       payout = await tx.payout.create({
         data: {
           id: createId({ prefix: "po_" }),
@@ -143,20 +153,18 @@ export const createPayout = async ({
           partnerId,
           periodStart,
           periodEnd,
-          amount: totalAmount,
           description: "Dub Partners payout",
         },
       });
     }
 
-    if (!payout) {
-      throw new Error("Payout not created.");
-    }
+    console.log(`Using payout ID ${payout.id}.`);
 
+    // update the commissions to processed and set the payoutId
     await tx.commission.updateMany({
       where: {
         id: {
-          in: commissions.map(({ id }) => id),
+          in: allCommissions.map(({ id }) => id),
         },
       },
       data: {
@@ -165,6 +173,35 @@ export const createPayout = async ({
       },
     });
 
-    console.log("Payout created", payout);
+    console.log(
+      `Updated ${allCommissions.length} commissions to processed and set payoutId to ${payout.id}.`,
+    );
+
+    // get the total earnings for the commissions in the payout
+    const commissionAggregate = await tx.commission.aggregate({
+      where: {
+        payoutId: payout.id,
+      },
+      _sum: {
+        earnings: true,
+      },
+    });
+
+    const newPayoutAmount = commissionAggregate._sum.earnings ?? 0;
+
+    console.log(
+      `Updating aggregated earnings for payout ${payout.id}: ${newPayoutAmount}`,
+    );
+
+    // update the payout amount
+    await tx.payout.update({
+      where: {
+        id: payout.id,
+      },
+      data: {
+        amount: newPayoutAmount,
+        periodEnd,
+      },
+    });
   });
 };

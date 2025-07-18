@@ -14,16 +14,18 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function PartnerInvite({
+export default function PartnerInvite({
   email = "panic@thedis.co",
   program = {
     name: "Acme",
+    slug: "acme",
     logo: DUB_WORDMARK,
   },
 }: {
   email: string;
   program: {
     name: string;
+    slug: string;
     logo: string | null;
   };
 }) {
@@ -62,7 +64,7 @@ export function PartnerInvite({
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
-                href="https://partners.dub.co/register"
+                href={`https://partners.dub.co/${program.slug}/register`}
               >
                 Accept Invite
               </Link>
@@ -74,5 +76,3 @@ export function PartnerInvite({
     </Html>
   );
 }
-
-export default PartnerInvite;

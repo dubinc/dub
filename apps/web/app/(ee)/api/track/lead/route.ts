@@ -34,7 +34,8 @@ export const POST = withWorkspace(
       clickId,
       eventName,
       eventQuantity,
-      externalId,
+      customerExternalId: newExternalId,
+      externalId: oldExternalId, // deprecated (but we'll support it for backwards compatibility)
       customerId: oldCustomerId, // deprecated (but we'll support it for backwards compatibility)
       customerName,
       customerEmail,
@@ -44,13 +45,14 @@ export const POST = withWorkspace(
     } = trackLeadRequestSchema
       .extend({
         // add backwards compatibility
+        customerExternalId: z.string().nullish(),
         externalId: z.string().nullish(),
         customerId: z.string().nullish(),
       })
       .parse(body);
 
     const stringifiedEventName = eventName.toLowerCase().replace(" ", "-");
-    const customerExternalId = externalId || oldCustomerId;
+    const customerExternalId = newExternalId || oldExternalId || oldCustomerId;
     const customerId = createId({ prefix: "cus_" });
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
@@ -95,7 +97,7 @@ export const POST = withWorkspace(
 
       if (!clickData) {
         const cachedClickData = await redis.get<ClickData>(
-          `clickCache:${clickId}`,
+          `clickIdCache:${clickId}`,
         );
 
         if (cachedClickData) {
@@ -241,14 +243,14 @@ export const POST = withWorkspace(
             }),
           ]);
 
-          if (link.programId && link.partnerId) {
+          if (link.programId && link.partnerId && customer) {
             await createPartnerCommission({
               event: "lead",
               programId: link.programId,
               partnerId: link.partnerId,
               linkId: link.id,
               eventId: leadEventId,
-              customerId: customerId,
+              customerId: customer.id,
               quantity: eventQuantity ?? 1,
             });
           }

@@ -1,7 +1,7 @@
 import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import { clickCache } from "@/lib/api/links/click-cache";
+import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
@@ -42,7 +42,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
     let [clickId, cachedLink] = await redis.mget<[string, RedisLinkProps]>([
-      clickCache._createKey({ domain, key, ip }),
+      recordClickCache._createKey({ domain, key, ip }),
       linkCache._createKey({ domain, key }),
     ]);
 
@@ -76,7 +76,10 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     waitUntil(
       (async () => {
-        const workspace = await getWorkspaceViaEdge(cachedLink.projectId!);
+        const workspace = await getWorkspaceViaEdge({
+          workspaceId: cachedLink.projectId!,
+        });
+
         const allowedHostnames = workspace?.allowedHostnames as string[];
 
         if (
@@ -95,7 +98,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
             workspaceId: cachedLink.projectId,
             skipRatelimit: true,
             ...(referrer && { referrer }),
-            shouldPassClickId: true,
+            shouldCacheClickId: true,
           });
         }
       })(),

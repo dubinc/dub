@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function WebhookAdded({
+export default function WebhookAdded({
   email = "panic@thedis.co",
   workspace = {
     name: "Acme, Inc",
@@ -75,5 +75,3 @@ export function WebhookAdded({
     </Html>
   );
 }
-
-export default WebhookAdded;

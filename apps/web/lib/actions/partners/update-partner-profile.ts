@@ -9,7 +9,7 @@ import {
   deepEqual,
   nanoid,
 } from "@dub/utils";
-import { PartnerProfileType } from "@prisma/client";
+import { PartnerProfileType, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { stripe } from "../../stripe";
 import z from "../../zod";
@@ -19,6 +19,7 @@ import { authPartnerActionClient } from "../safe-action";
 const updatePartnerProfileSchema = z
   .object({
     name: z.string(),
+    email: z.string().email(),
     image: uploadedImageSchema.nullish(),
     description: z.string().nullable(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullable(),
@@ -48,8 +49,17 @@ export const updatePartnerProfileAction = authPartnerActionClient
   .schema(updatePartnerProfileSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
-    const { name, image, description, country, profileType, companyName } =
-      parsedInput;
+    const {
+      name,
+      email,
+      image,
+      description,
+      country,
+      profileType,
+      companyName,
+    } = parsedInput;
+
+    const emailChanged = partner.email !== email;
 
     const countryChanged =
       partner.country?.toLowerCase() !== country?.toLowerCase();
@@ -60,38 +70,42 @@ export const updatePartnerProfileAction = authPartnerActionClient
     const companyNameChanged =
       partner.companyName?.toLowerCase() !== companyName?.toLowerCase();
 
-    if (countryChanged || profileTypeChanged || companyNameChanged) {
-      // Partner should be able to update their country, profile type, or company name
-      // if they don't have any sent payouts
-      const sentPayoutsCount = await prisma.payout.count({
+    if (
+      (emailChanged ||
+        countryChanged ||
+        profileTypeChanged ||
+        companyNameChanged) &&
+      partner.stripeConnectId
+    ) {
+      // Partner is not able to update their country, profile type, or company name
+      // if they have already have a Stripe Express account + any sent / completed payouts
+      const completedPayoutsCount = await prisma.payout.count({
         where: {
           partnerId: partner.id,
           status: {
-            in: ["processing", "completed"],
+            in: ["sent", "completed"],
           },
         },
       });
 
-      if (sentPayoutsCount > 0) {
+      if (completedPayoutsCount > 0) {
         throw new Error(
-          "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support.",
+          "Since you've already received payouts on Dub, you cannot change your email, country or profile type. Please contact support to update those fields.",
         );
       }
 
-      if (partner.stripeConnectId) {
-        const response = await stripe.accounts.del(partner.stripeConnectId);
+      const response = await stripe.accounts.del(partner.stripeConnectId);
 
-        if (response.deleted) {
-          await prisma.partner.update({
-            where: {
-              id: partner.id,
-            },
-            data: {
-              stripeConnectId: null,
-              payoutsEnabledAt: null,
-            },
-          });
-        }
+      if (response.deleted) {
+        await prisma.partner.update({
+          where: {
+            id: partner.id,
+          },
+          data: {
+            stripeConnectId: null,
+            payoutsEnabledAt: null,
+          },
+        });
       }
     }
 
@@ -104,43 +118,58 @@ export const updatePartnerProfileAction = authPartnerActionClient
         ).url
       : null;
 
-    const updatedPartner = await prisma.partner.update({
-      where: {
-        id: partner.id,
-      },
-      data: {
-        name,
-        description,
-        ...(imageUrl && { image: imageUrl }),
-        country,
-        profileType,
-        companyName,
-      },
-    });
+    try {
+      const updatedPartner = await prisma.partner.update({
+        where: {
+          id: partner.id,
+        },
+        data: {
+          name,
+          email,
+          description,
+          ...(imageUrl && { image: imageUrl }),
+          country,
+          profileType,
+          companyName,
+        },
+      });
 
-    waitUntil(
-      (async () => {
-        const shouldExpireCache = !deepEqual(
-          {
-            name: partner.name,
-            image: partner.image,
-          },
-          {
-            name: updatedPartner.name,
-            image: updatedPartner.image,
-          },
+      waitUntil(
+        (async () => {
+          const shouldExpireCache = !deepEqual(
+            {
+              name: partner.name,
+              image: partner.image,
+            },
+            {
+              name: updatedPartner.name,
+              image: updatedPartner.image,
+            },
+          );
+
+          if (!shouldExpireCache) {
+            return;
+          }
+
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+            body: {
+              partnerId: partner.id,
+            },
+          });
+        })(),
+      );
+    } catch (error) {
+      console.error(error);
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new Error(
+          "Email already in use. Do you want to merge your partner accounts instead? (https://d.to/merge-partners)",
         );
+      }
 
-        if (!shouldExpireCache) {
-          return;
-        }
-
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-          body: {
-            partnerId: partner.id,
-          },
-        });
-      })(),
-    );
+      throw new Error(error.message);
+    }
   });
