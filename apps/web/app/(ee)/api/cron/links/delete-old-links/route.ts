@@ -50,15 +50,15 @@ export async function GET(req: Request) {
           await deleteOldLinks(domain.slug, domain.linkRetentionDays);
       }
 
-      // Pause for 2 seconds before the next batch
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
       ++processedBatches;
       cursor = domains[domains.length - 1].id;
 
       console.log(
         `[Delete old links] Deleted old links for ${domains.length} ${pluralize("domain", domains.length)}`,
       );
+
+      // Pause for 2 seconds before the next batch of domains
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
     return NextResponse.json("OK");
@@ -67,12 +67,11 @@ export async function GET(req: Request) {
   }
 }
 
-const LINKS_PER_BATCH = 100;
+const LINKS_PER_BATCH = 200;
 const MAX_LINK_BATCHES = 100;
 
 async function deleteOldLinks(domain: string, linkRetentionDays: number) {
   let processedBatches = 0;
-  let cursor: string | null = null;
 
   while (processedBatches < MAX_LINK_BATCHES) {
     const links = await prisma.link.findMany({
@@ -91,20 +90,14 @@ async function deleteOldLinks(domain: string, linkRetentionDays: number) {
         id: "asc",
       },
       take: LINKS_PER_BATCH,
-      skip: cursor ? 1 : 0,
-      ...(cursor && {
-        cursor: {
-          id: cursor,
-        },
-      }),
     });
 
     if (links.length === 0) break;
 
     console.log(
-      `[Delete old links] Deleting ${links.length} links for ${domain}...`,
+      `[Delete old links] Deleting ${links.length} links for ${domain} (batch ${processedBatches + 1})...`,
     );
-    const [_, deletedLinks] = await Promise.all([
+    const [recordedLinks, deletedLinks] = await Promise.allSettled([
       // Record the links deletion in Tinybird
       // not 100% sure if we need this yet, maybe we should just delete the link completely from TB to save space?
       recordLinkTB(
@@ -116,19 +109,36 @@ async function deleteOldLinks(domain: string, linkRetentionDays: number) {
       prisma.link.deleteMany({
         where: {
           id: {
-            in: links.map((link) => link.id),
+            in: links.map(({ id }) => id),
           },
         },
       }),
     ]);
-    console.log(
-      `[Delete old links] Deleted ${deletedLinks.count} links for ${domain}!`,
-    );
 
-    // Pause for 2 seconds before the next batch
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    if (recordedLinks.status !== "fulfilled") {
+      console.error(
+        `[Delete old links] Failed to record links deletion for ${domain}: ${recordedLinks.reason}`,
+      );
+    }
+
+    if (deletedLinks.status !== "fulfilled") {
+      console.error(
+        `[Delete old links] Failed to delete links for ${domain}: ${deletedLinks.reason}`,
+      );
+    }
+
+    if (
+      deletedLinks.status === "fulfilled" &&
+      recordedLinks.status === "fulfilled"
+    ) {
+      console.log(
+        `[Delete old links] Deleted ${deletedLinks.value.count} links for ${domain}!`,
+      );
+    }
 
     ++processedBatches;
-    cursor = links[links.length - 1].id;
+
+    // Pause for 2 seconds before the next batch of links
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 }
