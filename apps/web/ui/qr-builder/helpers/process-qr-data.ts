@@ -1,3 +1,5 @@
+"use server";
+
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { getFiles } from "@/ui/qr-builder/helpers/file-store.ts";
 import { FrameOptions, QRBuilderData } from "@/ui/qr-builder/types/types.ts";
