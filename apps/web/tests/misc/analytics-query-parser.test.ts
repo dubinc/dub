@@ -55,7 +55,7 @@ describe("Analytics Query Parser", () => {
         ]);
       });
 
-      it.skip("should parse nested property with double quotes", () => {
+      it("should parse nested property with double quotes", () => {
         const result = parseFiltersFromQuery('metadata["key"]:"quoted value"');
         expect(result).toEqual([
           { operand: "key", operator: "=", value: "quoted value" },
@@ -209,9 +209,9 @@ describe("Analytics Query Parser", () => {
         expect(result).toBeUndefined();
       });
 
-      it.skip("should handle invalid field names", () => {
+      it("should handle invalid field names", () => {
         const result = parseFiltersFromQuery("123field:value");
-        expect(result).toBeNull();
+        expect(result).toBeUndefined();
       });
 
       it("should handle invalid operators", () => {
