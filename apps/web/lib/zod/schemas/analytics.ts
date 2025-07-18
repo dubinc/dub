@@ -228,24 +228,12 @@ export const analyticsQuerySchema = z
       ),
     query: z
       .string()
-      .transform((v) => {
-        try {
-          return JSON.parse(v);
-        } catch (e) {
-          return undefined;
-        }
-      })
       .optional()
       .describe(
-        "Filter by event metadata key-value pairs as a JSON string. Only available for lead and sale events.",
+        "Search the events by a custom metadata value. Only available for lead and sale events.",
       )
       .openapi({
-        type: "object",
-        example: {
-          metadata: {
-            eventType: "project_transfer",
-          },
-        },
+        example: "metadata['key']:'value'",
       }),
   })
   .merge(utmTagsSchema);
