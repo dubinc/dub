@@ -232,6 +232,11 @@ export const trackLead = async ({
             eventId: leadEventId,
             customerId: customer.id,
             quantity: eventQuantity ?? 1,
+            context: {
+              customer: {
+                country: customer.country,
+              },
+            },
           });
         }
 

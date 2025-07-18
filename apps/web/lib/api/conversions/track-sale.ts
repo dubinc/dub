@@ -208,6 +208,14 @@ export const trackSale = async ({
           quantity: 1,
           invoiceId,
           currency,
+          context: {
+            customer: {
+              country: customer.country,
+            },
+            sale: {
+              productId: metadata?.productId as string,
+            },
+          },
         });
 
         if (commission) {
