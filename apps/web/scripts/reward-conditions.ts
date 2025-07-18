@@ -6,6 +6,18 @@ async function main() {
   const conditions = [
     {
       operator: "AND",
+      amount: 100,
+      conditions: [
+        {
+          entity: "customer",
+          attribute: "country",
+          operator: "equals_to",
+          value: "IN",
+        },
+      ],
+    },
+    {
+      operator: "AND",
       amount: 200,
       conditions: [
         {
@@ -22,24 +34,11 @@ async function main() {
         },
       ],
     },
-
-    {
-      operator: "AND",
-      amount: 100,
-      conditions: [
-        {
-          entity: "customer",
-          attribute: "country",
-          operator: "equals_to",
-          value: "IN",
-        },
-      ],
-    },
   ];
 
   await prisma.reward.update({
     where: {
-      id: "rw_1K06XABVAY518MGAA70VGPY1W",
+      id: "rw_1K0E4ND6323QZGBVA4HVHEPW9",
     },
     data: {
       modifiers: conditions,

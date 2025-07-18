@@ -90,12 +90,6 @@ export const evaluateRewardConditions = ({
       conditionsMet = conditionResults.some((result) => result);
     }
 
-    console.log("conditionGroup", {
-      conditionGroup,
-      conditionResults,
-      conditionsMet,
-    });
-
     // If this condition group matches, return it
     if (conditionsMet) {
       return conditionGroup;

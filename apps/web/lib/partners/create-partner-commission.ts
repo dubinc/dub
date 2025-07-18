@@ -12,10 +12,11 @@ import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { Session } from "../auth";
-import { RewardContext, RewardProps } from "../types";
+import { RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionEnrichedSchema } from "../zod/schemas/commissions";
 import { determinePartnerReward } from "./determine-partner-reward";
+import { RewardContext } from "./evaluate-reward-conditions";
 
 export const createPartnerCommission = async ({
   reward,

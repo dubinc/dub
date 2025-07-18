@@ -62,6 +62,11 @@ export const determinePartnerReward = async ({
 
       if (matchingCondition) {
         partnerReward.amount = matchingCondition.amount;
+
+        console.log("Matching condition found", {
+          matchingCondition: JSON.stringify(matchingCondition, null, 2),
+          context: JSON.stringify(context, null, 2),
+        });
       }
     }
   }
