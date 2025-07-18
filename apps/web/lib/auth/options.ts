@@ -12,6 +12,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client/extension";
 import { waitUntil } from "@vercel/functions";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
+import { ERedisArg } from "core/interfaces/redis.interface.ts";
 import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
 import {
   applyUserSession,
@@ -25,7 +26,6 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
-import { ERedisArg } from "../../core/interfaces/redis.interface.ts";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
@@ -45,11 +45,11 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       const { sessionId } = await getUserCookieService();
 
       const generatedUserId = sessionId ?? createId({ prefix: "user_" });
-
+      console.log("CustomPrismaAdapter generatedUserId:", generatedUserId);
       const qrDataRedis: string | null = await redis.get(
         `${ERedisArg.QR_DATA_REG}:${generatedUserId}`,
       );
-
+      console.log("CustomPrismaAdapter qrDataRedis:", qrDataRedis);
       const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
         email: data.email,

@@ -1,7 +1,7 @@
 "use server";
 
 import { redis } from "@/lib/upstash";
-import { ERedisArg } from "../../core/interfaces/redis.interface.ts";
+import { ERedisArg } from "core/interfaces/redis.interface.ts";
 import z from "../zod";
 import { actionClient } from "./safe-action";
 
@@ -39,10 +39,12 @@ export const saveQrDataToRedisAction = actionClient
       await redis.set(
         `${ERedisArg.QR_DATA_REG}:${sessionId}`,
         JSON.stringify(qrData),
-        {
-          ex: 180,
-        },
       );
+
+      const cachedRedis = await redis.get(
+        `${ERedisArg.QR_DATA_REG}:${sessionId}`,
+      );
+      console.log("saveQrDataToRedisAction cachedRedis:", cachedRedis);
     } catch (error) {
       console.error("Error saving QR data to redis:", error);
       throw new Error("Failed to save QR data");
