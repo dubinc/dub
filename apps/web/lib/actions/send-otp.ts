@@ -1,9 +1,8 @@
 "use server";
 
-import { ratelimit, redis } from "@/lib/upstash";
+import { ratelimit } from "@/lib/upstash";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
-import { get } from "@vercel/edge-config";
 import { flattenValidationErrors } from "next-safe-action";
 import { getIP } from "../api/utils";
 import { generateOTP } from "../auth";
@@ -40,33 +39,13 @@ export const sendOtpAction = actionClient
       );
     }
 
-    const domain = email.split("@")[1];
+    const userExists = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, name: true, image: true },
+    });
 
-    if (process.env.NEXT_PUBLIC_IS_DUB) {
-      const [isDisposable, emailDomainTerms] = await Promise.all([
-        redis.sismember("disposableEmailDomains", domain),
-        process.env.EDGE_CONFIG ? get("emailDomainTerms") : [],
-      ]);
-
-      if (isDisposable) {
-        throw new Error(
-          "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
-        );
-      }
-
-      if (emailDomainTerms && Array.isArray(emailDomainTerms)) {
-        const blacklistedEmailDomainTermsRegex = new RegExp(
-          emailDomainTerms
-            .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // replace special characters with escape sequences
-            .join("|"),
-        );
-
-        if (blacklistedEmailDomainTermsRegex.test(domain)) {
-          throw new Error(
-            "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
-          );
-        }
-      }
+    if (userExists) {
+      throw new Error("User with this email already exists");
     }
 
     const code = generateOTP();
