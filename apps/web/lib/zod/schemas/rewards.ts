@@ -1,7 +1,6 @@
 import { EventType, RewardStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
-import { rewardConditionsSchema } from "./reward-conditions";
 
 export const COMMISSION_TYPES = [
   {
@@ -44,7 +43,6 @@ export const createOrUpdateRewardSchema = z.object({
     .array(z.string())
     .nullish()
     .describe("Only applicable for default rewards"),
-  modifiers: rewardConditionsSchema.optional(),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
