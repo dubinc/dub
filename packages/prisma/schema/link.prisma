@@ -47,9 +47,6 @@ model Link {
   project   Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   projectId String?
 
-  // Program that the link belongs to
-  programId String?
-
   folderId String?
   folder   Folder? @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: SetNull)
 
@@ -76,10 +73,12 @@ model Link {
   comments String? @db.Text
 
   dashboard         Dashboard?
+
+  programId String?
+  program     Program?     @relation(fields: [programId], references: [id])
   partnerId         String?
   programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
 
-  program     Program?     @relation(fields: [programId], references: [id])
   customers   Customer[]
   commissions Commission[]
 
