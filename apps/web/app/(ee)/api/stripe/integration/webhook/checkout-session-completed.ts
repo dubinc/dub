@@ -23,6 +23,7 @@ import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import {
   getConnectedCustomer,
+  getSubscriptionProductId,
   updateCustomerWithStripeCustomerId,
 } from "./utils";
 
@@ -325,6 +326,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   // for program links
   if (link && link.programId && link.partnerId) {
+    const productId = await getSubscriptionProductId({
+      stripeSubscriptionId: charge.subscription as string,
+      stripeAccountId,
+      livemode: event.livemode,
+    });
+
     const commission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
@@ -341,7 +348,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           country: customer.country,
         },
         sale: {
-          productId: charge.metadata?.productId,
+          productId,
         },
       },
     });
