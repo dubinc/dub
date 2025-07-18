@@ -59,7 +59,7 @@ export async function updateStripeCustomers(
         email: true,
       },
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
       take: CUSTOMERS_PER_BATCH,
       skip: currentStartingAfter ? 1 : 0,
@@ -75,7 +75,7 @@ export async function updateStripeCustomers(
       break;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       customers.map((customer) =>
         searchStripeAndUpdateCustomer({
           workspace,
@@ -173,4 +173,8 @@ async function searchStripeAndUpdateCustomer({
       stripeCustomerId: stripeCustomer.id,
     },
   });
+
+  console.log(
+    `Updated customer ${customer.id} with Stripe customer ID ${stripeCustomer.id}`,
+  );
 }
