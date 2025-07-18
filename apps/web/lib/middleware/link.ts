@@ -299,7 +299,6 @@ export default async function LinkMiddleware(
 
   const isBot = detectBot(req);
   const ua = userAgent(req);
-  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
   const { country } =
     process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
