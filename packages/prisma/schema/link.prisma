@@ -26,7 +26,7 @@ model Link {
 
   rewrite Boolean @default(false) // whether to rewrite the link or not
 
-  evergreen Boolean? // true means it's evergreen (for domain.linkRetentionDays); default is null (not applicable)
+  linkRetentionCleanupDisabledAt DateTime? // When link retention cleanup (see domain.linkRetentionDays) was explicitly disabled
   doIndex Boolean @default(false) // we don't index short links by default
 
   // Custom device targeting
