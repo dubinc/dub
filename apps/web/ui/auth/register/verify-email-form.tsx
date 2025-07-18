@@ -48,6 +48,7 @@ export const VerifyEmailForm = ({
       trackClientEvents({
         event: EAnalyticEvents.SIGNUP_SUCCESS,
         params: {
+          page_name: "profile",
           method: "email",
           email,
           event_category: "nonAuthorized",

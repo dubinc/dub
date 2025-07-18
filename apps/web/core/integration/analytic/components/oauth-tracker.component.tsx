@@ -20,6 +20,7 @@ export const OauthTrackerComponent: FC<Readonly<IOauthTrackerProps>> = ({
           ? EAnalyticEvents.SIGNUP_SUCCESS
           : EAnalyticEvents.LOGIN_SUCCESS,
       params: {
+        page_name: "profile",
         method: provider,
         email,
         event_category: "Authorized",

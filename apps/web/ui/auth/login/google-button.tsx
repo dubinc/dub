@@ -29,6 +29,7 @@ export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
         trackClientEvents({
           event: EAnalyticEvents.ELEMENT_CLICKED,
           params: {
+            page_name: "landing",
             element_name: "login",
             content_value: "google",
             event_category: "nonAuthorized",
@@ -39,6 +40,7 @@ export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
         trackClientEvents({
           event: EAnalyticEvents.LOGIN_ATTEMPT,
           params: {
+            page_name: "landing",
             method: "google",
             event_category: "nonAuthorized",
           },

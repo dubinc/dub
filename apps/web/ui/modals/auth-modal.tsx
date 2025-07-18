@@ -54,6 +54,7 @@ export function AuthModal({
       trackClientEvents({
         event: EAnalyticEvents.ELEMENT_OPENED,
         params: {
+          page_name: "landing",
           element_name: authType,
           event_category: "nonAuthorized",
         },

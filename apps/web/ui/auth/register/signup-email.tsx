@@ -61,6 +61,7 @@ export const SignUpEmail = ({
         trackClientEvents({
           event: EAnalyticEvents.ELEMENT_CLICKED,
           params: {
+            page_name: "landing",
             element_name: "signup",
             content_value: "email",
             event_category: "nonAuthorized",
@@ -71,6 +72,7 @@ export const SignUpEmail = ({
         trackClientEvents({
           event: EAnalyticEvents.SIGNUP_ATTEMPT,
           params: {
+            page_name: "landing",
             method: "email",
             email: data.email,
             event_category: "nonAuthorized",

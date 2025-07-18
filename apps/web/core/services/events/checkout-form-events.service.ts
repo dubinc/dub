@@ -49,6 +49,7 @@ export const generateCheckoutFormPaymentEvents = ({
     subscription_id: subscriptionId,
     event_category: "Authorized",
     toxic,
+    page_name: "profile",
     ...additionalParams,
   };
 

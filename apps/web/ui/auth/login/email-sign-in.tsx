@@ -60,6 +60,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
           trackClientEvents({
             event: EAnalyticEvents.ELEMENT_CLICKED,
             params: {
+              page_name: "landing",
               element_name: "login",
               content_value: "email",
               event_category: "nonAuthorized",
@@ -70,6 +71,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
           trackClientEvents({
             event: EAnalyticEvents.LOGIN_ATTEMPT,
             params: {
+              page_name: "landing",
               method: "email",
               email: email,
               event_category: "nonAuthorized",
@@ -179,6 +181,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
             trackClientEvents({
               event: EAnalyticEvents.LOGIN_SUCCESS,
               params: {
+                page_name: "profile",
                 method: "email",
                 email: email,
                 event_category: "Authorized",
