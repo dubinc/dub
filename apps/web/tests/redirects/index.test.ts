@@ -103,6 +103,17 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("singular tracking url", async () => {
+    const response = await fetch(`${h.baseUrl}/singular`, fetchOptions);
+
+    // location to include  cl, ua, ip query params
+    expect(response.headers.get("location")).toMatch(/cl=[a-zA-Z0-9]+/);
+    expect(response.headers.get("location")).toMatch(/ua=[a-zA-Z0-9]+/);
+    expect(response.headers.get("location")).toMatch(/ip=[a-zA-Z0-9]+/);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("query params with no value", async () => {
     const response = await fetch(
       `${h.baseUrl}/query-params-no-value`,
