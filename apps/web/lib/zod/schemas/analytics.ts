@@ -137,6 +137,10 @@ export const analyticsQuerySchema = z
         "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
       )
       .openapi({ example: "America/New_York", default: "UTC" }),
+    saleType: z
+      .enum(["new", "recurring"])
+      .optional()
+      .describe("The sale type to retrieve analytics for."),
     country: z
       .enum(COUNTRY_CODES)
       .optional()
@@ -238,6 +242,7 @@ export const analyticsFilterTB = z
       .optional()
       .transform((v) => (v ? prefixWorkspaceId(v) : undefined)),
     customerId: z.string().optional(),
+    saleType: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
     start: z.string(),
