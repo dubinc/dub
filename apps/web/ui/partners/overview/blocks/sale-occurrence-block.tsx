@@ -9,7 +9,7 @@ import { useContext, useMemo, useState } from "react";
 import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
-export function SaleTypeBlock() {
+export function SaleOccurrenceBlock() {
   const { slug: workspaceSlug } = useWorkspace();
 
   const { getQueryString } = useRouterStuff();
@@ -27,7 +27,7 @@ export function SaleTypeBlock() {
     `/api/analytics?${editQueryString(queryString, {
       event: "sales",
       groupBy: "count",
-      saleType: "recurring",
+      saleOccurrence: "recurring",
     })}`,
     fetcher,
     {
@@ -112,7 +112,7 @@ export function SaleTypeBlock() {
                   <Link
                     key={item.key}
                     href={`/${workspaceSlug}/program/analytics${getQueryString(
-                      { tab: "sales", saleType: item.key },
+                      { tab: "sales", saleOccurrence: item.key },
                       {
                         include: ["interval", "start", "end"],
                       },

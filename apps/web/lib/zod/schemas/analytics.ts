@@ -137,10 +137,6 @@ export const analyticsQuerySchema = z
         "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
       )
       .openapi({ example: "America/New_York", default: "UTC" }),
-    saleType: z
-      .enum(["new", "recurring"])
-      .optional()
-      .describe("The sale type to retrieve analytics for."),
     country: z
       .enum(COUNTRY_CODES)
       .optional()
@@ -230,6 +226,12 @@ export const analyticsQuerySchema = z
       .describe(
         "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
       ),
+    saleOccurrence: z
+      .enum(["new", "recurring"])
+      .optional()
+      .describe(
+        "The sale occurrence to retrieve analytics for (to differentiate between first and recurring sales). If undefined, return both.",
+      ),
   })
   .merge(utmTagsSchema);
 
@@ -242,8 +244,8 @@ export const analyticsFilterTB = z
       .optional()
       .transform((v) => (v ? prefixWorkspaceId(v) : undefined)),
     customerId: z.string().optional(),
-    saleType: z.string().optional(),
     root: z.boolean().optional(),
+    saleOccurrence: z.string().optional(),
     qr: z.boolean().optional(),
     start: z.string(),
     end: z.string(),

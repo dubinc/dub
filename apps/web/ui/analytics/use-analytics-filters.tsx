@@ -464,6 +464,24 @@ export function useAnalyticsFilters({
             icon,
           })) ?? null,
       },
+      {
+        key: "saleOccurrence",
+        icon: Receipt2,
+        label: "Sale occurrence",
+        separatorAfter: true,
+        options: [
+          {
+            value: "new",
+            label: "New",
+            icon: UserPlus,
+          },
+          {
+            value: "recurring",
+            label: "Recurring",
+            icon: Calendar6,
+          },
+        ],
+      },
       ...(dashboardProps
         ? []
         : programPage
@@ -489,24 +507,6 @@ export function useAnalyticsFilters({
                       right: getFilterOptionTotal(rest),
                     };
                   }) ?? null,
-              },
-              {
-                key: "saleType",
-                icon: Receipt2,
-                label: "Sale type",
-                separatorAfter: true,
-                options: [
-                  {
-                    value: "new",
-                    label: "First",
-                    icon: UserPlus,
-                  },
-                  {
-                    value: "recurring",
-                    label: "Recurring",
-                    icon: Calendar6,
-                  },
-                ],
               },
             ]
           : partnerPage
