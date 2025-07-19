@@ -40,7 +40,7 @@ const AddPartnerLinkModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { register, handleSubmit, watch } = useForm<FormData>({
+  const { register, handleSubmit, watch, setError, clearErrors, formState } = useForm<FormData>({
     defaultValues: {
       url: "",
       key: "",
@@ -91,7 +91,11 @@ const AddPartnerLinkModal = ({
       copyToClipboard(data.shortLink);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "Failed to create link.",
+        error instanceof Error && error.message === "Invalid key."
+          ? "Enter a valid short link"
+          : error instanceof Error
+            ? error.message
+            : "Failed to create link."
       );
     } finally {
       setIsSubmitting(false);
@@ -188,9 +192,14 @@ const AddPartnerLinkModal = ({
                 <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
                   {destinationDomain}
                 </span>
-
                 <input
-                  {...register("url", { required: false })}
+                  {...register("url", { 
+                    required: false,
+                    validate: value =>
+                      value && /\s/.test(value)
+                        ? "Enter a valid URL"
+                        : true
+                  })}
                   type="text"
                   id="url"
                   placeholder="(optional)"
@@ -209,6 +218,11 @@ const AddPartnerLinkModal = ({
                   }}
                 />
               </div>
+              {formState.errors.url && (
+                <span className="mt-1 block text-sm text-red-600 dark:text-red-400">
+                  {formState.errors.url.message}
+                </span>
+              )}
             </div>
           </div>
         </div>
