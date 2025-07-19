@@ -12,6 +12,7 @@ import { QRCodeDemoMap } from "@/ui/qr-builder/components/qr-code-demos/qr-code-
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { parseQRData } from "@/ui/utils/qr-data-parser.ts";
 import { ICustomerBody } from "core/integration/payment/config";
+import { Options } from "qr-code-styling/lib/types";
 import { FC, useMemo, useRef } from "react";
 
 interface IPlansContentProps {
@@ -42,7 +43,10 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({ user }) => {
       return {};
     }
 
-    return parseQRData(mostScannedQR.qrType as EQRType, mostScannedQR.data);
+    return parseQRData(
+      mostScannedQR.qrType as EQRType,
+      (mostScannedQR.styles as Options)?.data || mostScannedQR.data,
+    );
   }, [mostScannedQR, qrCodeDemo]);
 
   const handleScrollToPayment = () => {

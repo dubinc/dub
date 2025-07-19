@@ -6,29 +6,31 @@ import { QRCodeDemoWebsite } from "./demos/website";
 import { QRCodeDemoWhatsapp } from "./demos/whatsapp";
 import { QRCodeDemoWifi } from "./demos/wifi";
 
+const addSmallPreview = (propsKeys: string[]) => [...propsKeys, "smallPreview"];
+
 export const QRCodeDemoMap = {
   [EQRType.WEBSITE]: {
     Component: QRCodeDemoWebsite,
-    propsKeys: ["websiteLink"],
+    propsKeys: addSmallPreview(["websiteLink"]),
   },
   [EQRType.WHATSAPP]: {
     Component: QRCodeDemoWhatsapp,
-    propsKeys: ["number", "message"],
+    propsKeys: addSmallPreview(["number", "message"]),
   },
   [EQRType.WIFI]: {
     Component: QRCodeDemoWifi,
-    propsKeys: ["networkName"],
+    propsKeys: addSmallPreview(["networkName"]),
   },
   [EQRType.PDF]: {
     Component: QRCodeDemoPdf,
-    propsKeys: ["filesPDF"],
+    propsKeys: addSmallPreview(["filesPDF"]),
   },
   [EQRType.IMAGE]: {
     Component: QRCodeDemoImage,
-    propsKeys: ["filesImage"],
+    propsKeys: addSmallPreview(["filesImage"]),
   },
   [EQRType.VIDEO]: {
     Component: QRCodeDemoVideo,
-    propsKeys: ["filesVideo"],
+    propsKeys: addSmallPreview(["filesVideo"]),
   },
 };

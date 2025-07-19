@@ -1,4 +1,5 @@
 import PdfDemoPlaceholder from "@/ui/qr-builder/components/qr-code-demos/demos/placeholders/pdf-demo-placeholder.webp";
+import { cn } from "@dub/utils";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 
@@ -18,9 +19,13 @@ const PdfViewer = dynamic(() => import("../pdf-viewer.tsx"), {
 
 interface IQRCodeDemoPdfProps {
   filesPDF?: File[] | string;
+  smallPreview?: boolean;
 }
 
-export default function QRCodeDemoPdf({ filesPDF }: IQRCodeDemoPdfProps) {
+export default function QRCodeDemoPdf({
+  filesPDF,
+  smallPreview = false,
+}: IQRCodeDemoPdfProps) {
   const file = typeof filesPDF === "string" ? undefined : filesPDF?.[0];
   const url = typeof filesPDF === "string" ? filesPDF : undefined;
 
@@ -32,6 +37,9 @@ export default function QRCodeDemoPdf({ filesPDF }: IQRCodeDemoPdfProps) {
       width="270"
       height="352"
       viewBox="0 0 270 352"
+      className={cn("", {
+        "h-[180px] w-[138px] lg:h-[209px] lg:w-[158px]": smallPreview,
+      })}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
