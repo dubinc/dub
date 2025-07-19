@@ -7,7 +7,7 @@ import { getLeadEvent } from "@/lib/tinybird";
 import { recordClick } from "@/lib/tinybird/record-click";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
-import z from "@/lib/zod";
+import { ClickEventTB, LeadEventTB } from "@/lib/types";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
@@ -103,8 +103,8 @@ export const createCommissionAction = authActionClient
       }
     }
 
-    let clickEvent: z.infer<typeof clickEventSchemaTB> | null = null;
-    let leadEvent: z.infer<typeof leadEventSchemaTB> | null = null;
+    let clickEvent: ClickEventTB | null = null;
+    let leadEvent: LeadEventTB | null = null;
     let shouldUpdateCustomer = false;
 
     const existingLeadEvent = await getLeadEvent({
@@ -181,6 +181,11 @@ export const createCommissionAction = authActionClient
           quantity: 1,
           createdAt: finalLeadEventDate,
           user,
+          context: {
+            customer: {
+              country: customer.country,
+            },
+          },
         }),
       ]);
     }
@@ -217,6 +222,11 @@ export const createCommissionAction = authActionClient
           currency: "usd",
           createdAt: saleDate,
           user,
+          context: {
+            customer: {
+              country: customer.country,
+            },
+          },
         }),
       ]);
     }

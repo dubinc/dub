@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import { DUB_WORKSPACE_ID } from "@dub/utils";
 import "dotenv-flow/config";
@@ -5,18 +6,16 @@ import "dotenv-flow/config";
 async function main() {
   const integration = await prisma.integration.create({
     data: {
-      name: "Slack",
-      slug: "slack",
-      description: "Create links from Slack messages easily with Dub.",
+      id: createId({ prefix: "int_" }),
+      name: "Singular",
+      slug: "singular",
+      description: "Track Singular events with Dub.",
       developer: "Dub",
       website: "https://dub.co",
       verified: true,
       projectId: DUB_WORKSPACE_ID,
-
-      // screenshots: [],
-      // userId: "",
-      // logo: "",
-      // readme: "",
+      category: "",
+      guideUrl: "",
     },
   });
 

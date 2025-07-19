@@ -2,7 +2,6 @@ import { sendEmail } from "@dub/email";
 import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { Customer, Project } from "@dub/prisma/client";
-import { log } from "@dub/utils";
 import { stripeAppClient } from "../stripe";
 import { MAX_BATCHES, partnerStackImporter } from "./importer";
 import { PartnerStackImportPayload } from "./types";
@@ -59,7 +58,7 @@ export async function updateStripeCustomers(
         email: true,
       },
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
       take: CUSTOMERS_PER_BATCH,
       skip: currentStartingAfter ? 1 : 0,
@@ -75,7 +74,7 @@ export async function updateStripeCustomers(
       break;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       customers.map((customer) =>
         searchStripeAndUpdateCustomer({
           workspace,
@@ -151,11 +150,6 @@ async function searchStripeAndUpdateCustomer({
   }
 
   if (stripeCustomers.data.length > 1) {
-    await log({
-      message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug}`,
-      type: "errors",
-    });
-
     console.error(
       `Stripe search returned multiple customers for ${customer.email}`,
     );
@@ -173,4 +167,8 @@ async function searchStripeAndUpdateCustomer({
       stripeCustomerId: stripeCustomer.id,
     },
   });
+
+  console.log(
+    `Updated customer ${customer.id} with Stripe customer ID ${stripeCustomer.id}`,
+  );
 }

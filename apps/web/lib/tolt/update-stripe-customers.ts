@@ -1,6 +1,5 @@
 import { prisma } from "@dub/prisma";
 import { Customer, Project } from "@dub/prisma/client";
-import { log } from "@dub/utils";
 import Stripe from "stripe";
 import { stripeAppClient } from "../stripe";
 import { MAX_BATCHES, toltImporter } from "./importer";
@@ -57,7 +56,7 @@ export async function updateStripeCustomers({
         email: true,
       },
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
       take: CUSTOMERS_PER_BATCH,
       skip: startingAfter ? 1 : 0,
@@ -73,7 +72,7 @@ export async function updateStripeCustomers({
       break;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       customers.map((customer) =>
         searchStripeAndUpdateCustomer({
           workspace,
@@ -127,11 +126,6 @@ async function searchStripeAndUpdateCustomer({
     if (toltReferralStripeCustomer) {
       stripeCustomer = toltReferralStripeCustomer;
     } else {
-      await log({
-        message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.tolt_referral set`,
-        type: "errors",
-      });
-
       console.error(
         `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.tolt_referral set`,
       );
@@ -150,4 +144,8 @@ async function searchStripeAndUpdateCustomer({
       stripeCustomerId: stripeCustomer.id,
     },
   });
+
+  console.log(
+    `Updated customer ${customer.id} with Stripe customer ID ${stripeCustomer.id}`,
+  );
 }

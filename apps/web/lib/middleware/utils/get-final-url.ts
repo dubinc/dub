@@ -1,10 +1,23 @@
-import { REDIRECTION_QUERY_PARAM } from "@dub/utils/src/constants";
+import {
+  LOCALHOST_IP,
+  REDIRECTION_QUERY_PARAM,
+} from "@dub/utils/src/constants";
 import { getUrlFromStringIfValid } from "@dub/utils/src/functions";
-import { NextRequest } from "next/server";
+import { ipAddress } from "@vercel/functions";
+import { NextRequest, userAgent } from "next/server";
+import { isSingularTrackingUrl } from "./is-singular-tracking-url";
 
 export const getFinalUrl = (
   url: string,
-  { req, clickId, via }: { req: NextRequest; clickId?: string; via?: string },
+  {
+    req,
+    clickId,
+    via,
+  }: {
+    req: NextRequest;
+    clickId?: string;
+    via?: string;
+  },
 ) => {
   // query is the query string (e.g. d.to/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
@@ -19,6 +32,15 @@ export const getFinalUrl = (
 
   if (via) {
     urlObj.searchParams.set("via", via);
+  }
+
+  // for Singular tracking links
+  if (isSingularTrackingUrl(url)) {
+    const ua = userAgent(req);
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    urlObj.searchParams.set("cl", clickId ?? "");
+    urlObj.searchParams.set("ua", ua?.ua ?? "");
+    urlObj.searchParams.set("ip", ip ?? "");
   }
 
   if (clickId) {

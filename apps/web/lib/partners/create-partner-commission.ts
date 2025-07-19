@@ -12,7 +12,7 @@ import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { Session } from "../auth";
-import { RewardProps } from "../types";
+import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionEnrichedSchema } from "../zod/schemas/commissions";
 import { determinePartnerReward } from "./determine-partner-reward";
@@ -32,6 +32,7 @@ export const createPartnerCommission = async ({
   description,
   createdAt,
   user,
+  context,
 }: {
   // we optionally let the caller pass in a reward to avoid a db call
   // (e.g. in aggregate-clicks route)
@@ -49,6 +50,7 @@ export const createPartnerCommission = async ({
   description?: string;
   createdAt?: Date;
   user?: Session["user"]; // user who created the manual commission
+  context?: RewardContext;
 }) => {
   let earnings = 0;
   let status: CommissionStatus = "pending";
@@ -62,6 +64,7 @@ export const createPartnerCommission = async ({
         event: event as EventType,
         partnerId,
         programId,
+        context,
       });
     }
 
