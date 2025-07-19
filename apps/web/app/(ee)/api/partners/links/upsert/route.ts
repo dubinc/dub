@@ -97,6 +97,11 @@ export const PUT = withWorkspace(
           link.testStartedAt instanceof Date
             ? link.testStartedAt.toISOString()
             : link.testStartedAt,
+        linkRetentionCleanupDisabledAt:
+          link.linkRetentionCleanupDisabledAt instanceof Date
+            ? link.linkRetentionCleanupDisabledAt.toISOString()
+            : link.linkRetentionCleanupDisabledAt,
+
         // merge in new props
         ...linkProps,
         // set default fields
