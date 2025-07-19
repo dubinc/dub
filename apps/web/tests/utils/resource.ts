@@ -36,6 +36,28 @@ export const E2E_NO_ACCESS_FOLDER_ID = "fold_1JP8FNC96CRGVKAVYAEV80A1M"; // Fold
 export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_1JP8FP63J6JSE85GRZVV2ZP1T"; // A link in read-only folder
 export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_1JP8FQE9VSVBG2G2Z6EBZWYF6"; // A link in no access folder
 
+// Rewards specific
+export const E2E_CUSTOMER_EXTERNAL_ID_2 = "cus_pqc8qRtofpu6ZqvutyNDGAU2";
+export const E2E_REWARD = {
+  id: "rw_1JYPP77NNDG6TVPAJDKNZREQN",
+  event: "sale",
+  amount: 1000,
+  modifiers: [
+    {
+      operator: "AND",
+      amount: 3000,
+      conditions: [
+        {
+          entity: "sale",
+          attribute: "productId",
+          operator: "equals_to",
+          value: "premiumProductId",
+        },
+      ],
+    },
+  ],
+};
+
 // Discounts specific
 export const E2E_CUSTOMER_WITH_DISCOUNT = {
   id: "cus_pNGuZQJrAKjzttQTZMI4a46y",

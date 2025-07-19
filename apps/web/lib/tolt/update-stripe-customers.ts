@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { Customer, Project } from "@dub/prisma/client";
-import { log } from "@dub/utils";
+import Stripe from "stripe";
 import { stripeAppClient } from "../stripe";
 import { MAX_BATCHES, toltImporter } from "./importer";
 
@@ -56,7 +56,7 @@ export async function updateStripeCustomers({
         email: true,
       },
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
       take: CUSTOMERS_PER_BATCH,
       skip: startingAfter ? 1 : 0,
@@ -72,7 +72,7 @@ export async function updateStripeCustomers({
       break;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       customers.map((customer) =>
         searchStripeAndUpdateCustomer({
           workspace,
@@ -115,20 +115,26 @@ async function searchStripeAndUpdateCustomer({
     return null;
   }
 
-  if (stripeCustomers.data.length > 1) {
-    await log({
-      message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug}`,
-      type: "errors",
-    });
+  let stripeCustomer: Stripe.Customer;
 
-    console.error(
-      `Stripe search returned multiple customers for ${customer.email}`,
+  if (stripeCustomers.data.length > 1) {
+    // look for the one with metadata.tolt_referral set
+    const toltReferralStripeCustomer = stripeCustomers.data.find(
+      (customer) => customer.metadata.tolt_referral,
     );
 
-    return null;
+    if (toltReferralStripeCustomer) {
+      stripeCustomer = toltReferralStripeCustomer;
+    } else {
+      console.error(
+        `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.tolt_referral set`,
+      );
+
+      return null;
+    }
   }
 
-  const stripeCustomer = stripeCustomers.data[0];
+  stripeCustomer = stripeCustomers.data[0];
 
   await prisma.customer.update({
     where: {
@@ -138,4 +144,8 @@ async function searchStripeAndUpdateCustomer({
       stripeCustomerId: stripeCustomer.id,
     },
   });
+
+  console.log(
+    `Updated customer ${customer.id} with Stripe customer ID ${stripeCustomer.id}`,
+  );
 }

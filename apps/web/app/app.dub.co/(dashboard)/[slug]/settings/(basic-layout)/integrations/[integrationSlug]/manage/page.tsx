@@ -4,6 +4,8 @@ import { prisma } from "@dub/prisma";
 import { MaxWidthWrapper } from "@dub/ui";
 import { notFound } from "next/navigation";
 
+export const revalidate = 0;
+
 export default async function IntegrationManagePage({
   params,
 }: {

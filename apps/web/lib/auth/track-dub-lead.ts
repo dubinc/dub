@@ -2,7 +2,7 @@ import { dub } from "@/lib/dub";
 import { User } from "next-auth";
 import { cookies } from "next/headers";
 
-export const trackLead = async (user: User) => {
+export const trackDubLead = async (user: User) => {
   const clickId = cookies().get("dub_id")?.value;
 
   if (!clickId) {
