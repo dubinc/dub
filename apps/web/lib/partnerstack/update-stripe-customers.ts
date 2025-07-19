@@ -2,6 +2,7 @@ import { sendEmail } from "@dub/email";
 import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { Customer, Project } from "@dub/prisma/client";
+import Stripe from "stripe";
 import { stripeAppClient } from "../stripe";
 import { MAX_BATCHES, partnerStackImporter } from "./importer";
 import { PartnerStackImportPayload } from "./types";
@@ -149,15 +150,26 @@ async function searchStripeAndUpdateCustomer({
     return null;
   }
 
+  let stripeCustomer: Stripe.Customer;
+
   if (stripeCustomers.data.length > 1) {
-    console.error(
-      `Stripe search returned multiple customers for ${customer.email}`,
+    // look for the one with metadata.customer_key set
+    const partnerStackStripeCustomer = stripeCustomers.data.find(
+      ({ metadata }) => metadata.customer_key,
     );
 
-    return null;
-  }
+    if (partnerStackStripeCustomer) {
+      stripeCustomer = partnerStackStripeCustomer;
+    } else {
+      console.error(
+        `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.customer_key set`,
+      );
 
-  const stripeCustomer = stripeCustomers.data[0];
+      return null;
+    }
+  } else {
+    stripeCustomer = stripeCustomers.data[0];
+  }
 
   await prisma.customer.update({
     where: {
