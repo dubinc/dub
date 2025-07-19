@@ -1,12 +1,17 @@
+import { cn } from "@dub/utils";
 import Image from "next/image";
 import { FC, useEffect, useState } from "react";
 import ImageDemoPlaceholder from "./placeholders/video-demo-placeholder.webp";
 
 interface IQRCodeDemoVideoProps {
   filesVideo?: File[] | string;
+  smallPreview?: boolean;
 }
 
-export const QRCodeDemoVideo: FC<IQRCodeDemoVideoProps> = ({ filesVideo }) => {
+export const QRCodeDemoVideo: FC<IQRCodeDemoVideoProps> = ({
+  filesVideo,
+  smallPreview = false,
+}) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const generateVideoPreview = (videoSrc: string, cleanup?: () => void) => {
@@ -59,6 +64,9 @@ export const QRCodeDemoVideo: FC<IQRCodeDemoVideoProps> = ({ filesVideo }) => {
       width="270"
       height="352"
       viewBox="0 0 270 352"
+      className={cn("", {
+        "h-[180px] w-[138px] lg:h-[209px] lg:w-[158px]": smallPreview,
+      })}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"

@@ -1,11 +1,16 @@
 import { DEFAULT_WIFI_NETWORK_NAME } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
+import { cn } from "@dub/utils";
 import { FC, useEffect, useState } from "react";
 
 interface IQRCodeDemoWifiProps {
   networkName: string;
+  smallPreview?: boolean;
 }
 
-export const QRCodeDemoWifi: FC<IQRCodeDemoWifiProps> = ({ networkName }) => {
+export const QRCodeDemoWifi: FC<IQRCodeDemoWifiProps> = ({
+  networkName,
+  smallPreview = false,
+}) => {
   const [currentNetworkName, setCurrentNetworkName] = useState<string>(
     networkName || DEFAULT_WIFI_NETWORK_NAME,
   );
@@ -19,6 +24,9 @@ export const QRCodeDemoWifi: FC<IQRCodeDemoWifiProps> = ({ networkName }) => {
       width="270"
       height="352"
       viewBox="0 0 270 352"
+      className={cn("", {
+        "h-[180px] w-[138px] lg:h-[209px] lg:w-[158px]": smallPreview,
+      })}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >

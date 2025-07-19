@@ -1,4 +1,5 @@
 import { DEFAULT_WHATSAPP_MESSAGE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
+import { cn } from "@dub/utils";
 import { Text } from "@radix-ui/themes";
 import { FC, useEffect, useState } from "react";
 
@@ -7,11 +8,13 @@ const DEFAULT_NUMBER = "+1 123 456 789";
 interface IQRCodeDemoWhatsappProps {
   number: string;
   message: string;
+  smallPreview?: boolean;
 }
 
 export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
   number,
   message,
+  smallPreview = false,
 }) => {
   const [currentNumber, setCurrentNumber] = useState<string>(
     number || DEFAULT_NUMBER,
@@ -30,13 +33,33 @@ export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
 
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="relative flex h-[200px] w-[200px] flex-col overflow-hidden rounded-t-[14px] md:h-[352px] md:w-[270px] md:rounded-t-[22px]">
-        <div className="flex h-[40px] items-center bg-[#115740] px-2 md:h-16 md:px-3">
-          <div className="mr-1 md:mr-2">
+      <div
+        className={cn(
+          "relative flex h-[200px] w-[200px] flex-col overflow-hidden rounded-t-[14px] md:h-[352px] md:w-[270px] md:rounded-t-[22px]",
+          {
+            "h-[180px] w-[138px] lg:h-[209px] lg:w-[158px]": smallPreview,
+          },
+        )}
+      >
+        <div
+          className={cn(
+            "flex h-[40px] items-center bg-[#115740] px-2 md:h-16 md:px-3",
+            {
+              "h-10 md:h-10": smallPreview,
+            },
+          )}
+        >
+          <div
+            className={cn("mr-1 md:mr-2", {
+              "mr-1 md:mr-1": smallPreview,
+            })}
+          >
             <svg
               width="16"
               height="16"
-              className="md:h-[20px] md:w-[20px]"
+              className={cn("md:h-[20px] md:w-[20px]", {
+                "h-[11px] w-[11px] md:h-[12px] md:w-[12px]": smallPreview,
+              })}
               viewBox="0 0 20 20"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -51,11 +74,17 @@ export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
             </svg>
           </div>
 
-          <div className="mr-1 md:mr-2">
+          <div
+            className={cn("mr-1 md:mr-2", {
+              "mr-1 md:mr-1": smallPreview,
+            })}
+          >
             <svg
               width="20"
               height="20"
-              className="md:h-[28px] md:w-[28px]"
+              className={cn("md:h-[28px] md:w-[28px]", {
+                "h-[14px] w-[14px] md:h-[15px] md:w-[15px]": smallPreview,
+              })}
               viewBox="0 0 28 28"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -74,16 +103,26 @@ export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
             </svg>
           </div>
 
-          <div className="text-[10px] text-white md:text-sm">
+          <div
+            className={cn("text-[10px] text-white md:text-sm", {
+              "text-[9px] md:text-[10px]": smallPreview,
+            })}
+          >
             {currentNumber}
           </div>
 
-          <div className="ml-auto flex gap-2 text-white">
+          <div
+            className={cn("ml-auto flex gap-2 text-white", {
+              "gap-1": smallPreview,
+            })}
+          >
             <span>
               <svg
                 width="16"
                 height="16"
-                className="md:h-[20px] md:w-[20px]"
+                className={cn("md:h-[20px] md:w-[20px]", {
+                  "h-[11px] w-[11px] md:h-[11px] md:w-[11px]": smallPreview,
+                })}
                 viewBox="0 0 20 20"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -98,7 +137,9 @@ export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
               <svg
                 width="16"
                 height="16"
-                className="md:h-[20px] md:w-[20px]"
+                className={cn("md:h-[20px] md:w-[20px]", {
+                  "h-[11px] w-[11px] md:h-[11px] md:w-[11px]": smallPreview,
+                })}
                 viewBox="0 0 20 20"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
