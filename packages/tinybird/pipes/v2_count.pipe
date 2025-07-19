@@ -178,7 +178,7 @@ SQL >
 
 
 
-NODE count_sales_with_occurrence
+NODE count_sales_with_type
 SQL >
 
     %
@@ -252,9 +252,9 @@ SQL >
             INNER JOIN min_timestamps USING (customer_id, link_id)
             WHERE
                 1 = 1
-                {% if defined(saleOccurrence) %}
-                    {% if saleOccurrence == 'new' %} AND timestamp <= first_sale_ts
-                    {% elif saleOccurrence == 'recurring' %} AND timestamp > first_sale_ts
+                {% if defined(saleType) %}
+                    {% if saleType == 'new' %} AND timestamp <= first_sale_ts
+                    {% elif saleType == 'recurring' %} AND timestamp > first_sale_ts
                     {% end %}
                 {% end %}
         ) AS subquery
@@ -277,7 +277,7 @@ SQL >
         {% if eventType == 'clicks' %} count_clicks
         {% elif eventType == 'leads' %} count_leads
         {% elif eventType == 'sales' %}
-          {% if defined(saleType) %} count_sales_with_occurrence {% else %} count_sales {% end %}
+          {% if defined(saleType) %} count_sales {% else %} count_sales {% end %}
         {% else %} count_composite
         {% end %}
 

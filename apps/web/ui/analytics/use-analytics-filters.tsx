@@ -465,9 +465,9 @@ export function useAnalyticsFilters({
           })) ?? null,
       },
       {
-        key: "saleOccurrence",
+        key: "saleType",
         icon: Receipt2,
-        label: "Sale occurrence",
+        label: "Sale type",
         separatorAfter: true,
         options: [
           {

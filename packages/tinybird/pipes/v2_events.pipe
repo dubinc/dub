@@ -180,7 +180,7 @@ SQL >
 
 
 
-NODE sale_events_with_occurrence
+NODE sale_events_with_type
 SQL >
 
     %
@@ -243,14 +243,14 @@ SQL >
             WHERE (customer_id, link_id) IN distinct_sales
             GROUP BY customer_id, link_id
         )
-    SELECT *, CASE WHEN timestamp = first_sale_ts THEN 'new' ELSE 'recurring' END as sale_occurrence
+    SELECT *, CASE WHEN timestamp = first_sale_ts THEN 'new' ELSE 'recurring' END as sale_type
     FROM sales
     INNER JOIN min_timestamps USING (customer_id, link_id)
     WHERE
         1 = 1
-        {% if defined(saleOccurrence) %}
-            {% if saleOccurrence == 'new' %} AND timestamp = first_sale_ts
-            {% elif saleOccurrence == 'recurring' %} AND timestamp > first_sale_ts
+        {% if defined(saleType) %}
+            {% if saleType == 'new' %} AND timestamp = first_sale_ts
+            {% elif saleType == 'recurring' %} AND timestamp > first_sale_ts
             {% end %}
         {% end %}
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
@@ -267,7 +267,7 @@ SQL >
     FROM
         {% if eventType == 'leads' %} lead_events
         {% elif eventType == 'sales' %}
-          {% if defined(saleOccurrence) %} sale_events_with_occurrence {% else %} sale_events {% end %}
+          {% if defined(saleType) %} sale_events_with_type {% else %} sale_events {% end %}
         {% else %} click_events
         {% end %}
 
