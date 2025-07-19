@@ -105,7 +105,7 @@ export const QRCodeDemoWhatsapp: FC<IQRCodeDemoWhatsappProps> = ({
 
           <div
             className={cn("text-[10px] text-white md:text-sm", {
-              "text-[9px] md:text-[10px]": smallPreview,
+              "text-[8px] md:text-[10px]": smallPreview,
             })}
           >
             {currentNumber}
