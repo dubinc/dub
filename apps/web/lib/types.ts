@@ -68,7 +68,13 @@ import {
   ProgramSchema,
   ProgramWithLanderDataSchema,
 } from "./zod/schemas/programs";
-import { RewardSchema } from "./zod/schemas/rewards";
+import {
+  rewardConditionsArraySchema,
+  rewardConditionSchema,
+  rewardConditionsSchema,
+  rewardContextSchema,
+  RewardSchema,
+} from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
   trackSaleResponseSchema,
@@ -471,8 +477,6 @@ export type FolderWithPermissions = {
 
 export type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
 
-// Rewards
-
 export type RewardProps = z.infer<typeof RewardSchema>;
 
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
@@ -495,6 +499,14 @@ export interface FolderLinkCount {
   folderId: string;
   _count: number;
 }
+
+export type RewardContext = z.infer<typeof rewardContextSchema>;
+
+export type RewardCondition = z.infer<typeof rewardConditionSchema>;
+
+export type RewardConditions = z.infer<typeof rewardConditionsSchema>;
+
+export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
 
 export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
