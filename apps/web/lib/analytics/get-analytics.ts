@@ -13,6 +13,7 @@ import {
   SINGULAR_ANALYTICS_ENDPOINTS,
 } from "./constants";
 import { AnalyticsFilters } from "./types";
+import { parseFiltersFromQuery } from "./utils/analytics-query-parser";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/analytics
@@ -32,6 +33,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone = "UTC",
     isDeprecatedClicksEndpoint = false,
     dataAvailableFrom,
+    query,
   } = params;
 
   const tagIds = combineTagIds(params);
@@ -104,6 +106,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         : analyticsResponse[groupBy],
   });
 
+  const filters = parseFiltersFromQuery(query);
+
   const response = await pipe({
     ...params,
     ...(UTM_TAGS_PLURAL_LIST.includes(groupBy)
@@ -119,6 +123,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone,
     country,
     region,
+    filters: filters ? JSON.stringify(filters) : undefined,
   });
 
   if (groupBy === "count") {

@@ -226,6 +226,15 @@ export const analyticsQuerySchema = z
       .describe(
         "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
       ),
+    query: z
+      .string()
+      .optional()
+      .describe(
+        "Search the events by a custom metadata value. Only available for lead and sale events.",
+      )
+      .openapi({
+        example: "metadata['key']:'value'",
+      }),
   })
   .merge(utmTagsSchema);
 
@@ -254,6 +263,10 @@ export const analyticsFilterTB = z
       .optional()
       .describe("The folder IDs to retrieve analytics for."),
     isMegaFolder: z.boolean().optional(),
+    filters: z
+      .string()
+      .optional()
+      .describe("The filters to apply to the analytics."),
   })
   .merge(
     analyticsQuerySchema.pick({
