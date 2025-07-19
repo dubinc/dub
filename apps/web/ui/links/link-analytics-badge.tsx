@@ -98,6 +98,7 @@ export function LinkAnalyticsBadge({
       <Tooltip
         key={modalShowCount}
         side="top"
+        delayDuration={500}
         content={
           <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-neutral-600">
             {stats.map(({ id: tab, value }) => (

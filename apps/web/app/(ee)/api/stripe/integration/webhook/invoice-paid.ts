@@ -189,6 +189,14 @@ export async function invoicePaid(event: Stripe.Event) {
       quantity: 1,
       invoiceId,
       currency: saleData.currency,
+      context: {
+        customer: {
+          country: customer.country,
+        },
+        sale: {
+          productId: invoice.lines.data[0]?.pricing?.price_details?.product,
+        },
+      },
     });
 
     if (commission) {

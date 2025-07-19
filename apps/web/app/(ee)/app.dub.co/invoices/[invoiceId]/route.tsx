@@ -82,11 +82,21 @@ export const GET = withSession(async ({ session, params }) => {
     });
   }
 
-  const customer = invoice.workspace.stripeId
-    ? ((await stripe.customers.retrieve(invoice.workspace.stripeId, {
-        expand: ["tax_ids"],
-      })) as Stripe.Customer | null)
-    : null;
+  let customer: Stripe.Customer | null = null;
+
+  if (invoice.workspace.stripeId) {
+    try {
+      const response = await stripe.customers.retrieve(
+        invoice.workspace.stripeId,
+        {
+          expand: ["tax_ids"],
+        },
+      );
+      customer = response as Stripe.Customer;
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   const { amount: chargeAmount, currency: chargeCurrency } =
     invoice.stripeChargeMetadata

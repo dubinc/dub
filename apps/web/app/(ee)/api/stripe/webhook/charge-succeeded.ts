@@ -64,11 +64,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
     body: {
-      chargeId,
       invoiceId: invoice.id,
-      achCreditTransfer: Boolean(
-        charge.payment_method_details?.ach_credit_transfer,
-      ),
     },
   });
 

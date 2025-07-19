@@ -15,6 +15,7 @@ import {
   Users2,
 } from "@dub/ui";
 import { cn, isDowngradePlan, PLAN_COMPARE_FEATURES, PLANS } from "@dub/utils";
+import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -38,7 +39,7 @@ const plans = ["Pro", "Business", "Advanced", "Enterprise"].map(
 );
 
 export function WorkspaceBillingUpgradePageClient() {
-  const { slug, plan: currentPlan, stripeId } = useWorkspace();
+  const { slug, plan: currentPlan, stripeId, payoutsLimit } = useWorkspace();
 
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
   const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
@@ -91,8 +92,13 @@ export function WorkspaceBillingUpgradePageClient() {
               {plans.map((plan, idx) => {
                 // disable upgrade button if user has a Stripe ID and is on the current plan
                 // (if there's no stripe id, they could be on a free trial so they should be able to upgrade)
+                // edge case:
+                //    if the user is on the business plan and has a payout limit of 0,
+                //    it means they're on the legacy business plan – prompt them to upgrade to the new business plan
                 const disableCurrentPlan = Boolean(
-                  stripeId && plan.name.toLowerCase() === currentPlan,
+                  stripeId &&
+                    plan.name.toLowerCase() === currentPlan &&
+                    !isLegacyBusinessPlan(currentPlan, payoutsLimit ?? 0),
                 );
 
                 // show downgrade button if user has a stripe id and is on the current plan
