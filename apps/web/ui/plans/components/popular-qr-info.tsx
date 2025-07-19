@@ -44,14 +44,9 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
 
       <div className="border-border-200 h-px w-full border-t" />
 
-      <Flex
-        direction="row"
-        align="start"
-        gap={{ initial: "4", lg: "6" }}
-        className="[&_svg:first-child]:h-[180px] [&_svg:first-child]:w-[138px] lg:[&_svg:first-child]:h-[209px] lg:[&_svg:first-child]:w-[158px]"
-      >
+      <Flex direction="row" align="start" gap={{ initial: "4", lg: "6" }}>
         <div className="relative flex-shrink-0">
-          <qrCodeDemo.Component {...demoProps} />
+          <qrCodeDemo.Component {...demoProps} smallPreview />
 
           <div className="absolute bottom-0 left-1/2 h-[80px] w-[158px] -translate-x-1/2 bg-gradient-to-t from-white via-white/75 to-transparent" />
         </div>
@@ -112,7 +107,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
               weight="bold"
               className="text-neutral"
             >
-              {(mostScannedQR && mostScannedQR.link?.clicks) || 231}
+              {(mostScannedQR && mostScannedQR.link?.clicks) ?? 231}
             </Text>
           </Flex>
 
