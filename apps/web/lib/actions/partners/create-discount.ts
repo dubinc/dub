@@ -3,12 +3,13 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
+import { createStripeCoupon } from "@/lib/stripe/create-coupon";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import Stripe from "stripe";
 import { authActionClient } from "../safe-action";
 
 export const createDiscountAction = authActionClient
@@ -30,11 +31,6 @@ export const createDiscountAction = authActionClient
     excludedPartnerIds = excludedPartnerIds || [];
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-
-    await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
 
     // A program can have only one default discount
     if (isDefault) {
@@ -81,6 +77,30 @@ export const createDiscountAction = authActionClient
       }
     }
 
+    let stripeCoupon: Stripe.Coupon | null = null;
+    const shouldCreateCouponOnStripe = !couponId && !couponTestId;
+
+    if (shouldCreateCouponOnStripe) {
+      if (!workspace.stripeConnectId) {
+        throw new Error(
+          "Make sure you have connected your Stripe account to your workspace to create a coupon.",
+        );
+      }
+
+      const response = await createStripeCoupon({
+        stripeConnectId: workspace.stripeConnectId,
+        coupon: {
+          amount,
+          type,
+          maxDuration: maxDuration ?? null,
+        },
+      });
+
+      if (response) {
+        stripeCoupon = response;
+      }
+    }
+
     const discount = await prisma.discount.create({
       data: {
         id: createId({ prefix: "disc_" }),
@@ -88,7 +108,7 @@ export const createDiscountAction = authActionClient
         amount,
         type,
         maxDuration,
-        couponId,
+        couponId: stripeCoupon?.id ?? couponId,
         couponTestId,
         default: isDefault,
       },
@@ -123,9 +143,7 @@ export const createDiscountAction = authActionClient
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
             body: {
-              programId,
               discountId: discount.id,
-              isDefault,
               action: "discount-created",
             },
           }),
@@ -144,6 +162,15 @@ export const createDiscountAction = authActionClient
               },
             ],
           }),
+
+          // If the coupon code is created on Stripe, create a promotion code for each link
+          stripeCoupon &&
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
+              body: {
+                discountId: discount.id,
+              },
+            }),
         ]);
       })(),
     );

@@ -7,11 +7,11 @@ export const DiscountSchema = z.object({
   amount: z.number(),
   type: z.nativeEnum(RewardStructure),
   maxDuration: z.number().nullable(),
-  description: z.string().nullish(),
   couponId: z.string().nullable(),
   couponTestId: z.string().nullable(),
-  partnersCount: z.number().nullish(),
   default: z.boolean(),
+  description: z.string().nullish(),
+  partnersCount: z.number().nullish(),
 });
 
 export const DiscountSchemaWithDeprecatedFields = DiscountSchema.extend({
