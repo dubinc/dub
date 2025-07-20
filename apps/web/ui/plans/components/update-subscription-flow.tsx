@@ -8,6 +8,7 @@ import { pollPaymentStatus } from "core/integration/payment/client/services/paym
 import { ICustomerBody } from "core/integration/payment/config";
 import { IGetPrimerClientPaymentInfoRes } from "core/integration/payment/server";
 import { generateTrackingUpsellEvent } from "core/services/events/upsell-events.service.ts";
+import { useSession } from "next-auth/react";
 import { FC, useState } from "react";
 import { toast } from "sonner";
 
@@ -23,6 +24,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
   selectedPlan,
 }) => {
   const [isUpdateProcessing, setIsUpdateProcessing] = useState(false);
+  const { update: updateSession } = useSession();
 
   const { trigger: triggerCreateUserPayment } = useCreateUserPaymentMutation();
   const { trigger: triggerUpdateSubscription } =
@@ -61,7 +63,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
 
     const onPurchased = async (info: IGetPrimerClientPaymentInfoRes) => {
       await triggerUpdateSubscription({ paymentPlan: selectedPlan.paymentPlan })
-        .then(() => {
+        .then(async () => {
           generateTrackingUpsellEvent({
             user,
             paymentPlan: selectedPlan.paymentPlan,
@@ -70,6 +72,10 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
           });
 
           toast.success("The plan update was successful!");
+          
+          // Update session data to reflect the new subscription plan
+          await updateSession();
+          
           setTimeout(() => window.location.reload(), 1000);
         })
         .catch((error) =>
