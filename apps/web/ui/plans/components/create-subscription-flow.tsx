@@ -15,6 +15,7 @@ import {
 import { ICustomerBody } from "core/integration/payment/config";
 import { generateCheckoutFormPaymentEvents } from "core/services/events/checkout-form-events.service.ts";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { FC, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -33,6 +34,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   selectedPlan,
   isUpdatingToken,
 }) => {
+  const router = useRouter();
   const paymentTypeRef = useRef<string | null>(null);
   const [isSubscriptionCreation, setIsSubscriptionCreation] = useState(false);
 
@@ -156,7 +158,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
     await updateSession();
 
-    setTimeout(() => window.location.reload(), 1000);
+    setTimeout(() => router.push("/"), 500);
   };
 
   const handleCheckoutError = ({

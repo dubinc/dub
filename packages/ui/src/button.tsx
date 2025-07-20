@@ -104,7 +104,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           "group flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md border px-4 text-sm",
           props.disabled || loading
-            ? "border-border-500 cursor-not-allowed bg-neutral-100 text-neutral-400 outline-none"
+            ? "border-border-500 cursor-not-allowed items-center justify-center bg-neutral-100 text-neutral-400 outline-none"
             : buttonVariants({ variant }),
           className,
         )}
