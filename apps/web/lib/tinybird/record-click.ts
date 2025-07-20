@@ -127,7 +127,6 @@ export async function recordClick({
     identity_hash,
     click_id: clickId,
     link_id: linkId,
-    alias_link_id: "",
     url: finalUrl,
     ip:
       // only record IP if it's a valid IP and not from a EU country

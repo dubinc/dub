@@ -101,7 +101,6 @@ async function seedClicks(count = 10000) {
       country,
       continent,
       device: devices[Math.floor(Math.random() * devices.length)],
-      alias_link_id: "",
       ip: "63.141.57.109",
       city: "San Francisco",
       region: "CA",

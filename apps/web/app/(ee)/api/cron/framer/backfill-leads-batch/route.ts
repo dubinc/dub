@@ -213,7 +213,6 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
         identity_hash: p.externalId,
         click_id: customerMap.get(p.externalId)!.clickId,
         link_id: link.id,
-        alias_link_id: "",
         url: link.url,
         ip: "",
         continent: "NA",
