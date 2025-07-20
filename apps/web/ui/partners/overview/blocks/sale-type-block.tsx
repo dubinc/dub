@@ -43,7 +43,7 @@ export function SaleTypeBlock() {
     return [
       {
         key: "new",
-        label: "First",
+        label: "New",
         count: totalEvents.sales - recurringEvents.sales,
         fraction: 1 - recurringEvents.sales / (totalEvents.sales || 1),
         colorClassName: "bg-violet-500",
