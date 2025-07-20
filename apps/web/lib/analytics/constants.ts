@@ -208,10 +208,12 @@ export const DIMENSIONAL_ANALYTICS_FILTERS = [
 ];
 
 export const TRIGGER_DISPLAY = {
-  qr: "QR Scan",
+  qr: "QR Code Scan",
   link: "Link Click",
+  pageview: "Page View",
+  deeplink: "Deep Link",
 };
-export const TRIGGER_TYPES = ["qr", "link"] as const;
+export const TRIGGER_TYPES = ["qr", "link", "pageview", "deeplink"] as const;
 
 export const EVENT_TYPES = ["clicks", "leads", "sales"] as const;
 
