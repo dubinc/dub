@@ -5,6 +5,7 @@ import { expect } from "vitest";
 
 export const LinkSchema = LinkSchemaOld.extend({
   identifier: z.null(),
+  linkRetentionCleanupDisabledAt: z.null(),
 });
 
 export const expectedLink: Partial<Link> & {

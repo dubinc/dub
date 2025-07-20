@@ -15,7 +15,11 @@ import { MOBILE_MORE_ITEMS, MORE_ITEMS } from "./constants";
 import { LinkFormData } from "./link-builder-provider";
 import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
-export function MoreDropdown() {
+export function MoreDropdown({
+  variant = "page",
+}: {
+  variant?: "page" | "modal";
+}) {
   const { domains, flags, defaultProgramId } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const [openPopover, setOpenPopover] = useState(false);
@@ -29,14 +33,16 @@ export function MoreDropdown() {
         if (option.key === "testVariants") return flags?.abTesting;
         if (option.key === "partnerId") return Boolean(defaultProgramId);
         if (option.key === "linkRetentionCleanupDisabledAt")
-          return Boolean(
-            domains?.find((d) => d.slug === data.domain)?.linkRetentionDays,
+          return (
+            Boolean(
+              domains?.find((d) => d.slug === data.domain)?.linkRetentionDays,
+            ) && variant === "page" // only show this in full page builder
           );
 
         return true;
       },
     );
-  }, [data, isMobile, domains, flags, defaultProgramId]);
+  }, [data, isMobile, domains, flags, defaultProgramId, variant]);
 
   const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();

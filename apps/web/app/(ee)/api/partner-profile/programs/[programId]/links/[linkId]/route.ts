@@ -78,10 +78,6 @@ export const PATCH = withPartnerProfile(
           link.testStartedAt instanceof Date
             ? link.testStartedAt.toISOString()
             : link.testStartedAt,
-        linkRetentionCleanupDisabledAt:
-          link.linkRetentionCleanupDisabledAt instanceof Date
-            ? link.linkRetentionCleanupDisabledAt.toISOString()
-            : link.linkRetentionCleanupDisabledAt,
 
         // merge in new props
         key: key || undefined,
