@@ -98,6 +98,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
             workspaceId: cachedLink.projectId,
             skipRatelimit: true,
             ...(referrer && { referrer }),
+            trigger: "pageview",
             shouldCacheClickId: true,
           });
         }
