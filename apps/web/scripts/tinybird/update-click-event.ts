@@ -15,7 +15,6 @@ async function main() {
   }
   const updatedData = {
     ...oldData,
-    alias_link_id: "",
     vercel_region: "iad1",
     [columnName]: columnValue,
   };
