@@ -90,11 +90,16 @@ export function SaleTypeBlock() {
               {/* Bars */}
               <div className="flex h-20 gap-4">
                 {items.map((item) => (
-                  <div
+                  <Link
                     key={item.label}
+                    href={`/${workspaceSlug}/program/analytics${getQueryString(
+                      { tab: "sales", saleType: item.key },
+                      {
+                        include: ["interval", "start", "end"],
+                      },
+                    )}`}
                     className={cn(
-                      "h-full rounded-md transition-transform",
-                      hoveredItem === item.key && "scale-105",
+                      "h-full rounded-md transition-transform hover:scale-105",
                       item.colorClassName,
                     )}
                     style={{ width: `${Math.max(item.fraction * 100, 1)}%` }}
@@ -117,7 +122,6 @@ export function SaleTypeBlock() {
                         include: ["interval", "start", "end"],
                       },
                     )}`}
-                    target="_blank"
                     className={cn(
                       "text-content-default flex items-center justify-between gap-4 text-xs font-medium tabular-nums transition-[colors,opacity]",
                       "rounded-md px-2 hover:bg-neutral-50 active:bg-neutral-100",
