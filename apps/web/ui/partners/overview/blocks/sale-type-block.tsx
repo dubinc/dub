@@ -53,7 +53,7 @@ export function SaleTypeBlock() {
         label: "Recurring",
         count: recurringEvents.sales,
         fraction: recurringEvents.sales / (totalEvents.sales || 1),
-        colorClassName: "bg-violet-100",
+        colorClassName: "bg-violet-200",
       },
     ].filter(({ fraction }) => fraction > 0);
   }, [totalEvents, recurringEvents]);
@@ -91,18 +91,25 @@ export function SaleTypeBlock() {
               <div className="flex h-20 gap-4">
                 {items.map((item) => (
                   <Link
-                    key={item.label}
+                    key={item.key}
                     href={`/${workspaceSlug}/program/analytics${getQueryString(
                       { tab: "sales", saleType: item.key },
                       {
                         include: ["interval", "start", "end"],
                       },
                     )}`}
+                    role="img"
+                    aria-label={`${item.label} sales: ${item.count} (${formatPercentage(item.fraction * 100)}%)`}
+                    title={`${item.label}: ${nFormatter(item.count)} sales (${formatPercentage(item.fraction * 100)}%)`}
                     className={cn(
-                      "h-full rounded-md transition-transform hover:scale-105",
+                      "h-full rounded-md bg-current transition-transform",
+                      hoveredItem === item.key && "scale-105",
                       item.colorClassName,
                     )}
-                    style={{ width: `${Math.max(item.fraction * 100, 1)}%` }}
+                    style={{
+                      width: `${Math.max(item.fraction * 100, 2)}%`,
+                      minWidth: item.fraction < 0.02 ? "8px" : "auto",
+                    }}
                     onPointerEnter={() => setHoveredItem(item.key)}
                     onPointerLeave={() =>
                       setHoveredItem((i) => (i === item.key ? null : i))
@@ -112,7 +119,7 @@ export function SaleTypeBlock() {
               </div>
 
               {/* List */}
-              <div className="-mx-2 mt-4 flex flex-col gap-y-2">
+              <div className="-mx-2 flex flex-col gap-y-2">
                 {items.map((item) => (
                   <Link
                     key={item.key}
