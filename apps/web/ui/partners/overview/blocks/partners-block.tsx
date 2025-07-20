@@ -2,7 +2,7 @@ import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import { ArrowUpRight, LoadingSpinner } from "@dub/ui";
+import { ArrowUpRight, LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { currencyFormatter, fetcher, OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
 import { useContext } from "react";
@@ -11,6 +11,8 @@ import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function PartnersBlock() {
   const { slug: workspaceSlug } = useWorkspace();
+
+  const { getQueryString } = useRouterStuff();
 
   const { queryString } = useContext(AnalyticsContext);
 
@@ -32,7 +34,12 @@ export function PartnersBlock() {
   return (
     <ProgramOverviewBlock
       title="Top partners by revenue"
-      viewAllHref={`/${workspaceSlug}/program/partners`}
+      viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
+        undefined,
+        {
+          include: ["interval", "start", "end"],
+        },
+      )}`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
         {isLoading ? (

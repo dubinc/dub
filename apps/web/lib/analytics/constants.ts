@@ -178,6 +178,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "customerId",
   "qr", // deprecated, but keeping for now for backwards compatibility
   "root",
+  "saleType",
   "utm_source",
   "utm_medium",
   "utm_campaign",
