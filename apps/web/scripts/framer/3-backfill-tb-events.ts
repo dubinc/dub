@@ -181,6 +181,7 @@ async function main() {
             qr: 0,
             referer: "(direct)",
             referer_url: "(direct)",
+            trigger: "link",
           };
 
           const clickEvent = clickEventSchemaTB.parse(clickData);

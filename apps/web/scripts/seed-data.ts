@@ -120,6 +120,7 @@ async function seedClicks(count = 10000) {
       qr: 0,
       referer: "(direct)",
       referer_url: "(direct)",
+      trigger: "link",
     };
   });
 
