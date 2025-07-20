@@ -160,7 +160,7 @@ export const trackSale = async ({
           include: includeTags,
         }),
 
-        // update workspace sales usage
+        // update workspace events usage
         prisma.project.update({
           where: {
             id: workspace.id,
@@ -208,15 +208,21 @@ export const trackSale = async ({
           quantity: 1,
           invoiceId,
           currency,
+          context: {
+            customer: {
+              country: customer.country,
+            },
+            sale: {
+              productId: metadata?.productId as string,
+            },
+          },
         });
 
         if (commission) {
-          waitUntil(
-            notifyPartnerSale({
-              link,
-              commission,
-            }),
-          );
+          await notifyPartnerSale({
+            link,
+            commission,
+          });
         }
       }
 

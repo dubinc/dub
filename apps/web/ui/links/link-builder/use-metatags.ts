@@ -47,12 +47,11 @@ export function useMetatags({ enabled = true }: { enabled?: boolean } = {}) {
             const results = await res.json();
             const truncatedTitle = truncate(results.title, 120);
             const truncatedDescription = truncate(results.description, 240);
-            if (title !== truncatedTitle) {
+            if (!title) {
               setValue("title", truncatedTitle);
             }
-            if (description !== truncatedDescription)
-              setValue("description", truncatedDescription);
-            if (image !== results.image) setValue("image", results.image);
+            if (!description) setValue("description", truncatedDescription);
+            if (!image) setValue("image", results.image);
           }
           // set timeout to prevent flickering
           setTimeout(() => setGeneratingMetatags(false), 200);

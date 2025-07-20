@@ -203,7 +203,7 @@ export const trackLead = async ({
             include: includeTags,
           }),
 
-          // update workspace usage
+          // update workspace events usage
           prisma.project.update({
             where: {
               id: workspace.id,
@@ -232,6 +232,11 @@ export const trackLead = async ({
             eventId: leadEventId,
             customerId: customer.id,
             quantity: eventQuantity ?? 1,
+            context: {
+              customer: {
+                country: customer.country,
+              },
+            },
           });
         }
 
