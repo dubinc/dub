@@ -450,6 +450,25 @@ export function useAnalyticsFilters({
       }) ?? null,
   };
 
+  const SaleTypeFilterItem = {
+    key: "saleType",
+    icon: Receipt2,
+    label: "Sale type",
+    separatorAfter: true,
+    options: [
+      {
+        value: "new",
+        label: "New",
+        icon: UserPlus,
+      },
+      {
+        value: "recurring",
+        label: "Recurring",
+        icon: Calendar6,
+      },
+    ],
+  };
+
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
     () => [
       {
@@ -463,24 +482,6 @@ export function useAnalyticsFilters({
             label: value,
             icon,
           })) ?? null,
-      },
-      {
-        key: "saleType",
-        icon: Receipt2,
-        label: "Sale type",
-        separatorAfter: true,
-        options: [
-          {
-            value: "new",
-            label: "New",
-            icon: UserPlus,
-          },
-          {
-            value: "recurring",
-            label: "Recurring",
-            icon: Calendar6,
-          },
-        ],
       },
       ...(dashboardProps
         ? []
@@ -508,11 +509,13 @@ export function useAnalyticsFilters({
                     };
                   }) ?? null,
               },
+              SaleTypeFilterItem,
             ]
           : partnerPage
-            ? [LinkFilterItem, CustomerFilterItem]
+            ? [LinkFilterItem, CustomerFilterItem, SaleTypeFilterItem]
             : [
                 ...(canManageCustomers ? [CustomerFilterItem] : []),
+                SaleTypeFilterItem,
                 {
                   key: "folderId",
                   icon: Folder,

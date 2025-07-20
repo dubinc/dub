@@ -264,7 +264,14 @@ SQL >
 NODE count_composite
 SQL >
 
-    SELECT clicks, leads, sales, amount, saleAmount FROM count_clicks, count_leads, count_sales
+    %
+    SELECT clicks, leads, sales, amount, saleAmount
+    FROM
+        count_clicks,
+        count_leads,
+        {% if defined(saleType) %} count_sales_with_type
+        {% else %} count_sales
+        {% end %}
 
 
 
@@ -277,7 +284,7 @@ SQL >
         {% if eventType == 'clicks' %} count_clicks
         {% elif eventType == 'leads' %} count_leads
         {% elif eventType == 'sales' %}
-          {% if defined(saleType) %} count_sales {% else %} count_sales {% end %}
+          {% if defined(saleType) %} count_sales_with_type {% else %} count_sales {% end %}
         {% else %} count_composite
         {% end %}
 
