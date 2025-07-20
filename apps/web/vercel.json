@@ -50,7 +50,7 @@
     },
     {
       "path": "/api/cron/link-retention-cleanup",
-      "schedule": "0 0 * * *"
+      "schedule": "* * * * *"
     }
   ],
   "functions": {
