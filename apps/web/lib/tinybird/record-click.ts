@@ -38,6 +38,7 @@ export async function recordClick({
   skipRatelimit,
   timestamp,
   referrer,
+  trigger = "link",
   shouldCacheClickId,
 }: {
   req: Request;
@@ -51,6 +52,7 @@ export async function recordClick({
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
+  trigger?: string;
   shouldCacheClickId?: boolean;
 }) {
   if (!clickId) {
@@ -94,6 +96,9 @@ export async function recordClick({
   }
 
   const isQr = detectQr(req);
+  if (isQr) {
+    trigger = "qr";
+  }
 
   // get continent, region & geolocation data
   // interesting, geolocation().region is Vercel's edge region – NOT the actual region
@@ -122,7 +127,6 @@ export async function recordClick({
     identity_hash,
     click_id: clickId,
     link_id: linkId,
-    alias_link_id: "",
     url: finalUrl,
     ip:
       // only record IP if it's a valid IP and not from a EU country
@@ -149,6 +153,7 @@ export async function recordClick({
     qr: isQr,
     referer: referer ? getDomainWithoutWWW(referer) || "(direct)" : "(direct)",
     referer_url: referer || "(direct)",
+    trigger,
   };
 
   if (shouldCacheClickId) {

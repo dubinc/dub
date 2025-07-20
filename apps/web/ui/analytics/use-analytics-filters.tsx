@@ -30,6 +30,7 @@ import {
   UTM_PARAMETERS,
 } from "@dub/ui";
 import {
+  Calendar6,
   Cube,
   CursorRays,
   FlagWavy,
@@ -43,9 +44,11 @@ import {
   MobilePhone,
   OfficeBuilding,
   QRCode,
+  Receipt2,
   ReferredVia,
   Tag,
   User,
+  UserPlus,
   Users,
   Window,
 } from "@dub/ui/icons";
@@ -447,6 +450,25 @@ export function useAnalyticsFilters({
       }) ?? null,
   };
 
+  const SaleTypeFilterItem = {
+    key: "saleType",
+    icon: Receipt2,
+    label: "Sale type",
+    separatorAfter: true,
+    options: [
+      {
+        value: "new",
+        label: "New",
+        icon: UserPlus,
+      },
+      {
+        value: "recurring",
+        label: "Recurring",
+        icon: Calendar6,
+      },
+    ],
+  };
+
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
     () => [
       {
@@ -469,7 +491,6 @@ export function useAnalyticsFilters({
                 key: "partnerId",
                 icon: Users,
                 label: "Partner",
-                separatorAfter: true,
                 options:
                   partners?.map(({ partner, ...rest }) => {
                     return {
@@ -488,11 +509,13 @@ export function useAnalyticsFilters({
                     };
                   }) ?? null,
               },
+              SaleTypeFilterItem,
             ]
           : partnerPage
-            ? [LinkFilterItem, CustomerFilterItem]
+            ? [LinkFilterItem, CustomerFilterItem, SaleTypeFilterItem]
             : [
                 ...(canManageCustomers ? [CustomerFilterItem] : []),
+                SaleTypeFilterItem,
                 {
                   key: "folderId",
                   icon: Folder,

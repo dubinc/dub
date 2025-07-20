@@ -207,7 +207,7 @@ SQL >
                 ) AS sales
                 ON sales.link_id = tags.link_id
             GROUP BY tag_id
-            ORDER BY sales DESC
+            ORDER BY amount DESC
             LIMIT 5000
         ) as subquery
 

@@ -226,6 +226,12 @@ export const analyticsQuerySchema = z
       .describe(
         "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
       ),
+    saleType: z
+      .enum(["new", "recurring"])
+      .optional()
+      .describe(
+        "Filter sales by type: 'new' for first-time purchases, 'recurring' for repeat purchases. If undefined, returns both.",
+      ),
     query: z
       .string()
       .optional()
@@ -248,6 +254,7 @@ export const analyticsFilterTB = z
       .transform((v) => (v ? prefixWorkspaceId(v) : undefined)),
     customerId: z.string().optional(),
     root: z.boolean().optional(),
+    saleType: z.string().optional(),
     qr: z.boolean().optional(),
     start: z.string(),
     end: z.string(),
