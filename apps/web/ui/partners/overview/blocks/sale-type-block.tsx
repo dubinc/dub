@@ -53,7 +53,7 @@ export function SaleTypeBlock() {
         label: "Recurring",
         count: recurringEvents.sales,
         fraction: recurringEvents.sales / (totalEvents.sales || 1),
-        colorClassName: "bg-violet-200",
+        colorClassName: "bg-violet-100",
       },
     ].filter(({ fraction }) => fraction > 0);
   }, [totalEvents, recurringEvents]);
@@ -70,7 +70,7 @@ export function SaleTypeBlock() {
       className="pb-0"
       contentClassName="px-0 mt-1"
     >
-      <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
+      <div className="divide-border-subtle @2xl:h-72 flex h-auto flex-col divide-y">
         {isLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
@@ -86,7 +86,7 @@ export function SaleTypeBlock() {
                 full: totalEvents?.sales < 99999,
               })}
             </span>
-            <div className="flex grow flex-col justify-end gap-9">
+            <div className="mt-8 grid gap-4">
               {/* Bars */}
               <div className="flex h-20 gap-4">
                 {items.map((item) => (
@@ -98,11 +98,10 @@ export function SaleTypeBlock() {
                         include: ["interval", "start", "end"],
                       },
                     )}`}
-                    role="img"
                     aria-label={`${item.label} sales: ${item.count} (${formatPercentage(item.fraction * 100)}%)`}
                     title={`${item.label}: ${nFormatter(item.count)} sales (${formatPercentage(item.fraction * 100)}%)`}
                     className={cn(
-                      "h-full rounded-md bg-current transition-transform",
+                      "h-full rounded-md transition-transform",
                       hoveredItem === item.key && "scale-105",
                       item.colorClassName,
                     )}
