@@ -46,14 +46,14 @@ export function SaleTypeBlock() {
         label: "First",
         count: totalEvents.sales - recurringEvents.sales,
         fraction: 1 - recurringEvents.sales / (totalEvents.sales || 1),
-        colorClassName: "text-violet-500",
+        colorClassName: "bg-violet-500",
       },
       {
         key: "recurring",
         label: "Recurring",
         count: recurringEvents.sales,
         fraction: recurringEvents.sales / (totalEvents.sales || 1),
-        colorClassName: "text-violet-200",
+        colorClassName: "bg-violet-100",
       },
     ].filter(({ fraction }) => fraction > 0);
   }, [totalEvents, recurringEvents]);
@@ -70,7 +70,7 @@ export function SaleTypeBlock() {
       className="pb-0"
       contentClassName="px-0 mt-1"
     >
-      <div className="h-full min-h-48">
+      <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
         {isLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
@@ -93,7 +93,7 @@ export function SaleTypeBlock() {
                   <div
                     key={item.label}
                     className={cn(
-                      "h-full rounded-md bg-current transition-transform",
+                      "h-full rounded-md transition-transform",
                       hoveredItem === item.key && "scale-105",
                       item.colorClassName,
                     )}
@@ -107,7 +107,7 @@ export function SaleTypeBlock() {
               </div>
 
               {/* List */}
-              <div className="-mx-2 flex flex-col gap-y-2">
+              <div className="-mx-2 mt-4 flex flex-col gap-y-2">
                 {items.map((item) => (
                   <Link
                     key={item.key}
@@ -132,7 +132,7 @@ export function SaleTypeBlock() {
                     <div className="flex items-center gap-2 py-1">
                       <div
                         className={cn(
-                          "h-5 w-1 rounded-full bg-current",
+                          "h-5 w-1 rounded-full",
                           item.colorClassName,
                         )}
                       />
