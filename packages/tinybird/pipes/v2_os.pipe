@@ -234,7 +234,7 @@ SQL >
                     {% end %}
                 {% end %}
             GROUP BY os
-            ORDER BY sales DESC
+            ORDER BY amount DESC
         ) as subquery
 
 

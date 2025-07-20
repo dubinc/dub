@@ -221,7 +221,7 @@ SQL >
                     {% end %}
                 {% end %}
             GROUP BY refererUrl
-            ORDER BY sales DESC
+            ORDER BY amount DESC
             LIMIT 5000
         ) as subquery
 

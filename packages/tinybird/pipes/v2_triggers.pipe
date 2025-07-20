@@ -249,7 +249,7 @@ SQL >
                     {% end %}
                 {% end %}
             GROUP BY qr
-            ORDER BY sales DESC
+            ORDER BY amount DESC
         ) as subquery
 
 

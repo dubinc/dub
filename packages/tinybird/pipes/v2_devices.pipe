@@ -243,7 +243,7 @@ SQL >
                     {% end %}
                 {% end %}
             GROUP BY device
-            ORDER BY sales DESC
+            ORDER BY amount DESC
         ) subquery
 
 

@@ -132,7 +132,7 @@ SQL >
         amount,
         amount AS saleAmount
     FROM (
-      SELECT region, country, COUNT(city) as sales, sum(amount) as amount
+      SELECT region, country, COUNT(region) as sales, sum(amount) as amount
       FROM
           dub_sale_events_mv
           {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
@@ -224,7 +224,7 @@ SQL >
             amount,
             amount AS saleAmount
         FROM (
-            SELECT region, country, COUNT(city) as sales, sum(amount) as amount
+            SELECT region, country, COUNT(region) as sales, sum(amount) as amount
             FROM sales
             INNER JOIN min_timestamps USING (customer_id, link_id)
             WHERE
@@ -235,7 +235,7 @@ SQL >
                     {% end %}
                 {% end %}
             GROUP BY region, country
-            ORDER BY sales DESC
+            ORDER BY amount DESC
         ) as subquery
 
 

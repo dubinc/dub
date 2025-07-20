@@ -279,7 +279,7 @@ SQL >
                     {% end %}
                 {% end %}
             GROUP BY city, region, country
-            ORDER BY sales DESC
+            ORDER BY amount DESC
         ) as subquery
 
 

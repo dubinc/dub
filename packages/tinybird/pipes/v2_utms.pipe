@@ -320,7 +320,7 @@ SQL >
             {% end %}
         GROUP BY utm
         HAVING utm != ''
-        ORDER BY sales DESC
+        ORDER BY saleAmount DESC
 
 
 

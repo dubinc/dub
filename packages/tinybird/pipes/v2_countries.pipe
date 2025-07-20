@@ -258,7 +258,7 @@ SQL >
                     {% end %}
                 {% end %}
             GROUP BY country
-            ORDER BY sales DESC
+            ORDER BY amount DESC
         ) as subquery
 
 

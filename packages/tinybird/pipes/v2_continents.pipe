@@ -270,7 +270,7 @@ SQL >
                     {% end %}
                 {% end %}
             GROUP BY continent
-            ORDER BY sales DESC
+            ORDER BY amount DESC
         ) as subquery
 
 

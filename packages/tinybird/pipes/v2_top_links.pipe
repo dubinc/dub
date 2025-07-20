@@ -246,7 +246,7 @@ SQL >
                     {% end %}
                 {% end %}
             GROUP BY link_id
-            ORDER BY sales DESC
+            ORDER BY amount DESC
             LIMIT 1000
         ) as subquery
 

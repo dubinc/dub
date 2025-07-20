@@ -246,7 +246,7 @@ SQL >
                     {% end %}
                 {% end %}
             GROUP BY referer
-            ORDER BY sales DESC
+            ORDER BY amount DESC
         ) as subquery
 
 
