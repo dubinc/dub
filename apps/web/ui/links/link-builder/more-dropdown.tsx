@@ -1,4 +1,3 @@
-import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useABTestingModal } from "@/ui/modals/link-builder/ab-testing-modal";
 import { useAdvancedModal } from "@/ui/modals/link-builder/advanced-modal";
@@ -17,14 +16,12 @@ import { LinkFormData } from "./link-builder-provider";
 import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
 export function MoreDropdown() {
-  const { flags, defaultProgramId } = useWorkspace();
+  const { domains, flags, defaultProgramId } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const [openPopover, setOpenPopover] = useState(false);
   const { watch, setValue } = useFormContext<LinkFormData>();
 
   const data = watch();
-
-  const { allWorkspaceDomains } = useDomains();
 
   const options = useMemo(() => {
     return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...MORE_ITEMS].filter(
@@ -33,14 +30,13 @@ export function MoreDropdown() {
         if (option.key === "partnerId") return Boolean(defaultProgramId);
         if (option.key === "linkRetentionCleanupDisabledAt")
           return Boolean(
-            allWorkspaceDomains.find((d) => d.slug === data.domain)
-              ?.linkRetentionDays,
+            domains?.find((d) => d.slug === data.domain)?.linkRetentionDays,
           );
 
         return true;
       },
     );
-  }, [data, isMobile, flags, defaultProgramId, allWorkspaceDomains]);
+  }, [data, isMobile, domains, flags, defaultProgramId]);
 
   const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();
@@ -90,7 +86,7 @@ export function MoreDropdown() {
       <Popover
         align="start"
         content={
-          <div className="grid p-1 max-sm:w-full md:min-w-72">
+          <div className="grid p-1 max-sm:w-full md:min-w-80">
             {options.map((option) => {
               const enabled =
                 "enabled" in option && typeof option.enabled === "function"
@@ -138,13 +134,15 @@ export function MoreDropdown() {
                             {option.label}
                           </>
                         )}
-                        {option.description && option.learnMoreUrl && (
+                        {option.description && (
                           <ProBadgeTooltip
                             content={
                               <SimpleTooltipContent
                                 title={option.description}
-                                cta="Learn more."
-                                href={option.learnMoreUrl}
+                                {...(option.learnMoreUrl && {
+                                  cta: "Learn more.",
+                                  href: option.learnMoreUrl,
+                                })}
                               />
                             }
                           />

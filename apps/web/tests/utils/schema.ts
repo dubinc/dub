@@ -58,6 +58,7 @@ export const expectedLink: Partial<Link> & {
   testCompletedAt: null,
   testStartedAt: null,
   testVariants: null,
+  linkRetentionCleanupDisabledAt: null,
 };
 
 export const expectedTag: Partial<Tag> = {

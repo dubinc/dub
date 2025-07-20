@@ -2,6 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
+import { Domain } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -23,14 +24,11 @@ export async function GET(req: Request) {
         id: true,
         slug: true,
         linkRetentionDays: true,
+        projectId: true,
       },
     });
 
-    await Promise.all(
-      domains.map((domain) =>
-        deleteOldLinks(domain.slug, domain.linkRetentionDays!),
-      ),
-    );
+    await Promise.all(domains.map((domain) => deleteOldLinks(domain)));
 
     return NextResponse.json("OK");
   } catch (error) {
@@ -41,15 +39,21 @@ export async function GET(req: Request) {
 const LINKS_PER_BATCH = 100;
 const MAX_LINK_BATCHES = 10;
 
-async function deleteOldLinks(domain: string, linkRetentionDays: number) {
+async function deleteOldLinks(
+  domain: Pick<Domain, "id" | "slug" | "linkRetentionDays" | "projectId">,
+) {
+  if (!domain.linkRetentionDays || !domain.projectId) return;
+
   let processedBatches = 0;
 
   while (processedBatches < MAX_LINK_BATCHES) {
     const links = await prisma.link.findMany({
       where: {
-        domain,
+        domain: domain.slug,
         createdAt: {
-          lt: new Date(Date.now() - 1000 * 60 * 60 * 24 * linkRetentionDays),
+          lt: new Date(
+            Date.now() - 1000 * 60 * 60 * 24 * domain.linkRetentionDays,
+          ),
         },
         linkRetentionCleanupDisabledAt: null,
       },
@@ -65,15 +69,32 @@ async function deleteOldLinks(domain: string, linkRetentionDays: number) {
       `[Link retention cleanup] Deleting ${links.length} links for ${domain} (batch ${processedBatches + 1})...`,
     );
 
-    await prisma.link.deleteMany({
-      where: {
-        id: {
-          in: links.map(({ id }) => id),
+    console.table(links, ["shortLink", "createdAt"]);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.link.deleteMany({
+        where: {
+          id: {
+            in: links.map(({ id }) => id),
+          },
         },
-      },
+      });
+      await tx.project.update({
+        where: {
+          id: domain.projectId!,
+        },
+        data: {
+          totalLinks: { decrement: links.length },
+        },
+      });
     });
-    // Record the links deletion in Tinybird
-    // not 100% sure if we need this yet, maybe we should just delete the link completely from TB to save space?
+
+    console.log(
+      `[Link retention cleanup] Deleted ${links.length} links for ${domain}!`,
+    );
+
+    // // Record the links deletion in Tinybird
+    // // not 100% sure if we need this yet, maybe we should just delete the link completely from TB to save space?
     await recordLinkTB(
       links.map((link) => ({
         ...transformLinkTB(link),
