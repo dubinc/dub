@@ -20,12 +20,20 @@ export async function createStripeCoupon({
     return;
   }
 
-  const duration =
-    coupon.maxDuration === null
-      ? "forever"
-      : coupon.maxDuration === 1
-        ? "once"
-        : "repeating";
+  let duration: "once" | "repeating" | "forever" = "once";
+  let durationInMonths: number | undefined = undefined;
+
+  if (coupon.maxDuration === null) {
+    duration = "forever";
+  } else if (coupon.maxDuration === 0) {
+    duration = "once";
+  } else {
+    duration = "repeating";
+  }
+
+  if (duration === "repeating" && coupon.maxDuration) {
+    durationInMonths = coupon.maxDuration;
+  }
 
   try {
     return await stripe.coupons.create(
@@ -33,7 +41,7 @@ export async function createStripeCoupon({
         currency: "usd",
         duration,
         ...(duration === "repeating" && {
-          duration_in_months: coupon.maxDuration!,
+          duration_in_months: durationInMonths,
         }),
         ...(coupon.type === "percentage"
           ? { percent_off: coupon.amount }
