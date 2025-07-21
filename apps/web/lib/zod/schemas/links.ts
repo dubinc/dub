@@ -464,6 +464,10 @@ export const updateLinkBodySchema = createLinkBodySchemaAsync
   .omit({ keyLength: true, prefix: true })
   .partial();
 
+export const updateLinkBodySchemaExtended = updateLinkBodySchema.extend({
+  linkRetentionCleanupDisabledAt: z.string().nullish(),
+});
+
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
   .min(1, "No links created – you must provide at least one link.")
