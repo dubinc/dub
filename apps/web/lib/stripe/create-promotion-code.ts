@@ -6,12 +6,12 @@ const stripe = stripeAppClient({
 
 // Create a promotion code on Stripe for connected accounts
 export async function createStripePromotionCode({
-  couponId,
   code,
+  couponId,
   stripeConnectId,
 }: {
-  couponId: string;
   code: string;
+  couponId: string;
   stripeConnectId: string | null;
 }) {
   if (!stripeConnectId) {
