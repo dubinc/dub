@@ -35,6 +35,7 @@ export function TrialExpiredModal({
 
   const handleRestoreAccess = () => {
     setShowModal(false);
+    router.refresh();
     router.push(`/account/plans`);
   };
 

@@ -28,10 +28,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
 
   const hasSubscription = !!user?.paymentInfo?.subscriptionId;
   const currentSubscriptionPlan = user?.paymentInfo?.subscriptionPlanCode;
-  console.log(
-    "PaymentComponent currentSubscriptionPlan: ",
-    currentSubscriptionPlan,
-  );
+
   const [isUpdatingToken, setIsUpdatingToken] = useState(false);
 
   const [selectedPlan, setSelectedPlan] = useState<IPricingPlan>(

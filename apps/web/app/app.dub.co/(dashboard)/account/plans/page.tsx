@@ -39,16 +39,10 @@ const PlansPage: NextPage = async () => {
     user?.paymentInfo?.subscriptionPlanCode || "Dont subscribe",
   );
 
-  const componentKey = `${user?.id}-${user?.paymentInfo?.subscriptionPlanCode || "no-sub"}-${user?.paymentInfo?.subscriptionId || "no-id"}`;
-
   return (
     <PageContent title="Plans and Payments">
       <MaxWidthWrapper>
-        <PlansContent
-          key={componentKey}
-          user={user!}
-          mostScannedQR={mostScannedQR}
-        />
+        <PlansContent user={user!} mostScannedQR={mostScannedQR} />
       </MaxWidthWrapper>
     </PageContent>
   );
