@@ -1,53 +1,31 @@
 import { z } from "zod";
+import {
+  partnerStackCommission,
+  partnerStackCustomer,
+  partnerStackImportPayloadSchema,
+  partnerStackLink,
+  partnerStackPartner,
+} from "./schemas";
 
 export interface PartnerStackConfig {
-  token: string;
-  userId: string;
-  partnerstackProgramId?: string;
+  publicKey: string;
+  secretKey: string;
 }
 
 export interface PartnerStackListResponse<T> {
-  success: true;
-  total_count: number;
-  data: T[];
+  data: {
+    items: T[];
+  };
 }
 
-// Basic types - these will be expanded as we implement the API
-export interface PartnerStackAffiliate {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  company_name?: string;
-  country_code?: string;
-  profile_type?: string;
-  created_at: string;
-}
+export type PartnerStackImportPayload = z.infer<
+  typeof partnerStackImportPayloadSchema
+>;
 
-export interface PartnerStackLink {
-  id: string;
-  tracking_url: string;
-  token: string;
-  partner_id: string;
-  created_at: string;
-}
+export type PartnerStackPartner = z.infer<typeof partnerStackPartner>;
 
-export interface PartnerStackReferral {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  company_name?: string;
-  partner_id: string;
-  created_at: string;
-}
+export type PartnerStackLink = z.infer<typeof partnerStackLink>;
 
-export interface PartnerStackCommission {
-  id: string;
-  amount: number;
-  commission_amount: number;
-  status: string;
-  partner_id: string;
-  customer_id: string;
-  created_at: string;
-}
+export type PartnerStackCustomer = z.infer<typeof partnerStackCustomer>;
+
+export type PartnerStackCommission = z.infer<typeof partnerStackCommission>;
