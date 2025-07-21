@@ -6,7 +6,9 @@ import { createPartnerCommission } from "@/lib/partners/create-partner-commissio
 import {
   getClickEvent,
   getLeadEvent,
+  recordClick,
   recordLead,
+  recordLeadWithTimestamp,
   recordSale,
 } from "@/lib/tinybird";
 import { ClickEventTB, LeadEventTB } from "@/lib/types";
@@ -16,6 +18,8 @@ import {
   transformLeadEventData,
   transformSaleEventData,
 } from "@/lib/webhook/transform";
+import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
+import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { Customer } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
@@ -23,6 +27,7 @@ import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import {
   getConnectedCustomer,
+  getPromotionCode,
   getSubscriptionProductId,
   updateCustomerWithStripeCustomerId,
 } from "./utils";
@@ -67,6 +72,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       },
       select: {
         id: true,
+        defaultProgramId: true,
       },
     });
 
@@ -150,6 +156,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           - the lead event will then be passed to the remaining logic to record a sale
       - if not present, we skip the event
   */
+
     if (dubCustomerId) {
       customer = await updateCustomerWithStripeCustomerId({
         stripeAccountId,
@@ -187,6 +194,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           dubCustomerId,
           stripeCustomerId,
         });
+
         if (!customer) {
           return `dubCustomerId was found on the connected customer ${stripeCustomerId} but customer with dubCustomerId ${dubCustomerId} not found on Dub, skipping...`;
         }
@@ -197,6 +205,134 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     leadEvent = await getLeadEvent({ customerId: customer.id }).then(
       (res) => res.data[0],
     );
+
+    if (!leadEvent) {
+      const promotionCodeId = charge.discounts?.[0]?.promotion_code as string;
+
+      // TODO:
+      // Can we move this to top of the function?
+      const workspace = await prisma.project.findUnique({
+        where: {
+          stripeConnectId: stripeAccountId,
+        },
+        select: {
+          id: true,
+          stripeConnectId: true,
+          programs: {
+            select: {
+              id: true,
+              domain: true,
+              couponCodeTrackingEnabledAt: true,
+            },
+          },
+        },
+      });
+
+      if (!workspace) {
+        return `Workspace with stripeConnectId ${stripeAccountId} not found, skipping...`;
+      }
+
+      if (workspace.programs.length === 0) {
+        return `Workspace with stripeConnectId ${stripeAccountId} has no programs, skipping...`;
+      }
+
+      const program = workspace.programs[0];
+
+      if (!program.couponCodeTrackingEnabledAt) {
+        return `Program ${program.id} not enabled coupon code tracking, skipping...`;
+      }
+
+      if (!program.domain) {
+        return `Program ${program.id} has no domain, skipping...`;
+      }
+
+      const promotionCode = await getPromotionCode({
+        promotionCodeId,
+        stripeAccountId,
+        livemode: event.livemode,
+      });
+
+      if (promotionCode) {
+        const link = await prisma.link.findUnique({
+          where: {
+            domain_key: {
+              domain: program.domain,
+              key: promotionCode.code,
+            },
+          },
+          select: {
+            id: true,
+            url: true,
+            domain: true,
+            key: true,
+          },
+        });
+
+        if (!link) {
+          return `Couldn't find link associated with promotion code ${promotionCode.code} and program ${program.id}, skipping...`;
+        }
+
+        const stripeCustomerAddress = charge.customer_details?.address;
+
+        const dummyRequest = new Request(link.url, {
+          headers: new Headers({
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+            "x-forwarded-for": "127.0.0.1",
+            "x-vercel-ip-country": stripeCustomerAddress?.country || "US",
+            "x-vercel-ip-country-region": stripeCustomerAddress?.state || "CA",
+            "x-vercel-ip-continent": "NA",
+          }),
+        });
+
+        const clickData = await recordClick({
+          req: dummyRequest,
+          linkId: link.id,
+          clickId: nanoid(16),
+          url: link.url,
+          domain: link.domain,
+          key: link.key,
+          workspaceId: workspace.id,
+          skipRatelimit: true,
+          timestamp: new Date().toISOString(),
+        });
+
+        const clickEvent = clickEventSchemaTB.parse({
+          ...clickData,
+          bot: 0,
+          qr: 0,
+        });
+
+        const customerId = createId({ prefix: "cus_" });
+
+        customer = await prisma.customer.create({
+          data: {
+            id: customerId,
+            name: stripeCustomerName || stripeCustomerEmail,
+            email: stripeCustomerEmail,
+            projectId: workspace.id,
+            projectConnectId: workspace.stripeConnectId,
+            clickId: clickEvent.click_id,
+            linkId: link.id,
+            country: clickEvent.country,
+            externalId: stripeCustomerEmail,
+            clickedAt: new Date(),
+            createdAt: new Date(),
+          },
+        });
+
+        const leadData = {
+          ...clickEvent,
+          event_id: nanoid(16),
+          event_name: "Sign up",
+          customer_id: customerId,
+          timestamp: new Date(customer.updatedAt).toISOString(),
+        };
+
+        await recordLeadWithTimestamp(leadData);
+
+        leadEvent = leadEventSchemaTB.parse(leadData);
+      }
+    }
 
     linkId = leadEvent.link_id;
   } else {

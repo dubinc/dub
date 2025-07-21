@@ -205,6 +205,7 @@ export async function getSubscriptionProductId({
   if (!stripeAccountId || !stripeSubscriptionId) {
     return null;
   }
+
   try {
     const subscription = await stripeAppClient({
       livemode,
@@ -214,6 +215,31 @@ export async function getSubscriptionProductId({
     return subscription.items.data[0].price.product as string;
   } catch (error) {
     console.log("Failed to get subscription price ID:", error);
+    return null;
+  }
+}
+
+export async function getPromotionCode({
+  promotionCodeId,
+  stripeAccountId,
+  livemode = true,
+}: {
+  promotionCodeId?: string | null;
+  stripeAccountId?: string | null;
+  livemode?: boolean;
+}) {
+  if (!stripeAccountId || !promotionCodeId) {
+    return null;
+  }
+
+  try {
+    return await stripeAppClient({
+      livemode,
+    }).promotionCodes.retrieve(promotionCodeId, {
+      stripeAccount: stripeAccountId,
+    });
+  } catch (error) {
+    console.log("Failed to get promotion code:", error);
     return null;
   }
 }
