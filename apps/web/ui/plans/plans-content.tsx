@@ -20,7 +20,7 @@ interface IPlansContentProps {
   mostScannedQR: QrStorageData | null;
 }
 
-const PlansContent: FC<Readonly<IPlansContentProps>> = ({
+export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
   user,
   mostScannedQR,
 }) => {
@@ -82,5 +82,3 @@ const PlansContent: FC<Readonly<IPlansContentProps>> = ({
     </div>
   );
 };
-
-export default PlansContent;

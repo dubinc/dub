@@ -109,7 +109,10 @@ function WorkspaceQRs() {
                     <Button
                       variant="primary"
                       className="bg-secondary hover:bg-secondary-800 w-full whitespace-nowrap text-sm font-medium text-white md:w-auto"
-                      onClick={() => router.push(`/account/plans`)}
+                      onClick={() => {
+                        router.refresh();
+                        router.push(`/account/plans`);
+                      }}
                       text="Restore Access"
                     />
                   </motion.div>

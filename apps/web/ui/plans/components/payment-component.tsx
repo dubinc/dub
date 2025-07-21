@@ -24,6 +24,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
   user,
   isTrialOver,
 }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
   const { trigger: triggerUpdateUserSession } = useUpdateUserSessionMutation();
 
   const hasSubscription = !!user?.paymentInfo?.subscriptionId;
@@ -89,7 +90,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
           value={selectedPlan.id}
           onValueChange={onChangePlan}
           className="flex flex-col gap-2"
-          disabled={isUpdatingToken}
+          disabled={isUpdatingToken || isProcessing}
         >
           {PRICING_PLANS.map((plan) => (
             <PricingPlanCard
@@ -112,6 +113,8 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
               user={user}
               currentSubscriptionPlan={currentSubscriptionPlan}
               selectedPlan={selectedPlan}
+              isProcessing={isProcessing}
+              setIsProcessing={setIsProcessing}
             />
           ) : (
             <CreateSubscriptionFlow
@@ -119,6 +122,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
               amount={priceForPay}
               selectedPlan={selectedPlan}
               isUpdatingToken={isUpdatingToken}
+              setIsProcessing={setIsProcessing}
             />
           )}
         </div>

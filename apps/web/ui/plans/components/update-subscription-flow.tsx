@@ -10,7 +10,7 @@ import { IGetPrimerClientPaymentInfoRes } from "core/integration/payment/server"
 import { generateTrackingUpsellEvent } from "core/services/events/upsell-events.service.ts";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { FC, useMemo, useState } from "react";
+import { Dispatch, FC, SetStateAction, useMemo } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -18,6 +18,8 @@ interface IUpdateSubscriptionProps {
   user: ICustomerBody;
   currentSubscriptionPlan: string | undefined;
   selectedPlan: IPricingPlan;
+  isProcessing: boolean;
+  setIsProcessing: Dispatch<SetStateAction<boolean>>;
 }
 
 const paymentPlanWeight = {
@@ -30,9 +32,10 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
   user,
   selectedPlan,
   currentSubscriptionPlan,
+  isProcessing,
+  setIsProcessing,
 }) => {
   const router = useRouter();
-  const [isUpdateProcessing, setIsUpdateProcessing] = useState(false);
   const { update: updateSession } = useSession();
 
   const { trigger: triggerCreateUserPayment } = useCreateUserPaymentMutation();
@@ -42,7 +45,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
   const buttonText = useMemo(() => {
     switch (true) {
       case selectedPlan.paymentPlan === currentSubscriptionPlan:
-        return "Upgrade Plan";
+        return "Your Active Plan";
       case paymentPlanWeight[selectedPlan.paymentPlan] <
         paymentPlanWeight?.[currentSubscriptionPlan!]:
         return "Downgrade Plan";
@@ -52,7 +55,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
   }, [selectedPlan, currentSubscriptionPlan]);
 
   const handleUpdatePlan = async () => {
-    setIsUpdateProcessing(true);
+    setIsProcessing(true);
 
     generateTrackingUpsellEvent({
       user,
@@ -64,8 +67,14 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
       paymentPlan: selectedPlan.paymentPlan,
     });
 
+    if (!createPaymentRes?.success) {
+      setIsProcessing(false);
+      toast.error(`Payment creation failed.`);
+      return;
+    }
+
     const onError = (info?: IGetPrimerClientPaymentInfoRes) => {
-      setIsUpdateProcessing(false);
+      setIsProcessing(false);
 
       generateTrackingUpsellEvent({
         user,
@@ -114,8 +123,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
 
           // Force refresh the page cache
           router.refresh();
-
-          setTimeout(() => router.push("/"), 500);
+          router.push("/");
         })
         .catch((error) =>
           toast.error(
@@ -123,12 +131,6 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
           ),
         );
     };
-
-    if (!createPaymentRes?.success) {
-      setIsUpdateProcessing(false);
-      toast.error(`Payment creation failed.`);
-      return;
-    }
 
     await pollPaymentStatus({
       paymentId: createPaymentRes!.data!.paymentId,
@@ -141,13 +143,12 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
   return (
     <Button
       className="block"
-      loading={isUpdateProcessing}
+      loading={isProcessing}
       disabled={
-        currentSubscriptionPlan === selectedPlan.paymentPlan ||
-        isUpdateProcessing
+        currentSubscriptionPlan === selectedPlan.paymentPlan || isProcessing
       }
       onClick={handleUpdatePlan}
-      text={isUpdateProcessing ? null : buttonText}
+      text={isProcessing ? null : buttonText}
     />
   );
 };

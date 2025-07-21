@@ -13,9 +13,11 @@ import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.i
 import { LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ComponentPropsWithoutRef, ElementType, useState } from "react";
 
 export default function UserDropdown() {
+  const router = useRouter();
   const { user } = useUser();
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -103,7 +105,7 @@ export default function UserDropdown() {
             }}
           />
           <UserOption
-            as={Link}
+            // as={Link}
             label="Plans and Payments"
             icon={() => (
               <IconifyIcon
@@ -111,8 +113,10 @@ export default function UserDropdown() {
                 icon="ion:card-outline"
               />
             )}
-            href={`/account/plans`}
+            // href="/account/plans"
             onClick={() => {
+              router.refresh();
+              router.push("/account/plans");
               handleUserOptionClick("plans_and_payments");
               setOpenPopover(false);
             }}
