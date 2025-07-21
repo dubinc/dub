@@ -20,7 +20,7 @@ import {
 } from "@/lib/webhook/transform";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
+import { Customer, Link } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -47,6 +47,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   let clickEvent: ClickEventTB | null = null;
   let leadEvent: LeadEventTB;
   let linkId: string;
+  let link: Link | null = null;
 
   /*
       for stripe checkout links:
@@ -253,19 +254,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         return `Promotion code ${promotionCodeId} not found, skipping...`;
       }
 
-      const link = await prisma.link.findUnique({
+      link = await prisma.link.findUnique({
         where: {
           domain_key: {
             domain: program.domain,
             key: promotionCode.code,
           },
-        },
-        select: {
-          id: true,
-          url: true,
-          domain: true,
-          key: true,
-          projectId: true,
         },
       });
 
@@ -380,11 +374,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }),
   };
 
-  const link = await prisma.link.findUnique({
-    where: {
-      id: linkId,
-    },
-  });
+  if (!link) {
+    link = await prisma.link.findUnique({
+      where: {
+        id: linkId,
+      },
+    });
+  }
 
   const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
