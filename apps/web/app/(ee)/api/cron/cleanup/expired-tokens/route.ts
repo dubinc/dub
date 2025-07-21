@@ -6,8 +6,8 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// tokens expired 10+ mins ago
-const cutoff = new Date(Date.now() - 1000 * 60 * 10);
+// tokens expired 1 hour ago
+const cutoff = new Date(Date.now() - 1000 * 60 * 60);
 
 // This route is used to remove expired tokens from the database
 // 1. VerificationToken
