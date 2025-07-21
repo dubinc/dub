@@ -671,10 +671,8 @@ function DiscountSheetContent({
               variant="primary"
               text={discount ? "Update discount" : "Create discount"}
               className="w-fit"
-              loading={isCreating || isUpdating}
-              disabled={
-                amount == null || isDeleting || isCreating || isUpdating
-              }
+              loading={isCreating || isUpdating || isDeleting}
+              disabled={!discount && amount == null}
             />
           </div>
         </div>
