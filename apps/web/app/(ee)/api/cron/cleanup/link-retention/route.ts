@@ -12,8 +12,8 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 // This route is used to delete old links for domains with linkRetentionDays set
-// Runs every minute (* * * * *)
-// GET /api/cron/link-retention-cleanup
+// Runs once a day at 00:00:00 UTC (0 0 * * *)
+// GET /api/cron/cleanup/link-retention
 async function handler(req: Request) {
   try {
     if (req.method === "GET") {
@@ -143,7 +143,7 @@ async function deleteOldLinks(
   // (indicating there might be more links to process)
   if (processedBatches >= MAX_LINK_BATCHES && hasMoreLinks) {
     await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/link-retention-cleanup`,
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/cleanup/link-retention`,
       method: "POST",
       body: {
         domain: domain.slug,
