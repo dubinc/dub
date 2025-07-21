@@ -75,7 +75,7 @@ async function deleteOldLinks(
     if (links.length === 0) break;
 
     console.log(
-      `[Link retention cleanup] Deleting ${links.length} links for ${domain} (batch ${processedBatches + 1})...`,
+      `[Link retention cleanup] Deleting ${links.length} links for ${domain.slug} (batch ${processedBatches + 1})...`,
     );
 
     console.table(links, ["shortLink", "createdAt"]);
@@ -108,7 +108,7 @@ async function deleteOldLinks(
     );
 
     console.log(
-      `[Link retention cleanup] Deleted ${links.length} links for ${domain}!`,
+      `[Link retention cleanup] Deleted ${links.length} links for ${domain.slug} that are older than ${domain.linkRetentionDays} days!`,
     );
 
     ++processedBatches;
