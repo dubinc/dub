@@ -1,19 +1,22 @@
 "use client";
 
+import { isGenericEmail } from "@/lib/emails";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { Button, InfoTooltip, useMediaQuery } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { Button, buttonVariants, FileUpload, useMediaQuery } from "@dub/ui";
+import { cn, GOOGLE_FAVICON_URL } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { useSession } from "next-auth/react";
 import { usePlausible } from "next-plausible";
 import posthog from "posthog-js";
-import { useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
 type FormData = {
   name: string;
   slug: string;
+  logo?: string;
 };
 
 export function CreateWorkspaceForm({
@@ -23,7 +26,7 @@ export function CreateWorkspaceForm({
   onSuccess?: (data: FormData) => void;
   className?: string;
 }) {
-  const { update } = useSession();
+  const { data: session, update } = useSession();
   const plausible = usePlausible();
 
   const {
@@ -33,10 +36,20 @@ export function CreateWorkspaceForm({
     setValue,
     setError,
     clearErrors,
+    control,
     formState: { isSubmitting, isSubmitSuccessful, errors },
   } = useForm<FormData>();
 
   const slug = watch("slug");
+
+  useEffect(() => {
+    if (session?.user?.email && !isGenericEmail(session.user.email)) {
+      const emailDomain = session.user.email.split("@")[1];
+      setValue("logo", `${GOOGLE_FAVICON_URL}${emailDomain}`);
+    } else if (session?.user?.image) {
+      setValue("logo", session.user.image);
+    }
+  }, [session?.user]);
 
   const { isMobile } = useMediaQuery();
 
@@ -89,9 +102,6 @@ export function CreateWorkspaceForm({
           <p className="block text-sm font-medium text-neutral-700">
             Workspace Name
           </p>
-          <InfoTooltip
-            content={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
-          />
         </label>
         <div className="mt-2 flex rounded-md shadow-sm">
           <input
@@ -114,9 +124,6 @@ export function CreateWorkspaceForm({
           <p className="block text-sm font-medium text-neutral-700">
             Workspace Slug
           </p>
-          <InfoTooltip
-            content={`This is your workspace's unique slug on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
-          />
         </label>
         <div className="relative mt-2 flex rounded-md shadow-sm">
           <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-5 text-neutral-500 sm:text-sm">
@@ -162,11 +169,63 @@ export function CreateWorkspaceForm({
             </div>
           )}
         </div>
-        {errors.slug && (
-          <p className="mt-2 text-sm text-red-600" id="slug-error">
+        {errors.slug ? (
+          <p
+            className="mt-1.5 text-xs font-medium text-red-600"
+            id="slug-error"
+          >
             {errors.slug.message}
           </p>
+        ) : (
+          <p className="mt-1.5 text-xs text-neutral-500">
+            You can always change this later in your workspace settings.
+          </p>
         )}
+      </div>
+
+      <div>
+        <label>
+          <p className="block text-sm font-medium text-neutral-700">
+            Workspace Logo
+          </p>
+          <div className="mt-1.5 flex items-center gap-5">
+            <Controller
+              control={control}
+              name="logo"
+              render={({ field }) => (
+                <FileUpload
+                  accept="images"
+                  className={cn(
+                    "size-20 rounded-full border border-neutral-300",
+                    errors.logo && "border-0 ring-2 ring-red-500",
+                  )}
+                  iconClassName="size-5"
+                  previewClassName="size-10 rounded-full"
+                  variant="plain"
+                  imageSrc={field.value}
+                  readFile
+                  onChange={({ src }) => field.onChange(src)}
+                  content={null}
+                  maxFileSizeMB={2}
+                  targetResolution={{ width: 160, height: 160 }}
+                />
+              )}
+            />
+            <div>
+              <div
+                className={cn(
+                  buttonVariants({ variant: "secondary" }),
+                  "flex h-7 w-fit cursor-pointer items-center rounded-md border px-2 text-xs",
+                )}
+              >
+                Upload image
+              </div>
+              <p className="mt-1.5 text-xs text-neutral-500">
+                Recommended size: 160x160px
+              </p>
+            </div>
+          </div>
+        </label>
       </div>
 
       <Button

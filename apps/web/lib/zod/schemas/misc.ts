@@ -108,11 +108,19 @@ export const uploadedImageUrlSchema = z
     message: `URL must start with ${R2_URL}`,
   });
 
+export const publicHostedImageSchema = z
+  .string()
+  .url()
+  .trim()
+  .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
+    message: "Image URL must start with http:// or https://",
+  });
+
 // Base64 encoded image or R2_URL
 // This schema contains an async refinement check for base64 image validation,
 // which requires using parseAsync() instead of parse() when validating
 export const uploadedImageSchema = z
-  .union([base64ImageSchema, uploadedImageUrlSchema])
+  .union([base64ImageSchema, uploadedImageUrlSchema, publicHostedImageSchema])
   .transform((v) => v || null);
 
 // Base64 encoded image/SVG or R2_URL
@@ -121,11 +129,3 @@ export const uploadedImageSchema = z
 export const uploadedImageAllowSVGSchema = z
   .union([base64ImageAllowSVGSchema, uploadedImageUrlSchema])
   .transform((v) => v || null);
-
-export const publicHostedImageSchema = z
-  .string()
-  .url()
-  .trim()
-  .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
-    message: "Image URL must start with http:// or https://",
-  });
