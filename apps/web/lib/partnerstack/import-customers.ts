@@ -2,9 +2,9 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
-import { recordClick, recordLeadWithTimestamp } from "../tinybird";
+import { recordLeadWithTimestamp } from "../tinybird";
+import { recordFakeClick } from "../tinybird/record-fake-click";
 import { redis } from "../upstash";
-import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { PartnerStackApi } from "./api";
 import {
   MAX_BATCHES,
@@ -90,6 +90,7 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
               key: true,
               domain: true,
               url: true,
+              projectId: true,
             },
           },
         },
@@ -144,7 +145,7 @@ async function createCustomer({
   customer,
 }: {
   workspace: Pick<Project, "id" | "stripeConnectId">;
-  links: Pick<Link, "id" | "key" | "domain" | "url">[];
+  links: Pick<Link, "id" | "key" | "domain" | "url" | "projectId">[];
   customer: PartnerStackCustomer;
 }) {
   if (links.length === 0) {
@@ -174,32 +175,9 @@ async function createCustomer({
 
   const link = links[0];
 
-  const dummyRequest = new Request(link.url, {
-    headers: new Headers({
-      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-      "x-forwarded-for": "127.0.0.1",
-      "x-vercel-ip-country": "US",
-      "x-vercel-ip-country-region": "CA",
-      "x-vercel-ip-continent": "NA",
-    }),
-  });
-
-  const clickData = await recordClick({
-    req: dummyRequest,
-    linkId: link.id,
-    clickId: nanoid(16),
-    url: link.url,
-    domain: link.domain,
-    key: link.key,
-    workspaceId: workspace.id,
-    skipRatelimit: true,
-    timestamp: new Date(customer.created_at).toISOString(),
-  });
-
-  const clickEvent = clickEventSchemaTB.parse({
-    ...clickData,
-    bot: 0,
-    qr: 0,
+  const clickEvent = await recordFakeClick({
+    link,
+    timestamp: customer.created_at,
   });
 
   const customerId = createId({ prefix: "cus_" });

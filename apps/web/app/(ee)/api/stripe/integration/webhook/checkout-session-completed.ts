@@ -6,11 +6,11 @@ import { createPartnerCommission } from "@/lib/partners/create-partner-commissio
 import {
   getClickEvent,
   getLeadEvent,
-  recordClick,
   recordLead,
   recordLeadWithTimestamp,
   recordSale,
 } from "@/lib/tinybird";
+import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { ClickEventTB, LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -18,7 +18,6 @@ import {
   transformLeadEventData,
   transformSaleEventData,
 } from "@/lib/webhook/transform";
-import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { Customer } from "@dub/prisma/client";
@@ -265,6 +264,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             url: true,
             domain: true,
             key: true,
+            projectId: true,
           },
         });
 
@@ -274,32 +274,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
         const stripeCustomerAddress = charge.customer_details?.address;
 
-        const dummyRequest = new Request(link.url, {
-          headers: new Headers({
-            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-            "x-forwarded-for": "127.0.0.1",
-            "x-vercel-ip-country": stripeCustomerAddress?.country || "US",
-            "x-vercel-ip-country-region": stripeCustomerAddress?.state || "CA",
-            "x-vercel-ip-continent": "NA",
-          }),
-        });
-
-        const clickData = await recordClick({
-          req: dummyRequest,
-          linkId: link.id,
-          clickId: nanoid(16),
-          url: link.url,
-          domain: link.domain,
-          key: link.key,
-          workspaceId: workspace.id,
-          skipRatelimit: true,
-          timestamp: new Date().toISOString(),
-        });
-
-        const clickEvent = clickEventSchemaTB.parse({
-          ...clickData,
-          bot: 0,
-          qr: 0,
+        const clickEvent = await recordFakeClick({
+          link,
+          customer: {
+            country: stripeCustomerAddress?.country,
+            region: stripeCustomerAddress?.state,
+          },
         });
 
         const customerId = createId({ prefix: "cus_" });

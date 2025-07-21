@@ -2,9 +2,8 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
-import { recordClick } from "../tinybird/record-click";
+import { recordFakeClick } from "../tinybird/record-fake-click";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
-import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulReferral } from "./types";
@@ -152,32 +151,9 @@ async function createReferral({
     return;
   }
 
-  const dummyRequest = new Request(link.url, {
-    headers: new Headers({
-      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-      "x-forwarded-for": "127.0.0.1",
-      "x-vercel-ip-country": "US",
-      "x-vercel-ip-country-region": "CA",
-      "x-vercel-ip-continent": "NA",
-    }),
-  });
-
-  const clickData = await recordClick({
-    req: dummyRequest,
-    linkId: link.id,
-    clickId: nanoid(16),
-    url: link.url,
-    domain: link.domain,
-    key: link.key,
-    workspaceId: workspace.id,
-    skipRatelimit: true,
-    timestamp: new Date(referral.created_at).toISOString(),
-  });
-
-  const clickEvent = clickEventSchemaTB.parse({
-    ...clickData,
-    bot: 0,
-    qr: 0,
+  const clickEvent = await recordFakeClick({
+    link,
+    timestamp: referral.created_at,
   });
 
   const customerId = createId({ prefix: "cus_" });
