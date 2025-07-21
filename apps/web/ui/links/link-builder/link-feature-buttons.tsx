@@ -44,7 +44,7 @@ export function LinkFeatureButtons({
           <PasswordButton />
           <ExpirationButton />
         </div>
-        <MoreDropdown />
+        <MoreDropdown variant={variant} />
       </div>
     </>
   );

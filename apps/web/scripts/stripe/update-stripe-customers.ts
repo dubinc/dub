@@ -6,7 +6,7 @@ import { stripeAppClient } from "../../lib/stripe";
 async function main() {
   const workspace = await prisma.project.findUniqueOrThrow({
     where: {
-      id: "xxx",
+      id: "ws_1JRV43Y6B85PGH7B54KA79M81",
     },
   });
 

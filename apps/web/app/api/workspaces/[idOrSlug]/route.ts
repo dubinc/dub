@@ -25,9 +25,11 @@ export const GET = withWorkspace(
         projectId: workspace.id,
       },
       select: {
+        id: true,
         slug: true,
         primary: true,
         verified: true,
+        linkRetentionDays: true,
       },
       take: 100,
     });

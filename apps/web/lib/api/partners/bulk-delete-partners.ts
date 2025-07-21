@@ -2,7 +2,7 @@ import { prisma } from "@dub/prisma";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
 // bulk delete multiple partners and all associated links, customers, payouts, and commissions
-// currently only used for the cron/cleanup job
+// currently only used for the cron/cleanup/e2e-tests job
 export async function bulkDeletePartners({
   partnerIds,
 }: {

@@ -413,7 +413,7 @@ export function useAnalyticsFilters({
     key: "customerId",
     icon: User,
     label: "Customer",
-    hideInFilterDropdown: partnerPage,
+    hideInFilterDropdown: true,
     shouldFilter: !customersAsync,
     getOptionIcon: () => {
       return selectedCustomer ? (
@@ -515,7 +515,6 @@ export function useAnalyticsFilters({
             ? [LinkFilterItem, CustomerFilterItem, SaleTypeFilterItem]
             : [
                 ...(canManageCustomers ? [CustomerFilterItem] : []),
-                SaleTypeFilterItem,
                 {
                   key: "folderId",
                   icon: Folder,
@@ -626,7 +625,6 @@ export function useAnalyticsFilters({
                   key: "root",
                   icon: Sliders,
                   label: "Link type",
-                  separatorAfter: true,
                   options: [
                     {
                       value: true,
@@ -640,6 +638,7 @@ export function useAnalyticsFilters({
                     },
                   ],
                 },
+                SaleTypeFilterItem,
               ]),
       {
         key: "country",
