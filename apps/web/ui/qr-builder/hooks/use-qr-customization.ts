@@ -1,5 +1,6 @@
 import {
   BLACK_COLOR,
+  TRANSPARENT_COLOR,
   WHITE_COLOR,
 } from "@/ui/qr-builder/constants/customization/colors.ts";
 import {
@@ -358,13 +359,16 @@ export function useQrCustomization(
       const isUsingDefaultColor =
         frameTextColor === selected?.defaultTextColor ||
         isDefaultTextColor(frameTextColor);
+      const noFrame = frameId === "none";
+      const bgColor = noFrame ? WHITE_COLOR : TRANSPARENT_COLOR;
+
       if (!frameTextColor || isUsingDefaultColor) {
         setFrameTextColor(selected?.defaultTextColor || WHITE_COLOR);
       }
 
       setOptions((prevOptions) => ({
         ...prevOptions,
-        backgroundOptions: { color: WHITE_COLOR },
+        backgroundOptions: { color: bgColor },
       }));
 
       if (!qrCode) return;
@@ -372,7 +376,7 @@ export function useQrCustomization(
       qrCode.update({
         ...options,
         backgroundOptions: {
-          color: WHITE_COLOR,
+          color: bgColor,
         },
         data: homepageDemo
           ? `${window.location.origin}/qr-complete-setup`
