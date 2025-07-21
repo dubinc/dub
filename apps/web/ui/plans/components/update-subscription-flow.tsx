@@ -64,6 +64,12 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
       paymentPlan: selectedPlan.paymentPlan,
     });
 
+    if (!createPaymentRes?.success) {
+      setIsUpdateProcessing(false);
+      toast.error(`Payment creation failed.`);
+      return;
+    }
+
     const onError = (info?: IGetPrimerClientPaymentInfoRes) => {
       setIsUpdateProcessing(false);
 
@@ -114,8 +120,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
 
           // Force refresh the page cache
           router.refresh();
-
-          setTimeout(() => router.push("/"), 500);
+          router.push("/");
         })
         .catch((error) =>
           toast.error(
@@ -123,12 +128,6 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
           ),
         );
     };
-
-    if (!createPaymentRes?.success) {
-      setIsUpdateProcessing(false);
-      toast.error(`Payment creation failed.`);
-      return;
-    }
 
     await pollPaymentStatus({
       paymentId: createPaymentRes!.data!.paymentId,

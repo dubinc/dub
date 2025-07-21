@@ -164,8 +164,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
     // Force refresh the page cache
     router.refresh();
-
-    setTimeout(() => router.push("/"), 500);
+    router.push("/");
   };
 
   const handleCheckoutError = ({
