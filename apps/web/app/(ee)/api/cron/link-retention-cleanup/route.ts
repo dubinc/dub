@@ -42,7 +42,12 @@ const MAX_LINK_BATCHES = 10;
 async function deleteOldLinks(
   domain: Pick<Domain, "id" | "slug" | "linkRetentionDays" | "projectId">,
 ) {
-  if (!domain.linkRetentionDays || !domain.projectId) return;
+  if (
+    !domain.linkRetentionDays ||
+    !domain.projectId ||
+    domain.linkRetentionDays <= 0
+  )
+    return;
 
   let processedBatches = 0;
 
@@ -88,10 +93,6 @@ async function deleteOldLinks(
         },
       });
     });
-
-    console.log(
-      `[Link retention cleanup] Deleted ${links.length} links for ${domain}!`,
-    );
 
     // // Record the links deletion in Tinybird
     // // not 100% sure if we need this yet, maybe we should just delete the link completely from TB to save space?
