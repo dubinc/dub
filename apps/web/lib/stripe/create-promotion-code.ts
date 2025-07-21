@@ -1,5 +1,9 @@
 import { stripeAppClient } from ".";
 
+const stripe = stripeAppClient({
+  ...(process.env.VERCEL_ENV && { livemode: true }),
+});
+
 // Create a promotion code on Stripe for connected accounts
 export async function createStripePromotionCode({
   couponId,
@@ -16,10 +20,6 @@ export async function createStripePromotionCode({
     );
     return;
   }
-
-  const stripe = stripeAppClient({
-    livemode: process.env.NODE_ENV === "production",
-  });
 
   try {
     return await stripe.promotionCodes.create(

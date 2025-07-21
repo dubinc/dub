@@ -1,5 +1,9 @@
 import { stripeAppClient } from ".";
 
+const stripe = stripeAppClient({
+  ...(process.env.VERCEL_ENV && { livemode: true }),
+});
+
 // Delete a coupon on Stripe for connected accounts
 export async function deleteStripeCoupon({
   couponId,
@@ -14,10 +18,6 @@ export async function deleteStripeCoupon({
     );
     return;
   }
-
-  const stripe = stripeAppClient({
-    livemode: process.env.NODE_ENV === "production",
-  });
 
   try {
     return await stripe.coupons.del(couponId, {

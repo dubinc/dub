@@ -1,6 +1,10 @@
 import { Discount } from "@prisma/client";
 import { stripeAppClient } from ".";
 
+const stripe = stripeAppClient({
+  ...(process.env.VERCEL_ENV && { livemode: true }),
+});
+
 // Create a coupon on Stripe for connected accounts
 export async function createStripeCoupon({
   coupon,
@@ -16,25 +20,23 @@ export async function createStripeCoupon({
     return;
   }
 
-  const stripe = stripeAppClient({
-    livemode: process.env.NODE_ENV === "production",
-  });
-
-  const { type, amount, maxDuration } = coupon;
-
   const duration =
-    maxDuration === null ? "forever" : maxDuration === 1 ? "once" : "repeating";
+    coupon.maxDuration === null
+      ? "forever"
+      : coupon.maxDuration === 1
+        ? "once"
+        : "repeating";
 
   return await stripe.coupons.create(
     {
       currency: "usd",
       duration,
       ...(duration === "repeating" && {
-        duration_in_months: maxDuration!,
+        duration_in_months: coupon.maxDuration!,
       }),
-      ...(type === "percentage"
-        ? { percent_off: amount }
-        : { amount_off: amount }),
+      ...(coupon.type === "percentage"
+        ? { percent_off: coupon.amount }
+        : { amount_off: coupon.amount }),
     },
     {
       stripeAccount: stripeConnectId,
