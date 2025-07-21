@@ -1,113 +1,170 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { createStripePromotionCode } from "@/lib/stripe/create-promotion-code";
 import { prisma } from "@dub/prisma";
-import { chunk } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
   discountId: z.string(),
+  page: z.number().optional().default(1),
 });
+
+const PAGE_LIMIT = 20;
+const MAX_BATCHES = 5;
 
 // This route is used to create promotion codes for each link for link-based coupon codes tracking.
 // POST /api/cron/links/create-promotion-codes
 export async function POST(req: Request) {
+  let discountId: string | undefined;
+
   try {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { discountId } = schema.parse(JSON.parse(rawBody));
+    const parsedBody = schema.parse(JSON.parse(rawBody));
 
-    const discount = await prisma.discount.findUnique({
+    const { page } = parsedBody;
+    discountId = parsedBody.discountId;
+
+    const {
+      couponId,
+      programId,
+      program: { couponCodeTrackingEnabledAt },
+    } = await prisma.discount.findUniqueOrThrow({
       where: {
         id: discountId,
       },
+      select: {
+        couponId: true,
+        programId: true,
+        program: {
+          select: {
+            couponCodeTrackingEnabledAt: true,
+          },
+        },
+      },
     });
 
-    if (!discount) {
-      return new Response("Discount not found.");
+    if (!couponCodeTrackingEnabledAt) {
+      return new Response(
+        "couponCodeTrackingEnabledAt is not set for the program. Skipping promotion code creation.",
+      );
     }
 
-    if (!discount.couponId) {
-      return new Response("couponId doesn't set for the discount.");
+    if (!couponId) {
+      return new Response(
+        "couponId doesn't set for the discount. Skipping promotion code creation.",
+      );
     }
 
-    const workspace = await prisma.project.findUniqueOrThrow({
+    const { stripeConnectId } = await prisma.project.findUniqueOrThrow({
       where: {
-        defaultProgramId: discount.programId,
+        defaultProgramId: programId,
       },
       select: {
         stripeConnectId: true,
       },
     });
 
-    if (!workspace.stripeConnectId) {
+    if (!stripeConnectId) {
       return new Response("stripeConnectId doesn't exist for the workspace.");
     }
 
-    const enrollments = await prisma.programEnrollment.findMany({
-      where: {
-        programId: discount.programId,
-        discountId: discount.id,
-      },
-      select: {
-        partnerId: true,
-      },
-    });
+    let hasMore = true;
+    let currentPage = page;
+    let processedBatches = 0;
 
-    if (enrollments.length === 0) {
-      return new Response("No enrollments found.");
-    }
-
-    const links = await prisma.link.findMany({
-      where: {
-        programId: discount.programId,
-        partnerId: {
-          in: enrollments.map(({ partnerId }) => partnerId),
+    while (hasMore && processedBatches < MAX_BATCHES) {
+      const enrollments = await prisma.programEnrollment.findMany({
+        where: {
+          programId,
+          discountId,
         },
-      },
-      select: {
-        key: true,
-      },
-    });
+        select: {
+          partnerId: true,
+        },
+        orderBy: {
+          id: "desc",
+        },
+        take: PAGE_LIMIT,
+        skip: (currentPage - 1) * PAGE_LIMIT,
+      });
 
-    if (links.length === 0) {
-      return new Response("No links found.");
+      if (enrollments.length === 0) {
+        console.log("No more enrollments found.");
+        hasMore = false;
+        break;
+      }
+
+      const links = await prisma.link.findMany({
+        where: {
+          programId,
+          partnerId: {
+            in: enrollments.map(({ partnerId }) => partnerId),
+          },
+        },
+        select: {
+          key: true,
+        },
+      });
+
+      if (links.length === 0) {
+        console.log("No more links found.");
+        continue;
+      }
+
+      const linksChunks = chunk(links, 10);
+      const failedRequests: Error[] = [];
+
+      for (const linksChunk of linksChunks) {
+        const results = await Promise.allSettled(
+          linksChunk.map(({ key }) =>
+            createStripePromotionCode({
+              code: key,
+              couponId,
+              stripeConnectId,
+            }),
+          ),
+        );
+
+        results.forEach((result) => {
+          if (result.status === "rejected") {
+            failedRequests.push(result.reason);
+          }
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+
+      if (failedRequests.length > 0) {
+        console.error(failedRequests);
+      }
+
+      currentPage++;
+      processedBatches++;
     }
 
-    const linksChunks = chunk(links, 20);
-    const failedRequests: Error[] = [];
-
-    for (const linksChunk of linksChunks) {
-      const results = await Promise.allSettled(
-        linksChunk.map(({ key }) =>
-          createStripePromotionCode({
-            code: key,
-            couponId: discount.couponId!,
-            stripeConnectId: workspace.stripeConnectId,
-          }),
-        ),
-      );
-
-      results.forEach((result) => {
-        if (result.status === "rejected") {
-          failedRequests.push(result.reason);
-        }
+    if (hasMore) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
+        body: {
+          discountId,
+          page: currentPage,
+        },
       });
     }
 
-    if (failedRequests.length > 0) {
-      console.error(failedRequests);
-    }
-
-    return new Response(
-      failedRequests.length > 0
-        ? `Failed to create promotion codes for ${failedRequests.length} links. See logs for more details.`
-        : "OK",
-    );
+    return new Response("OK");
   } catch (error) {
+    await log({
+      message: `Error creating Stripe promotion codes for discount ${discountId}: ${error.message}`,
+      type: "errors",
+    });
+
     return handleAndReturnErrorResponse(error);
   }
 }
