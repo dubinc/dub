@@ -32,15 +32,23 @@ const PlansPage: NextPage = async () => {
   const user = authUser.paymentData
     ? convertSessionUserToCustomerBody(authUser)
     : cookieUser;
+
   console.log("PlansPage email", user?.email);
   console.log(
     "PlansPage current subscription plan",
     user?.paymentInfo?.subscriptionPlanCode || "Dont subscribe",
   );
+
+  const componentKey = `${user?.id}-${user?.paymentInfo?.subscriptionPlanCode || "no-sub"}-${user?.paymentInfo?.subscriptionId || "no-id"}`;
+
   return (
     <PageContent title="Plans and Payments">
       <MaxWidthWrapper>
-        <PlansContent user={user!} mostScannedQR={mostScannedQR} />
+        <PlansContent
+          key={componentKey}
+          user={user!}
+          mostScannedQR={mostScannedQR}
+        />
       </MaxWidthWrapper>
     </PageContent>
   );
