@@ -5,6 +5,7 @@ import { expect } from "vitest";
 
 export const LinkSchema = LinkSchemaOld.extend({
   identifier: z.null(),
+  linkRetentionCleanupDisabledAt: z.null(),
 });
 
 export const expectedLink: Partial<Link> & {
@@ -58,6 +59,7 @@ export const expectedLink: Partial<Link> & {
   testCompletedAt: null,
   testStartedAt: null,
   testVariants: null,
+  linkRetentionCleanupDisabledAt: null,
 };
 
 export const expectedTag: Partial<Tag> = {
