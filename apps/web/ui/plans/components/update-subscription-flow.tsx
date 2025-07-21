@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FC, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 
 interface IUpdateSubscriptionProps {
   user: ICustomerBody;
@@ -107,6 +108,12 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
 
           // Update session data to reflect the new subscription plan
           await updateSession();
+
+          // Force refresh user data cache
+          await mutate("/api/user");
+
+          // Force refresh the page cache
+          router.refresh();
 
           setTimeout(() => router.push("/"), 500);
         })

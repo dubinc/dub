@@ -18,6 +18,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FC, useRef, useState } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 
 interface ICreateSubscriptionProps {
   amount: number;
@@ -157,6 +158,12 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     });
 
     await updateSession();
+
+    // Force refresh user data cache
+    await mutate("/api/user");
+
+    // Force refresh the page cache
+    router.refresh();
 
     setTimeout(() => router.push("/"), 500);
   };
