@@ -156,6 +156,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       - if not present, we skip the event
   */
 
+    const promotionCodeId = charge.discounts?.[0]?.promotion_code as string;
+
     if (dubCustomerId) {
       customer = await updateCustomerWithStripeCustomerId({
         stripeAccountId,
@@ -206,10 +208,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     );
 
     if (!leadEvent) {
-      const promotionCodeId = charge.discounts?.[0]?.promotion_code as string;
-
-      // TODO:
-      // Can we move this to top of the function?
       const workspace = await prisma.project.findUnique({
         where: {
           stripeConnectId: stripeAccountId,
@@ -251,67 +249,69 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         livemode: event.livemode,
       });
 
-      if (promotionCode) {
-        const link = await prisma.link.findUnique({
-          where: {
-            domain_key: {
-              domain: program.domain,
-              key: promotionCode.code,
-            },
-          },
-          select: {
-            id: true,
-            url: true,
-            domain: true,
-            key: true,
-            projectId: true,
-          },
-        });
-
-        if (!link) {
-          return `Couldn't find link associated with promotion code ${promotionCode.code} and program ${program.id}, skipping...`;
-        }
-
-        const stripeCustomerAddress = charge.customer_details?.address;
-
-        const clickEvent = await recordFakeClick({
-          link,
-          customer: {
-            country: stripeCustomerAddress?.country,
-            region: stripeCustomerAddress?.state,
-          },
-        });
-
-        const customerId = createId({ prefix: "cus_" });
-
-        customer = await prisma.customer.create({
-          data: {
-            id: customerId,
-            name: stripeCustomerName || stripeCustomerEmail,
-            email: stripeCustomerEmail,
-            projectId: workspace.id,
-            projectConnectId: workspace.stripeConnectId,
-            clickId: clickEvent.click_id,
-            linkId: link.id,
-            country: clickEvent.country,
-            externalId: stripeCustomerEmail,
-            clickedAt: new Date(),
-            createdAt: new Date(),
-          },
-        });
-
-        const leadData = {
-          ...clickEvent,
-          event_id: nanoid(16),
-          event_name: "Sign up",
-          customer_id: customerId,
-          timestamp: new Date(customer.updatedAt).toISOString(),
-        };
-
-        await recordLeadWithTimestamp(leadData);
-
-        leadEvent = leadEventSchemaTB.parse(leadData);
+      if (!promotionCode) {
+        return `Promotion code ${promotionCodeId} not found, skipping...`;
       }
+
+      const link = await prisma.link.findUnique({
+        where: {
+          domain_key: {
+            domain: program.domain,
+            key: promotionCode.code,
+          },
+        },
+        select: {
+          id: true,
+          url: true,
+          domain: true,
+          key: true,
+          projectId: true,
+        },
+      });
+
+      if (!link) {
+        return `Couldn't find link associated with promotion code ${promotionCode.code} and program ${program.id}, skipping...`;
+      }
+
+      const stripeCustomerAddress = charge.customer_details?.address;
+
+      const clickEvent = await recordFakeClick({
+        link,
+        customer: {
+          country: stripeCustomerAddress?.country,
+          region: stripeCustomerAddress?.state,
+        },
+      });
+
+      const customerId = createId({ prefix: "cus_" });
+
+      customer = await prisma.customer.create({
+        data: {
+          id: customerId,
+          name: stripeCustomerName || stripeCustomerEmail,
+          email: stripeCustomerEmail,
+          projectId: workspace.id,
+          projectConnectId: workspace.stripeConnectId,
+          clickId: clickEvent.click_id,
+          linkId: link.id,
+          country: clickEvent.country,
+          externalId: stripeCustomerEmail,
+          clickedAt: new Date(),
+          createdAt: new Date(),
+        },
+      });
+
+      const leadData = {
+        ...clickEvent,
+        event_id: nanoid(16),
+        event_name: "Sign up",
+        customer_id: customerId,
+        timestamp: new Date(customer.updatedAt).toISOString(),
+      };
+
+      await recordLeadWithTimestamp(leadData);
+
+      leadEvent = leadEventSchemaTB.parse(leadData);
     }
 
     linkId = leadEvent.link_id;
