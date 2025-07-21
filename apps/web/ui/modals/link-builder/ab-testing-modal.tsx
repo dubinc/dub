@@ -54,6 +54,7 @@ function ABTestingModal({
   setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const id = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const {
     watch: watchParent,
@@ -400,6 +401,7 @@ function ABTestingModal({
           </div>
           <div className="mt-2 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white shadow-sm transition-all focus-within:border-neutral-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-neutral-500">
             <input
+              ref={inputRef}
               id={`${id}-testCompletedAt`}
               type="text"
               placeholder='E.g. "in 2 weeks" or "next month"'
@@ -433,6 +435,9 @@ function ABTestingModal({
                 setValue("testCompletedAt", completeDate, {
                   shouldDirty: true,
                 });
+                if (inputRef.current) {
+                  inputRef.current.value = formatDateTime(completeDate);
+                }
               }}
               className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
             />

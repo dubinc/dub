@@ -120,7 +120,7 @@ async function searchStripeAndUpdateCustomer({
   if (stripeCustomers.data.length > 1) {
     // look for the one with metadata.tolt_referral set
     const toltReferralStripeCustomer = stripeCustomers.data.find(
-      (customer) => customer.metadata.tolt_referral,
+      ({ metadata }) => metadata.tolt_referral,
     );
 
     if (toltReferralStripeCustomer) {
@@ -132,9 +132,9 @@ async function searchStripeAndUpdateCustomer({
 
       return null;
     }
+  } else {
+    stripeCustomer = stripeCustomers.data[0];
   }
-
-  stripeCustomer = stripeCustomers.data[0];
 
   await prisma.customer.update({
     where: {

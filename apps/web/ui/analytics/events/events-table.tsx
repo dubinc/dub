@@ -2,6 +2,7 @@
 
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import EmptyState from "@/ui/shared/empty-state";
@@ -33,7 +34,7 @@ import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ReactNode, useContext, useEffect, useMemo } from "react";
+import { ReactNode, useCallback, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
@@ -71,6 +72,21 @@ export default function EventsTable({
 
   const { programSlug } = useParams<{ programSlug: string }>();
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
+
+  const [persisted] = useWorkspacePreferences("linksDisplay");
+
+  const shortLinkTitle = useCallback(
+    (d: { url?: string; title?: string; shortLink?: string }) => {
+      const displayProperties = persisted?.displayProperties;
+
+      if (displayProperties?.includes("title") && d.title) {
+        return d.title;
+      }
+
+      return d.shortLink || "Unknown";
+    },
+    [persisted],
+  );
 
   const sortBy = searchParams.get("sortBy") || "timestamp";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -216,8 +232,8 @@ export default function EventsTable({
                   apexDomain={getApexDomain(getValue().url)}
                   className="size-4 shrink-0 sm:size-4"
                 />
-                <span className="truncate" title={getValue().shortLink}>
-                  {getPrettyUrl(getValue().shortLink)}
+                <span className="truncate" title={shortLinkTitle(getValue())}>
+                  {getPrettyUrl(shortLinkTitle(getValue()))}
                 </span>
               </div>
             );
