@@ -73,11 +73,13 @@ export const decodeLinkIfCaseSensitive = (link: any) => {
   if (isCaseSensitiveDomain(link.domain)) {
     const originalKey = decodeKey(link.key);
 
-    if (link.shortLink) {
-      link.shortLink = `https://${link.domain}${originalKey === "_root" ? "" : `/${originalKey}`}`;
-    }
-
-    link.key = originalKey;
+    return {
+      ...link,
+      key: originalKey,
+      ...(link.shortLink && {
+        shortLink: `https://${link.domain}${originalKey === "_root" ? "" : `/${originalKey}`}`,
+      }),
+    };
   }
 
   return link;
