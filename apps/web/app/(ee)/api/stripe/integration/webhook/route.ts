@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
 import { chargeRefunded } from "./charge-refunded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
+import { couponDeleted } from "./coupon-deleted";
 import { customerCreated } from "./customer-created";
 import { customerUpdated } from "./customer-updated";
 import { invoicePaid } from "./invoice-paid";
@@ -15,6 +16,7 @@ const relevantEvents = new Set([
   "invoice.paid",
   "charge.refunded",
   "account.application.deauthorized",
+  "coupon.deleted",
 ]);
 
 // POST /api/stripe/integration/webhook – listen to Stripe webhooks (for Stripe Integration)
@@ -73,6 +75,9 @@ export const POST = withAxiom(async (req: Request) => {
       break;
     case "account.application.deauthorized":
       response = await accountApplicationDeauthorized(event);
+      break;
+    case "coupon.deleted":
+      response = await couponDeleted(event);
       break;
   }
 
