@@ -46,7 +46,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<IDataRes>> {
       subject: "Subscription Cancelled",
       template: CUSTOMER_IO_TEMPLATES.SUBSCRIPTION_CANCELLATION,
       messageData: {
-        endDate: format(new Date(nextBillingDate), 'yyyy-MM-dd'),
+        end_date: format(new Date(nextBillingDate), 'yyyy-MM-dd'),
       },
       customerId: user.id,
     });
