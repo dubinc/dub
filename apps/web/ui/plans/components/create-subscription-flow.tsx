@@ -16,7 +16,7 @@ import { ICustomerBody } from "core/integration/payment/config";
 import { generateCheckoutFormPaymentEvents } from "core/services/events/checkout-form-events.service.ts";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { FC, useRef, useState } from "react";
+import { Dispatch, FC, SetStateAction, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -25,6 +25,7 @@ interface ICreateSubscriptionProps {
   user: ICustomerBody;
   selectedPlan: IPricingPlan;
   isUpdatingToken: boolean;
+  setIsProcessing: Dispatch<SetStateAction<boolean>>;
 }
 
 const pageName = "profile";
@@ -34,6 +35,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   user,
   selectedPlan,
   isUpdatingToken,
+  setIsProcessing,
 }) => {
   const router = useRouter();
   const paymentTypeRef = useRef<string | null>(null);
@@ -102,6 +104,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   };
 
   const onPaymentAttempt = () => {
+    setIsProcessing(true);
+
     generateCheckoutFormPaymentEvents({
       user,
       stage: "attempt",
@@ -129,6 +133,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     });
 
     if (!res?.success) {
+      setIsProcessing(false);
       setIsSubscriptionCreation(false);
       toast.error("Subscription creation failed!");
 
@@ -180,6 +185,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       paymentId: data?.payment?.id,
     };
 
+    setIsProcessing(false);
     setIsSubscriptionCreation(false);
 
     generateCheckoutFormPaymentEvents({
