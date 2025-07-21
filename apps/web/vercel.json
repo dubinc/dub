@@ -42,7 +42,7 @@
     },
     {
       "path": "/api/cron/online-presence/youtube",
-      "schedule": "0 0 * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/cleanup/e2e-tests",
@@ -50,11 +50,11 @@
     },
     {
       "path": "/api/cron/cleanup/expired-tokens",
-      "schedule": "0 * * * *"
+      "schedule": "0 2 * * *"
     },
     {
       "path": "/api/cron/cleanup/link-retention",
-      "schedule": "0 0 * * *"
+      "schedule": "0 */12 * * *"
     }
   ],
   "functions": {

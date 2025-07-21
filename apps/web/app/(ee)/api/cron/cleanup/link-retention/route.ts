@@ -12,7 +12,7 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 // This route is used to delete old links for domains with linkRetentionDays set
-// Runs once a day at 00:00:00 UTC (0 0 * * *)
+// Runs once every 12 hours (0 */12 * * *)
 // GET /api/cron/cleanup/link-retention
 async function handler(req: Request) {
   try {
@@ -137,6 +137,9 @@ async function deleteOldLinks(
     );
 
     ++processedBatches;
+
+    // sleep for 250ms
+    await new Promise((resolve) => setTimeout(resolve, 250));
   }
 
   // Only schedule another run if we hit the batch limit AND we found a full batch
