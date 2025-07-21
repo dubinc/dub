@@ -12,6 +12,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<IDataRes>> {
   try {
     const body = await req.json();
 
+    console.log('refunds');
+    console.log(body);
+
     const email =
       body.payment.metadata.email_address ||
       body.payment.metadata.email ||

@@ -13,6 +13,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<IDataRes>> {
   try {
     const body = await req.json();
 
+    console.log('scheduled_for_cancellation');
+    console.log(body);
+
     const email = body.subscription?.attributes?.email || body.user?.email;
     const nextBillingDate = body.subscription?.nextBillingDate;
     const changeType = body.type;
