@@ -9,7 +9,6 @@ import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import Stripe from "stripe";
 import { authActionClient } from "../safe-action";
 
 export const createDiscountAction = authActionClient
@@ -77,17 +76,16 @@ export const createDiscountAction = authActionClient
       }
     }
 
-    let stripeCoupon: Stripe.Coupon | null = null;
     const shouldCreateCouponOnStripe = !couponId && !couponTestId;
 
     if (shouldCreateCouponOnStripe) {
       if (!workspace.stripeConnectId) {
         throw new Error(
-          "Make sure you have connected your Stripe account to your workspace to create a coupon.",
+          "You need to install Dub Stripe app before creating a coupon.",
         );
       }
 
-      const response = await createStripeCoupon({
+      const stripeCoupon = await createStripeCoupon({
         stripeConnectId: workspace.stripeConnectId,
         coupon: {
           amount,
@@ -96,9 +94,11 @@ export const createDiscountAction = authActionClient
         },
       });
 
-      if (response) {
-        stripeCoupon = response;
+      if (!stripeCoupon) {
+        throw new Error("Failed to create Stripe coupon. Please try again.");
       }
+
+      couponId = stripeCoupon.id;
     }
 
     const discount = await prisma.discount.create({
@@ -108,7 +108,7 @@ export const createDiscountAction = authActionClient
         amount,
         type,
         maxDuration,
-        couponId: stripeCoupon?.id ?? couponId,
+        couponId,
         couponTestId,
         default: isDefault,
       },
@@ -139,6 +139,15 @@ export const createDiscountAction = authActionClient
 
     waitUntil(
       (async () => {
+        const program = await prisma.program.findUniqueOrThrow({
+          where: {
+            id: programId,
+          },
+          select: {
+            couponCodeTrackingEnabledAt: true,
+          },
+        });
+
         await Promise.allSettled([
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
@@ -163,8 +172,7 @@ export const createDiscountAction = authActionClient
             ],
           }),
 
-          // If the coupon code is created on Stripe, create a promotion code for each link
-          stripeCoupon &&
+          program.couponCodeTrackingEnabledAt &&
             qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
               body: {

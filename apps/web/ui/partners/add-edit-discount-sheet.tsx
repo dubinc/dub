@@ -97,6 +97,7 @@ function DiscountSheetContent({
     defaultValues: {
       includedPartnerIds: null,
       excludedPartnerIds: null,
+      maxDuration: 0,
     },
   });
 
