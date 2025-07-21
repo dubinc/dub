@@ -9,7 +9,7 @@ import { getUserCookieService } from "core/services/cookie/user-session.service.
 import { NextPage } from "next";
 import { Suspense } from "react";
 
-export const revalidate = 0;
+export const dynamic = "force-dynamic";
 
 const PlansPage: NextPage = async () => {
   const { user: cookieUser } = await getUserCookieService();
