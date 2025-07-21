@@ -13,7 +13,8 @@ const cutoff = new Date(Date.now() - 1000 * 60 * 10);
 // 1. VerificationToken
 // 2. EmailVerificationToken
 // 3. PasswordResetToken
-// GET /api/cron/clean-expired-tokens
+// Runs once every hour (0 * * * *)
+// GET /api/cron/cleanup/expired-tokens
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
@@ -54,7 +55,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ status: "OK" });
   } catch (error) {
     await log({
-      message: `/api/cron/clean-expired-tokens failed - ${error.message}`,
+      message: `/api/cron/cleanup/expired-tokens failed - ${error.message}`,
       type: "errors",
     });
 
