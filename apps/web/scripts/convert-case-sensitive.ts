@@ -1,7 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { linkConstructorSimple } from "@dub/utils";
 import "dotenv-flow/config";
-import { linkCache } from "../lib/api/links/cache";
 import { encodeKeyIfCaseSensitive } from "../lib/api/links/case-sensitivity";
 
 // script to convert existing links for a domain to case sensitive (encoded) setup
@@ -10,6 +9,10 @@ async function main() {
     where: {
       domain: "domain.com",
     },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 100,
   });
 
   await Promise.all(
@@ -35,9 +38,6 @@ async function main() {
       );
     }),
   );
-
-  const res = await linkCache.expireMany(links);
-  console.log(res);
 }
 
 main();

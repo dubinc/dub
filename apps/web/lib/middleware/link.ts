@@ -45,10 +45,6 @@ export default async function LinkMiddleware(
     return NextResponse.next();
   }
 
-  if (domain === "dev.buff.ly") {
-    domain = "buff.ly";
-  }
-
   // encode the key to ascii
   // links on Dub are case insensitive by default
   let key = punyEncode(originalKey);
