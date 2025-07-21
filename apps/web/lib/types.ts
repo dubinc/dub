@@ -160,7 +160,6 @@ export interface WorkspaceProps extends Project {
   logo: string | null;
   plan: PlanProps;
   domains: {
-    id: string;
     slug: string;
     primary: boolean;
     verified: boolean;
@@ -175,13 +174,16 @@ export interface WorkspaceProps extends Project {
   store: Record<string, any> | null;
 }
 
-export type ExpandedWorkspaceProps = WorkspaceProps & {
+export interface ExtendedWorkspaceProps extends WorkspaceProps {
+  domains: (WorkspaceProps["domains"][number] & {
+    linkRetentionDays: number | null;
+  })[];
   defaultProgramId: string | null;
   allowedHostnames: string[];
   users: (WorkspaceProps["users"][number] & {
     workspacePreferences?: z.infer<typeof workspacePreferencesSchema>;
   })[];
-};
+}
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
 

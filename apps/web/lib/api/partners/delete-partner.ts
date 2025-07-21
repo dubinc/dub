@@ -5,7 +5,7 @@ import { R2_URL } from "@dub/utils";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
 // delete partner and all associated links, customers, payouts, and commissions
-// currently only used for the cron/cleanup job
+// currently only used for the cron/cleanup/e2e-tests job
 export async function deletePartner({ partnerId }: { partnerId: string }) {
   const partner = await prisma.partner.findUnique({
     where: {
