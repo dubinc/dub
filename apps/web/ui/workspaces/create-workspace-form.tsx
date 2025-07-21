@@ -3,7 +3,7 @@
 import { isGenericEmail } from "@/lib/emails";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, buttonVariants, FileUpload, useMediaQuery } from "@dub/ui";
-import { cn, GOOGLE_FAVICON_URL } from "@dub/utils";
+import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { useSession } from "next-auth/react";
 import { usePlausible } from "next-plausible";
@@ -45,7 +45,23 @@ export function CreateWorkspaceForm({
   useEffect(() => {
     if (session?.user?.email && !isGenericEmail(session.user.email)) {
       const emailDomain = session.user.email.split("@")[1];
-      setValue("logo", `${GOOGLE_FAVICON_URL}${emailDomain}`);
+
+      // Check if favicon exists using our API endpoint
+      fetch(`/api/misc/check-favicon?domain=${emailDomain}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.exists) {
+            console.log("Logo URL is valid:", data.url);
+            setValue("logo", data.url);
+          } else {
+            // Don't set the logo if it returns an error
+            console.log("Logo URL returned error:", data.status, data.url);
+          }
+        })
+        .catch((error) => {
+          // Don't set the logo if fetch fails
+          console.log("Failed to check favicon:", error);
+        });
     } else if (session?.user?.image) {
       setValue("logo", session.user.image);
     }
@@ -147,16 +163,18 @@ export function CreateWorkspaceForm({
               pattern: /^[a-zA-Z0-9\-]+$/,
             })}
             onBlur={() => {
-              fetch(`/api/workspaces/${slug}/exists`).then(async (res) => {
-                if (res.status === 200) {
-                  const exists = await res.json();
-                  if (exists === 1)
-                    setError("slug", {
-                      message: `The slug "${slug}" is already in use.`,
-                    });
-                  else clearErrors("slug");
-                }
-              });
+              fetch(`/api/misc/check-workspace-slug?slug=${slug}`).then(
+                async (res) => {
+                  if (res.status === 200) {
+                    const exists = await res.json();
+                    if (exists === 1)
+                      setError("slug", {
+                        message: `The slug "${slug}" is already in use.`,
+                      });
+                    else clearErrors("slug");
+                  }
+                },
+              );
             }}
             aria-invalid="true"
           />

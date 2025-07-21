@@ -3,9 +3,9 @@ import { prisma } from "@dub/prisma";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// GET /api/workspaces/[idOrSlug]/exists – check if a project exists
-export const GET = withSession(async ({ params }) => {
-  const { idOrSlug: slug } = params;
+// GET /api/misc/check-workspace-slug – check if a workspace slug is available
+export const GET = withSession(async ({ searchParams }) => {
+  const { slug } = searchParams;
   if (RESERVED_SLUGS.includes(slug) || DEFAULT_REDIRECTS[slug]) {
     return NextResponse.json(1);
   }
