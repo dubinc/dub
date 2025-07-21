@@ -1,4 +1,3 @@
-import useUser from "@/lib/swr/use-user.ts";
 import { ExpandedWorkspaceProps } from "@/lib/types";
 import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
 import { useParams, useSearchParams } from "next/navigation";
@@ -11,13 +10,9 @@ export default function useWorkspace({
 } = {}) {
   let { slug } = useParams() as { slug: string | null };
   const searchParams = useSearchParams();
-  const { user } = useUser();
 
   if (!slug) {
-    slug =
-      searchParams.get("slug") ||
-      searchParams.get("workspace") ||
-      (user?.defaultWorkspace as string);
+    slug = searchParams.get("slug") || searchParams.get("workspace");
   }
 
   const {

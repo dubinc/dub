@@ -1,7 +1,6 @@
 "use client";
 
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
-import useQrs from "@/lib/swr/use-qrs.ts";
 import { FAQ_ITEMS_PAYWALL } from "@/ui/landing/components/faq-section/config.ts";
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PaymentComponent } from "@/ui/plans/components/payment-component.tsx";
@@ -10,6 +9,7 @@ import { PlansHeading } from "@/ui/plans/components/plans-heading.tsx";
 import { PopularQrInfo } from "@/ui/plans/components/popular-qr-info.tsx";
 import { QRCodeDemoMap } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-map.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { parseQRData } from "@/ui/utils/qr-data-parser.ts";
 import { ICustomerBody } from "core/integration/payment/config";
 import { Options } from "qr-code-styling/lib/types";
@@ -17,22 +17,15 @@ import { FC, useMemo, useRef } from "react";
 
 interface IPlansContentProps {
   user: ICustomerBody;
+  mostScannedQR: QrStorageData | null;
 }
 
-const PlansContent: FC<Readonly<IPlansContentProps>> = ({ user }) => {
-  const { qrs } = useQrs();
+const PlansContent: FC<Readonly<IPlansContentProps>> = ({
+  user,
+  mostScannedQR,
+}) => {
   const { isTrialOver } = useTrialStatus();
   const paymentSectionRef = useRef<HTMLDivElement>(null);
-
-  const mostScannedQR = useMemo(() => {
-    if (!qrs || qrs.length === 0) return null;
-
-    return qrs.sort((a, b) => {
-      const aScans = a.link?.clicks || 0;
-      const bScans = b.link?.clicks || 0;
-      return bScans - aScans;
-    })[0];
-  }, [qrs]);
 
   const qrCodeDemo = mostScannedQR?.qrType
     ? QRCodeDemoMap[mostScannedQR.qrType as EQRType]
