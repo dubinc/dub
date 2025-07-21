@@ -68,6 +68,10 @@ async function deleteOldLinks(
       take: LINKS_PER_BATCH,
     });
 
+    console.log(
+      `[Link retention cleanup] Found ${links.length} links to delete for ${domain.slug} that are older than ${domain.linkRetentionDays} days`,
+    );
+
     if (links.length === 0) break;
 
     console.log(
