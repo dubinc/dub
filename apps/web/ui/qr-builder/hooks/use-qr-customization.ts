@@ -1,5 +1,6 @@
 import {
   BLACK_COLOR,
+  TRANSPARENT_COLOR,
   WHITE_COLOR,
 } from "@/ui/qr-builder/constants/customization/colors.ts";
 import {
@@ -364,7 +365,7 @@ export function useQrCustomization(
 
       setOptions((prevOptions) => ({
         ...prevOptions,
-        backgroundOptions: { color: WHITE_COLOR },
+        backgroundOptions: { color: TRANSPARENT_COLOR },
       }));
 
       if (!qrCode) return;
@@ -372,7 +373,7 @@ export function useQrCustomization(
       qrCode.update({
         ...options,
         backgroundOptions: {
-          color: WHITE_COLOR,
+          color: TRANSPARENT_COLOR,
         },
         data: homepageDemo
           ? `${window.location.origin}/qr-complete-setup`

@@ -55,7 +55,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card-2",
     type: "card-2",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CardSecond, 0.77, 45, -3.5);
+      await embedQRIntoFrame(qr, options, CardSecond, 0.739, 52, 7);
     },
     icon: CardSecondPreview,
     defaultTextColor: BLACK_COLOR,
@@ -64,7 +64,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-card-3",
     type: "card-3",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CardThird, 0.77, 45, -2.5);
+      await embedQRIntoFrame(qr, options, CardThird, 0.723, 57, 10);
     },
     icon: CardThirdPreview,
     defaultTextColor: BLACK_COLOR,
@@ -90,7 +90,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-waitress",
     type: "waitress",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Waitress, 0.52, 142, 72);
+      await embedQRIntoFrame(qr, options, Waitress, 0.51, 150, 75);
     },
     icon: WaitressPreview,
     defaultTextColor: BLACK_COLOR,
@@ -99,7 +99,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-coffee-cup",
     type: "coffee-cup",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, CoffeeCup, 0.52, 120, 130);
+      await embedQRIntoFrame(qr, options, CoffeeCup, 0.517, 121, 130);
     },
     icon: CoffeeCupPreview,
     defaultTextColor: BLACK_COLOR,
@@ -108,7 +108,7 @@ export const FRAMES: TStyleOption[] = [
     id: "frame-scooter",
     type: "scooter",
     extension: async (qr, options) => {
-      await embedQRIntoFrame(qr, options, Scooter, 0.46, 42, 45);
+      await embedQRIntoFrame(qr, options, Scooter, 0.457, 43, 48);
     },
     icon: ScooterPreview,
   },
