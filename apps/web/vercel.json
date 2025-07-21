@@ -47,6 +47,10 @@
     {
       "path": "/api/cron/online-presence/youtube",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/clean-expired-tokens",
+      "schedule": "0 * * * *"
     }
   ],
   "functions": {
