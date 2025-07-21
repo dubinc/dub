@@ -1,34 +1,55 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Domain } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
 // This route is used to delete old links for domains with linkRetentionDays set
 // Runs every minute (* * * * *)
 // GET /api/cron/link-retention-cleanup
-export async function GET(req: Request) {
+async function handler(req: Request) {
   try {
-    await verifyVercelSignature(req);
+    if (req.method === "GET") {
+      await verifyVercelSignature(req);
 
-    const domains = await prisma.domain.findMany({
-      where: {
-        linkRetentionDays: {
-          not: null,
+      const domains = await prisma.domain.findMany({
+        where: {
+          linkRetentionDays: {
+            not: null,
+          },
         },
-      },
-      select: {
-        id: true,
-        slug: true,
-        linkRetentionDays: true,
-        projectId: true,
-      },
-    });
+      });
 
-    await Promise.all(domains.map((domain) => deleteOldLinks(domain)));
+      await Promise.all(domains.map((domain) => deleteOldLinks(domain)));
+    } else if (req.method === "POST") {
+      const rawBody = await req.text();
+
+      await verifyQstashSignature({
+        req,
+        rawBody,
+      });
+
+      const { domain: passedDomain } = z
+        .object({
+          domain: z.string(),
+        })
+        .parse(JSON.parse(rawBody));
+
+      const domain = await prisma.domain.findUniqueOrThrow({
+        where: {
+          slug: passedDomain,
+        },
+      });
+
+      await deleteOldLinks(domain);
+    }
 
     return NextResponse.json("OK");
   } catch (error) {
@@ -50,6 +71,7 @@ async function deleteOldLinks(
     return;
 
   let processedBatches = 0;
+  let hasMoreLinks = false;
 
   while (processedBatches < MAX_LINK_BATCHES) {
     const links = await prisma.link.findMany({
@@ -73,6 +95,9 @@ async function deleteOldLinks(
     );
 
     if (links.length === 0) break;
+
+    // Check if we might have more links (if we got a full batch)
+    hasMoreLinks = links.length === LINKS_PER_BATCH;
 
     console.log(
       `[Link retention cleanup] Deleting ${links.length} links for ${domain.slug} (batch ${processedBatches + 1})...`,
@@ -113,4 +138,18 @@ async function deleteOldLinks(
 
     ++processedBatches;
   }
+
+  // Only schedule another run if we hit the batch limit AND we found a full batch
+  // (indicating there might be more links to process)
+  if (processedBatches >= MAX_LINK_BATCHES && hasMoreLinks) {
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/link-retention-cleanup`,
+      method: "POST",
+      body: {
+        domain: domain.slug,
+      },
+    });
+  }
 }
+
+export { handler as GET, handler as POST };
