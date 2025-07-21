@@ -6,13 +6,19 @@ import PlansContent from "@/ui/plans/plans-content.tsx";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { MaxWidthWrapper } from "@dub/ui";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
+import { headers } from "next/headers";
 import { NextPage } from "next";
+import { unstable_noStore } from "next/cache";
 import { Suspense } from "react";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 const PlansPage: NextPage = async () => {
+  unstable_noStore();
+
+  const headersList = headers();
+  
   const { user: cookieUser } = await getUserCookieService();
   const { user: authUser } = await getSession();
   const qrs = await getQrs({
