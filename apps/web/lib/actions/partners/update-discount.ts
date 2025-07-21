@@ -3,10 +3,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { qstash } from "@/lib/cron";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -14,19 +12,7 @@ export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let {
-      discountId,
-      amount,
-      type,
-      maxDuration,
-      couponId,
-      couponTestId,
-      includedPartnerIds,
-      excludedPartnerIds,
-    } = parsedInput;
-
-    includedPartnerIds = includedPartnerIds || [];
-    excludedPartnerIds = excludedPartnerIds || [];
+    let { discountId, includedPartnerIds, excludedPartnerIds } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -34,6 +20,9 @@ export const updateDiscountAction = authActionClient
       programId,
       discountId,
     });
+
+    includedPartnerIds = includedPartnerIds || [];
+    excludedPartnerIds = excludedPartnerIds || [];
 
     const finalPartnerIds = [...includedPartnerIds, ...excludedPartnerIds];
 
@@ -61,91 +50,47 @@ export const updateDiscountAction = authActionClient
       }
     }
 
-    const updatedDiscount = await prisma.discount.update({
-      where: {
-        id: discountId,
-      },
-      data: {
-        amount,
-        type,
-        maxDuration,
-        couponId,
-        couponTestId,
-      },
-    });
-
     // Update partners associated with the discount
     if (discount.default) {
       await updateDefaultDiscountPartners({
-        discountId,
         programId,
+        discountId,
         partnerIds: excludedPartnerIds,
       });
     } else {
       await updateNonDefaultDiscountPartners({
-        discountId,
         programId,
+        discountId,
         partnerIds: includedPartnerIds,
       });
     }
 
     waitUntil(
-      (async () => {
-        let shouldExpireCache = false;
-
-        if (updatedDiscount) {
-          shouldExpireCache = !deepEqual(
-            {
-              amount: discount.amount,
-              type: discount.type,
-              maxDuration: discount.maxDuration,
-            },
-            {
-              amount: updatedDiscount.amount,
-              type: updatedDiscount.type,
-              maxDuration: updatedDiscount.maxDuration,
-            },
-          );
-        }
-
-        await Promise.allSettled([
-          shouldExpireCache
-            ? qstash.publishJSON({
-                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-                body: {
-                  discountId,
-                  action: "discount-updated",
-                },
-              })
-            : Promise.resolve(),
-
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "discount.updated",
-            description: `Discount ${discount.id} updated`,
-            actor: user,
-            targets: [
-              {
-                type: "discount",
-                id: discount.id,
-                metadata: updatedDiscount,
-              },
-            ],
-          }),
-        ]);
-      })(),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "discount.updated",
+        description: `Discount ${discount.id} updated`,
+        actor: user,
+        targets: [
+          {
+            type: "discount",
+            id: discount.id,
+            metadata: discount,
+          },
+        ],
+      }),
     );
   });
 
 // Update default discount
 const updateDefaultDiscountPartners = async ({
-  discountId,
   programId,
+  discountId,
   partnerIds,
 }: {
-  discountId: string;
   programId: string;
+  discountId: string;
   partnerIds: string[]; // Excluded partners
 }) => {
   const existingPartners = await prisma.programEnrollment.findMany({
@@ -202,12 +147,12 @@ const updateDefaultDiscountPartners = async ({
 
 // Update non-default discount
 const updateNonDefaultDiscountPartners = async ({
-  discountId,
   programId,
+  discountId,
   partnerIds,
 }: {
-  discountId: string;
   programId: string;
+  discountId: string;
   partnerIds: string[]; // Included partners
 }) => {
   const existingPartners = await prisma.programEnrollment.findMany({

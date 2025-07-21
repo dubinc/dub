@@ -14,6 +14,7 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { X } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, Button, CircleCheckFill, Sheet } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
+import { BadgePercent } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -21,6 +22,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
 import { DiscountPartnersTable } from "./discount-partners-table";
+import { ProgramRewardDescription } from "./program-reward-description";
 import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
@@ -49,22 +51,40 @@ const discountTypes = [
   },
 ] as const;
 
+const couponTypes = [
+  {
+    label: "New coupon",
+    description: "Create a new coupon",
+    useExisting: false,
+  },
+  {
+    label: "Existing coupon",
+    description: "Use an existing coupon",
+    useExisting: true,
+  },
+] as const;
+
 function DiscountSheetContent({
   setIsOpen,
   discount,
   isDefault,
 }: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { mutate: mutateProgram } = useProgram();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const [isRecurring, setIsRecurring] = useState(
     discount ? discount.maxDuration !== 0 : false,
   );
 
+  const [useExistingCoupon, setUseExistingCoupon] = useState(
+    Boolean(discount?.couponId),
+  );
+
   const [accordionValues, setAccordionValues] = useState<string[]>([
     "discount-type",
     "discount-details",
+    "stripe-coupon-details",
   ]);
 
   const {
@@ -75,20 +95,6 @@ function DiscountSheetContent({
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      ...(discount && {
-        amount: discount.amount
-          ? discount.type === "flat"
-            ? discount.amount / 100
-            : discount.amount
-          : 0,
-        type: discount.type || "flat",
-        maxDuration:
-          discount?.maxDuration === null
-            ? Infinity
-            : discount?.maxDuration || 0,
-        couponId: discount.couponId || "",
-        couponTestId: discount.couponTestId || "",
-      }),
       includedPartnerIds: null,
       excludedPartnerIds: null,
     },
@@ -176,23 +182,23 @@ function DiscountSheetContent({
       return;
     }
 
-    const payload = {
-      ...data,
-      workspaceId,
-      includedPartnerIds: isDefault ? null : includedPartnerIds,
-      excludedPartnerIds: isDefault ? excludedPartnerIds : null,
-      amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
-      maxDuration:
-        Number(data.maxDuration) === Infinity ? null : data.maxDuration,
-      isDefault: isDefault || false,
-    };
-
     if (!discount) {
-      await createDiscount(payload);
+      await createDiscount({
+        ...data,
+        workspaceId,
+        includedPartnerIds: isDefault ? null : includedPartnerIds,
+        excludedPartnerIds: isDefault ? excludedPartnerIds : null,
+        amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
+        maxDuration:
+          Number(data.maxDuration) === Infinity ? null : data.maxDuration,
+        isDefault: isDefault || false,
+      });
     } else {
       await updateDiscount({
-        ...payload,
+        workspaceId,
         discountId: discount.id,
+        includedPartnerIds: isDefault ? null : includedPartnerIds,
+        excludedPartnerIds: isDefault ? excludedPartnerIds : null,
       });
     }
   };
@@ -238,34 +244,194 @@ function DiscountSheetContent({
             value={accordionValues}
             onValueChange={setAccordionValues}
           >
-            <ProgramSheetAccordionItem value="discount-type">
-              <ProgramSheetAccordionTrigger>
-                Discount Type
-              </ProgramSheetAccordionTrigger>
-              <ProgramSheetAccordionContent>
-                <div className="space-y-4">
-                  <p className="text-sm text-neutral-600">
-                    Set how the discount will be applied
-                  </p>
-                  <div className="-m-1">
-                    <AnimatedSizeContainer
-                      height
-                      transition={{ ease: "easeInOut", duration: 0.2 }}
-                    >
-                      <div className="p-1">
-                        <div
-                          className={cn(
-                            "space-y-4 transition-opacity duration-200",
-                          )}
-                          aria-hidden={!isRecurring}
-                          {...{
-                            inert: !isRecurring,
-                          }}
+            {!discount && (
+              <ProgramSheetAccordionItem value="discount-type">
+                <ProgramSheetAccordionTrigger>
+                  Discount Type
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-neutral-600">
+                      Set how the discount will be applied
+                    </p>
+                    <div className="-m-1">
+                      <AnimatedSizeContainer
+                        height
+                        transition={{ ease: "easeInOut", duration: 0.2 }}
+                      >
+                        <div className="p-1">
+                          <div
+                            className={cn(
+                              "space-y-4 transition-opacity duration-200",
+                            )}
+                            aria-hidden={!isRecurring}
+                            {...{
+                              inert: !isRecurring,
+                            }}
+                          >
+                            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                              {discountTypes.map(
+                                ({ label, description, recurring }) => {
+                                  const isSelected = isRecurring === recurring;
+
+                                  return (
+                                    <label
+                                      key={label}
+                                      className={cn(
+                                        "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                                        "transition-all duration-150",
+                                        isSelected &&
+                                          "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                                      )}
+                                    >
+                                      <input
+                                        type="radio"
+                                        value={label}
+                                        className="hidden"
+                                        checked={isSelected}
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            setIsRecurring(recurring);
+                                            setValue(
+                                              "maxDuration",
+                                              recurring ? 3 : 0,
+                                            );
+                                          }
+                                        }}
+                                      />
+                                      <div className="flex grow flex-col text-sm">
+                                        <span className="font-medium">
+                                          {label}
+                                        </span>
+                                        <span>{description}</span>
+                                      </div>
+                                      <CircleCheckFill
+                                        className={cn(
+                                          "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                          isSelected && "scale-100 opacity-100",
+                                        )}
+                                      />
+                                    </label>
+                                  );
+                                },
+                              )}
+                            </div>
+
+                            {isRecurring && (
+                              <div className="space-y-4">
+                                <div>
+                                  <label
+                                    htmlFor="duration"
+                                    className="text-sm font-medium text-neutral-800"
+                                  >
+                                    Duration
+                                  </label>
+                                  <div className="relative mt-2 rounded-md shadow-sm">
+                                    <select
+                                      className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                                      {...register("maxDuration", {
+                                        valueAsNumber: true,
+                                      })}
+                                    >
+                                      {RECURRING_MAX_DURATIONS.filter(
+                                        (v) => v !== 0,
+                                      ).map((v) => (
+                                        <option value={v} key={v}>
+                                          {v} {pluralize("month", Number(v))}
+                                        </option>
+                                      ))}
+                                      <option value={Infinity}>Lifetime</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </AnimatedSizeContainer>
+                    </div>
+                  </div>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+            )}
+
+            {!discount && (
+              <ProgramSheetAccordionItem value="discount-details">
+                <ProgramSheetAccordionTrigger>
+                  Discount Details
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <div className="space-y-4">
+                    <p className="text-sm text-neutral-600">
+                      Set the discount amount and configuration
+                    </p>
+
+                    <div>
+                      <label
+                        htmlFor="type"
+                        className="text-sm font-medium text-neutral-800"
+                      >
+                        Discount model
+                      </label>
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        <select
+                          className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                          {...register("type")}
                         >
+                          <option value="percentage">Percentage</option>
+                          <option value="flat">Flat</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="amount"
+                        className="text-sm font-medium text-neutral-800"
+                      >
+                        Amount
+                      </label>
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        {type === "flat" && (
+                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                            $
+                          </span>
+                        )}
+                        <input
+                          className={cn(
+                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            errors.amount &&
+                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                            type === "flat" ? "pl-6 pr-12" : "pr-7",
+                          )}
+                          {...register("amount", {
+                            valueAsNumber: true,
+                            min: 0,
+                            max: 100,
+                            onChange: handleMoneyInputChange,
+                            required: true,
+                          })}
+                          onKeyDown={handleMoneyKeyDown}
+                          placeholder={"0"}
+                        />
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                          {type === "flat" ? "USD" : "%"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Display the coupon switcher if the discount is being created */}
+                    {!discount && (
+                      <div>
+                        <p className="text-sm text-neutral-600">
+                          Create a new discount code or connect an existing one
+                        </p>
+                        <div className="mt-4">
                           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                            {discountTypes.map(
-                              ({ label, description, recurring }) => {
-                                const isSelected = isRecurring === recurring;
+                            {couponTypes.map(
+                              ({ label, description, useExisting }) => {
+                                const isSelected =
+                                  useExistingCoupon === useExisting;
 
                                 return (
                                   <label
@@ -284,13 +450,7 @@ function DiscountSheetContent({
                                       checked={isSelected}
                                       onChange={(e) => {
                                         if (e.target.checked) {
-                                          setIsRecurring(recurring);
-                                          setValue(
-                                            "maxDuration",
-                                            recurring
-                                              ? discount?.maxDuration || 3
-                                              : 0,
-                                          );
+                                          setUseExistingCoupon(useExisting);
                                         }
                                       }}
                                     />
@@ -311,162 +471,133 @@ function DiscountSheetContent({
                               },
                             )}
                           </div>
-
-                          {isRecurring && (
-                            <div className="space-y-4">
-                              <div>
-                                <label
-                                  htmlFor="duration"
-                                  className="text-sm font-medium text-neutral-800"
-                                >
-                                  Duration
-                                </label>
-                                <div className="relative mt-2 rounded-md shadow-sm">
-                                  <select
-                                    className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                                    {...register("maxDuration", {
-                                      valueAsNumber: true,
-                                    })}
-                                  >
-                                    {RECURRING_MAX_DURATIONS.filter(
-                                      (v) => v !== 0,
-                                    ).map((v) => (
-                                      <option value={v} key={v}>
-                                        {v} {pluralize("month", Number(v))}
-                                      </option>
-                                    ))}
-                                    <option value={Infinity}>Lifetime</option>
-                                  </select>
-                                </div>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
-                    </AnimatedSizeContainer>
+                    )}
+
+                    {useExistingCoupon && (
+                      <>
+                        <div>
+                          <label
+                            htmlFor="couponId"
+                            className="text-sm font-medium text-neutral-800"
+                          >
+                            Stripe coupon ID
+                          </label>
+                          <div className="relative mt-2 rounded-md shadow-sm">
+                            <input
+                              className={cn(
+                                "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                                errors.couponId &&
+                                  "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
+                              )}
+                              {...register("couponId", {
+                                required: useExistingCoupon,
+                              })}
+                              placeholder="XZuejd0Q"
+                            />
+                          </div>
+
+                          <p className="mt-1 text-xs text-neutral-500">
+                            Learn more about{" "}
+                            <a
+                              href="https://docs.stripe.com/billing/subscriptions/coupons"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline"
+                            >
+                              Stripe coupon codes here
+                            </a>
+                          </p>
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="couponTestId"
+                            className="text-sm font-medium text-neutral-800"
+                          >
+                            Stripe test coupon ID (optional)
+                          </label>
+                          <div className="relative mt-2 rounded-md shadow-sm">
+                            <input
+                              className={cn(
+                                "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                              )}
+                              {...register("couponTestId")}
+                              placeholder="2NMXz81x"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
-                </div>
-              </ProgramSheetAccordionContent>
-            </ProgramSheetAccordionItem>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+            )}
 
-            <ProgramSheetAccordionItem value="discount-details">
-              <ProgramSheetAccordionTrigger>
-                Discount Details
-              </ProgramSheetAccordionTrigger>
-              <ProgramSheetAccordionContent>
-                <div className="space-y-4">
-                  <p className="text-sm text-neutral-600">
-                    Set the discount amount and configuration
-                  </p>
-
-                  <div>
-                    <label
-                      htmlFor="type"
-                      className="text-sm font-medium text-neutral-800"
-                    >
-                      Discount model
-                    </label>
-                    <div className="relative mt-2 rounded-md shadow-sm">
-                      <select
-                        className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                        {...register("type")}
+            {discount && (
+              <ProgramSheetAccordionItem value="stripe-coupon-details">
+                <ProgramSheetAccordionTrigger>
+                  Stripe coupon
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <div className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="couponId"
+                        className="text-sm font-medium text-neutral-800"
                       >
-                        <option value="percentage">Percentage</option>
-                        <option value="flat">Flat</option>
-                      </select>
+                        Stripe coupon ID
+                      </label>
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        <input
+                          className={cn(
+                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 read-only:bg-neutral-100 read-only:text-neutral-500 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                          )}
+                          readOnly
+                          defaultValue={discount.couponId || ""}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label
-                      htmlFor="amount"
-                      className="text-sm font-medium text-neutral-800"
-                    >
-                      Amount
-                    </label>
-                    <div className="relative mt-2 rounded-md shadow-sm">
-                      {type === "flat" && (
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                          $
+                    {discount.couponTestId && (
+                      <div>
+                        <label
+                          htmlFor="couponTestId"
+                          className="text-sm font-medium text-neutral-800"
+                        >
+                          Stripe test coupon ID (optional)
+                        </label>
+                        <div className="relative mt-2 rounded-md shadow-sm">
+                          <input
+                            className={cn(
+                              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 read-only:bg-neutral-100 read-only:text-neutral-500 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            )}
+                            readOnly
+                            defaultValue={discount.couponTestId || ""}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-4 rounded-lg border border-neutral-200 p-4 transition-all">
+                        <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
+                          <BadgePercent className="size-4 text-neutral-600" />
+                        </div>
+                        <span className="items-center text-balance text-sm text-neutral-600">
+                          <ProgramRewardDescription discount={discount} />
                         </span>
-                      )}
-                      <input
-                        className={cn(
-                          "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                          errors.amount &&
-                            "border-red-600 focus:border-red-500 focus:ring-red-600",
-                          type === "flat" ? "pl-6 pr-12" : "pr-7",
-                        )}
-                        {...register("amount", {
-                          valueAsNumber: true,
-                          min: 0,
-                          max: 100,
-                          onChange: handleMoneyInputChange,
-                          required: true,
-                        })}
-                        onKeyDown={handleMoneyKeyDown}
-                        placeholder={"0"}
-                      />
-                      <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                        {type === "flat" ? "USD" : "%"}
-                      </span>
+                      </div>
+                      <p className="text-xs font-normal leading-4 text-neutral-500">
+                        Discounts cannot be changed after creation, only their
+                        partner eligibility.
+                      </p>
                     </div>
                   </div>
-
-                  <div>
-                    <label
-                      htmlFor="couponId"
-                      className="text-sm font-medium text-neutral-800"
-                    >
-                      Stripe coupon ID
-                    </label>
-                    <div className="relative mt-2 rounded-md shadow-sm">
-                      <input
-                        className={cn(
-                          "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                          errors.couponId &&
-                            "border-red-600 pr-7 focus:border-red-500 focus:ring-red-600",
-                        )}
-                        {...register("couponId", {
-                          required: true,
-                        })}
-                        placeholder="XZuejd0Q"
-                      />
-                    </div>
-
-                    <p className="mt-1 text-xs text-neutral-500">
-                      Learn more about{" "}
-                      <a
-                        href="https://docs.stripe.com/billing/subscriptions/coupons"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline"
-                      >
-                        Stripe coupon codes here
-                      </a>
-                    </p>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="couponTestId"
-                      className="text-sm font-medium text-neutral-800"
-                    >
-                      Stripe test coupon ID (optional)
-                    </label>
-                    <div className="relative mt-2 rounded-md shadow-sm">
-                      <input
-                        className={cn(
-                          "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                        )}
-                        {...register("couponTestId")}
-                        placeholder="2NMXz81x"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </ProgramSheetAccordionContent>
-            </ProgramSheetAccordionItem>
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+            )}
 
             {!isDefault && defaultProgramId && (
               <ProgramSheetAccordionItem value="partner-eligibility">
