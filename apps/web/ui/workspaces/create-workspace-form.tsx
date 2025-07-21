@@ -178,7 +178,7 @@ export function CreateWorkspaceForm({
           </p>
         ) : (
           <p className="mt-1.5 text-xs text-neutral-500">
-            You can always change this later in your workspace settings.
+            You can change this later in your workspace settings.
           </p>
         )}
       </div>
