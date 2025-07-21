@@ -18,7 +18,7 @@ import {
 } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { Customer } from "@dub/prisma/client";
-import { linkConstructorSimple, nanoid } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import {
@@ -199,78 +199,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     );
 
     linkId = leadEvent.link_id;
-  } else if (charge.discounts && charge.discounts.length > 0) {
-    // Handle promotion code tracking for coupon-based attribution
-    // When a charge has discounts, we can attribute the sale to a partner
-    // based on the promotion code used during checkout
-
-    const workspace = await prisma.project.findUnique({
-      where: {
-        stripeConnectId: stripeAccountId,
-      },
-      select: {
-        defaultProgram: {
-          select: {
-            domain: true,
-            couponCodeTrackingEnabledAt: true,
-          },
-        },
-      },
-    });
-
-    if (!workspace) {
-      return `Workspace with stripeConnectId ${stripeAccountId} not found, skipping...`;
-    }
-
-    if (!workspace.defaultProgram) {
-      return `Workspace with stripeConnectId ${stripeAccountId} has no program, skipping...`;
-    }
-
-    const { defaultProgram: program } = workspace;
-
-    if (!program.couponCodeTrackingEnabledAt) {
-      return `Workspace with stripeConnectId ${stripeAccountId} has no coupon code tracking enabled, skipping...`;
-    }
-
-    if (!program.domain) {
-      return `Workspace with stripeConnectId ${stripeAccountId} has no domain for program, skipping...`;
-    }
-
-    const promotionCodes = charge.discounts.map(
-      ({ promotion_code }) => promotion_code,
-    );
-
-    if (promotionCodes.length === 0) {
-      return "No promotion codes found in Stripe checkout session, skipping...";
-    }
-
-    const promotionCode = promotionCodes[0] as Stripe.PromotionCode;
-
-    const link = await prisma.link.findUnique({
-      where: {
-        domain_key: {
-          domain: program.domain,
-          key: promotionCode.code,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!link) {
-      return `Link ${linkConstructorSimple({
-        domain: program.domain,
-        key: promotionCode.code,
-      })} not found, skipping...`;
-    }
-
-    linkId = link.id;
-
-    // let customer: Customer | null = null;
-    // let existingCustomer: Customer | null = null;
-    // let clickEvent: z.infer<typeof clickEventSchemaTB> | null = null;
-    // let leadEvent: z.infer<typeof leadEventSchemaTB>;
   } else {
     return "No dubCustomerId or stripeCustomerId found in Stripe checkout session metadata, skipping...";
   }
