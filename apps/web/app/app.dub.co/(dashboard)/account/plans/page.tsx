@@ -1,13 +1,11 @@
 import { getQrs } from "@/lib/api/qrs/get-qrs";
 import { convertSessionUserToCustomerBody, getSession } from "@/lib/auth";
-import LayoutLoader from "@/ui/layout/layout-loader.tsx";
 import { PageContent } from "@/ui/layout/page-content";
-import PlansContent from "@/ui/plans/plans-content.tsx";
+import { PlansContent } from "@/ui/plans/plans-content.tsx";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { MaxWidthWrapper } from "@dub/ui";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { NextPage } from "next";
-import { Suspense } from "react";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
@@ -40,13 +38,11 @@ const PlansPage: NextPage = async () => {
     user?.paymentInfo?.subscriptionPlanCode || "Dont subscribe",
   );
   return (
-    <Suspense fallback={<LayoutLoader />}>
-      <PageContent title="Plans and Payments">
-        <MaxWidthWrapper>
-          <PlansContent user={user!} mostScannedQR={mostScannedQR} />
-        </MaxWidthWrapper>
-      </PageContent>
-    </Suspense>
+    <PageContent title="Plans and Payments">
+      <MaxWidthWrapper>
+        <PlansContent user={user!} mostScannedQR={mostScannedQR} />
+      </MaxWidthWrapper>
+    </PageContent>
   );
 };
 
