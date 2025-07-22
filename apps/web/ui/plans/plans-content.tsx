@@ -8,7 +8,10 @@ import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { PlansHeading } from "@/ui/plans/components/plans-heading.tsx";
 import { PopularQrInfo } from "@/ui/plans/components/popular-qr-info.tsx";
 import { QRCodeDemoMap } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-map.ts";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import {
+  EQRType,
+  FILE_QR_TYPES,
+} from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { parseQRData } from "@/ui/utils/qr-data-parser.ts";
 import { ICustomerBody } from "core/integration/payment/config";
@@ -32,14 +35,16 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
     : QRCodeDemoMap[EQRType.WEBSITE];
 
   const demoProps = useMemo(() => {
-    if (!mostScannedQR || !qrCodeDemo || !mostScannedQR.data) {
-      return {};
+    if (!mostScannedQR || !qrCodeDemo || !mostScannedQR.data) return {};
+
+    const qrType = mostScannedQR.qrType as EQRType;
+    const stylesData = (mostScannedQR.styles as Options)?.data;
+
+    if (FILE_QR_TYPES.includes(qrType)) {
+      return parseQRData(qrType, mostScannedQR.data);
     }
 
-    return parseQRData(
-      mostScannedQR.qrType as EQRType,
-      (mostScannedQR.styles as Options)?.data || mostScannedQR.data,
-    );
+    return parseQRData(qrType, stylesData || mostScannedQR.data);
   }, [mostScannedQR, qrCodeDemo]);
 
   const handleScrollToPayment = () => {
