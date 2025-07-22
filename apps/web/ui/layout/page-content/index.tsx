@@ -18,7 +18,7 @@ export function PageContent({
   children,
 }: PropsWithChildren<{
   title?: ReactNode;
-  titleInfo?: ReactNode | { title: string; href: string };
+  titleInfo?: ReactNode | { title: string; href?: string };
   titleBackHref?: string;
   controls?: ReactNode;
   className?: string;
@@ -26,10 +26,7 @@ export function PageContent({
 }>) {
   // Generate titleInfo from object if provided
   const finalTitleInfo =
-    titleInfo &&
-    typeof titleInfo === "object" &&
-    "title" in titleInfo &&
-    "href" in titleInfo ? (
+    titleInfo && typeof titleInfo === "object" && "title" in titleInfo ? (
       <InfoTooltip
         content={
           <SimpleTooltipContent
