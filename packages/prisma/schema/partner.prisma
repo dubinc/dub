@@ -89,7 +89,7 @@ model PartnerNotificationPreferences {
   id                         String  @id @default(cuid())
   partnerUserId              String  @unique
 
-  newCommission              Boolean @default(true)
+  commissionCreated              Boolean @default(true)
   applicationApproved        Boolean @default(true)
 
   partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)

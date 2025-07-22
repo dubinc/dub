@@ -6,15 +6,15 @@ import { NextResponse } from "next/server";
 export const GET = withPartnerProfile(async ({ partner, session }) => {
   const response = await prisma.partnerNotificationPreferences.findFirstOrThrow(
     {
-      select: {
-        newCommission: true,
-        applicationApproved: true,
-      },
       where: {
         partnerUser: {
           partnerId: partner.id,
           userId: session.user.id,
         },
+      },
+      select: {
+        commissionCreated: true,
+        applicationApproved: true,
       },
     },
   );

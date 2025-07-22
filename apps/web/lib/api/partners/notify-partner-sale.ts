@@ -51,7 +51,7 @@ export async function notifyPartnerSale({
         users: {
           where: {
             notificationPreferences: {
-              newCommission: true,
+              commissionCreated: true,
             },
           },
           select: {

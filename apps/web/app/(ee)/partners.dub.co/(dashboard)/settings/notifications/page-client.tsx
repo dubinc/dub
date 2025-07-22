@@ -35,7 +35,7 @@ export function PartnerSettingsNotificationsPageClient() {
     isLoading,
     update,
   } = useOptimisticUpdate<Preferences>(
-    `/api/partner-profile/notification-preferences`,
+    "/api/partner-profile/notification-preferences",
     {
       loading: "Updating notification preference...",
       success: "Notification preference updated.",
