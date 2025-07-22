@@ -110,8 +110,8 @@ function WorkspaceQRs() {
                       variant="primary"
                       className="bg-secondary hover:bg-secondary-800 w-full whitespace-nowrap text-sm font-medium text-white md:w-auto"
                       onClick={() => {
-                        router.refresh();
                         router.push(`/account/plans`);
+                        router.refresh();
                       }}
                       text="Restore Access"
                     />
