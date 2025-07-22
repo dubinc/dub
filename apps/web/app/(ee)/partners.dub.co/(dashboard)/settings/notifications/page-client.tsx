@@ -27,7 +27,7 @@ const notifications = [
     title: "Application approval",
     description: "Alert when an application to a program is approved.",
   },
-];
+] as const;
 
 export function PartnerSettingsNotificationsPageClient() {
   const {
@@ -50,12 +50,12 @@ export function PartnerSettingsNotificationsPageClient() {
     value,
     currentPreferences,
   }: {
-    type: string;
+    type: PreferenceType;
     value: boolean;
     currentPreferences: Preferences;
   }) => {
     await executeAsync({
-      type: type as PreferenceType,
+      type,
       value,
     });
 
