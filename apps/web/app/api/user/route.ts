@@ -7,7 +7,14 @@ import { sendEmail } from "@dub/email";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
 import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN, R2_URL, nanoid, trim } from "@dub/utils";
+import {
+  APP_DOMAIN,
+  APP_HOSTNAMES,
+  PARTNERS_DOMAIN,
+  R2_URL,
+  nanoid,
+  trim,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
@@ -140,6 +147,11 @@ export const PATCH = withSession(async ({ req, session }) => {
       },
     );
 
+    const hostName = req.headers.get("host") || "";
+    const confirmUrl = APP_HOSTNAMES.has(hostName)
+      ? `${APP_DOMAIN}/auth/confirm-email-change/${token}`
+      : `${PARTNERS_DOMAIN}/auth/confirm-email-change/${token}`;
+
     waitUntil(
       sendEmail({
         subject: "Confirm your email address change",
@@ -147,7 +159,7 @@ export const PATCH = withSession(async ({ req, session }) => {
         react: ConfirmEmailChange({
           email: session.user.email,
           newEmail: email,
-          confirmUrl: `${APP_DOMAIN}/auth/confirm-email-change/${token}`,
+          confirmUrl,
         }),
       }),
     );
