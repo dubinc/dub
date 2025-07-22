@@ -9,6 +9,7 @@ import { flattenValidationErrors } from "next-safe-action";
 import { getIP } from "../api/utils";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
+import { isGenericEmail } from "../emails";
 import z from "../zod";
 import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -35,7 +36,7 @@ export const sendOtpAction = actionClient
       throw new Error("Too many requests. Please try again later.");
     }
 
-    if (email.includes("+") && email.endsWith("@gmail.com")) {
+    if (email.includes("+") && isGenericEmail(email)) {
       throw new Error(
         "Email addresses with + are not allowed. Please use your work email instead.",
       );
@@ -49,20 +50,38 @@ export const sendOtpAction = actionClient
         process.env.EDGE_CONFIG ? get("emailDomainTerms") : [],
       ]);
 
-      if (isDisposable) {
-        throw new Error(
-          "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
-        );
-      }
+      // Filter out non-string or empty terms before building the regex
+      const blacklistedEmailDomainTerms = (
+        emailDomainTerms && Array.isArray(emailDomainTerms)
+          ? emailDomainTerms.filter(
+              (term): term is string =>
+                typeof term === "string" && term.length > 0,
+            )
+          : []
+      ) as string[];
 
-      if (emailDomainTerms && Array.isArray(emailDomainTerms)) {
-        const blacklistedEmailDomainTermsRegex = new RegExp(
-          emailDomainTerms
-            .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // replace special characters with escape sequences
-            .join("|"),
-        );
+      // Only build the regex if we have at least one term; otherwise set to null
+      const blacklistedEmailDomainTermsRegex =
+        blacklistedEmailDomainTerms.length > 0
+          ? new RegExp(
+              blacklistedEmailDomainTerms
+                .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // escape special regex chars
+                .join("|"),
+            )
+          : null;
 
-        if (blacklistedEmailDomainTermsRegex.test(domain)) {
+      if (
+        isDisposable ||
+        (blacklistedEmailDomainTermsRegex &&
+          blacklistedEmailDomainTermsRegex.test(domain))
+      ) {
+        // edge case: the user already has a partner account on Dub with this email address, we can allow them to continue
+        const isPartnerAccount = await prisma.partner.findUnique({
+          where: {
+            email,
+          },
+        });
+        if (!isPartnerAccount) {
           throw new Error(
             "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
           );
