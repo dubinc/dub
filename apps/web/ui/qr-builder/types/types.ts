@@ -1,5 +1,6 @@
 import { LinkProps, QRProps, UpdateQrProps, UserProps } from "@/lib/types.ts";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { File } from "@dub/prisma/client";
 import { Options } from "qr-code-styling";
 
 export type FrameOptions = {
@@ -17,9 +18,12 @@ export type QRBuilderData = {
   files: File[];
 };
 
+export type FileProps = File;
+
 export type QrStorageData = QRProps & {
   user: UserProps;
   link: LinkProps;
+  file?: FileProps;
 };
 
 export type QRPartialUpdateData = {

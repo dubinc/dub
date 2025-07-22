@@ -9,7 +9,8 @@ export const compressImagesInBackground = async (qrs: QrStorageData[]) => {
   try {
     const updatedQrs = await Promise.all(
       qrs.map(async (qr) => {
-        const { qrType, fileId, fileName } = qr;
+        const { qrType, fileId, file } = qr;
+        const fileName = file?.name;
 
         if (!fileId || !fileName) return { ...qr };
 
@@ -35,9 +36,9 @@ const handleImageCompression = async (qr: QrStorageData) => {
     const compressedBlob = await compressImage(result.data);
     const compressedFile = createCompressedImageFile(
       compressedBlob,
-      qr.fileName!,
+      qr.file?.name!,
       qr.fileId!,
-      qr.fileSize || 0,
+      qr.file?.size || 0,
     );
 
     return {
@@ -58,15 +59,15 @@ const handleMediaPlaceholder = (qr: QrStorageData) => {
     video: "video/mp4",
   };
 
-  const placeholderFile = new File([""], qr.fileName!, {
+  const placeholderFile = new File([""], qr.file?.name!, {
     type: typeMap[qr.qrType],
   });
 
   Object.assign(placeholderFile, {
     isThumbnail: true,
     fileId: qr.fileId,
-    originalFileName: qr.fileName,
-    originalFileSize: qr.fileSize,
+    originalFileName: qr.file?.name,
+    originalFileSize: qr.file?.size,
   });
 
   return {
