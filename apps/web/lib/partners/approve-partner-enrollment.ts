@@ -1,5 +1,6 @@
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { sendEmail } from "@dub/email";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -79,7 +80,20 @@ export async function approvePartnerEnrollment({
         }),
       },
       include: {
-        partner: true,
+        partner: {
+          include: {
+            users: {
+              where: {
+                notificationPreference: {
+                  applicationApproved: true,
+                },
+              },
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
       },
     }),
 
@@ -123,6 +137,10 @@ export async function approvePartnerEnrollment({
     });
   }
 
+  const partnerEmailsToNotify = partner.users
+    .map(({ user }) => user.email)
+    .filter(Boolean) as string[];
+
   waitUntil(
     (async () => {
       const user = await prisma.user.findUniqueOrThrow({
@@ -145,26 +163,29 @@ export async function approvePartnerEnrollment({
       await Promise.allSettled([
         updatedLink ? recordLink(updatedLink) : Promise.resolve(null),
 
-        sendEmail({
-          subject: `Your application to join ${program.name} partner program has been approved!`,
-          email: partner.email!,
-          react: PartnerApplicationApproved({
-            program: {
-              name: program.name,
-              logo: program.logo,
-              slug: program.slug,
-              supportEmail: program.supportEmail,
-            },
-            partner: {
-              name: partner.name,
-              email: partner.email!,
-              payoutsEnabled: Boolean(partner.payoutsEnabledAt),
-            },
-            rewardDescription: ProgramRewardDescription({
-              reward: rewards.find((r) => r.event === "sale"),
+        resend?.batch.send(
+          partnerEmailsToNotify.map((email) => ({
+            subject: `Your application to join ${program.name} partner program has been approved!`,
+            from: VARIANT_TO_FROM_MAP.notifications,
+            to: email,
+            react: PartnerApplicationApproved({
+              program: {
+                name: program.name,
+                logo: program.logo,
+                slug: program.slug,
+                supportEmail: program.supportEmail,
+              },
+              partner: {
+                name: partner.name,
+                email,
+                payoutsEnabled: Boolean(partner.payoutsEnabledAt),
+              },
+              rewardDescription: ProgramRewardDescription({
+                reward: rewards.find((r) => r.event === "sale"),
+              }),
             }),
-          }),
-        }),
+          })),
+        ),
 
         sendWorkspaceWebhook({
           workspace,

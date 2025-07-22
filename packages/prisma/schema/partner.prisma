@@ -68,8 +68,20 @@ model PartnerUser {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
+  notificationPreference PartnerNotificationPreferences?
+
   @@unique([userId, partnerId])
   @@index([partnerId])
+}
+
+model PartnerNotificationPreferences {
+  id                         String  @id @default(cuid())
+  partnerUserId              String  @unique
+
+  sale                       Boolean @default(true)
+  applicationApproved        Boolean @default(true)
+
+  partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
 }
 
 model PartnerInvite {

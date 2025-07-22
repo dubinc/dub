@@ -47,6 +47,20 @@ export async function notifyPartnerSale({
       select: {
         name: true,
         email: true,
+        users: {
+          where: {
+            notificationPreference: {
+              sale: true,
+            },
+          },
+          select: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
       },
     }),
     prisma.projectUsers.findMany({
@@ -95,19 +109,25 @@ export async function notifyPartnerSale({
     },
   };
 
+  const partnerEmailsToNotify = partner.users
+    .map(({ user }) => user.email)
+    .filter(Boolean) as string[];
+
   await Promise.all([
-    ...(partner.email
-      ? [
-          sendEmail({
-            subject: "You just made a sale via Dub Partners!",
-            email: partner.email!,
-            react: NewSaleAlertPartner({
-              email: partner.email!,
-              ...data,
+    ...(partnerEmailsToNotify.length
+      ? partnerEmailsToNotify.map((email) =>
+          limiter.schedule(() =>
+            sendEmail({
+              subject: "You just made a sale via Dub Partners!",
+              email,
+              react: NewSaleAlertPartner({
+                email,
+                ...data,
+              }),
+              variant: "notifications",
             }),
-            variant: "notifications",
-          }),
-        ]
+          ),
+        )
       : []),
     ...workspaceUsers.map(({ user }) =>
       limiter.schedule(() =>

@@ -30,7 +30,9 @@ export async function bulkApprovePartners({
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: ProgramWithLanderDataProps;
-  programEnrollments: (ProgramEnrollment & { partner: Partner })[];
+  programEnrollments: (ProgramEnrollment & {
+    partner: Partner & { users: { user: { email: string | null } }[] };
+  })[];
   rewards: RewardProps[];
   discount: DiscountProps | null;
   user: Session["user"];
@@ -85,27 +87,33 @@ export async function bulkApprovePartners({
         // Send approval emails
         ...programEnrollmentChunks.map((chunk) =>
           resend?.batch.send(
-            chunk.map(({ partner }) => ({
-              subject: `Your application to join ${program.name} partner program has been approved!`,
-              from: VARIANT_TO_FROM_MAP.notifications,
-              to: partner.email!,
-              react: PartnerApplicationApproved({
-                program: {
-                  name: program.name,
-                  logo: program.logo,
-                  slug: program.slug,
-                  supportEmail: program.supportEmail,
-                },
-                partner: {
-                  name: partner.name,
-                  email: partner.email!,
-                  payoutsEnabled: Boolean(partner.payoutsEnabledAt),
-                },
-                rewardDescription: ProgramRewardDescription({
-                  reward: rewards?.find((r) => r.event === "sale"),
+            chunk.flatMap(({ partner }) => {
+              const partnerEmailsToNotify = partner.users
+                .map(({ user }) => user.email)
+                .filter(Boolean) as string[];
+
+              return partnerEmailsToNotify.map((email) => ({
+                subject: `Your application to join ${program.name} partner program has been approved!`,
+                from: VARIANT_TO_FROM_MAP.notifications,
+                to: email,
+                react: PartnerApplicationApproved({
+                  program: {
+                    name: program.name,
+                    logo: program.logo,
+                    slug: program.slug,
+                    supportEmail: program.supportEmail,
+                  },
+                  partner: {
+                    name: partner.name,
+                    email,
+                    payoutsEnabled: Boolean(partner.payoutsEnabledAt),
+                  },
+                  rewardDescription: ProgramRewardDescription({
+                    reward: rewards?.find((r) => r.event === "sale"),
+                  }),
                 }),
-              }),
-            })),
+              }));
+            }),
           ),
         ),
 
