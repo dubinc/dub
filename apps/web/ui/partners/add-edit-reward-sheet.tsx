@@ -17,20 +17,29 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import { AnimatedSizeContainer, Button, CircleCheckFill, Sheet } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Button,
+  CircleCheckFill,
+  Icon,
+  Sheet,
+  Users,
+} from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  PropsWithChildren,
+  ReactNode,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
-import {
-  ProgramSheetAccordion,
-  ProgramSheetAccordionContent,
-  ProgramSheetAccordionItem,
-  ProgramSheetAccordionTrigger,
-} from "./program-sheet-accordion";
 import { RewardPartnersTable } from "./reward-partners-table";
 
 interface RewardSheetProps {
@@ -196,24 +205,6 @@ function RewardSheetContent({
     });
   };
 
-  const [accordionValues, setAccordionValues] = useState<string[]>([
-    "reward-type",
-    "commission-structure",
-    "reward-details",
-  ]);
-
-  useEffect(() => {
-    // Only include partner-eligibility if:
-    // 1. New non-default reward, OR
-    // 2. Existing reward that has rewardPartners (either included or excluded)
-    if (
-      (!reward && !isDefault) ||
-      (rewardPartners && rewardPartners.length > 0)
-    ) {
-      setAccordionValues((prev) => [...prev, "partner-eligibility"]);
-    }
-  }, [rewardPartners, reward, isDefault]);
-
   const canDeleteReward = reward && !reward.default;
 
   return (
@@ -237,222 +228,231 @@ function RewardSheetContent({
           </Sheet.Close>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          <ProgramSheetAccordion
-            type="multiple"
-            value={accordionValues}
-            onValueChange={setAccordionValues}
-          >
-            {selectedEvent === "sale" && (
-              <ProgramSheetAccordionItem value="commission-structure">
-                <ProgramSheetAccordionTrigger>
-                  Commission Structure
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="space-y-4">
-                    <p className="text-sm text-neutral-600">
-                      Set how the affiliate will get rewarded
-                    </p>
-                    <div className="-m-1">
-                      <AnimatedSizeContainer
-                        height
-                        transition={{ ease: "easeInOut", duration: 0.2 }}
-                      >
-                        <div className="flex flex-col gap-4 p-1">
-                          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                            {COMMISSION_TYPES.map(
-                              ({ label, description, value }) => {
-                                const isSelected =
-                                  value === commissionStructure;
+        <div className="flex flex-1 flex-col overflow-y-auto p-6">
+          {selectedEvent === "sale" && (
+            <RewardSheetCard
+              title="Commission Structure"
+              content={
+                <div className="space-y-4">
+                  <p className="text-sm text-neutral-600">
+                    Set how the affiliate will get rewarded
+                  </p>
+                  <div className="-m-1">
+                    <AnimatedSizeContainer
+                      height
+                      transition={{ ease: "easeInOut", duration: 0.2 }}
+                    >
+                      <div className="flex flex-col gap-4 p-1">
+                        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                          {COMMISSION_TYPES.map(
+                            ({ label, description, value }) => {
+                              const isSelected = value === commissionStructure;
 
-                                return (
-                                  <label
-                                    key={label}
-                                    className={cn(
-                                      "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                                      "transition-all duration-150",
-                                      isSelected &&
-                                        "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                                    )}
-                                  >
-                                    <input
-                                      type="radio"
-                                      value={value}
-                                      className="hidden"
-                                      checked={isSelected}
-                                      onChange={(e) => {
-                                        if (e.target.checked) {
-                                          setCommissionStructure(value);
-                                          setValue(
-                                            "maxDuration",
-                                            value === "recurring"
-                                              ? reward?.maxDuration || Infinity
-                                              : 0,
-                                          );
-                                        }
-                                      }}
-                                    />
-                                    <div className="flex grow flex-col text-sm">
-                                      <span className="font-medium">
-                                        {label}
-                                      </span>
-                                      <span>{description}</span>
-                                    </div>
-                                    <CircleCheckFill
-                                      className={cn(
-                                        "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                                        isSelected && "scale-100 opacity-100",
-                                      )}
-                                    />
-                                  </label>
-                                );
-                              },
-                            )}
-                          </div>
-
-                          <div
-                            className={cn(
-                              "transition-opacity duration-200",
-                              commissionStructure === "recurring"
-                                ? "h-auto"
-                                : "h-0 opacity-0",
-                            )}
-                            aria-hidden={commissionStructure !== "recurring"}
-                            {...{
-                              inert: commissionStructure !== "recurring",
-                            }}
-                          >
-                            <div>
-                              <label
-                                htmlFor="duration"
-                                className="text-sm font-medium text-neutral-800"
-                              >
-                                Duration
-                              </label>
-                              <div className="relative mt-2 rounded-md shadow-sm">
-                                <select
-                                  className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                                  {...register("maxDuration", {
-                                    valueAsNumber: true,
-                                  })}
+                              return (
+                                <label
+                                  key={label}
+                                  className={cn(
+                                    "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                                    "transition-all duration-150",
+                                    isSelected &&
+                                      "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                                  )}
                                 >
-                                  {RECURRING_MAX_DURATIONS.filter(
-                                    (v) => v !== 0,
-                                  ).map((v) => (
-                                    <option value={v} key={v}>
-                                      {v} {pluralize("month", Number(v))}
-                                    </option>
-                                  ))}
-                                  <option value={Infinity}>Lifetime</option>
-                                </select>
-                              </div>
+                                  <input
+                                    type="radio"
+                                    value={value}
+                                    className="hidden"
+                                    checked={isSelected}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setCommissionStructure(value);
+                                        setValue(
+                                          "maxDuration",
+                                          value === "recurring"
+                                            ? reward?.maxDuration || Infinity
+                                            : 0,
+                                        );
+                                      }
+                                    }}
+                                  />
+                                  <div className="flex grow flex-col text-sm">
+                                    <span className="font-medium">{label}</span>
+                                    <span>{description}</span>
+                                  </div>
+                                  <CircleCheckFill
+                                    className={cn(
+                                      "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                      isSelected && "scale-100 opacity-100",
+                                    )}
+                                  />
+                                </label>
+                              );
+                            },
+                          )}
+                        </div>
+
+                        <div
+                          className={cn(
+                            "transition-opacity duration-200",
+                            commissionStructure === "recurring"
+                              ? "h-auto"
+                              : "h-0 opacity-0",
+                          )}
+                          aria-hidden={commissionStructure !== "recurring"}
+                          {...{
+                            inert: commissionStructure !== "recurring",
+                          }}
+                        >
+                          <div>
+                            <label
+                              htmlFor="duration"
+                              className="text-sm font-medium text-neutral-800"
+                            >
+                              Duration
+                            </label>
+                            <div className="relative mt-2 rounded-md shadow-sm">
+                              <select
+                                className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                                {...register("maxDuration", {
+                                  valueAsNumber: true,
+                                })}
+                              >
+                                {RECURRING_MAX_DURATIONS.filter(
+                                  (v) => v !== 0,
+                                ).map((v) => (
+                                  <option value={v} key={v}>
+                                    {v} {pluralize("month", Number(v))}
+                                  </option>
+                                ))}
+                                <option value={Infinity}>Lifetime</option>
+                              </select>
                             </div>
                           </div>
                         </div>
-                      </AnimatedSizeContainer>
-                    </div>
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
-            )}
-
-            <ProgramSheetAccordionItem value="reward-details">
-              <ProgramSheetAccordionTrigger>
-                Reward Details
-              </ProgramSheetAccordionTrigger>
-              <ProgramSheetAccordionContent>
-                <div className="space-y-4">
-                  <p className="text-sm text-neutral-600">
-                    Set how much the affiliate will get rewarded
-                  </p>
-
-                  {selectedEvent === "sale" && (
-                    <div>
-                      <label
-                        htmlFor="type"
-                        className="text-sm font-medium text-neutral-800"
-                      >
-                        Reward structure
-                      </label>
-                      <div className="relative mt-2 rounded-md shadow-sm">
-                        <select
-                          className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                          {...register("type", { required: true })}
-                        >
-                          <option value="flat">Flat</option>
-                          <option value="percentage">Percentage</option>
-                        </select>
                       </div>
-                    </div>
-                  )}
+                    </AnimatedSizeContainer>
+                  </div>
+                </div>
+              }
+            />
+          )}
 
+          <VerticalLine />
+          <RewardSheetCard
+            title="Reward Details"
+            content={
+              <div className="space-y-4">
+                <p className="text-sm text-neutral-600">
+                  Set how much the affiliate will get rewarded
+                </p>
+
+                {selectedEvent === "sale" && (
                   <div>
                     <label
-                      htmlFor="amount"
+                      htmlFor="type"
                       className="text-sm font-medium text-neutral-800"
                     >
-                      Reward amount{" "}
-                      {selectedEvent !== "sale" ? `per ${selectedEvent}` : ""}
+                      Reward structure
                     </label>
                     <div className="relative mt-2 rounded-md shadow-sm">
-                      {type === "flat" && (
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                          $
-                        </span>
-                      )}
-                      <input
-                        className={cn(
-                          "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                          errors.amount &&
-                            "border-red-600 focus:border-red-500 focus:ring-red-600",
-                          type === "flat" ? "pl-6 pr-12" : "pr-7",
-                        )}
-                        {...register("amount", {
-                          required: true,
-                          valueAsNumber: true,
-                          min: 0,
-                          max: type === "percentage" ? 100 : undefined,
-                          onChange: handleMoneyInputChange,
-                        })}
-                        onKeyDown={handleMoneyKeyDown}
-                      />
-                      <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                        {type === "flat" ? "USD" : "%"}
-                      </span>
+                      <select
+                        className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                        {...register("type", { required: true })}
+                      >
+                        <option value="flat">Flat</option>
+                        <option value="percentage">Percentage</option>
+                      </select>
                     </div>
                   </div>
-                </div>
-              </ProgramSheetAccordionContent>
-            </ProgramSheetAccordionItem>
+                )}
 
-            <ProgramSheetAccordionItem value="partner-eligibility">
-              <ProgramSheetAccordionTrigger>
-                Partner Eligibility
-              </ProgramSheetAccordionTrigger>
-              <ProgramSheetAccordionContent>
-                <div className="space-y-4">
-                  <RewardPartnersTable
-                    event={selectedEvent}
-                    rewardId={reward?.id}
-                    partnerIds={
-                      (isDefault ? excludedPartnerIds : includedPartnerIds) ||
-                      []
-                    }
-                    setPartnerIds={(value: string[]) => {
-                      if (isDefault) {
-                        setValue("excludedPartnerIds", value);
-                      } else {
-                        setValue("includedPartnerIds", value);
-                      }
-                    }}
-                    rewardPartners={rewardPartners || []}
-                    loading={isLoadingRewardPartners}
-                    mode={isDefault ? "exclude" : "include"}
-                  />
+                <div>
+                  <label
+                    htmlFor="amount"
+                    className="text-sm font-medium text-neutral-800"
+                  >
+                    Reward amount{" "}
+                    {selectedEvent !== "sale" ? `per ${selectedEvent}` : ""}
+                  </label>
+                  <div className="relative mt-2 rounded-md shadow-sm">
+                    {type === "flat" && (
+                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                        $
+                      </span>
+                    )}
+                    <input
+                      className={cn(
+                        "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                        errors.amount &&
+                          "border-red-600 focus:border-red-500 focus:ring-red-600",
+                        type === "flat" ? "pl-6 pr-12" : "pr-7",
+                      )}
+                      {...register("amount", {
+                        required: true,
+                        valueAsNumber: true,
+                        min: 0,
+                        max: type === "percentage" ? 100 : undefined,
+                        onChange: handleMoneyInputChange,
+                      })}
+                      onKeyDown={handleMoneyKeyDown}
+                    />
+                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                      {type === "flat" ? "USD" : "%"}
+                    </span>
+                  </div>
                 </div>
-              </ProgramSheetAccordionContent>
-            </ProgramSheetAccordionItem>
-          </ProgramSheetAccordion>
+              </div>
+            }
+          />
+
+          <VerticalLine />
+          <RewardSheetCard
+            title={
+              <>
+                <IconSquare icon={Users} />
+                {isDefault ? (
+                  <span>
+                    To all partners
+                    {!!excludedPartnerIds?.length && (
+                      <>
+                        , excluding{" "}
+                        <strong className="font-semibold">
+                          {excludedPartnerIds.length}
+                        </strong>{" "}
+                        {pluralize("partner", excludedPartnerIds.length)}
+                      </>
+                    )}
+                  </span>
+                ) : (
+                  <span>
+                    To {includedPartnerIds?.length || 0}{" "}
+                    {pluralize("partner", includedPartnerIds?.length || 0)}
+                  </span>
+                )}
+              </>
+            }
+            content={
+              <div className="space-y-4">
+                <RewardPartnersTable
+                  event={selectedEvent}
+                  rewardId={reward?.id}
+                  partnerIds={
+                    (isDefault ? excludedPartnerIds : includedPartnerIds) || []
+                  }
+                  setPartnerIds={(value: string[]) => {
+                    if (isDefault) {
+                      setValue("excludedPartnerIds", value);
+                    } else {
+                      setValue("includedPartnerIds", value);
+                    }
+                  }}
+                  rewardPartners={rewardPartners || []}
+                  loading={isLoadingRewardPartners}
+                  mode={isDefault ? "exclude" : "include"}
+                />
+              </div>
+            }
+          />
         </div>
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">
@@ -498,6 +498,34 @@ function RewardSheetContent({
         </div>
       </form>
     </>
+  );
+}
+
+const VerticalLine = () => (
+  <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
+);
+
+const IconSquare = ({ icon: Icon }: { icon: Icon }) => (
+  <div className="flex size-7 items-center justify-center rounded-md bg-neutral-100">
+    <Icon className="size-4 text-neutral-800" />
+  </div>
+);
+
+function RewardSheetCard({
+  title,
+  content,
+}: PropsWithChildren<{ title: ReactNode; content: ReactNode }>) {
+  return (
+    <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
+      <div className="text-content-emphasis flex items-center gap-2.5 p-2.5 font-medium">
+        {title}
+      </div>
+      {content && (
+        <div className="border-border-subtle -mx-px rounded-xl border-x border-t bg-neutral-50 p-2.5">
+          {content}
+        </div>
+      )}
+    </div>
   );
 }
 
