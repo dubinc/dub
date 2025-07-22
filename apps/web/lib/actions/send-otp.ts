@@ -50,22 +50,14 @@ export const sendOtpAction = actionClient
         process.env.EDGE_CONFIG ? get("emailDomainTerms") : [],
       ]);
 
-      // Filter out non-string or empty terms before building the regex
-      const blacklistedEmailDomainTerms = (
-        emailDomainTerms && Array.isArray(emailDomainTerms)
-          ? emailDomainTerms.filter(
-              (term): term is string =>
-                typeof term === "string" && term.length > 0,
-            )
-          : []
-      ) as string[];
-
       // Only build the regex if we have at least one term; otherwise set to null
       const blacklistedEmailDomainTermsRegex =
-        blacklistedEmailDomainTerms.length > 0
+        emailDomainTerms && Array.isArray(emailDomainTerms)
           ? new RegExp(
-              blacklistedEmailDomainTerms
-                .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // escape special regex chars
+              emailDomainTerms
+                .map((term: string) =>
+                  term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+                ) // replace special characters with escape sequences
                 .join("|"),
             )
           : null;
