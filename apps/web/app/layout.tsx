@@ -24,7 +24,7 @@ export default async function RootLayout({
           <RootProviders>{children}</RootProviders>
 
           <AnalyticScriptsComponent />
-          <AnalyticInitializerComponent sessionId={sessionId || ""} />
+          <AnalyticInitializerComponent sessionId={sessionId!} />
         </Theme>
       </body>
     </html>

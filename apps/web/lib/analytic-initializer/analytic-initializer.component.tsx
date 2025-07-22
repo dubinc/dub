@@ -23,7 +23,7 @@ export const AnalyticInitializerComponent = ({
     } else {
       initPeopleAnalytic(sessionId);
     }
-  }, [isAuthorized, user, sessionId]);
+  }, [isAuthorized, user]);
 
   return null;
 };

@@ -52,8 +52,8 @@ export const SignUpOAuth = ({
       });
 
       if (processedData) {
-        setQrDataToCreate(null);
         saveQrDataToRedis({ sessionId, qrData: processedData });
+        setQrDataToCreate(null);
       }
 
       return processedData;
