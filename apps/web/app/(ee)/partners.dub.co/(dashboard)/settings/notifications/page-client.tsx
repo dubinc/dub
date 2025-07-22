@@ -16,10 +16,10 @@ type Preferences = Record<PreferenceType, boolean>;
 
 const notifications = [
   {
-    type: "sale",
+    type: "commissionCreated",
     icon: InvoiceDollar,
-    title: "New sale",
-    description: "Alert when a new sale is made.",
+    title: "New commission event",
+    description: "Alert when a new commission event is created.",
   },
   {
     type: "applicationApproved",

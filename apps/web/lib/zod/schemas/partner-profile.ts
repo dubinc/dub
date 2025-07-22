@@ -127,4 +127,7 @@ export const partnerProfileProgramsQuerySchema = z.object({
 export const partnerProfileProgramsCountQuerySchema =
   partnerProfileProgramsQuerySchema.pick({ status: true });
 
-export const partnerNotificationTypes = z.enum(["sale", "applicationApproved"]);
+export const partnerNotificationTypes = z.enum([
+  "commissionCreated",
+  "applicationApproved",
+]);
