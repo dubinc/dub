@@ -9,6 +9,7 @@ import { flattenValidationErrors } from "next-safe-action";
 import { getIP } from "../api/utils";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
+import { isGenericEmail } from "../emails";
 import z from "../zod";
 import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -35,7 +36,7 @@ export const sendOtpAction = actionClient
       throw new Error("Too many requests. Please try again later.");
     }
 
-    if (email.includes("+") && email.endsWith("@gmail.com")) {
+    if (email.includes("+") && isGenericEmail(email)) {
       throw new Error(
         "Email addresses with + are not allowed. Please use your work email instead.",
       );
