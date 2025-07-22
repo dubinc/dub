@@ -9,6 +9,7 @@ import {
   AccordionTrigger,
   useMediaQuery,
 } from "@dub/ui";
+import { cn } from "@dub/utils/src";
 import { Heading } from "@radix-ui/themes";
 import { FC, useEffect, useRef, useState } from "react";
 
@@ -19,9 +20,13 @@ type FaqItems = {
 
 interface IFaqSectionProps {
   faqItems: FaqItems[];
+  homePageDemo?: boolean;
 }
 
-export const FAQSection: FC<IFaqSectionProps> = ({ faqItems }) => {
+export const FAQSection: FC<IFaqSectionProps> = ({
+  faqItems,
+  homePageDemo = true,
+}) => {
   const { isMobile } = useMediaQuery();
   const [openItems, setOpenItems] = useState<string[]>([]);
   const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -54,7 +59,9 @@ export const FAQSection: FC<IFaqSectionProps> = ({ faqItems }) => {
     <section className="mx-auto flex w-full max-w-[1172px] flex-col items-center justify-between gap-2 px-3 pt-3 lg:flex-row lg:items-start lg:gap-6 lg:pt-8">
       <SectionTitle
         titleFirstPart={isMobile ? "FAQ" : "Frequently Asked Questions"}
-        className="mb-4 text-center lg:max-w-64 lg:!text-left"
+        className={cn("mb-4 text-center lg:max-w-64 lg:!text-left", {
+          "!text-2xl lg:!text-[30px] lg:!leading-8": !homePageDemo,
+        })}
       />
       <Accordion
         type="multiple"
@@ -63,7 +70,13 @@ export const FAQSection: FC<IFaqSectionProps> = ({ faqItems }) => {
         onValueChange={setOpenItems}
       >
         {faqItems.map((item, idx) => (
-          <AccordionItem key={idx} value={idx.toString()}>
+          <AccordionItem
+            key={idx}
+            value={idx.toString()}
+            className={cn("", {
+              "first:pt-0": !homePageDemo,
+            })}
+          >
             <AccordionTrigger className="justify-beetwen group gap-3 py-2 text-neutral-700">
               <Heading
                 as="h3"
