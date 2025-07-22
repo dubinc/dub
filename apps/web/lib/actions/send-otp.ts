@@ -50,15 +50,19 @@ export const sendOtpAction = actionClient
         process.env.EDGE_CONFIG ? get("emailDomainTerms") : [],
       ]);
 
-      const blacklistedEmailDomainTermsRegex = new RegExp(
-        (emailDomainTerms && Array.isArray(emailDomainTerms)
-          ? emailDomainTerms
-          : []
-        )
-          .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // replace special characters with escape sequences
-          .join("|"),
-      );
+      // Filter out non-string or empty terms before building the regex
+      const emailTerms = emailDomainTerms && Array.isArray(emailDomainTerms)
+        ? emailDomainTerms.filter((term): term is string => typeof term === 'string' && term.length > 0)
+        : [];
 
+      // Only build the regex if we have at least one term; otherwise set to null
+      const blacklistedEmailDomainTermsRegex = emailTerms.length > 0
+        ? new RegExp(
+            emailTerms
+              .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // escape special regex chars
+              .join("|")
+          )
+        : null;
       if (isDisposable || blacklistedEmailDomainTermsRegex.test(domain)) {
         // edge case: the user already has a partner account on Dub with this email address, we can allow them to continue
         const isPartnerAccount = await prisma.partner.findUnique({
