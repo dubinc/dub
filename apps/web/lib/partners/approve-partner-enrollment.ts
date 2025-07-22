@@ -163,29 +163,33 @@ export async function approvePartnerEnrollment({
       await Promise.allSettled([
         updatedLink ? recordLink(updatedLink) : Promise.resolve(null),
 
-        resend?.batch.send(
-          partnerEmailsToNotify.map((email) => ({
-            subject: `Your application to join ${program.name} partner program has been approved!`,
-            from: VARIANT_TO_FROM_MAP.notifications,
-            to: email,
-            react: PartnerApplicationApproved({
-              program: {
-                name: program.name,
-                logo: program.logo,
-                slug: program.slug,
-                supportEmail: program.supportEmail,
-              },
-              partner: {
-                name: partner.name,
-                email,
-                payoutsEnabled: Boolean(partner.payoutsEnabledAt),
-              },
-              rewardDescription: ProgramRewardDescription({
-                reward: rewards.find((r) => r.event === "sale"),
-              }),
-            }),
-          })),
-        ),
+        ...(partnerEmailsToNotify.length
+          ? [
+              resend?.batch.send(
+                partnerEmailsToNotify.map((email) => ({
+                  subject: `Your application to join ${program.name} partner program has been approved!`,
+                  from: VARIANT_TO_FROM_MAP.notifications,
+                  to: email,
+                  react: PartnerApplicationApproved({
+                    program: {
+                      name: program.name,
+                      logo: program.logo,
+                      slug: program.slug,
+                      supportEmail: program.supportEmail,
+                    },
+                    partner: {
+                      name: partner.name,
+                      email,
+                      payoutsEnabled: Boolean(partner.payoutsEnabledAt),
+                    },
+                    rewardDescription: ProgramRewardDescription({
+                      reward: rewards.find((r) => r.event === "sale"),
+                    }),
+                  }),
+                })),
+              ),
+            ]
+          : []),
 
         sendWorkspaceWebhook({
           workspace,

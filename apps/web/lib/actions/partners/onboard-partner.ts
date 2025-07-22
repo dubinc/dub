@@ -60,7 +60,9 @@ export const onboardPartnerAction = authUserActionClient
           create: {
             userId: user.id,
             role: "owner",
-            notificationPreference: {},
+            notificationPreference: {
+              create: {},
+            },
           },
         },
       },

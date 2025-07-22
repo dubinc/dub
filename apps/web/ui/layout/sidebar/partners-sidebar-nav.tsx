@@ -202,6 +202,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     direction: "left",
     content: [
       {
+        name: "Account",
         items: [
           {
             name: "Notifications",
