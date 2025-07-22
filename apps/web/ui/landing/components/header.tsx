@@ -3,7 +3,8 @@
 import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
 import { Button, Text } from "@radix-ui/themes";
-import { FC } from "react";
+import { useSearchParams } from 'next/navigation';
+import { FC, use, useEffect } from "react";
 
 interface IHeaderProps {
   sessionId: string;
@@ -11,6 +12,15 @@ interface IHeaderProps {
 
 export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
   const { AuthModal, showModal } = useAuthModal({ sessionId });
+  const searchParams = useSearchParams();
+
+  const openLogin = searchParams.get('login');
+
+  useEffect(() => {
+    if (openLogin) {
+      showModal("login");
+    }
+  }, [openLogin, showModal]);
 
   return (
     <>
