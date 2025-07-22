@@ -41,6 +41,7 @@ export async function getQrs({
     include: {
       user: true,
       link: true,
+      file: true,
     },
     orderBy: {
       ...(["clicks", "lastClicked"].includes(actualSortBy)
