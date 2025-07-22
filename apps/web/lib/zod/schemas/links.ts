@@ -769,6 +769,20 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
       .enum(["fuzzy", "exact"])
       .default("fuzzy")
       .describe("Search mode to filter by."),
+    startingAfter: z
+      .string()
+      .trim()
+      .optional()
+      .describe(
+        "A cursor to use in pagination. Returns items after the given link ID.",
+      ),
+    endingBefore: z
+      .string()
+      .trim()
+      .optional()
+      .describe(
+        "A cursor to use in pagination. Returns items before the given link ID.",
+      ),
   }),
 );
 
