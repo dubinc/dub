@@ -7,7 +7,7 @@ export const GET = withPartnerProfile(async ({ partner, session }) => {
   const response = await prisma.partnerNotificationPreferences.findFirstOrThrow(
     {
       select: {
-        sale: true,
+        newCommission: true,
         applicationApproved: true,
       },
       where: {

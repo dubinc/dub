@@ -19,6 +19,7 @@ import {
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
+import { sortRewardsByEventOrder } from "./sort-rewards-by-event-order";
 
 export async function bulkApprovePartners({
   workspace,
@@ -57,7 +58,38 @@ export async function bulkApprovePartners({
     },
   });
 
-  const programEnrollmentChunks = chunk(programEnrollments, 100);
+  // Create all emails first, then chunk them into batches of 100
+  const allEmails = programEnrollments.flatMap(({ partner }) => {
+    const partnerEmailsToNotify = partner.users
+      .map(({ user }) => user.email)
+      .filter(Boolean) as string[];
+
+    return partnerEmailsToNotify.map((email) => ({
+      subject: `Your application to join ${program.name} partner program has been approved!`,
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: email,
+      react: PartnerApplicationApproved({
+        program: {
+          name: program.name,
+          logo: program.logo,
+          slug: program.slug,
+          supportEmail: program.supportEmail,
+        },
+        partner: {
+          name: partner.name,
+          email,
+          payoutsEnabled: Boolean(partner.payoutsEnabledAt),
+        },
+        rewardDescription: ProgramRewardDescription({
+          reward:
+            sortRewardsByEventOrder(rewards.filter((r) => r.default))[0] ||
+            rewards[0],
+        }),
+      }),
+    }));
+  });
+
+  const emailChunks = chunk(allEmails, 100);
 
   waitUntil(
     (async () => {
@@ -85,37 +117,7 @@ export async function bulkApprovePartners({
 
       await Promise.allSettled([
         // Send approval emails
-        ...programEnrollmentChunks.map((chunk) =>
-          resend?.batch.send(
-            chunk.flatMap(({ partner }) => {
-              const partnerEmailsToNotify = partner.users
-                .map(({ user }) => user.email)
-                .filter(Boolean) as string[];
-
-              return partnerEmailsToNotify.map((email) => ({
-                subject: `Your application to join ${program.name} partner program has been approved!`,
-                from: VARIANT_TO_FROM_MAP.notifications,
-                to: email,
-                react: PartnerApplicationApproved({
-                  program: {
-                    name: program.name,
-                    logo: program.logo,
-                    slug: program.slug,
-                    supportEmail: program.supportEmail,
-                  },
-                  partner: {
-                    name: partner.name,
-                    email,
-                    payoutsEnabled: Boolean(partner.payoutsEnabledAt),
-                  },
-                  rewardDescription: ProgramRewardDescription({
-                    reward: rewards?.find((r) => r.event === "sale"),
-                  }),
-                }),
-              }));
-            }),
-          ),
-        ),
+        ...emailChunks.map((emailChunk) => resend?.batch.send(emailChunk)),
 
         // Send enrolled webhooks
         ...programEnrollments.map(({ partner, ...enrollment }) =>

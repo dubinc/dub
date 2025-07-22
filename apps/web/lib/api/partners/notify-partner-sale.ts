@@ -1,9 +1,10 @@
-import { limiter } from "@/lib/cron/limiter";
-import { sendEmail } from "@dub/email";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import NewSaleAlertPartner from "@dub/email/templates/new-sale-alert-partner";
 import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
 import { prisma } from "@dub/prisma";
 import { Commission, Link } from "@dub/prisma/client";
+import { chunk } from "@dub/utils";
 
 // Send email to partner and program owners when a sale is made
 export async function notifyPartnerSale({
@@ -113,38 +114,38 @@ export async function notifyPartnerSale({
     .map(({ user }) => user.email)
     .filter(Boolean) as string[];
 
-  await Promise.all([
-    ...(partnerEmailsToNotify.length
-      ? partnerEmailsToNotify.map((email) =>
-          limiter.schedule(() =>
-            sendEmail({
-              subject: "You just made a sale via Dub Partners!",
-              email,
-              react: NewSaleAlertPartner({
-                email,
-                ...data,
-              }),
-              variant: "notifications",
-            }),
-          ),
-        )
-      : []),
-    ...workspaceUsers.map(({ user }) =>
-      limiter.schedule(() =>
-        sendEmail({
-          subject: `New commission for ${partner.name}`,
+  // Create all emails first, then chunk them into batches of 100
+  const allEmails = [
+    // Partner emails
+    ...partnerEmailsToNotify.map((email) => ({
+      subject: "You just made a sale via Dub Partners!",
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: email,
+      react: NewSaleAlertPartner({
+        email,
+        ...data,
+      }),
+    })),
+    // Workspace owner emails
+    ...workspaceUsers.map(({ user }) => ({
+      subject: `New commission for ${partner.name}`,
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: user.email!,
+      react: NewSaleAlertProgramOwner({
+        ...data,
+        user: {
+          name: user.name,
           email: user.email!,
-          react: NewSaleAlertProgramOwner({
-            ...data,
-            user: {
-              name: user.name,
-              email: user.email!,
-            },
-            workspace,
-          }),
-          variant: "notifications",
-        }),
-      ),
-    ),
-  ]);
+        },
+        workspace,
+      }),
+    })),
+  ];
+
+  const emailChunks = chunk(allEmails, 100);
+
+  // Send all emails in batches
+  await Promise.all(
+    emailChunks.map((emailChunk) => resend?.batch.send(emailChunk)),
+  );
 }
