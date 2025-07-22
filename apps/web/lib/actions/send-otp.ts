@@ -50,20 +50,23 @@ export const sendOtpAction = actionClient
         process.env.EDGE_CONFIG ? get("emailDomainTerms") : [],
       ]);
 
-      if (isDisposable) {
-        throw new Error(
-          "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
-        );
-      }
+      const blacklistedEmailDomainTermsRegex = new RegExp(
+        (emailDomainTerms && Array.isArray(emailDomainTerms)
+          ? emailDomainTerms
+          : []
+        )
+          .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // replace special characters with escape sequences
+          .join("|"),
+      );
 
-      if (emailDomainTerms && Array.isArray(emailDomainTerms)) {
-        const blacklistedEmailDomainTermsRegex = new RegExp(
-          emailDomainTerms
-            .map((term: string) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // replace special characters with escape sequences
-            .join("|"),
-        );
-
-        if (blacklistedEmailDomainTermsRegex.test(domain)) {
+      if (isDisposable || blacklistedEmailDomainTermsRegex.test(domain)) {
+        // edge case: the user already has a partner account on Dub with this email address, we can allow them to continue
+        const isPartnerAccount = await prisma.partner.findUnique({
+          where: {
+            email,
+          },
+        });
+        if (!isPartnerAccount) {
           throw new Error(
             "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
           );
