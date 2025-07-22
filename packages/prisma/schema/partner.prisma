@@ -80,7 +80,7 @@ model PartnerUser {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
-  notificationPreference PartnerNotificationPreferences?
+  notificationPreferences PartnerNotificationPreferences?
 
   @@unique([userId, partnerId])
   @@index([partnerId])

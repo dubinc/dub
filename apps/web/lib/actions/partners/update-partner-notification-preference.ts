@@ -25,7 +25,7 @@ export const updatePartnerNotificationPreference = authPartnerActionClient
         },
       },
       data: {
-        notificationPreference: {
+        notificationPreferences: {
           update: {
             [type]: value,
           },

@@ -84,7 +84,7 @@ export async function approvePartnerEnrollment({
           include: {
             users: {
               where: {
-                notificationPreference: {
+                notificationPreferences: {
                   applicationApproved: true,
                 },
               },

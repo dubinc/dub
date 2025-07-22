@@ -37,7 +37,7 @@ export const bulkApprovePartnersAction = authActionClient
               include: {
                 users: {
                   where: {
-                    notificationPreference: {
+                    notificationPreferences: {
                       applicationApproved: true,
                     },
                   },
