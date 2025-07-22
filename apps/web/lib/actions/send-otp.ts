@@ -51,19 +51,30 @@ export const sendOtpAction = actionClient
       ]);
 
       // Filter out non-string or empty terms before building the regex
-      const emailTerms = emailDomainTerms && Array.isArray(emailDomainTerms)
-        ? emailDomainTerms.filter((term): term is string => typeof term === 'string' && term.length > 0)
-        : [];
+      const blacklistedEmailDomainTerms = (
+        emailDomainTerms && Array.isArray(emailDomainTerms)
+          ? emailDomainTerms.filter(
+              (term): term is string =>
+                typeof term === "string" && term.length > 0,
+            )
+          : []
+      ) as string[];
 
       // Only build the regex if we have at least one term; otherwise set to null
-      const blacklistedEmailDomainTermsRegex = emailTerms.length > 0
-        ? new RegExp(
-            emailTerms
-              .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // escape special regex chars
-              .join("|")
-          )
-        : null;
-      if (isDisposable || blacklistedEmailDomainTermsRegex.test(domain)) {
+      const blacklistedEmailDomainTermsRegex =
+        blacklistedEmailDomainTerms.length > 0
+          ? new RegExp(
+              blacklistedEmailDomainTerms
+                .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")) // escape special regex chars
+                .join("|"),
+            )
+          : null;
+
+      if (
+        isDisposable ||
+        (blacklistedEmailDomainTermsRegex &&
+          blacklistedEmailDomainTermsRegex.test(domain))
+      ) {
         // edge case: the user already has a partner account on Dub with this email address, we can allow them to continue
         const isPartnerAccount = await prisma.partner.findUnique({
           where: {
