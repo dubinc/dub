@@ -17,7 +17,9 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
   const openLogin = searchParams.get('login');
 
   useEffect(() => {
+    console.log('openLogin', openLogin);
     if (openLogin) {
+      console.log('here');
       showModal("login");
     }
   }, [openLogin, showModal]);
