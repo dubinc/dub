@@ -29,7 +29,9 @@ export const SignUpOAuth = ({
   const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
 
-  const { execute: saveQrDataToRedis } = useAction(saveQrDataToRedisAction);
+  const { executeAsync: saveQrDataToRedis } = useAction(
+    saveQrDataToRedisAction,
+  );
 
   useEffect(() => {
     // when leave page, reset state
@@ -52,7 +54,7 @@ export const SignUpOAuth = ({
       });
 
       if (processedData) {
-        saveQrDataToRedis({ sessionId, qrData: processedData });
+        await saveQrDataToRedis({ sessionId, qrData: processedData });
         setQrDataToCreate(null);
       }
 
