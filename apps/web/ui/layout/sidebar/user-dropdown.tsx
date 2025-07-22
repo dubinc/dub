@@ -115,8 +115,8 @@ export default function UserDropdown() {
             )}
             // href="/account/plans"
             onClick={() => {
-              router.refresh();
               router.push("/account/plans");
+              router.refresh();
               handleUserOptionClick("plans_and_payments");
               setOpenPopover(false);
             }}
