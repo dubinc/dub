@@ -6,7 +6,6 @@ import {
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
 import useQrs from "@/lib/swr/use-qrs.ts";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { preloadAllFrames } from "@/ui/qr-builder/constants/customization/frames.ts";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
@@ -14,7 +13,7 @@ import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
 import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.tsx";
 import { useQrCodeFilters } from "@/ui/qr-code/use-qr-code-filters.tsx";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { Button, Filter, MaxWidthWrapper, Switch } from "@dub/ui";
+import { Button, Filter, MaxWidthWrapper } from "@dub/ui";
 import { ShieldAlert } from "@dub/ui/icons";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
@@ -49,9 +48,8 @@ function WorkspaceQRs() {
   const router = useRouter();
   const { isValidating } = useQrs();
   const searchParams = useSearchParams();
-  const { slug } = useWorkspace();
 
-  const { isTrialOver, setIsTrialOver } = useTrialStatus();
+  const { isTrialOver } = useTrialStatus();
 
   const { filters, activeFilters, onRemove, onRemoveAll } = useQrCodeFilters();
 
@@ -71,13 +69,6 @@ function WorkspaceQRs() {
 
       <div className="flex w-full items-center pt-2">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
-          {/*@TODO: Remove toggle when trial logic is implemented*/}
-          <div className="flex items-center justify-start gap-2">
-            <span className="text-sm font-medium text-neutral-700">
-              Trial Over:
-            </span>
-            <Switch checked={isTrialOver} fn={setIsTrialOver} />
-          </div>
           {isTrialOver && (
             <div className="w-full rounded-lg border border-red-200 bg-red-100">
               <div className="px-3 py-3 md:px-4">
