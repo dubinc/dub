@@ -26,6 +26,7 @@ export * from "./menu-item";
 export * from "./mini-area-chart";
 export * from "./modal";
 export * from "./pagination-controls";
+export * from "./cursor-pagination-controls";
 export * from "./popover";
 export * from "./radio-group";
 export * from "./sheet";
