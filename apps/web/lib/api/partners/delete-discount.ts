@@ -99,22 +99,21 @@ export async function deleteDiscount({
           },
         }),
 
-        user
-          ? recordAuditLog({
-              workspaceId: workspace.id,
-              programId,
-              action: "discount.deleted",
-              description: `Discount ${discount.id} deleted`,
-              actor: user,
-              targets: [
-                {
-                  type: "discount",
-                  id: discount.id,
-                  metadata: discount,
-                },
-              ],
-            })
-          : Promise.resolve(),
+        user &&
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "discount.deleted",
+            description: `Discount ${discount.id} deleted`,
+            actor: user,
+            targets: [
+              {
+                type: "discount",
+                id: discount.id,
+                metadata: discount,
+              },
+            ],
+          }),
 
         discount.couponId &&
           deleteStripeCoupon({
