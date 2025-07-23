@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import {
-  EnrolledPartnerSchema,
+  EnrolledPartnerSchemaExtended,
   partnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
 import { ZodOpenApiOperationObject } from "zod-openapi";
@@ -19,7 +19,7 @@ export const getPartners: ZodOpenApiOperationObject = {
       description: "The list of partners.",
       content: {
         "application/json": {
-          schema: z.array(EnrolledPartnerSchema),
+          schema: z.array(EnrolledPartnerSchemaExtended),
         },
       },
     },
