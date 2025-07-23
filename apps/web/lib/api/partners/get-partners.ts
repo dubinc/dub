@@ -1,4 +1,4 @@
-import { partnersQuerySchema } from "@/lib/zod/schemas/partners";
+import { partnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
@@ -24,7 +24,7 @@ const sortColumnExtraMap = {
   netRevenue: "totalSaleAmount",
 };
 
-type PartnerFilters = z.infer<typeof partnersQuerySchema> & {
+type PartnerFilters = z.infer<typeof partnersQuerySchemaExtended> & {
   workspaceId: string;
   programId: string;
 };
@@ -44,6 +44,7 @@ export async function getPartners(filters: PartnerFilters) {
     sortBy,
     sortOrder,
     programId,
+    includeExpandedFields,
   } = filters;
 
   const partners = (await prisma.$queryRaw`

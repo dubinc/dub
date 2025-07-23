@@ -10,7 +10,7 @@ import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
 import { createLinkBodySchema } from "./links";
-import { getPaginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseUrlSchema } from "./utils";
 
@@ -51,12 +51,16 @@ export const exportPartnersColumnsDefault = exportPartnerColumns
 
 export const partnersQuerySchema = z
   .object({
-    status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
-    country: z.string().optional(),
-    clickRewardId: z.string().optional(),
-    leadRewardId: z.string().optional(),
-    saleRewardId: z.string().optional(),
-    search: z.string().optional(),
+    status: z
+      .nativeEnum(ProgramEnrollmentStatus)
+      .optional()
+      .describe("A filter on the list based on the partner's `status` field.")
+      .openapi({ example: "approved" }),
+    country: z
+      .string()
+      .optional()
+      .describe("A filter on the list based on the partner's `country` field.")
+      .openapi({ example: "US" }),
     sortBy: z
       .enum([
         "createdAt",
@@ -67,19 +71,50 @@ export const partnersQuerySchema = z
         "commissions",
         "netRevenue",
       ])
-      .default("saleAmount"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+      .default("saleAmount")
+      .describe(
+        "The field to sort the partners by. The default is `saleAmount`.",
+      )
+      .openapi({ example: "saleAmount" }),
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .default("desc")
+      .describe("The sort order. The default is `desc`.")
+      .openapi({ example: "desc" }),
     tenantId: z
       .string()
       .optional()
-      .describe("The ID of the partner within your system."),
+      .describe(
+        "A case-sensitive filter on the list based on the partner's `tenantId` field. The value must be a string. Takes precedence over `search`.",
+      )
+      .openapi({ example: "1K0NM7HCN944PEMZ3CQPH43H8" }),
+    includeExpandedFields: booleanQuerySchema
+      .optional()
+      .describe(
+        "Whether to include expanded fields on the partner (`reward`, `discount`, `online-presence`).",
+      )
+      .openapi({ example: "true" }),
+    search: z
+      .string()
+      .optional()
+      .describe(
+        "A search query to filter partners by name, email, or tenantId.",
+      )
+      .openapi({ example: "john" }),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
+
+export const partnersQuerySchemaExtended = partnersQuerySchema.merge(
+  z.object({
     ids: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .optional()
-      .describe("IDs of partners to filter by."),
-  })
-  .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
+      .optional(),
+    clickRewardId: z.string().optional(),
+    leadRewardId: z.string().optional(),
+    saleRewardId: z.string().optional(),
+  }),
+);
 
 export const partnersExportQuerySchema = partnersQuerySchema
   .omit({ page: true, pageSize: true })
