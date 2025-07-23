@@ -1,5 +1,8 @@
 import { deleteDiscount } from "@/lib/api/partners/delete-discount";
+import { sendEmail } from "@dub/email";
+import DiscountDeleted from "@dub/email/templates/discount-deleted";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 // Handle event "coupon.deleted"
@@ -13,6 +16,7 @@ export async function couponDeleted(event: Stripe.Event) {
     },
     select: {
       id: true,
+      slug: true,
       defaultProgramId: true,
       stripeConnectId: true,
     },
@@ -43,6 +47,47 @@ export async function couponDeleted(event: Stripe.Event) {
   });
 
   if (deletedDiscountId) {
+    waitUntil(
+      (async () => {
+        const workspaceUsers = await prisma.projectUsers.findFirst({
+          where: {
+            projectId: workspace.id,
+            role: "owner",
+            user: {
+              email: {
+                not: null,
+              },
+            },
+          },
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        });
+
+        if (workspaceUsers) {
+          const { user } = workspaceUsers;
+
+          sendEmail({
+            subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Discount has been deleted`,
+            email: user.email!,
+            react: DiscountDeleted({
+              email: user.email!,
+              workspace: {
+                slug: workspace.slug,
+              },
+              coupon: {
+                id: coupon.id,
+              },
+            }),
+          });
+        }
+      })(),
+    );
+
     return `Discount ${deletedDiscountId} deleted.`;
   }
 
