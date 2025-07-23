@@ -24,6 +24,7 @@ export default function usePartners(
       ? `/api/partners?${new URLSearchParams({
           workspaceId: workspaceId,
           ...query,
+          includeExpandedFields: true,
         } as Record<string, any>).toString()}`
       : undefined,
     fetcher,
