@@ -53,7 +53,7 @@ export function useQrCustomization(
     initialData?.qrType as EQRType,
   )
     ? (initialData?.styles as Options)?.data
-    : initialData?.data;
+    : initialData?.link?.shortLink;
 
   const [data, setData] = useState(initialContentForQrBuild || DEFAULT_WEBSITE);
 
