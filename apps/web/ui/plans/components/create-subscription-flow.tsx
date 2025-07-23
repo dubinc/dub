@@ -28,7 +28,7 @@ interface ICreateSubscriptionProps {
   setIsProcessing: Dispatch<SetStateAction<boolean>>;
 }
 
-const pageName = "profile";
+const pageName = "account";
 
 export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   amount,

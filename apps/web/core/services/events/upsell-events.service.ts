@@ -44,7 +44,7 @@ export const generateTrackingUpsellEvent = ({
     subscription_id: user?.paymentInfo?.subscriptionId ?? null,
     country: user?.currency?.countryCode,
     event_category: "Authorized",
-    page_name: "profile",
+    page_name: "account",
     ...additionalParams,
   };
 

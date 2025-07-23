@@ -1,4 +1,4 @@
-import { Button } from "@dub/ui";
+import { Button, useLocalStorage } from "@dub/ui";
 import { Google } from "@dub/ui/icons";
 import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
@@ -18,6 +18,11 @@ export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
 }) => {
   const searchParams = useSearchParams();
   const finalNext = next ?? searchParams?.get("next");
+
+  const [, setGuestSessionId] = useLocalStorage<string | null>(
+    `guest-session-id`,
+    null,
+  );
 
   const { setClickedMethod, clickedMethod, setLastUsedAuthMethod } =
     useContext(LoginFormContext);
@@ -43,6 +48,7 @@ export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
       },
       sessionId,
     });
+    setGuestSessionId(sessionId);
     setClickedMethod("google");
     setLastUsedAuthMethod("google");
 

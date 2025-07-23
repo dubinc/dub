@@ -1,7 +1,7 @@
 "use client";
 
 import { FC, useEffect } from "react";
-import { trackClientEvents } from "../index.ts";
+import { setPeopleAnalyticOnce, trackClientEvents } from "../index.ts";
 import { EAnalyticEvents } from "../interfaces/analytic.interface.ts";
 
 interface IOauthTrackerProps {
@@ -13,6 +13,10 @@ export const OauthTrackerComponent: FC<Readonly<IOauthTrackerProps>> = ({
 }) => {
   useEffect(() => {
     const { flow, provider, email, userId } = oauthData;
+
+    if (flow === "signup") {
+      setPeopleAnalyticOnce({ signup_method: provider });
+    }
 
     trackClientEvents({
       event:
