@@ -45,6 +45,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
+  console.log("middleware here0");
 
   // Initialize session ID for all users (both new and existing)
   const sessionInit = userSessionIdInit(req);
