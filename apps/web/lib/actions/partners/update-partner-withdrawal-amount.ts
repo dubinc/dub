@@ -1,6 +1,8 @@
 "use server";
 
+import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -28,4 +30,25 @@ export const updatePartnerWithdrawalAmountAction = authPartnerActionClient
         minWithdrawalAmount: parseInt(minWithdrawalAmount),
       },
     });
+
+    waitUntil(
+      (async () => {
+        if (partner.stripeConnectId && partner.payoutsEnabledAt) {
+          const previouslyProcessedPayouts = await prisma.payout.findMany({
+            where: {
+              partnerId: partner.id,
+              status: "processed",
+              stripeTransferId: null,
+            },
+          });
+
+          if (previouslyProcessedPayouts.length > 0) {
+            await createStripeTransfer({
+              partner,
+              previouslyProcessedPayouts,
+            });
+          }
+        }
+      })(),
+    );
   });
