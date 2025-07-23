@@ -5,9 +5,11 @@ import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count"
 import { useRouterStuff } from "@dub/ui";
 import {
   CircleDollar,
+  CircleInfo,
   CircleUser,
   ColorPalette2,
   Gauge6,
+  Gear,
   Gear2,
   Globe,
   GridIcon,
@@ -58,6 +60,13 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
     icon: SquareUserSparkle2,
     href: "/profile",
     active: pathname.startsWith("/profile"),
+  },
+  {
+    name: "Settings",
+    description: "Manage preferences for your partner account.",
+    icon: Gear,
+    href: "/settings/notifications",
+    active: pathname.startsWith("/settings"),
   },
 ];
 
@@ -187,6 +196,25 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
 
+  // Partner settings
+  partnerSettings: () => ({
+    title: "Settings",
+    direction: "left",
+    content: [
+      {
+        name: "Account",
+        items: [
+          {
+            name: "Notifications",
+            icon: CircleInfo,
+            href: "/settings/notifications",
+            exact: true,
+          },
+        ],
+      },
+    ],
+  }),
+
   // User settings
   userSettings: () => ({
     title: "Settings",
@@ -233,13 +261,15 @@ export function PartnersSidebarNav({
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
-      : pathname.startsWith("/profile")
-        ? "profile"
-        : pathname.startsWith("/payouts")
-          ? null
-          : isEnrolledProgramPage
-            ? "program"
-            : "programs";
+      : pathname.startsWith("/settings")
+        ? "partnerSettings"
+        : pathname.startsWith("/profile")
+          ? "profile"
+          : pathname.startsWith("/payouts")
+            ? null
+            : isEnrolledProgramPage
+              ? "program"
+              : "programs";
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
   const { count: invitationsCount } = useProgramEnrollmentsCount({

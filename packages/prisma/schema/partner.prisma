@@ -56,6 +56,18 @@ model Partner {
   payouts     Payout[]
   commissions Commission[]
 }
+model PartnerInvite {
+  email     String
+  expires   DateTime
+  partnerId String
+  role      PartnerRole @default(member)
+  createdAt DateTime    @default(now())
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([email, partnerId])
+  @@index([partnerId])
+}
 
 model PartnerUser {
   id        String      @id @default(cuid())
@@ -68,19 +80,17 @@ model PartnerUser {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
+  notificationPreferences PartnerNotificationPreferences?
+
   @@unique([userId, partnerId])
   @@index([partnerId])
 }
+model PartnerNotificationPreferences {
+  id                         String  @id @default(cuid())
+  partnerUserId              String  @unique
 
-model PartnerInvite {
-  email     String
-  expires   DateTime
-  partnerId String
-  role      PartnerRole @default(member)
-  createdAt DateTime    @default(now())
+  commissionCreated              Boolean @default(true)
+  applicationApproved        Boolean @default(true)
 
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-
-  @@unique([email, partnerId])
-  @@index([partnerId])
+  partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
 }
