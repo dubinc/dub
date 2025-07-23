@@ -16,12 +16,24 @@ export const createStripeTransfer = async ({
   previouslyProcessedPayouts: Pick<Payout, "id" | "amount" | "invoiceId">[];
   currentInvoicePayouts?: Pick<Payout, "id" | "amount" | "invoiceId">[];
 }) => {
+  // this should never happen since we guard for it outside, but just in case
+  if (!partner.stripeConnectId) {
+    console.log(`Partner ${partner.id} has no stripeConnectId, skipping...`);
+    return;
+  }
+
   let withdrawalFee = 0;
 
   const allPayouts = [
     ...previouslyProcessedPayouts,
     ...(currentInvoicePayouts ?? []),
   ];
+
+  // this should never happen but just in case
+  if (allPayouts.length === 0) {
+    console.log(`No payouts found for partner ${partner.id}, skipping...`);
+    return;
+  }
 
   // will be used for transfer_group and idempotencyKey
   const finalPayoutInvoiceId = allPayouts[allPayouts.length - 1].invoiceId;
@@ -79,7 +91,7 @@ export const createStripeTransfer = async ({
       // here, `transfer_group` technically only used to associate the transfer with the invoice
       // (even though the transfer could technically include payouts from multiple invoices)
       transfer_group: finalPayoutInvoiceId!,
-      destination: partner.stripeConnectId!,
+      destination: partner.stripeConnectId,
       description: `Dub Partners payout for ${allPayouts.map((p) => p.id).join(", ")}`,
     },
     {

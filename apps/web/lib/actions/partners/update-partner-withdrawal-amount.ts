@@ -22,7 +22,7 @@ export const updatePartnerWithdrawalAmountAction = authPartnerActionClient
     const { partner } = ctx;
     const { minWithdrawalAmount } = parsedInput;
 
-    await prisma.partner.update({
+    const updatedPartner = await prisma.partner.update({
       where: {
         id: partner.id,
       },
@@ -33,10 +33,10 @@ export const updatePartnerWithdrawalAmountAction = authPartnerActionClient
 
     waitUntil(
       (async () => {
-        if (partner.stripeConnectId && partner.payoutsEnabledAt) {
+        if (updatedPartner.stripeConnectId && updatedPartner.payoutsEnabledAt) {
           const previouslyProcessedPayouts = await prisma.payout.findMany({
             where: {
-              partnerId: partner.id,
+              partnerId: updatedPartner.id,
               status: "processed",
               stripeTransferId: null,
             },
@@ -44,7 +44,7 @@ export const updatePartnerWithdrawalAmountAction = authPartnerActionClient
 
           if (previouslyProcessedPayouts.length > 0) {
             await createStripeTransfer({
-              partner,
+              partner: updatedPartner,
               previouslyProcessedPayouts,
             });
           }
