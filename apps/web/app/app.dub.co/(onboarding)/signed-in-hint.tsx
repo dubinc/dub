@@ -15,7 +15,7 @@ export function SignedInHint() {
         {session ? (
           <b className="text-neutral-800">{session.user?.email}</b>
         ) : (
-          <span className="h-3 w-32 rounded-md border border-neutral-300 bg-neutral-200" />
+          <span className="h-3 w-32 animate-pulse rounded-md border border-neutral-300 bg-neutral-200" />
         )}
       </div>
       <Button
