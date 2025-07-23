@@ -2,17 +2,17 @@ import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import {
   EnrolledPartnerSchema,
-  partnersQuerySchema,
+  getPartnersQuerySchema,
 } from "@/lib/zod/schemas/partners";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
-export const getPartners: ZodOpenApiOperationObject = {
-  operationId: "getPartners",
+export const listPartners: ZodOpenApiOperationObject = {
+  operationId: "listPartners",
   "x-speakeasy-name-override": "list",
-  summary: "Retrieve a list of partners",
-  description: "Retrieve a list of partners for the program.",
+  summary: "List all partners",
+  description: "List all partners for a partner program.",
   requestParams: {
-    query: partnersQuerySchema,
+    query: getPartnersQuerySchema,
   },
   responses: {
     "200": {

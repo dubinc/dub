@@ -1,17 +1,11 @@
 import { EnrolledPartnerProps } from "@/lib/types";
-import {
-  EnrolledPartnerBasicSchema as EnrolledPartnerBasicSchemaDate,
-  EnrolledPartnerSchema as EnrolledPartnerSchemaDate,
-} from "@/lib/zod/schemas/partners";
+import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER, E2E_PROGRAM } from "../utils/resource";
 import { normalizedPartnerDateFields } from "./resource";
 
 // type coercion for date fields
-const EnrolledPartnerBasicSchema = EnrolledPartnerBasicSchemaDate.merge(
-  normalizedPartnerDateFields,
-);
 const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.merge(
   normalizedPartnerDateFields,
 );
@@ -31,7 +25,7 @@ describe.sequential("GET /partners", async () => {
     if (data.length > 0) {
       // Validate each partner against the basic schema
       data.forEach((partner) => {
-        const parsed = EnrolledPartnerBasicSchema.parse(partner);
+        const parsed = EnrolledPartnerSchema.parse(partner);
         expect(parsed.programId).toBe(E2E_PROGRAM.id);
       });
     }
@@ -70,7 +64,7 @@ describe.sequential("GET /partners", async () => {
 
     // All partners should have approved status
     data.forEach((partner) => {
-      const parsed = EnrolledPartnerBasicSchema.parse(partner);
+      const parsed = EnrolledPartnerSchema.parse(partner);
       expect(parsed.status).toBe("approved");
     });
   });
@@ -88,7 +82,7 @@ describe.sequential("GET /partners", async () => {
 
     // All partners should be from US
     data.forEach((partner) => {
-      const parsed = EnrolledPartnerBasicSchema.parse(partner);
+      const parsed = EnrolledPartnerSchema.parse(partner);
       expect(parsed.country).toBe("US");
     });
   });
@@ -106,7 +100,7 @@ describe.sequential("GET /partners", async () => {
 
     // All partners should have the specified tenantId
     data.forEach((partner) => {
-      const parsed = EnrolledPartnerBasicSchema.parse(partner);
+      const parsed = EnrolledPartnerSchema.parse(partner);
       expect(parsed.tenantId).toBe(E2E_PARTNER.tenantId);
     });
   });
