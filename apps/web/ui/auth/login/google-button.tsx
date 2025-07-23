@@ -9,61 +9,53 @@ import { LoginFormContext } from "./login-form";
 
 interface IGoogleButtonProps {
   sessionId: string;
+  next?: string;
 }
 
 export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
   sessionId,
+  next,
 }) => {
   const searchParams = useSearchParams();
-  // const router = useRouter();
-  const next = searchParams?.get("next");
+  const finalNext = next ?? searchParams?.get("next");
 
   const { setClickedMethod, clickedMethod, setLastUsedAuthMethod } =
     useContext(LoginFormContext);
+
+  const handleGoogleLoginClick = () => {
+    trackClientEvents({
+      event: EAnalyticEvents.ELEMENT_CLICKED,
+      params: {
+        page_name: "landing",
+        element_name: "login",
+        content_value: "google",
+        event_category: "nonAuthorized",
+      },
+      sessionId,
+    });
+
+    trackClientEvents({
+      event: EAnalyticEvents.LOGIN_ATTEMPT,
+      params: {
+        page_name: "landing",
+        method: "google",
+        event_category: "nonAuthorized",
+      },
+      sessionId,
+    });
+    setClickedMethod("google");
+    setLastUsedAuthMethod("google");
+
+    signIn("google", {
+      ...(finalNext && finalNext.length > 0 ? { callbackUrl: finalNext } : {}),
+    });
+  };
 
   return (
     <Button
       text="Continue with Google"
       variant="secondary"
-      onClick={async () => {
-        trackClientEvents({
-          event: EAnalyticEvents.ELEMENT_CLICKED,
-          params: {
-            page_name: "landing",
-            element_name: "login",
-            content_value: "google",
-            event_category: "nonAuthorized",
-          },
-          sessionId,
-        });
-
-        trackClientEvents({
-          event: EAnalyticEvents.LOGIN_ATTEMPT,
-          params: {
-            page_name: "landing",
-            method: "google",
-            event_category: "nonAuthorized",
-          },
-          sessionId,
-        });
-        setClickedMethod("google");
-        setLastUsedAuthMethod("google");
-
-        setTimeout(async () => {
-          const response = await signIn("google", {
-            redirect: false,
-            callbackUrl: next || "/workspaces",
-          });
-
-          if (response?.ok) {
-            // router.push(response.url || next || "/workspaces");
-          } else if (response?.error) {
-            // Handle error if needed
-            console.error("Google sign in error:", response.error);
-            setClickedMethod(undefined);
-          }
-        }, 1000);
-      }}
+      onClick={handleGoogleLoginClick}
       loading={clickedMethod === "google"}
       disabled={clickedMethod && clickedMethod !== "google"}
       icon={<Google className="size-4" />}

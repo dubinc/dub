@@ -478,6 +478,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                         !isMobile &&
                         !navigationButtonsInViewport && (
                           <QrTabsDownloadButton
+                            sessionId={sessionId}
                             onRegistrationClick={onSaveClick}
                             isQrDisabled={isQrDisabled}
                           />
