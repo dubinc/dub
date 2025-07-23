@@ -153,37 +153,37 @@ export const partnerInvitesQuerySchema = getPaginationQuerySchema({
 export const PartnerOnlinePresenceSchema = z.object({
   website: z
     .string()
-    .nullable()
+    .nullish()
     .describe("The partner's website URL (including the https protocol)."),
-  websiteTxtRecord: z.string().nullable(),
-  websiteVerifiedAt: z.date().nullable(),
+  websiteTxtRecord: z.string().nullish(),
+  websiteVerifiedAt: z.date().nullish(),
   youtube: z
     .string()
-    .nullable()
+    .nullish()
     .describe("The partner's YouTube channel username (e.g. `johndoe`)."),
-  youtubeVerifiedAt: z.date().nullable(),
-  youtubeSubscriberCount: z.number(),
-  youtubeViewCount: z.number(),
+  youtubeVerifiedAt: z.date().nullish(),
+  youtubeSubscriberCount: z.number().nullish(),
+  youtubeViewCount: z.number().nullish(),
   twitter: z
     .string()
-    .nullable()
+    .nullish()
     .describe("The partner's Twitter username (e.g. `johndoe`)."),
-  twitterVerifiedAt: z.date().nullable(),
+  twitterVerifiedAt: z.date().nullish(),
   linkedin: z
     .string()
-    .nullable()
+    .nullish()
     .describe("The partner's LinkedIn username (e.g. `johndoe`)."),
-  linkedinVerifiedAt: z.date().nullable(),
+  linkedinVerifiedAt: z.date().nullish(),
   instagram: z
     .string()
-    .nullable()
+    .nullish()
     .describe("The partner's Instagram username (e.g. `johndoe`)."),
-  instagramVerifiedAt: z.date().nullable(),
+  instagramVerifiedAt: z.date().nullish(),
   tiktok: z
     .string()
-    .nullable()
+    .nullish()
     .describe("The partner's TikTok username (e.g. `johndoe`)."),
-  tiktokVerifiedAt: z.date().nullable(),
+  tiktokVerifiedAt: z.date().nullish(),
 });
 
 export const PartnerSchema = z
