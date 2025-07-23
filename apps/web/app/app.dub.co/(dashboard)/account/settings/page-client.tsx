@@ -4,10 +4,19 @@ import UploadAvatar from "@/ui/account/upload-avatar";
 import UserId from "@/ui/account/user-id";
 import { Form } from "@dub/ui";
 import { APP_NAME } from "@dub/utils";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { useSession } from "next-auth/react";
+import { FC } from "react";
 import { toast } from "sonner";
 
-export default function SettingsPageClient() {
+interface ISettingsPageClientProps {
+  sessionId: string;
+}
+
+const SettingsPageClient: FC<Readonly<ISettingsPageClientProps>> = ({
+  sessionId,
+}) => {
   const { data: session, update, status } = useSession();
 
   return (
@@ -32,6 +41,21 @@ export default function SettingsPageClient() {
             body: JSON.stringify(data),
           }).then(async (res) => {
             if (res.status === 200) {
+              trackClientEvents({
+                event: EAnalyticEvents.ACCOUNT_UPDATED,
+                params: {
+                  event_category: "nonAuthorized",
+                  page_name: "account",
+                  content_group: "general",
+                  email: session?.user?.email,
+                  nameChanged: true,
+                  emailChanged: false,
+                  avatarChanged: false,
+                  passwordChanged: false,
+                },
+                sessionId,
+              });
+
               update();
               toast.success("Successfully updated your name!");
             } else {
@@ -72,11 +96,13 @@ export default function SettingsPageClient() {
       {/*    })*/}
       {/*  }*/}
       {/*/>*/}
-      <UploadAvatar />
+      <UploadAvatar sessionId={sessionId} />
       <UserId />
       {/* @USEFUL_FEATURE: workspace settings */}
       {/*<UpdateDefaultWorkspace />*/}
       {/*<DeleteAccountSection />*/}
     </>
   );
-}
+};
+
+export default SettingsPageClient;

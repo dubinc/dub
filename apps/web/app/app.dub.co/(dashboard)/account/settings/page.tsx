@@ -1,5 +1,11 @@
+import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
+import { NextPage } from "next";
 import SettingsPageClient from "./page-client";
 
-export default function SettingsPage() {
-  return <SettingsPageClient />;
-}
+const SettingsPage: NextPage = async () => {
+  const { sessionId } = await getUserCookieService();
+
+  return <SettingsPageClient sessionId={sessionId!} />;
+};
+
+export default SettingsPage;

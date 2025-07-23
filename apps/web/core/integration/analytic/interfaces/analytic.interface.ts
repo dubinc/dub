@@ -18,6 +18,10 @@ export enum EAnalyticEvents {
 
   TRIAL_EXPIRED = "trialExpired",
 
+  ACCOUNT_UPDATED = "accountUpdated",
+
+  PLAN_PICKER_CLICKED = "planPickerClicked",
+
   EXPERIMENT_VIEWED = "experimentViewed",
 }
 

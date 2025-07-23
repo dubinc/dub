@@ -46,6 +46,7 @@ const getMetadata = ({
     mixpanel_user_id:
       user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
     plan_name: paymentPlan,
+    payment_subtype: "FIRST_PAYMENT",
     //**** for analytics ****//
 
     //**** fields for subscription system ****//

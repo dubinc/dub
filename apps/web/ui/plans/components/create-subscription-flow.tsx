@@ -28,7 +28,7 @@ interface ICreateSubscriptionProps {
   setIsProcessing: Dispatch<SetStateAction<boolean>>;
 }
 
-const pageName = "profile";
+const pageName = "account";
 
 export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   amount,
@@ -123,7 +123,9 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       payment: {
         id: data.payment.id,
         orderId: data.payment.orderId,
+        paymentType: data.paymentType,
         paymentMethodType: data.paymentMethodType,
+        paymentProcessor: data.paymentProcessor,
         currencyCode: data.currencyCode,
       },
       nationalDocumentId: data.nationalDocumentId,
