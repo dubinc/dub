@@ -152,6 +152,109 @@ export const PLAN_COMPARE_FEATURES: {
     ],
   },
   {
+    category: "Partners",
+    href: "https://dub.co/partners",
+    features: [
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Unlimited partners",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ id, plan }) =>
+          id === "free" || id === "pro" ? (
+            "No partner payouts"
+          ) : (
+            <>
+              <strong>
+                {plan.name === "Enterprise"
+                  ? "Unlimited"
+                  : `$${nFormatter(plan.limits.payouts / 100)}`}
+              </strong>{" "}
+              partner payouts
+              {plan.name === "Enterprise" ? "" : "/mo"}
+            </>
+          ),
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Automated global payouts",
+        href: "https://dub.co/help/article/partner-payouts",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ id }) =>
+          id === "free" || id === "pro" ? (
+            "No partner payouts"
+          ) : (
+            <>
+              <strong>
+                {
+                  {
+                    business: "5%",
+                    advanced: "5%",
+                    enterprise: "3%",
+                  }[id]
+                }
+              </strong>{" "}
+              payout fees
+            </>
+          ),
+        href: "https://dub.co/help/article/partner-payouts#payout-fees-and-timing",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Tax compliance",
+        href: "https://dub.co/help/article/partner-payouts#tax-compliance",
+      },
+      {
+        check: {
+          default: false,
+          business: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "White-labeling support",
+        href: "https://dub.co/docs/partners/white-labeling",
+      },
+      {
+        check: {
+          default: false,
+          business: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Partners API",
+        href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
+      },
+    ],
+  },
+  {
     category: "Analytics",
     href: "https://dub.co/analytics",
     features: [
@@ -209,110 +312,6 @@ export const PLAN_COMPARE_FEATURES: {
         },
         text: "Real-time events stream",
         href: "https://dub.co/help/article/real-time-events-stream",
-      },
-    ],
-  },
-  {
-    category: "Partners",
-    href: "https://dub.co/partners",
-    features: [
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
-        text: "Partner management",
-        href: "https://dub.co/partners",
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
-        text: "Automated global payouts",
-        href: "https://dub.co/help/article/partner-payouts",
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
-        text: ({ id, plan }) =>
-          id === "free" || id === "pro" ? (
-            "No partner payouts"
-          ) : (
-            <>
-              <strong>
-                {plan.name === "Enterprise"
-                  ? "Unlimited"
-                  : `$${nFormatter(plan.limits.payouts / 100)}`}
-              </strong>{" "}
-              partner payouts
-              {plan.name === "Enterprise" ? "" : "/mo"}
-            </>
-          ),
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
-        text: ({ id }) =>
-          id === "free" || id === "pro" ? (
-            "No partner payouts"
-          ) : (
-            <>
-              <strong>
-                {
-                  {
-                    business: "5%",
-                    advanced: "5%",
-                    enterprise: "3%",
-                  }[id]
-                }
-              </strong>{" "}
-              payout fees
-            </>
-          ),
-        href: "https://dub.co/help/article/partner-payouts#payout-fees-and-timing",
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
-        text: "Tax compliance",
-        href: "https://dub.co/help/article/partner-payouts#tax-compliance",
-      },
-      {
-        check: {
-          default: false,
-          business: false,
-          advanced: true,
-          enterprise: true,
-        },
-        text: "White-labeling support",
-        href: "https://dub.co/docs/partners/white-labeling",
-      },
-      {
-        check: {
-          default: false,
-          business: false,
-          advanced: true,
-          enterprise: true,
-        },
-        text: "Partners API",
-        href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
       },
     ],
   },
