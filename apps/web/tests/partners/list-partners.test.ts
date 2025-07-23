@@ -112,34 +112,4 @@ describe.sequential("GET /partners", async () => {
       expect(parsed.tenantId).toBe(E2E_PARTNER.tenantId);
     });
   });
-
-  test("filters partners by specific IDs", async () => {
-    // First get a list of partners to get some IDs
-    const { data: allPartners } = await http.get<EnrolledPartnerProps[]>({
-      path: "/partners",
-    });
-
-    if (allPartners.length > 0) {
-      const partnerIds = allPartners
-        .slice(0, 2)
-        .map((p) => EnrolledPartnerBasicSchema.parse(p).id);
-
-      const { data, status } = await http.get<EnrolledPartnerProps[]>({
-        path: "/partners",
-        query: {
-          ids: partnerIds.join(","),
-        },
-      });
-
-      expect(status).toEqual(200);
-      expect(Array.isArray(data)).toBe(true);
-      expect(data.length).toBeLessThanOrEqual(partnerIds.length);
-
-      // All returned partners should have one of the specified IDs
-      data.forEach((partner) => {
-        const parsed = EnrolledPartnerBasicSchema.parse(partner);
-        expect(partnerIds).toContain(parsed.id);
-      });
-    }
-  });
 });

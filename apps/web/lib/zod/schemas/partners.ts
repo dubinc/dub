@@ -106,7 +106,7 @@ export const partnersQuerySchema = z
 
 export const partnersQuerySchemaExtended = partnersQuerySchema.merge(
   z.object({
-    ids: z
+    partnerIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),

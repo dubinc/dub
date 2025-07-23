@@ -38,7 +38,7 @@ export async function getPartners(filters: PartnerFilters) {
     saleRewardId,
     search,
     tenantId,
-    ids,
+    partnerIds,
     page,
     pageSize,
     sortBy,
@@ -148,7 +148,7 @@ export async function getPartners(filters: PartnerFilters) {
       )`
           : Prisma.sql``
       }
-      ${ids && ids.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(ids)})` : Prisma.sql``}
+      ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
     GROUP BY 
       p.id, pe.id${includeExpandedFields ? Prisma.sql`, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions` : Prisma.sql``}
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)} ${Prisma.raw(`, ${sortColumnExtraMap[sortBy]} ${sortOrder}`)}
