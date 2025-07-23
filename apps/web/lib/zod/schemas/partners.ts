@@ -269,14 +269,32 @@ export const EnrolledPartnerBasicSchema = PartnerSchema.pick({
   stripeConnectId: true,
   payoutsEnabledAt: true,
   createdAt: true,
-}).merge(
-  ProgramEnrollmentSchema.pick({
-    status: true,
-    programId: true,
-    tenantId: true,
-    links: true,
-  }),
-);
+})
+  .merge(PartnerOnlinePresenceSchema)
+  .merge(
+    ProgramEnrollmentSchema.pick({
+      programId: true,
+      tenantId: true,
+      links: true,
+      status: true,
+    }),
+  )
+  .extend({
+    clickRewardId: z.string().nullish(),
+    leadRewardId: z.string().nullish(),
+    saleRewardId: z.string().nullish(),
+    discountId: z.string().nullish(),
+    applicationId: z
+      .string()
+      .nullish()
+      .describe(
+        "If the partner submitted an application to join the program, this is the ID of the application.",
+      ),
+    bannedAt: z.date().nullish(),
+    bannedReason: z
+      .enum(Object.keys(BAN_PARTNER_REASONS) as [PartnerBannedReason])
+      .nullish(),
+  });
 
 // Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = EnrolledPartnerBasicSchema.extend({
@@ -322,31 +340,6 @@ export const EnrolledPartnerSchema = EnrolledPartnerBasicSchema.extend({
     .openapi({
       deprecated: true,
     }),
-});
-
-// Used internally in the Dub dashboard for partners table
-export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.merge(
-  PartnerOnlinePresenceSchema,
-).extend({
-  applicationId: z
-    .string()
-    .nullish()
-    .describe(
-      "If the partner submitted an application to join the program, this is the ID of the application.",
-    ),
-  clickRewardId: z.string().nullish(),
-  leadRewardId: z.string().nullish(),
-  saleRewardId: z.string().nullish(),
-  discountId: z.string().nullish(),
-  bannedAt: z.date().nullish(),
-  bannedReason: z
-    .enum(
-      Object.keys(BAN_PARTNER_REASONS) as [
-        PartnerBannedReason,
-        ...PartnerBannedReason[],
-      ],
-    )
-    .nullish(),
 });
 
 export const LeaderboardPartnerSchema = z.object({
