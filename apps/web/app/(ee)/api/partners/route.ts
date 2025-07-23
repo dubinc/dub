@@ -27,8 +27,8 @@ export const GET = withWorkspace(
     });
 
     const responseSchema = parsedParams.includeExpandedFields
-      ? EnrolledPartnerBasicSchema
-      : EnrolledPartnerSchema;
+      ? EnrolledPartnerSchema
+      : EnrolledPartnerBasicSchema;
 
     return NextResponse.json(z.array(responseSchema).parse(partners));
   },
