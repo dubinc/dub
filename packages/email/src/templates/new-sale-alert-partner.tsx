@@ -128,7 +128,10 @@ export default function NewSaleAlertPartner({
                 View earnings
               </Link>
             </Section>
-            <Footer email={email} />
+            <Footer
+              email={email}
+              notificationSettingsUrl="https://partners.dub.co/settings/notifications"
+            />
           </Container>
         </Body>
       </Tailwind>
