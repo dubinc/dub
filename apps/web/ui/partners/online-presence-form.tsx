@@ -53,12 +53,12 @@ interface OnlinePresenceFormProps {
   variant?: "onboarding" | "settings";
   partner?: {
     email: string | null;
-    website: string | null;
-    youtube: string | null;
-    twitter: string | null;
-    linkedin: string | null;
-    instagram: string | null;
-    tiktok: string | null;
+    website?: string | null;
+    youtube?: string | null;
+    twitter?: string | null;
+    linkedin?: string | null;
+    instagram?: string | null;
+    tiktok?: string | null;
   } | null;
   onSubmitSuccessful?: () => void;
 }
