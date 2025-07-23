@@ -7,7 +7,7 @@ export default function Workspace() {
       title="Create your workspace"
       description={
         <>
-          Set up a common space to manage your links with your team.{" "}
+          Set up a shared space to manage your links with your team.{" "}
           <a
             href="https://dub.co/help/article/what-is-a-workspace"
             target="_blank"
