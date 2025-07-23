@@ -17,7 +17,7 @@ export async function deleteDiscount({
     Discount,
     "createdAt" | "updatedAt" | "description" | "programId"
   >;
-  user?: Pick<User, "id" | "email">;
+  user?: Pick<User, "id" | "email">; // the user who deleted the discount
 }) {
   const programId = workspace.defaultProgramId!;
 
