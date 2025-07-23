@@ -363,6 +363,18 @@ export const EnrolledPartnerBasicSchema = PartnerSchema.pick({
       .nullish(),
   });
 
+export const EnrolledPartnerSchemaExtended = EnrolledPartnerBasicSchema.merge(
+  EnrolledPartnerSchema.pick({
+    clicks: true,
+    leads: true,
+    sales: true,
+    saleAmount: true,
+    totalCommissions: true,
+    netRevenue: true,
+    earnings: true,
+  }),
+);
+
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
   name: z.string(),

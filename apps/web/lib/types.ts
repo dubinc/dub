@@ -49,7 +49,7 @@ import {
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   createPartnerSchema,
-  EnrolledPartnerBasicSchema,
+  EnrolledPartnerSchemaExtended,
   PartnerSchema,
 } from "./zod/schemas/partners";
 import {
@@ -411,7 +411,9 @@ export type PartnerProfileCustomerProps = z.infer<
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
-export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerBasicSchema>;
+export type EnrolledPartnerProps = z.infer<
+  typeof EnrolledPartnerSchemaExtended
+>;
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
 
