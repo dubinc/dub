@@ -13,7 +13,8 @@
     "prisma:generate": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma generate",
     "prisma:push": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma push",
     "prisma:studio": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma studio",
-    "prisma:format": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma format"
+    "prisma:format": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma format",
+    "build:mem": "NODE_OPTIONS='--max-old-space-size=4096' pnpm build"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.0.7",
