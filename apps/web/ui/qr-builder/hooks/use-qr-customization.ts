@@ -7,7 +7,10 @@ import {
   FRAMES,
   isDefaultTextColor,
 } from "@/ui/qr-builder/constants/customization/frames.ts";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import {
+  EQRType,
+  FILE_QR_TYPES,
+} from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { unescapeWiFiValue } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { FrameOptions, QrStorageData } from "@/ui/qr-builder/types/types.ts";
@@ -46,10 +49,11 @@ export function useQrCustomization(
     initialData?.qrType as EQRType,
   );
 
-  const initialContentForQrBuild =
-    initialData?.qrType !== "wifi"
-      ? initialData?.link?.shortLink
-      : initialData?.data;
+  const initialContentForQrBuild = !FILE_QR_TYPES.includes(
+    initialData?.qrType as EQRType,
+  )
+    ? (initialData?.styles as Options)?.data
+    : initialData?.data;
 
   const [data, setData] = useState(initialContentForQrBuild || DEFAULT_WEBSITE);
 

@@ -5,7 +5,6 @@ import {
   convertQRForUpdate,
 } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
-import { fileToBase64 } from "@/ui/utils/file-to-base64";
 import { useToastWithUndo } from "@dub/ui";
 import { SHORT_DOMAIN } from "@dub/utils/src";
 import { useParams } from "next/navigation";
