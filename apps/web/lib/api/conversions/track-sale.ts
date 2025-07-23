@@ -97,9 +97,20 @@ export const trackSale = async ({
     );
 
     if (!cachedLeadEvent) {
+      const errorMessage = `Lead event not found for externalId: ${customerExternalId} and leadEventName: ${leadEventName}`;
+
+      waitUntil(
+        logConversionEvent({
+          workspace_id: workspace.id,
+          path: "/track/sale",
+          body: JSON.stringify(rawBody),
+          error: errorMessage,
+        }),
+      );
+
       throw new DubApiError({
         code: "not_found",
-        message: `Lead event not found for externalId: ${customerExternalId} and eventName: ${leadEventName}`,
+        message: errorMessage,
       });
     }
 
