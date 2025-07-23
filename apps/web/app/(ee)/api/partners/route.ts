@@ -7,8 +7,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   createPartnerSchema,
+  EnrolledPartnerBasicSchema,
   EnrolledPartnerSchema,
-  EnrolledPartnerSchemaExtended,
   partnersQuerySchemaExtended,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
@@ -27,8 +27,8 @@ export const GET = withWorkspace(
     });
 
     const responseSchema = parsedParams.includeExpandedFields
-      ? EnrolledPartnerSchemaExtended
-      : EnrolledPartnerSchema;
+      ? EnrolledPartnerSchema
+      : EnrolledPartnerBasicSchema;
 
     return NextResponse.json(z.array(responseSchema).parse(partners));
   },
