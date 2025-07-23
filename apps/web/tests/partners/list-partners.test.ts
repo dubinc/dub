@@ -1,5 +1,4 @@
 import { EnrolledPartnerProps } from "@/lib/types";
-import z from "@/lib/zod";
 import {
   EnrolledPartnerBasicSchema as EnrolledPartnerBasicSchemaDate,
   EnrolledPartnerSchema as EnrolledPartnerSchemaDate,
@@ -7,16 +6,15 @@ import {
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER, E2E_PROGRAM } from "../utils/resource";
+import { normalizedPartnerDateFields } from "./resource";
 
 // type coercion for date fields
-const EnrolledPartnerBasicSchema = EnrolledPartnerBasicSchemaDate.extend({
-  payoutsEnabledAt: z.string().nullable(),
-  createdAt: z.string(),
-});
-const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend({
-  payoutsEnabledAt: z.string().nullable(),
-  createdAt: z.string(),
-});
+const EnrolledPartnerBasicSchema = EnrolledPartnerBasicSchemaDate.merge(
+  normalizedPartnerDateFields,
+);
+const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.merge(
+  normalizedPartnerDateFields,
+);
 
 describe.sequential("GET /partners", async () => {
   const h = new IntegrationHarness();

@@ -1,5 +1,4 @@
 import { generateRandomName } from "@/lib/names";
-import z from "@/lib/zod";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
 import { Link, Partner } from "@dub/prisma/client";
 import { R2_URL } from "@dub/utils";
@@ -7,11 +6,11 @@ import { describe, expect, test } from "vitest";
 import { randomEmail, randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PROGRAM } from "../utils/resource";
+import { normalizedPartnerDateFields } from "./resource";
 
-const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend({
-  payoutsEnabledAt: z.string().nullable(),
-  createdAt: z.string(),
-});
+const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.merge(
+  normalizedPartnerDateFields,
+);
 
 describe.sequential("POST /partners", async () => {
   const h = new IntegrationHarness();
