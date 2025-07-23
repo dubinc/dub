@@ -259,21 +259,16 @@ export const EnrolledPartnerBasicSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
-  website: true,
-  youtube: true,
-  twitter: true,
-  linkedin: true,
-  instagram: true,
-  tiktok: true,
   paypalEmail: true,
   stripeConnectId: true,
   payoutsEnabledAt: true,
-  createdAt: true,
-}).merge(
-  ProgramEnrollmentSchema.omit({
-    program: true,
-  }),
-);
+})
+  .merge(
+    ProgramEnrollmentSchema.omit({
+      program: true,
+    }),
+  )
+  .merge(PartnerOnlinePresenceSchema);
 
 // Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = EnrolledPartnerBasicSchema.extend({
