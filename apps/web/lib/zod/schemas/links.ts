@@ -1,3 +1,4 @@
+import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import { ErrorCode } from "@/lib/api/errors";
 import z from "@/lib/zod";
 import {
@@ -191,6 +192,7 @@ export const getLinksCountQuerySchemaExtended = getLinksCountQuerySchema.merge(
   z.object({
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
+    interval: z.enum(DATE_RANGE_INTERVAL_PRESETS).optional(),
     timezone: z.string().optional(),
   }),
 );

@@ -11,8 +11,7 @@ import { NextResponse } from "next/server";
 
 // A mega workspace is a workspace with more than 1M links
 function isMegaWorkspace(workspace: Pick<WorkspaceProps, "totalLinks">) {
-  return true;
-  // return workspace.totalLinks > 1_000_000;
+  return workspace.totalLinks > 1_000_000;
 }
 
 // GET /api/links/count – get the number of links for a workspace
@@ -30,6 +29,7 @@ export const GET = withWorkspace(
       tenantId,
       start,
       end,
+      interval,
       timezone,
     } = params;
 
@@ -58,6 +58,7 @@ export const GET = withWorkspace(
       const { startDate, endDate } = getStartEndDates({
         start,
         end,
+        interval,
       });
 
       console.log("isMegaWorkspace", {

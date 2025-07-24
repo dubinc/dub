@@ -3,7 +3,6 @@ import {
   LinksViewMode,
 } from "@/lib/links/links-display";
 import { useIsMegaWorkspace } from "@/lib/swr/use-is-mega-workspace";
-import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
   Popover,
@@ -22,6 +21,7 @@ import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useContext, useState } from "react";
+import SimpleDateRangePicker from "../shared/simple-date-range-picker";
 import LinkSort from "./link-sort";
 import { LinksDisplayContext } from "./links-display-provider";
 
@@ -49,6 +49,14 @@ export default function LinkDisplay() {
 
   return (
     <div className="flex items-center gap-2">
+      {isMegaWorkspace && (
+        <SimpleDateRangePicker
+          align="start"
+          defaultInterval="mtd"
+          className="w-60"
+        />
+      )}
+
       <Popover
         content={
           <div className="w-full divide-y divide-neutral-200 text-sm md:w-80">
@@ -219,10 +227,6 @@ export default function LinkDisplay() {
           }
         />
       </Popover>
-
-      {isMegaWorkspace && (
-        <SimpleDateRangePicker align="start" defaultInterval="30d" />
-      )}
     </div>
   );
 }
