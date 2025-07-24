@@ -26,7 +26,7 @@ export default function useLinks(
   }, []);
 
   const {
-    data: links,
+    data: response,
     isValidating,
     error,
   } = useSWR<
@@ -59,6 +59,8 @@ export default function useLinks(
               "sortBy",
               "sortOrder",
               "showArchived",
+              "startingAfter",
+              "endingBefore",
             ],
           },
         )}`
@@ -75,7 +77,7 @@ export default function useLinks(
   );
 
   return {
-    links,
+    links: response,
     isValidating,
     error,
   };

@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from "react";
+import { PAGINATION_LIMIT } from "@dub/utils";
+import { useMemo } from "react";
 import { useRouterStuff } from "./use-router-stuff";
 
 export type CursorPaginationState = {
@@ -9,7 +10,7 @@ export type CursorPaginationState = {
   hasPreviousPage: boolean;
 };
 
-export function useCursorPagination(pageSize = 100) {
+export function useCursorPagination(pageSize = PAGINATION_LIMIT) {
   const { searchParams, queryParams } = useRouterStuff();
 
   const startingAfter = searchParams.get("startingAfter") || undefined;
@@ -28,20 +29,22 @@ export function useCursorPagination(pageSize = 100) {
 
   const setPagination = (newPagination: Partial<CursorPaginationState>) => {
     if (newPagination.startingAfter) {
-      queryParams({ 
-        set: { startingAfter: newPagination.startingAfter }, 
-        del: "endingBefore", 
-        scroll: false 
+      queryParams({
+        set: { startingAfter: newPagination.startingAfter },
+        del: "endingBefore",
+        scroll: false,
       });
     } else if (newPagination.endingBefore) {
-      queryParams({ 
-        set: { endingBefore: newPagination.endingBefore }, 
-        del: "startingAfter", 
-        scroll: false 
+      queryParams({
+        set: { endingBefore: newPagination.endingBefore },
+        del: "startingAfter",
+        scroll: false,
       });
     } else {
-      // Clear both when resetting
-      queryParams({ del: ["startingAfter", "endingBefore"], scroll: false });
+      queryParams({
+        del: ["startingAfter", "endingBefore"],
+        scroll: false,
+      });
     }
   };
 
@@ -54,7 +57,10 @@ export function useCursorPagination(pageSize = 100) {
   };
 
   const resetPagination = () => {
-    queryParams({ del: ["startingAfter", "endingBefore"], scroll: false });
+    queryParams({
+      del: ["startingAfter", "endingBefore"],
+      scroll: false,
+    });
   };
 
   return {
@@ -64,4 +70,4 @@ export function useCursorPagination(pageSize = 100) {
     goToPreviousPage,
     resetPagination,
   };
-} 
+}
