@@ -104,12 +104,10 @@ export async function importCustomers(payload: ToltImportPayload) {
     startingAfter = customers[customers.length - 1].id;
   }
 
-  delete payload?.startingAfter;
-
   await toltImporter.queue({
     ...payload,
+    startingAfter: hasMore ? startingAfter : undefined,
     action: hasMore ? "import-customers" : "import-commissions",
-    ...(hasMore && { startingAfter }),
   });
 }
 
