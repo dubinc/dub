@@ -152,10 +152,12 @@ export const createProgram = async ({
       programId: program.id,
       action: "import-campaign",
     });
-  } else if (importSource === "tolt") {
+  } else if (importSource === "tolt" && tolt?.id) {
     await toltImporter.queue({
+      userId: user.id,
       programId: program.id,
-      action: "import-affiliates",
+      toltProgramId: tolt.id,
+      action: "import-partners",
     });
   } else if (importSource === "partnerstack") {
     await partnerStackImporter.queue({
