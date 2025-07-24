@@ -106,18 +106,26 @@ export const ProgramEnrollmentSchema = z.object({
   clickRewardId: z.string().nullish(),
   leadRewardId: z.string().nullish(),
   saleRewardId: z.string().nullish(),
-  discountId: z.string().nullish(),
   discount: DiscountSchema.nullish(),
+  discountId: z.string().nullish(),
   applicationId: z
     .string()
     .nullish()
     .describe(
       "If the partner submitted an application to join the program, this is the ID of the application.",
     ),
-  bannedAt: z.date().nullish(),
+  bannedAt: z
+    .date()
+    .nullish()
+    .describe(
+      "If the partner was banned from the program, this is the date of the ban.",
+    ),
   bannedReason: z
     .enum(Object.keys(PartnerBannedReason) as [PartnerBannedReason])
-    .nullish(),
+    .nullish()
+    .describe(
+      "If the partner was banned from the program, this is the reason for the ban.",
+    ),
 });
 
 export const ProgramInviteSchema = z.object({
