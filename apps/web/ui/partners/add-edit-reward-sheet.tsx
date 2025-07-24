@@ -12,8 +12,11 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
-  createRewardSchema,
+  createOrUpdateRewardSchema,
   REWARD_EVENT_COLUMN_MAPPING,
+  rewardConditionsArraySchema,
+  rewardConditionSchema,
+  rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
@@ -24,6 +27,7 @@ import {
   MoneyBills2,
   Sheet,
   TooltipContent,
+  User,
   Users,
 } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
@@ -37,7 +41,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
@@ -54,7 +58,17 @@ interface RewardSheetProps {
   isDefault?: boolean;
 }
 
-type FormData = z.infer<typeof createRewardSchema>;
+const formSchema = createOrUpdateRewardSchema.extend({
+  modifiers: z
+    .array(
+      rewardConditionsSchema.extend({
+        conditions: z.array(rewardConditionSchema.partial()).min(1),
+      }),
+    )
+    .min(1),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 function RewardSheetContent({
   setIsOpen,
@@ -76,6 +90,7 @@ function RewardSheetContent({
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
@@ -187,6 +202,7 @@ function RewardSheetContent({
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
+      modifiers: rewardConditionsArraySchema.parse(data.modifiers),
     };
 
     if (!reward) {
@@ -213,6 +229,15 @@ function RewardSheetContent({
       rewardId: reward.id,
     });
   };
+
+  const {
+    fields: modifierFields,
+    append: appendModifier,
+    remove: removeModifier,
+  } = useFieldArray({
+    control,
+    name: "modifiers",
+  });
 
   const canDeleteReward = reward && !reward.default;
 
@@ -353,12 +378,51 @@ function RewardSheetContent({
               </>
             }
             content={
-              <>
+              <div
+                className={cn(
+                  "flex flex-col gap-2",
+                  !!modifierFields.length && "-mt-2",
+                )}
+              >
+                {modifierFields.map((field, index) => (
+                  <div key={field.id}>
+                    <div className="flex items-center justify-between py-2 pl-2">
+                      <div className="flex items-center gap-1.5 text-neutral-800">
+                        <ArrowTurnRight2 className="size-3 shrink-0" />
+                        <span className="text-sm font-medium">
+                          {index === 0 ? "Reward logic" : "Additional logic"}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="h-6 w-fit px-1"
+                        icon={<X className="size-4" />}
+                        onClick={() => removeModifier(index)}
+                      />
+                    </div>
+
+                    <div className="border-border-subtle rounded-lg border bg-white p-2.5">
+                      <div className="border-border-subtle rounded-md border bg-white p-2.5">
+                        <IconSquare icon={User} />
+                      </div>
+                      <VerticalLine />
+                      <div className="border-border-subtle rounded-md border bg-white p-2.5">
+                        <IconSquare icon={MoneyBills2} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
                 <Button
                   className="h-8 rounded-lg"
                   icon={<ArrowTurnRight2 className="size-4" />}
                   text="Add logic"
-                  onClick={() => toast.info("WIP")}
+                  onClick={() =>
+                    appendModifier({
+                      operator: "AND",
+                      conditions: [{}],
+                      amount: 0,
+                    })
+                  }
                   variant={isDefault ? "primary" : "secondary"}
                   disabledTooltip={
                     plan?.startsWith("business") ? (
@@ -370,7 +434,7 @@ function RewardSheetContent({
                     ) : undefined
                   }
                 />
-              </>
+              </div>
             }
           />
 
@@ -470,8 +534,8 @@ function RewardSheetContent({
   );
 }
 
-const VerticalLine = () => (
-  <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
+const VerticalLine = ({ className }: { className?: string }) => (
+  <div className={cn("bg-border-subtle ml-6 h-4 w-px shrink-0", className)} />
 );
 
 const IconSquare = ({ icon: Icon }: { icon: Icon }) => (
