@@ -13,7 +13,7 @@ const schema = z.object({
 export const setRewardfulTokenAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace, user } = ctx;
+    const { workspace } = ctx;
     const { token } = parsedInput;
 
     if (!workspace.partnersEnabled) {
