@@ -1,5 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate.ts";
-import useUser from "@/lib/swr/use-user.ts";
+import { useUserCache } from "@/lib/swr/use-user.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import {
   convertQRBuilderDataToServer,
@@ -9,10 +9,7 @@ import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { useToastWithUndo } from "@dub/ui";
 import { SHORT_DOMAIN } from "@dub/utils/src";
 import { trackClientEvents } from "core/integration/analytic";
-import {
-  EAnalyticEvents,
-  IQREventTracking,
-} from "core/integration/analytic/interfaces/analytic.interface.ts";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -21,15 +18,17 @@ export const useQrOperations = () => {
   const params = useParams() as { slug?: string };
   const { slug } = params;
   const { id: workspaceId } = useWorkspace();
-  const { user } = useUser();
+  const { user } = useUserCache();
   const toastWithUndo = useToastWithUndo();
 
   // Helper function to extract QR tracking parameters from QRBuilderData
   const createQRTrackingParams = useCallback(
-    (qrBuilderData: QRBuilderData, qrId?: string): IQREventTracking => {
+    (qrBuilderData: QRBuilderData, qrId?: string) => {
       const frameOptions = qrBuilderData.frameOptions;
 
       return {
+        event_category: "Authorized",
+        page_name: "profile",
         email: user?.email,
         qrId,
         qrType: qrBuilderData.qrType as any,
