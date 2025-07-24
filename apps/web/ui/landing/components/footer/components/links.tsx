@@ -22,7 +22,7 @@ export const Links: FC<ILinksProps> = ({ title, links }) => (
         <Link
           className="text-sm font-normal md:text-base"
           href={link.href}
-          // target="_blank"
+          target="_blank"
         >
           {link.text}
         </Link>
