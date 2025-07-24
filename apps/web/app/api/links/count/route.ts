@@ -12,7 +12,7 @@ import { NextResponse } from "next/server";
 // A mega workspace is a workspace with more than 1M links
 function isMegaWorkspace(workspace: Pick<WorkspaceProps, "totalLinks">) {
   return true;
- // return workspace.totalLinks > 1_000_000;
+  // return workspace.totalLinks > 1_000_000;
 }
 
 // GET /api/links/count – get the number of links for a workspace
@@ -48,6 +48,13 @@ export const GET = withWorkspace(
 
     // For mega workspaces, we fetch the count via Tinybird instead of MySQL
     if (isMegaWorkspace(workspace)) {
+      // We don't support groupBy for mega workspaces
+      if (groupBy) {
+        return NextResponse.json([], {
+          headers,
+        });
+      }
+
       const { startDate, endDate } = getStartEndDates({
         start,
         end,
@@ -69,8 +76,6 @@ export const GET = withWorkspace(
         start: startDate.toISOString().replace("T", " ").replace("Z", ""),
         end: endDate.toISOString().replace("T", " ").replace("Z", ""),
       });
-
-      console.log(data)
 
       return NextResponse.json(data[0].count, {
         headers,
