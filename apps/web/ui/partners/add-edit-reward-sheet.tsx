@@ -272,7 +272,7 @@ function RewardSheetContent({
                         )}
                         <input
                           className={cn(
-                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
                             errors.amount &&
                               "border-red-600 focus:border-red-500 focus:ring-red-600",
                             type === "flat" ? "pl-6 pr-12" : "pr-7",
