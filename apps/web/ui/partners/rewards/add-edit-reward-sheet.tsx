@@ -20,16 +20,7 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import {
-  ArrowTurnRight2,
-  Button,
-  Icon,
-  MoneyBills2,
-  Sheet,
-  TooltipContent,
-  User,
-  Users,
-} from "@dub/ui";
+import { Button, MoneyBills2, Sheet, Users } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -41,15 +32,17 @@ import {
   useRef,
   useState,
 } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { RewardPartnersTable } from "../reward-partners-table";
 import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
-} from "../inline-badge-popover";
-import { RewardPartnersTable } from "../reward-partners-table";
+} from "./inline-badge-popover";
+import { RewardIconSquare } from "./reward-icon-square";
+import { RewardsLogic } from "./rewards-logic";
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -58,6 +51,7 @@ interface RewardSheetProps {
   isDefault?: boolean;
 }
 
+// Special form schema to allow for empty condition fields when adding a new condition
 const formSchema = createOrUpdateRewardSchema.extend({
   modifiers: z
     .array(
@@ -70,29 +64,19 @@ const formSchema = createOrUpdateRewardSchema.extend({
 
 type FormData = z.infer<typeof formSchema>;
 
+export const useAddEditRewardForm = () => useFormContext<FormData>();
+
 function RewardSheetContent({
   setIsOpen,
   event,
   reward,
   isDefault,
 }: RewardSheetProps) {
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    defaultProgramId,
-    plan,
-  } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    control,
-    formState: { errors },
-  } = useForm<FormData>({
+  const form = useForm<FormData>({
     defaultValues: {
       event,
       type: reward?.type || (event === "sale" ? "percentage" : "flat"),
@@ -107,6 +91,15 @@ function RewardSheetContent({
       excludedPartnerIds: null,
     },
   });
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    control,
+    formState: { errors },
+  } = form;
 
   const [
     amount,
@@ -230,19 +223,10 @@ function RewardSheetContent({
     });
   };
 
-  const {
-    fields: modifierFields,
-    append: appendModifier,
-    remove: removeModifier,
-  } = useFieldArray({
-    control,
-    name: "modifiers",
-  });
-
   const canDeleteReward = reward && !reward.default;
 
   return (
-    <>
+    <FormProvider {...form}>
       <form
         ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
@@ -266,7 +250,7 @@ function RewardSheetContent({
           <RewardSheetCard
             title={
               <>
-                <IconSquare icon={MoneyBills2} />
+                <RewardIconSquare icon={MoneyBills2} />
                 <span className="leading-relaxed">
                   Pay{" "}
                   {selectedEvent === "sale" && (
@@ -377,72 +361,14 @@ function RewardSheetContent({
                 </span>
               </>
             }
-            content={
-              <div
-                className={cn(
-                  "flex flex-col gap-2",
-                  !!modifierFields.length && "-mt-2",
-                )}
-              >
-                {modifierFields.map((field, index) => (
-                  <div key={field.id}>
-                    <div className="flex items-center justify-between py-2 pl-2">
-                      <div className="flex items-center gap-1.5 text-neutral-800">
-                        <ArrowTurnRight2 className="size-3 shrink-0" />
-                        <span className="text-sm font-medium">
-                          {index === 0 ? "Reward logic" : "Additional logic"}
-                        </span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        className="h-6 w-fit px-1"
-                        icon={<X className="size-4" />}
-                        onClick={() => removeModifier(index)}
-                      />
-                    </div>
-
-                    <div className="border-border-subtle rounded-lg border bg-white p-2.5">
-                      <div className="border-border-subtle rounded-md border bg-white p-2.5">
-                        <IconSquare icon={User} />
-                      </div>
-                      <VerticalLine />
-                      <div className="border-border-subtle rounded-md border bg-white p-2.5">
-                        <IconSquare icon={MoneyBills2} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <Button
-                  className="h-8 rounded-lg"
-                  icon={<ArrowTurnRight2 className="size-4" />}
-                  text="Add logic"
-                  onClick={() =>
-                    appendModifier({
-                      operator: "AND",
-                      conditions: [{}],
-                      amount: 0,
-                    })
-                  }
-                  variant={isDefault ? "primary" : "secondary"}
-                  disabledTooltip={
-                    plan?.startsWith("business") ? (
-                      <TooltipContent
-                        title="You can only use advanced reward structures on the Advanced plan and above."
-                        cta="Upgrade to Advanced"
-                        href={`/${workspaceSlug}/upgrade`}
-                      />
-                    ) : undefined
-                  }
-                />
-              </div>
-            }
+            content={<RewardsLogic isDefaultReward={!!isDefault} />}
           />
 
           <VerticalLine />
           <RewardSheetCard
             title={
               <>
-                <IconSquare icon={Users} />
+                <RewardIconSquare icon={Users} />
                 {isDefault ? (
                   <span>
                     To all partners
@@ -530,18 +456,12 @@ function RewardSheetContent({
           </div>
         </div>
       </form>
-    </>
+    </FormProvider>
   );
 }
 
-const VerticalLine = ({ className }: { className?: string }) => (
-  <div className={cn("bg-border-subtle ml-6 h-4 w-px shrink-0", className)} />
-);
-
-const IconSquare = ({ icon: Icon }: { icon: Icon }) => (
-  <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
-    <Icon className="size-4 text-neutral-800" />
-  </div>
+const VerticalLine = () => (
+  <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
 );
 
 function RewardSheetCard({
