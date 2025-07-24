@@ -72,11 +72,9 @@ export async function importPartners(payload: PartnerStackImportPayload) {
     currentStartingAfter = partners[partners.length - 1].key;
   }
 
-  delete payload?.startingAfter;
-
   await partnerStackImporter.queue({
     ...payload,
-    ...(hasMore && { startingAfter: currentStartingAfter }),
+    startingAfter: hasMore ? currentStartingAfter : undefined,
     action: hasMore ? "import-partners" : "import-links",
   });
 }
