@@ -17,7 +17,15 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import { Button, Icon, MoneyBills2, Sheet, Users } from "@dub/ui";
+import {
+  ArrowTurnRight2,
+  Button,
+  Icon,
+  MoneyBills2,
+  Sheet,
+  TooltipContent,
+  Users,
+} from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -54,7 +62,12 @@ function RewardSheetContent({
   reward,
   isDefault,
 }: RewardSheetProps) {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    defaultProgramId,
+    plan,
+  } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
 
@@ -339,7 +352,26 @@ function RewardSheetContent({
                 </span>
               </>
             }
-            content={<></>}
+            content={
+              <>
+                <Button
+                  className="h-8 rounded-lg"
+                  icon={<ArrowTurnRight2 className="size-4" />}
+                  text="Add logic"
+                  onClick={() => toast.info("WIP")}
+                  variant={isDefault ? "primary" : "secondary"}
+                  disabledTooltip={
+                    plan?.startsWith("business") ? (
+                      <TooltipContent
+                        title="You can only use advanced reward structures on the Advanced plan and above."
+                        cta="Upgrade to Advanced"
+                        href={`/${workspaceSlug}/upgrade`}
+                      />
+                    ) : undefined
+                  }
+                />
+              </>
+            }
           />
 
           <VerticalLine />
