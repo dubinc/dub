@@ -648,22 +648,27 @@ export const authOptions: NextAuthOptions = {
         const hasOauthFlowCookie = !!cookieStore.get(ECookieArg.OAUTH_FLOW)
           ?.value;
 
-        if (message?.account?.provider === "google" && !hasOauthFlowCookie) {
-          const { id, email } = message.user;
+        if (!hasOauthFlowCookie) {
+          if (
+            message?.account?.provider === "google" ||
+            message?.account?.provider === "email"
+          ) {
+            const { id, email } = message.user;
 
-          cookieStore.set(
-            ECookieArg.OAUTH_FLOW,
-            JSON.stringify({
-              flow: "login",
-              provider: "google",
-              email,
-              userId: id,
-            }),
-            {
-              httpOnly: true,
-              maxAge: 20,
-            },
-          );
+            cookieStore.set(
+              ECookieArg.OAUTH_FLOW,
+              JSON.stringify({
+                flow: "login",
+                provider: message?.account?.provider,
+                email,
+                userId: id,
+              }),
+              {
+                httpOnly: true,
+                maxAge: 20,
+              },
+            );
+          }
         }
       }
 

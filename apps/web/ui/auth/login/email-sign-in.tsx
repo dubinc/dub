@@ -177,17 +177,6 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
           }
 
           if (provider === "credentials") {
-            // Track successful login
-            trackClientEvents({
-              event: EAnalyticEvents.LOGIN_SUCCESS,
-              params: {
-                page_name: "profile",
-                method: "email",
-                email: email,
-                event_category: "Authorized",
-              },
-              sessionId,
-            });
             router.push(response?.url || redirectTo || "/workspaces");
           }
         }}
