@@ -7,8 +7,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   createPartnerSchema,
-  EnrolledPartnerSchemaExtended,
-  partnersQuerySchema,
+  EnrolledPartnerSchema,
+  getPartnersQuerySchemaExtended,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -17,16 +17,15 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+    const parsedParams = getPartnersQuerySchemaExtended.parse(searchParams);
 
     const partners = await getPartners({
-      ...partnersQuerySchema.parse(searchParams),
+      ...parsedParams,
       workspaceId: workspace.id,
       programId,
     });
 
-    return NextResponse.json(
-      z.array(EnrolledPartnerSchemaExtended).parse(partners),
-    );
+    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
   },
   {
     requiredPlan: [

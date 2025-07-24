@@ -116,7 +116,7 @@ export function CreateWorkspaceForm({
       <div>
         <label htmlFor="name" className="flex items-center space-x-2">
           <p className="block text-sm font-medium text-neutral-700">
-            Workspace Name
+            Workspace name
           </p>
         </label>
         <div className="mt-2 flex rounded-md shadow-sm">
@@ -138,7 +138,7 @@ export function CreateWorkspaceForm({
       <div>
         <label htmlFor="slug" className="flex items-center space-x-2">
           <p className="block text-sm font-medium text-neutral-700">
-            Workspace Slug
+            Workspace slug
           </p>
         </label>
         <div className="relative mt-2 flex rounded-md shadow-sm">
@@ -204,7 +204,7 @@ export function CreateWorkspaceForm({
       <div>
         <label>
           <p className="block text-sm font-medium text-neutral-700">
-            Workspace Logo
+            Workspace logo
           </p>
           <div className="mt-1.5 flex items-center gap-5">
             <Controller

@@ -3,7 +3,11 @@ import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
 import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
-import { LinkStructure, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import {
+  LinkStructure,
+  PartnerBannedReason,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
@@ -89,6 +93,7 @@ export const ProgramEnrollmentSchema = z.object({
     ),
   programId: z.string().describe("The program's unique ID on Dub."),
   program: ProgramSchema,
+  createdAt: z.date(),
   status: z
     .nativeEnum(ProgramEnrollmentStatus)
     .describe("The status of the partner's enrollment in the program."),
@@ -98,8 +103,29 @@ export const ProgramEnrollmentSchema = z.object({
     .describe("The partner's referral links in this program."),
   totalCommissions: z.number().default(0),
   rewards: z.array(RewardSchema).nullish(),
+  clickRewardId: z.string().nullish(),
+  leadRewardId: z.string().nullish(),
+  saleRewardId: z.string().nullish(),
   discount: DiscountSchema.nullish(),
-  createdAt: z.date(),
+  discountId: z.string().nullish(),
+  applicationId: z
+    .string()
+    .nullish()
+    .describe(
+      "If the partner submitted an application to join the program, this is the ID of the application.",
+    ),
+  bannedAt: z
+    .date()
+    .nullish()
+    .describe(
+      "If the partner was banned from the program, this is the date of the ban.",
+    ),
+  bannedReason: z
+    .enum(Object.keys(PartnerBannedReason) as [PartnerBannedReason])
+    .nullish()
+    .describe(
+      "If the partner was banned from the program, this is the reason for the ban.",
+    ),
 });
 
 export const ProgramInviteSchema = z.object({
