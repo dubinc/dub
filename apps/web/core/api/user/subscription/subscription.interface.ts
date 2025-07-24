@@ -22,6 +22,7 @@ export interface ICreateSubscriptionBody {
 export interface ICreateSubscriptionRes extends IDataRes {
   data?: {
     subscriptionId: string;
+    toxic: boolean;
   } | null;
 }
 

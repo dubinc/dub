@@ -3,6 +3,7 @@ export interface ICustomerBody {
   ip?: string;
   iat?: number;
   email?: string;
+  toxic?: boolean;
   currency?: {
     countryCode?: string;
     currencyCode?: string;

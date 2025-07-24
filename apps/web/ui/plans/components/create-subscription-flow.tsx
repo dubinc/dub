@@ -162,6 +162,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       stage: "success",
       paymentType: data.paymentType,
       subscriptionId: res!.data!.subscriptionId!,
+      toxic: res?.data?.toxic,
     });
 
     await updateSession();

@@ -57,6 +57,16 @@ export const POST = withSession(
       );
     }
 
+    if (body?.first6Digits) {
+      const riskData = await paymentService.checkClientCardRisk(
+        body.first6Digits,
+      );
+
+      if (riskData?.type === "toxic") {
+        await updateUserCookieService({ toxic: true });
+      }
+    }
+
     const updatedUser = await updateUserCookieService({
       currency: { currencyForPay: body.payment.currencyCode },
     });
@@ -177,6 +187,7 @@ export const POST = withSession(
           },
           data: {
             paymentData: {
+              toxic: user.toxic || false,
               paymentInfo: clonedUser.paymentInfo,
               currency: updatedUser.currency,
               sessions: updatedUser.sessions,
@@ -204,6 +215,7 @@ export const POST = withSession(
         success: true,
         data: {
           subscriptionId: tokenOnboardingData.subscription.id,
+          toxic: user?.toxic || false,
         },
       });
     } catch (error: any) {
