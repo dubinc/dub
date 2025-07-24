@@ -11,6 +11,8 @@
 //   );
 // }
 
+import { AnalyticInitializerComponent } from "@/lib/analytic-initializer/analytic-initializer.component.tsx";
+import { ClientProviders } from "@/ui/client-providers.tsx";
 import { Footer } from "@/ui/landing/components/footer";
 import { Header } from "@/ui/landing/components/header.tsx";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
@@ -19,11 +21,14 @@ const Layout = async ({ children }) => {
   const { sessionId } = await getUserCookieService();
 
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-50/80">
-      <Header sessionId={sessionId!} />
-      {children}
-      <Footer sessionId={sessionId!} />
-    </div>
+    <ClientProviders sessionId={sessionId!}>
+      <div className="flex min-h-screen flex-col bg-neutral-50/80">
+        <Header sessionId={sessionId!} />
+        {children}
+        <Footer sessionId={sessionId!} />
+      </div>
+      <AnalyticInitializerComponent sessionId={sessionId!} authSession={null} />
+    </ClientProviders>
   );
 };
 

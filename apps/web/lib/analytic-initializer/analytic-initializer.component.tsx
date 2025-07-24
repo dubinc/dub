@@ -1,37 +1,33 @@
 "use client";
 
-import { useUserCache } from "@/lib/swr/use-user.ts";
+import { Session } from "@/lib/auth";
 import {
   initPeopleAnalytic,
   setPeopleAnalytic,
   startSessionRecording,
-  trackClientEvents,
 } from "core/integration/analytic";
 import { useEffect } from "react";
-import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 
 interface IAnalyticInitializerProps {
-  sessionId: string;
+  sessionId: string; // твой кастомный уникальный айди гостя
+  authSession: Session | null;
 }
 
 export const AnalyticInitializerComponent = ({
+  authSession,
   sessionId,
 }: IAnalyticInitializerProps) => {
-  const { user, isAuthorized } = useUserCache();
-
   useEffect(() => {
-    if (isAuthorized && user) {
-      trackClientEvents({
-        event: EAnalyticEvents.IDENTIFY_EVENT,
-      });
-
-      initPeopleAnalytic(user.id);
-      setPeopleAnalytic({ $email: user.email });
-    } else {
-      initPeopleAnalytic(sessionId);
+    if (!authSession || !authSession?.user) {
+      // initPeopleAnalytic(sessionId);
       startSessionRecording();
     }
-  }, [isAuthorized, user]);
+
+    if (authSession?.user) {
+      initPeopleAnalytic(authSession.user.id);
+      setPeopleAnalytic({ $email: authSession.user.email });
+    }
+  }, []);
 
   return null;
 };

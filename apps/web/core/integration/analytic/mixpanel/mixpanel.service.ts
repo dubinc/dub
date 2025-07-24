@@ -48,19 +48,19 @@ class MixpanelClientService {
   }
 
   startSessionRecording() {
-    const sessionRecordingProperties =
-      mixpanel.get_session_recording_properties();
-
-    if (
-      !("$mp_replay_id" in sessionRecordingProperties) ||
-      !sessionRecordingProperties.$mp_replay_id
-    ) {
-      mixpanel.start_session_recording();
-    }
+    // const sessionRecordingProperties =
+    //   mixpanel.get_session_recording_properties();
+    //
+    // if (
+    //   !("$mp_replay_id" in sessionRecordingProperties) ||
+    //   !sessionRecordingProperties.$mp_replay_id
+    // ) {
+    //   mixpanel.start_session_recording();
+    // }
   }
 
   stopSessionRecording() {
-    mixpanel.stop_session_recording();
+    // mixpanel.stop_session_recording();
   }
 }
 
