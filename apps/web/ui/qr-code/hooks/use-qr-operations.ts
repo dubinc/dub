@@ -1,13 +1,18 @@
 import { mutatePrefix } from "@/lib/swr/mutate.ts";
+import useUser from "@/lib/swr/use-user.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import {
   convertQRBuilderDataToServer,
   convertQRForUpdate,
 } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
-import { fileToBase64 } from "@/ui/utils/file-to-base64";
 import { useToastWithUndo } from "@dub/ui";
 import { SHORT_DOMAIN } from "@dub/utils/src";
+import { trackClientEvents } from "core/integration/analytic";
+import {
+  EAnalyticEvents,
+  IQREventTracking,
+} from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -16,10 +21,38 @@ export const useQrOperations = () => {
   const params = useParams() as { slug?: string };
   const { slug } = params;
   const { id: workspaceId } = useWorkspace();
+  const { user } = useUser();
   const toastWithUndo = useToastWithUndo();
+
+  // Helper function to extract QR tracking parameters from QRBuilderData
+  const createQRTrackingParams = useCallback(
+    (qrBuilderData: QRBuilderData, qrId?: string): IQREventTracking => {
+      const frameOptions = qrBuilderData.frameOptions;
+
+      return {
+        email: user?.email,
+        qrId,
+        qrType: qrBuilderData.qrType as any,
+        qrFrame: frameOptions?.id !== "none" ? frameOptions?.id : undefined,
+        qrText: frameOptions?.text,
+        qrFrameColour: frameOptions?.color,
+        qrTextColour: frameOptions?.textColor,
+        qrStyle: qrBuilderData.styles?.dotsOptions?.type as string,
+        qrBorderColour: qrBuilderData.styles?.cornersSquareOptions
+          ?.color as string,
+        qrBorderStyle: qrBuilderData.styles?.cornersSquareOptions
+          ?.type as string,
+        qrCenterStyle: qrBuilderData.styles?.cornersDotOptions?.type as string,
+        qrLogo: qrBuilderData.styles?.image ? "custom" : "none",
+        qrLogoUpload: !!qrBuilderData.styles?.image,
+      };
+    },
+    [user?.email],
+  );
 
   const createQr = useCallback(
     async (qrBuilderData: QRBuilderData) => {
+      console.log("createQr", qrBuilderData);
       try {
         if (!workspaceId) {
           toast.error("Workspace ID not found");
@@ -41,6 +74,20 @@ export const useQrOperations = () => {
         if (res.status === 200) {
           await mutatePrefix(["/api/qrs", "/api/links"]);
 
+          const responseData = await res.json();
+          const createdQrId = responseData?.createdQr?.id;
+
+          // Track QR created event
+          const trackingParams = createQRTrackingParams(
+            qrBuilderData,
+            createdQrId,
+          );
+          trackClientEvents({
+            event: EAnalyticEvents.QR_CREATED,
+            params: trackingParams,
+            sessionId: user?.id,
+          });
+
           toast.success("Successfully created QR!");
           return true;
         } else {
@@ -54,7 +101,7 @@ export const useQrOperations = () => {
         return false;
       }
     },
-    [workspaceId, slug],
+    [workspaceId, slug, user, createQRTrackingParams],
   );
 
   const updateQrWithOriginal = useCallback(
@@ -98,6 +145,17 @@ export const useQrOperations = () => {
             `/api/workspaces/${slug}`,
           ]);
 
+          // Track QR updated event
+          const trackingParams = createQRTrackingParams(
+            qrBuilderData,
+            originalQR.id,
+          );
+          trackClientEvents({
+            event: EAnalyticEvents.QR_UPDATED,
+            params: trackingParams,
+            sessionId: user?.id,
+          });
+
           toast.success("Successfully updated QR!");
           return true;
         } else {
@@ -111,7 +169,7 @@ export const useQrOperations = () => {
         return false;
       }
     },
-    [workspaceId, slug],
+    [workspaceId, slug, user, createQRTrackingParams],
   );
 
   const archiveQr = useCallback(
