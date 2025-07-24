@@ -1,0 +1,11 @@
+NODE endpoint
+SQL >
+
+    %
+    SELECT count(link_id) as count FROM dub_links_metadata_latest WHERE deleted = 0
+    {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
+    {% if defined(folderId) %} AND folder_id = {{ folderId }} {% end %}
+    {% if defined(start) %} AND created_at >= {{ DateTime64(start) }} {% end %}
+    {% if defined(end) %} AND created_at <= {{ DateTime64(end) }} {% end %}
+
+

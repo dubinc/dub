@@ -79,6 +79,7 @@ export default function LinkDisplay() {
               );
             })}
           </div>
+
           {!isMegaFolder && (
             <div className="flex h-16 items-center justify-between gap-2 px-4">
               <span className="flex items-center gap-2">
@@ -90,6 +91,7 @@ export default function LinkDisplay() {
               </div>
             </div>
           )}
+
           {!isMegaFolder && (
             <div className="group flex h-16 items-center justify-between gap-2 px-4">
               <div className="flex items-center gap-2">

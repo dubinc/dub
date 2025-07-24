@@ -189,8 +189,8 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
 
 export const getLinksCountQuerySchemaExtended = getLinksCountQuerySchema.merge(
   z.object({
-    start: parseDateSchema,
-    end: parseDateSchema,
+    start: parseDateSchema.optional(),
+    end: parseDateSchema.optional(),
     timezone: z.string().optional(),
   }),
 );

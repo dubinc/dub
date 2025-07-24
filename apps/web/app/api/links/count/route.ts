@@ -4,9 +4,16 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinksCount } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { getLinksCount as getLinksCountTinybird } from "@/lib/tinybird/get-links-count";
+import { getLinksCountTB } from "@/lib/tinybird/get-links-count";
+import { WorkspaceProps } from "@/lib/types";
 import { getLinksCountQuerySchemaExtended } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
+
+// A mega workspace is a workspace with more than 1M links
+function isMegaWorkspace(workspace: Pick<WorkspaceProps, "totalLinks">) {
+  return true;
+ // return workspace.totalLinks > 1_000_000;
+}
 
 // GET /api/links/count – get the number of links for a workspace
 export const GET = withWorkspace(
@@ -31,41 +38,43 @@ export const GET = withWorkspace(
     }
 
     if (folderId) {
-      const selectedFolder = await verifyFolderAccess({
+      await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId,
         requiredPermission: "folders.read",
       });
+    }
 
-      // For mega folders, fetch the count via Tinybird instead of MySQL
-      if (selectedFolder.type === "mega") {
-        const { startDate, endDate } = getStartEndDates({
-          start,
-          end,
-        });
+    // For mega workspaces, we fetch the count via Tinybird instead of MySQL
+    if (isMegaWorkspace(workspace)) {
+      const { startDate, endDate } = getStartEndDates({
+        start,
+        end,
+      });
 
-        console.log("mega folder", {
-          start,
-          end,
-          startDate,
-          endDate,
-          folderId,
-          timezone,
-        });
+      console.log("isMegaWorkspace", {
+        start,
+        end,
+        startDate,
+        endDate,
+        folderId,
+        timezone,
+      });
 
-        const { data } = await getLinksCountTinybird({
-          workspaceId: workspace.id,
-          folderId,
-          timezone,
-          start: startDate.toISOString().replace("T", " ").replace("Z", ""),
-          end: endDate.toISOString().replace("T", " ").replace("Z", ""),
-        });
+      const { data } = await getLinksCountTB({
+        workspaceId: workspace.id,
+        folderId,
+        timezone,
+        start: startDate.toISOString().replace("T", " ").replace("Z", ""),
+        end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+      });
 
-        return NextResponse.json(data[0].count, {
-          headers,
-        });
-      }
+      console.log(data)
+
+      return NextResponse.json(data[0].count, {
+        headers,
+      });
     }
 
     /* we only need to get the folder ids if we are:
