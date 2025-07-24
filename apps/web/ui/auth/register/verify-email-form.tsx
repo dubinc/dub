@@ -14,7 +14,10 @@ import {
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
-import { trackClientEvents } from "core/integration/analytic/services/analytic.service.ts";
+import {
+  setPeopleAnalyticOnce,
+  trackClientEvents,
+} from "core/integration/analytic/services/analytic.service.ts";
 import { OTPInput } from "input-otp";
 import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -55,6 +58,7 @@ export const VerifyEmailForm = ({
         },
         sessionId,
       });
+      setPeopleAnalyticOnce({ signup_method: "email" });
 
       showMessage(
         "Account created! Redirecting to dashboard...",
