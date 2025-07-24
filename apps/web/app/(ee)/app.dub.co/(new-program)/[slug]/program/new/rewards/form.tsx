@@ -134,6 +134,8 @@ export function Form() {
             register={register}
             watch={watch}
             setValue={setValue}
+            onSuccess={() => onSubmit(getValues())}
+            isPending={isSubmitting || isPending || hasSubmitted}
           />
         );
       case "tolt":
@@ -142,7 +144,7 @@ export function Form() {
             watch={watch}
             setValue={setValue}
             onSuccess={() => onSubmit(getValues())}
-            isPending={isSubmitting || isPending}
+            isPending={isSubmitting || isPending || hasSubmitted}
           />
         );
       case "partnerstack":

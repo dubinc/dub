@@ -140,6 +140,7 @@ export const createProgram = async ({
         .then(({ url }) => url)
     : null;
 
+  // Start the import process if the import source is set
   if (importSource === "rewardful" && rewardful?.id) {
     await rewardfulImporter.queue({
       userId: user.id,
