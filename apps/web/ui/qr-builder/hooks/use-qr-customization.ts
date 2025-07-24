@@ -385,9 +385,9 @@ export function useQrCustomization(
       });
     },
     setUploadedLogoFile: (file: File | null) => {
-      // if (file !== uploadedLogo) {
-      setSelectedSuggestedLogo("none");
-      // }
+      if (file !== uploadedLogo) {
+        setSelectedSuggestedLogo("none");
+      }
 
       if (!file) {
         setUploadedLogo(null);
