@@ -2,10 +2,10 @@ import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
 import { z } from "zod";
 import { EnrolledPartnerProps } from "../types";
-import { partnersQuerySchema } from "../zod/schemas/partners";
+import { getPartnersQuerySchemaExtended } from "../zod/schemas/partners";
 import useWorkspace from "./use-workspace";
 
-const partialQuerySchema = partnersQuerySchema.partial();
+const partialQuerySchema = getPartnersQuerySchemaExtended.partial();
 
 export default function usePartners(
   {
@@ -24,6 +24,7 @@ export default function usePartners(
       ? `/api/partners?${new URLSearchParams({
           workspaceId: workspaceId,
           ...query,
+          includeExpandedFields: true,
         } as Record<string, any>).toString()}`
       : undefined,
     fetcher,
