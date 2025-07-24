@@ -84,12 +84,10 @@ export async function updateStripeCustomers(payload: ToltImportPayload) {
     startingAfter = customers[customers.length - 1].id;
   }
 
-  delete payload?.startingAfter;
-
   await toltImporter.queue({
     ...payload,
+    startingAfter: hasMore ? startingAfter : undefined,
     action: hasMore ? "update-stripe-customers" : "cleanup-partners",
-    ...(hasMore && { startingAfter }),
   });
 }
 
