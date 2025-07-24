@@ -3,6 +3,7 @@
 import { createRewardAction } from "@/lib/actions/partners/create-reward";
 import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updateRewardAction } from "@/lib/actions/partners/update-reward";
+import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
@@ -11,20 +12,12 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
-  COMMISSION_TYPES,
   createRewardSchema,
   REWARD_EVENT_COLUMN_MAPPING,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import {
-  AnimatedSizeContainer,
-  Button,
-  CircleCheckFill,
-  Icon,
-  Sheet,
-  Users,
-} from "@dub/ui";
+import { Button, Icon, MoneyBills2, Sheet, Users } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -40,6 +33,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import {
+  InlineBadgePopover,
+  InlineBadgePopoverMenu,
+} from "./inline-badge-popover";
 import { RewardPartnersTable } from "./reward-partners-table";
 
 interface RewardSheetProps {
@@ -60,10 +57,6 @@ function RewardSheetContent({
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
-
-  const [commissionStructure, setCommissionStructure] = useState<
-    "one-off" | "recurring"
-  >("recurring");
 
   const {
     register,
@@ -87,16 +80,19 @@ function RewardSheetContent({
     },
   });
 
-  useEffect(() => {
-    if (reward) {
-      setCommissionStructure(
-        reward.maxDuration === 0 ? "one-off" : "recurring",
-      );
-    }
-  }, [reward]);
-
-  const [amount, type, includedPartnerIds = [], excludedPartnerIds = []] =
-    watch(["amount", "type", "includedPartnerIds", "excludedPartnerIds"]);
+  const [
+    amount,
+    type,
+    maxDuration,
+    includedPartnerIds = [],
+    excludedPartnerIds = [],
+  ] = watch([
+    "amount",
+    "type",
+    "maxDuration",
+    "includedPartnerIds",
+    "excludedPartnerIds",
+  ]);
 
   const selectedEvent = watch("event");
 
@@ -231,179 +227,111 @@ function RewardSheetContent({
         <div className="flex flex-1 flex-col overflow-y-auto p-6">
           {selectedEvent === "sale" && (
             <RewardSheetCard
-              title="Commission Structure"
-              content={
-                <div className="space-y-4">
-                  <p className="text-sm text-neutral-600">
-                    Set how the affiliate will get rewarded
-                  </p>
-                  <div className="-m-1">
-                    <AnimatedSizeContainer
-                      height
-                      transition={{ ease: "easeInOut", duration: 0.2 }}
+              title={
+                <>
+                  <IconSquare icon={MoneyBills2} />
+                  <span className="leading-relaxed">
+                    Pay a{" "}
+                    <InlineBadgePopover text={type}>
+                      <InlineBadgePopoverMenu
+                        selectedValue={type}
+                        onSelect={(value) =>
+                          setValue("type", value as "flat" | "percentage", {
+                            shouldDirty: true,
+                          })
+                        }
+                        items={[
+                          {
+                            text: "Flat",
+                            value: "flat",
+                          },
+                          {
+                            text: "Percentage",
+                            value: "percentage",
+                          },
+                        ]}
+                      />
+                    </InlineBadgePopover>{" "}
+                    {type === "percentage" && "of "}
+                    <InlineBadgePopover
+                      text={
+                        amount
+                          ? constructRewardAmount({
+                              amount: type === "flat" ? amount * 100 : amount,
+                              type,
+                            })
+                          : "amount"
+                      }
+                      invalid={!amount}
                     >
-                      <div className="flex flex-col gap-4 p-1">
-                        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                          {COMMISSION_TYPES.map(
-                            ({ label, description, value }) => {
-                              const isSelected = value === commissionStructure;
-
-                              return (
-                                <label
-                                  key={label}
-                                  className={cn(
-                                    "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                                    "transition-all duration-150",
-                                    isSelected &&
-                                      "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                                  )}
-                                >
-                                  <input
-                                    type="radio"
-                                    value={value}
-                                    className="hidden"
-                                    checked={isSelected}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setCommissionStructure(value);
-                                        setValue(
-                                          "maxDuration",
-                                          value === "recurring"
-                                            ? reward?.maxDuration || Infinity
-                                            : 0,
-                                        );
-                                      }
-                                    }}
-                                  />
-                                  <div className="flex grow flex-col text-sm">
-                                    <span className="font-medium">{label}</span>
-                                    <span>{description}</span>
-                                  </div>
-                                  <CircleCheckFill
-                                    className={cn(
-                                      "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                                      isSelected && "scale-100 opacity-100",
-                                    )}
-                                  />
-                                </label>
-                              );
-                            },
-                          )}
-                        </div>
-
-                        <div
+                      <div className="relative rounded-md shadow-sm">
+                        {type === "flat" && (
+                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                            $
+                          </span>
+                        )}
+                        <input
                           className={cn(
-                            "transition-opacity duration-200",
-                            commissionStructure === "recurring"
-                              ? "h-auto"
-                              : "h-0 opacity-0",
+                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            errors.amount &&
+                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                            type === "flat" ? "pl-6 pr-12" : "pr-7",
                           )}
-                          aria-hidden={commissionStructure !== "recurring"}
-                          {...{
-                            inert: commissionStructure !== "recurring",
-                          }}
-                        >
-                          <div>
-                            <label
-                              htmlFor="duration"
-                              className="text-sm font-medium text-neutral-800"
-                            >
-                              Duration
-                            </label>
-                            <div className="relative mt-2 rounded-md shadow-sm">
-                              <select
-                                className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                                {...register("maxDuration", {
-                                  valueAsNumber: true,
-                                })}
-                              >
-                                {RECURRING_MAX_DURATIONS.filter(
-                                  (v) => v !== 0,
-                                ).map((v) => (
-                                  <option value={v} key={v}>
-                                    {v} {pluralize("month", Number(v))}
-                                  </option>
-                                ))}
-                                <option value={Infinity}>Lifetime</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
+                          {...register("amount", {
+                            required: true,
+                            valueAsNumber: true,
+                            min: 0,
+                            max: type === "percentage" ? 100 : undefined,
+                            onChange: handleMoneyInputChange,
+                          })}
+                          onKeyDown={handleMoneyKeyDown}
+                        />
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                          {type === "flat" ? "USD" : "%"}
+                        </span>
                       </div>
-                    </AnimatedSizeContainer>
-                  </div>
-                </div>
+                    </InlineBadgePopover>{" "}
+                    per {selectedEvent}{" "}
+                    <InlineBadgePopover
+                      text={
+                        maxDuration === 0
+                          ? "one time"
+                          : maxDuration === Infinity
+                            ? "for the customer's lifetime"
+                            : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
+                      }
+                    >
+                      <InlineBadgePopoverMenu
+                        selectedValue={maxDuration?.toString()}
+                        onSelect={(value) =>
+                          setValue("maxDuration", Number(value), {
+                            shouldDirty: true,
+                          })
+                        }
+                        items={[
+                          {
+                            text: "one time",
+                            value: "0",
+                          },
+                          ...RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
+                            (v) => ({
+                              text: `for ${v} ${pluralize("month", Number(v))}`,
+                              value: v.toString(),
+                            }),
+                          ),
+                          {
+                            text: "for the customer's lifetime",
+                            value: "Infinity",
+                          },
+                        ]}
+                      />
+                    </InlineBadgePopover>
+                  </span>
+                </>
               }
+              content={<></>}
             />
           )}
-
-          <VerticalLine />
-          <RewardSheetCard
-            title="Reward Details"
-            content={
-              <div className="space-y-4">
-                <p className="text-sm text-neutral-600">
-                  Set how much the affiliate will get rewarded
-                </p>
-
-                {selectedEvent === "sale" && (
-                  <div>
-                    <label
-                      htmlFor="type"
-                      className="text-sm font-medium text-neutral-800"
-                    >
-                      Reward structure
-                    </label>
-                    <div className="relative mt-2 rounded-md shadow-sm">
-                      <select
-                        className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                        {...register("type", { required: true })}
-                      >
-                        <option value="flat">Flat</option>
-                        <option value="percentage">Percentage</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label
-                    htmlFor="amount"
-                    className="text-sm font-medium text-neutral-800"
-                  >
-                    Reward amount{" "}
-                    {selectedEvent !== "sale" ? `per ${selectedEvent}` : ""}
-                  </label>
-                  <div className="relative mt-2 rounded-md shadow-sm">
-                    {type === "flat" && (
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                        $
-                      </span>
-                    )}
-                    <input
-                      className={cn(
-                        "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                        errors.amount &&
-                          "border-red-600 focus:border-red-500 focus:ring-red-600",
-                        type === "flat" ? "pl-6 pr-12" : "pr-7",
-                      )}
-                      {...register("amount", {
-                        required: true,
-                        valueAsNumber: true,
-                        min: 0,
-                        max: type === "percentage" ? 100 : undefined,
-                        onChange: handleMoneyInputChange,
-                      })}
-                      onKeyDown={handleMoneyKeyDown}
-                    />
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                      {type === "flat" ? "USD" : "%"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            }
-          />
 
           <VerticalLine />
           <RewardSheetCard
@@ -506,7 +434,7 @@ const VerticalLine = () => (
 );
 
 const IconSquare = ({ icon: Icon }: { icon: Icon }) => (
-  <div className="flex size-7 items-center justify-center rounded-md bg-neutral-100">
+  <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
     <Icon className="size-4 text-neutral-800" />
   </div>
 );
