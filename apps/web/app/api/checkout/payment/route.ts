@@ -76,6 +76,7 @@ export const POST = withSession(
         user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
       // plan_name: paymentData?.paymentInfo?.subscriptionPlanCode as string,
       plan_name: body.paymentPlan,
+      payment_subtype: "SUBSCRIPTION",
       //**** for analytics ****//
 
       //**** fields for subscription system ****//

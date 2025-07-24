@@ -9,7 +9,7 @@ import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.i
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   PropsWithChildren,
   ReactNode,
@@ -65,6 +65,8 @@ export function SidebarNav<T extends Record<any, any>>({
   switcher?: ReactNode;
   bottom?: ReactNode;
 }) {
+  const router = useRouter();
+
   return (
     <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
       <nav className="relative flex grow flex-col p-3 text-neutral-500">
@@ -76,6 +78,11 @@ export function SidebarNav<T extends Record<any, any>>({
               <Link
                 key={area}
                 href={backHref ?? "/"}
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push("/");
+                  router.refresh();
+                }}
                 className={cn(
                   "rounded-md px-1 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50",
                   area === currentArea

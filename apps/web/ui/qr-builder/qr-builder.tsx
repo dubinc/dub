@@ -255,7 +255,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 : isEdit
                   ? "save"
                   : "create",
-              content_group: "complete_content",
+              content_group: "customize_qr",
               event_category: "nonAuthorized",
               ...(user
                 ? { email: user?.email, event_category: "Authorized" }
@@ -478,6 +478,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                         !isMobile &&
                         !navigationButtonsInViewport && (
                           <QrTabsDownloadButton
+                            sessionId={sessionId!}
                             onRegistrationClick={onSaveClick}
                             isQrDisabled={isQrDisabled}
                           />

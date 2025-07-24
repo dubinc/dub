@@ -1,6 +1,5 @@
 import {
   BLACK_COLOR,
-  TRANSPARENT_COLOR,
   WHITE_COLOR,
 } from "@/ui/qr-builder/constants/customization/colors.ts";
 import {
@@ -8,7 +7,10 @@ import {
   FRAMES,
   isDefaultTextColor,
 } from "@/ui/qr-builder/constants/customization/frames.ts";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import {
+  EQRType,
+  FILE_QR_TYPES,
+} from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { unescapeWiFiValue } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { FrameOptions, QrStorageData } from "@/ui/qr-builder/types/types.ts";
@@ -47,10 +49,11 @@ export function useQrCustomization(
     initialData?.qrType as EQRType,
   );
 
-  const initialContentForQrBuild =
-    initialData?.qrType !== "wifi"
-      ? initialData?.link?.shortLink
-      : initialData?.data;
+  const initialContentForQrBuild = !FILE_QR_TYPES.includes(
+    initialData?.qrType as EQRType,
+  )
+    ? (initialData?.styles as Options)?.data
+    : initialData?.link?.shortLink;
 
   const [data, setData] = useState(initialContentForQrBuild || DEFAULT_WEBSITE);
 
@@ -359,8 +362,6 @@ export function useQrCustomization(
       const isUsingDefaultColor =
         frameTextColor === selected?.defaultTextColor ||
         isDefaultTextColor(frameTextColor);
-      const noFrame = frameId === "none";
-      const bgColor = noFrame ? WHITE_COLOR : TRANSPARENT_COLOR;
 
       if (!frameTextColor || isUsingDefaultColor) {
         setFrameTextColor(selected?.defaultTextColor || WHITE_COLOR);
@@ -368,7 +369,7 @@ export function useQrCustomization(
 
       setOptions((prevOptions) => ({
         ...prevOptions,
-        backgroundOptions: { color: bgColor },
+        backgroundOptions: { color: WHITE_COLOR },
       }));
 
       if (!qrCode) return;
@@ -376,7 +377,7 @@ export function useQrCustomization(
       qrCode.update({
         ...options,
         backgroundOptions: {
-          color: bgColor,
+          color: WHITE_COLOR,
         },
         data: homepageDemo
           ? `${window.location.origin}/qr-complete-setup`

@@ -2,10 +2,16 @@
 
 import { Button, FileUpload, getUserAvatarUrl } from "@dub/ui";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { trackClientEvents } from "../../core/integration/analytic";
+import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 
-export default function UploadAvatar() {
+interface IUploadAvatarProps {
+  sessionId: string;
+}
+
+const UploadAvatar: FC<Readonly<IUploadAvatarProps>> = ({ sessionId }) => {
   const { data: session, update } = useSession();
 
   const [image, setImage] = useState<string | null>();
@@ -30,6 +36,20 @@ export default function UploadAvatar() {
         }).then(async (res) => {
           setUploading(false);
           if (res.status === 200) {
+            trackClientEvents({
+              event: EAnalyticEvents.ACCOUNT_UPDATED,
+              params: {
+                event_category: "nonAuthorized",
+                page_name: "account",
+                content_group: "general",
+                email: session?.user?.email,
+                nameChanged: false,
+                emailChanged: false,
+                avatarChanged: true,
+                passwordChanged: false,
+              },
+              sessionId,
+            });
             await update();
             toast.success("Successfully updated your profile picture!");
           } else {
@@ -76,4 +96,6 @@ export default function UploadAvatar() {
       </div>
     </form>
   );
-}
+};
+
+export default UploadAvatar;

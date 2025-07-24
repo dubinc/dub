@@ -18,6 +18,13 @@ export enum EAnalyticEvents {
 
   TRIAL_EXPIRED = "trialExpired",
 
+  ACCOUNT_UPDATED = "accountUpdated",
+
+  PLAN_PICKER_CLICKED = "planPickerClicked",
+
+  QR_CREATED = "qrCreated",
+  QR_UPDATED = "qrUpdated",
+
   EXPERIMENT_VIEWED = "experimentViewed",
 }
 
@@ -61,4 +68,21 @@ export interface IPageClickedTracking {
   page_number?: number;
   content_group?: string;
   content_answer?: string;
+}
+
+// QR events tracking
+export interface IQREventTracking {
+  email?: string;
+  qrId?: string;
+  qrType?: "website" | "pdf" | "whatsapp" | "wifi" | "image" | "video";
+  qrFrame?: string;
+  qrText?: string;
+  qrFrameColour?: string;
+  qrTextColour?: string;
+  qrStyle?: string;
+  qrBorderColour?: string;
+  qrBorderStyle?: string;
+  qrCenterStyle?: string;
+  qrLogo?: string;
+  qrLogoUpload?: boolean;
 }

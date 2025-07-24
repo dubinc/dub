@@ -41,7 +41,7 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
     const stylesData = (mostScannedQR.styles as Options)?.data;
 
     if (FILE_QR_TYPES.includes(qrType)) {
-      return parseQRData(qrType, mostScannedQR.data);
+      return parseQRData(qrType, mostScannedQR.link.url);
     }
 
     return parseQRData(qrType, stylesData || mostScannedQR.data);
