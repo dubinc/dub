@@ -6,31 +6,23 @@ import { bulkCreateLinks } from "../api/links";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
-import { RewardfulAffiliate } from "./types";
+import { RewardfulAffiliate, RewardfulImportPayload } from "./types";
 
-export async function importPartners({
-  programId,
-  rewardId,
-  page,
-}: {
-  programId: string;
-  rewardId?: string;
-  page: number;
-}) {
+export async function importPartners(payload: RewardfulImportPayload) {
+  const { programId, userId, campaignId, page = 1, rewardId } = payload;
+
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
   });
 
-  const { token, userId, campaignId } = await rewardfulImporter.getCredentials(
-    program.workspaceId,
-  );
+  const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
   let currentPage = page;
-  let hasMoreAffiliates = true;
+  let hasMore = true;
   let processedBatches = 0;
 
   const reward = await prisma.reward.findUniqueOrThrow({
@@ -43,14 +35,14 @@ export async function importPartners({
     },
   });
 
-  while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < MAX_BATCHES) {
     const affiliates = await rewardfulApi.listPartners({
       campaignId,
       page: currentPage,
     });
 
     if (affiliates.length === 0) {
-      hasMoreAffiliates = false;
+      hasMore = false;
       break;
     }
 
@@ -77,13 +69,13 @@ export async function importPartners({
     processedBatches++;
   }
 
-  const action = hasMoreAffiliates ? "import-partners" : "import-customers";
+  const action = hasMore ? "import-partners" : "import-customers";
 
   await rewardfulImporter.queue({
-    programId: program.id,
+    ...payload,
     action,
     ...(action === "import-partners" && rewardId && { rewardId }),
-    ...(hasMoreAffiliates ? { page: currentPage } : {}),
+    page: hasMore ? currentPage : undefined,
   });
 }
 

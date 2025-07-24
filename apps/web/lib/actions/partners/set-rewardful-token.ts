@@ -30,9 +30,7 @@ export const setRewardfulTokenAction = authActionClient
     }
 
     await rewardfulImporter.setCredentials(workspace.id, {
-      userId: user.id,
       token,
-      campaignId: "", // We'll set in the second step after choosing the campaign
     });
 
     return {

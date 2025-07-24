@@ -141,15 +141,10 @@ export const createProgram = async ({
     : null;
 
   if (importSource === "rewardful" && rewardful?.id) {
-    const credentials = await rewardfulImporter.getCredentials(workspace.id);
-
-    await rewardfulImporter.setCredentials(workspace.id, {
-      ...credentials,
-      campaignId: rewardful.id,
-    });
-
     await rewardfulImporter.queue({
+      userId: user.id,
       programId: program.id,
+      campaignId: rewardful.id,
       action: "import-campaign",
     });
   } else if (importSource === "tolt" && tolt?.id) {
