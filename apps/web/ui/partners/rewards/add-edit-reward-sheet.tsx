@@ -48,8 +48,8 @@ import { z } from "zod";
 import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
-} from "./inline-badge-popover";
-import { RewardPartnersTable } from "./reward-partners-table";
+} from "../inline-badge-popover";
+import { RewardPartnersTable } from "../reward-partners-table";
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
