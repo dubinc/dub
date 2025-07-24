@@ -4,9 +4,9 @@ import { FAQ_ITEMS_HOMEPAGE } from "@/ui/landing/components/faq-section/config.t
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PricingSection } from "@/ui/landing/components/pricing/pricing-plans.tsx";
 import { ReviewsSection } from "@/ui/landing/components/reviews/reviews-section.tsx";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { FC, useRef } from "react";
-import { trackClientEvents } from "../../core/integration/analytic";
-import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 import { GetQRFeaturesCardsSection } from "./components/get-qr-features-cards/get-qr-features.tsx";
 import { GetQRInfoCardsSection } from "./components/get-qr-info-cards/get-qr-info.tsx";
 import { QrTabsDetailed } from "./components/qr-tabs-detailed/qr-tabs-detailed.tsx";

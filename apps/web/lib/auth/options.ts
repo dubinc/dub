@@ -1,10 +1,13 @@
 import { verifyAndCreateUser } from "@/lib/actions/verify-and-create-user.ts";
+import { createQRTrackingParams } from "@/lib/analytic/create-qr-tracking-data.helper.ts";
 import { convertSessionUserToCustomerBody, Session } from "@/lib/auth/utils.ts";
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { NewQrProps, UserProps } from "@/lib/types";
 import { ratelimit, redis } from "@/lib/upstash";
+import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN } from "@dub/utils";
@@ -26,6 +29,8 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
+import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
+import { trackMixpanelApiService } from "../../core/integration/analytic/services/track-mixpanel-api.service.ts";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
@@ -61,7 +66,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
             ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.fileId}`
             : qrDataToCreate.styles?.data;
 
-          await createQrWithLinkUniversal({
+          const qrCreateResponse = await createQrWithLinkUniversal({
             qrData: {
               data: qrDataToCreate.styles?.data || linkUrl,
               qrType: qrDataToCreate.qrType,
@@ -74,6 +79,22 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
             linkData: { url: linkUrl },
             workspace: workspace as any,
             userId: generatedUserId,
+          });
+
+          const trackingParams = createQRTrackingParams(
+            convertQrStorageDataToBuilder(
+              qrCreateResponse.createdQr as QrStorageData,
+            ),
+            qrCreateResponse.createdQr.id,
+          );
+
+          await trackMixpanelApiService({
+            event: EAnalyticEvents.QR_CREATED,
+            email: data.email,
+            userId: generatedUserId,
+            params: {
+              ...trackingParams,
+            },
           });
           console.log("createUser: QR successfully created");
         } catch (error) {

@@ -3,8 +3,9 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
-import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { NextResponse } from "next/server";
+import { EAnalyticEvents } from "../../../../core/integration/analytic/interfaces/analytic.interface.ts";
+import { trackMixpanelApiService } from "../../../../core/integration/analytic/services/track-mixpanel-api.service.ts";
 import { CustomerIOClient } from "../../../../core/lib/customerio/customerio.config.ts";
 
 /*
@@ -83,28 +84,15 @@ async function handler(req: Request) {
             });
 
             // Send Mixpanel event via fetch
-            const mixpanelResponse = await fetch(
-              "https://api.mixpanel.com/track",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify([
-                  {
-                    event: EAnalyticEvents.TRIAL_EXPIRED,
-                    properties: {
-                      distinct_id: user.id,
-                      email: user.email,
-                      mixpanel_user_id: user.id,
-                      days: 10,
-                      timestamp: new Date().toISOString(),
-                      token: process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN,
-                    },
-                  },
-                ]),
+            const mixpanelResponse = await trackMixpanelApiService({
+              event: EAnalyticEvents.TRIAL_EXPIRED,
+              email: user!.email!,
+              userId: user.id,
+              params: {
+                days: 10,
+                timestamp: new Date().toISOString(),
               },
-            );
+            });
 
             if (!mixpanelResponse.ok) {
               throw new Error(

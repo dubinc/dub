@@ -5,8 +5,8 @@ import { ERegistrationStep } from "@/ui/auth/register/constants";
 import { SignUpContent } from "@/ui/auth/register/signup-content";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { trackClientEvents } from "core/integration/analytic/services/analytic.service.ts";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, X, XCircle } from "lucide-react";
 import {

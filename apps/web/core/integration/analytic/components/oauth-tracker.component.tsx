@@ -14,10 +14,6 @@ export const OauthTrackerComponent: FC<Readonly<IOauthTrackerProps>> = ({
   useEffect(() => {
     const { flow, provider, email, userId } = oauthData;
 
-    if (flow === "signup") {
-      setPeopleAnalyticOnce({ signup_method: provider });
-    }
-
     trackClientEvents({
       event:
         flow === "signup"
@@ -31,6 +27,10 @@ export const OauthTrackerComponent: FC<Readonly<IOauthTrackerProps>> = ({
       },
       sessionId: userId,
     });
+
+    if (flow === "signup") {
+      setPeopleAnalyticOnce({ signup_method: provider });
+    }
   }, []);
 
   return null;

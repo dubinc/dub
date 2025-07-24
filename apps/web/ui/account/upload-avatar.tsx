@@ -1,11 +1,11 @@
 "use client";
 
 import { Button, FileUpload, getUserAvatarUrl } from "@dub/ui";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { useSession } from "next-auth/react";
 import { FC, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { trackClientEvents } from "../../core/integration/analytic";
-import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 
 interface IUploadAvatarProps {
   sessionId: string;

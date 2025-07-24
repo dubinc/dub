@@ -1,7 +1,7 @@
 import { Button, useLocalStorage } from "@dub/ui";
 import { Google } from "@dub/ui/icons";
-import { trackClientEvents } from "core/integration/analytic/analytic.service";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { trackClientEvents } from "core/integration/analytic/services/analytic.service.ts";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { FC, useContext } from "react";

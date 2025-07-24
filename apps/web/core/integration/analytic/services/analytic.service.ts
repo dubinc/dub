@@ -1,9 +1,9 @@
 import { Dict } from "mixpanel-browser";
-import { debugUtil } from "../../util";
-import { ICustomerBody } from "../payment/config";
-import { getUtmListFromSearch } from "./helpers/get-utms.helper.ts";
-import { EAnalyticEvents } from "./interfaces/analytic.interface.ts";
-import { mixpanelClient } from "./mixpanel";
+import { debugUtil } from "../../../util";
+import { ICustomerBody } from "../../payment/config";
+import { getUtmListFromSearch } from "../helpers/get-utms.helper.ts";
+import { EAnalyticEvents } from "../interfaces/analytic.interface.ts";
+import { mixpanelClient } from "../mixpanel";
 
 declare global {
   interface Window {

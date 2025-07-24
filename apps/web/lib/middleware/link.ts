@@ -16,6 +16,7 @@ import {
   nanoid,
   punyEncode,
 } from "@dub/utils";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { cookies } from "next/headers";
 import {
   NextFetchEvent,
@@ -23,12 +24,12 @@ import {
   NextResponse,
   userAgent,
 } from "next/server";
+import { trackMixpanelApiService } from "../../core/integration/analytic/services/track-mixpanel-api.service.ts";
 import { checkFeaturesAccessAuthLess } from "../actions/check-features-access-auth-less";
 import { linkCache } from "../api/links/cache";
-import { getLinkViaEdge, conn } from "../planetscale";
+import { conn, getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
-import { EAnalyticEvents } from 'core/integration/analytic/interfaces/analytic.interface';
 
 const sendScanLimitReachedEvent = async (linkId: string) => {
   console.log("Sending scan limit reached event for link", linkId);
@@ -40,64 +41,69 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
       FROM Link l 
       LEFT JOIN User u ON l.userId = u.id 
       WHERE l.id = ?`,
-      [linkId]
+      [linkId],
     );
-  
+
     const link = linkRows.rows?.[0];
 
     console.log("Link", link);
-  
+
     const featuresAccess = await checkFeaturesAccessAuthLess(link.userId, true);
     console.log("featuresAccess", featuresAccess);
     console.log("link.totalUserClicks", link.totalUserClicks);
-  
+
     if (link.totalUserClicks >= 29 && !featuresAccess.featuresAccess) {
       // Send Customer.io event
-      const auth = Buffer.from(`${process.env.CUSTOMER_IO_SITE_ID}:${process.env.CUSTOMER_IO_TRACK_API_KEY}`).toString("base64");
+      const auth = Buffer.from(
+        `${process.env.CUSTOMER_IO_SITE_ID}:${process.env.CUSTOMER_IO_TRACK_API_KEY}`,
+      ).toString("base64");
 
-      const response = await fetch(`https://track.customer.io/api/v1/customers/${link.userId}/events`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Basic ${auth}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: "trial_expired",
-          data: {
-            codes: 30,
+      const response = await fetch(
+        `https://track.customer.io/api/v1/customers/${link.userId}/events`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${auth}`,
+            "Content-Type": "application/json",
           },
-        }),
-      });
+          body: JSON.stringify({
+            name: "trial_expired",
+            data: {
+              codes: 30,
+            },
+          }),
+        },
+      );
 
       // Send Mixpanel event via fetch
-      const mixpanelResponse = await fetch('https://api.mixpanel.com/track', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const mixpanelResponse = await trackMixpanelApiService({
+        event: EAnalyticEvents.TRIAL_EXPIRED,
+        email: link.userEmail,
+        userId: link.userId,
+        params: {
+          codes: 30,
+          timestamp: new Date().toISOString(),
         },
-        body: JSON.stringify([{
-          event: EAnalyticEvents.TRIAL_EXPIRED,
-          properties: {
-            distinct_id: link.userId,
-            email: link.userEmail,
-            mixpanel_user_id: link.userId,
-            codes: 30,
-            timestamp: new Date().toISOString(),
-            token: process.env.NEXT_PUBLIC_MIXPANEL_PROJECT_TOKEN,
-          },
-        }]),
       });
 
       if (!response.ok) {
-        throw new Error(`CustomerIo request failed: ${response.status} ${await response.text()}`);
+        throw new Error(
+          `CustomerIo request failed: ${response.status} ${await response.text()}`,
+        );
       }
 
       if (!mixpanelResponse.ok) {
-        throw new Error(`Mixpanel request failed: ${mixpanelResponse.status} ${await mixpanelResponse.text()}`);
+        throw new Error(
+          `Mixpanel request failed: ${mixpanelResponse.status} ${await mixpanelResponse.text()}`,
+        );
       }
     }
   } catch (error) {
-    console.error("Error sending scan limit reached event for link", linkId, error);
+    console.error(
+      "Error sending scan limit reached event for link",
+      linkId,
+      error,
+    );
   }
 };
 
@@ -165,9 +171,7 @@ export default async function LinkMiddleware(
     }
 
     if (linkData?.userId) {
-      const featuresAccess = await checkFeaturesAccessAuthLess(
-        linkData.userId,
-      );
+      const featuresAccess = await checkFeaturesAccessAuthLess(linkData.userId);
 
       console.log("here2");
       console.log(featuresAccess);
@@ -204,10 +208,8 @@ export default async function LinkMiddleware(
 
     // Check user restrictions
     if (linkData?.userId) {
-      const featuresAccess = await checkFeaturesAccessAuthLess(
-        linkData.userId,
-      );
-      
+      const featuresAccess = await checkFeaturesAccessAuthLess(linkData.userId);
+
       console.log("here4");
       console.log(featuresAccess);
 
@@ -338,9 +340,7 @@ export default async function LinkMiddleware(
 
   // for root domain links, if there's no destination URL, rewrite to placeholder page
   if (!url) {
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
-    );
+    ev.waitUntil(sendScanLimitReachedEvent(linkId));
 
     ev.waitUntil(
       recordClick({
@@ -387,9 +387,7 @@ export default async function LinkMiddleware(
 
     // rewrite to deeplink page if the link is a mailto: or tel:
   } else if (isSupportedDeeplinkProtocol(url)) {
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
-    );
+    ev.waitUntil(sendScanLimitReachedEvent(linkId));
 
     ev.waitUntil(
       recordClick({
@@ -425,9 +423,7 @@ export default async function LinkMiddleware(
 
     // rewrite to target URL if link cloaking is enabled
   } else if (rewrite) {
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
-    );
+    ev.waitUntil(sendScanLimitReachedEvent(linkId));
 
     ev.waitUntil(
       recordClick({
@@ -465,9 +461,7 @@ export default async function LinkMiddleware(
 
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
-    );
+    ev.waitUntil(sendScanLimitReachedEvent(linkId));
 
     ev.waitUntil(
       recordClick({
@@ -499,9 +493,7 @@ export default async function LinkMiddleware(
 
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && userAgent(req).os?.name === "Android") {
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
-    );
+    ev.waitUntil(sendScanLimitReachedEvent(linkId));
 
     ev.waitUntil(
       recordClick({
@@ -533,9 +525,7 @@ export default async function LinkMiddleware(
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
   } else if (geo && country && country in geo) {
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
-    );
+    ev.waitUntil(sendScanLimitReachedEvent(linkId));
 
     ev.waitUntil(
       recordClick({
@@ -567,9 +557,7 @@ export default async function LinkMiddleware(
 
     // regular redirect
   } else {
-    ev.waitUntil(
-      sendScanLimitReachedEvent(linkId)
-    );
+    ev.waitUntil(sendScanLimitReachedEvent(linkId));
 
     ev.waitUntil(
       recordClick({

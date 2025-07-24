@@ -1,7 +1,7 @@
 import { Button } from "@dub/ui";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { FC } from "react";
-import { trackClientEvents } from "../../core/integration/analytic";
-import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 
 interface IQrTabsDownloadButtonProps {
   sessionId?: string;
