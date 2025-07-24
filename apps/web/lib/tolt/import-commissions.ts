@@ -68,13 +68,11 @@ export async function importCommissions(payload: ToltImportPayload) {
     processedBatches++;
   }
 
-  delete payload?.startingAfter;
-
   if (hasMore) {
     await toltImporter.queue({
       ...payload,
-      action: "import-commissions",
       startingAfter,
+      action: "import-commissions",
     });
 
     return;
