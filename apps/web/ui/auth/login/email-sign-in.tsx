@@ -1,7 +1,7 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { showMessage } from "@/ui/auth/helpers";
 import { MessageType } from "@/ui/modals/auth-modal.tsx";
-import { Button, Input, useLocalStorage, useMediaQuery } from "@dub/ui";
+import { Button, Input, useMediaQuery } from "@dub/ui";
 import { InputPassword } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
@@ -33,10 +33,6 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
   const { isMobile } = useMediaQuery();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [, setGuestSessionId] = useLocalStorage<string | null>(
-    `guest-session-id`,
-    null,
-  );
 
   const {
     showPasswordField,
@@ -82,7 +78,6 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
             },
             sessionId,
           });
-          setGuestSessionId(sessionId);
 
           // Check if the user can enter a password, and if so display the field
           if (!showPasswordField) {

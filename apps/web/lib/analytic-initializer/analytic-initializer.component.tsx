@@ -5,8 +5,10 @@ import {
   initPeopleAnalytic,
   setPeopleAnalytic,
   startSessionRecording,
+  trackClientEvents,
 } from "core/integration/analytic";
 import { useEffect } from "react";
+import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 
 interface IAnalyticInitializerProps {
   sessionId: string;
@@ -16,17 +18,13 @@ export const AnalyticInitializerComponent = ({
   sessionId,
 }: IAnalyticInitializerProps) => {
   const { user, isAuthorized } = useUserCache();
-  // const [guestSessionId, setGuestSessionId] = useLocalStorage<string | null>(
-  //   `guest-session-id`,
-  //   null,
-  // );
 
   useEffect(() => {
     if (isAuthorized && user) {
-      // if (guestSessionId) {
-      //   initPeopleAnalytic(guestSessionId);
-      //   setGuestSessionId(null);
-      // }
+      trackClientEvents({
+        event: EAnalyticEvents.IDENTIFY_EVENT,
+      });
+
       initPeopleAnalytic(user.id);
       setPeopleAnalytic({ $email: user.email });
     } else {
