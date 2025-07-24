@@ -6,15 +6,11 @@ import { recordClick, recordLeadWithTimestamp } from "../tinybird";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
-import { ToltAffiliate, ToltCustomer } from "./types";
+import { ToltAffiliate, ToltCustomer, ToltImportPayload } from "./types";
 
-export async function importCustomers({
-  programId,
-  startingAfter,
-}: {
-  programId: string;
-  startingAfter?: string;
-}) {
+export async function importCustomers(payload: ToltImportPayload) {
+  let { programId, toltProgramId, startingAfter } = payload;
+
   const { workspace } = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -24,9 +20,7 @@ export async function importCustomers({
     },
   });
 
-  const { token, toltProgramId } = await toltImporter.getCredentials(
-    workspace.id,
-  );
+  const { token } = await toltImporter.getCredentials(workspace.id);
 
   const toltApi = new ToltApi({ token });
 
@@ -110,8 +104,10 @@ export async function importCustomers({
     startingAfter = customers[customers.length - 1].id;
   }
 
+  delete payload?.startingAfter;
+
   await toltImporter.queue({
-    programId,
+    ...payload,
     action: hasMore ? "import-customers" : "import-commissions",
     ...(hasMore && { startingAfter }),
   });

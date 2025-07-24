@@ -32,7 +32,7 @@ export const programRewardSchema = z
       })
       .nullish(),
     tolt: ToltProgramSchema.extend({
-      maskedToken: z.string(),
+      id: z.string(),
       affiliates: z.number(),
     }).nullish(),
   })

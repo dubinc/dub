@@ -4,15 +4,11 @@ import { generatePartnerLink } from "../api/partners/create-partner-link";
 import { ProgramProps, WorkspaceProps } from "../types";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
-import { ToltLink } from "./types";
+import { ToltImportPayload, ToltLink } from "./types";
 
-export async function importLinks({
-  programId,
-  startingAfter,
-}: {
-  programId: string;
-  startingAfter?: string;
-}) {
+export async function importLinks(payload: ToltImportPayload) {
+  let { programId, toltProgramId, userId, startingAfter } = payload;
+
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -24,9 +20,7 @@ export async function importLinks({
 
   const { workspace } = program;
 
-  const { token, toltProgramId, userId } = await toltImporter.getCredentials(
-    workspace.id,
-  );
+  const { token } = await toltImporter.getCredentials(workspace.id);
 
   const toltApi = new ToltApi({ token });
 
@@ -87,9 +81,11 @@ export async function importLinks({
     startingAfter = links[links.length - 1].id;
   }
 
+  delete payload?.startingAfter;
+
   await toltImporter.queue({
-    programId,
-    action: hasMore ? "import-links" : "import-referrals",
+    ...payload,
+    action: hasMore ? "import-links" : "import-customers",
     ...(hasMore && { startingAfter }),
   });
 }

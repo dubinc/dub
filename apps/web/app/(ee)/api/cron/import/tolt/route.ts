@@ -5,18 +5,11 @@ import { importCommissions } from "@/lib/tolt/import-commissions";
 import { importCustomers } from "@/lib/tolt/import-customers";
 import { importLinks } from "@/lib/tolt/import-links";
 import { importPartners } from "@/lib/tolt/import-partners";
-import { importSteps } from "@/lib/tolt/importer";
+import { toltImportPayloadSchema } from "@/lib/tolt/schemas";
 import { updateStripeCustomers } from "@/lib/tolt/update-stripe-customers";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 export const dynamic = "force-dynamic";
-
-const schema = z.object({
-  action: importSteps,
-  programId: z.string(),
-  startingAfter: z.string().optional(),
-});
 
 export async function POST(req: Request) {
   try {
@@ -27,9 +20,9 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { action, ...payload } = schema.parse(JSON.parse(rawBody));
+    const payload = toltImportPayloadSchema.parse(JSON.parse(rawBody));
 
-    switch (action) {
+    switch (payload.action) {
       case "import-partners":
         await importPartners(payload);
         break;

@@ -4,15 +4,11 @@ import { createId } from "../api/create-id";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
-import { ToltAffiliate } from "./types";
+import { ToltAffiliate, ToltImportPayload } from "./types";
 
-export async function importPartners({
-  programId,
-  startingAfter,
-}: {
-  programId: string;
-  startingAfter?: string;
-}) {
+export async function importPartners(payload: ToltImportPayload) {
+  let { programId, toltProgramId, startingAfter } = payload;
+
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -26,9 +22,7 @@ export async function importPartners({
     },
   });
 
-  const { token, toltProgramId } = await toltImporter.getCredentials(
-    program.workspaceId,
-  );
+  const { token } = await toltImporter.getCredentials(program.workspaceId);
 
   const toltApi = new ToltApi({ token });
 
@@ -86,8 +80,10 @@ export async function importPartners({
     startingAfter = affiliates[affiliates.length - 1].id;
   }
 
+  delete payload?.startingAfter;
+
   await toltImporter.queue({
-    programId,
+    ...payload,
     action: hasMore ? "import-partners" : "import-links",
     ...(hasMore && { startingAfter }),
   });

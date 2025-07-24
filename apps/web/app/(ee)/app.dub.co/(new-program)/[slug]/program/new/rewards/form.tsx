@@ -73,16 +73,11 @@ export function Form() {
     handleSubmit,
     watch,
     setValue,
+    getValues,
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [programType, importSource, rewardful, tolt, amount] = watch([
-    "programType",
-    "importSource",
-    "rewardful",
-    "tolt",
-    "amount",
-  ]);
+  const [programType, importSource] = watch(["programType", "importSource"]);
 
   useEffect(() => {
     if (programType === "new") {
@@ -121,21 +116,6 @@ export function Form() {
     });
   };
 
-  const buttonDisabled =
-    isSubmitting ||
-    isPending ||
-    hasSubmitted ||
-    (programType === "new" && !amount) ||
-    (programType === "import" &&
-      (!rewardful || !rewardful.id) &&
-      (!tolt || !tolt.id));
-
-  const hideContinueButton =
-    programType === "import" &&
-    (!rewardful || !rewardful.id) &&
-    (!tolt || !tolt.id) &&
-    importSource === "partnerstack";
-
   const selectedSource = useMemo(() => {
     return PROGRAM_IMPORT_SOURCES.find((source) => source.id === importSource);
   }, [importSource]);
@@ -151,9 +131,18 @@ export function Form() {
           />
         );
       case "tolt":
-        return <ImportToltForm watch={watch} setValue={setValue} />;
+        return (
+          <ImportToltForm
+            watch={watch}
+            setValue={setValue}
+            onSuccess={() => onSubmit(getValues())}
+            isPending={isSubmitting || isPending}
+          />
+        );
       case "partnerstack":
-        return <ImportPartnerStackForm onSuccess={() => onSubmit} />;
+        return (
+          <ImportPartnerStackForm onSuccess={() => onSubmit(getValues())} />
+        );
       default:
         return null;
     }
@@ -251,12 +240,12 @@ export function Form() {
         </div>
       )}
 
-      {!hideContinueButton && (
+      {programType !== "import" && (
         <Button
           text="Continue"
           className="w-full"
           loading={isSubmitting || isPending || hasSubmitted}
-          disabled={buttonDisabled}
+          disabled={isSubmitting || isPending || hasSubmitted}
           type="submit"
         />
       )}

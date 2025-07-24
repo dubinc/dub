@@ -10,7 +10,7 @@ import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
-import { ToltCommission } from "./types";
+import { ToltCommission, ToltImportPayload } from "./types";
 
 const toDubStatus: Record<ToltCommission["status"], CommissionStatus> = {
   pending: "pending",
@@ -20,13 +20,9 @@ const toDubStatus: Record<ToltCommission["status"], CommissionStatus> = {
   refunded: "refunded",
 };
 
-export async function importCommissions({
-  programId,
-  startingAfter,
-}: {
-  programId: string;
-  startingAfter?: string;
-}) {
+export async function importCommissions(payload: ToltImportPayload) {
+  let { programId, toltProgramId, userId, startingAfter } = payload;
+
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -38,9 +34,7 @@ export async function importCommissions({
 
   const { workspace } = program;
 
-  const { token, toltProgramId, userId } = await toltImporter.getCredentials(
-    workspace.id,
-  );
+  const { token } = await toltImporter.getCredentials(workspace.id);
 
   const toltApi = new ToltApi({ token });
 
@@ -74,9 +68,11 @@ export async function importCommissions({
     processedBatches++;
   }
 
+  delete payload?.startingAfter;
+
   if (hasMore) {
     await toltImporter.queue({
-      programId,
+      ...payload,
       action: "import-commissions",
       startingAfter,
     });
@@ -116,7 +112,7 @@ export async function importCommissions({
   }
 
   await toltImporter.queue({
-    programId,
+    ...payload,
     action: "update-stripe-customers",
   });
 }
