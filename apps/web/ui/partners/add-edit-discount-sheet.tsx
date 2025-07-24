@@ -87,19 +87,8 @@ function DiscountSheetContent({
     },
   });
 
-  const [
-    type,
-    amount,
-    includedPartnerIds = [],
-    excludedPartnerIds = [],
-    maxDuration,
-  ] = watch([
-    "type",
-    "amount",
-    "includedPartnerIds",
-    "excludedPartnerIds",
-    "maxDuration",
-  ]);
+  const [type, amount, includedPartnerIds = [], excludedPartnerIds = []] =
+    watch(["type", "amount", "includedPartnerIds", "excludedPartnerIds"]);
 
   const { data: discountPartners, loading: isLoadingDiscountPartners } =
     useDiscountPartners({
