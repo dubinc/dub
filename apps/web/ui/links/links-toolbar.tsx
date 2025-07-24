@@ -236,16 +236,22 @@ export const LinksToolbar = memo(
                 >
                   <CursorPaginationControls
                     pagination={pagination}
-                    onNextPage={() =>
-                      setPagination({
-                        startingAfter: links[links.length - 1].id,
-                      })
-                    }
-                    onPreviousPage={() =>
-                      setPagination({
-                        endingBefore: links[0].id,
-                      })
-                    }
+                    onNextPage={() => {
+                      const lastLink = links[links.length - 1];
+                      if (lastLink?.id) {
+                        setPagination({
+                          startingAfter: lastLink.id,
+                        });
+                      }
+                    }}
+                    onPreviousPage={() => {
+                      const firstLink = links[0];
+                      if (firstLink?.id) {
+                        setPagination({
+                          endingBefore: firstLink.id,
+                        });
+                      }
+                    }}
                     totalCount={linksCount}
                     unit={(plural) => `${plural ? "links" : "link"}`}
                   >
