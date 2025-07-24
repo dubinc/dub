@@ -3,6 +3,7 @@ import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
+import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { isStored, storage } from "@/lib/storage";
 import { toltImporter } from "@/lib/tolt/importer";
@@ -49,6 +50,7 @@ export const createProgram = async ({
     helpUrl,
     termsUrl,
     logo: uploadedLogo,
+    importSource,
   } = programDataSchema.parse(store.programOnboarding);
 
   await getDomainOrThrow({ workspace, domain });
@@ -138,8 +140,7 @@ export const createProgram = async ({
         .then(({ url }) => url)
     : null;
 
-  // import the rewardful campaign if it exists
-  if (rewardful && rewardful.id) {
+  if (importSource === "rewardful" && rewardful?.id) {
     const credentials = await rewardfulImporter.getCredentials(workspace.id);
 
     await rewardfulImporter.setCredentials(workspace.id, {
@@ -151,13 +152,16 @@ export const createProgram = async ({
       programId: program.id,
       action: "import-campaign",
     });
-  }
-
-  // import the tolt program if it exists
-  if (tolt && tolt.id) {
+  } else if (importSource === "tolt") {
     await toltImporter.queue({
       programId: program.id,
       action: "import-affiliates",
+    });
+  } else if (importSource === "partnerstack") {
+    await partnerStackImporter.queue({
+      userId: user.id,
+      programId: program.id,
+      action: "import-partners",
     });
   }
 
