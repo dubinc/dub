@@ -36,7 +36,7 @@ export async function importReferrals({
   let processedBatches = 0;
 
   while (hasMoreReferrals && processedBatches < MAX_BATCHES) {
-    const referrals = await rewardfulApi.listReferrals({
+    const referrals = await rewardfulApi.listCustomers({
       page: currentPage,
     });
 
@@ -63,7 +63,7 @@ export async function importReferrals({
   if (hasMoreReferrals) {
     return await rewardfulImporter.queue({
       programId: program.id,
-      action: "import-referrals",
+      action: "import-customers",
       page: currentPage,
     });
   }

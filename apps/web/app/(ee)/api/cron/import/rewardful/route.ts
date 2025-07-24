@@ -1,9 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { importAffiliates } from "@/lib/rewardful/import-affiliates";
 import { importCampaign } from "@/lib/rewardful/import-campaign";
 import { importCommissions } from "@/lib/rewardful/import-commissions";
-import { importReferrals } from "@/lib/rewardful/import-referrals";
+import { importReferrals } from "@/lib/rewardful/import-customers";
+import { importAffiliates } from "@/lib/rewardful/import-partners";
 import { importSteps } from "@/lib/rewardful/importer";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -32,14 +32,14 @@ export async function POST(req: Request) {
           programId,
         });
         break;
-      case "import-affiliates":
+      case "import-partners":
         await importAffiliates({
           programId,
           rewardId,
           page,
         });
         break;
-      case "import-referrals":
+      case "import-customers":
         await importReferrals({
           programId,
           page,

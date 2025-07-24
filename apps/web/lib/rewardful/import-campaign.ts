@@ -84,6 +84,6 @@ export async function importCampaign({ programId }: { programId: string }) {
   return await rewardfulImporter.queue({
     programId,
     ...(rewardId && { rewardId }),
-    action: "import-affiliates",
+    action: "import-partners",
   });
 }

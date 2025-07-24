@@ -14,8 +14,8 @@ export const CACHE_KEY_PREFIX = "rewardful:import";
 
 export const importSteps = z.enum([
   "import-campaign",
-  "import-affiliates",
-  "import-referrals",
+  "import-partners",
+  "import-customers",
   "import-commissions",
 ]);
 

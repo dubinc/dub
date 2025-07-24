@@ -45,7 +45,7 @@ export async function importAffiliates({
   });
 
   while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
-    const affiliates = await rewardfulApi.listAffiliates({
+    const affiliates = await rewardfulApi.listPartners({
       campaignId,
       page: currentPage,
     });
@@ -78,12 +78,12 @@ export async function importAffiliates({
     processedBatches++;
   }
 
-  const action = hasMoreAffiliates ? "import-affiliates" : "import-referrals";
+  const action = hasMoreAffiliates ? "import-partners" : "import-customers";
 
   await rewardfulImporter.queue({
     programId: program.id,
     action,
-    ...(action === "import-affiliates" && rewardId && { rewardId }),
+    ...(action === "import-partners" && rewardId && { rewardId }),
     ...(hasMoreAffiliates ? { page: currentPage } : {}),
   });
 }
