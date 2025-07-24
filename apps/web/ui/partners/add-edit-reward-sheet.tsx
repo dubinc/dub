@@ -225,113 +225,122 @@ function RewardSheetContent({
         </div>
 
         <div className="flex flex-1 flex-col overflow-y-auto p-6">
-          {selectedEvent === "sale" && (
-            <RewardSheetCard
-              title={
-                <>
-                  <IconSquare icon={MoneyBills2} />
-                  <span className="leading-relaxed">
-                    Pay a{" "}
-                    <InlineBadgePopover text={type}>
-                      <InlineBadgePopoverMenu
-                        selectedValue={type}
-                        onSelect={(value) =>
-                          setValue("type", value as "flat" | "percentage", {
-                            shouldDirty: true,
-                          })
-                        }
-                        items={[
-                          {
-                            text: "Flat",
-                            value: "flat",
-                          },
-                          {
-                            text: "Percentage",
-                            value: "percentage",
-                          },
-                        ]}
-                      />
-                    </InlineBadgePopover>{" "}
-                    {type === "percentage" && "of "}
-                    <InlineBadgePopover
-                      text={
-                        amount
-                          ? constructRewardAmount({
-                              amount: type === "flat" ? amount * 100 : amount,
-                              type,
+          <RewardSheetCard
+            title={
+              <>
+                <IconSquare icon={MoneyBills2} />
+                <span className="leading-relaxed">
+                  Pay{" "}
+                  {selectedEvent === "sale" && (
+                    <>
+                      a{" "}
+                      <InlineBadgePopover text={type}>
+                        <InlineBadgePopoverMenu
+                          selectedValue={type}
+                          onSelect={(value) =>
+                            setValue("type", value as "flat" | "percentage", {
+                              shouldDirty: true,
                             })
-                          : "amount"
-                      }
-                      invalid={!amount}
-                    >
-                      <div className="relative rounded-md shadow-sm">
-                        {type === "flat" && (
-                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                            $
-                          </span>
-                        )}
-                        <input
-                          className={cn(
-                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
-                            errors.amount &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600",
-                            type === "flat" ? "pl-6 pr-12" : "pr-7",
-                          )}
-                          {...register("amount", {
-                            required: true,
-                            valueAsNumber: true,
-                            min: 0,
-                            max: type === "percentage" ? 100 : undefined,
-                            onChange: handleMoneyInputChange,
-                          })}
-                          onKeyDown={handleMoneyKeyDown}
+                          }
+                          items={[
+                            {
+                              text: "Flat",
+                              value: "flat",
+                            },
+                            {
+                              text: "Percentage",
+                              value: "percentage",
+                            },
+                          ]}
                         />
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                          {type === "flat" ? "USD" : "%"}
-                        </span>
-                      </div>
-                    </InlineBadgePopover>{" "}
-                    per {selectedEvent}{" "}
-                    <InlineBadgePopover
-                      text={
-                        maxDuration === 0
-                          ? "one time"
-                          : maxDuration === Infinity
-                            ? "for the customer's lifetime"
-                            : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
-                      }
-                    >
-                      <InlineBadgePopoverMenu
-                        selectedValue={maxDuration?.toString()}
-                        onSelect={(value) =>
-                          setValue("maxDuration", Number(value), {
-                            shouldDirty: true,
+                      </InlineBadgePopover>{" "}
+                      {type === "percentage" && "of "}
+                    </>
+                  )}
+                  <InlineBadgePopover
+                    text={
+                      amount
+                        ? constructRewardAmount({
+                            amount: type === "flat" ? amount * 100 : amount,
+                            type,
                           })
+                        : "amount"
+                    }
+                    invalid={!amount}
+                  >
+                    <div className="relative rounded-md shadow-sm">
+                      {type === "flat" && (
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                          $
+                        </span>
+                      )}
+                      <input
+                        className={cn(
+                          "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
+                          errors.amount &&
+                            "border-red-600 focus:border-red-500 focus:ring-red-600",
+                          type === "flat" ? "pl-6 pr-12" : "pr-7",
+                        )}
+                        {...register("amount", {
+                          required: true,
+                          setValueAs: (value: string) =>
+                            value === "" ? undefined : +value,
+                          min: 0,
+                          max: type === "percentage" ? 100 : undefined,
+                          onChange: handleMoneyInputChange,
+                        })}
+                        onKeyDown={handleMoneyKeyDown}
+                      />
+                      <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                        {type === "flat" ? "USD" : "%"}
+                      </span>
+                    </div>
+                  </InlineBadgePopover>{" "}
+                  per {selectedEvent}
+                  {selectedEvent === "sale" && (
+                    <>
+                      {" "}
+                      <InlineBadgePopover
+                        text={
+                          maxDuration === 0
+                            ? "one time"
+                            : maxDuration === Infinity
+                              ? "for the customer's lifetime"
+                              : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
                         }
-                        items={[
-                          {
-                            text: "one time",
-                            value: "0",
-                          },
-                          ...RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
-                            (v) => ({
+                      >
+                        <InlineBadgePopoverMenu
+                          selectedValue={maxDuration?.toString()}
+                          onSelect={(value) =>
+                            setValue("maxDuration", Number(value), {
+                              shouldDirty: true,
+                            })
+                          }
+                          items={[
+                            {
+                              text: "one time",
+                              value: "0",
+                            },
+                            ...RECURRING_MAX_DURATIONS.filter(
+                              (v) => v !== 0,
+                            ).map((v) => ({
                               text: `for ${v} ${pluralize("month", Number(v))}`,
                               value: v.toString(),
-                            }),
-                          ),
-                          {
-                            text: "for the customer's lifetime",
-                            value: "Infinity",
-                          },
-                        ]}
-                      />
-                    </InlineBadgePopover>
-                  </span>
-                </>
-              }
-              content={<></>}
-            />
-          )}
+                            })),
+                            {
+                              text: "for the customer's lifetime",
+                              value: "Infinity",
+                            },
+                          ]}
+                        />
+                      </InlineBadgePopover>
+                    </>
+                  )}
+                </span>
+              </>
+            }
+            content={<></>}
+          />
 
           <VerticalLine />
           <RewardSheetCard
