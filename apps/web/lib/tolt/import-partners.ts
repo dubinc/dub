@@ -80,12 +80,10 @@ export async function importPartners(payload: ToltImportPayload) {
     startingAfter = affiliates[affiliates.length - 1].id;
   }
 
-  delete payload?.startingAfter;
-
   await toltImporter.queue({
     ...payload,
+    startingAfter: hasMore ? startingAfter : undefined,
     action: hasMore ? "import-partners" : "import-links",
-    ...(hasMore && { startingAfter }),
   });
 }
 
