@@ -4,6 +4,7 @@ import { useUserCache } from "@/lib/swr/use-user.ts";
 import {
   initPeopleAnalytic,
   setPeopleAnalytic,
+  startSessionRecording,
 } from "core/integration/analytic";
 import { useEffect } from "react";
 
@@ -30,6 +31,7 @@ export const AnalyticInitializerComponent = ({
       setPeopleAnalytic({ $email: user.email });
     } else {
       initPeopleAnalytic(sessionId);
+      startSessionRecording();
     }
   }, [isAuthorized, user]);
 

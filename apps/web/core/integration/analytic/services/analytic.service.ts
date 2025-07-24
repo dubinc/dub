@@ -44,9 +44,19 @@ export const resetAnalyticSession = () => {
   mixpanelClient.reset();
 };
 
-// reset session
+// get distinct id
 export const getDistinctId = () => {
   return mixpanelClient.peopleGetDistinctId();
+};
+
+// start session recording
+export const startSessionRecording = () => {
+  return mixpanelClient.startSessionRecording();
+};
+
+// stop session recording
+export const stopSessionRecording = () => {
+  return mixpanelClient.stopSessionRecording();
 };
 
 // track events service

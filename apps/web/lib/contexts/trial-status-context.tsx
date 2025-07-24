@@ -12,6 +12,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { startSessionRecording } from "../../core/integration/analytic";
 
 interface TrialStatusContextType {
   isTrialOver: boolean;
@@ -43,6 +44,7 @@ export function TrialStatusProvider({ children }: { children: ReactNode }) {
 
       if (!res?.data?.featuresAccess) {
         setIsTrialOver(true);
+        startSessionRecording();
       }
     } catch (error) {
       console.error("Error checking trial status:", error);
