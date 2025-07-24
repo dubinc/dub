@@ -240,7 +240,7 @@ export function Form() {
         </div>
       )}
 
-      {programType !== "import" && (
+      {programType === "new" && (
         <Button
           text="Continue"
           className="w-full"
