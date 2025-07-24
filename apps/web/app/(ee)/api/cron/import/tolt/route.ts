@@ -1,10 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { cleanupPartners } from "@/lib/tolt/cleanup-partners";
-import { importAffiliates } from "@/lib/tolt/import-affiliates";
 import { importCommissions } from "@/lib/tolt/import-commissions";
+import { importCustomers } from "@/lib/tolt/import-customers";
 import { importLinks } from "@/lib/tolt/import-links";
-import { importReferrals } from "@/lib/tolt/import-referrals";
+import { importPartners } from "@/lib/tolt/import-partners";
 import { importSteps } from "@/lib/tolt/importer";
 import { updateStripeCustomers } from "@/lib/tolt/update-stripe-customers";
 import { NextResponse } from "next/server";
@@ -30,14 +30,14 @@ export async function POST(req: Request) {
     const { action, ...payload } = schema.parse(JSON.parse(rawBody));
 
     switch (action) {
-      case "import-affiliates":
-        await importAffiliates(payload);
+      case "import-partners":
+        await importPartners(payload);
         break;
       case "import-links":
         await importLinks(payload);
         break;
-      case "import-referrals":
-        await importReferrals(payload);
+      case "import-customers":
+        await importCustomers(payload);
         break;
       case "import-commissions":
         await importCommissions(payload);

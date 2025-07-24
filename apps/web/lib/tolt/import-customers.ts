@@ -8,7 +8,7 @@ import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
 import { ToltAffiliate, ToltCustomer } from "./types";
 
-export async function importReferrals({
+export async function importCustomers({
   programId,
   startingAfter,
 }: {
@@ -112,7 +112,7 @@ export async function importReferrals({
 
   await toltImporter.queue({
     programId,
-    action: hasMore ? "import-referrals" : "import-commissions",
+    action: hasMore ? "import-customers" : "import-commissions",
     ...(hasMore && { startingAfter }),
   });
 }

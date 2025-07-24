@@ -10,9 +10,9 @@ export const CACHE_KEY_PREFIX = "tolt:import";
 export const PARTNER_IDS_KEY_PREFIX = "tolt:import:partnerIds";
 
 export const importSteps = z.enum([
-  "import-affiliates",
+  "import-partners",
   "import-links",
-  "import-referrals",
+  "import-customers",
   "import-commissions",
   "update-stripe-customers", // update the customers with their stripe customer ID
   "cleanup-partners", // remove partners with 0 leads

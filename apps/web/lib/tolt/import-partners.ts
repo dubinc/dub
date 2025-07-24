@@ -6,7 +6,7 @@ import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
 import { ToltAffiliate } from "./types";
 
-export async function importAffiliates({
+export async function importPartners({
   programId,
   startingAfter,
 }: {
@@ -41,7 +41,7 @@ export async function importAffiliates({
   const defaultReward = saleReward || leadReward || clickReward;
 
   while (hasMore && processedBatches < MAX_BATCHES) {
-    const affiliates = await toltApi.listAffiliates({
+    const affiliates = await toltApi.listPartners({
       programId: toltProgramId,
       startingAfter,
     });
@@ -88,7 +88,7 @@ export async function importAffiliates({
 
   await toltImporter.queue({
     programId,
-    action: hasMore ? "import-affiliates" : "import-links",
+    action: hasMore ? "import-partners" : "import-links",
     ...(hasMore && { startingAfter }),
   });
 }
