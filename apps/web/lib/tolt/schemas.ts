@@ -9,6 +9,14 @@ export const toltImportSteps = z.enum([
   "cleanup-partners", // remove partners with 0 leads
 ]);
 
+export const toltImportPayloadSchema = z.object({
+  userId: z.string(),
+  programId: z.string(),
+  toltProgramId: z.string(),
+  action: toltImportSteps,
+  startingAfter: z.string().optional(),
+});
+
 export const ToltProgramSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -64,12 +72,4 @@ export const ToltCommissionSchema = z.object({
     customer_id: true,
     partner: true,
   }),
-});
-
-export const toltImportPayloadSchema = z.object({
-  userId: z.string(),
-  programId: z.string(),
-  toltProgramId: z.string(),
-  action: toltImportSteps,
-  startingAfter: z.string().optional(),
 });
