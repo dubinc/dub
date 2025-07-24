@@ -25,6 +25,7 @@ export function ConversionBlock() {
   }>(
     `/api/analytics?${editQueryString(queryString, {
       event: "composite",
+      saleType: "new",
     })}`,
     fetcher,
     {
@@ -66,7 +67,7 @@ export function ConversionBlock() {
     <ProgramOverviewBlock
       title="Conversion rate"
       viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
-        { view: "funnel" },
+        { saleType: "new", view: "funnel" },
         {
           include: ["interval", "start", "end"],
         },

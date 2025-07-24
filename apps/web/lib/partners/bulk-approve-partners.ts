@@ -125,9 +125,8 @@ export async function bulkApprovePartners({
             workspace,
             trigger: "partner.enrolled",
             data: EnrolledPartnerSchema.parse({
-              ...enrollment,
               ...partner,
-              status: enrollment.status,
+              ...enrollment,
               id: partner.id,
               links: partnerLinks.filter(
                 ({ partnerId }) => partnerId === partner.id,

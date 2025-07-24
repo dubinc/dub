@@ -34,11 +34,8 @@ const saleWebhookEventSchemaExtended = saleWebhookEventSchema.extend({
 });
 
 const enrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
-  createdAt: z.string().transform((str) => new Date(str)),
-  payoutsEnabledAt: z
-    .string()
-    .transform((str) => (str ? new Date(str) : null))
-    .nullable(),
+  payoutsEnabledAt: z.string().nullable(),
+  createdAt: z.string(),
 });
 
 const commissionWebhookEventSchemaExtended = CommissionEnrichedSchema.extend({
