@@ -61,15 +61,6 @@ export const GET = withWorkspace(
         interval,
       });
 
-      console.log("isMegaWorkspace", {
-        start,
-        end,
-        startDate,
-        endDate,
-        folderId,
-        timezone,
-      });
-
       const { data } = await getLinksCountTB({
         workspaceId: workspace.id,
         folderId,
