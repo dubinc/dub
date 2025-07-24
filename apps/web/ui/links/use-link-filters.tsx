@@ -42,8 +42,6 @@ export function useLinkFilters() {
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  console.log("searchParamsObj", searchParamsObj);
-
   const filters = useMemo(() => {
     return [
       {
