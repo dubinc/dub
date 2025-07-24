@@ -9,7 +9,7 @@ import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulReferral } from "./types";
 
-export async function importReferrals({
+export async function importCustomers({
   programId,
   page,
 }: {

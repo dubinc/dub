@@ -8,8 +8,7 @@ import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate } from "./types";
 
-// Import Rewardful affiliates
-export async function importAffiliates({
+export async function importPartners({
   programId,
   rewardId,
   page,
