@@ -19,6 +19,7 @@ export const programInfoSchema = z.object({
 export const programRewardSchema = z
   .object({
     programType: z.enum(["new", "import"]),
+    importSource: z.enum(["rewardful", "tolt", "partnerstack"]).nullish(),
     rewardful: z
       .object({
         maskedToken: z.string().nullish(),
