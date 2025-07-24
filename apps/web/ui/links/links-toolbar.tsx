@@ -1,6 +1,6 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useFolderPermissions } from "@/lib/swr/use-folder-permissions";
-import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
+import { useIsMegaWorkspace } from "@/lib/swr/use-is-mega-workspace";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -50,11 +50,10 @@ export const LinksToolbar = memo(
     linksCount: number;
   }) => {
     const { slug, plan } = useWorkspace();
-
-    const { isMegaFolder } = useIsMegaFolder();
-
+    const { isMegaWorkspace } = useIsMegaWorkspace();
     const { canManageFolderPermissions } = getPlanCapabilities(plan);
     const { folders } = useFolderPermissions();
+
     const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
     const { openMenuLinkId } = useContext(LinksListContext);
@@ -227,9 +226,8 @@ export const LinksToolbar = memo(
                     setPagination={setPagination}
                     totalCount={linksCount}
                     unit={(plural) => `${plural ? "links" : "link"}`}
-                    showTotalCount={!isMegaFolder}
                   >
-                    {!isMegaFolder && (
+                    {!isMegaWorkspace && (
                       <>
                         {loading ? (
                           <LoadingSpinner className="size-3.5" />

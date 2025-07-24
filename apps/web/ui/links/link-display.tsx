@@ -2,7 +2,7 @@ import {
   linksDisplayProperties,
   LinksViewMode,
 } from "@/lib/links/links-display";
-import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
+import { useIsMegaWorkspace } from "@/lib/swr/use-is-mega-workspace";
 import {
   Button,
   Popover,
@@ -23,6 +23,7 @@ import { ChevronDown } from "lucide-react";
 import { useContext, useState } from "react";
 import LinkSort from "./link-sort";
 import { LinksDisplayContext } from "./links-display-provider";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 
 export default function LinkDisplay() {
   const {
@@ -37,13 +38,13 @@ export default function LinkDisplay() {
     reset,
   } = useContext(LinksDisplayContext);
 
-  const { isMegaFolder } = useIsMegaFolder();
+  const { isMegaWorkspace } = useIsMegaWorkspace();
 
   const [openPopover, setOpenPopover] = useState(false);
   const { queryParams } = useRouterStuff();
 
   useKeyboardShortcut("a", () => setShowArchived((o) => !o), {
-    enabled: !isMegaFolder,
+    enabled: !isMegaWorkspace,
   });
 
   return (
@@ -80,7 +81,7 @@ export default function LinkDisplay() {
             })}
           </div>
 
-          {!isMegaFolder && (
+          {!isMegaWorkspace && (
             <div className="flex h-16 items-center justify-between gap-2 px-4">
               <span className="flex items-center gap-2">
                 <ArrowsOppositeDirectionY className="h-4 w-4 text-neutral-800" />
@@ -92,7 +93,7 @@ export default function LinkDisplay() {
             </div>
           )}
 
-          {!isMegaFolder && (
+          {!isMegaWorkspace && (
             <div className="group flex h-16 items-center justify-between gap-2 px-4">
               <div className="flex items-center gap-2">
                 <div className="flex w-6 items-center justify-center">
@@ -119,6 +120,22 @@ export default function LinkDisplay() {
               </div>
             </div>
           )}
+
+          {isMegaWorkspace && (
+            <div className="flex h-16 items-center justify-between gap-2 px-4">
+              <span className="flex items-center gap-2 text-sm text-neutral-800">
+                Date Range
+              </span>
+              <div className="w-48">
+                <SimpleDateRangePicker
+                  className="w-full"
+                  align="end"
+                  defaultInterval="30d"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="p-4">
             <span className="text-xs uppercase text-neutral-500">
               Display Properties
