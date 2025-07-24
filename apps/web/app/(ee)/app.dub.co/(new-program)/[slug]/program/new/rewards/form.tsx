@@ -77,7 +77,13 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [programType, importSource] = watch(["programType", "importSource"]);
+  const [programType, importSource, amount, type, defaultRewardType] = watch([
+    "programType",
+    "importSource",
+    "amount",
+    "type",
+    "defaultRewardType",
+  ]);
 
   useEffect(() => {
     if (programType === "new") {
@@ -147,6 +153,9 @@ export function Form() {
         return null;
     }
   };
+
+  const buttonDisabled =
+    programType === "new" && (!amount || !type || !defaultRewardType);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -244,8 +253,8 @@ export function Form() {
         <Button
           text="Continue"
           className="w-full"
-          loading={isSubmitting || isPending || hasSubmitted}
-          disabled={isSubmitting || isPending || hasSubmitted}
+          loading={isSubmitting || isPending}
+          disabled={buttonDisabled || hasSubmitted}
           type="submit"
         />
       )}
