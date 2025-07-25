@@ -127,6 +127,8 @@ export function Form() {
   }, [importSource]);
 
   const renderImportForm = () => {
+    const isPendingAction = isSubmitting || isPending || hasSubmitted;
+
     switch (selectedSource?.id) {
       case "rewardful":
         return (
@@ -135,7 +137,7 @@ export function Form() {
             watch={watch}
             setValue={setValue}
             onSuccess={() => onSubmit(getValues())}
-            isPending={isSubmitting || isPending || hasSubmitted}
+            isPending={isPendingAction}
           />
         );
       case "tolt":
@@ -144,12 +146,15 @@ export function Form() {
             watch={watch}
             setValue={setValue}
             onSuccess={() => onSubmit(getValues())}
-            isPending={isSubmitting || isPending || hasSubmitted}
+            isPending={isPendingAction}
           />
         );
       case "partnerstack":
         return (
-          <ImportPartnerStackForm onSuccess={() => onSubmit(getValues())} />
+          <ImportPartnerStackForm
+            onSuccess={() => onSubmit(getValues())}
+            isPending={isPendingAction}
+          />
         );
       default:
         return null;
