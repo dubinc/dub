@@ -83,6 +83,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
         workspaceId: cachedLink.projectId,
         skipRatelimit: true,
         shouldCacheClickId: true,
+        trigger: "deeplink",
       });
     }
 
