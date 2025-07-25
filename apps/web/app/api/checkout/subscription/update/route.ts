@@ -100,6 +100,7 @@ export const POST = withSession(
               user?.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
             plan_name: body.paymentPlan,
             payment_subtype: "SUBSCRIPTION",
+            billing_action: "rebill",
             //**** for analytics ****//
 
             //**** fields for subscription system ****//

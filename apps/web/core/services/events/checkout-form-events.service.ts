@@ -53,6 +53,7 @@ export const generateCheckoutFormPaymentEvents = ({
     event_category: "Authorized",
     toxic,
     page_name: "account",
+    billing_action: null,
     ...additionalParams,
   };
 

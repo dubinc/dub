@@ -4,8 +4,12 @@ import { IPricingPlan } from "@/ui/plans/constants";
 import { Button } from "@dub/ui";
 import { useCreateUserPaymentMutation } from "core/api/user/payment/payment.hook";
 import { useUpdateSubscriptionMutation } from "core/api/user/subscription/subscription.hook";
+import {
+  getSubscriptionRenewalAction,
+  subscriptionPlansWeight,
+} from "core/constants/subscription-plans-weight.ts";
 import { pollPaymentStatus } from "core/integration/payment/client/services/payment-status.service.ts";
-import { ICustomerBody } from "core/integration/payment/config";
+import { ICustomerBody, TPaymentPlan } from "core/integration/payment/config";
 import { IGetPrimerClientPaymentInfoRes } from "core/integration/payment/server";
 import { generateTrackingUpsellEvent } from "core/services/events/upsell-events.service.ts";
 import { useSession } from "next-auth/react";
@@ -21,12 +25,6 @@ interface IUpdateSubscriptionProps {
   isProcessing: boolean;
   setIsProcessing: Dispatch<SetStateAction<boolean>>;
 }
-
-const paymentPlanWeight = {
-  PRICE_MONTH_PLAN: 1,
-  PRICE_QUARTER_PLAN: 2,
-  PRICE_YEAR_PLAN: 3,
-};
 
 export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
   user,
@@ -46,8 +44,8 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
     switch (true) {
       case selectedPlan.paymentPlan === currentSubscriptionPlan:
         return "Your Active Plan";
-      case paymentPlanWeight[selectedPlan.paymentPlan] <
-        paymentPlanWeight?.[currentSubscriptionPlan!]:
+      case subscriptionPlansWeight[selectedPlan.paymentPlan] <
+        subscriptionPlansWeight?.[currentSubscriptionPlan!]:
         return "Downgrade Plan";
       default:
         return "Upgrade Plan";
@@ -61,6 +59,12 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
       user,
       paymentPlan: selectedPlan.paymentPlan,
       stage: "attempt",
+      additionalParams: {
+        billing_action: getSubscriptionRenewalAction(
+          selectedPlan.paymentPlan,
+          currentSubscriptionPlan as TPaymentPlan,
+        ),
+      },
     });
 
     const createPaymentRes = await triggerCreateUserPayment({
@@ -75,6 +79,10 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
         stage: "error",
         additionalParams: {
           error_code: "PAYMENT_CREATION_FAILED",
+          billing_action: getSubscriptionRenewalAction(
+            selectedPlan.paymentPlan,
+            currentSubscriptionPlan as TPaymentPlan,
+          ),
         },
       });
       toast.error(`Payment creation failed.`);
@@ -92,6 +100,10 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
         paymentId: info?.id ?? createPaymentRes?.data?.paymentId,
         additionalParams: {
           error_code: info?.statusReason?.code ?? info?.status ?? null,
+          billing_action: getSubscriptionRenewalAction(
+            selectedPlan.paymentPlan,
+            currentSubscriptionPlan as TPaymentPlan,
+          ),
         },
       });
 
@@ -108,21 +120,17 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
             paymentPlan: selectedPlan.paymentPlan,
             stage: "success",
             paymentId: info?.id,
+            additionalParams: {
+              billing_action: getSubscriptionRenewalAction(
+                selectedPlan.paymentPlan,
+                currentSubscriptionPlan as TPaymentPlan,
+              ),
+            },
           });
 
-          const currentOperation = () => {
-            switch (true) {
-              case selectedPlan.paymentPlan === currentSubscriptionPlan:
-                return "upgrade";
-              case paymentPlanWeight[selectedPlan.paymentPlan] <
-                paymentPlanWeight?.[currentSubscriptionPlan!]:
-                return "downgrade";
-              default:
-                return "upgrade";
-            }
-          };
-
-          toast.success(`The plan ${currentOperation()} was successful!`);
+          toast.success(
+            `The plan ${getSubscriptionRenewalAction(selectedPlan.paymentPlan, currentSubscriptionPlan as TPaymentPlan)} was successful!`,
+          );
 
           // Update session data to reflect the new subscription plan
           await updateSession();
