@@ -70,7 +70,7 @@ describe("POST /track/open", async () => {
     expect(response.data).toStrictEqual({
       error: {
         code: "not_found",
-        message: `Link not found for domain: ${E2E_LINK.domain} and key: non-existent-key.`,
+        message: `Link not found for the short link https://${E2E_LINK.domain}/non-existent-key`,
         doc_url: "https://dub.co/docs/api-reference/errors#not-found",
       },
     });
