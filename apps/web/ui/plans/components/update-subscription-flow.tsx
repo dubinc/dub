@@ -69,7 +69,16 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
 
     if (!createPaymentRes?.success) {
       setIsProcessing(false);
+      generateTrackingUpsellEvent({
+        user,
+        paymentPlan: selectedPlan.paymentPlan,
+        stage: "error",
+        additionalParams: {
+          error_code: "PAYMENT_CREATION_FAILED",
+        },
+      });
       toast.error(`Payment creation failed.`);
+
       return;
     }
 

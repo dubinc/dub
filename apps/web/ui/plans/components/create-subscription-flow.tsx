@@ -166,11 +166,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     });
 
     await updateSession();
-
-    // Force refresh user data cache
     await mutate("/api/user");
 
-    // Force refresh the page cache
     router.refresh();
     router.push("/");
   };

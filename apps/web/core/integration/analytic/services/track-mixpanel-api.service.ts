@@ -22,6 +22,8 @@ export const trackMixpanelApiService = async ({
       {
         event,
         properties: {
+          env: `${process.env.NEXT_PUBLIC_APP_ENV}`,
+          event_origin: "backend",
           distinct_id: userId,
           email,
           mixpanel_user_id: userId,
