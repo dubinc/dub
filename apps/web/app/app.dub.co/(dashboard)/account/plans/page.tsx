@@ -4,6 +4,7 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PlansContent } from "@/ui/plans/plans-content.tsx";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { MaxWidthWrapper } from "@dub/ui";
+import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { NextPage } from "next";
 
@@ -33,18 +34,19 @@ const PlansPage: NextPage = async () => {
     ? convertSessionUserToCustomerBody(authUser)
     : cookieUser;
 
-  console.log("PlansPage email", user?.email);
-  console.log(
-    "PlansPage current subscription plan",
-    user?.paymentInfo?.subscriptionPlanCode || "Dont subscribe",
-  );
-
   return (
-    <PageContent title="Plans and Payments">
-      <MaxWidthWrapper>
-        <PlansContent user={user!} mostScannedQR={mostScannedQR} />
-      </MaxWidthWrapper>
-    </PageContent>
+    <>
+      <PageContent title="Plans and Payments">
+        <MaxWidthWrapper>
+          <PlansContent user={user!} mostScannedQR={mostScannedQR} />
+        </MaxWidthWrapper>
+      </PageContent>
+      <PageViewedTrackerComponent
+        sessionId={authUser.id!}
+        pageName="plans"
+        params={{ event_category: "Authorized", email: authUser?.email }}
+      />
+    </>
   );
 };
 

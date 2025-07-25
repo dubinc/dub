@@ -1,11 +1,21 @@
-import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
+import { getSession } from "@/lib/auth";
+import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker";
 import { NextPage } from "next";
 import SettingsPageClient from "./page-client";
 
 const SettingsPage: NextPage = async () => {
-  const { sessionId } = await getUserCookieService();
+  const { user: authUser } = await getSession();
 
-  return <SettingsPageClient sessionId={sessionId!} />;
+  return (
+    <>
+      <SettingsPageClient sessionId={authUser.id!} />
+      <PageViewedTrackerComponent
+        sessionId={authUser.id!}
+        pageName="settings"
+        params={{ event_category: "Authorized", email: authUser?.email }}
+      />
+    </>
+  );
 };
 
 export default SettingsPage;

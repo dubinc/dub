@@ -2,6 +2,7 @@
 
 import { checkFeaturesAccess } from "@/lib/actions/check-features-access.ts";
 import { useGetUserProfileQuery } from "core/api/user/user.hook.tsx";
+import { startSessionRecording } from "core/integration/analytic";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import {
@@ -12,7 +13,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { startSessionRecording } from "../../core/integration/analytic";
 
 interface TrialStatusContextType {
   isTrialOver: boolean;
