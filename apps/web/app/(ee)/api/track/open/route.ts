@@ -18,20 +18,27 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-const trackOpenSchema = z.object({
+const trackOpenRequestSchema = z.object({
   domain: z.string().trim(),
   key: z.string().trim(),
 });
 
 const trackOpenResponseSchema = z.object({
   clickId: z.string(),
-  url: z.string(),
+  link: z.object({
+    id: z.string(),
+    domain: z.string(),
+    key: z.string(),
+    url: z.string(),
+  }),
 });
 
 // POST /api/track/open – Track an open event for deep link
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
-    const { domain, key } = trackOpenSchema.parse(await parseRequestBody(req));
+    const { domain, key } = trackOpenRequestSchema.parse(
+      await parseRequestBody(req),
+    );
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
@@ -89,7 +96,12 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const response = trackOpenResponseSchema.parse({
       clickId,
-      url: cachedLink.url,
+      link: {
+        id: cachedLink.id,
+        domain,
+        key,
+        url: cachedLink.url,
+      },
     });
 
     return NextResponse.json(response, { headers: CORS_HEADERS });
