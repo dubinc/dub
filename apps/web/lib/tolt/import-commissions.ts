@@ -111,6 +111,7 @@ export async function importCommissions(payload: ToltImportPayload) {
 
   await toltImporter.queue({
     ...payload,
+    startingAfter: undefined,
     action: "update-stripe-customers",
   });
 }
