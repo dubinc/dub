@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Modal, useKeyboardShortcut, useMediaQuery } from "@dub/ui";
+import { Button, useKeyboardShortcut, useMediaQuery } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
 import {
   Dispatch,
@@ -108,34 +108,34 @@ export function QRBuilderModal({
 
   useKeyboardShortcut("Escape", handleClose);
 
-  if (isMobile) {
-    return (
-      <Drawer.Root
-        open={showQRBuilderModal}
-        onOpenChange={setShowQRBuilderModal}
-        dismissible={false}
-        repositionInputs={false}
-      >
-        <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
-          <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex !h-[100dvh] !max-h-[100dvh] !min-h-[100dvh] flex-col rounded-t-[10px] bg-white">
-            <div className="flex-1 overflow-y-auto">{modalContent}</div>
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
-    );
-  }
-
+  // if (isMobile) {
   return (
-    <Modal
-      showModal={showQRBuilderModal}
-      setShowModal={setShowQRBuilderModal}
-      desktopOnly
-      className="border-border-500 w-full max-w-6xl overflow-hidden"
+    <Drawer.Root
+      open={showQRBuilderModal}
+      onOpenChange={setShowQRBuilderModal}
+      dismissible={false}
+      repositionInputs={false}
     >
-      {modalContent}
-    </Modal>
+      <Drawer.Portal>
+        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
+        <Drawer.Content className="fixed bottom-0 left-0 right-0 z-50 flex !h-[100dvh] !max-h-[100dvh] !min-h-[100dvh] flex-col rounded-t-[10px] bg-white">
+          <div className="flex-1 overflow-y-auto">{modalContent}</div>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
   );
+  // }
+
+  // return (
+  //   <Modal
+  //     showModal={showQRBuilderModal}
+  //     setShowModal={setShowQRBuilderModal}
+  //     desktopOnly
+  //     className="border-border-500 w-full max-w-6xl overflow-hidden"
+  //   >
+  //     {modalContent}
+  //   </Modal>
+  // );
 }
 
 function CreateQRButton({
