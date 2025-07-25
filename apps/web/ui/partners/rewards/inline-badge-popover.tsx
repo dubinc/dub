@@ -49,7 +49,7 @@ export function InlineBadgePopover({
         className={cn(
           "inline-block rounded px-1.5 text-sm font-semibold transition-colors",
           invalid
-            ? "bg-orange-50 text-orange-700 hover:bg-orange-100 data-[state=open]:bg-orange-100"
+            ? "bg-orange-50 text-orange-500 hover:bg-orange-100 data-[state=open]:bg-orange-100"
             : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
         )}
       >

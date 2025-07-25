@@ -1,6 +1,11 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import {
+  CONDITION_ATTRIBUTES,
+  CONDITION_CUSTOMER_ATTRIBUTES,
+  CONDITION_SALE_ATTRIBUTES,
+} from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import {
   ArrowTurnRight2,
@@ -18,6 +23,10 @@ import { Command } from "cmdk";
 import { Fragment, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
+import {
+  InlineBadgePopover,
+  InlineBadgePopoverMenu,
+} from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
 
 export function RewardsLogic({
@@ -123,11 +132,10 @@ function ConditionalGroup({
             <div className="border-border-subtle flex items-center justify-between rounded-md border bg-white p-2.5">
               <div className="flex items-center gap-1.5">
                 <RewardIconSquare icon={User} />
-                <span>
-                  {conditionIndex === 0
-                    ? "If"
-                    : capitalize(operator.toLowerCase())}
-                </span>
+                <ConditionLogic
+                  modifierIndex={index}
+                  conditionIndex={conditionIndex}
+                />
               </div>
               <div className="flex items-center gap-1">
                 {conditions.length > 1 && (
@@ -157,6 +165,88 @@ function ConditionalGroup({
         </div>
       </div>
     </div>
+  );
+}
+
+const ENTITIES = {
+  customer: {
+    attributes: CONDITION_CUSTOMER_ATTRIBUTES,
+  },
+  sale: {
+    attributes: CONDITION_SALE_ATTRIBUTES,
+  },
+} as const;
+
+function ConditionLogic({
+  modifierIndex,
+  conditionIndex,
+}: {
+  modifierIndex: number;
+  conditionIndex: number;
+}) {
+  const modifierKey = `modifiers.${modifierIndex}` as const;
+  const conditionKey = `${modifierKey}.conditions.${conditionIndex}` as const;
+
+  const { control, setValue } = useAddEditRewardForm();
+  const [condition, operator] = useWatch({
+    control,
+    name: [conditionKey, `${modifierKey}.operator`],
+  });
+
+  // individual condition logic
+  return (
+    <span className="text-content-emphasis font-medium">
+      {conditionIndex === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
+      <InlineBadgePopover
+        text={capitalize(condition.entity) || "Select item"}
+        invalid={!condition.entity}
+      >
+        <InlineBadgePopoverMenu
+          selectedValue={condition.entity}
+          onSelect={(value) =>
+            setValue(
+              conditionKey,
+              { entity: value as keyof typeof ENTITIES },
+              {
+                shouldDirty: true,
+              },
+            )
+          }
+          items={Object.keys(ENTITIES).map((entity) => ({
+            text: capitalize(entity) || entity,
+            value: entity,
+          }))}
+        />
+      </InlineBadgePopover>{" "}
+      {condition.entity && (
+        <>
+          <InlineBadgePopover
+            text={capitalize(condition.attribute) || "Detail"}
+            invalid={!condition.attribute}
+          >
+            <InlineBadgePopoverMenu
+              selectedValue={condition.attribute}
+              onSelect={(value) =>
+                setValue(
+                  conditionKey,
+                  {
+                    entity: condition.entity,
+                    attribute: value as (typeof CONDITION_ATTRIBUTES)[number],
+                  },
+                  {
+                    shouldDirty: true,
+                  },
+                )
+              }
+              items={ENTITIES[condition.entity].attributes.map((attribute) => ({
+                text: capitalize(attribute) || attribute,
+                value: attribute,
+              }))}
+            />
+          </InlineBadgePopover>{" "}
+        </>
+      )}
+    </span>
   );
 }
 

@@ -21,7 +21,7 @@ import {
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
 import { Button, MoneyBills2, Sheet, Users } from "@dub/ui";
-import { cn, pluralize } from "@dub/utils";
+import { capitalize, cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -256,7 +256,7 @@ function RewardSheetContent({
                   {selectedEvent === "sale" && (
                     <>
                       a{" "}
-                      <InlineBadgePopover text={type}>
+                      <InlineBadgePopover text={capitalize(type)}>
                         <InlineBadgePopoverMenu
                           selectedValue={type}
                           onSelect={(value) =>

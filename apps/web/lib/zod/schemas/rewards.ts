@@ -15,17 +15,28 @@ export const COMMISSION_TYPES = [
   },
 ] as const;
 
+export const CONDITION_ENTITIES = ["customer", "sale"] as const;
+
+export const CONDITION_CUSTOMER_ATTRIBUTES = ["country"] as const;
+export const CONDITION_SALE_ATTRIBUTES = ["productId"] as const;
+export const CONDITION_ATTRIBUTES = [
+  ...CONDITION_CUSTOMER_ATTRIBUTES,
+  ...CONDITION_SALE_ATTRIBUTES,
+] as const;
+
+export const CONDITION_OPERATORS = [
+  "equals_to",
+  "not_equals",
+  "starts_with",
+  "ends_with",
+  "in",
+  "not_in",
+] as const;
+
 export const rewardConditionSchema = z.object({
-  entity: z.enum(["customer", "sale"]),
-  attribute: z.enum(["country", "productId"]),
-  operator: z.enum([
-    "equals_to",
-    "not_equals",
-    "starts_with",
-    "ends_with",
-    "in",
-    "not_in",
-  ]),
+  entity: z.enum(CONDITION_ENTITIES),
+  attribute: z.enum(CONDITION_ATTRIBUTES),
+  operator: z.enum(CONDITION_OPERATORS),
   value: z.union([
     z.string(),
     z.number(),
