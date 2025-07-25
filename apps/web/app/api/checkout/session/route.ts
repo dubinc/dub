@@ -214,10 +214,12 @@ export const PATCH = withSession(
         paymentPlan: body.paymentPlan,
       });
 
+      const { paymentPlan, ...cloneBody } = structuredClone(body);
+
       // The request can be triggered either from the checkout form with the full body, or from our component with only the payment plan.
       const requestBody: Partial<IUpdatePrimerClientSessionBody> =
         body.clientToken
-          ? { ...body }
+          ? { ...cloneBody }
           : {
               clientToken: user.paymentInfo?.clientToken,
               currencyCode: user?.currency?.currencyForPay,
