@@ -143,6 +143,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
         user,
         data: {
           ...data,
+          code: "SUBSCRIPTION_CREATION_FAILED",
+          message: "Subscription creation failed!",
           ...res,
         },
         planCode: selectedPlan.paymentPlan,
