@@ -4,6 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CONDITION_ATTRIBUTES,
   CONDITION_CUSTOMER_ATTRIBUTES,
+  CONDITION_OPERATORS,
   CONDITION_SALE_ATTRIBUTES,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
@@ -177,6 +178,15 @@ const ENTITIES = {
   },
 } as const;
 
+const OPERATOR_LABELS = {
+  equals_to: "is",
+  not_equals: "is not",
+  starts_with: "starts with",
+  ends_with: "ends with",
+  in: "is one of",
+  not_in: "is not one of",
+} as const;
+
 function ConditionLogic({
   modifierIndex,
   conditionIndex,
@@ -251,6 +261,31 @@ function ConditionLogic({
                 )}
               />
             </InlineBadgePopover>{" "}
+            <InlineBadgePopover
+              text={
+                condition.operator
+                  ? OPERATOR_LABELS[condition.operator]
+                  : "Condition"
+              }
+              invalid={!condition.operator}
+            >
+              <InlineBadgePopoverMenu
+                selectedValue={condition.operator}
+                onSelect={(value) =>
+                  setValue(
+                    `${conditionKey}.operator`,
+                    value as (typeof CONDITION_OPERATORS)[number],
+                    {
+                      shouldDirty: true,
+                    },
+                  )
+                }
+                items={CONDITION_OPERATORS.map((operator) => ({
+                  text: OPERATOR_LABELS[operator],
+                  value: operator,
+                }))}
+              />
+            </InlineBadgePopover>
           </>
         )}
       </span>
