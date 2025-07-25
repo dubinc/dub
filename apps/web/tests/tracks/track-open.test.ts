@@ -20,6 +20,8 @@ const expectValidClickResponse = ({
   });
 };
 
+const deepLink = `https://${E2E_LINK.domain}/${E2E_LINK.key}`;
+
 describe("POST /track/open", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
@@ -29,7 +31,7 @@ describe("POST /track/open", async () => {
       path: "/track/open",
       headers: E2E_TRACK_CLICK_HEADERS,
       body: {
-        deepLink: `https://${E2E_LINK.domain}/${E2E_LINK.key}`,
+        deepLink,
       },
     });
 
@@ -40,11 +42,10 @@ describe("POST /track/open", async () => {
 
   test("same clickId should be returned on subsequent requests", async () => {
     const response1 = await http.post<{ clickId: string }>({
-      path: "/track/click",
+      path: "/track/open",
       headers: E2E_TRACK_CLICK_HEADERS,
       body: {
-        domain: E2E_LINK.domain,
-        key: E2E_LINK.key,
+        deepLink,
       },
     });
 
@@ -52,7 +53,7 @@ describe("POST /track/open", async () => {
       path: "/track/open",
       headers: E2E_TRACK_CLICK_HEADERS,
       body: {
-        deepLink: `https://${E2E_LINK.domain}/${E2E_LINK.key}`,
+        deepLink,
       },
     });
 
@@ -101,7 +102,7 @@ describe("POST /track/open", async () => {
       path: "/track/open",
       headers: E2E_TRACK_CLICK_HEADERS,
       body: {
-        deepLink: `https://${E2E_LINK.domain}/${E2E_LINK.key}`,
+        deepLink,
       },
     });
 
@@ -113,7 +114,7 @@ describe("POST /track/open", async () => {
       path: "/track/open",
       headers: E2E_TRACK_CLICK_HEADERS,
       body: {
-        deepLink: `https://${E2E_LINK.domain}/${E2E_LINK.key}`,
+        deepLink,
       },
     });
 

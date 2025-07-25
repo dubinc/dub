@@ -6,6 +6,7 @@ import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
+import { parseUrlSchema } from "@/lib/zod/schemas/utils";
 import { LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
@@ -17,26 +18,6 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
-
-// Utility function to parse deep link URL and extract domain and key
-const parseDeepLink = (deepLink: string): { domain: string; key: string } => {
-  try {
-    const url = new URL(deepLink);
-    const domain = url.hostname.replace(/^www\./, "").toLowerCase();
-    const key = url.pathname.slice(1) || "_root"; // Remove leading slash, default to _root if empty
-
-    return { domain, key };
-  } catch (error) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "Invalid deep link URL format",
-    });
-  }
-};
-
-const trackOpenRequestSchema = z.object({
-  deepLink: z.string().trim().url("Invalid deep link URL format"),
-});
 
 const trackOpenResponseSchema = z.object({
   clickId: z.string(),
@@ -51,11 +32,16 @@ const trackOpenResponseSchema = z.object({
 // POST /api/track/open – Track an open event for deep link
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
-    const { deepLink } = trackOpenRequestSchema.parse(
-      await parseRequestBody(req),
-    );
+    const { deepLink: deepLinkUrl } = z
+      .object({
+        deepLink: parseUrlSchema,
+      })
+      .parse(await parseRequestBody(req));
 
-    const { domain, key } = parseDeepLink(deepLink);
+    const deepLink = new URL(deepLinkUrl);
+
+    const domain = deepLink.hostname.replace(/^www\./, "").toLowerCase();
+    const key = deepLink.pathname.slice(1) || "_root"; // Remove leading slash, default to _root if empty
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
@@ -69,6 +55,8 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     // assign a new clickId if there's no cached clickId
     // else, reuse the cached clickId
     const clickId = cachedClickId ?? nanoid(16);
+
+    console.log({ deepLink, cachedClickId, cachedLink });
 
     if (!cachedLink) {
       const link = await getLinkViaEdge({
