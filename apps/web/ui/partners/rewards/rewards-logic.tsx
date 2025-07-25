@@ -8,13 +8,14 @@ import {
   Check2,
   ChevronRight,
   MoneyBills2,
+  Plus2,
   Popover,
   TooltipContent,
   User,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { capitalize, cn } from "@dub/utils";
 import { Command } from "cmdk";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import { RewardIconSquare } from "./reward-icon-square";
@@ -84,6 +85,18 @@ function ConditionalGroup({
   groupCount: number;
   onRemove: () => void;
 }) {
+  const { control } = useAddEditRewardForm();
+  const {
+    fields: conditions,
+    append: appendCondition,
+    remove: removeCondition,
+  } = useFieldArray({
+    control,
+    name: `modifiers.${index}.conditions`,
+  });
+
+  const operator = useWatch({ control, name: `modifiers.${index}.operator` });
+
   return (
     <div>
       <div className="flex items-center justify-between py-2 pl-2">
@@ -105,9 +118,39 @@ function ConditionalGroup({
       </div>
 
       <div className="border-border-subtle rounded-lg border bg-white p-2.5">
-        <div className="border-border-subtle rounded-md border bg-white p-2.5">
-          <RewardIconSquare icon={User} />
-        </div>
+        {conditions.map((condition, conditionIndex) => (
+          <Fragment key={condition.id}>
+            <div className="border-border-subtle flex items-center justify-between rounded-md border bg-white p-2.5">
+              <div className="flex items-center gap-1.5">
+                <RewardIconSquare icon={User} />
+                <span>
+                  {conditionIndex === 0
+                    ? "If"
+                    : capitalize(operator.toLowerCase())}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                {conditions.length > 1 && (
+                  <Button
+                    variant="outline"
+                    className="h-6 w-fit px-1"
+                    icon={<X className="size-4" />}
+                    onClick={() => removeCondition(conditionIndex)}
+                  />
+                )}
+              </div>
+            </div>
+            <VerticalLine />
+          </Fragment>
+        ))}
+        <button
+          type="button"
+          onClick={() => appendCondition({})}
+          className="border-border-subtle text-content-emphasis flex h-7 items-center gap-1.5 rounded-lg border bg-white px-2.5 font-medium transition-colors duration-150 hover:bg-neutral-50"
+        >
+          <Plus2 className="size-3 shrink-0" />
+          {operator}
+        </button>
         <VerticalLine />
         <div className="border-border-subtle rounded-md border bg-white p-2.5">
           <RewardIconSquare icon={MoneyBills2} />
