@@ -4,6 +4,7 @@ import { BetterAuth } from "@/ui/layout/sidebar/conversions/icons/better-auth";
 import { Clerk } from "@/ui/layout/sidebar/conversions/icons/clerk";
 import { CodeEditor } from "@/ui/layout/sidebar/conversions/icons/code-editor";
 import { Framer } from "@/ui/layout/sidebar/conversions/icons/framer";
+import { GoogleTagManager } from "@/ui/layout/sidebar/conversions/icons/gtm";
 import { NextAuth } from "@/ui/layout/sidebar/conversions/icons/next-auth";
 import { React } from "@/ui/layout/sidebar/conversions/icons/react";
 import { Segment } from "@/ui/layout/sidebar/conversions/icons/segment";
@@ -63,6 +64,13 @@ export const guides: IntegrationGuide[] = [
   },
   {
     type: "client-sdk",
+    key: "gtm-client-sdk",
+    title: "Google Tag Manager",
+    icon: GoogleTagManager,
+    url: "https://dub.co/docs/sdks/client-side/installation-guides/google-tag-manager",
+  },
+  {
+    type: "client-sdk",
     key: "framer",
     title: "Framer",
     icon: Framer,
@@ -99,6 +107,20 @@ export const guides: IntegrationGuide[] = [
   },
 
   // Track Leads
+  {
+    type: "track-lead",
+    key: "segment-track-lead",
+    title: "Segment",
+    icon: Segment,
+    url: "https://dub.co/docs/conversions/leads/segment",
+  },
+  {
+    type: "track-lead",
+    key: "gtm-track-lead",
+    title: "Google Tag Manager",
+    icon: GoogleTagManager,
+    url: "https://dub.co/docs/conversions/leads/google-tag-manager",
+  },
   {
     type: "track-lead",
     key: "clerk",
@@ -140,13 +162,6 @@ export const guides: IntegrationGuide[] = [
     title: "Appwrite",
     icon: Appwrite,
     url: "https://dub.co/docs/conversions/leads/appwrite",
-  },
-  {
-    type: "track-lead",
-    key: "segment-track-lead",
-    title: "Segment",
-    icon: Segment,
-    url: "https://dub.co/docs/conversions/leads/segment",
   },
   {
     type: "track-lead",
@@ -192,6 +207,13 @@ export const guides: IntegrationGuide[] = [
     title: "Segment",
     icon: Segment,
     url: "https://dub.co/docs/conversions/sales/segment",
+  },
+  {
+    type: "track-sale",
+    key: "gtm-track-sale",
+    title: "Google Tag Manager",
+    icon: GoogleTagManager,
+    url: "https://dub.co/docs/conversions/sales/google-tag-manager",
   },
   {
     type: "track-sale",
