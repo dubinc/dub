@@ -6,7 +6,7 @@ First, navigate to your Google Tag Manager account and create a new tag:
 
 - Click on **Tags** in the left sidebar
 - Click the **New** button
-- Select **Custom H**TML as the tag type
+- Select **Custom HTML** as the tag type
 
 ![Dub GTM create tag](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-select-custom-html-tag.png)
 
