@@ -36,7 +36,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
           {children}
         </MainNav>
       </div>
-      {!user?.paymentData?.paymentInfo?.sub && <ClientSessionComponent />}
+      {!user?.paymentData?.subscriptionId && <ClientSessionComponent />}
       {oauthFlowCookie && (
         <OauthTrackerComponent oauthData={parsedOauthFlowInfo} />
       )}
