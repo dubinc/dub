@@ -315,7 +315,7 @@ function ConditionLogic({
                       // Update value to array / string if needed
                       ...(["in", "not_in"].includes(value)
                         ? !Array.isArray(condition.value)
-                          ? { value: [] }
+                          ? { value: [""] }
                           : null
                         : typeof condition.value !== "string"
                           ? { value: "" }
@@ -337,7 +337,7 @@ function ConditionLogic({
                 text={formatValue(condition.value)}
                 invalid={
                   Array.isArray(condition.value)
-                    ? condition.value.length === 0
+                    ? condition.value.filter(Boolean).length === 0
                     : !condition.value
                 }
               >
