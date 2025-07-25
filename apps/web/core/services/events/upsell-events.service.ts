@@ -43,6 +43,7 @@ export const generateTrackingUpsellEvent = ({
     payment_processor: user?.paymentInfo?.paymentProcessor ?? null,
     subscription_id: user?.paymentInfo?.subscriptionId ?? null,
     country: user?.currency?.countryCode,
+    toxic: user?.toxic,
     event_category: "Authorized",
     page_name: "account",
     ...additionalParams,

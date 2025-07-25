@@ -1,3 +1,4 @@
+import { createQRTrackingParams } from "@/lib/analytic/create-qr-tracking-data.helper.ts";
 import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import { useUserCache } from "@/lib/swr/use-user.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
@@ -20,34 +21,6 @@ export const useQrOperations = () => {
   const { id: workspaceId } = useWorkspace();
   const { user } = useUserCache();
   const toastWithUndo = useToastWithUndo();
-
-  // Helper function to extract QR tracking parameters from QRBuilderData
-  const createQRTrackingParams = useCallback(
-    (qrBuilderData: QRBuilderData, qrId?: string) => {
-      const frameOptions = qrBuilderData.frameOptions;
-
-      return {
-        event_category: "Authorized",
-        page_name: "profile",
-        email: user?.email,
-        qrId,
-        qrType: qrBuilderData.qrType as any,
-        qrFrame: frameOptions?.id !== "none" ? frameOptions?.id : undefined,
-        qrText: frameOptions?.text,
-        qrFrameColour: frameOptions?.color,
-        qrTextColour: frameOptions?.textColor,
-        qrStyle: qrBuilderData.styles?.dotsOptions?.type as string,
-        qrBorderColour: qrBuilderData.styles?.cornersSquareOptions
-          ?.color as string,
-        qrBorderStyle: qrBuilderData.styles?.cornersSquareOptions
-          ?.type as string,
-        qrCenterStyle: qrBuilderData.styles?.cornersDotOptions?.type as string,
-        qrLogo: qrBuilderData.styles?.image ? "custom" : "none",
-        qrLogoUpload: !!qrBuilderData.styles?.image,
-      };
-    },
-    [user?.email],
-  );
 
   const createQr = useCallback(
     async (qrBuilderData: QRBuilderData) => {
@@ -74,7 +47,7 @@ export const useQrOperations = () => {
           await mutatePrefix(["/api/qrs", "/api/links"]);
 
           const responseData = await res.json();
-          const createdQrId = responseData?.createdQr?.id;
+          const createdQrId = responseData?.id;
 
           // Track QR created event
           const trackingParams = createQRTrackingParams(
@@ -83,7 +56,12 @@ export const useQrOperations = () => {
           );
           trackClientEvents({
             event: EAnalyticEvents.QR_CREATED,
-            params: trackingParams,
+            params: {
+              event_category: "Authorized",
+              page_name: "profile",
+              email: user?.email,
+              ...trackingParams,
+            },
             sessionId: user?.id,
           });
 
@@ -100,7 +78,7 @@ export const useQrOperations = () => {
         return false;
       }
     },
-    [workspaceId, slug, user, createQRTrackingParams],
+    [workspaceId, slug, user],
   );
 
   const updateQrWithOriginal = useCallback(
@@ -151,7 +129,12 @@ export const useQrOperations = () => {
           );
           trackClientEvents({
             event: EAnalyticEvents.QR_UPDATED,
-            params: trackingParams,
+            params: {
+              event_category: "Authorized",
+              page_name: "profile",
+              email: user?.email,
+              ...trackingParams,
+            },
             sessionId: user?.id,
           });
 

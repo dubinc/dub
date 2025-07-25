@@ -6,7 +6,10 @@ import {
 } from "../../integration/payment/client";
 import { ICustomerBody, TPaymentPlan } from "../../integration/payment/config";
 
-type TPrimerClientErrorData = IPrimerClientError & { paymentId?: string };
+type TPrimerClientErrorData = IPrimerClientError & {
+  payment?: { id?: string };
+  paymentType?: string;
+};
 
 interface ICheckoutFormEventProps {
   user: ICustomerBody;
@@ -93,8 +96,8 @@ export const generateCheckoutFormPaymentEvents = ({
 
     const params = {
       ...baseParams,
-      payment_id: errorData.paymentId || null,
-      payment_type: paymentType || null,
+      payment_id: errorData?.payment?.id || null,
+      payment_type: errorData?.paymentType || null,
       error_code: errorData.code || null,
       error_message: errorData.message ?? null,
     };

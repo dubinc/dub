@@ -1,1 +1,1 @@
-export * from './analytic.service';
+export * from "./services/analytic.service.ts";

@@ -26,6 +26,8 @@ export enum EAnalyticEvents {
   QR_UPDATED = "qrUpdated",
 
   EXPERIMENT_VIEWED = "experimentViewed",
+
+  IDENTIFY_EVENT = "identifyEvent",
 }
 
 // purchase related events

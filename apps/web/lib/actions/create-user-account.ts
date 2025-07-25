@@ -1,8 +1,11 @@
 "use server";
 
 import { verifyAndCreateUser } from "@/lib/actions/verify-and-create-user.ts";
+import { createQRTrackingParams } from "@/lib/analytic/create-qr-tracking-data.helper.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit, redis } from "@/lib/upstash";
+import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN, R2_URL } from "@dub/utils";
@@ -10,6 +13,8 @@ import { waitUntil } from "@vercel/functions";
 import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { flattenValidationErrors } from "next-safe-action";
+import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
+import { trackMixpanelApiService } from "../../core/integration/analytic/services/track-mixpanel-api.service.ts";
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId, getIP } from "../api/utils";
 import z from "../zod";
@@ -95,7 +100,7 @@ export const createUserAccountAction = actionClient
                   ? `${R2_URL}/qrs-content/${qrDataToCreate.fileId}`
                   : (qrDataToCreate!.styles!.data! as string);
 
-                await createQrWithLinkUniversal({
+                const qrCreateResponse = await createQrWithLinkUniversal({
                   qrData: {
                     data: qrDataToCreate?.styles?.data as string,
                     qrType: qrDataToCreate?.qrType as any,
@@ -116,6 +121,22 @@ export const createUserAccountAction = actionClient
                     "id" | "plan" | "flags"
                   >,
                   userId: generatedUserId,
+                });
+
+                const trackingParams = createQRTrackingParams(
+                  convertQrStorageDataToBuilder(
+                    qrCreateResponse.createdQr as QrStorageData,
+                  ),
+                  qrCreateResponse.createdQr.id,
+                );
+
+                await trackMixpanelApiService({
+                  event: EAnalyticEvents.QR_CREATED,
+                  email,
+                  userId: generatedUserId,
+                  params: {
+                    ...trackingParams,
+                  },
                 });
               })(),
             ]

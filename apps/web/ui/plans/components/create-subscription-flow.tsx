@@ -143,6 +143,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
         user,
         data: {
           ...data,
+          code: "SUBSCRIPTION_CREATION_FAILED",
+          message: "Subscription creation failed!",
           ...res,
         },
         planCode: selectedPlan.paymentPlan,
@@ -162,14 +164,12 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       stage: "success",
       paymentType: data.paymentType,
       subscriptionId: res!.data!.subscriptionId!,
+      toxic: res?.data?.toxic,
     });
 
     await updateSession();
-
-    // Force refresh user data cache
     await mutate("/api/user");
 
-    // Force refresh the page cache
     router.refresh();
     router.push("/");
   };

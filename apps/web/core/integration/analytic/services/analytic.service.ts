@@ -1,9 +1,9 @@
 import { Dict } from "mixpanel-browser";
-import { debugUtil } from "../../util";
-import { ICustomerBody } from "../payment/config";
-import { getUtmListFromSearch } from "./helpers/get-utms.helper.ts";
-import { EAnalyticEvents } from "./interfaces/analytic.interface.ts";
-import { mixpanelClient } from "./mixpanel";
+import { debugUtil } from "../../../util";
+import { ICustomerBody } from "../../payment/config";
+import { getUtmListFromSearch } from "../helpers/get-utms.helper.ts";
+import { EAnalyticEvents } from "../interfaces/analytic.interface.ts";
+import { mixpanelClient } from "../mixpanel";
 
 declare global {
   interface Window {
@@ -44,9 +44,19 @@ export const resetAnalyticSession = () => {
   mixpanelClient.reset();
 };
 
-// reset session
+// get distinct id
 export const getDistinctId = () => {
   return mixpanelClient.peopleGetDistinctId();
+};
+
+// start session recording
+export const startSessionRecording = () => {
+  return mixpanelClient.startSessionRecording();
+};
+
+// stop session recording
+export const stopSessionRecording = () => {
+  return mixpanelClient.stopSessionRecording();
 };
 
 // track events service
@@ -71,6 +81,7 @@ export const trackClientEvents = <T extends Dict>(
 
   const values = {
     env: `${process.env.NEXT_PUBLIC_APP_ENV}`,
+    event_origin: "client",
     mixpanel_user_id: sessionId || user?.id || getDistinctId(),
     locale: "en",
     ...utm,

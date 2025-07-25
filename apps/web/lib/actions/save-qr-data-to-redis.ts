@@ -39,6 +39,9 @@ export const saveQrDataToRedisAction = actionClient
       await redis.set(
         `${ERedisArg.QR_DATA_REG}:${sessionId}`,
         JSON.stringify(qrData),
+        {
+          ex: 60 * 10, // 10 minutes
+        },
       );
 
       const cachedRedis = await redis.get(

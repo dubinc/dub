@@ -76,6 +76,7 @@ export const convertSessionUserToCustomerBody = (
       ...(options?.paymentInfo || sessionUser.paymentData?.paymentInfo),
     },
     sessions: options?.sessions || sessionUser.paymentData?.sessions,
+    toxic: sessionUser.paymentData?.toxic || false,
   };
 
   return customerBody;

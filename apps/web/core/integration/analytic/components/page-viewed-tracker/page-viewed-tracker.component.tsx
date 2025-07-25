@@ -1,8 +1,8 @@
 "use client";
 
 import { FC, useEffect } from "react";
-import { trackClientEvents } from "../../analytic.service.ts";
 import { EAnalyticEvents } from "../../interfaces/analytic.interface.ts";
+import { trackClientEvents } from "../../services/analytic.service.ts";
 
 interface IPageViewedTrackerProps {
   sessionId: string;
