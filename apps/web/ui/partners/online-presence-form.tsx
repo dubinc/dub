@@ -53,12 +53,12 @@ interface OnlinePresenceFormProps {
   variant?: "onboarding" | "settings";
   partner?: {
     email: string | null;
-    website: string | null;
-    youtube: string | null;
-    twitter: string | null;
-    linkedin: string | null;
-    instagram: string | null;
-    tiktok: string | null;
+    website?: string | null;
+    youtube?: string | null;
+    twitter?: string | null;
+    linkedin?: string | null;
+    instagram?: string | null;
+    tiktok?: string | null;
   } | null;
   onSubmitSuccessful?: () => void;
 }
@@ -544,10 +544,10 @@ function FormRow({
   const info = useMemo(() => {
     if (partner && property === "youtube" && isVerified) {
       return [
-        partner.youtubeSubscriberCount > 0
+        partner.youtubeSubscriberCount && partner.youtubeSubscriberCount > 0
           ? `${nFormatter(partner.youtubeSubscriberCount)} subscribers`
           : null,
-        partner.youtubeViewCount > 0
+        partner.youtubeViewCount && partner.youtubeViewCount > 0
           ? `${nFormatter(partner.youtubeViewCount)} views`
           : null,
       ].filter(Boolean) as string[];

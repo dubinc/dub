@@ -33,7 +33,20 @@ export const bulkApprovePartnersAction = authActionClient
             },
           },
           include: {
-            partner: true,
+            partner: {
+              include: {
+                users: {
+                  where: {
+                    notificationPreferences: {
+                      applicationApproved: true,
+                    },
+                  },
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

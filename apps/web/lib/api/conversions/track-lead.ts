@@ -99,6 +99,29 @@ export const trackLead = async ({
       });
     }
 
+    const link = await prisma.link.findUnique({
+      where: {
+        id: clickData.link_id,
+      },
+      select: {
+        projectId: true,
+      },
+    });
+
+    if (!link) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link not found for clickId: ${clickId}`,
+      });
+    }
+
+    if (link.projectId !== workspace.id) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link does not belong to the workspace`,
+      });
+    }
+
     const leadEventId = nanoid(16);
 
     // Create a function to handle customer upsert to avoid duplication

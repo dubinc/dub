@@ -16,9 +16,9 @@ const fields: {
   label: string;
   icon: Icon;
   data: (partner: EnrolledPartnerProps) => {
-    value: string | null;
+    value?: string | null;
     verified: boolean;
-    href: string | null;
+    href?: string | null;
     info?: string[];
   };
 }[] = [
@@ -39,10 +39,10 @@ const fields: {
       verified: !!partner.youtubeVerifiedAt,
       href: `https://youtube.com/@${partner.youtube}`,
       info: [
-        partner.youtubeSubscriberCount > 0
+        partner.youtubeSubscriberCount && partner.youtubeSubscriberCount > 0
           ? `${nFormatter(partner.youtubeSubscriberCount)} subscribers`
           : null,
-        partner.youtubeViewCount > 0
+        partner.youtubeViewCount && partner.youtubeViewCount > 0
           ? `${nFormatter(partner.youtubeViewCount)} views`
           : null,
       ].filter(Boolean),
