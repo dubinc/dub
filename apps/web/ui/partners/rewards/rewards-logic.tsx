@@ -12,6 +12,7 @@ import {
   Button,
   Check2,
   ChevronRight,
+  InvoiceDollar,
   MoneyBills2,
   Plus2,
   Popover,
@@ -131,7 +132,6 @@ function ConditionalGroup({
           <Fragment key={condition.id}>
             <div className="border-border-subtle flex items-center justify-between rounded-md border bg-white p-2.5">
               <div className="flex items-center gap-1.5">
-                <RewardIconSquare icon={User} />
                 <ConditionLogic
                   modifierIndex={index}
                   conditionIndex={conditionIndex}
@@ -193,60 +193,68 @@ function ConditionLogic({
     name: [conditionKey, `${modifierKey}.operator`],
   });
 
-  // individual condition logic
+  const icon = condition.entity
+    ? { customer: User, sale: InvoiceDollar }[condition.entity]
+    : ArrowTurnRight2;
+
   return (
-    <span className="text-content-emphasis font-medium">
-      {conditionIndex === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
-      <InlineBadgePopover
-        text={capitalize(condition.entity) || "Select item"}
-        invalid={!condition.entity}
-      >
-        <InlineBadgePopoverMenu
-          selectedValue={condition.entity}
-          onSelect={(value) =>
-            setValue(
-              conditionKey,
-              { entity: value as keyof typeof ENTITIES },
-              {
-                shouldDirty: true,
-              },
-            )
-          }
-          items={Object.keys(ENTITIES).map((entity) => ({
-            text: capitalize(entity) || entity,
-            value: entity,
-          }))}
-        />
-      </InlineBadgePopover>{" "}
-      {condition.entity && (
-        <>
-          <InlineBadgePopover
-            text={capitalize(condition.attribute) || "Detail"}
-            invalid={!condition.attribute}
-          >
-            <InlineBadgePopoverMenu
-              selectedValue={condition.attribute}
-              onSelect={(value) =>
-                setValue(
-                  conditionKey,
-                  {
-                    entity: condition.entity,
-                    attribute: value as (typeof CONDITION_ATTRIBUTES)[number],
-                  },
-                  {
-                    shouldDirty: true,
-                  },
-                )
-              }
-              items={ENTITIES[condition.entity].attributes.map((attribute) => ({
-                text: capitalize(attribute) || attribute,
-                value: attribute,
-              }))}
-            />
-          </InlineBadgePopover>{" "}
-        </>
-      )}
-    </span>
+    <>
+      <RewardIconSquare icon={icon} />
+      <span className="text-content-emphasis font-medium">
+        {conditionIndex === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
+        <InlineBadgePopover
+          text={capitalize(condition.entity) || "Select item"}
+          invalid={!condition.entity}
+        >
+          <InlineBadgePopoverMenu
+            selectedValue={condition.entity}
+            onSelect={(value) =>
+              setValue(
+                conditionKey,
+                { entity: value as keyof typeof ENTITIES },
+                {
+                  shouldDirty: true,
+                },
+              )
+            }
+            items={Object.keys(ENTITIES).map((entity) => ({
+              text: capitalize(entity) || entity,
+              value: entity,
+            }))}
+          />
+        </InlineBadgePopover>{" "}
+        {condition.entity && (
+          <>
+            <InlineBadgePopover
+              text={capitalize(condition.attribute) || "Detail"}
+              invalid={!condition.attribute}
+            >
+              <InlineBadgePopoverMenu
+                selectedValue={condition.attribute}
+                onSelect={(value) =>
+                  setValue(
+                    conditionKey,
+                    {
+                      entity: condition.entity,
+                      attribute: value as (typeof CONDITION_ATTRIBUTES)[number],
+                    },
+                    {
+                      shouldDirty: true,
+                    },
+                  )
+                }
+                items={ENTITIES[condition.entity].attributes.map(
+                  (attribute) => ({
+                    text: capitalize(attribute) || attribute,
+                    value: attribute,
+                  }),
+                )}
+              />
+            </InlineBadgePopover>{" "}
+          </>
+        )}
+      </span>
+    </>
   );
 }
 
