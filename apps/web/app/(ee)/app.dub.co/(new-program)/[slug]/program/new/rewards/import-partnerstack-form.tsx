@@ -10,22 +10,27 @@ import { toast } from "sonner";
 
 export const ImportPartnerStackForm = ({
   onSuccess,
+  isPending,
 }: {
   onSuccess: () => void;
+  isPending: boolean;
 }) => {
   const { id: workspaceId } = useWorkspace();
   const [publicKey, setPublicKey] = useState("");
   const [secretKey, setSecretKey] = useState("");
 
-  const { executeAsync, isPending } = useAction(setPartnerStackTokenAction, {
-    onSuccess: () => {
-      onSuccess();
-      toast.success("PartnerStack credentials saved successfully!");
+  const { executeAsync, isPending: isSettingPartnerStackToken } = useAction(
+    setPartnerStackTokenAction,
+    {
+      onSuccess: () => {
+        onSuccess();
+        toast.success("PartnerStack credentials saved successfully!");
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+      },
     },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
-    },
-  });
+  );
 
   const onSubmit = async () => {
     if (!workspaceId || !publicKey || !secretKey) {
@@ -83,7 +88,7 @@ export const ImportPartnerStackForm = ({
         text="Continue"
         className="w-full"
         disabled={!publicKey || !secretKey}
-        loading={isPending}
+        loading={isSettingPartnerStackToken || isPending}
         onClick={onSubmit}
       />
     </div>
