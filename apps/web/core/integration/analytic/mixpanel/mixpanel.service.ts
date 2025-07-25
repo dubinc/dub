@@ -13,6 +13,8 @@ class MixpanelClientService {
       debug: process.env.NODE_ENV !== "production",
       track_pageview: false,
       persistence: "localStorage",
+      record_heatmap_data: true,
+      // record_sessions_percent: 1, // Session Replay enabled, recording 1% of all sessions
       // api_host: `${process.env.NEXT_PUBLIC_MIXPANEL_API_HOST}`,
     });
   }
