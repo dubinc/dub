@@ -1,16 +1,21 @@
 "use client";
 
-import { Check2, Popover, useScrollProgress } from "@dub/ui";
+import { X } from "@/ui/shared/icons";
+import { Button, Check2, Plus, Popover, useScrollProgress } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
 import {
   createContext,
+  forwardRef,
+  HTMLProps,
   PropsWithChildren,
   ReactNode,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from "react";
+import { v4 as uuid } from "uuid";
 
 export const InlineBadgePopoverContext = createContext<{
   isOpen: boolean;
@@ -108,3 +113,95 @@ export function InlineBadgePopoverMenu({
     </div>
   );
 }
+
+export const InlineBadgePopoverInput = forwardRef<HTMLInputElement>(
+  (props: HTMLProps<HTMLInputElement>, ref) => {
+    return (
+      <div className="relative rounded-md shadow-sm">
+        <input
+          ref={ref}
+          className={cn(
+            "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 sm:w-32 sm:text-sm",
+            "focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+          )}
+          {...props}
+        />
+      </div>
+    );
+  },
+);
+
+export const InlineBadgePopoverInputs = ({
+  values: valuesProp,
+  onChange,
+  inputProps,
+}: {
+  values: string[];
+  onChange: (values: string[]) => void;
+  inputProps?: HTMLProps<HTMLInputElement>;
+}) => {
+  const [values, setValues] = useState<{ id: string; value: string }[]>(() =>
+    valuesProp.map((value) => ({ id: uuid(), value })),
+  );
+
+  useEffect(() => {
+    const currentValues = values.map((item) => item.value);
+    if (JSON.stringify(currentValues) !== JSON.stringify(valuesProp)) {
+      setValues(valuesProp.map((value) => ({ id: uuid(), value })));
+    }
+  }, [valuesProp, values]);
+
+  const handleUpdate = (id: string, newValue: string) => {
+    const updatedValues = values.map((item) =>
+      item.id === id ? { ...item, value: newValue } : item,
+    );
+    setValues(updatedValues);
+    onChange(updatedValues.map((item) => item.value));
+  };
+
+  const handleDelete = (id: string) => {
+    const updatedValues = values.filter((item) => item.id !== id);
+    setValues(updatedValues);
+    onChange(updatedValues.map((item) => item.value));
+  };
+
+  const handleAppend = () => {
+    const newItem = { id: uuid(), value: "" };
+    const updatedValues = [...values, newItem];
+    setValues(updatedValues);
+    onChange(updatedValues.map((item) => item.value));
+  };
+
+  return (
+    <div className="flex flex-col gap-1">
+      {values.map(({ id, value }, index) => (
+        <div className="flex items-center gap-1" key={id}>
+          <input
+            className={cn(
+              "relative block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 shadow-sm sm:w-32 sm:text-sm",
+              "focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+            )}
+            value={value}
+            onChange={(e) => handleUpdate(id, e.target.value)}
+            autoFocus={index === values.length - 1}
+            {...inputProps}
+          />
+          {values.length > 1 && (
+            <Button
+              variant="outline"
+              className="h-6 w-fit px-1"
+              icon={<X className="size-4" />}
+              onClick={() => handleDelete(id)}
+            />
+          )}
+        </div>
+      ))}
+      <Button
+        variant="outline"
+        className="h-4 w-full px-1"
+        icon={<Plus className="size-3" />}
+        onClick={handleAppend}
+      />
+    </div>
+  );
+};

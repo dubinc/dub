@@ -20,13 +20,15 @@ import {
   TooltipContent,
   User,
 } from "@dub/ui";
-import { capitalize, cn } from "@dub/utils";
+import { capitalize, cn, truncate } from "@dub/utils";
 import { Command } from "cmdk";
 import { Fragment, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import {
   InlineBadgePopover,
+  InlineBadgePopoverInput,
+  InlineBadgePopoverInputs,
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
@@ -178,6 +180,10 @@ const ENTITIES = {
   },
 } as const;
 
+const ATTRIBUTE_LABELS = {
+  productId: "Product ID",
+};
+
 const OPERATOR_LABELS = {
   equals_to: "is",
   not_equals: "is not",
@@ -186,6 +192,27 @@ const OPERATOR_LABELS = {
   in: "is one of",
   not_in: "is not one of",
 } as const;
+
+const formatValue = (
+  value: string | number | string[] | number[] | undefined,
+) => {
+  if (!value) return "Value";
+
+  if (Array.isArray(value)) {
+    if (!value.filter(Boolean).length) return "Value";
+
+    const filtered = value.filter(Boolean);
+
+    return (
+      filtered
+        .map((v) => truncate(v.toString(), 16))
+        .slice(0, 2)
+        .join(", ") + (filtered.length > 2 ? ` +${filtered.length - 2}` : "")
+    );
+  }
+
+  return truncate(value.toString(), 20);
+};
 
 function ConditionLogic({
   modifierIndex,
@@ -197,7 +224,7 @@ function ConditionLogic({
   const modifierKey = `modifiers.${modifierIndex}` as const;
   const conditionKey = `${modifierKey}.conditions.${conditionIndex}` as const;
 
-  const { control, setValue } = useAddEditRewardForm();
+  const { control, setValue, register } = useAddEditRewardForm();
   const [condition, operator] = useWatch({
     control,
     name: [conditionKey, `${modifierKey}.operator`],
@@ -210,7 +237,7 @@ function ConditionLogic({
   return (
     <>
       <RewardIconSquare icon={icon} />
-      <span className="text-content-emphasis font-medium">
+      <span className="text-content-emphasis font-medium leading-relaxed">
         {conditionIndex === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
         <InlineBadgePopover
           text={capitalize(condition.entity) || "Select item"}
@@ -236,7 +263,12 @@ function ConditionLogic({
         {condition.entity && (
           <>
             <InlineBadgePopover
-              text={capitalize(condition.attribute) || "Detail"}
+              text={
+                condition.attribute
+                  ? ATTRIBUTE_LABELS?.[condition.attribute] ||
+                    capitalize(condition.attribute)
+                  : "Detail"
+              }
               invalid={!condition.attribute}
             >
               <InlineBadgePopoverMenu
@@ -255,7 +287,10 @@ function ConditionLogic({
                 }
                 items={ENTITIES[condition.entity].attributes.map(
                   (attribute) => ({
-                    text: capitalize(attribute) || attribute,
+                    text:
+                      ATTRIBUTE_LABELS?.[attribute] ||
+                      capitalize(attribute) ||
+                      attribute,
                     value: attribute,
                   }),
                 )}
@@ -273,8 +308,19 @@ function ConditionLogic({
                 selectedValue={condition.operator}
                 onSelect={(value) =>
                   setValue(
-                    `${conditionKey}.operator`,
-                    value as (typeof CONDITION_OPERATORS)[number],
+                    conditionKey,
+                    {
+                      ...condition,
+                      operator: value as (typeof CONDITION_OPERATORS)[number],
+                      // Update value to array / string if needed
+                      ...(["in", "not_in"].includes(value)
+                        ? !Array.isArray(condition.value)
+                          ? { value: [] }
+                          : null
+                        : typeof condition.value !== "string"
+                          ? { value: "" }
+                          : null),
+                    },
                     {
                       shouldDirty: true,
                     },
@@ -285,7 +331,39 @@ function ConditionLogic({
                   value: operator,
                 }))}
               />
-            </InlineBadgePopover>
+            </InlineBadgePopover>{" "}
+            {condition.operator && (
+              <InlineBadgePopover
+                text={formatValue(condition.value)}
+                invalid={
+                  Array.isArray(condition.value)
+                    ? condition.value.length === 0
+                    : !condition.value
+                }
+              >
+                {["in", "not_in"].includes(condition.operator) ? (
+                  <InlineBadgePopoverInputs
+                    values={
+                      condition.value
+                        ? Array.isArray(condition.value)
+                          ? condition.value.map(String)
+                          : [condition.value.toString()]
+                        : [""]
+                    }
+                    onChange={(values) => {
+                      setValue(conditionKey, {
+                        ...condition,
+                        value: values,
+                      });
+                    }}
+                  />
+                ) : (
+                  <InlineBadgePopoverInput
+                    {...register(`${conditionKey}.value`, { required: true })}
+                  />
+                )}
+              </InlineBadgePopover>
+            )}
           </>
         )}
       </span>

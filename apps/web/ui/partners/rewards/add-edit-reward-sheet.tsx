@@ -292,16 +292,16 @@ function RewardSheetContent({
                   >
                     <div className="relative rounded-md shadow-sm">
                       {type === "flat" && (
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                        <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
                           $
                         </span>
                       )}
                       <input
                         className={cn(
-                          "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
+                          "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
                           errors.amount &&
                             "border-red-600 focus:border-red-500 focus:ring-red-600",
-                          type === "flat" ? "pl-6 pr-12" : "pr-7",
+                          type === "flat" ? "pl-4 pr-12" : "pr-7",
                         )}
                         {...register("amount", {
                           required: true,
@@ -313,7 +313,7 @@ function RewardSheetContent({
                         })}
                         onKeyDown={handleMoneyKeyDown}
                       />
-                      <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
+                      <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
                         {type === "flat" ? "USD" : "%"}
                       </span>
                     </div>
