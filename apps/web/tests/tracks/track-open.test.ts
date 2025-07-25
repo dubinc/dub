@@ -11,7 +11,12 @@ const expectValidClickResponse = ({
   expect(response.status).toEqual(200);
   expect(response.data).toStrictEqual({
     clickId: expect.any(String),
-    url: expect.any(String),
+    link: {
+      id: expect.any(String),
+      domain: E2E_LINK.domain,
+      key: E2E_LINK.key,
+      url: expect.any(String),
+    },
   });
 };
 
