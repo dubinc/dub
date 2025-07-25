@@ -18,9 +18,24 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+// Utility function to parse deep link URL and extract domain and key
+const parseDeepLink = (deepLink: string): { domain: string; key: string } => {
+  try {
+    const url = new URL(deepLink);
+    const domain = url.hostname.replace(/^www\./, "").toLowerCase();
+    const key = url.pathname.slice(1) || "_root"; // Remove leading slash, default to _root if empty
+
+    return { domain, key };
+  } catch (error) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Invalid deep link URL format",
+    });
+  }
+};
+
 const trackOpenRequestSchema = z.object({
-  domain: z.string().trim(),
-  key: z.string().trim(),
+  deepLink: z.string().trim().url("Invalid deep link URL format"),
 });
 
 const trackOpenResponseSchema = z.object({
@@ -36,9 +51,11 @@ const trackOpenResponseSchema = z.object({
 // POST /api/track/open – Track an open event for deep link
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
-    const { domain, key } = trackOpenRequestSchema.parse(
+    const { deepLink } = trackOpenRequestSchema.parse(
       await parseRequestBody(req),
     );
+
+    const { domain, key } = parseDeepLink(deepLink);
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
@@ -62,7 +79,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       if (!link) {
         throw new DubApiError({
           code: "not_found",
-          message: `Link not found for the short link https://${domain}/${key}`,
+          message: `Deep link not found: ${deepLink}`,
         });
       }
 
@@ -74,7 +91,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     if (!cachedLink.projectId) {
       throw new DubApiError({
         code: "not_found",
-        message: "Link does not belong to a workspace.",
+        message: "Deep link does not belong to a workspace.",
       });
     }
 

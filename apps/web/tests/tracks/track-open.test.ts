@@ -29,8 +29,7 @@ describe("POST /track/open", async () => {
       path: "/track/open",
       headers: E2E_TRACK_CLICK_HEADERS,
       body: {
-        domain: E2E_LINK.domain,
-        key: E2E_LINK.key,
+        deepLink: `https://${E2E_LINK.domain}/${E2E_LINK.key}`,
       },
     });
 
@@ -53,8 +52,7 @@ describe("POST /track/open", async () => {
       path: "/track/open",
       headers: E2E_TRACK_CLICK_HEADERS,
       body: {
-        domain: E2E_LINK.domain,
-        key: E2E_LINK.key,
+        deepLink: `https://${E2E_LINK.domain}/${E2E_LINK.key}`,
       },
     });
 
@@ -66,8 +64,7 @@ describe("POST /track/open", async () => {
       path: "/track/open",
       headers: E2E_TRACK_CLICK_HEADERS,
       body: {
-        domain: E2E_LINK.domain,
-        key: "non-existent-key",
+        deepLink: `https://${E2E_LINK.domain}/non-existent-key`,
       },
     });
 
@@ -75,7 +72,7 @@ describe("POST /track/open", async () => {
     expect(response.data).toStrictEqual({
       error: {
         code: "not_found",
-        message: `Link not found for the short link https://${E2E_LINK.domain}/non-existent-key`,
+        message: `Deep link not found: https://${E2E_LINK.domain}/non-existent-key`,
         doc_url: "https://dub.co/docs/api-reference/errors#not-found",
       },
     });
@@ -104,8 +101,7 @@ describe("POST /track/open", async () => {
       path: "/track/open",
       headers: E2E_TRACK_CLICK_HEADERS,
       body: {
-        domain: E2E_LINK.domain,
-        key: E2E_LINK.key,
+        deepLink: `https://${E2E_LINK.domain}/${E2E_LINK.key}`,
       },
     });
 
@@ -117,8 +113,7 @@ describe("POST /track/open", async () => {
       path: "/track/open",
       headers: E2E_TRACK_CLICK_HEADERS,
       body: {
-        domain: E2E_LINK.domain,
-        key: E2E_LINK.key,
+        deepLink: `https://${E2E_LINK.domain}/${E2E_LINK.key}`,
       },
     });
 
