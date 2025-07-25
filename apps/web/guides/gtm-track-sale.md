@@ -36,12 +36,11 @@ Next, create a new Client using the imported template:
 
 ## Step 4: Import Dub GTM Server Tag Template
 
-Next, import the Dub GTM Server Tag template to handle lead tracking:
+Next, import the Dub GTM Server Tag template to handle sales tracking:
 
 1. In your server container, go to **Tags** → **New**
 2. Click **Import** and upload the [Dub GTM Server Tag template](https://github.com/dubinc/gtm-server-tag-template)
 3. This template is specifically designed to send conversion events directly to Dub
-
 ![Dub GTM Server Tag Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-server-tag-template.png)
 
 ## Step 5: Add Sales Tracking Tag
