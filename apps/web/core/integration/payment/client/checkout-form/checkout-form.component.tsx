@@ -198,6 +198,7 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
             await apiInstance.patch("checkout/session", {
               json: {
                 clientToken,
+                paymentPlan,
                 currencyCode: user?.currency?.currencyCard,
                 amount: priceForPay,
                 order: {
@@ -232,6 +233,7 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
             await apiInstance.patch("checkout/session", {
               json: {
                 clientToken,
+                paymentPlan,
                 currencyCode: user?.currency?.currencyPaypal,
                 amount: priceForPay,
                 order: {
@@ -267,6 +269,7 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
             await apiInstance.patch("checkout/session", {
               json: {
                 clientToken,
+                paymentPlan,
                 currencyCode: user?.currency?.currencyWallet,
                 amount: priceForPay,
                 order: {

@@ -70,6 +70,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
           email: user.email,
           plan_name: plan.paymentPlan,
           page_name: "account",
+          content_group: "plans",
         },
         sessionId: user.id,
       });
