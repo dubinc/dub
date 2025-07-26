@@ -72,7 +72,7 @@ export class ToltApi {
     };
   }
 
-  async listAffiliates({
+  async listPartners({
     programId,
     startingAfter,
   }: {

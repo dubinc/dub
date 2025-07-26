@@ -1,5 +1,22 @@
 import { z } from "zod";
 
+export const toltImportSteps = z.enum([
+  "import-partners",
+  "import-links",
+  "import-customers",
+  "import-commissions",
+  "update-stripe-customers", // update the customers with their stripe customer ID
+  "cleanup-partners", // remove partners with 0 leads
+]);
+
+export const toltImportPayloadSchema = z.object({
+  userId: z.string(),
+  programId: z.string(),
+  toltProgramId: z.string(),
+  action: toltImportSteps,
+  startingAfter: z.string().optional(),
+});
+
 export const ToltProgramSchema = z.object({
   id: z.string(),
   name: z.string(),

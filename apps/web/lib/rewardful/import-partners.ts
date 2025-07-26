@@ -6,32 +6,23 @@ import { bulkCreateLinks } from "../api/links";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
-import { RewardfulAffiliate } from "./types";
+import { RewardfulAffiliate, RewardfulImportPayload } from "./types";
 
-// Import Rewardful affiliates
-export async function importAffiliates({
-  programId,
-  rewardId,
-  page,
-}: {
-  programId: string;
-  rewardId?: string;
-  page: number;
-}) {
+export async function importPartners(payload: RewardfulImportPayload) {
+  const { programId, userId, campaignId, page = 1, rewardId } = payload;
+
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
   });
 
-  const { token, userId, campaignId } = await rewardfulImporter.getCredentials(
-    program.workspaceId,
-  );
+  const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
   let currentPage = page;
-  let hasMoreAffiliates = true;
+  let hasMore = true;
   let processedBatches = 0;
 
   const reward = await prisma.reward.findUniqueOrThrow({
@@ -44,14 +35,14 @@ export async function importAffiliates({
     },
   });
 
-  while (hasMoreAffiliates && processedBatches < MAX_BATCHES) {
-    const affiliates = await rewardfulApi.listAffiliates({
+  while (hasMore && processedBatches < MAX_BATCHES) {
+    const affiliates = await rewardfulApi.listPartners({
       campaignId,
       page: currentPage,
     });
 
     if (affiliates.length === 0) {
-      hasMoreAffiliates = false;
+      hasMore = false;
       break;
     }
 
@@ -78,13 +69,13 @@ export async function importAffiliates({
     processedBatches++;
   }
 
-  const action = hasMoreAffiliates ? "import-affiliates" : "import-referrals";
+  const action = hasMore ? "import-partners" : "import-customers";
 
   await rewardfulImporter.queue({
-    programId: program.id,
+    ...payload,
     action,
-    ...(action === "import-affiliates" && rewardId && { rewardId }),
-    ...(hasMoreAffiliates ? { page: currentPage } : {}),
+    ...(action === "import-partners" && rewardId && { rewardId }),
+    page: hasMore ? currentPage : undefined,
   });
 }
 

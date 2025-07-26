@@ -10,38 +10,32 @@ import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
-import { RewardfulCommission } from "./types";
+import { RewardfulCommission, RewardfulImportPayload } from "./types";
 
-export async function importCommissions({
-  programId,
-  page,
-}: {
-  programId: string;
-  page: number;
-}) {
+export async function importCommissions(payload: RewardfulImportPayload) {
+  const { programId, userId, campaignId, page = 1 } = payload;
+
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
   });
 
-  const { token, userId, campaignId } = await rewardfulImporter.getCredentials(
-    program.workspaceId,
-  );
+  const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
   let currentPage = page;
-  let hasMoreCommissions = true;
+  let hasMore = true;
   let processedBatches = 0;
 
-  while (hasMoreCommissions && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < MAX_BATCHES) {
     const commissions = await rewardfulApi.listCommissions({
       page: currentPage,
     });
 
     if (commissions.length === 0) {
-      hasMoreCommissions = false;
+      hasMore = false;
       break;
     }
 
@@ -58,12 +52,14 @@ export async function importCommissions({
     processedBatches++;
   }
 
-  if (hasMoreCommissions) {
-    return await rewardfulImporter.queue({
-      programId: program.id,
+  if (hasMore) {
+    await rewardfulImporter.queue({
+      ...payload,
       action: "import-commissions",
       page: currentPage,
     });
+
+    return;
   }
 
   // Imports finished

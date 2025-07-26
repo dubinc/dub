@@ -70,15 +70,13 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
     processedBatches++;
   }
 
-  delete payload?.startingAfter;
-
   if (!hasMore) {
     await partnerStackImporter.deleteCredentials(workspaceId);
   }
 
   await partnerStackImporter.queue({
     ...payload,
-    ...(hasMore && { startingAfter: currentStartingAfter }),
+    startingAfter: hasMore ? currentStartingAfter : undefined,
     action: hasMore ? "import-commissions" : "update-stripe-customers",
   });
 }

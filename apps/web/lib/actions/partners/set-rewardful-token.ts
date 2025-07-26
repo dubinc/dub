@@ -13,7 +13,7 @@ const schema = z.object({
 export const setRewardfulTokenAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace, user } = ctx;
+    const { workspace } = ctx;
     const { token } = parsedInput;
 
     if (!workspace.partnersEnabled) {
@@ -30,9 +30,7 @@ export const setRewardfulTokenAction = authActionClient
     }
 
     await rewardfulImporter.setCredentials(workspace.id, {
-      userId: user.id,
       token,
-      campaignId: "", // We'll set in the second step after choosing the campaign
     });
 
     return {
