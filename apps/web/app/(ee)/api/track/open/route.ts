@@ -56,8 +56,6 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     // else, reuse the cached clickId
     const clickId = cachedClickId ?? nanoid(16);
 
-    console.log({ deepLink, cachedClickId, cachedLink });
-
     if (!cachedLink) {
       const link = await getLinkViaEdge({
         domain,
