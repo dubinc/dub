@@ -18,7 +18,6 @@ export const COMMISSION_TYPES = [
 export const RewardSchema = z.object({
   id: z.string(),
   event: z.nativeEnum(EventType),
-  name: z.string().nullish(),
   description: z.string().nullish(),
   type: z.nativeEnum(RewardStructure),
   amount: z.number(),

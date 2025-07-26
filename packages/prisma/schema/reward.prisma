@@ -12,7 +12,6 @@ enum RewardStructure {
 model Reward {
   id          String          @id @default(cuid())
   programId   String
-  name        String?
   description String?
   event       EventType
   type        RewardStructure @default(percentage)

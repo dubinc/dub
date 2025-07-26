@@ -6,6 +6,7 @@ import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
+import { parseUrlSchema } from "@/lib/zod/schemas/utils";
 import { LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
@@ -17,11 +18,6 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
-
-const trackOpenRequestSchema = z.object({
-  domain: z.string().trim(),
-  key: z.string().trim(),
-});
 
 const trackOpenResponseSchema = z.object({
   clickId: z.string(),
@@ -36,9 +32,16 @@ const trackOpenResponseSchema = z.object({
 // POST /api/track/open – Track an open event for deep link
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
-    const { domain, key } = trackOpenRequestSchema.parse(
-      await parseRequestBody(req),
-    );
+    const { deepLink: deepLinkUrl } = z
+      .object({
+        deepLink: parseUrlSchema,
+      })
+      .parse(await parseRequestBody(req));
+
+    const deepLink = new URL(deepLinkUrl);
+
+    const domain = deepLink.hostname.replace(/^www\./, "").toLowerCase();
+    const key = deepLink.pathname.slice(1) || "_root"; // Remove leading slash, default to _root if empty
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
@@ -62,7 +65,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       if (!link) {
         throw new DubApiError({
           code: "not_found",
-          message: `Link not found for the short link https://${domain}/${key}`,
+          message: `Deep link not found: ${deepLink}`,
         });
       }
 
@@ -74,7 +77,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     if (!cachedLink.projectId) {
       throw new DubApiError({
         code: "not_found",
-        message: "Link does not belong to a workspace.",
+        message: "Deep link does not belong to a workspace.",
       });
     }
 
