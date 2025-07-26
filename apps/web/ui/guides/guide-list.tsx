@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
+import { Shopify } from "@/ui/guides/icons/shopify";
 import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
