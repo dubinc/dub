@@ -31,6 +31,8 @@ import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { recordPartnerActivity } from "../tinybird/record-partner-activity";
+import { isGoogleAdsClick } from "../url";
 import { crawlBitly } from "./utils/crawl-bitly";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
@@ -152,6 +154,8 @@ export default async function LinkMiddleware(
     testVariants,
     testCompletedAt,
     projectId: workspaceId,
+    programId,
+    partnerId,
   } = cachedLink;
 
   const testUrl = resolveABTestURL({
@@ -167,6 +171,19 @@ export default async function LinkMiddleware(
   // - it's a Singular tracking URL
   const shouldCacheClickId =
     trackConversion || isPartnerLink || isSingularTrackingUrl(url);
+
+  // record partner activity if the link is a partner link and the click is from Google Ads
+  const isGoogleClick = isGoogleAdsClick({ url: req.url });
+  if (isPartnerLink && isGoogleClick) {
+    ev.waitUntil(
+      recordPartnerActivity({
+        program_id: programId!,
+        partner_id: partnerId!,
+        url: req.url,
+        activity: "google-ads",
+      }),
+    );
+  }
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
