@@ -274,8 +274,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                           <option value="">Select a reward</option>
                           {rewards?.map((reward) => (
                             <option value={reward.id} key={reward.id}>
-                              {reward.name ||
-                                formatRewardDescription({ reward })}{" "}
+                              {formatRewardDescription({ reward })}{" "}
                               {reward.default && "(Default)"}
                             </option>
                           ))}

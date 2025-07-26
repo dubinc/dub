@@ -138,7 +138,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
                 saleRewardsCount?.map((reward) => {
                   return {
                     value: reward.id,
-                    label: reward.name || formatRewardDescription({ reward }),
+                    label: formatRewardDescription({ reward }),
                     icon: <InvoiceDollar className="size-4 bg-transparent" />,
                     right: nFormatter(reward.partnersCount, { full: true }),
                   };
@@ -157,7 +157,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
                 leadRewardsCount?.map((reward) => {
                   return {
                     value: reward.id,
-                    label: reward.name || formatRewardDescription({ reward }),
+                    label: formatRewardDescription({ reward }),
                     icon: <UserPlus className="size-4 bg-transparent" />,
                     right: nFormatter(reward.partnersCount, { full: true }),
                   };
@@ -176,7 +176,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
                 clickRewardsCount?.map((reward) => {
                   return {
                     value: reward.id,
-                    label: reward.name || formatRewardDescription({ reward }),
+                    label: formatRewardDescription({ reward }),
                     icon: <CursorRays className="size-4 bg-transparent" />,
                     right: nFormatter(reward.partnersCount, { full: true }),
                   };
