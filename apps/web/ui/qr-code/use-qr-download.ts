@@ -1,10 +1,6 @@
 import QRCodeStyling from "qr-code-styling";
-import { RefObject } from "react";
 
-export const useQrDownload = (
-  qrCode: QRCodeStyling | null,
-  canvasRef: RefObject<HTMLCanvasElement>,
-) => {
+export const useQrDownload = (qrCode: QRCodeStyling | null) => {
   const downloadQrCode = async (format: "svg" | "png" | "jpg") => {
     if (!qrCode) return;
 
@@ -30,6 +26,10 @@ export const useQrDownload = (
 
       const img = new Image();
       img.onload = () => {
+        if (format === "jpg") {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        }
         ctx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
 
         const link = document.createElement("a");
