@@ -1,13 +1,24 @@
+export const genericEmailDomains = [
+  "gmail.com",
+  "outlook.com",
+  "hotmail.com",
+  "icloud.com",
+  "yahoo.com",
+  "qq.com",
+  "proton.me",
+  "emaily.pro",
+  "duck.com",
+  "protonmail.com",
+  "googlemail.com",
+  "pm.me",
+  "me.com",
+  "live.com",
+  "mail.ru",
+  "hey.com",
+  "aol.com",
+  "comcast.net",
+];
+
 export const isGenericEmail = (email: string) => {
-  return (
-    email.endsWith("@gmail.com") ||
-    email.endsWith("@yahoo.com") ||
-    email.endsWith("@hotmail.com") ||
-    email.endsWith("@outlook.com") ||
-    email.endsWith("@icloud.com") ||
-    email.endsWith("@aol.com") ||
-    email.endsWith("@comcast.net") ||
-    email.endsWith("@verizon.net") ||
-    email.endsWith("@att.net")
-  );
+  return genericEmailDomains.some((domain) => email.endsWith(`@${domain}`));
 };

@@ -1,0 +1,27 @@
+enum FraudEventType {
+  selfReferral
+  googleAdsClick
+  disposableEmail
+}
+
+model FraudEvent {
+  id          String           @id @default(cuid())
+  programId   String
+  partnerId   String
+  customerId  String
+  linkId      String?
+  description String?
+  type        FraudEventType
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  program  Program   @relation(fields: [programId], references: [id])
+  partner  Partner   @relation(fields: [partnerId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
+  link     Link?     @relation(fields: [linkId], references: [id])
+
+  @@index([programId, partnerId])
+  @@index(partnerId)
+  @@index(customerId)
+  @@index(linkId)
+}

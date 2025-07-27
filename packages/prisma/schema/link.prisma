@@ -80,6 +80,7 @@ model Link {
 
   customers   Customer[]
   commissions Commission[]
+  fraudEvents FraudEvent[]
 
   @@unique([domain, key]) // for getting a link by domain and key
   @@unique([projectId, externalId]) // for getting a link by externalId

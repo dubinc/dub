@@ -1,3 +1,5 @@
+import { isGoogleAdsClick } from "@/lib/analytics/fraud/is-google-ads-click";
+import { isSelfReferral } from "@/lib/analytics/fraud/is-self-referral";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -261,6 +263,35 @@ export const trackLead = async ({
               },
             },
           });
+
+          if (isGoogleAdsClick(clickData.url)) {
+            // log fraud event
+          }
+
+          if (customer.email) {
+            const partner = await prisma.partner.findUnique({
+              where: {
+                id: link.partnerId,
+              },
+            });
+
+            if (partner?.email) {
+              const selfReferral = await isSelfReferral({
+                customer: {
+                  email: customer.email,
+                  name: customer.name || undefined,
+                },
+                partner: {
+                  email: partner.email,
+                  name: partner.name,
+                },
+              });
+
+              if (selfReferral.isSelfReferral) {
+                // log fraud event
+              }
+            }
+          }
         }
 
         if (
