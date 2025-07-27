@@ -22,7 +22,7 @@ export const FAQ_ITEMS_HOMEPAGE = [
   {
     title: "How can I cancel my Premium Plan subscription?",
     content:
-      "You can cancel in your profile settings or via our [Help Center](/help/cancel-my-subscription). Access continues until the billing period ends.",
+      "You can cancel via our [Help Center](/help/cancel-my-subscription). Access continues until the billing period ends.",
   },
 ];
 
@@ -30,7 +30,7 @@ export const FAQ_ITEMS_PAYWALL = [
   {
     title: "Why is my QR code deactivated?",
     content:
-      "Your free trial has ended. GetQR offers full Premium access for 10 days or 50 scans — whichever comes first. Once the trial ends, your QR codes are paused until you upgrade to a paid plan.",
+      "Your free trial has ended. GetQR offers full Premium access for 10 days or 30 scans — whichever comes first. Once the trial ends, your QR codes are paused until you upgrade to a paid plan.",
   },
   {
     title: "What happens when I upgrade?",
@@ -45,7 +45,7 @@ export const FAQ_ITEMS_PAYWALL = [
   {
     title: "Can I cancel my subscription anytime?",
     content:
-      "Absolutely. You can cancel anytime from your account settings. Your access will continue until the end of the current billing period.",
+      "Absolutely. You can cancel anytime via our [Help Center](/help/cancel-my-subscription). Your access will continue until the end of the current billing period.",
   },
   {
     title: "What if I don’t want to upgrade now?",
