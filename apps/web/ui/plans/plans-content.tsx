@@ -30,6 +30,8 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
   const { isTrialOver } = useTrialStatus();
   const paymentSectionRef = useRef<HTMLDivElement>(null);
 
+  const hasSubscription = !!user?.paymentInfo?.subscriptionId;
+
   const qrCodeDemo = mostScannedQR?.qrType
     ? QRCodeDemoMap[mostScannedQR.qrType as EQRType]
     : QRCodeDemoMap[EQRType.WEBSITE];
@@ -58,7 +60,10 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-4 lg:gap-8">
-      <PlansHeading isTrialOver={isTrialOver} />
+      <PlansHeading
+        isTrialOver={isTrialOver}
+        hasSubscription={hasSubscription}
+      />
 
       <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
         <PopularQrInfo
@@ -67,6 +72,7 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
           demoProps={demoProps}
           mostScannedQR={mostScannedQR}
           isTrialOver={isTrialOver}
+          hasSubscription={hasSubscription}
           handleScroll={handleScrollToPayment}
         />
 
