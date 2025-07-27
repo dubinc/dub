@@ -2,70 +2,53 @@ import QRCodeStyling from "qr-code-styling";
 
 export type TDownloadFormat = "svg" | "png" | "jpg";
 
-// Browser-specific canvas area limits
-const CANVAS_LIMITS = {
-  SAFARI_MAX_AREA: 16777216, // 4096 × 4096 (iOS Safari limit)
-  CHROME_MAX_AREA: 268435456, // ~16384 × 16384 (Chrome limit)
-  FIREFOX_MAX_AREA: 472907776, // ~21800 × 21800 (Firefox limit) 
-  IE_MAX_AREA: 67108864, // 8192 × 8192 (IE limit)
-} as const;
+// Safari/WebKit canvas area limit (applies to iOS Safari AND iOS Chrome)
+const WEBKIT_MAX_AREA = 16777216; // 4096 × 4096 (iOS Safari/Chrome limit)
+const DESKTOP_MAX_AREA = 268435456; // ~16384 × 16384 (Desktop browsers)
 
-// Detect browser type more accurately
-const getBrowserInfo = () => {
-  const ua = navigator.userAgent;
+// Simple and reliable browser/platform detection
+const getPlatformLimits = () => {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   
-  if (ua.includes('Safari') && !ua.includes('Chrome')) {
-    return { name: 'safari', maxArea: CANVAS_LIMITS.SAFARI_MAX_AREA };
-  }
-  if (ua.includes('Chrome')) {
-    return { name: 'chrome', maxArea: CANVAS_LIMITS.CHROME_MAX_AREA };
-  }
-  if (ua.includes('Firefox')) {
-    return { name: 'firefox', maxArea: CANVAS_LIMITS.FIREFOX_MAX_AREA };
-  }
-  if (ua.includes('Trident') || ua.includes('MSIE')) {
-    return { name: 'ie', maxArea: CANVAS_LIMITS.IE_MAX_AREA };
+  // iOS devices (including Chrome on iOS) use WebKit with strict limits
+  if (isIOS) {
+    return { maxArea: WEBKIT_MAX_AREA, platform: 'ios' };
   }
   
-  // Default to most restrictive for unknown browsers
-  return { name: 'unknown', maxArea: CANVAS_LIMITS.SAFARI_MAX_AREA };
+  // Other mobile devices - use conservative limits
+  if (isMobile) {
+    return { maxArea: WEBKIT_MAX_AREA, platform: 'mobile' };
+  }
+  
+  // Desktop - can handle larger canvas
+  return { maxArea: DESKTOP_MAX_AREA, platform: 'desktop' };
 };
 
-// Function to calculate optimal canvas size respecting browser limitations
-const getOptimalCanvasSize = (baseSize: number): { size: number; quality: 'high' | 'medium' | 'limited' } => {
-  const devicePixelRatio = window.devicePixelRatio || 1;
-  const browser = getBrowserInfo();
-  
-  // Calculate ideal size considering pixel density
-  const idealSize = baseSize * devicePixelRatio;
-  const idealArea = idealSize * idealSize;
-  
-  // If ideal size fits within browser limits, use it
-  if (idealArea <= browser.maxArea) {
-    return { 
-      size: idealSize, 
-      quality: devicePixelRatio >= 2 ? 'high' : 'medium' 
-    };
+// Function to calculate optimal canvas size with fallback
+const getOptimalCanvasSize = (baseSize: number): number => {
+  try {
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    const { maxArea } = getPlatformLimits();
+    
+    // Calculate ideal size considering pixel density
+    const idealSize = Math.min(baseSize * devicePixelRatio, 8192); // Cap at 8192 for safety
+    const idealArea = idealSize * idealSize;
+    
+    // If ideal size fits within platform limits, use it
+    if (idealArea <= maxArea) {
+      return idealSize;
+    }
+    
+    // Calculate maximum possible size for the platform
+    const maxSize = Math.floor(Math.sqrt(maxArea));
+    
+    // Ensure we never go below base size
+    return Math.max(baseSize, maxSize);
+  } catch (error) {
+    console.warn('Error calculating canvas size, using fallback:', error);
+    return baseSize; // Safe fallback
   }
-  
-  // Calculate maximum possible size for the browser
-  const maxSize = Math.floor(Math.sqrt(browser.maxArea));
-  
-  // Try to find a good compromise - at least 1.5x the base size if possible
-  const minimumAcceptableSize = baseSize * 1.5;
-  const finalSize = Math.max(minimumAcceptableSize, Math.min(maxSize, idealSize));
-  
-  const quality = finalSize >= baseSize * 2 ? 'medium' : 'limited';
-  
-  if (finalSize < idealSize) {
-    console.warn(
-      `QR Code quality limited by ${browser.name} canvas constraints: ` +
-      `requested ${idealSize}×${idealSize} (${idealArea.toLocaleString()} pixels), ` +
-      `using ${finalSize}×${finalSize} (${(finalSize * finalSize).toLocaleString()} pixels)`
-    );
-  }
-  
-  return { size: finalSize, quality };
 };
 
 export const useQrDownload = (qrCode: QRCodeStyling | null) => {
@@ -77,50 +60,70 @@ export const useQrDownload = (qrCode: QRCodeStyling | null) => {
         extension: "svg",
         name: "qr-code",
       });
-    } else {
+      return;
+    }
+
+    try {
       const baseCanvasSize = 2048;
-      const { size: canvasSize, quality } = getOptimalCanvasSize(baseCanvasSize);
+      const canvasSize = getOptimalCanvasSize(baseCanvasSize);
       
       const tempCanvas = document.createElement("canvas");
       tempCanvas.width = canvasSize;
       tempCanvas.height = canvasSize;
       const ctx = tempCanvas.getContext("2d");
-      if (!ctx) return;
+      if (!ctx) {
+        console.error('Failed to get canvas context');
+        return;
+      }
 
-      // Optimize rendering settings based on quality level
       ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = quality === 'high' ? 'high' : 'medium';
+      ctx.imageSmoothingQuality = "high";
 
       const tempDiv = document.createElement("div");
       qrCode.append(tempDiv);
       const svg = tempDiv.querySelector("svg");
       if (!svg) {
         tempDiv.remove();
+        console.error('Failed to get SVG from QR code');
         return;
       }
 
       const img = new Image();
       img.onload = () => {
-        if (format === "jpg") {
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        try {
+          if (format === "jpg") {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+          }
+          ctx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+
+          const link = document.createElement("a");
+          const mimeType = format === "png" ? "image/png" : "image/jpeg";
+          const dataUrl = tempCanvas.toDataURL(mimeType, 1);
+
+          link.href = dataUrl;
+          link.download = `qr-code.${format}`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          tempDiv.remove();
+          URL.revokeObjectURL(img.src);
+        } catch (error) {
+          console.error('Error during download:', error);
+          tempDiv.remove();
+          if (img.src.startsWith('blob:')) {
+            URL.revokeObjectURL(img.src);
+          }
         }
-        ctx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+      };
 
-        const link = document.createElement("a");
-        const mimeType = format === "png" ? "image/png" : "image/jpeg";
-        // Use slightly lower quality for limited canvas sizes to reduce file size
-        const canvasQuality = quality === 'limited' ? 0.9 : 1;
-        const dataUrl = tempCanvas.toDataURL(mimeType, canvasQuality);
-
-        link.href = dataUrl;
-        link.download = `qr-code-${quality}.${format}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
+      img.onerror = () => {
+        console.error('Failed to load QR code image');
         tempDiv.remove();
-        URL.revokeObjectURL(img.src);
+        if (img.src.startsWith('blob:')) {
+          URL.revokeObjectURL(img.src);
+        }
       };
 
       const svgData = new XMLSerializer().serializeToString(svg);
@@ -129,6 +132,8 @@ export const useQrDownload = (qrCode: QRCodeStyling | null) => {
       });
       const svgUrl = URL.createObjectURL(svgBlob);
       img.src = svgUrl;
+    } catch (error) {
+      console.error('Error in downloadQrCode:', error);
     }
   };
 
