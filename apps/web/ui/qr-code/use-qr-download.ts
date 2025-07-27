@@ -1,7 +1,9 @@
 import QRCodeStyling from "qr-code-styling";
 
+export type TDownloadFormat = "svg" | "png" | "jpg";
+
 export const useQrDownload = (qrCode: QRCodeStyling | null) => {
-  const downloadQrCode = async (format: "svg" | "png" | "jpg") => {
+  const downloadQrCode = async (format: TDownloadFormat) => {
     if (!qrCode) return;
 
     if (format === "svg") {

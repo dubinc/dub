@@ -41,6 +41,7 @@ export function QrCodeCard({ qrCode }: { qrCode: QrStorageData }) {
         <QrCodeDetailsColumn
           qrCode={qrCode}
           canvasRef={canvasRef}
+          builtQrCodeObject={builtQrCodeObject}
           currentQrTypeInfo={currentQrTypeInfo}
           isTrialOver={isTrialOver}
           setShowTrialExpiredModal={setShowTrialExpiredModal}

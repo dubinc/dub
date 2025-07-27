@@ -1,6 +1,10 @@
 "use client";
 
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas";
+import {
+  TDownloadFormat,
+  useQrDownload,
+} from "@/ui/qr-code/use-qr-download.ts";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr";
 import { Button, Modal } from "@dub/ui";
@@ -19,12 +23,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-type TDownloadFormat = "svg" | "png" | "jpeg";
-
 const FORMAT_OPTIONS = [
   { id: "svg", label: "SVG" },
   { id: "png", label: "PNG" },
-  { id: "jpeg", label: "JPEG" },
+  { id: "jpg", label: "JPEG" },
 ];
 
 interface IQRPreviewModalProps {
@@ -47,6 +49,8 @@ function QRPreviewModal({
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<TDownloadFormat>("svg");
 
+  const { downloadQrCode } = useQrDownload(qrCode);
+
   const handleClose = () => {
     if (!isDownloading) {
       setShowQRPreviewModal(false);
@@ -61,9 +65,7 @@ function QRPreviewModal({
 
     setIsDownloading(true);
     try {
-      await qrCode.download({
-        extension: format,
-      });
+      await downloadQrCode(format);
     } catch (error) {
       console.error("Failed to download QR code:", error);
       toast.error("Failed to download QR code");
@@ -77,7 +79,7 @@ function QRPreviewModal({
       <DropdownMenu.Trigger>
         <div
           className={cn(
-            "border-border-300 flex h-10 cursor-pointer items-center justify-between gap-3.5 rounded-md border bg-white px-3 text-sm text-neutral-200 transition-colors",
+            "border-border-300 flex h-10 w-[94px] cursor-pointer items-center justify-between gap-3.5 rounded-md border bg-white px-3 text-sm text-neutral-200 transition-colors",
             "focus-within:border-secondary",
           )}
         >
@@ -92,7 +94,7 @@ function QRPreviewModal({
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Content
-        className="border-border-100 !z-10 flex flex-col items-center justify-start gap-2 rounded-lg border bg-white p-3 shadow-md"
+        className="border-border-100 !z-10 flex w-[94px] flex-col items-center justify-start gap-2 rounded-lg border bg-white p-3 shadow-md"
         sideOffset={5}
         align="start"
       >
