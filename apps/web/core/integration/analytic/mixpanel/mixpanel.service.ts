@@ -1,5 +1,4 @@
 import mixpanel, { Dict } from "mixpanel-browser";
-import * as process from "node:process";
 
 // interface
 interface ITrackParams {
