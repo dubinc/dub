@@ -50,7 +50,7 @@ function ArchiveQRModalInner({
     <>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
         <h3 className="text-lg font-medium">
-          {props.archived ? "Unpause" : "Pause"} {props.id}
+          {props.archived ? "Unpause" : "Pause"} "{props.title}"?
         </h3>
         {/*<p className="text-sm text-neutral-500">*/}
         {/*  {props.archived*/}
