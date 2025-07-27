@@ -57,7 +57,7 @@ function QRPreviewModal({
     }
   };
 
-  const handleDownload = async (format: TDownloadFormat) => {
+  const handleDownload = async () => {
     if (!qrCode || !canvasRef.current) {
       toast.error("QR code not found");
       return;
@@ -65,7 +65,7 @@ function QRPreviewModal({
 
     setIsDownloading(true);
     try {
-      await downloadQrCode(format);
+      await downloadQrCode(selectedFormat);
     } catch (error) {
       console.error("Failed to download QR code:", error);
       toast.error("Failed to download QR code");
@@ -163,8 +163,7 @@ function QRPreviewModal({
                 <Button
                   text="Download QR"
                   variant="primary"
-                  onClick={() => handleDownload(selectedFormat)}
-                  loading={isDownloading}
+                  onClick={handleDownload}
                   className="flex-1"
                 />
               </div>

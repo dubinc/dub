@@ -45,9 +45,7 @@ export const PlansHeading: FC<IPlansHeading> = ({
         weight="regular"
         className="text-neutral"
       >
-        {isTrialOver
-          ? "Your QR codes are paused - reactivate them instantly with a plan that fits your needs"
-          : "You’re currently on a paid plan. Adjust your preferences anytime — no commitment"}
+        {subHeaderText}
       </Heading>
     </Flex>
   );
