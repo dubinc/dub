@@ -12,11 +12,15 @@ export const useQrDownload = (qrCode: QRCodeStyling | null) => {
         name: "qr-code",
       });
     } else {
+      const canvasSize = 2048;
       const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = 1024;
-      tempCanvas.height = 1024;
+      tempCanvas.width = canvasSize;
+      tempCanvas.height = canvasSize;
       const ctx = tempCanvas.getContext("2d");
       if (!ctx) return;
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
 
       const tempDiv = document.createElement("div");
       qrCode.append(tempDiv);
@@ -36,11 +40,11 @@ export const useQrDownload = (qrCode: QRCodeStyling | null) => {
 
         const link = document.createElement("a");
         const mimeType = format === "png" ? "image/png" : "image/jpeg";
-        const quality = format === "jpg" ? 0.9 : undefined;
-        const dataUrl = tempCanvas.toDataURL(mimeType, quality);
+        const canvasQuality = 1;
+        const dataUrl = tempCanvas.toDataURL(mimeType, canvasQuality);
 
         link.href = dataUrl;
-        link.download = `qr-code.${format}`;
+        link.download = `qr-code-${canvasQuality}.${format}`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
