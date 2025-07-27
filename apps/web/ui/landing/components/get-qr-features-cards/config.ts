@@ -3,13 +3,13 @@ export const GET_QR_FEATURES = [
     icon: "material-symbols:palette-outline",
     title: "Full Customization",
     content:
-      "Style your QR with custom colors, shapes, frames, and logos—pick a preset or make it yours.",
+      "Style your QR with custom colors, shapes, frames, and logos. Pick a preset or make it yours.",
   },
   {
     icon: "hugeicons:settings-03",
     title: "Dynamic & Editable",
     content:
-      "Swap links, files, or content anytime—no reprints needed. Stay flexible, always.",
+      "Swap links, files, or content anytime - no reprints needed. Stay flexible, always.",
   },
   {
     icon: "streamline:money-graph-analytics-business-product-graph-data-chart-analysis",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
-import { FAQ_ITEMS_PAYWALL } from "@/ui/landing/components/faq-section/config.ts";
+import { FAQ_ITEMS_PAYWALL } from "@/ui/landing/components/faq-section/config.tsx";
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PaymentComponent } from "@/ui/plans/components/payment-component.tsx";
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";

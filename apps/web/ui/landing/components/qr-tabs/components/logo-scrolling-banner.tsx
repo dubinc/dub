@@ -5,7 +5,7 @@ import {
   GlobeAndMailIcon,
   MSNIcon,
   YahooIcon,
-} from "@/ui/landing/assets/svg/news2";
+} from "@/ui/landing/assets/svg/news";
 import { ScrollingBanner } from "@/ui/landing/components/scrolling-banner.tsx";
 
 // Icon components as news
