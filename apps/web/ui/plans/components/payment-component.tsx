@@ -99,7 +99,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
 
       <div className="border-border-500 hidden h-px w-full border-t lg:block" />
 
-      <div className="flex max-w-[436px] flex-col justify-center gap-2 lg:gap-4">
+      <div className="flex flex-col justify-center gap-2 lg:gap-4">
         <RadioGroup.Root
           value={selectedPlan.id}
           onValueChange={onChangePlan}
