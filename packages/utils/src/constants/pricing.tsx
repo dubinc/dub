@@ -112,7 +112,7 @@ export const PLANS = [
           title:
             "Redirect users to a specific page within your mobile application using deep links.",
           cta: "Learn more.",
-          href: "https://dub.co//help/article/custom-domain-deep-links",
+          href: "https://dub.co/docs/concepts/deep-links/quickstart",
         },
       },
     ] as PlanFeature[],

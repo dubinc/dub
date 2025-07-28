@@ -98,7 +98,7 @@ export const PLAN_COMPARE_FEATURES: {
           default: true,
         },
         text: "Deep links",
-        href: "https://dub.co/help/article/custom-domain-deep-links",
+        href: "https://dub.co/docs/concepts/deep-links/quickstart",
       },
       {
         check: {
@@ -171,6 +171,16 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
+        text: "Automated global payouts",
+        href: "https://dub.co/help/article/partner-payouts",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
         text: ({ id, plan }) =>
           id === "free" || id === "pro" ? (
             "No partner payouts"
@@ -185,16 +195,6 @@ export const PLAN_COMPARE_FEATURES: {
               {plan.name === "Enterprise" ? "" : "/mo"}
             </>
           ),
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
-        text: "Automated global payouts",
-        href: "https://dub.co/help/article/partner-payouts",
       },
       {
         check: {
@@ -235,7 +235,44 @@ export const PLAN_COMPARE_FEATURES: {
       {
         check: {
           default: false,
-          business: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ id, plan }) =>
+          id === "free" || id === "pro" ? (
+            "No partner rewards"
+          ) : (
+            <>
+              <strong>{plan.name === "Business" ? "Basic" : "Advanced"}</strong>{" "}
+              partner rewards
+            </>
+          ),
+        href: "https://dub.co/help/article/partner-rewards",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Dual-sided incentives",
+        href: "https://dub.co/help/article/dual-sided-incentives",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "AI landing page generator",
+        href: "https://dub.co/help/article/program-landing-page",
+      },
+      {
+        check: {
+          default: false,
           advanced: true,
           enterprise: true,
         },
@@ -245,12 +282,34 @@ export const PLAN_COMPARE_FEATURES: {
       {
         check: {
           default: false,
-          business: false,
           advanced: true,
           enterprise: true,
         },
         text: "Partners API",
         href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
+      },
+      {
+        check: {
+          default: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Email campaigns (beta)",
+      },
+      {
+        check: {
+          default: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Fraud & risk prevention",
+      },
+      {
+        check: {
+          default: false,
+          enterprise: true,
+        },
+        text: "Partner network access",
       },
     ],
   },
@@ -428,13 +487,6 @@ export const PLAN_COMPARE_FEATURES: {
         },
         text: "SAML/SSO",
         href: "https://dub.co/help/category/saml-sso",
-      },
-      {
-        check: {
-          default: false,
-          enterprise: true,
-        },
-        text: "Custom SLA",
       },
       {
         check: {
