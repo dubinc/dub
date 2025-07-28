@@ -9,7 +9,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { RewardProps } from "@/lib/types";
+import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   createOrUpdateRewardSchema,
@@ -97,6 +97,7 @@ function RewardSheetContent({
     handleSubmit,
     watch,
     setValue,
+    setError,
     control,
     formState: { errors },
   } = form;
@@ -187,6 +188,20 @@ function RewardSheetContent({
       return;
     }
 
+    let modifiers: RewardConditionsArray | undefined;
+    if (data.modifiers?.length) {
+      try {
+        modifiers = rewardConditionsArraySchema.parse(data.modifiers);
+      } catch (error) {
+        console.error(error);
+        setError("root.logic", { message: "Invalid reward logic" });
+        toast.error(
+          "Invalid reward logic. Please fix the errors and try again.",
+        );
+        return;
+      }
+    }
+
     const payload = {
       ...data,
       workspaceId,
@@ -195,7 +210,7 @@ function RewardSheetContent({
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
-      modifiers: rewardConditionsArraySchema.parse(data.modifiers),
+      modifiers,
     };
 
     if (!reward) {
