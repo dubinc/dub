@@ -85,14 +85,27 @@ export const withSession = (handler: WithSessionHandler) =>
             });
           }
           waitUntil(
-            prisma.token.update({
-              where: {
-                hashedKey,
-              },
-              data: {
-                lastUsed: new Date(),
-              },
-            }),
+            (async () => {
+              try {
+                // update last used time for the token (only once every minute)
+                const { success } = await ratelimit(1, "1 m").limit(
+                  `last-used-${hashedKey}`,
+                );
+
+                if (success) {
+                  await prisma.token.update({
+                    where: {
+                      hashedKey,
+                    },
+                    data: {
+                      lastUsed: new Date(),
+                    },
+                  });
+                }
+              } catch (error) {
+                console.error(error);
+              }
+            })(),
           );
           session = {
             user: {
