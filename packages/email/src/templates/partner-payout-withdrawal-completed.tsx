@@ -22,7 +22,7 @@ export default function PartnerPayoutWithdrawalCompleted({
 }: {
   email: string;
   amount: number;
-  traceId?: string;
+  traceId: string | null;
 }) {
   const amountInDollars = currencyFormatter(amount / 100, {
     minimumFractionDigits: 2,
@@ -74,9 +74,19 @@ export default function PartnerPayoutWithdrawalCompleted({
               <span className="font-semibold text-neutral-800">
                 {fiveBusinessDaysFromNow}
               </span>{" "}
-              and then contact your bank using the trace ID{" "}
-              <span className="font-semibold text-neutral-800">{traceId}</span>.
+              and then contact your bank
+              {traceId
+                ? ` using the following trace ID (reference number):`
+                : "."}
             </Text>
+
+            {traceId && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                <span className="font-semibold text-neutral-800">
+                  {traceId}
+                </span>
+              </Text>
+            )}
 
             <Text className="text-sm leading-6 text-neutral-600">
               If you still have any questions, contact{" "}
