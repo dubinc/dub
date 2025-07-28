@@ -1,5 +1,7 @@
 "use client";
 
+import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CONDITION_ATTRIBUTES,
@@ -20,7 +22,7 @@ import {
   TooltipContent,
   User,
 } from "@dub/ui";
-import { capitalize, cn, COUNTRIES, truncate } from "@dub/utils";
+import { capitalize, cn, COUNTRIES, pluralize, truncate } from "@dub/utils";
 import { Command } from "cmdk";
 import { Fragment, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
@@ -163,8 +165,9 @@ function ConditionalGroup({
           {operator}
         </button>
         <VerticalLine />
-        <div className="border-border-subtle rounded-md border bg-white p-2.5">
+        <div className="border-border-subtle flex items-center gap-2.5 rounded-md border bg-white p-2.5">
           <RewardIconSquare icon={MoneyBills2} />
+          <ResultTerms modifierIndex={index} />
         </div>
       </div>
     </div>
@@ -474,6 +477,70 @@ function OperatorDropdown({
         </div>
       </button>
     </Popover>
+  );
+}
+
+function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
+  const modifierKey = `modifiers.${modifierIndex}` as const;
+
+  const { control, register } = useAddEditRewardForm();
+  const [amount, type, maxDuration, event] = useWatch({
+    control,
+    name: [`${modifierKey}.amount`, "type", "maxDuration", "event"],
+  });
+
+  return (
+    <span className="leading-relaxed">
+      Then pay{" "}
+      <InlineBadgePopover
+        text={
+          amount
+            ? constructRewardAmount({
+                amount: type === "flat" ? amount * 100 : amount,
+                type,
+              })
+            : "amount"
+        }
+        invalid={!amount}
+      >
+        <div className="relative rounded-md shadow-sm">
+          {type === "flat" && (
+            <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
+              $
+            </span>
+          )}
+          <input
+            className={cn(
+              "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
+              type === "flat" ? "pl-4 pr-12" : "pr-7",
+            )}
+            {...register(`${modifierKey}.amount`, {
+              required: true,
+              setValueAs: (value: string) =>
+                value === "" ? undefined : +value,
+              min: 0,
+              max: type === "percentage" ? 100 : undefined,
+              onChange: handleMoneyInputChange,
+            })}
+            onKeyDown={handleMoneyKeyDown}
+          />
+          <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
+            {type === "flat" ? "USD" : "%"}
+          </span>
+        </div>
+      </InlineBadgePopover>{" "}
+      per {event}
+      {event === "sale" && (
+        <>
+          {" "}
+          {maxDuration === 0
+            ? "one time"
+            : maxDuration === Infinity
+              ? "for the customer's lifetime"
+              : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`}
+        </>
+      )}
+    </span>
   );
 }
 
