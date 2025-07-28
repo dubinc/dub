@@ -3,14 +3,13 @@ import {
   ToltAffiliateSchema,
   ToltCommissionSchema,
   ToltCustomerSchema,
+  toltImportPayloadSchema,
   ToltLinkSchema,
   ToltProgramSchema,
 } from "./schemas";
 
-export interface ToltConfig {
+export interface ToltCredentials {
   token: string;
-  userId: string;
-  toltProgramId: string;
 }
 
 export interface ToltListResponse<T> {
@@ -30,3 +29,5 @@ export type ToltLink = z.infer<typeof ToltLinkSchema>;
 export type ToltCustomer = z.infer<typeof ToltCustomerSchema>;
 
 export type ToltCommission = z.infer<typeof ToltCommissionSchema>;
+
+export type ToltImportPayload = z.infer<typeof toltImportPayloadSchema>;

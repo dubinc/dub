@@ -242,6 +242,7 @@ function ProgramInfo({
 
     await executeAsync({
       workspaceId,
+      toltProgramId: toltProgram.id,
     });
   };
 

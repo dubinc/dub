@@ -3,8 +3,11 @@ import { EventType, RewardStructure } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
+import { RewardfulImportPayload } from "./types";
 
-export async function importCampaign({ programId }: { programId: string }) {
+export async function importCampaign(payload: RewardfulImportPayload) {
+  const { programId, campaignId } = payload;
+
   const { workspaceId, rewards: defaultSaleReward } =
     await prisma.program.findUniqueOrThrow({
       where: {
@@ -20,8 +23,7 @@ export async function importCampaign({ programId }: { programId: string }) {
       },
     });
 
-  const { token, campaignId } =
-    await rewardfulImporter.getCredentials(workspaceId);
+  const { token } = await rewardfulImporter.getCredentials(workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
@@ -82,8 +84,8 @@ export async function importCampaign({ programId }: { programId: string }) {
   }
 
   return await rewardfulImporter.queue({
-    programId,
+    ...payload,
     ...(rewardId && { rewardId }),
-    action: "import-affiliates",
+    action: "import-partners",
   });
 }

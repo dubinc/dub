@@ -95,11 +95,9 @@ export async function importLinks(payload: PartnerStackImportPayload) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
-  delete payload?.startingAfter;
-
   await partnerStackImporter.queue({
     ...payload,
-    ...(hasMore && { startingAfter: currentStartingAfter }),
+    startingAfter: hasMore ? currentStartingAfter : undefined,
     action: hasMore ? "import-links" : "import-customers",
   });
 }

@@ -189,8 +189,7 @@ function EditRewardsModalInner({
                               <option value="none">None</option>
                               {eventRewards?.map((reward) => (
                                 <option value={reward.id} key={reward.id}>
-                                  {reward.name ||
-                                    formatRewardDescription({ reward })}{" "}
+                                  {formatRewardDescription({ reward })}{" "}
                                   {reward.default && "(Default)"}
                                 </option>
                               ))}

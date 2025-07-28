@@ -1,16 +1,12 @@
 import { z } from "zod";
 import {
   partnerStackCommission,
+  partnerStackCredentialsSchema,
   partnerStackCustomer,
   partnerStackImportPayloadSchema,
   partnerStackLink,
   partnerStackPartner,
 } from "./schemas";
-
-export interface PartnerStackConfig {
-  publicKey: string;
-  secretKey: string;
-}
 
 export interface PartnerStackListResponse<T> {
   data: {
@@ -29,3 +25,7 @@ export type PartnerStackLink = z.infer<typeof partnerStackLink>;
 export type PartnerStackCustomer = z.infer<typeof partnerStackCustomer>;
 
 export type PartnerStackCommission = z.infer<typeof partnerStackCommission>;
+
+export type PartnerStackCredentials = z.infer<
+  typeof partnerStackCredentialsSchema
+>;
