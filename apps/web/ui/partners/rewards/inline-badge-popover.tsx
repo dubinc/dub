@@ -1,7 +1,14 @@
 "use client";
 
 import { X } from "@/ui/shared/icons";
-import { Button, Check2, Plus, Popover, useScrollProgress } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Button,
+  Check2,
+  Plus,
+  Popover,
+  useScrollProgress,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
 import {
@@ -64,58 +71,80 @@ export function InlineBadgePopover({
   );
 }
 
-export function InlineBadgePopoverMenu({
+export function InlineBadgePopoverMenu<T extends any>({
   items,
   onSelect,
   selectedValue,
+  search,
 }: {
-  items: { text: string; value: string; onSelect?: () => void }[];
-  onSelect?: (value: string) => void;
-  selectedValue?: string;
+  items: { icon?: ReactNode; text: string; value: T; onSelect?: () => void }[];
+  onSelect?: (value: T) => void;
+  selectedValue?: T | T[];
+  search?: boolean;
 }) {
+  const isMultiSelect = Array.isArray(selectedValue);
+
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   return (
-    <div className="relative">
-      <Command loop className="focus:outline-none">
-        <Command.List
-          className="scrollbar-hide flex max-h-64 flex-col gap-1 overflow-y-auto transition-all"
-          ref={scrollRef}
-          onScroll={updateScrollProgress}
-        >
-          {items.map(({ text, value, onSelect: itemOnSelect }) => (
-            <Command.Item
-              key={text}
-              onSelect={() => {
-                itemOnSelect?.();
-                onSelect?.(value);
-                setIsOpen(false);
-              }}
-              className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 hover:bg-neutral-100"
-            >
-              <span className="text-content-default pr-3 text-left text-sm font-medium">
-                {text}
-              </span>
-              {selectedValue === value && (
-                <Check2 className="text-content-emphasis size-3.5 shrink-0" />
-              )}
-            </Command.Item>
-          ))}
-        </Command.List>
-      </Command>
-      <div
-        className="pointer-events-none absolute bottom-0 left-0 hidden h-12 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
-        style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-      />
-    </div>
+    <Command loop className="focus:outline-none">
+      {search && (
+        <div className="-mx-1 -mt-1 mb-1 flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
+          <Command.Input
+            placeholder="Search"
+            className="border-0 bg-transparent py-2 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm"
+          />
+        </div>
+      )}
+      <AnimatedSizeContainer height>
+        <div className="relative">
+          <Command.List
+            className="scrollbar-hide flex max-h-64 max-w-48 flex-col gap-1 overflow-y-auto transition-all"
+            ref={scrollRef}
+            onScroll={updateScrollProgress}
+          >
+            {items.map(({ icon, text, value, onSelect: itemOnSelect }) => (
+              <Command.Item
+                key={text}
+                value={`${text} ${value}`}
+                onSelect={() => {
+                  itemOnSelect?.();
+                  onSelect?.(value);
+                  !isMultiSelect && setIsOpen(false);
+                }}
+                className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100"
+              >
+                <div className="flex items-center gap-2">
+                  {icon}
+                  <span className="text-content-default pr-3 text-left text-sm font-medium">
+                    {text}
+                  </span>
+                </div>
+                {(Array.isArray(selectedValue)
+                  ? selectedValue.includes(value)
+                  : selectedValue === value) && (
+                  <Check2 className="text-content-emphasis size-3.5 shrink-0" />
+                )}
+              </Command.Item>
+            ))}
+          </Command.List>
+          <div
+            className="pointer-events-none absolute bottom-0 left-0 hidden h-12 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
+            style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+          />
+        </div>
+      </AnimatedSizeContainer>
+    </Command>
   );
 }
 
 export const InlineBadgePopoverInput = forwardRef<HTMLInputElement>(
   (props: HTMLProps<HTMLInputElement>, ref) => {
+    const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
     return (
       <div className="relative rounded-md shadow-sm">
         <input
@@ -124,6 +153,7 @@ export const InlineBadgePopoverInput = forwardRef<HTMLInputElement>(
             "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 sm:w-32 sm:text-sm",
             "focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
           )}
+          onKeyDown={(e) => e.key === "Enter" && setIsOpen(false)}
           {...props}
         />
       </div>
@@ -144,6 +174,7 @@ export const InlineBadgePopoverInputs = ({
     valuesProp.map((value) => ({ id: uuid(), value })),
   );
 
+  // Kinda nasty but allows the component to only receive/return the values array without needing external IDs
   useEffect(() => {
     const currentValues = values.map((item) => item.value);
     if (JSON.stringify(currentValues) !== JSON.stringify(valuesProp)) {

@@ -20,7 +20,7 @@ import {
   TooltipContent,
   User,
 } from "@dub/ui";
-import { capitalize, cn, truncate } from "@dub/utils";
+import { capitalize, cn, COUNTRIES, truncate } from "@dub/utils";
 import { Command } from "cmdk";
 import { Fragment, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
@@ -234,6 +234,9 @@ function ConditionLogic({
     ? { customer: User, sale: InvoiceDollar }[condition.entity]
     : ArrowTurnRight2;
 
+  const isArrayValue =
+    condition.operator && ["in", "not_in"].includes(condition.operator);
+
   return (
     <>
       <RewardIconSquare icon={icon} />
@@ -341,7 +344,43 @@ function ConditionLogic({
                     : !condition.value
                 }
               >
-                {["in", "not_in"].includes(condition.operator) ? (
+                {/* Country selection */}
+                {condition.attribute === "country" &&
+                !["starts_with", "ends_with"].includes(condition.operator) ? (
+                  <InlineBadgePopoverMenu
+                    search
+                    selectedValue={
+                      (condition.value as string[] | undefined) ??
+                      (isArrayValue ? [] : undefined)
+                    }
+                    items={Object.entries(COUNTRIES).map(([key, name]) => ({
+                      text: name,
+                      value: key,
+                      icon: (
+                        <img
+                          alt={`${key} flag`}
+                          src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
+                          className="size-3 shrink-0"
+                        />
+                      ),
+                    }))}
+                    onSelect={(value) => {
+                      setValue(conditionKey, {
+                        ...condition,
+                        value: isArrayValue
+                          ? Array.isArray(condition.value)
+                            ? (condition.value as string[]).includes(value)
+                              ? (condition.value.filter(
+                                  (v) => v !== value,
+                                ) as string[])
+                              : ([...condition.value, value] as string[])
+                            : [value]
+                          : value,
+                      });
+                    }}
+                  />
+                ) : isArrayValue ? (
+                  // String array input
                   <InlineBadgePopoverInputs
                     values={
                       condition.value
@@ -358,6 +397,7 @@ function ConditionLogic({
                     }}
                   />
                 ) : (
+                  // String input
                   <InlineBadgePopoverInput
                     {...register(`${conditionKey}.value`, { required: true })}
                   />
