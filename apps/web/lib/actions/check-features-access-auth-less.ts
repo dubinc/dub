@@ -36,7 +36,7 @@ export const checkFeaturesAccessAuthLess = async (
       )
     : 0;
 
-  const maxClicksForTest = beforeRecord ? 2 : 3;
+  const maxClicksForTest = beforeRecord ? 9 : 10;
   const maxClicksForRealFlow = beforeRecord ? 29 : 30;
   const maxClicks =
     process.env.NEXT_PUBLIC_APP_ENV === "dev"
