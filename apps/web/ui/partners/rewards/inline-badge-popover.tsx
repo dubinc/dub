@@ -153,7 +153,12 @@ export const InlineBadgePopoverInput = forwardRef<HTMLInputElement>(
             "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 sm:w-32 sm:text-sm",
             "focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
           )}
-          onKeyDown={(e) => e.key === "Enter" && setIsOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              setIsOpen(false);
+            }
+          }}
           {...props}
         />
       </div>

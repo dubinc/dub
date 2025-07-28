@@ -28,17 +28,24 @@ import {
   PropsWithChildren,
   ReactNode,
   SetStateAction,
+  useContext,
   useEffect,
   useRef,
   useState,
 } from "react";
-import { FormProvider, useForm, useFormContext } from "react-hook-form";
+import {
+  FormProvider,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
 import { RewardPartnersTable } from "../reward-partners-table";
 import {
   InlineBadgePopover,
+  InlineBadgePopoverContext,
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
@@ -305,33 +312,7 @@ function RewardSheetContent({
                     }
                     invalid={!amount}
                   >
-                    <div className="relative rounded-md shadow-sm">
-                      {type === "flat" && (
-                        <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
-                          $
-                        </span>
-                      )}
-                      <input
-                        className={cn(
-                          "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
-                          errors.amount &&
-                            "border-red-600 focus:border-red-500 focus:ring-red-600",
-                          type === "flat" ? "pl-4 pr-12" : "pr-7",
-                        )}
-                        {...register("amount", {
-                          required: true,
-                          setValueAs: (value: string) =>
-                            value === "" ? undefined : +value,
-                          min: 0,
-                          max: type === "percentage" ? 100 : undefined,
-                          onChange: handleMoneyInputChange,
-                        })}
-                        onKeyDown={handleMoneyKeyDown}
-                      />
-                      <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
-                        {type === "flat" ? "USD" : "%"}
-                      </span>
-                    </div>
+                    <AmountInput />
                   </InlineBadgePopover>{" "}
                   per {selectedEvent}
                   {selectedEvent === "sale" && (
@@ -497,6 +478,48 @@ function RewardSheetCard({
           {content}
         </div>
       )}
+    </div>
+  );
+}
+
+function AmountInput() {
+  const { control, register } = useAddEditRewardForm();
+  const [type] = useWatch({ control, name: "type" });
+
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  return (
+    <div className="relative rounded-md shadow-sm">
+      {type === "flat" && (
+        <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
+          $
+        </span>
+      )}
+      <input
+        className={cn(
+          "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
+          type === "flat" ? "pl-4 pr-12" : "pr-7",
+        )}
+        {...register("amount", {
+          required: true,
+          setValueAs: (value: string) => (value === "" ? undefined : +value),
+          min: 0,
+          max: type === "percentage" ? 100 : undefined,
+          onChange: handleMoneyInputChange,
+        })}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            setIsOpen(false);
+            return;
+          }
+
+          handleMoneyKeyDown(e);
+        }}
+      />
+      <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
+        {type === "flat" ? "USD" : "%"}
+      </span>
     </div>
   );
 }
