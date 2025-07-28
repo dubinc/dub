@@ -1,3 +1,5 @@
+import { sendEmail } from "@dub/email";
+import PartnerPayoutWithdrawalCompleted from "@dub/email/templates/partner-payout-withdrawal-completed";
 import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
 
@@ -39,4 +41,25 @@ export async function payoutPaid(event: Stripe.Event) {
   console.log(
     `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to "completed" status`,
   );
+
+  if (partner.email) {
+    const sentEmail = await sendEmail({
+      variant: "notifications",
+      subject: "Your funds have been transferred to your bank account",
+      email: partner.email,
+      react: PartnerPayoutWithdrawalCompleted({
+        email: partner.email,
+        payout: {
+          amount: stripePayout.amount,
+          currency: stripePayout.currency,
+          arrivalDate: stripePayout.arrival_date,
+          traceId: stripePayout.trace_id as string | null,
+        },
+      }),
+    });
+
+    console.log(
+      `Sent email to partner ${partner.email} (${stripeAccount}): ${JSON.stringify(sentEmail, null, 2)}`,
+    );
+  }
 }
