@@ -15,6 +15,7 @@ const confirmPayoutsSchema = z.object({
   userId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  excludedPayoutIds: z.array(z.string()).optional(),
 });
 
 // POST /api/cron/payouts/confirm
@@ -26,8 +27,13 @@ export async function POST(req: Request) {
 
     await verifyQstashSignature({ req, rawBody });
 
-    const { workspaceId, userId, paymentMethodId, cutoffPeriod } =
-      confirmPayoutsSchema.parse(JSON.parse(rawBody));
+    const {
+      workspaceId,
+      userId,
+      paymentMethodId,
+      cutoffPeriod,
+      excludedPayoutIds,
+    } = confirmPayoutsSchema.parse(JSON.parse(rawBody));
 
     const workspace = await prisma.project.findUniqueOrThrow({
       where: {
@@ -45,6 +51,7 @@ export async function POST(req: Request) {
       await splitPayouts({
         program,
         cutoffPeriod,
+        excludedPayoutIds,
       });
     }
 
@@ -54,6 +61,7 @@ export async function POST(req: Request) {
       userId,
       paymentMethodId,
       cutoffPeriod,
+      excludedPayoutIds,
     });
 
     return new Response(`Payouts confirmed for program ${program.name}.`);

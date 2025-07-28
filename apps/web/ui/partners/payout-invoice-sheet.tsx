@@ -114,6 +114,16 @@ function PayoutInvoiceSheetContent() {
     fetcher,
   );
 
+  const [excludedPayoutIds, setExcludedPayoutIds] = useState<string[]>([]);
+
+  const includedPayouts = useMemo(
+    () =>
+      eligiblePayouts?.filter(
+        (payout) => !excludedPayoutIds.includes(payout.id),
+      ),
+    [eligiblePayouts, excludedPayoutIds],
+  );
+
   const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
     onSuccess: async () => {
       await mutatePrefix(`/api/programs/${defaultProgramId}/payouts`);
@@ -177,10 +187,10 @@ function PayoutInvoiceSheetContent() {
 
   const amount = useMemo(
     () =>
-      eligiblePayouts?.reduce((acc, payout) => {
+      includedPayouts?.reduce((acc, payout) => {
         return acc + payout.amount;
       }, 0),
-    [eligiblePayouts],
+    [includedPayouts],
   );
 
   const invoiceData = useMemo(() => {
@@ -308,40 +318,85 @@ function PayoutInvoiceSheetContent() {
     ];
   }, [amount, paymentMethods, selectedPaymentMethod, cutoffPeriod]);
 
+  const partnerColumn = useMemo(
+    () => ({
+      header: "Partner",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <img
+            src={
+              row.original.partner.image ||
+              `${OG_AVATAR_URL}${row.original.partner.name}`
+            }
+            alt={row.original.partner.name}
+            className="size-6 rounded-full"
+          />
+          <span className="text-sm text-neutral-700">
+            {row.original.partner.name}
+          </span>
+        </div>
+      ),
+    }),
+    [],
+  );
+
   const table = useTable({
     data: eligiblePayouts || [],
     columns: [
-      {
-        header: "Partner",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <img
-              src={
-                row.original.partner.image ||
-                `${OG_AVATAR_URL}${row.original.partner.name}`
-              }
-              alt={row.original.partner.name}
-              className="size-6 rounded-full"
-            />
-            <span className="text-sm text-neutral-700">
-              {row.original.partner.name}
-            </span>
-          </div>
-        ),
-      },
+      partnerColumn,
       {
         id: "total",
         header: "Total",
-        cell: ({ row }) =>
-          currencyFormatter(row.original.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => (
+          <>
+            <div className="relative">
+              <span
+                className={cn(
+                  "group-hover/row:opacity-0",
+                  excludedPayoutIds.includes(row.original.id) && "line-through",
+                )}
+              >
+                {currencyFormatter(row.original.amount / 100, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+              <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
+                <Button
+                  variant="secondary"
+                  text={
+                    excludedPayoutIds.includes(row.original.id)
+                      ? "Include"
+                      : "Exclude"
+                  }
+                  className="h-6 w-fit px-2"
+                  onClick={() =>
+                    // Toggle excluded
+                    setExcludedPayoutIds((ids) =>
+                      ids.includes(row.original.id)
+                        ? ids.filter((id) => id !== row.original.id)
+                        : [...excludedPayoutIds, row.original.id],
+                    )
+                  }
+                />
+              </div>
+            </div>
+          </>
+        ),
       },
     ],
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
-    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
+    tdClassName: (id, row) =>
+      cn(
+        "transition-opacity",
+        excludedPayoutIds.includes(row.original.id) && [
+          "[&>div]:opacity-50",
+          id === "total" && "group-hover/row:[&>div]:opacity-100",
+        ], // Excluded payout
+        id === "total" && "text-right",
+        "border-l-0",
+      ),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `eligible payout${p ? "s" : ""}`,
@@ -349,13 +404,7 @@ function PayoutInvoiceSheetContent() {
     error: eligiblePayoutsError
       ? "Failed to load payouts for this invoice."
       : undefined,
-  } as any);
-
-  useEffect(() => {
-    if (eligiblePayouts) {
-      table.table.toggleAllRowsSelected();
-    }
-  }, [eligiblePayouts]);
+  });
 
   const { error: permissionsError } = clientAccessCheck({
     role,

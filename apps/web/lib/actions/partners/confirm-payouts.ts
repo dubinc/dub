@@ -13,6 +13,7 @@ const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  excludedPayoutIds: z.array(z.string()).optional(),
 });
 
 // Confirm payouts
@@ -20,7 +21,7 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { paymentMethodId, cutoffPeriod } = parsedInput;
+    const { paymentMethodId, cutoffPeriod, excludedPayoutIds } = parsedInput;
 
     if (workspace.role !== "owner") {
       throw new Error("Only workspace owners can confirm payouts.");
@@ -61,6 +62,7 @@ export const confirmPayoutsAction = authActionClient
         userId: user.id,
         paymentMethodId,
         cutoffPeriod,
+        excludedPayoutIds,
       },
     });
 

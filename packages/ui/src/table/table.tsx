@@ -245,7 +245,7 @@ const ResizableTableRow = memo(
                 row.index === table.getRowModel().rows.length - 1,
               ),
               typeof tdClassName === "function"
-                ? tdClassName(cell.column.id)
+                ? tdClassName(cell.column.id, row)
                 : tdClassName,
             )}
             style={{
@@ -487,7 +487,7 @@ export function Table<T>({
                               row.index === table.getRowModel().rows.length - 1,
                             ),
                             typeof tdClassName === "function"
-                              ? tdClassName(cell.column.id)
+                              ? tdClassName(cell.column.id, row)
                               : tdClassName,
                           )}
                           style={{

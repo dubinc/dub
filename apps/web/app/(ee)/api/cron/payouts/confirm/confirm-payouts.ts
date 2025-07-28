@@ -32,6 +32,7 @@ export async function confirmPayouts({
   userId,
   paymentMethodId,
   cutoffPeriod,
+  excludedPayoutIds,
 }: {
   workspace: Pick<
     Project,
@@ -47,6 +48,7 @@ export async function confirmPayouts({
   userId: string;
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
+  excludedPayoutIds?: string[];
 }) {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
@@ -78,6 +80,7 @@ export async function confirmPayouts({
           },
         ],
       }),
+      ...(excludedPayoutIds && { id: { notIn: excludedPayoutIds } }),
     },
     select: {
       id: true,
