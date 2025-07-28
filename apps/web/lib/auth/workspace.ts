@@ -232,10 +232,10 @@ export const withWorkspace = (
           }
 
           waitUntil(
-            // update last used time for the token (only once every 15 minutes)
+            // update last used time for the token (only once every minute)
             (async () => {
               try {
-                const { success } = await ratelimit(1, "15 m").limit(
+                const { success } = await ratelimit(1, "1 m").limit(
                   `last-used-${hashedKey}`,
                 );
 
