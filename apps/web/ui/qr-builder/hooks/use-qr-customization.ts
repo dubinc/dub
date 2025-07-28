@@ -105,7 +105,7 @@ export function useQrCustomization(
     switch (type) {
       case EQRType.WHATSAPP:
         try {
-          const url = new URL(data);
+          const url = new URL(initialData!.link!.url);
           let number = "";
           let message = "";
 
@@ -160,14 +160,15 @@ export function useQrCustomization(
         }
         break;
       case EQRType.WEBSITE:
-        return { websiteLink: data };
+        return { websiteLink: initialData!.link!.url };
       case EQRType.APP_LINK:
-        return { storeLink: data };
+        return { storeLink: initialData!.link!.url };
       case EQRType.SOCIAL:
-        return { socialLink: data };
+        return { socialLink: initialData!.link!.url };
       case EQRType.FEEDBACK:
-        return { link: data };
+        return { link: initialData!.link!.url };
     }
+
     return {};
   };
 

@@ -117,15 +117,15 @@ export const convertQRForUpdate = async (
   const frameOptionsChanged = (() => {
     const originalFrame = originalQR.frameOptions as FrameOptions;
     const newFrame = newQRData.frameOptions;
-    
-    const fieldsToCheck = ['id', 'color', 'text', 'textColor'] as const;
-    
-    return fieldsToCheck.some(field => 
-      newFrame[field] !== originalFrame?.[field]
+
+    const fieldsToCheck = ["id", "color", "text", "textColor"] as const;
+
+    return fieldsToCheck.some(
+      (field) => newFrame[field] !== originalFrame?.[field],
     );
   })();
 
-  const originalData = (originalQR.styles as Options)?.data || "";
+  const originalData = originalQR?.link?.url || "";
   const newData = newQRData.styles.data || "";
   const dataChanged = newData !== originalData;
 

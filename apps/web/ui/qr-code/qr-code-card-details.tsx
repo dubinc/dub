@@ -16,7 +16,7 @@ const getDisplayContent = (qrCode: QrStorageData): string => {
   switch (qrType as EQRType) {
     case EQRType.WHATSAPP:
       try {
-        const url = new URL(data);
+        const url = new URL(qrCode.link.url);
         let number = "";
 
         if (url.hostname === "wa.me") {
