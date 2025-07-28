@@ -23,8 +23,6 @@ import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { LoaderCircle } from "lucide-react";
-import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 
 type QRBuilderModalProps = {
   props?: QrStorageData;
@@ -56,14 +54,14 @@ export function QRBuilderModal({
     }
 
     if (props) {
-      // Если редактируем и data содержит короткую ссылку (пользователь не менял форму),
-      // используем оригинальный пункт назначения
-      const isDataShortLink = data.styles.data?.includes(process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN!);
-      
+      const isDataShortLink = data.styles.data?.includes(
+        process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN!,
+      );
+
       if (isDataShortLink && props.link?.url) {
         data.styles.data = props.link.url;
       }
-      
+
       await updateQrWithOriginal(props, data);
     } else {
       await createQr(data);

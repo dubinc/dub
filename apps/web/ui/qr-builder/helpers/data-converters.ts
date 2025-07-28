@@ -129,6 +129,15 @@ export const convertQRForUpdate = async (
   const newData = newQRData.styles.data || "";
   const dataChanged = newData !== originalData;
 
+  const originalStyles = { ...(originalQR.styles as Options) };
+  const newStyles = { ...newQRData.styles };
+
+  delete originalStyles.data;
+  delete newStyles.data;
+
+  const stylesChanged =
+    JSON.stringify(originalStyles) !== JSON.stringify(newStyles);
+
   const hasNewFiles = newQRData.files && newQRData.files.length > 0;
   const hasExistingFiles = originalQR.fileId;
 
@@ -137,6 +146,7 @@ export const convertQRForUpdate = async (
     dataChanged ||
     qrTypeChanged ||
     frameOptionsChanged ||
+    stylesChanged ||
     hasNewFiles;
 
   let fileId: string | undefined;
@@ -185,6 +195,7 @@ export const convertQRForUpdate = async (
       data: dataChanged,
       qrType: qrTypeChanged,
       frameOptions: frameOptionsChanged,
+      styles: stylesChanged,
       files: hasNewFiles,
     },
     updateData,
