@@ -92,8 +92,9 @@ async function handler(req: Request) {
           if (!featuresAccess.featuresAccess && totalClicks < 30) {
             // Send the 10-day registration event
             await CustomerIOClient.track(user.id, {
-              name: "day_limit_reached",
+              name: "trial_expired",
               data: {
+                days: 10,
                 qr_name: firstQrName,
               },
             });

@@ -69,9 +69,9 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            // name: "trial_expired",
-            name: "scan_limit_reached",
+            name: "trial_expired",
             data: {
+              codes: 30,
               qr_name: link.qrName,
             },
           }),
