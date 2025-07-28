@@ -17,22 +17,29 @@ import { Footer } from "../components/footer";
 // Send this email after payout.paid webhook is received
 export default function PartnerPayoutWithdrawalCompleted({
   email = "panic@thedis.co",
-  amount = 45590,
-  arrivalDate = 1722163200,
-  traceId = "DUB PARTN-XYZ",
+  payout = {
+    amount: 45590,
+    currency: "usd",
+    arrivalDate: 1722163200,
+    traceId: "DUB-PARTN-ABCD-XYZ-123456",
+  },
 }: {
   email: string;
-  amount: number;
-  arrivalDate: number;
-  traceId: string | null;
+  payout: {
+    amount: number;
+    currency: string;
+    arrivalDate: number;
+    traceId: string | null;
+  };
 }) {
-  const amountInDollars = currencyFormatter(amount / 100, {
+  const amountInDollars = currencyFormatter(payout.amount / 100, {
+    currency: payout.currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
   const fiveBusinessDaysFromArrivalDate = (() => {
-    let date = new Date(arrivalDate * 1000);
+    let date = new Date(payout.arrivalDate * 1000);
     let businessDays = 0;
     while (businessDays < 5) {
       date.setDate(date.getDate() + 1);
@@ -77,14 +84,14 @@ export default function PartnerPayoutWithdrawalCompleted({
                 {fiveBusinessDaysFromArrivalDate}
               </span>{" "}
               and then contact your bank
-              {traceId
+              {payout.traceId
                 ? ` using the following trace ID (reference number):`
                 : "."}
             </Text>
 
-            {traceId && (
-              <Text className="text-sm font-semibold text-purple-600">
-                {traceId}
+            {payout.traceId && (
+              <Text className="break-all font-mono text-sm text-purple-600">
+                {payout.traceId}
               </Text>
             )}
 

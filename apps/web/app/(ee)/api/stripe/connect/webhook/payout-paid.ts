@@ -49,9 +49,12 @@ export async function payoutPaid(event: Stripe.Event) {
       email: partner.email,
       react: PartnerPayoutWithdrawalCompleted({
         email: partner.email,
-        amount: stripePayout.amount,
-        arrivalDate: stripePayout.arrival_date,
-        traceId: stripePayout.trace_id as string | null,
+        payout: {
+          amount: stripePayout.amount,
+          currency: stripePayout.currency,
+          arrivalDate: stripePayout.arrival_date,
+          traceId: stripePayout.trace_id as string | null,
+        },
       }),
     });
 
