@@ -10,6 +10,7 @@ import {
   CONDITION_SALE_ATTRIBUTES,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
+import { EventType } from "@dub/prisma/client";
 import {
   ArrowTurnRight2,
   Button,
@@ -183,6 +184,12 @@ const ENTITIES = {
   },
 } as const;
 
+const EVENT_ENTITIES: Record<EventType, (keyof typeof ENTITIES)[]> = {
+  sale: ["sale", "customer"],
+  lead: ["customer"],
+  click: [],
+};
+
 const ATTRIBUTE_LABELS = {
   productId: "Product ID",
 };
@@ -228,9 +235,9 @@ function ConditionLogic({
   const conditionKey = `${modifierKey}.conditions.${conditionIndex}` as const;
 
   const { control, setValue, register } = useAddEditRewardForm();
-  const [condition, operator] = useWatch({
+  const [event, condition, operator] = useWatch({
     control,
-    name: [conditionKey, `${modifierKey}.operator`],
+    name: ["event", conditionKey, `${modifierKey}.operator`],
   });
 
   const icon = condition.entity
@@ -260,10 +267,14 @@ function ConditionLogic({
                 },
               )
             }
-            items={Object.keys(ENTITIES).map((entity) => ({
-              text: capitalize(entity) || entity,
-              value: entity,
-            }))}
+            items={Object.keys(ENTITIES)
+              .filter((e) =>
+                EVENT_ENTITIES[event]?.includes(e as keyof typeof ENTITIES),
+              )
+              .map((entity) => ({
+                text: capitalize(entity) || entity,
+                value: entity,
+              }))}
           />
         </InlineBadgePopover>{" "}
         {condition.entity && (

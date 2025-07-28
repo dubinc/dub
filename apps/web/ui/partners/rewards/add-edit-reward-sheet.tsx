@@ -361,7 +361,11 @@ function RewardSheetContent({
                 </span>
               </>
             }
-            content={<RewardsLogic isDefaultReward={!!isDefault} />}
+            content={
+              selectedEvent === "click" ? undefined : (
+                <RewardsLogic isDefaultReward={!!isDefault} />
+              )
+            }
           />
 
           <VerticalLine />
