@@ -61,6 +61,20 @@ async function handler(req: Request) {
 
           console.log("user", user);
 
+          // Get the first user's QR name from the database
+          const firstQr = await prisma.qr.findFirst({
+            where: {
+              userId: user.id,
+            },
+            select: {
+              title: true,
+            },
+            orderBy: {
+              createdAt: 'asc',
+            },
+          });
+          const firstQrName = firstQr?.title || null;
+
           // Get total clicks for all user's links
           const totalClicksResult = await prisma.$queryRaw<
             Array<{ totalUserClicks: bigint }>
@@ -73,13 +87,14 @@ async function handler(req: Request) {
 
           console.log("featuresAccess", featuresAccess);
           console.log("totalClicks", totalClicks);
+          console.log("firstQrName", firstQrName);
 
           if (!featuresAccess.featuresAccess && totalClicks < 30) {
             // Send the 10-day registration event
             await CustomerIOClient.track(user.id, {
-              name: "trial_expired",
+              name: "day_limit_reached",
               data: {
-                days: 10,
+                qr_name: firstQrName,
               },
             });
 
