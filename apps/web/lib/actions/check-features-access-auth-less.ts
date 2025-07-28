@@ -36,8 +36,12 @@ export const checkFeaturesAccessAuthLess = async (
       )
     : 0;
 
-  // const maxClicks = beforeRecord ? 29 : 30;
-  const maxClicks = beforeRecord ? 2 : 3;
+  const maxClicksForTest = beforeRecord ? 2 : 3;
+  const maxClicksForRealFlow = beforeRecord ? 29 : 30;
+  const maxClicks =
+    process.env.NEXT_PUBLIC_APP_ENV === "dev"
+      ? maxClicksForTest
+      : maxClicksForRealFlow;
 
   const isTrialOver = totalClicks >= maxClicks || daysSinceRegistration >= 10;
 
