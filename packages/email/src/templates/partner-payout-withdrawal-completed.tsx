@@ -14,25 +14,41 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-// Send this email after initiating a Stripe payout to the partner
-export default function PartnerPayoutWithdrawalInitiated({
+// Send this email after payout.paid webhook is received
+export default function PartnerPayoutWithdrawalCompleted({
   email = "panic@thedis.co",
   amount = 45590,
-  expectedDate = "Aug 4",
+  traceId = "DUB PARTN-XYZ",
 }: {
   email: string;
   amount: number;
-  expectedDate: string;
+  traceId?: string;
 }) {
   const amountInDollars = currencyFormatter(amount / 100, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
+  const fiveBusinessDaysFromNow = (() => {
+    let date = new Date();
+    let businessDays = 0;
+    while (businessDays < 5) {
+      date.setDate(date.getDate() + 1);
+      // Skip weekends (0 = Sunday, 6 = Saturday)
+      if (date.getDay() !== 0 && date.getDay() !== 6) {
+        businessDays++;
+      }
+    }
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+    });
+  })();
+
   return (
     <Html>
       <Head />
-      <Preview>Your funds are on their way to your bank</Preview>
+      <Preview>Your funds have been transferred to your bank account</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -41,24 +57,29 @@ export default function PartnerPayoutWithdrawalInitiated({
             </Section>
 
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
-              Your funds are on their way to your bank
+              Your funds have been transferred to your bank account
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Good news!{" "}
               <span className="font-semibold text-neutral-800">
                 {amountInDollars}
               </span>{" "}
-              is being transferred from your Stripe Express account to your
+              has been transferred from your Stripe Express account to your
               connected bank account.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              The funds are expected to arrive in your bank account by{" "}
+              Banks can take up to 5 business days to process payouts. Wait
+              until{" "}
               <span className="font-semibold text-neutral-800">
-                {expectedDate}
-              </span>
-              . If there are any delays, please contact{" "}
+                {fiveBusinessDaysFromNow}
+              </span>{" "}
+              and then contact your bank using the trace ID{" "}
+              <span className="font-semibold text-neutral-800">{traceId}</span>.
+            </Text>
+
+            <Text className="text-sm leading-6 text-neutral-600">
+              If you still have any questions, contact{" "}
               <Link
                 href="https://support.stripe.com/express"
                 className="font-medium text-black underline"
@@ -67,15 +88,6 @@ export default function PartnerPayoutWithdrawalInitiated({
               </Link>
               .
             </Text>
-
-            <Section className="mb-12 mt-8">
-              <Link
-                className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
-                href="https://partners.dub.co/payouts"
-              >
-                View payouts
-              </Link>
-            </Section>
             <Footer email={email} />
           </Container>
         </Body>
