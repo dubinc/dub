@@ -48,6 +48,7 @@
     "@radix-ui/react-visually-hidden": "^1.1.1",
     "@radix-ui/themes": "2.0.1",
     "@react-pdf/renderer": "^4.1.5",
+    "@sentry/nextjs": "^9.42.1",
     "@sindresorhus/slugify": "^2.2.1",
     "@splinetool/react-spline": "^2.2.6",
     "@splinetool/runtime": "^1.2.8",
