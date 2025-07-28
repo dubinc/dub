@@ -375,7 +375,7 @@ function PayoutInvoiceSheetContent() {
                     setExcludedPayoutIds((ids) =>
                       ids.includes(row.original.id)
                         ? ids.filter((id) => id !== row.original.id)
-                        : [...excludedPayoutIds, row.original.id],
+                        : [...ids, row.original.id],
                     )
                   }
                 />
@@ -481,6 +481,7 @@ function PayoutInvoiceSheetContent() {
               workspaceId,
               paymentMethodId: selectedPaymentMethod.id,
               cutoffPeriod,
+              excludedPayoutIds,
             });
           }}
           text={
