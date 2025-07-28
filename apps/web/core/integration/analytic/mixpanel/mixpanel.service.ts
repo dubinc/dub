@@ -14,7 +14,7 @@ class MixpanelClientService {
       track_pageview: false,
       persistence: "localStorage",
       record_heatmap_data: process.env.NODE_ENV === "production",
-      // record_sessions_percent: 1, // Session Replay enabled, recording 1% of all sessions
+      record_sessions_percent: 20, // Session Replay enabled, recording 20% of all sessions
       // api_host: `${process.env.NEXT_PUBLIC_MIXPANEL_API_HOST}`,
     });
   }
