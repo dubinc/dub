@@ -1,5 +1,6 @@
 "use client";
 
+import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import { IPricingPlan } from "@/ui/plans/constants";
 import { Button } from "@dub/ui";
 import { useCreateUserPaymentMutation } from "core/api/user/payment/payment.hook";
@@ -34,6 +35,8 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
   setIsProcessing,
 }) => {
   const router = useRouter();
+
+  const { setIsTrialOver } = useTrialStatus();
   const { update: updateSession } = useSession();
 
   const { trigger: triggerCreateUserPayment } = useCreateUserPaymentMutation();
@@ -132,10 +135,8 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
             `The plan ${getSubscriptionRenewalAction(selectedPlan.paymentPlan, currentSubscriptionPlan as TPaymentPlan)} was successful!`,
           );
 
-          // Update session data to reflect the new subscription plan
+          setIsTrialOver(false);
           await updateSession();
-
-          // Force refresh user data cache
           await mutate("/api/user");
 
           // Force refresh the page cache

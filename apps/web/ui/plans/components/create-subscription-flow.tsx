@@ -1,5 +1,6 @@
 "use client";
 
+import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import { IPricingPlan } from "@/ui/plans/constants";
 import { LoadingSpinner, Modal } from "@dub/ui";
 import { Payment } from "@primer-io/checkout-web";
@@ -40,6 +41,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   const router = useRouter();
   const paymentTypeRef = useRef<string | null>(null);
   const [isSubscriptionCreation, setIsSubscriptionCreation] = useState(false);
+
+  const { setIsTrialOver } = useTrialStatus();
 
   const { update: updateSession } = useSession();
 
@@ -167,6 +170,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       toxic: res?.data?.toxic,
     });
 
+    setIsTrialOver(false);
     await updateSession();
     await mutate("/api/user");
 

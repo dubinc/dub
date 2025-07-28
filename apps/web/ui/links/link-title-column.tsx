@@ -3,7 +3,6 @@
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsBadge } from "@/ui/links/link-details-column.tsx";
-import { LinksListContext } from "@/ui/links/links-container";
 import { QRCode } from "@/ui/shared/qr-code.tsx";
 import {
   ArrowTurnRight2,
@@ -58,7 +57,6 @@ const quickViewSettings = [
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { url, domain, key, createdAt } = link;
   const { isMobile } = useMediaQuery();
-  const { isTrialOver } = useContext(LinksListContext);
 
   // const { variant } = useContext(CardList.Context);
   // @USEFUL_FEATURE: display config of link table
@@ -97,7 +95,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
       <div className="flex h-full flex-row items-center justify-center gap-1">
         <div className="flex flex-col items-center justify-center gap-1.5">
           <QRCode url={link.shortLink} scale={isMobile ? 0.8 : 0.6} />
-          {link.archived || isTrialOver ? (
+          {link.archived ? (
             <div
               className={cn(
                 "flex w-full justify-center overflow-hidden rounded-md border border-neutral-200/10 md:hidden",
@@ -176,7 +174,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
         </Text>
         <Details link={link} hideIcon />
       </div>
-      {!isTrialOver && (
+      {
         <div
           className={cn(
             "hidden shrink-0 flex-col items-start justify-center gap-1 pl-6 md:flex",
@@ -189,7 +187,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
             <span className="text-neutral-500">{timeAgo(createdAt)}</span>
           </Tooltip>
         </div>
-      )}
+      }
     </div>
   );
 }
