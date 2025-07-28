@@ -37,9 +37,11 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
   try {
     const linkRows = await conn.execute(
       `SELECT l.*, u.id as userId, u.email as userEmail,
-        (SELECT SUM(clicks) FROM Link WHERE userId = u.id) as totalUserClicks
+        (SELECT SUM(clicks) FROM Link WHERE userId = u.id) as totalUserClicks,
+        qr.title as qrName
       FROM Link l 
       LEFT JOIN User u ON l.userId = u.id 
+      LEFT JOIN Qr qr ON l.id = qr.linkId
       WHERE l.id = ?`,
       [linkId],
     );
@@ -67,9 +69,10 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: "trial_expired",
+            // name: "trial_expired",
+            name: "scan_limit_reached",
             data: {
-              codes: 30,
+              qr_name: link.qrName,
             },
           }),
         },
