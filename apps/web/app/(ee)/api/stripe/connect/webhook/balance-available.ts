@@ -130,13 +130,7 @@ export async function balanceAvailable(event: Stripe.Event) {
       react: PartnerPayoutWithdrawalInitiated({
         email: partner.email,
         amount: payout.amount,
-        expectedDate: new Date(payout.arrival_date * 1000).toLocaleDateString(
-          "en-US",
-          {
-            month: "long",
-            day: "numeric",
-          },
-        ),
+        arrivalDate: payout.arrival_date,
       }),
     });
 

@@ -18,11 +18,11 @@ import { Footer } from "../components/footer";
 export default function PartnerPayoutWithdrawalInitiated({
   email = "panic@thedis.co",
   amount = 45590,
-  expectedDate = "Aug 4",
+  arrivalDate = 1722163200,
 }: {
   email: string;
   amount: number;
-  expectedDate: string;
+  arrivalDate: number;
 }) {
   const amountInDollars = currencyFormatter(amount / 100, {
     minimumFractionDigits: 2,
@@ -56,7 +56,10 @@ export default function PartnerPayoutWithdrawalInitiated({
             <Text className="text-sm leading-6 text-neutral-600">
               The funds are expected to arrive in your bank account by{" "}
               <span className="font-semibold text-neutral-800">
-                {expectedDate}
+                {new Date(arrivalDate * 1000).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                })}
               </span>
               . If there are any delays, please contact{" "}
               <Link

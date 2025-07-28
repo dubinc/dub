@@ -50,6 +50,7 @@ export async function payoutPaid(event: Stripe.Event) {
       react: PartnerPayoutWithdrawalCompleted({
         email: partner.email,
         amount: stripePayout.amount,
+        arrivalDate: stripePayout.arrival_date,
         traceId: stripePayout.trace_id as string | null,
       }),
     });

@@ -18,10 +18,12 @@ import { Footer } from "../components/footer";
 export default function PartnerPayoutWithdrawalCompleted({
   email = "panic@thedis.co",
   amount = 45590,
+  arrivalDate = 1722163200,
   traceId = "DUB PARTN-XYZ",
 }: {
   email: string;
   amount: number;
+  arrivalDate: number;
   traceId: string | null;
 }) {
   const amountInDollars = currencyFormatter(amount / 100, {
@@ -29,8 +31,8 @@ export default function PartnerPayoutWithdrawalCompleted({
     maximumFractionDigits: 2,
   });
 
-  const fiveBusinessDaysFromNow = (() => {
-    let date = new Date();
+  const fiveBusinessDaysFromArrivalDate = (() => {
+    let date = new Date(arrivalDate * 1000);
     let businessDays = 0;
     while (businessDays < 5) {
       date.setDate(date.getDate() + 1);
@@ -40,7 +42,7 @@ export default function PartnerPayoutWithdrawalCompleted({
       }
     }
     return date.toLocaleDateString("en-US", {
-      month: "long",
+      month: "short",
       day: "numeric",
     });
   })();
@@ -72,7 +74,7 @@ export default function PartnerPayoutWithdrawalCompleted({
               Banks can take up to 5 business days to process payouts. Wait
               until{" "}
               <span className="font-semibold text-neutral-800">
-                {fiveBusinessDaysFromNow}
+                {fiveBusinessDaysFromArrivalDate}
               </span>{" "}
               and then contact your bank
               {traceId
