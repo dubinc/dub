@@ -25,11 +25,12 @@ import {
 } from "@dub/ui";
 import { capitalize, cn, COUNTRIES, pluralize, truncate } from "@dub/utils";
 import { Command } from "cmdk";
-import { Fragment, useState } from "react";
+import { Fragment, useContext, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import {
   InlineBadgePopover,
+  InlineBadgePopoverContext,
   InlineBadgePopoverInput,
   InlineBadgePopoverInputs,
   InlineBadgePopoverMenu,
@@ -514,31 +515,7 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
         }
         invalid={!amount}
       >
-        <div className="relative rounded-md shadow-sm">
-          {type === "flat" && (
-            <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
-              $
-            </span>
-          )}
-          <input
-            className={cn(
-              "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
-              type === "flat" ? "pl-4 pr-12" : "pr-7",
-            )}
-            {...register(`${modifierKey}.amount`, {
-              required: true,
-              setValueAs: (value: string) =>
-                value === "" ? undefined : +value,
-              min: 0,
-              max: type === "percentage" ? 100 : undefined,
-              onChange: handleMoneyInputChange,
-            })}
-            onKeyDown={handleMoneyKeyDown}
-          />
-          <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
-            {type === "flat" ? "USD" : "%"}
-          </span>
-        </div>
+        <AmountInput modifierKey={modifierKey} />
       </InlineBadgePopover>{" "}
       per {event}
       {event === "sale" && (
@@ -552,6 +529,47 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
         </>
       )}
     </span>
+  );
+}
+
+function AmountInput({ modifierKey }: { modifierKey: `modifiers.${number}` }) {
+  const { control, register } = useAddEditRewardForm();
+  const [type] = useWatch({ control, name: "type" });
+
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  return (
+    <div className="relative rounded-md shadow-sm">
+      {type === "flat" && (
+        <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
+          $
+        </span>
+      )}
+      <input
+        className={cn(
+          "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
+          type === "flat" ? "pl-4 pr-12" : "pr-7",
+        )}
+        {...register(`${modifierKey}.amount`, {
+          required: true,
+          setValueAs: (value: string) => (value === "" ? undefined : +value),
+          min: 0,
+          max: type === "percentage" ? 100 : undefined,
+          onChange: handleMoneyInputChange,
+        })}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            setIsOpen(false);
+          }
+
+          handleMoneyKeyDown(e);
+        }}
+      />
+      <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
+        {type === "flat" ? "USD" : "%"}
+      </span>
+    </div>
   );
 }
 
