@@ -4,7 +4,10 @@ import {
   WHITE_COLOR,
 } from "@/ui/qr-builder/constants/customization/colors.ts";
 import { FRAME_TEXT } from "@/ui/qr-builder/constants/customization/frames.ts";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import {
+  EQRType,
+  FILE_QR_TYPES,
+} from "@/ui/qr-builder/constants/get-qr-config.ts";
 import {
   FrameOptions,
   QRBuilderData,
@@ -114,6 +117,10 @@ export const convertQRForUpdate = async (
 
   const titleChanged = newQRData.title !== originalQR.title;
   const qrTypeChanged = newQRData.qrType !== originalQR.qrType;
+  const qrTypeChangedFromFileToNonFile =
+    qrTypeChanged &&
+    FILE_QR_TYPES.includes(originalQR.qrType as EQRType) &&
+    !FILE_QR_TYPES.includes(newQRData.qrType as EQRType);
   const frameOptionsChanged = (() => {
     const originalFrame = originalQR.frameOptions as FrameOptions;
     const newFrame = newQRData.frameOptions;
@@ -171,7 +178,10 @@ export const convertQRForUpdate = async (
     fileId = respData.file.id;
   }
 
-  const linkUrl = hasNewFiles || hasExistingFiles ? "" : newData;
+  const linkUrl =
+    hasNewFiles || (hasExistingFiles && !qrTypeChangedFromFileToNonFile)
+      ? ""
+      : newData;
 
   const updateData: UpdateQrProps = {
     data: newData,
