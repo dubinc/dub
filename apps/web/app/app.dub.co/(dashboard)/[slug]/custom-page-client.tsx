@@ -46,7 +46,7 @@ export default function WorkspaceQRsClient() {
 
 function WorkspaceQRs() {
   const router = useRouter();
-  const { isValidating } = useQrs();
+  const { isValidating } = useQrs({}, {}, true); // listenOnly mode
   const searchParams = useSearchParams();
 
   const { isTrialOver } = useTrialStatus();

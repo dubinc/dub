@@ -13,6 +13,7 @@ const partialQuerySchema = getLinksQuerySchemaExtended.partial();
 export default function useQrs(
   opts: z.infer<typeof partialQuerySchema> = {},
   swrOpts: SWRConfiguration = {},
+  listenOnly: boolean = false,
 ) {
   const { data: session } = useSession() as
     | {
@@ -29,6 +30,11 @@ export default function useQrs(
     }
   }, []);
 
+  // If listenOnly is true, use standard params to read from the same cache as the main data fetcher
+  const queryParams = listenOnly 
+    ? { sortBy: "createdAt", showArchived: true, ...opts }
+    : opts;
+
   const {
     data: qrs,
     isValidating,
@@ -42,20 +48,22 @@ export default function useQrs(
             includeWebhooks: "true",
             includeDashboard: "true",
             userId: session?.user?.id,
-            ...opts,
+            ...queryParams,
           },
           {
             exclude: ["import", "upgrade", "newLink"],
           },
         )}`
       : admin
-        ? `/api/admin/qrs${getQueryString(opts)}`
+        ? `/api/admin/qrs${getQueryString(queryParams)}`
         : null,
-    fetcher,
+    listenOnly ? null : fetcher, // Don't fetch if listening only
     {
       dedupingInterval: 20000,
       revalidateOnFocus: false,
       keepPreviousData: true,
+      revalidateOnMount: !listenOnly,
+      revalidateOnReconnect: !listenOnly,
       ...swrOpts,
     },
   );
