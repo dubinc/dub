@@ -4,13 +4,12 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { PartnerStackApi } from "@/lib/partnerstack/api";
 import { partnerStackImporter } from "@/lib/partnerstack/importer";
+import { partnerStackCredentialsSchema } from "@/lib/partnerstack/schemas";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-const schema = z.object({
+const schema = partnerStackCredentialsSchema.extend({
   workspaceId: z.string(),
-  publicKey: z.string().min(1),
-  secretKey: z.string().min(1),
 });
 
 export const startPartnerStackImportAction = authActionClient

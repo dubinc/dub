@@ -4,8 +4,15 @@ import { RewardProps } from "@/lib/types";
 export function formatRewardDescription({
   reward,
 }: {
-  reward: Pick<RewardProps, "amount" | "type" | "event" | "maxDuration">;
+  reward: Pick<
+    RewardProps,
+    "description" | "amount" | "type" | "event" | "maxDuration"
+  >;
 }): string {
+  if (reward.description) {
+    return reward.description;
+  }
+
   const rewardAmount = constructRewardAmount(reward);
   const parts: string[] = [];
 

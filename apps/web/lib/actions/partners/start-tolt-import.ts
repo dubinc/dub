@@ -8,12 +8,14 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
+  toltProgramId: z.string().trim().min(1),
 });
 
 export const startToltImportAction = authActionClient
   .schema(schema)
-  .action(async ({ ctx }) => {
-    const { workspace } = ctx;
+  .action(async ({ ctx, parsedInput }) => {
+    const { workspace, user } = ctx;
+    const { toltProgramId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -39,7 +41,9 @@ export const startToltImportAction = authActionClient
     }
 
     await toltImporter.queue({
-      action: "import-affiliates",
-      programId,
+      userId: user.id,
+      programId: program.id,
+      toltProgramId,
+      action: "import-partners",
     });
   });

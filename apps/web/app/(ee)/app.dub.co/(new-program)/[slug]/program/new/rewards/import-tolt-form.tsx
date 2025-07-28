@@ -11,14 +11,19 @@ import { useEffect, useState } from "react";
 import { UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { toast } from "sonner";
 
-type FormProps = {
-  watch: UseFormWatch<ProgramData>;
-  setValue: UseFormSetValue<ProgramData>;
-};
-
 type Step = "set-token" | "program-info";
 
-export const ImportToltForm = ({ watch, setValue }: FormProps) => {
+export const ImportToltForm = ({
+  watch,
+  setValue,
+  onSuccess,
+  isPending,
+}: {
+  watch: UseFormWatch<ProgramData>;
+  setValue: UseFormSetValue<ProgramData>;
+  onSuccess: () => void;
+  isPending: boolean;
+}) => {
   const [step, setStep] = useState<Step>("set-token");
   const [toltProgram, setToltProgram] = useState<ToltProgram | null>(null);
 
@@ -40,7 +45,11 @@ export const ImportToltForm = ({ watch, setValue }: FormProps) => {
           setValue={setValue}
         />
       ) : (
-        <ToltProgramInfo toltProgram={toltProgram!} />
+        <ToltProgramInfo
+          toltProgram={toltProgram}
+          onSuccess={onSuccess}
+          isPending={isPending}
+        />
       )}
     </>
   );
@@ -66,7 +75,6 @@ function ToltTokenForm({
 
         setValue("tolt", {
           ...data.program,
-          maskedToken: token,
         });
 
         setStep("program-info");
@@ -150,7 +158,19 @@ function ToltTokenForm({
   );
 }
 
-function ToltProgramInfo({ toltProgram }: { toltProgram: ToltProgram }) {
+function ToltProgramInfo({
+  toltProgram,
+  onSuccess,
+  isPending,
+}: {
+  toltProgram: ToltProgram | null;
+  onSuccess: () => void;
+  isPending: boolean;
+}) {
+  if (!toltProgram) {
+    return null;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -182,6 +202,14 @@ function ToltProgramInfo({ toltProgram }: { toltProgram: ToltProgram }) {
           </div>
         </dl>
       </div>
+
+      <Button
+        type="button"
+        text="Continue"
+        className="w-full"
+        onClick={onSuccess}
+        loading={isPending}
+      />
     </div>
   );
 }

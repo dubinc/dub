@@ -59,7 +59,7 @@ export class RewardfulApi {
     return data;
   }
 
-  async listAffiliates({
+  async listPartners({
     campaignId,
     page = 1,
   }: {
@@ -79,7 +79,7 @@ export class RewardfulApi {
     return data;
   }
 
-  async listReferrals({ page = 1 }: { page?: number }) {
+  async listCustomers({ page = 1 }: { page?: number }) {
     const searchParams = new URLSearchParams();
     searchParams.append("expand[]", "affiliate");
     searchParams.append("conversion_state[]", "lead");

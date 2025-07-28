@@ -3,6 +3,7 @@ import { Customer, Project } from "@dub/prisma/client";
 import Stripe from "stripe";
 import { stripeAppClient } from "../stripe";
 import { MAX_BATCHES, toltImporter } from "./importer";
+import { ToltImportPayload } from "./types";
 
 const CUSTOMERS_PER_BATCH = 20;
 
@@ -12,13 +13,9 @@ const stripe = stripeAppClient({
 
 // Tolt API doesn't return the Stripe customer ID,
 // so we'll search for Stripe customers by email and update the customer record with the Stripe customer ID, if found.
-export async function updateStripeCustomers({
-  programId,
-  startingAfter,
-}: {
-  programId: string;
-  startingAfter?: string;
-}) {
+export async function updateStripeCustomers(payload: ToltImportPayload) {
+  let { programId, startingAfter } = payload;
+
   const { workspace } = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -88,9 +85,9 @@ export async function updateStripeCustomers({
   }
 
   await toltImporter.queue({
-    programId,
+    ...payload,
+    startingAfter: hasMore ? startingAfter : undefined,
     action: hasMore ? "update-stripe-customers" : "cleanup-partners",
-    ...(hasMore && { startingAfter }),
   });
 }
 

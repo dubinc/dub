@@ -8,6 +8,11 @@ export const partnerStackImportSteps = z.enum([
   "update-stripe-customers",
 ]);
 
+export const partnerStackCredentialsSchema = z.object({
+  publicKey: z.string().min(1),
+  secretKey: z.string().min(1),
+});
+
 export const partnerStackImportPayloadSchema = z.object({
   userId: z.string(),
   programId: z.string(),

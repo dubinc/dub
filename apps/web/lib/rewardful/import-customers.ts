@@ -7,15 +7,11 @@ import { recordLeadWithTimestamp } from "../tinybird/record-lead";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
-import { RewardfulReferral } from "./types";
+import { RewardfulImportPayload, RewardfulReferral } from "./types";
 
-export async function importReferrals({
-  programId,
-  page,
-}: {
-  programId: string;
-  page: number;
-}) {
+export async function importCustomers(payload: RewardfulImportPayload) {
+  const { programId, campaignId, page = 1 } = payload;
+
   const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -25,23 +21,21 @@ export async function importReferrals({
     },
   });
 
-  const { token, campaignId } = await rewardfulImporter.getCredentials(
-    workspace.id,
-  );
+  const { token } = await rewardfulImporter.getCredentials(workspace.id);
 
   const rewardfulApi = new RewardfulApi({ token });
 
   let currentPage = page;
-  let hasMoreReferrals = true;
+  let hasMore = true;
   let processedBatches = 0;
 
-  while (hasMoreReferrals && processedBatches < MAX_BATCHES) {
-    const referrals = await rewardfulApi.listReferrals({
+  while (hasMore && processedBatches < MAX_BATCHES) {
+    const referrals = await rewardfulApi.listCustomers({
       page: currentPage,
     });
 
     if (referrals.length === 0) {
-      hasMoreReferrals = false;
+      hasMore = false;
       break;
     }
 
@@ -60,17 +54,10 @@ export async function importReferrals({
     processedBatches++;
   }
 
-  if (hasMoreReferrals) {
-    return await rewardfulImporter.queue({
-      programId: program.id,
-      action: "import-referrals",
-      page: currentPage,
-    });
-  }
-
   await rewardfulImporter.queue({
-    programId: program.id,
-    action: "import-commissions",
+    ...payload,
+    page: hasMore ? currentPage : undefined,
+    action: hasMore ? "import-customers" : "import-commissions",
   });
 }
 
