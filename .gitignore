@@ -48,3 +48,5 @@ packages/stripe-app/.build/*
 
 # idea
 .idea
+
+/apps/web/.env.sentry-build-plugin

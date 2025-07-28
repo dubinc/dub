@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { HOME_DOMAIN } from "../constants";
+import * as Sentry from '@sentry/nextjs';
 
 export function constructMetadata({
   title,
@@ -91,6 +92,7 @@ export function constructMetadata({
     }),
     other: {
       "ahrefs-site-verification": "e5a6dbdcc10bdcd4b469eb0b9351966a19df09770ab98a83ef5dff85c883160a",
+      ...Sentry.getTraceData(),
     },
   };
 }
