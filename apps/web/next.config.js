@@ -302,7 +302,7 @@ module.exports = withSentryConfig(
     // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
     org: "hint-py",
-    project: "getqr-si",
+    project: "getqr",
 
     // Only print logs for uploading source maps in CI
     silent: !process.env.CI,
