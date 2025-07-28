@@ -21,6 +21,7 @@ function ArchiveQRModal(props: ArchiveQRModalProps) {
     <Modal
       showModal={props.showArchiveQRModal}
       setShowModal={props.setShowArchiveQRModal}
+      className="border-border-500"
     >
       <ArchiveQRModalInner {...props} />
     </Modal>
@@ -48,7 +49,7 @@ function ArchiveQRModalInner({
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
+      <div className="border-border-500 flex flex-col items-center justify-center space-y-3 border-b px-4 py-4 pt-8 text-center sm:px-16">
         <h3 className="text-lg font-medium">
           {props.archived ? "Unpause" : "Pause"} "{props.title}"?
         </h3>
