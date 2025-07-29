@@ -56,7 +56,6 @@ export function ProgramPartnersApplicationsPageClient() {
     data: partners,
     error,
     isValidating,
-    mutate,
   } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString(
       {
@@ -299,7 +298,7 @@ export function ProgramPartnersApplicationsPageClient() {
         maxSize: 43,
         header: ({ table }) => <EditColumnsButton table={table} />,
         cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} mutate={mutate} />
+          <RowMenuButton row={row} workspaceId={workspaceId!} />
         ),
       },
     ],
@@ -421,11 +420,9 @@ export function ProgramPartnersApplicationsPageClient() {
 function RowMenuButton({
   row,
   workspaceId,
-  mutate,
 }: {
   row: Row<EnrolledPartnerProps>;
   workspaceId: string;
-  mutate: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
