@@ -62,27 +62,28 @@ model Program {
   rewards       Reward[]
   discounts     Discount[]           @relation("ProgramDiscounts")
   fraudEvents   FraudEvent[]
-  
+
   @@index(workspaceId)
   @@index(domain)
 }
 
 model ProgramEnrollment {
-  id               String                  @id @default(cuid())
-  partnerId        String
-  programId        String
-  tenantId         String?
-  discountId       String? // custom discount for this partner
-  clickRewardId    String?
-  leadRewardId     String?
-  saleRewardId     String?
-  applicationId    String?                 @unique
-  status           ProgramEnrollmentStatus @default(pending)
-  totalCommissions Int                     @default(0) // total commissions earned by the partner (in cents)
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
-  bannedAt         DateTime?
-  bannedReason     PartnerBannedReason?
+  id                         String                  @id @default(cuid())
+  partnerId                  String
+  programId                  String
+  tenantId                   String?
+  discountId                 String? // custom discount for this partner
+  clickRewardId              String?
+  leadRewardId               String?
+  saleRewardId               String?
+  applicationId              String?                 @unique
+  status                     ProgramEnrollmentStatus @default(pending)
+  totalCommissions           Int                     @default(0) // total commissions earned by the partner (in cents)
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
+  bannedAt                   DateTime?
+  bannedReason               PartnerBannedReason?
+  ignoreFraudEventsEnabledAt DateTime?
 
   partner     Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)

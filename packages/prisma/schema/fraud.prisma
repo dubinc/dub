@@ -4,6 +4,12 @@ enum FraudEventType {
   disposableEmail
 }
 
+enum FraudEventStatus {
+  pending
+  safe
+  banned
+}
+
 model FraudEvent {
   id          String           @id @default(cuid())
   programId   String
@@ -12,6 +18,7 @@ model FraudEvent {
   linkId      String?
   description String?
   type        FraudEventType
+  status      FraudEventStatus @default(pending)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
