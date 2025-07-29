@@ -276,6 +276,18 @@ const NAV_AREAS: SidebarNavAreas<{
             href: "/account/plans",
             exact: true,
           },
+          {
+            name: "Help Center",
+            icon: ({ className }: { className: string }) => (
+              <IconifyIcon
+                className={cn("h-4 w-4 text-neutral-200", className)}
+                icon="iconoir:help-circle"
+              />
+            ),
+            href: "/help",
+            onClick: () => window.open("/help", "_blank"),
+            exact: true,
+          },
           // {
           //   name: "Security",
           //   icon: ShieldCheck,
