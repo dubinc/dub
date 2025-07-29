@@ -6,7 +6,6 @@ import { getQr } from "@/lib/api/qrs/get-qr";
 import { updateQr } from "@/lib/api/qrs/update-qr";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { storage } from "@/lib/storage.ts";
 import { updateQrBodySchema } from "@/lib/zod/schemas/qrs";
 import {
   EQRType,
@@ -107,17 +106,6 @@ export const PATCH = withWorkspace(
       });
 
       const updatedQr = await updateQr(params.qrId, body);
-
-      // We need to delete a file if either of two conditions is true:
-      // 1. QR type changed from file to non-file
-      // 2. Existing file replaced by a new file
-      const shouldFileBeDeleted =
-        qr.fileId &&
-        (qrTypeChangedFromFileToNonFile || (body.fileId && !qrTypeChanged));
-
-      if (shouldFileBeDeleted) {
-        await storage.delete(`qrs-content/${qr.fileId}`);
-      }
 
       return NextResponse.json(
         { qr: updatedQr },
