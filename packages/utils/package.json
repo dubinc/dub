@@ -31,7 +31,6 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@sentry/nextjs": "^9.42.1",
     "@sindresorhus/slugify": "^2.2.1",
     "chrono-node": "^2.7.5",
     "clsx": "^2.1.1",
