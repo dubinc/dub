@@ -1,8 +1,9 @@
+import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps, RewardProps } from "@/lib/types";
 import { ChevronRight, Users } from "@dub/ui/icons";
-import { cn, pluralize } from "@dub/utils";
+import { cn, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import { RewardIconSquare } from "./reward-icon-square";
@@ -43,17 +44,22 @@ export function RewardPartnersCard({
               {!!excludedPartnerIds?.length && (
                 <>
                   , excluding{" "}
-                  <strong className="font-semibold">
-                    {excludedPartnerIds.length}
-                  </strong>{" "}
-                  {pluralize("partner", excludedPartnerIds.length)}
+                  <PartnerPreviewOrCount
+                    ids={excludedPartnerIds}
+                    rewardPartners={rewardPartners}
+                    isExpanded={isExpanded}
+                  />
                 </>
               )}
             </span>
           ) : (
             <span>
-              To {includedPartnerIds?.length || 0}{" "}
-              {pluralize("partner", includedPartnerIds?.length || 0)}
+              To{" "}
+              <PartnerPreviewOrCount
+                ids={includedPartnerIds || []}
+                rewardPartners={rewardPartners}
+                isExpanded={isExpanded}
+              />
             </span>
           )}
         </div>
@@ -72,6 +78,9 @@ export function RewardPartnersCard({
         initial={false}
         animate={{ height: isExpanded ? "auto" : 0 }}
         transition={{ duration: 0.2 }}
+        {...{
+          inert: isExpanded ? undefined : "",
+        }}
       >
         <div className="border-border-subtle -mx-px rounded-xl border-x border-t bg-neutral-50 p-2.5">
           <div className="space-y-4">
@@ -93,5 +102,86 @@ export function RewardPartnersCard({
         </div>
       </motion.div>
     </div>
+  );
+}
+
+function PartnerPreviewOrCount({
+  ids,
+  rewardPartners,
+  isExpanded,
+}: {
+  ids: string[];
+  rewardPartners?: EnrolledPartnerProps[];
+  isExpanded: boolean;
+}) {
+  const count = ids.length;
+  const showAvatars = !isExpanded && count > 0;
+
+  const firstThreeIds = ids.slice(0, 3);
+  const partnerIdsToFetch = firstThreeIds.filter(
+    (id) => !rewardPartners?.find((p) => p.id === id),
+  );
+
+  const { partners } = usePartners({
+    query: {
+      partnerIds: partnerIdsToFetch,
+    },
+    enabled: partnerIdsToFetch.length > 0,
+  });
+
+  const previewPartners = useMemo(
+    () =>
+      firstThreeIds.map((id) => {
+        const partner = [...(rewardPartners || []), ...(partners || [])].find(
+          (p) => p.id === id,
+        );
+
+        return partner
+          ? {
+              id,
+              image: partner.image || `${OG_AVATAR_URL}${partner.name}`,
+              name: partner.name,
+            }
+          : {
+              id,
+              image: OG_AVATAR_URL,
+              name: "Partner",
+            };
+      }),
+    [firstThreeIds, rewardPartners, partners],
+  );
+
+  return (
+    <span className="relative">
+      <span
+        className={cn(
+          "transition-[transform,opacity] duration-200",
+          showAvatars && "pointer-events-none -translate-y-0.5 opacity-0",
+        )}
+      >
+        <strong className="font-semibold">{count}</strong>{" "}
+        {pluralize("partner", count)}
+      </span>
+
+      <span
+        className={cn(
+          "absolute left-2 top-1/2 inline-flex -translate-y-1/2 items-center align-text-top transition-[transform,opacity] duration-200",
+          !showAvatars && "pointer-events-none translate-y-0.5 opacity-0",
+        )}
+      >
+        {previewPartners.map(({ id, name, image }) => (
+          <img
+            key={id}
+            src={image}
+            alt={`${name} avatar`}
+            title={name}
+            className="-ml-1.5 size-[1.125rem] shrink-0 rounded-full border border-white"
+          />
+        ))}
+        {count > 3 && (
+          <span className="text-content-subtle ml-1 text-xs">+{count - 3}</span>
+        )}
+      </span>
+    </span>
   );
 }
