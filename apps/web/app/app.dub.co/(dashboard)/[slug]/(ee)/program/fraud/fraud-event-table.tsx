@@ -3,18 +3,20 @@
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { useFraudEvents } from "@/lib/swr/use-fraud-events";
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import usePartner from "@/lib/swr/use-partner";
-import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerProps, FraudEvent } from "@/lib/types";
+import { FRAUD_EVENT_TYPE_DESCRIPTIONS } from "@/lib/zod/schemas/fraud-events";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
+import { FraudEventStatusBadges } from "@/ui/partners/fraud-event-status-badges";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useUnbanPartnerModal } from "@/ui/partners/unban-partner-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
   Button,
@@ -38,14 +40,7 @@ import {
   UserDelete,
   Users,
 } from "@dub/ui/icons";
-import {
-  cn,
-  COUNTRIES,
-  currencyFormatter,
-  fetcher,
-  formatDate,
-} from "@dub/utils";
-import { nFormatter } from "@dub/utils/src/functions";
+import { cn, currencyFormatter, fetcher, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
@@ -54,18 +49,27 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import {
-  partnersColumns,
-  useColumnVisibility,
-} from "../partners/use-column-visibility";
+import { useColumnVisibility } from "../partners/use-column-visibility";
 import { usePartnerFilters } from "../partners/use-partner-filters";
 
 export function FraudEventTable() {
+  const { slug } = useParams();
   const { id: workspaceId } = useWorkspace();
+  const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+  const {
+    fraudEventsCount,
+    loading: fraudEventsCountLoading,
+    error: fraudEventsCountError,
+  } = useFraudEventsCount<number>();
+
+  const {
+    fraudEvents,
+    loading: fraudEventsLoading,
+    error: fraudEventsError,
+  } = useFraudEvents();
 
   const {
     filters,
@@ -74,9 +78,7 @@ export function FraudEventTable() {
     onRemove,
     onRemoveAll,
     isFiltered,
-  } = usePartnerFilters({ sortOrder });
-
-  const { partnersCount, error: countError } = usePartnersCount<number>();
+  } = usePartnerFilters({});
 
   const {
     data: partners,
@@ -112,33 +114,58 @@ export function FraudEventTable() {
       partnerId: detailsSheetState.partnerId,
     });
 
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
-  const { pagination, setPagination } = usePagination();
-
   const { table, ...tableProps } = useTable({
-    data: partners || [],
+    data: fraudEvents || [],
     columns: [
       {
         id: "partner",
         header: "Partner",
         enableHiding: false,
-        minSize: 250,
+        minSize: 200,
+        size: 200,
         cell: ({ row }) => {
           return (
-            <PartnerRowItem partner={row.original} showPermalink={false} />
+            <PartnerRowItem
+              partner={row.original.partner}
+              showPayoutsEnabled={false}
+            />
           );
         },
       },
       {
-        id: "createdAt",
-        header: "Enrolled",
-        accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+        id: "customer",
+        header: "Customer",
+        enableHiding: false,
+        minSize: 200,
+        size: 200,
+        cell: ({ row }) => {
+          return row.original.customer ? (
+            <CustomerRowItem
+              customer={row.original.customer}
+              avatarClassName="size-5"
+              href={`/${slug}/customers/${row.original.customer.id}`}
+            />
+          ) : (
+            "-"
+          );
+        },
+      },
+      {
+        id: "flagged",
+        header: "Flagged",
+        minSize: 200,
+        size: 200,
+        accessorFn: (d: FraudEvent) =>
+          formatDate(d.createdAt, { month: "short" }),
       },
       {
         id: "status",
         header: "Status",
+        minSize: 200,
+        size: 200,
         cell: ({ row }) => {
-          const badge = PartnerStatusBadges[row.original.status];
+          const badge = FraudEventStatusBadges[row.original.status];
+
           return badge ? (
             <StatusBadge icon={null} variant={badge.variant}>
               {badge.label}
@@ -149,70 +176,25 @@ export function FraudEventTable() {
         },
       },
       {
-        id: "location",
-        header: "Location",
-        minSize: 150,
-        cell: ({ row }) => {
-          const country = row.original.country;
-          return (
-            <div className="flex items-center gap-2">
-              {country && (
-                <img
-                  alt={`${country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
-              <span className="min-w-0 truncate">
-                {(country ? COUNTRIES[country] : null) ?? "-"}
-              </span>
-            </div>
-          );
-        },
+        id: "reason",
+        header: "Reason",
+        minSize: 200,
+        size: 200,
+        cell: ({ row }) => FRAUD_EVENT_TYPE_DESCRIPTIONS[row.original.type],
       },
       {
-        id: "clicks",
-        header: "Clicks",
-        accessorFn: (d) => nFormatter(d.clicks),
-      },
-      {
-        id: "leads",
-        header: "Leads",
-        accessorFn: (d) => nFormatter(d.leads),
-      },
-      {
-        id: "sales",
-        header: "Sales",
-        accessorFn: (d) => nFormatter(d.sales),
-      },
-      {
-        id: "saleAmount",
-        header: "Revenue",
+        id: "holdAmount",
+        header: "Hold amount",
+        minSize: 200,
+        size: 200,
         accessorFn: (d) =>
-          currencyFormatter(d.saleAmount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+          d.holdAmount
+            ? currencyFormatter(d.holdAmount / 100, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "-",
       },
-      {
-        id: "totalCommissions",
-        header: "Commissions",
-        accessorFn: (d) =>
-          currencyFormatter(d.totalCommissions / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "netRevenue",
-        header: "Net Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.netRevenue / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      // Menu
       {
         id: "menu",
         enableHiding: false,
@@ -220,15 +202,12 @@ export function FraudEventTable() {
         size: 43,
         maxSize: 43,
         header: () => <EditColumnsButton table={table} />,
-        cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} />
-        ),
       },
-    ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
+    ],
     onRowClick: (row) => {
       queryParams({
         set: {
-          partnerId: row.original.id,
+          fraudEventId: row.original.id,
         },
         scroll: false,
       });
@@ -237,32 +216,15 @@ export function FraudEventTable() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: [
-      "createdAt",
-      "clicks",
-      "leads",
-      "sales",
-      "saleAmount",
-      "commissions",
-      "netRevenue",
-    ],
-    sortBy,
-    sortOrder,
-    onSortChange: ({ sortBy, sortOrder }) =>
-      queryParams({
-        set: {
-          ...(sortBy && { sortBy }),
-          ...(sortOrder && { sortOrder }),
-        },
-        del: "page",
-        scroll: false,
-      }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (p) => `partner${p ? "s" : ""}`,
-    rowCount: partnersCount || 0,
-    loading: isLoading || isCurrentPartnerLoading,
-    error: error || countError ? "Failed to load partners" : undefined,
+    resourceName: (p) => `fraud event${p ? "s" : ""}`,
+    rowCount: fraudEventsCount || 0,
+    loading: fraudEventsCountLoading || fraudEventsLoading,
+    error:
+      fraudEventsCountError || fraudEventsError
+        ? "Failed to load fraud events"
+        : undefined,
   });
 
   return (
@@ -285,10 +247,10 @@ export function FraudEventTable() {
             onSelect={onSelect}
             onRemove={onRemove}
           />
-          <SearchBoxPersisted
+          {/* <SearchBoxPersisted
             placeholder="Search by name, email, or link"
             inputClassName="md:w-72"
-          />
+          /> */}
         </div>
         <AnimatedSizeContainer height>
           <div>
@@ -305,15 +267,15 @@ export function FraudEventTable() {
           </div>
         </AnimatedSizeContainer>
       </div>
-      {partners?.length !== 0 ? (
+      {fraudEvents?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
-          title="No partners found"
+          title="No fraud events found"
           description={
             isFiltered
-              ? "No partners found for the selected filters."
-              : "No partners have been added to this program yet."
+              ? "No fraud events found for the selected filters."
+              : "No fraud events have been flagged for this program yet."
           }
           cardContent={() => (
             <>
@@ -378,7 +340,6 @@ function RowMenuButton({
 
   return (
     <>
-      <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
       <Popover

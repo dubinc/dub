@@ -32,11 +32,28 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         lte: endDate.toISOString(),
       },
     },
+    include: {
+      partner: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          payoutsEnabledAt: true,
+        },
+      },
+      customer: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatar: true,
+        },
+      },
+    },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });
-
-  console.log(fraudEvents)
 
   return NextResponse.json(z.array(FraudEventSchema).parse(fraudEvents));
 });

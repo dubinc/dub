@@ -10,24 +10,21 @@ generator client {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  isMachine     Boolean   @default(false)
-
-  // password data
+  id                   String    @id @default(cuid())
+  name                 String?
+  email                String?   @unique
+  emailVerified        DateTime?
+  image                String?
+  isMachine            Boolean   @default(false)
   passwordHash         String?
   invalidLoginAttempts Int       @default(0)
   lockedAt             DateTime?
+  createdAt            DateTime  @default(now())
+  subscribed           Boolean   @default(true) // email subscription
+  source               String? // where the user came from
+  defaultWorkspace     String? // slug of the user's default workspace
+  defaultPartnerId     String? // the user's default partner ID
 
-  createdAt             DateTime               @default(now())
-  subscribed            Boolean                @default(true) // email subscription
-  source                String? // where the user came from
-  defaultWorkspace      String? // slug of the user's default workspace
-  defaultPartnerId      String? // the user's default partner ID
-  // relational data
   accounts              Account[]
   sessions              Session[]
   projects              ProjectUsers[]
@@ -43,6 +40,7 @@ model User {
   folderAccessRequests  FolderAccessRequest[]
   utmTemplates          UtmTemplate[]
   payouts               Payout[]
+  fraudEvents           FraudEvent[]
 
   @@index(source)
   @@index(defaultWorkspace)

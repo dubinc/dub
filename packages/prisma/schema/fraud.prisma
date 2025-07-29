@@ -16,6 +16,7 @@ model FraudEvent {
   partnerId   String
   customerId  String
   linkId      String?
+  userId      String?
   description String?
   type        FraudEventType
   status      FraudEventStatus @default(pending)
@@ -26,9 +27,11 @@ model FraudEvent {
   partner  Partner   @relation(fields: [partnerId], references: [id])
   customer Customer? @relation(fields: [customerId], references: [id])
   link     Link?     @relation(fields: [linkId], references: [id])
+  user     User?     @relation(fields: [userId], references: [id])
 
   @@index([programId, partnerId])
   @@index(partnerId)
   @@index(customerId)
   @@index(linkId)
+  @@index(userId)
 }
