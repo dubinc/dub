@@ -11,7 +11,7 @@ const cardListVariants = cva(
         loose: "gap-4",
       },
       loading: {
-        true: "opacity-50",
+        true: "opacity-50 pointer-events-none",
       },
     },
   },

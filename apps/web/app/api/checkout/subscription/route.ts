@@ -136,7 +136,7 @@ export const POST = withSession(
               secondary: false,
               twoSteps: false,
             },
-            attributes: { ...metadata },
+            attributes: { ...metadata, billing_action: "rebill" },
           },
           orderAmount: price,
           orderCurrencyCode: user.currency?.currencyForPay || "",

@@ -33,6 +33,14 @@ export function Modal({
     if (preventDefaultClose && !dragged) {
       return;
     }
+
+    setTimeout(() => {
+      const body = document.body;
+      body.classList.remove("pointer-events-none");
+      if (body.style.pointerEvents === "none") {
+        body.style.removeProperty("pointer-events");
+      }
+    }, 0);
     // fire onClose event if provided
     onClose && onClose();
 
@@ -44,6 +52,7 @@ export function Modal({
       router.back();
     }
   };
+
   const { isMobile } = useMediaQuery();
 
   if (isMobile && !desktopOnly) {

@@ -92,7 +92,7 @@ export const trackClientEvents = <T extends Dict>(
     debugUtil({ text: `Event - ${event}`, value: values });
 
     mixpanelClient.track({ eventName: event, props: values });
-    window.gtag("event", event, values);
+    window?.gtag("event", event, values);
   } else {
     console.error({
       text: `Event ${event}`,

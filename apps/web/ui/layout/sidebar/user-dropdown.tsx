@@ -122,6 +122,22 @@ export default function UserDropdown() {
             }}
           />
           <UserOption
+            as={Link}
+            label="Help Center"
+            icon={() => (
+              <IconifyIcon
+                className="h-4 w-4 text-neutral-200"
+                icon="iconoir:help-circle"
+              />
+            )}
+            href="/help"
+            target="_blank"
+            onClick={() => {
+              handleUserOptionClick("help_center");
+              setOpenPopover(false);
+            }}
+          />
+          <UserOption
             as="button"
             type="button"
             label="Logout"

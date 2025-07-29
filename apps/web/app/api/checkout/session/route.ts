@@ -47,6 +47,7 @@ const getMetadata = ({
       user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
     plan_name: paymentPlan,
     payment_subtype: "FIRST_PAYMENT",
+    billing_action: null,
     //**** for analytics ****//
 
     //**** fields for subscription system ****//

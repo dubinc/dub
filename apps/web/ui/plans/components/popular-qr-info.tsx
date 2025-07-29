@@ -1,5 +1,5 @@
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
-import { capitalizeFirstLetter } from "@/ui/plans/utils.ts";
+import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils/src";
@@ -12,6 +12,7 @@ interface IPopularQrInfo {
   demoProps: any;
   mostScannedQR: QrStorageData | null;
   isTrialOver: boolean;
+  hasSubscription: boolean;
   handleScroll: () => void;
   user: ICustomerBody;
 }
@@ -21,11 +22,10 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
   demoProps,
   mostScannedQR,
   isTrialOver,
+  hasSubscription,
   handleScroll,
   user,
 }) => {
-  const hasSubscription = !!user?.paymentInfo?.subscriptionId;
-
   return (
     <Flex
       direction="column"
@@ -89,7 +89,11 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
               weight="bold"
               className="text-neutral"
             >
-              {capitalizeFirstLetter(mostScannedQR?.qrType || "website")}
+              {
+                QR_TYPES.find(
+                  (item) => (mostScannedQR?.qrType || "website") === item.id,
+                )?.label || "Website"
+              }
             </Text>
           </Flex>
 
@@ -143,11 +147,17 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
         <PlansFeatures />
       </div>
 
-      <Button
-        className="block lg:hidden"
-        text={hasSubscription ? "Upgrade Plan" : "Restore QR Code"}
-        onClick={handleScroll}
-      />
+      {!hasSubscription && (
+        <Button
+          className="block lg:hidden"
+          text={
+            !isTrialOver && !hasSubscription
+              ? "Upgrade Plan"
+              : "Restore QR Code"
+          }
+          onClick={handleScroll}
+        />
+      )}
     </Flex>
   );
 };

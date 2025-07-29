@@ -4,11 +4,13 @@ import { QRCardAnalyticsBadge } from "@/ui/qr-code/qr-code-card-analytics-badge.
 import { QRCardStatus } from "@/ui/qr-code/qr-code-card-status.tsx";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
 import { QrCodeControls } from "@/ui/qr-code/qr-code-controls.tsx";
+import QRCodeStyling from "qr-code-styling";
 import { RefObject, useRef } from "react";
 
 interface QrCodeDetailsColumnProps {
   qrCode: QrStorageData;
   canvasRef: RefObject<HTMLCanvasElement>;
+  builtQrCodeObject: QRCodeStyling | null;
   currentQrTypeInfo: QRType;
   isTrialOver?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
@@ -17,6 +19,7 @@ interface QrCodeDetailsColumnProps {
 export function QrCodeDetailsColumn({
   qrCode,
   canvasRef,
+  builtQrCodeObject,
   currentQrTypeInfo,
   isTrialOver,
   setShowTrialExpiredModal,
@@ -40,6 +43,7 @@ export function QrCodeDetailsColumn({
       <QrCodeControls
         qrCode={qrCode}
         canvasRef={canvasRef}
+        builtQrCodeObject={builtQrCodeObject}
         isTrialOver={isTrialOver}
         setShowTrialExpiredModal={setShowTrialExpiredModal}
       />

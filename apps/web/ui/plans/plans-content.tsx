@@ -1,7 +1,7 @@
 "use client";
 
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
-import { FAQ_ITEMS_PAYWALL } from "@/ui/landing/components/faq-section/config.ts";
+import { FAQ_ITEMS_PAYWALL } from "@/ui/landing/components/faq-section/config.tsx";
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PaymentComponent } from "@/ui/plans/components/payment-component.tsx";
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
@@ -29,6 +29,8 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
 }) => {
   const { isTrialOver } = useTrialStatus();
   const paymentSectionRef = useRef<HTMLDivElement>(null);
+
+  const hasSubscription = !!user?.paymentInfo?.subscriptionId;
 
   const qrCodeDemo = mostScannedQR?.qrType
     ? QRCodeDemoMap[mostScannedQR.qrType as EQRType]
@@ -58,7 +60,10 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-4 lg:gap-8">
-      <PlansHeading isTrialOver={isTrialOver} />
+      <PlansHeading
+        isTrialOver={isTrialOver}
+        hasSubscription={hasSubscription}
+      />
 
       <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
         <PopularQrInfo
@@ -67,6 +72,7 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
           demoProps={demoProps}
           mostScannedQR={mostScannedQR}
           isTrialOver={isTrialOver}
+          hasSubscription={hasSubscription}
           handleScroll={handleScrollToPayment}
         />
 

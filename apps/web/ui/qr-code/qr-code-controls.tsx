@@ -1,23 +1,29 @@
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
-import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { useArchiveQRModal } from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
-import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
+import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal.tsx";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
-import { useQrDownload } from "@/ui/qr-code/use-qr-download";
-import { Button, CardList, Photo, Popover, useKeyboardShortcut } from "@dub/ui";
+import {
+  Button,
+  CardList,
+  Popover,
+  useKeyboardShortcut,
+  useMediaQuery,
+} from "@dub/ui";
 import { BoxArchive, Download } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Delete, Palette, RefreshCw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { PropsWithChildren, RefObject, useContext, useState } from "react";
+import QRCodeStyling from "qr-code-styling";
+import { RefObject, useContext } from "react";
 import { ThreeDots } from "../shared/icons";
 
 interface QrCodeControlsProps {
   qrCode: QrStorageData;
-  canvasRef?: RefObject<HTMLCanvasElement>;
+  canvasRef: RefObject<HTMLCanvasElement>;
+  builtQrCodeObject: QRCodeStyling | null;
   isTrialOver?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
 }
@@ -25,12 +31,14 @@ interface QrCodeControlsProps {
 export function QrCodeControls({
   qrCode,
   canvasRef,
+  builtQrCodeObject,
   isTrialOver,
   setShowTrialExpiredModal,
 }: QrCodeControlsProps) {
-  const { id: workspaceId } = useWorkspace();
   const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
+
+  const { isMobile } = useMediaQuery();
 
   const { openMenuQrCodeId, setOpenMenuQrCodeId } =
     useContext(QrCodesListContext);
@@ -45,13 +53,19 @@ export function QrCodeControls({
   const { setShowDeleteQRModal, DeleteLinkModal } = useDeleteQRModal({
     props: qrCode,
   });
+  const { QRPreviewModal, setShowQRPreviewModal } = useQRPreviewModal({
+    canvasRef,
+    qrCode: builtQrCodeObject,
+    width: isMobile ? 300 : 200,
+    height: isMobile ? 300 : 200,
+  });
 
   const {
     setShowQRBuilderModal: setShowQRTypeModal,
     QRBuilderModal: QRChangeTypeModal,
   } = useQRBuilder({
     props: qrCode,
-    initialStep: 1, // choosing the type of QR code
+    initialStep: 1,
   });
 
   const {
@@ -89,27 +103,29 @@ export function QrCodeControls({
 
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
+      <QRPreviewModal />
       <QRChangeTypeModal />
       <QRCustomizeModal />
       <ArchiveQRModal />
       <DeleteLinkModal />
       {canvasRef && (
-        <DownloadPopover
-          qrCode={qrCode}
-          canvasRef={canvasRef}
-          isTrialOver={isTrialOver}
-          setShowTrialExpiredModal={setShowTrialExpiredModal}
-        >
-          <Button
-            variant="secondary"
-            className={cn(
-              "h-8 w-8 px-1.5 outline-none transition-all duration-200",
-              "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
-              "border-border-500 border lg:border-none",
-            )}
-            icon={<Download className="h-5 w-5 shrink-0" />}
-          />
-        </DownloadPopover>
+        // <DownloadPopover
+        //   qrCode={qrCode}
+        //   canvasRef={canvasRef}
+        //   isTrialOver={isTrialOver}
+        //   setShowTrialExpiredModal={setShowTrialExpiredModal}
+        // >
+        <Button
+          onClick={() => setShowQRPreviewModal(true)}
+          variant="secondary"
+          className={cn(
+            "h-8 w-8 px-1.5 outline-none transition-all duration-200",
+            "border-transparent data-[state=open]:border-neutral-200/40 data-[state=open]:ring-neutral-200/40 sm:group-hover/card:data-[state=closed]:border-neutral-200/10",
+            "border-border-500 border lg:border-none",
+          )}
+          icon={<Download className="h-5 w-5 shrink-0" />}
+        />
+        // </DownloadPopover>
       )}
       <Popover
         content={
@@ -222,69 +238,69 @@ export function QrCodeControls({
   );
 }
 
-function DownloadPopover({
-  qrCode,
-  canvasRef,
-  isTrialOver = false,
-  setShowTrialExpiredModal,
-  children,
-}: PropsWithChildren<{
-  qrCode: QrStorageData;
-  canvasRef: RefObject<HTMLCanvasElement>;
-  isTrialOver?: boolean;
-  setShowTrialExpiredModal?: (show: boolean) => void;
-}>) {
-  const [openPopover, setOpenPopover] = useState(false);
-  const { qrCode: qrCodeObject } = useQrCustomization(qrCode);
-  const { downloadQrCode } = useQrDownload(qrCodeObject, canvasRef);
-
-  return (
-    <Popover
-      content={
-        <div className="grid w-full justify-start gap-1 p-2 sm:min-w-48">
-          <button
-            className="flex w-full items-center justify-start gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
-            onClick={() => {
-              downloadQrCode("svg");
-              setOpenPopover(false);
-            }}
-          >
-            <Photo className="h-4 w-4" />
-            <span>Download SVG</span>
-          </button>
-          <button
-            className="flex w-full items-center justify-start gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
-            onClick={() => {
-              downloadQrCode("png");
-              setOpenPopover(false);
-            }}
-          >
-            <Photo className="h-4 w-4" />
-            <span>Download PNG</span>
-          </button>
-          <button
-            className="flex w-full items-center justify-start gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
-            onClick={() => {
-              downloadQrCode("jpg");
-              setOpenPopover(false);
-            }}
-          >
-            <Photo className="h-4 w-4" />
-            <span>Download JPG</span>
-          </button>
-        </div>
-      }
-      openPopover={openPopover}
-      setOpenPopover={() => {
-        if (isTrialOver) {
-          setShowTrialExpiredModal?.(true);
-          return;
-        }
-
-        setOpenPopover(!openPopover);
-      }}
-    >
-      {children}
-    </Popover>
-  );
-}
+// function DownloadPopover({
+//   qrCode,
+//   canvasRef,
+//   isTrialOver = false,
+//   setShowTrialExpiredModal,
+//   children,
+// }: PropsWithChildren<{
+//   qrCode: QrStorageData;
+//   canvasRef: RefObject<HTMLCanvasElement>;
+//   isTrialOver?: boolean;
+//   setShowTrialExpiredModal?: (show: boolean) => void;
+// }>) {
+//   const [openPopover, setOpenPopover] = useState(false);
+//   const { qrCode: qrCodeObject } = useQrCustomization(qrCode);
+//   const { downloadQrCode } = useQrDownload(qrCodeObject, canvasRef);
+//
+//   return (
+//     <Popover
+//       content={
+//         <div className="grid w-full justify-start gap-1 p-2 sm:min-w-48">
+//           <button
+//             className="flex w-full items-center justify-start gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+//             onClick={() => {
+//               downloadQrCode("svg");
+//               setOpenPopover(false);
+//             }}
+//           >
+//             <Photo className="h-4 w-4" />
+//             <span>Download SVG</span>
+//           </button>
+//           <button
+//             className="flex w-full items-center justify-start gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+//             onClick={() => {
+//               downloadQrCode("png");
+//               setOpenPopover(false);
+//             }}
+//           >
+//             <Photo className="h-4 w-4" />
+//             <span>Download PNG</span>
+//           </button>
+//           <button
+//             className="flex w-full items-center justify-start gap-2 rounded-md p-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+//             onClick={() => {
+//               downloadQrCode("jpg");
+//               setOpenPopover(false);
+//             }}
+//           >
+//             <Photo className="h-4 w-4" />
+//             <span>Download JPG</span>
+//           </button>
+//         </div>
+//       }
+//       openPopover={openPopover}
+//       setOpenPopover={() => {
+//         if (isTrialOver) {
+//           setShowTrialExpiredModal?.(true);
+//           return;
+//         }
+//
+//         setOpenPopover(!openPopover);
+//       }}
+//     >
+//       {children}
+//     </Popover>
+//   );
+// }

@@ -39,6 +39,7 @@ export type QRUpdateResult = {
     data: boolean;
     qrType: boolean;
     frameOptions: boolean;
+    styles: boolean;
     files: boolean;
   };
   updateData: UpdateQrProps;

@@ -117,17 +117,26 @@ export const convertQRForUpdate = async (
   const frameOptionsChanged = (() => {
     const originalFrame = originalQR.frameOptions as FrameOptions;
     const newFrame = newQRData.frameOptions;
-    
-    const fieldsToCheck = ['id', 'color', 'text', 'textColor'] as const;
-    
-    return fieldsToCheck.some(field => 
-      newFrame[field] !== originalFrame?.[field]
+
+    const fieldsToCheck = ["id", "color", "text", "textColor"] as const;
+
+    return fieldsToCheck.some(
+      (field) => newFrame[field] !== originalFrame?.[field],
     );
   })();
 
-  const originalData = (originalQR.styles as Options)?.data || "";
+  const originalData = originalQR?.link?.url || "";
   const newData = newQRData.styles.data || "";
   const dataChanged = newData !== originalData;
+
+  const originalStyles = { ...(originalQR.styles as Options) };
+  const newStyles = { ...newQRData.styles };
+
+  delete originalStyles.data;
+  delete newStyles.data;
+
+  const stylesChanged =
+    JSON.stringify(originalStyles) !== JSON.stringify(newStyles);
 
   const hasNewFiles = newQRData.files && newQRData.files.length > 0;
   const hasExistingFiles = originalQR.fileId;
@@ -137,6 +146,7 @@ export const convertQRForUpdate = async (
     dataChanged ||
     qrTypeChanged ||
     frameOptionsChanged ||
+    stylesChanged ||
     hasNewFiles;
 
   let fileId: string | undefined;
@@ -185,6 +195,7 @@ export const convertQRForUpdate = async (
       data: dataChanged,
       qrType: qrTypeChanged,
       frameOptions: frameOptionsChanged,
+      styles: stylesChanged,
       files: hasNewFiles,
     },
     updateData,

@@ -1,10 +1,11 @@
 import { cn } from "@dub/utils";
+import { isStaticImageData } from "@dub/utils/src/functions/is-static-image-data.ts";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import Image, { StaticImageData } from "next/image";
-import React from "react";
+import React, { ComponentType, FC } from "react";
 
 interface IScrollingBannerProps extends React.HTMLAttributes<HTMLDivElement> {
-  data: StaticImageData[];
+  data: (StaticImageData | FC)[];
   isReverse?: boolean;
   showShadow?: boolean;
   shouldPauseOnHover?: boolean;
@@ -24,7 +25,7 @@ export const ScrollingBanner = React.forwardRef<
       className,
       isReverse,
       isVertical = false,
-      gap = "1rem",
+      gap = "2rem",
       showShadow = true,
       shouldPauseOnHover = true,
       duration = 40,
@@ -91,20 +92,37 @@ export const ScrollingBanner = React.forwardRef<
                 "hover:[animation-play-state:paused]": shouldPauseOnHover,
               })}
             >
-              {[...data, ...data, ...data].map((image, idx) => (
-                <div
-                  key={idx}
-                  className="text-foreground z-10 flex items-center justify-center"
-                >
-                  <Image
-                    className={cn("max-h-5 min-w-[140px]", iconClassName)}
-                    width={100}
-                    height={10}
-                    src={image}
-                    alt="news"
-                  />
-                </div>
-              ))}
+              {[...data, ...data, ...data].map((item, idx) => {
+                if (isStaticImageData(item)) {
+                  return (
+                    <div
+                      key={idx}
+                      className="text-foreground z-10 flex items-center justify-center"
+                    >
+                      <Image
+                        className={cn("max-h-5 min-w-[140px]", iconClassName)}
+                        width={100}
+                        height={10}
+                        src={item}
+                        alt="news"
+                      />
+                    </div>
+                  );
+                } else {
+                  const Icon = item as unknown as ComponentType<{
+                    className?: string;
+                  }>;
+
+                  return (
+                    <div
+                      key={idx}
+                      className="z-10 flex min-w-[80px] items-center justify-center text-gray-400"
+                    >
+                      <Icon className={cn("w-auto", iconClassName)} />
+                    </div>
+                  );
+                }
+              })}
             </div>
           </ScrollArea.Viewport>
           <ScrollArea.Scrollbar

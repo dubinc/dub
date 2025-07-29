@@ -1,6 +1,10 @@
 "use client";
 
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas";
+import {
+  TDownloadFormat,
+  useQrDownload,
+} from "@/ui/qr-code/use-qr-download.ts";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr";
 import { Button, Modal } from "@dub/ui";
@@ -19,12 +23,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-type TDownloadFormat = "svg" | "png" | "jpeg";
-
 const FORMAT_OPTIONS = [
   { id: "svg", label: "SVG" },
   { id: "png", label: "PNG" },
-  { id: "jpeg", label: "JPEG" },
+  { id: "jpg", label: "JPEG" },
 ];
 
 interface IQRPreviewModalProps {
@@ -47,13 +49,15 @@ function QRPreviewModal({
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<TDownloadFormat>("svg");
 
+  const { downloadQrCode } = useQrDownload(qrCode);
+
   const handleClose = () => {
     if (!isDownloading) {
       setShowQRPreviewModal(false);
     }
   };
 
-  const handleDownload = async (format: TDownloadFormat) => {
+  const handleDownload = async () => {
     if (!qrCode || !canvasRef.current) {
       toast.error("QR code not found");
       return;
@@ -61,9 +65,7 @@ function QRPreviewModal({
 
     setIsDownloading(true);
     try {
-      await qrCode.download({
-        extension: format,
-      });
+      await downloadQrCode(selectedFormat);
     } catch (error) {
       console.error("Failed to download QR code:", error);
       toast.error("Failed to download QR code");
@@ -71,54 +73,6 @@ function QRPreviewModal({
       setIsDownloading(false);
     }
   };
-
-  const FormatSelect = () => (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger>
-        <div
-          className={cn(
-            "border-border-300 flex h-10 cursor-pointer items-center justify-between gap-3.5 rounded-md border bg-white px-3 text-sm text-neutral-200 transition-colors",
-            "focus-within:border-secondary",
-          )}
-        >
-          <span>
-            {FORMAT_OPTIONS.find((f) => f.id === selectedFormat)?.label}
-          </span>
-          <Icon
-            icon="line-md:chevron-down"
-            className="text-xl text-neutral-200 transition-transform duration-300"
-          />
-        </div>
-      </DropdownMenu.Trigger>
-
-      <DropdownMenu.Content
-        className="border-border-100 !z-10 flex flex-col items-center justify-start gap-2 rounded-lg border bg-white p-3 shadow-md"
-        sideOffset={5}
-        align="start"
-      >
-        {FORMAT_OPTIONS.map((option) => (
-          <DropdownMenu.Item
-            key={option.id}
-            className={cn(
-              "hover:bg-secondary-100 flex h-9 w-full cursor-pointer items-center justify-between rounded-md bg-white p-3",
-              {
-                "bg-secondary-100": selectedFormat === option.id,
-              },
-            )}
-            onClick={() => setSelectedFormat(option.id as TDownloadFormat)}
-          >
-            <span
-              className={cn("text-neutral text-sm", {
-                "text-secondary": selectedFormat === option.id,
-              })}
-            >
-              {option.label}
-            </span>
-          </DropdownMenu.Item>
-        ))}
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
-  );
 
   return (
     <Modal
@@ -157,12 +111,60 @@ function QRPreviewModal({
               </div>
 
               <div className="flex w-full items-center gap-2">
-                <FormatSelect />
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger>
+                    <div
+                      className={cn(
+                        "border-border-300 flex h-10 w-[94px] cursor-pointer items-center justify-between gap-3.5 rounded-md border bg-white px-3 text-sm text-neutral-200 transition-colors",
+                        "focus-within:border-secondary",
+                      )}
+                    >
+                      <span>
+                        {
+                          FORMAT_OPTIONS.find((f) => f.id === selectedFormat)
+                            ?.label
+                        }
+                      </span>
+                      <Icon
+                        icon="line-md:chevron-down"
+                        className="text-xl text-neutral-200 transition-transform duration-300"
+                      />
+                    </div>
+                  </DropdownMenu.Trigger>
+
+                  <DropdownMenu.Content
+                    className="border-border-100 !z-10 flex w-[94px] flex-col items-center justify-start gap-2 rounded-lg border bg-white p-3 shadow-md"
+                    sideOffset={5}
+                    align="start"
+                  >
+                    {FORMAT_OPTIONS.map((option) => (
+                      <DropdownMenu.Item
+                        key={option.id}
+                        className={cn(
+                          "hover:bg-secondary-100 flex h-9 w-full cursor-pointer items-center justify-between rounded-md bg-white p-3",
+                          {
+                            "bg-secondary-100": selectedFormat === option.id,
+                          },
+                        )}
+                        onClick={() =>
+                          setSelectedFormat(option.id as TDownloadFormat)
+                        }
+                      >
+                        <span
+                          className={cn("text-neutral text-sm", {
+                            "text-secondary": selectedFormat === option.id,
+                          })}
+                        >
+                          {option.label}
+                        </span>
+                      </DropdownMenu.Item>
+                    ))}
+                  </DropdownMenu.Content>
+                </DropdownMenu.Root>
                 <Button
                   text="Download QR"
                   variant="primary"
-                  onClick={() => handleDownload(selectedFormat)}
-                  loading={isDownloading}
+                  onClick={handleDownload}
                   className="flex-1"
                 />
               </div>
@@ -180,8 +182,21 @@ export function useQRPreviewModal(data: {
   width?: number;
   height?: number;
 }) {
-  const { canvasRef, qrCode, width, height } = data;
+  const { canvasRef, qrCode, width = 200, height = 200 } = data;
   const [showQRPreviewModal, setShowQRPreviewModal] = useState(false);
+
+  // // Use refs to store stable references that don't cause re-renders
+  // const qrCodeRef = useRef<QRCodeStyling | null>(qrCode);
+  // const canvasRefStable = useRef(canvasRef);
+  //
+  // // Update refs when values change, but don't trigger re-renders
+  // useEffect(() => {
+  //   qrCodeRef.current = qrCode;
+  // }, [qrCode]);
+  //
+  // useEffect(() => {
+  //   canvasRefStable.current = canvasRef;
+  // }, [canvasRef]);
 
   const QRPreviewModalCallback = useCallback(() => {
     return (
@@ -194,7 +209,7 @@ export function useQRPreviewModal(data: {
         setShowQRPreviewModal={setShowQRPreviewModal}
       />
     );
-  }, [canvasRef, qrCode, width, height, showQRPreviewModal]);
+  }, [width, height, showQRPreviewModal]);
 
   return useMemo(
     () => ({

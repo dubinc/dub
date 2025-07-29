@@ -13,8 +13,8 @@ class MixpanelClientService {
       debug: process.env.NODE_ENV !== "production",
       track_pageview: false,
       persistence: "localStorage",
-      record_heatmap_data: true,
-      // record_sessions_percent: 1, // Session Replay enabled, recording 1% of all sessions
+      record_heatmap_data: process.env.NODE_ENV === "production",
+      record_sessions_percent: 20, // Session Replay enabled, recording 20% of all sessions
       // api_host: `${process.env.NEXT_PUBLIC_MIXPANEL_API_HOST}`,
     });
   }
@@ -50,19 +50,23 @@ class MixpanelClientService {
   }
 
   startSessionRecording() {
-    const sessionRecordingProperties =
-      mixpanel.get_session_recording_properties();
+    if (process.env.NODE_ENV === "production") {
+      const sessionRecordingProperties =
+        mixpanel.get_session_recording_properties();
 
-    if (
-      !("$mp_replay_id" in sessionRecordingProperties) ||
-      !sessionRecordingProperties.$mp_replay_id
-    ) {
-      mixpanel.start_session_recording();
+      if (
+        !("$mp_replay_id" in sessionRecordingProperties) ||
+        !sessionRecordingProperties.$mp_replay_id
+      ) {
+        mixpanel.start_session_recording();
+      }
     }
   }
 
   stopSessionRecording() {
-    mixpanel.stop_session_recording();
+    if (process.env.NODE_ENV === "production") {
+      mixpanel.stop_session_recording();
+    }
   }
 }
 

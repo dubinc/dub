@@ -15,6 +15,7 @@ import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
 import { v4 as uuidV4 } from "uuid";
+import { getSubscriptionRenewalAction } from "../../../../core/constants/subscription-plans-weight.ts";
 
 const paymentService = new PaymentService();
 
@@ -34,7 +35,7 @@ export const POST = withSession(
 
     const user = authSession?.user;
     const paymentData = user?.paymentData;
-    console.log(user);
+
     if (!user || !paymentData?.paymentInfo?.customerId) {
       return NextResponse.json(
         { success: false, error: "User not found" },
@@ -77,6 +78,11 @@ export const POST = withSession(
       // plan_name: paymentData?.paymentInfo?.subscriptionPlanCode as string,
       plan_name: body.paymentPlan,
       payment_subtype: "SUBSCRIPTION",
+      billing_action:
+        getSubscriptionRenewalAction(
+          body.paymentPlan,
+          paymentData?.paymentInfo?.subscriptionPlanCode,
+        ) || "upgrade",
       //**** for analytics ****//
 
       //**** fields for subscription system ****//

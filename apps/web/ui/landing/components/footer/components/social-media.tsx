@@ -1,21 +1,15 @@
 import Facebook from "@/ui/shared/icons/social-media/facebook.tsx";
 import Instagram from "@/ui/shared/icons/social-media/instagram.tsx";
-import Twitter from "@/ui/shared/icons/social-media/twitter.tsx";
 import Link from "next/link";
 
 const socialMediaLinks = [
   {
-    href: "https://x.com/dubdotsh",
-    icon: Twitter,
-    label: "Twitter",
-  },
-  {
-    href: "https://www.instagram.com/dubdotsh",
+    href: "https://www.instagram.com/getqr_com",
     icon: Instagram,
     label: "Instagram",
   },
   {
-    href: "https://www.facebook.com/dubdotsh",
+    href: "https://www.facebook.com/GetQRcom",
     icon: Facebook,
     label: "Facebook",
   },

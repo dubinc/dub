@@ -89,7 +89,7 @@ export const useQrOperations = () => {
           return false;
         }
 
-        const domain = SHORT_DOMAIN || "dub.sh";
+        const domain = SHORT_DOMAIN!;
 
         const updateResult = await convertQRForUpdate(
           originalQR,
