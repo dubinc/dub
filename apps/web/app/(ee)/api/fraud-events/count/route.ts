@@ -14,6 +14,8 @@ export const GET = withWorkspace(
     const { groupBy, status, type, interval, start, end } =
       fraudEventsCountQuerySchema.parse(searchParams);
 
+    console.log({ groupBy, status, type, interval, start, end });
+
     const { startDate, endDate } = getStartEndDates({
       interval,
       start,
@@ -32,17 +34,23 @@ export const GET = withWorkspace(
 
     // Get the count of fraud events by status
     if (groupBy === "status") {
-      const counts = await prisma.fraudEvent.groupBy({
+      const fraudEvents = await prisma.fraudEvent.groupBy({
         by: [groupBy],
         where: commonWhere,
         _count: true,
       });
 
+      const counts = fraudEvents.map((p) => ({
+        status: p.status,
+        count: p._count,
+      }));
+
       Object.values(FraudEventStatus).forEach((status) => {
-        if (!(status in counts)) {
-          counts[status] = {
+        if (!counts.find((p) => p.status === status)) {
+          counts.push({
+            status,
             count: 0,
-          };
+          });
         }
       });
 
@@ -51,17 +59,23 @@ export const GET = withWorkspace(
 
     // Get the count of fraud events by type
     if (groupBy === "type") {
-      const counts = await prisma.fraudEvent.groupBy({
+      const fraudEvents = await prisma.fraudEvent.groupBy({
         by: [groupBy],
         where: commonWhere,
         _count: true,
       });
 
+      const counts = fraudEvents.map((p) => ({
+        type: p.type,
+        count: p._count,
+      }));
+
       Object.values(FraudEventType).forEach((type) => {
-        if (!(type in counts)) {
-          counts[type] = {
+        if (!counts.find((p) => p.type === type)) {
+          counts.push({
+            type,
             count: 0,
-          };
+          });
         }
       });
 
