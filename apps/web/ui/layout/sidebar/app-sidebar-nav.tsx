@@ -285,7 +285,10 @@ const NAV_AREAS: SidebarNavAreas<{
               />
             ),
             href: "/help",
-            onClick: () => window.open("/help", "_blank"),
+            onClick: (e) => {
+              e.preventDefault();
+              window.open("/help", "_blank");
+            },
             exact: true,
           },
           // {
