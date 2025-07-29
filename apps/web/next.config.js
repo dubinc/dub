@@ -264,30 +264,30 @@ module.exports = withAxiom({
   },
   experimental: {
     // Per doc: https://www.npmjs.com/package/react-pdf
-    turbo: {
-      resolveAlias: {
-        canvas: "./empty-module.ts",
-      },
-    },
+    // turbo: {
+    //   resolveAlias: {
+    //     canvas: "./empty-module.ts",
+    //   },
+    // },
   },
-  turbo: (config) => {
-    // load worker files as a urls with `file-loader`
-    config.module.rules.unshift({
-      test: /pdf\.worker\.(min\.)?js/,
-      use: [
-        {
-          loader: "file-loader",
-          options: {
-            name: "[contenthash].[ext]",
-            publicPath: "_next/static/worker",
-            outputPath: "static/worker",
-          },
-        },
-      ],
-    });
+  // turbo: (config) => {
+  //   // load worker files as a urls with `file-loader`
+  //   config.module.rules.unshift({
+  //     test: /pdf\.worker\.(min\.)?js/,
+  //     use: [
+  //       {
+  //         loader: "file-loader",
+  //         options: {
+  //           name: "[contenthash].[ext]",
+  //           publicPath: "_next/static/worker",
+  //           outputPath: "static/worker",
+  //         },
+  //       },
+  //     ],
+  //   });
 
-    return config;
-  },
+  //   return config;
+  // },
 });
 
 
