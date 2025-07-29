@@ -1,12 +1,16 @@
 import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { processLink, updateLink } from "@/lib/api/links";
-import { deleteQr } from '@/lib/api/qrs/delete-qr';
+import { deleteQr } from "@/lib/api/qrs/delete-qr";
 import { getQr } from "@/lib/api/qrs/get-qr";
 import { updateQr } from "@/lib/api/qrs/update-qr";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { updateQrBodySchema } from "@/lib/zod/schemas/qrs";
+import {
+  EQRType,
+  FILE_QR_TYPES,
+} from "@/ui/qr-builder/constants/get-qr-config";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -44,7 +48,11 @@ export const PATCH = withWorkspace(
 
     const body = updateQrBodySchema.parse(await parseRequestBody(req)) || {};
 
-    // Create a new fileId only if there is a new file
+    const qrTypeChanged = body.qrType && body.qrType !== qr.qrType;
+    const qrTypeChangedFromFileToNonFile =
+      qrTypeChanged &&
+      FILE_QR_TYPES.includes(qr.qrType as EQRType) &&
+      !FILE_QR_TYPES.includes(body.qrType as EQRType);
 
     try {
       // Define the correct URL for the link
@@ -52,7 +60,7 @@ export const PATCH = withWorkspace(
       if (body.fileId) {
         // There is a new file - use the new URL
         linkUrl = `${R2_URL}/qrs-content/${body.fileId}`;
-      } else if (qr.fileId) {
+      } else if (qr.fileId && !qrTypeChangedFromFileToNonFile) {
         // There is no new file, but there is an existing file - use the existing URL
         linkUrl = `${R2_URL}/qrs-content/${qr.fileId}`;
       } else {
@@ -126,7 +134,9 @@ export const PUT = withWorkspace(
       );
 
       if (!featuresAccess) {
-        throw new Error("Access denied: Account have not subscription.");
+        throw new Error(
+          "Access denied: This account does not have an active subscription.",
+        );
       }
     }
 
