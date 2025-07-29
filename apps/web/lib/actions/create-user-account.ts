@@ -4,6 +4,7 @@ import { verifyAndCreateUser } from "@/lib/actions/verify-and-create-user.ts";
 import { createQRTrackingParams } from "@/lib/analytic/create-qr-tracking-data.helper.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit, redis } from "@/lib/upstash";
+import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
@@ -153,7 +154,9 @@ export const createUserAccountAction = actionClient
           template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
           messageData: {
             qr_name: qrDataToCreate?.title || "Untitled QR",
-            qr_type: qrDataToCreate?.qrType || "Indefined type",
+            qr_type:
+              QR_TYPES.find((item) => item.id === qrDataToCreate?.qrType)!
+                .label || "Indefined type",
             url: HOME_DOMAIN,
           },
           customerId: generatedUserId,
