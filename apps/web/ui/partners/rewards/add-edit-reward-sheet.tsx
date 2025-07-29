@@ -91,6 +91,10 @@ function RewardSheetContent({
       isDefault: isDefault || false,
       includedPartnerIds: null,
       excludedPartnerIds: null,
+      modifiers: reward?.modifiers?.map((m) => ({
+        ...m,
+        amount: reward?.type === "flat" ? m.amount / 100 : m.amount,
+      })),
     },
   });
 
@@ -185,7 +189,12 @@ function RewardSheetContent({
     let modifiers: RewardConditionsArray | undefined;
     if (data.modifiers?.length) {
       try {
-        modifiers = rewardConditionsArraySchema.parse(data.modifiers);
+        modifiers = rewardConditionsArraySchema.parse(
+          data.modifiers.map((m) => ({
+            ...m,
+            amount: type === "flat" ? m.amount * 100 : m.amount,
+          })),
+        );
       } catch (error) {
         console.error(error);
         setError("root.logic", { message: "Invalid reward logic" });

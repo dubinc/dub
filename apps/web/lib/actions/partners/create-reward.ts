@@ -8,6 +8,7 @@ import {
   REWARD_EVENT_COLUMN_MAPPING,
 } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -23,6 +24,7 @@ export const createRewardAction = authActionClient
       isDefault,
       includedPartnerIds,
       excludedPartnerIds,
+      modifiers,
     } = parsedInput;
 
     includedPartnerIds = includedPartnerIds || [];
@@ -83,6 +85,7 @@ export const createRewardAction = authActionClient
         amount,
         maxDuration,
         default: isDefault,
+        modifiers: modifiers || Prisma.JsonNull,
       },
     });
 

@@ -8,6 +8,7 @@ import {
   updateRewardSchema,
 } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { Reward } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
@@ -23,6 +24,7 @@ export const updateRewardAction = authActionClient
       type,
       includedPartnerIds,
       excludedPartnerIds,
+      modifiers,
     } = parsedInput;
 
     includedPartnerIds = includedPartnerIds || [];
@@ -66,6 +68,7 @@ export const updateRewardAction = authActionClient
         type,
         amount,
         maxDuration,
+        modifiers: modifiers === null ? Prisma.JsonNull : modifiers,
       },
     });
 
