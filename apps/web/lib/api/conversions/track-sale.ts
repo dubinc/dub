@@ -1,4 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
@@ -161,8 +162,10 @@ export const trackSale = async ({
             id: clickData.link_id,
           },
           data: {
-            // if this is the first sale for the customer, increment conversions
-            ...(customer.sales === 0 && {
+            ...(isFirstConversion({
+              customer,
+              linkId: clickData.link_id,
+            }) && {
               conversions: {
                 increment: 1,
               },

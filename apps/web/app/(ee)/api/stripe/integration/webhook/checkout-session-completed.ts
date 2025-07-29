@@ -1,4 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
@@ -286,8 +287,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
               increment: 1,
             },
           }),
-          // if this is the first sale for the customer, increment conversions
-          ...(customer.sales === 0 && {
+          ...(isFirstConversion({
+            customer,
+            linkId,
+          }) && {
             conversions: {
               increment: 1,
             },

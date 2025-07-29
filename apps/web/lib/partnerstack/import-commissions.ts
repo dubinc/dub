@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus } from "@prisma/client";
+import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent, recordSaleWithTimestamp } from "../tinybird";
@@ -227,8 +228,10 @@ async function createCommission({
         id: customer.linkId,
       },
       data: {
-        // if this is the first sale for the customer, increment conversions
-        ...(customer.sales === 0 && {
+        ...(isFirstConversion({
+          customer,
+          linkId: customer.linkId,
+        }) && {
           conversions: {
             increment: 1,
           },

@@ -1,5 +1,6 @@
 "use server";
 
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -237,8 +238,10 @@ export const createCommissionAction = authActionClient
             id: linkId,
           },
           data: {
-            // if this is the first sale for the customer, increment leads and conversions
-            ...(customer.sales === 0 && {
+            ...(isFirstConversion({
+              customer,
+              linkId,
+            }) && {
               leads: {
                 increment: 1,
               },
