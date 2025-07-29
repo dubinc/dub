@@ -286,6 +286,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
               increment: 1,
             },
           }),
+          // if this is the first sale for the customer, increment conversions
+          ...(customer.sales === 0 && {
+            conversions: {
+              increment: 1,
+            },
+          }),
           sales: {
             increment: 1,
           },

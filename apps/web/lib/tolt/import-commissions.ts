@@ -257,6 +257,12 @@ async function createCommission({
         id: customerFound.linkId,
       },
       data: {
+        // if this is the first sale for the customer, increment conversions
+        ...(customerFound.sales === 0 && {
+          conversions: {
+            increment: 1,
+          },
+        }),
         sales: {
           increment: 1,
         },

@@ -61,7 +61,21 @@ export async function createShopifySale({
     metadata: JSON.stringify(order),
   };
 
-  const [_sale, link, workspace, customer] = await Promise.all([
+  const customer = await prisma.customer.update({
+    where: {
+      id: customerId,
+    },
+    data: {
+      sales: {
+        increment: 1,
+      },
+      saleAmount: {
+        increment: amount,
+      },
+    },
+  });
+
+  const [_sale, link, workspace] = await Promise.all([
     // record sale
     recordSale(saleData),
 
@@ -71,6 +85,14 @@ export async function createShopifySale({
         id: linkId,
       },
       data: {
+        // if this is the first sale for the customer, increment conversions
+        // usually we would do customer.sales === 0, but we incremented the sales count above
+        // so we need to check if it's 1 instead
+        ...(customer.sales === 1 && {
+          conversions: {
+            increment: 1,
+          },
+        }),
         sales: {
           increment: 1,
         },
@@ -92,21 +114,6 @@ export async function createShopifySale({
         },
       },
     }),
-
-    prisma.customer.update({
-      where: {
-        id: customerId,
-      },
-      data: {
-        sales: {
-          increment: 1,
-        },
-        saleAmount: {
-          increment: amount,
-        },
-      },
-    }),
-
     redis.del(`shopify:checkout:${checkoutToken}`),
   ]);
 

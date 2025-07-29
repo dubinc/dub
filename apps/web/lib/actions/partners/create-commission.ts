@@ -190,10 +190,7 @@ export const createCommissionAction = authActionClient
       ]);
     }
 
-    // Record sale
-    const shouldRecordSale = saleAmount;
-
-    if (shouldRecordSale && leadEvent) {
+    if (saleAmount && leadEvent) {
       const saleEventId = nanoid(16);
       const saleDate = new Date(saleEventDate ?? Date.now());
 
@@ -240,10 +237,16 @@ export const createCommissionAction = authActionClient
             id: linkId,
           },
           data: {
-            leads: {
-              increment: 1,
-            },
-            ...(shouldRecordSale && {
+            // if this is the first sale for the customer, increment leads and conversions
+            ...(customer.sales === 0 && {
+              leads: {
+                increment: 1,
+              },
+              conversions: {
+                increment: 1,
+              },
+            }),
+            ...(saleAmount && {
               sales: {
                 increment: 1,
               },
@@ -255,7 +258,7 @@ export const createCommissionAction = authActionClient
         }),
 
         // Update customer details / stats
-        (shouldUpdateCustomer || shouldRecordSale) &&
+        (shouldUpdateCustomer || saleAmount) &&
           prisma.customer.update({
             where: {
               id: customerId,
@@ -266,7 +269,7 @@ export const createCommissionAction = authActionClient
                 clickId: clickEvent?.click_id,
                 clickedAt: clickEvent?.timestamp,
               }),
-              ...(shouldRecordSale && {
+              ...(saleAmount && {
                 sales: {
                   increment: 1,
                 },

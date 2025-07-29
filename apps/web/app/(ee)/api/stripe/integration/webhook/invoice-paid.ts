@@ -139,6 +139,11 @@ export async function invoicePaid(event: Stripe.Event) {
         id: linkId,
       },
       data: {
+        ...(customer.sales === 0 && {
+          conversions: {
+            increment: 1,
+          },
+        }),
         sales: {
           increment: 1,
         },

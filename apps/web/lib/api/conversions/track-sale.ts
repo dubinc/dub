@@ -155,12 +155,18 @@ export const trackSale = async ({
       const [_sale, link] = await Promise.all([
         recordSale(saleData),
 
-        // update link sales count
+        // update link conversions, sales, and saleAmount
         prisma.link.update({
           where: {
             id: clickData.link_id,
           },
           data: {
+            // if this is the first sale for the customer, increment conversions
+            ...(customer.sales === 0 && {
+              conversions: {
+                increment: 1,
+              },
+            }),
             sales: {
               increment: 1,
             },
