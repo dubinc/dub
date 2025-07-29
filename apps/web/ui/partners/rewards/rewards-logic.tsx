@@ -18,7 +18,6 @@ import {
   ChevronRight,
   InvoiceDollar,
   MoneyBills2,
-  Plus2,
   Popover,
   TooltipContent,
   User,
@@ -112,8 +111,6 @@ function ConditionalGroup({
     name: `modifiers.${index}.conditions`,
   });
 
-  const operator = useWatch({ control, name: `modifiers.${index}.operator` });
-
   return (
     <div>
       <div className="flex items-center justify-between py-2 pl-2">
@@ -124,7 +121,11 @@ function ConditionalGroup({
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <OperatorDropdown modifierIndex={index} showNumber={groupCount > 1} />
+          {groupCount > 1 && (
+            <div className="text-content-default flex h-5 items-center rounded-md bg-neutral-200 px-2 text-xs font-medium">
+              #{index + 1}
+            </div>
+          )}
           <Button
             variant="outline"
             className="h-6 w-fit px-1"
@@ -158,14 +159,15 @@ function ConditionalGroup({
             <VerticalLine />
           </Fragment>
         ))}
-        <button
-          type="button"
-          onClick={() => appendCondition({})}
-          className="border-border-subtle text-content-emphasis flex h-7 items-center gap-1.5 rounded-lg border bg-white px-2.5 font-medium transition-colors duration-150 hover:bg-neutral-50"
-        >
-          <Plus2 className="size-3 shrink-0" />
-          {operator}
-        </button>
+        <div className="flex items-center justify-between gap-2">
+          <OperatorDropdown modifierIndex={index} />
+          <Button
+            variant="secondary"
+            className="h-7 w-fit px-3 font-medium"
+            text="Add criteria"
+            onClick={() => appendCondition({})}
+          />
+        </div>
         <VerticalLine />
         <div className="border-border-subtle flex items-center gap-2.5 rounded-md border bg-white p-2.5">
           <RewardIconSquare icon={MoneyBills2} />
@@ -426,13 +428,7 @@ function ConditionLogic({
   );
 }
 
-function OperatorDropdown({
-  modifierIndex,
-  showNumber,
-}: {
-  modifierIndex: number;
-  showNumber: boolean;
-}) {
+function OperatorDropdown({ modifierIndex }: { modifierIndex: number }) {
   const { control, setValue } = useAddEditRewardForm();
   const currentValue = useWatch({
     control,
@@ -445,7 +441,7 @@ function OperatorDropdown({
     <Popover
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
-      align="end"
+      align="start"
       content={
         <div className="min-w-24 p-0.5">
           <Command loop className="focus:outline-none">
@@ -476,16 +472,11 @@ function OperatorDropdown({
     >
       <button
         type="button"
-        className="text-content-default flex h-5 items-center rounded-lg bg-neutral-200 px-2 text-xs font-medium transition-colors duration-150 hover:bg-neutral-300/80 data-[state=open]:bg-neutral-300/80"
+        className="border-border-subtle text-content-emphasis group flex h-7 items-center gap-1.5 rounded-md border bg-white px-2.5 font-medium transition-colors duration-150 hover:bg-neutral-50"
       >
-        {showNumber && (
-          <div className="border-border-default mr-2 flex h-full items-center border-r pr-2">
-            #{modifierIndex + 1}
-          </div>
-        )}
         <div className="flex items-center gap-1.5">
           <span>{currentValue}</span>
-          <ChevronRight className="text-content-subtle size-2 shrink-0 rotate-90" />
+          <ChevronRight className="text-content-subtle size-2.5 shrink-0 rotate-90 [&_*]:stroke-2" />
         </div>
       </button>
     </Popover>
