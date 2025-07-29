@@ -92,5 +92,4 @@ model Link {
   @@index([domain, createdAt]) // for bulk link deletion workflows (by domain) + deleting old short-lived links
   @@index(folderId) // used in /api/folders
   @@index(userId) // for relation to User table, used in /api/cron/cleanup/e2e-tests too
-  @@index(sales) // for getting links that have sales recorded – can be removed after migration is complete
 }
