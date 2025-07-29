@@ -51,10 +51,15 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
     console.log("Link", link);
 
     const featuresAccess = await checkFeaturesAccessAuthLess(link.userId, true);
-    console.log("featuresAccess", featuresAccess);
-    console.log("link.totalUserClicks", link.totalUserClicks);
+    
+    const maxClicksForTest = 9;
+    const maxClicksForRealFlow = 29;
+    const maxClicks =
+      process.env.NEXT_PUBLIC_APP_ENV === "dev"
+        ? maxClicksForTest
+        : maxClicksForRealFlow;
 
-    if (link.totalUserClicks >= 29 && !featuresAccess.featuresAccess) {
+    if (link.totalUserClicks >= maxClicks && !featuresAccess.featuresAccess) {
       // Send Customer.io event
       const auth = Buffer.from(
         `${process.env.CUSTOMER_IO_SITE_ID}:${process.env.CUSTOMER_IO_TRACK_API_KEY}`,
