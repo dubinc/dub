@@ -1,6 +1,7 @@
 "use client";
 
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { setFiles } from "@/ui/qr-builder/helpers";
 import { convertQrStorageDataToBuilderWithPartialUpdate } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
@@ -131,6 +132,9 @@ export function QRContentEditorModal({
         ...(formData.filesPDF ? (formData.filesPDF as File[]) : []),
         ...(formData.filesVideo ? (formData.filesVideo as File[]) : []),
       ];
+
+      // We need to update global files
+      setFiles(files);
 
       const partialUpdate: QRPartialUpdateData = {
         title: formData.qrName as string,

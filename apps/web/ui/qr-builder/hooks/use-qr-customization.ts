@@ -47,17 +47,10 @@ export function useQrCustomization(
   );
 
   const isWiFiQR = initialData?.qrType === "wifi";
-  // const isFileQR = FILE_QR_TYPES.includes(initialData?.qrType as EQRType);
 
   const initialContentForQrBuild = isWiFiQR
     ? initialData?.data
     : initialData?.link?.shortLink;
-
-  // const initialContentForQrBuild = !FILE_QR_TYPES.includes(
-  //   initialData?.qrType as EQRType,
-  // )
-  //   ? (initialData?.styles as Options)?.data
-  //   : initialData?.link?.shortLink;
 
   const [data, setData] = useState(initialContentForQrBuild || DEFAULT_WEBSITE);
 
