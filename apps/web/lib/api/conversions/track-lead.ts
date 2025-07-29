@@ -1,10 +1,10 @@
-import { isGoogleAdsClick } from "@/lib/analytics/fraud/is-google-ads-click";
 import { isSelfReferral } from "@/lib/analytics/fraud/is-self-referral";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { detectFraudEvent } from "@/lib/partners/detect-fraud-event";
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
@@ -249,7 +249,7 @@ export const trackLead = async ({
         ]);
 
         if (link.programId && link.partnerId && customer) {
-          await createPartnerCommission({
+          const commission = await createPartnerCommission({
             event: "lead",
             programId: link.programId,
             partnerId: link.partnerId,
@@ -264,7 +264,14 @@ export const trackLead = async ({
             },
           });
 
-          if (isGoogleAdsClick(clickData.url)) {
+          const fraudEvent = await detectFraudEvent({
+            click: clickData,
+            link,
+            customer,
+            partner: commission?.partner!,
+          });
+
+          if (fraudEvent) {
             // log fraud event
           }
 

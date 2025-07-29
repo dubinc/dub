@@ -92,8 +92,8 @@ export function FraudEventTable() {
         id: "partner",
         header: "Partner",
         enableHiding: false,
-        minSize: 200,
-        size: 200,
+        minSize: 150,
+        size: 150,
         cell: ({ row }) => {
           return (
             <PartnerRowItem
