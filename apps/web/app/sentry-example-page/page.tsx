@@ -40,7 +40,7 @@ export default function Page() {
         </h1>
 
         <p className="description">
-          Click the button below, and view the sample error on the Sentry <a target="_blank" href="https://hint-py.sentry.io/issues/?project=4509728430358528">Issues Page</a>.
+          Click the button below, and view the sample error on the Sentry <a target="_blank" href="https://hint-py.sentry.io/issues/?project=4509746882543617">Issues Page</a>.
           For more details about setting up Sentry, <a target="_blank"
            href="https://docs.sentry.io/platforms/javascript/guides/nextjs/">read our docs</a>.
         </p>
