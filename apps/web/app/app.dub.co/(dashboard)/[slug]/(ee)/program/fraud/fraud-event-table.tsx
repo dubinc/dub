@@ -144,6 +144,7 @@ export function FraudEventTable() {
               customer={row.original.customer}
               avatarClassName="size-5"
               href={`/${slug}/customers/${row.original.customer.id}`}
+              hideChartActivityOnHover={true}
             />
           ) : (
             "-"
@@ -153,16 +154,16 @@ export function FraudEventTable() {
       {
         id: "flagged",
         header: "Flagged",
-        minSize: 200,
-        size: 200,
+        minSize: 120,
+        size: 120,
         accessorFn: (d: FraudEvent) =>
           formatDate(d.createdAt, { month: "short" }),
       },
       {
         id: "status",
         header: "Status",
-        minSize: 200,
-        size: 200,
+        minSize: 100,
+        size: 100,
         cell: ({ row }) => {
           const badge = FraudEventStatusBadges[row.original.status];
 
@@ -185,8 +186,8 @@ export function FraudEventTable() {
       {
         id: "holdAmount",
         header: "Hold amount",
-        minSize: 200,
-        size: 200,
+        minSize: 120,
+        size: 120,
         accessorFn: (d) =>
           d.holdAmount
             ? currencyFormatter(d.holdAmount / 100, {
@@ -252,6 +253,7 @@ export function FraudEventTable() {
             inputClassName="md:w-72"
           /> */}
         </div>
+
         <AnimatedSizeContainer height>
           <div>
             {activeFilters.length > 0 && (
@@ -267,6 +269,7 @@ export function FraudEventTable() {
           </div>
         </AnimatedSizeContainer>
       </div>
+
       {fraudEvents?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
