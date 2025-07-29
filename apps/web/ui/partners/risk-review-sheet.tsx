@@ -135,6 +135,33 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
             )}
           </>
         </div>
+
+        {tab === "details" && (
+          <div className="flex grow flex-col justify-end">
+            <div className="border-t border-neutral-200 p-5">
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="primary"
+                  text="Mark partner as safe"
+                  onClick={() => {
+                    // TODO: Implement mark as safe action
+                    console.log("Mark partner as safe");
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="danger"
+                  text="Ban partner"
+                  onClick={() => {
+                    // TODO: Implement ban partner action
+                    console.log("Ban partner");
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
