@@ -20,7 +20,6 @@ import {
   InvoiceDollar,
   MoneyBills2,
   Popover,
-  TooltipContent,
   User,
 } from "@dub/ui";
 import { capitalize, cn, COUNTRIES, pluralize, truncate } from "@dub/utils";
@@ -36,13 +35,14 @@ import {
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
+import { useRewardsUpgradeModal } from "./rewards-upgrade-modal";
 
 export function RewardsLogic({
   isDefaultReward,
 }: {
   isDefaultReward: boolean;
 }) {
-  const { slug: workspaceSlug, plan } = useWorkspace();
+  const { plan } = useWorkspace();
 
   const { control, getValues } = useAddEditRewardForm();
 
@@ -55,41 +55,43 @@ export function RewardsLogic({
     name: "modifiers",
   });
 
+  const { rewardsUpgradeModal, setShowRewardsUpgradeModal } =
+    useRewardsUpgradeModal();
+
   return (
-    <div
-      className={cn("flex flex-col gap-2", !!modifierFields.length && "-mt-2")}
-    >
-      {modifierFields.map((field, index) => (
-        <ConditionalGroup
-          key={field.id}
-          index={index}
-          groupCount={modifierFields.length}
-          onRemove={() => removeModifier(index)}
+    <>
+      {rewardsUpgradeModal}
+      <div
+        className={cn(
+          "flex flex-col gap-2",
+          !!modifierFields.length && "-mt-2",
+        )}
+      >
+        {modifierFields.map((field, index) => (
+          <ConditionalGroup
+            key={field.id}
+            index={index}
+            groupCount={modifierFields.length}
+            onRemove={() => removeModifier(index)}
+          />
+        ))}
+        <Button
+          className="h-8 rounded-lg"
+          icon={<ArrowTurnRight2 className="size-4" />}
+          text="Add logic"
+          onClick={() =>
+            getPlanCapabilities(plan).canUseAdvancedRewardLogic && false
+              ? appendModifier({
+                  operator: "AND",
+                  conditions: [{}],
+                  amount: getValues("amount") || 0,
+                })
+              : setShowRewardsUpgradeModal(true)
+          }
+          variant={isDefaultReward ? "primary" : "secondary"}
         />
-      ))}
-      <Button
-        className="h-8 rounded-lg"
-        icon={<ArrowTurnRight2 className="size-4" />}
-        text="Add logic"
-        onClick={() =>
-          appendModifier({
-            operator: "AND",
-            conditions: [{}],
-            amount: getValues("amount") || 0,
-          })
-        }
-        variant={isDefaultReward ? "primary" : "secondary"}
-        disabledTooltip={
-          !getPlanCapabilities(plan).canUseAdvancedRewardLogic ? (
-            <TooltipContent
-              title="You can only use advanced reward structures on the Advanced plan and above."
-              cta="Upgrade to Advanced"
-              href={`/${workspaceSlug}/upgrade`}
-            />
-          ) : undefined
-        }
-      />
-    </div>
+      </div>
+    </>
   );
 }
 
