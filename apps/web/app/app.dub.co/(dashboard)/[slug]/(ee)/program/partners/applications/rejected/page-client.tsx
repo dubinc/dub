@@ -26,6 +26,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { useColumnVisibility } from "../use-column-visibility";
+import { RowMenuButton } from "@/ui/analytics/events/row-menu-button";
 
 export function ProgramPartnersRejectedApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
@@ -43,7 +44,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     data: partners,
     error,
     isValidating,
-    mutate,
   } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString(
       {
@@ -220,6 +220,9 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         size: 43,
         maxSize: 43,
         header: ({ table }) => <EditColumnsButton table={table} />,
+        cell: ({ row }) => (
+          <></>
+        ),
       },
     ],
     [workspaceId],
@@ -241,7 +244,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
     sortableColumns: ["createdAt"],
-
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -253,7 +255,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         del: "page",
         scroll: false,
       }),
-
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `application${p ? "s" : ""}`,
