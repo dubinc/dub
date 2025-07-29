@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   REWARD_EVENT_COLUMN_MAPPING,
   updateRewardSchema,
@@ -36,6 +37,14 @@ export const updateRewardAction = authActionClient
       rewardId,
       programId,
     });
+
+    if (
+      modifiers &&
+      !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
+    )
+      throw new Error(
+        "Advanced reward structures are only available on the Advanced plan and above.",
+      );
 
     const finalPartnerIds = [...includedPartnerIds, ...excludedPartnerIds];
 

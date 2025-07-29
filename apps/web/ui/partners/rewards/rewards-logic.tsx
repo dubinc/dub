@@ -2,6 +2,7 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CONDITION_ATTRIBUTES,
@@ -79,7 +80,7 @@ export function RewardsLogic({
         }
         variant={isDefaultReward ? "primary" : "secondary"}
         disabledTooltip={
-          plan?.startsWith("business") ? (
+          !getPlanCapabilities(plan).canUseAdvancedRewardLogic ? (
             <TooltipContent
               title="You can only use advanced reward structures on the Advanced plan and above."
               cta="Upgrade to Advanced"
