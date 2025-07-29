@@ -8,7 +8,9 @@ import useWorkspace from "./use-workspace";
 const partialQuerySchema = fraudEventsCountQuerySchema.partial();
 
 export function useFraudEventsCount<T>(
-  params: z.infer<typeof partialQuerySchema>,
+  params: z.infer<typeof partialQuerySchema> & {
+    enabled?: boolean;
+  } = {},
 ) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
@@ -18,15 +20,17 @@ export function useFraudEventsCount<T>(
     error,
     isLoading: loading,
   } = useSWR<T>(
-    `/api/fraud-events/count${getQueryString(
-      {
-        ...params,
-        workspaceId,
-      },
-      {
-        exclude: ["page", "status"],
-      },
-    )}`,
+    params.enabled !== false
+      ? `/api/fraud-events/count${getQueryString(
+          {
+            ...params,
+            workspaceId,
+          },
+          {
+            exclude: ["page", "status"],
+          },
+        )}`
+      : undefined,
     fetcher,
     {
       keepPreviousData: true,

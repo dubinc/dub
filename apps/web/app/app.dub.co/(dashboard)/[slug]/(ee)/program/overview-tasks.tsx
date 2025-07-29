@@ -1,8 +1,9 @@
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
-import { Badge, MoneyBills2, ShieldKeyhole, UserCheck } from "@dub/ui";
+import { MoneyBills2, ShieldKeyhole, UserCheck } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -21,6 +22,10 @@ export function OverviewTasks() {
     eligibility: "eligible",
     status: "pending",
   });
+
+  const { fraudEventsCount, loading: fraudEventsLoading } = useFraudEventsCount<
+    number | undefined
+  >({ status: "pending" });
 
   const tasks = useMemo(
     () => [
@@ -41,9 +46,9 @@ export function OverviewTasks() {
       {
         icon: ShieldKeyhole,
         label: "Fraud & Risk review",
-        count: 0,
-        href: `/${slug}/program/fraud`,
-        comingSoon: true,
+        count: fraudEventsCount,
+        href: `/${slug}/program/fraud?status=pending`,
+        loading: fraudEventsLoading,
       },
     ],
     [
@@ -52,6 +57,8 @@ export function OverviewTasks() {
       partnersCountLoading,
       eligiblePayoutsCount,
       eligiblePayoutsLoading,
+      fraudEventsCount,
+      fraudEventsLoading,
     ],
   );
 
@@ -70,23 +77,15 @@ export function OverviewTasks() {
               <span className="min-w-0 truncate">{task.label}</span>
             </div>
 
-            {task.comingSoon ? (
-              <div className="flex h-8 items-center">
-                <Badge variant="blueGradient" className="py-1">
-                  Coming soon
-                </Badge>
-              </div>
-            ) : (
-              <div
-                className={cn(
-                  "flex h-8 items-center rounded-lg bg-black/5 px-4 text-neutral-400",
-                  task.loading && "w-10 animate-pulse",
-                  task.count && task.count > 0 && "bg-blue-100 text-blue-600",
-                )}
-              >
-                {task.count ?? (task.loading ? "" : "-")}
-              </div>
-            )}
+            <div
+              className={cn(
+                "flex h-8 items-center rounded-lg bg-black/5 px-4 text-neutral-400",
+                task.loading && "w-10 animate-pulse",
+                task.count && task.count > 0 && "bg-blue-100 text-blue-600",
+              )}
+            >
+              {task.count ?? (task.loading ? "" : "-")}
+            </div>
           </Link>
         ))}
       </div>

@@ -14,8 +14,6 @@ export const GET = withWorkspace(
     const { groupBy, status, type, interval, start, end } =
       fraudEventsCountQuerySchema.parse(searchParams);
 
-    console.log({ groupBy, status, type, interval, start, end });
-
     const { startDate, endDate } = getStartEndDates({
       interval,
       start,

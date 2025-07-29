@@ -2,6 +2,7 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCustomersCount from "@/lib/swr/use-customers-count";
+import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -55,6 +56,7 @@ type SidebarNavData = {
   session?: Session | null;
   showNews?: boolean;
   applicationsCount?: number;
+  fraudEventsCount?: number;
   showConversionGuides?: boolean;
 };
 
@@ -181,7 +183,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   }),
 
   // Program
-  program: ({ slug, showNews, applicationsCount }) => ({
+  program: ({ slug, showNews, applicationsCount, fraudEventsCount }) => ({
     title: "Partner Program",
     showNews,
     direction: "left",
@@ -240,6 +242,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Fraud & Risk",
             icon: ShieldKeyhole,
             href: `/${slug}/program/fraud`,
+            badge: fraudEventsCount
+              ? fraudEventsCount > 99
+                ? "99+"
+                : fraudEventsCount
+              : undefined,
           },
         ],
       },
@@ -422,6 +429,11 @@ export function AppSidebarNav({
     enabled: canTrackConversions === true,
   });
 
+  const { fraudEventsCount } = useFraudEventsCount<number | undefined>({
+    status: "pending",
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -437,6 +449,7 @@ export function AppSidebarNav({
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
         applicationsCount,
+        fraudEventsCount,
         showConversionGuides: canTrackConversions && customersCount === 0,
       }}
       toolContent={toolContent}
