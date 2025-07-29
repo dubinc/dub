@@ -1,6 +1,8 @@
 "use server";
 
+import { banPartner } from "@/lib/api/partners/ban-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { FRAUD_EVENT_BAN_REASONS } from "@/lib/zod/schemas/fraud-events";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
@@ -23,7 +25,7 @@ export const markFraudEventBannedAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const fraudEvent = await prisma.fraudEvent.findUniqueOrThrow({
+    let fraudEvent = await prisma.fraudEvent.findUniqueOrThrow({
       where: {
         id: fraudEventId,
       },
@@ -39,7 +41,7 @@ export const markFraudEventBannedAction = authActionClient
       );
     }
 
-    await prisma.fraudEvent.update({
+    fraudEvent = await prisma.fraudEvent.update({
       where: {
         id: fraudEventId,
       },
@@ -50,11 +52,20 @@ export const markFraudEventBannedAction = authActionClient
       },
     });
 
-    // TODO:
-    // Send email
-    // Ban the partner
+    const programEnrollment = await getProgramEnrollmentOrThrow({
+      partnerId: fraudEvent.partnerId,
+      programId: fraudEvent.programId,
+      includePartner: true,
+    });
 
-    if (notifyPartner) {
-      //
+    if (programEnrollment.status !== "banned") {
+      await banPartner({
+        workspaceId: workspace.id,
+        program: programEnrollment.program,
+        partner: programEnrollment.partner,
+        reason: "fraud",
+        user,
+        notifyPartner,
+      });
     }
   });
