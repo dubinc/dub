@@ -6,6 +6,7 @@ import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { NewQrProps, UserProps } from "@/lib/types";
 import { ratelimit, redis } from "@/lib/upstash";
+import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
@@ -635,7 +636,10 @@ export const authOptions: NextAuthOptions = {
                   template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
                   messageData: {
                     qr_name: qrDataToCreate?.title || "Untitled QR",
-                    qr_type: qrDataToCreate?.qrType || "",
+                    qr_type:
+                      QR_TYPES.find(
+                        (item) => item.id === qrDataToCreate?.qrType,
+                      )!.label || "Indefined type",
                     url: HOME_DOMAIN,
                   },
                   customerId: user.id,

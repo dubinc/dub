@@ -12,6 +12,7 @@ import {
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
 import { createQrBodySchema } from "@/lib/zod/schemas/qrs";
+import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { HOME_DOMAIN, LOCALHOST_IP, R2_URL } from "@dub/utils";
@@ -104,7 +105,9 @@ export const POST = withWorkspace(
         template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
         messageData: {
           qr_name: createdQr.title || "Untitled QR",
-          qr_type: createdQr.qrType,
+          qr_type:
+            QR_TYPES.find((item) => item.id === createdQr?.qrType)!.label ||
+            "Indefined type",
           url: HOME_DOMAIN,
         },
         customerId: session?.user?.id,
