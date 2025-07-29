@@ -15,6 +15,7 @@ import { currencyFormatter, formatDate, nFormatter } from "@dub/utils";
 import { Flag } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { CustomerRowItem } from "../customers/customer-row-item";
+import { useMarkFraudEventSafeModal } from "./mark-fraud-event-safe-modal";
 import { PartnerInfoSection } from "./partner-info-section";
 
 interface RiskReviewSheetProps {
@@ -25,7 +26,6 @@ interface RiskReviewSheetProps {
 type Tab = "details" | "history";
 
 function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
-  const { slug } = useWorkspace();
   const [tab, setTab] = useState<Tab>("details");
 
   const {
@@ -34,136 +34,144 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
     loading: isLoadingPartner,
   } = usePartner({ partnerId: fraudEvent.partner.id });
 
+  const { setShowModal, MarkFraudEventSafeModal } = useMarkFraudEventSafeModal({
+    fraudEvent,
+  });
+
   return (
-    <div className="flex h-full flex-col">
-      <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
-        <div className="flex h-16 items-center justify-between px-6 py-4">
-          <Sheet.Title className="text-lg font-semibold">
-            Risk review
-          </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
-        </div>
-      </div>
-
-      <div className="flex grow flex-col">
-        <div className="border-b border-neutral-200 bg-neutral-50 p-6">
-          {partner && <PartnerInfoSection partner={partner} />}
-
-          {partner && (
-            <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
-              {[
-                [
-                  "Clicks",
-                  !partner.clicks
-                    ? "-"
-                    : nFormatter(partner.clicks, { full: true }),
-                ],
-                [
-                  "Leads",
-                  !partner.leads
-                    ? "-"
-                    : nFormatter(partner.leads, { full: true }),
-                ],
-                [
-                  "Sales",
-                  !partner.sales
-                    ? "-"
-                    : nFormatter(partner.sales, { full: true }),
-                ],
-                [
-                  "Revenue",
-                  !partner.saleAmount
-                    ? "-"
-                    : currencyFormatter(partner.saleAmount / 100, {
-                        minimumFractionDigits:
-                          partner.saleAmount % 1 === 0 ? 0 : 2,
-                        maximumFractionDigits: 2,
-                      }),
-                ],
-                [
-                  "Commissions",
-                  !partner.totalCommissions
-                    ? "-"
-                    : currencyFormatter(partner.totalCommissions / 100, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }),
-                ],
-                [
-                  "Net revenue",
-                  !partner.netRevenue
-                    ? "-"
-                    : currencyFormatter(partner.netRevenue / 100, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }),
-                ],
-              ].map(([label, value]) => (
-                <div key={label} className="flex flex-col bg-neutral-50 p-3">
-                  <span className="text-xs text-neutral-500">{label}</span>
-                  <span className="text-base text-neutral-900">{value}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="-mb-6 mt-2 flex items-center gap-2">
-            <TabSelect
-              options={[
-                { id: "details", label: "For review" },
-                { id: "history", label: "History" },
-              ]}
-              selected={tab}
-              onSelect={(id: Tab) => {
-                setTab(id);
-              }}
-            />
+    <>
+      <MarkFraudEventSafeModal />
+      <div className="flex h-full flex-col">
+        <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
+          <div className="flex h-16 items-center justify-between px-6 py-4">
+            <Sheet.Title className="text-lg font-semibold">
+              Risk review
+            </Sheet.Title>
+            <Sheet.Close asChild>
+              <Button
+                variant="outline"
+                icon={<X className="size-5" />}
+                className="h-auto w-fit p-1"
+              />
+            </Sheet.Close>
           </div>
         </div>
 
-        <div className="grow overflow-y-auto p-6">
-          <>
-            {tab === "details" && <FraudEventDetails fraudEvent={fraudEvent} />}
-            {tab === "history" && (
-              <FraudEventHistory partnerId={fraudEvent.partner.id} />
-            )}
-          </>
-        </div>
+        <div className="flex grow flex-col">
+          <div className="border-b border-neutral-200 bg-neutral-50 p-6">
+            {partner && <PartnerInfoSection partner={partner} />}
 
-        {tab === "details" && (
-          <div className="flex grow flex-col justify-end">
-            <div className="border-t border-neutral-200 p-5">
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="primary"
-                  text="Mark partner as safe"
-                  onClick={() => {
-                    // TODO: Implement mark as safe action
-                    console.log("Mark partner as safe");
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="danger"
-                  text="Ban partner"
-                  onClick={() => {
-                    // TODO: Implement ban partner action
-                    console.log("Ban partner");
-                  }}
-                />
+            {partner && (
+              <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
+                {[
+                  [
+                    "Clicks",
+                    !partner.clicks
+                      ? "-"
+                      : nFormatter(partner.clicks, { full: true }),
+                  ],
+                  [
+                    "Leads",
+                    !partner.leads
+                      ? "-"
+                      : nFormatter(partner.leads, { full: true }),
+                  ],
+                  [
+                    "Sales",
+                    !partner.sales
+                      ? "-"
+                      : nFormatter(partner.sales, { full: true }),
+                  ],
+                  [
+                    "Revenue",
+                    !partner.saleAmount
+                      ? "-"
+                      : currencyFormatter(partner.saleAmount / 100, {
+                          minimumFractionDigits:
+                            partner.saleAmount % 1 === 0 ? 0 : 2,
+                          maximumFractionDigits: 2,
+                        }),
+                  ],
+                  [
+                    "Commissions",
+                    !partner.totalCommissions
+                      ? "-"
+                      : currencyFormatter(partner.totalCommissions / 100, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        }),
+                  ],
+                  [
+                    "Net revenue",
+                    !partner.netRevenue
+                      ? "-"
+                      : currencyFormatter(partner.netRevenue / 100, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        }),
+                  ],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex flex-col bg-neutral-50 p-3">
+                    <span className="text-xs text-neutral-500">{label}</span>
+                    <span className="text-base text-neutral-900">{value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="-mb-6 mt-2 flex items-center gap-2">
+              <TabSelect
+                options={[
+                  { id: "details", label: "For review" },
+                  { id: "history", label: "History" },
+                ]}
+                selected={tab}
+                onSelect={(id: Tab) => {
+                  setTab(id);
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="grow overflow-y-auto p-6">
+            <>
+              {tab === "details" && (
+                <FraudEventDetails fraudEvent={fraudEvent} />
+              )}
+              {tab === "history" && (
+                <FraudEventHistory partnerId={fraudEvent.partner.id} />
+              )}
+            </>
+          </div>
+
+          {tab === "details" && (
+            <div className="flex grow flex-col justify-end">
+              <div className="border-t border-neutral-200 p-5">
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    text="Mark partner as safe"
+                    onClick={() => {
+                      setShowModal(true);
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="danger"
+                    text="Ban partner"
+                    onClick={() => {
+                      // TODO: Implement ban partner action
+                      console.log("Ban partner");
+                    }}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

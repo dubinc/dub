@@ -24,6 +24,21 @@ export const FRAUD_EVENT_TYPES = {
   },
 } as const;
 
+export const FRAUD_EVENT_SAFE_REASONS = {
+  cleared_after_manual_review: "Cleared after manual review",
+  no_self_referrals_found: "No self-referrals found",
+  no_google_ads_activity_detected: "No Google Ads activity detected",
+  email_domain_verified_and_unrelated: "Email domain verified and unrelated",
+} as const;
+
+export const FRAUD_EVENT_BAN_REASONS = {
+  banned_after_manual_review: "Banned after manual review",
+  self_referrals_detected: "Self-referrals detected",
+  unauthorized_google_ads_activity: "Unauthorized Google Ads activity",
+  matching_email_domain_with_referred_customer:
+    "Matching email domain with referred customer",
+} as const;
+
 export const FraudEventSchema = z.object({
   id: z.string(),
   partner: PartnerSchema.pick({

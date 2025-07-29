@@ -1,6 +1,7 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { FRAUD_EVENT_SAFE_REASONS } from "@/lib/zod/schemas/fraud-events";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
@@ -8,14 +9,17 @@ import { authActionClient } from "../safe-action";
 const schema = z.object({
   workspaceId: z.string().trim().min(1),
   fraudEventId: z.string().trim().min(1),
-  ignoreFutureFraudEvents: z.boolean().default(false),
+  reason: z
+    .enum(Object.keys(FRAUD_EVENT_SAFE_REASONS) as [string, ...string[]])
+    .optional(),
+  ignoreFutureFlags: z.boolean().default(false),
 });
 
 export const markFraudEventSafeAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { fraudEventId, ignoreFutureFraudEvents } = parsedInput;
+    const { fraudEventId, reason, ignoreFutureFlags } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -43,10 +47,11 @@ export const markFraudEventSafeAction = authActionClient
         data: {
           status: "safe",
           userId: user.id,
+          description: reason,
         },
       });
 
-      if (ignoreFutureFraudEvents) {
+      if (ignoreFutureFlags) {
         await tx.programEnrollment.update({
           where: {
             partnerId_programId: {
