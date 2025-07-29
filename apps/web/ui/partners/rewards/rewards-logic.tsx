@@ -533,8 +533,8 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
 }
 
 function AmountInput({ modifierKey }: { modifierKey: `modifiers.${number}` }) {
-  const { control, register } = useAddEditRewardForm();
-  const [type] = useWatch({ control, name: "type" });
+  const { watch, register } = useAddEditRewardForm();
+  const type = watch("type");
 
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
 

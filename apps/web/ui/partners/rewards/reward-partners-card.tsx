@@ -33,6 +33,7 @@ export function RewardPartnersCard({
     isDefault ? false : null,
   );
 
+  // Once everything's loaded, expand the card if it's not a default reward and has no partners selected
   useEffect(() => {
     if (isExpanded !== null || isLoadingRewardPartners) return;
 

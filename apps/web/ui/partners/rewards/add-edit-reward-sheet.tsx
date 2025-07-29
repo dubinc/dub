@@ -33,12 +33,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  FormProvider,
-  useForm,
-  useFormContext,
-  useWatch,
-} from "react-hook-form";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
@@ -435,8 +430,8 @@ const VerticalLine = () => (
 );
 
 function AmountInput() {
-  const { control, register } = useAddEditRewardForm();
-  const [type] = useWatch({ control, name: "type" });
+  const { watch, register } = useAddEditRewardForm();
+  const type = watch("type");
 
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
 
