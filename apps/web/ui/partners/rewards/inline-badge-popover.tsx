@@ -71,23 +71,54 @@ export function InlineBadgePopover({
   );
 }
 
+type MenuItem<T> = {
+  icon?: ReactNode;
+  text: string;
+  value: T;
+  onSelect?: () => void;
+};
+
 export function InlineBadgePopoverMenu<T extends any>({
   items,
   onSelect,
   selectedValue,
   search,
 }: {
-  items: { icon?: ReactNode; text: string; value: T; onSelect?: () => void }[];
+  items: MenuItem<T>[];
   onSelect?: (value: T) => void;
   selectedValue?: T | T[];
   search?: boolean;
 }) {
   const isMultiSelect = Array.isArray(selectedValue);
 
-  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+  const { isOpen, setIsOpen } = useContext(InlineBadgePopoverContext);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+
+  const [sortedItems, setSortedItems] = useState<MenuItem<T>[]>(items);
+
+  // Sort items so that the selected values are always at the top, but only when the popover is closed
+  useEffect(() => {
+    if (isOpen) return;
+
+    setSortedItems(
+      items.sort((a, b) => {
+        const aSelected = isMultiSelect
+          ? selectedValue?.includes(a.value)
+          : selectedValue === a.value;
+        const bSelected = isMultiSelect
+          ? selectedValue?.includes(b.value)
+          : selectedValue === b.value;
+
+        // First sort by whether the items are selected
+        if (aSelected !== bSelected) return aSelected ? -1 : 1;
+
+        // Then sort alphabetically
+        return a.text.localeCompare(b.text);
+      }),
+    );
+  }, [isOpen, items, isMultiSelect, selectedValue]);
 
   return (
     <Command loop className="focus:outline-none">
@@ -106,30 +137,32 @@ export function InlineBadgePopoverMenu<T extends any>({
             ref={scrollRef}
             onScroll={updateScrollProgress}
           >
-            {items.map(({ icon, text, value, onSelect: itemOnSelect }) => (
-              <Command.Item
-                key={text}
-                value={`${text} ${value}`}
-                onSelect={() => {
-                  itemOnSelect?.();
-                  onSelect?.(value);
-                  !isMultiSelect && setIsOpen(false);
-                }}
-                className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100"
-              >
-                <div className="flex items-center gap-2">
-                  {icon}
-                  <span className="text-content-default pr-3 text-left text-sm font-medium">
-                    {text}
-                  </span>
-                </div>
-                {(Array.isArray(selectedValue)
-                  ? selectedValue.includes(value)
-                  : selectedValue === value) && (
-                  <Check2 className="text-content-emphasis size-3.5 shrink-0" />
-                )}
-              </Command.Item>
-            ))}
+            {sortedItems.map(
+              ({ icon, text, value, onSelect: itemOnSelect }) => (
+                <Command.Item
+                  key={text}
+                  value={`${text} ${value}`}
+                  onSelect={() => {
+                    itemOnSelect?.();
+                    onSelect?.(value);
+                    !isMultiSelect && setIsOpen(false);
+                  }}
+                  className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100"
+                >
+                  <div className="flex items-center gap-2">
+                    {icon}
+                    <span className="text-content-default pr-3 text-left text-sm font-medium">
+                      {text}
+                    </span>
+                  </div>
+                  {(Array.isArray(selectedValue)
+                    ? selectedValue.includes(value)
+                    : selectedValue === value) && (
+                    <Check2 className="text-content-emphasis size-3.5 shrink-0" />
+                  )}
+                </Command.Item>
+              ),
+            )}
           </Command.List>
           <div
             className="pointer-events-none absolute bottom-0 left-0 hidden h-12 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
