@@ -1,12 +1,20 @@
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEvent } from "@/lib/types";
-import { FRAUD_EVENT_TYPE_DESCRIPTIONS } from "@/lib/zod/schemas/fraud-events";
+import { FRAUD_EVENT_TYPES } from "@/lib/zod/schemas/fraud-events";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, TabSelect, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  InfoTooltip,
+  Sheet,
+  SimpleTooltipContent,
+  TabSelect,
+  useRouterStuff,
+} from "@dub/ui";
 import { currencyFormatter, formatDate, nFormatter } from "@dub/utils";
 import { Flag } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
+import { CustomerRowItem } from "../customers/customer-row-item";
 import { PartnerInfoSection } from "./partner-info-section";
 
 interface RiskReviewSheetProps {
@@ -133,6 +141,10 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
 }
 
 function FraudEventDetails({ fraudEvent }: { fraudEvent: FraudEvent }) {
+  const { slug } = useWorkspace();
+
+  const { label, description } = FRAUD_EVENT_TYPES[fraudEvent.type];
+
   return (
     <div className="space-y-6">
       <div className="rounded-lg border border-neutral-200 bg-white p-4">
@@ -143,33 +155,82 @@ function FraudEventDetails({ fraudEvent }: { fraudEvent: FraudEvent }) {
 
           <div className="divide-y divide-neutral-200">
             <div className="pb-4">
-              <h2 className="text-base font-semibold text-neutral-900">
-                {FRAUD_EVENT_TYPE_DESCRIPTIONS[fraudEvent.type]}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-semibold text-neutral-900">
+                  {label}
+                </h2>
+                <InfoTooltip
+                  content={<SimpleTooltipContent title={description} />}
+                />
+              </div>
               <span className="text-sm text-neutral-500">
                 {formatDate(fraudEvent.createdAt)}
               </span>
             </div>
 
-            <div className="space-y-4 pt-4">
-              <div>
-                <h3 className="text-sm font-medium text-neutral-900">
-                  Parameters used
-                </h3>
-                <div className="inline-flex items-center bg-orange-50">
-                  <span className="text-sm font-medium text-orange-600">
-                    utm_source=google
-                  </span>
-                </div>
-              </div>
+            {["selfReferral", "disposableEmail"].includes(fraudEvent.type) && (
+              <div className="space-y-4 pt-4">
+                {fraudEvent.customer && (
+                  <div className="space-y-0.5">
+                    <h3 className="text-sm font-medium text-neutral-900">
+                      Customer
+                    </h3>
+                    <CustomerRowItem
+                      customer={fraudEvent.customer}
+                      href={`/${slug}/customers/${fraudEvent.customer.id}`}
+                      avatarClassName="size-5"
+                      className="text-sm font-medium leading-5 text-neutral-500"
+                      showChartActivityIcon={false}
+                    />
+                  </div>
+                )}
 
-              <div>
-                <h3 className="text-sm font-medium text-neutral-900">Link</h3>
-                <div className="text-sm text-neutral-500">
-                  {fraudEvent.link.shortLink}
+                <div>
+                  <h3 className="text-sm font-medium text-neutral-900">Link</h3>
+                  <div className="inline-flex items-center bg-orange-50">
+                    <span className="text-sm font-medium text-orange-600">
+                      {fraudEvent.link.shortLink}
+                    </span>
+                  </div>
+                </div>
+
+                {fraudEvent.holdAmount && (
+                  <div>
+                    <h3 className="text-sm font-medium text-neutral-900">
+                      Commission hold
+                    </h3>
+                    <span className="text-sm font-medium text-neutral-500">
+                      {currencyFormatter(fraudEvent.holdAmount / 100, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {fraudEvent.type === "googleAdsClick" && (
+              <div className="space-y-4 pt-4">
+                <div>
+                  <h3 className="text-sm font-medium text-neutral-900">
+                    Parameters used
+                  </h3>
+                  <div className="inline-flex items-center bg-orange-50">
+                    <span className="text-sm font-medium text-orange-600">
+                      utm_source=google
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-neutral-900">Link</h3>
+                  <div className="text-sm text-neutral-500">
+                    {fraudEvent.link.shortLink}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

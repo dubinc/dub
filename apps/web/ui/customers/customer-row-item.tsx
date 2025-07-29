@@ -10,6 +10,7 @@ export function CustomerRowItem({
   className,
   avatarClassName,
   hideChartActivityOnHover = true,
+  showChartActivityIcon = true,
 }: {
   customer: {
     id: string;
@@ -21,6 +22,7 @@ export function CustomerRowItem({
   className?: string;
   avatarClassName?: string;
   hideChartActivityOnHover?: boolean;
+  showChartActivityIcon?: boolean;
 }) {
   const display = customer.email || customer.name || generateRandomName();
 
@@ -45,7 +47,7 @@ export function CustomerRowItem({
         />
         <span className="truncate">{display}</span>
       </div>
-      {href && (
+      {href && showChartActivityIcon && (
         <ChartActivity2
           className={cn(
             "size-3.5 shrink-0 transition-all",

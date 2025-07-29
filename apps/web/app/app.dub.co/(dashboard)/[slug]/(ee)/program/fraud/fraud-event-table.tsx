@@ -4,7 +4,7 @@ import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import usePartner from "@/lib/swr/use-partner";
 import { EnrolledPartnerProps, FraudEvent } from "@/lib/types";
-import { FRAUD_EVENT_TYPE_DESCRIPTIONS } from "@/lib/zod/schemas/fraud-events";
+import { FRAUD_EVENT_TYPES } from "@/lib/zod/schemas/fraud-events";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { FraudEventStatusBadges } from "@/ui/partners/fraud-event-status-badges";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -103,6 +103,7 @@ export function FraudEventTable() {
               customer={row.original.customer}
               avatarClassName="size-5"
               href={`/${slug}/customers/${row.original.customer.id}`}
+              showChartActivityIcon={false}
             />
           ) : (
             "-"
@@ -139,7 +140,7 @@ export function FraudEventTable() {
         header: "Reason",
         minSize: 200,
         size: 200,
-        cell: ({ row }) => FRAUD_EVENT_TYPE_DESCRIPTIONS[row.original.type],
+        cell: ({ row }) => FRAUD_EVENT_TYPES[row.original.type].label,
       },
       {
         id: "holdAmount",

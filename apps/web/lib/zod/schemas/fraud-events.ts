@@ -7,10 +7,21 @@ import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
 
-export const FRAUD_EVENT_TYPE_DESCRIPTIONS = {
-  selfReferral: "Self referral",
-  googleAdsClick: "Google ads click",
-  disposableEmail: "Disposable email",
+export const FRAUD_EVENT_TYPES = {
+  selfReferral: {
+    label: "Self referral",
+    description:
+      "The user referred themselves to exploit the referral program.",
+  },
+  googleAdsClick: {
+    label: "Google ads click",
+    description:
+      "Traffic from Google Ads flagged as potentially invalid or fraudulent.",
+  },
+  disposableEmail: {
+    label: "Disposable email",
+    description: "Email address is from a temporary or disposable provider.",
+  },
 } as const;
 
 export const FraudEventSchema = z.object({
@@ -36,7 +47,7 @@ export const FraudEventSchema = z.object({
   description: z.string().nullable(),
   type: z.nativeEnum(FraudEventType),
   status: z.nativeEnum(FraudEventStatus),
-  holdAmount: z.number().nullish(), // TODO: Fix it
+  holdAmount: z.number().nullish().default(2000), // TODO: Fix it
   createdAt: z.date(),
   updatedAt: z.date(),
 });
