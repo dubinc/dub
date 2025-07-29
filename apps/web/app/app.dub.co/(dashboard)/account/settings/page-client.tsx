@@ -8,16 +8,22 @@ import UserId from "@/ui/account/user-id";
 import { Form } from "@dub/ui";
 import { APP_NAME } from "@dub/utils";
 import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function SettingsPageClient() {
   const { data: session, update, status } = useSession();
+  const [isPartnerPage, setIsPartnerPage] = useState(false);
+
+  useEffect(() => {
+    setIsPartnerPage(window.location.hostname.startsWith("partners."));
+  }, []);
 
   return (
     <>
       <Form
         title="Your Name"
-        description={`This will be your display name on ${APP_NAME}.`}
+        description={`This is the display name on your  ${APP_NAME} account.`}
         inputAttrs={{
           name: "name",
           defaultValue:
@@ -75,7 +81,7 @@ export default function SettingsPageClient() {
       />
       <UploadAvatar />
       <UserId />
-      <UpdateDefaultWorkspace />
+      {!isPartnerPage && <UpdateDefaultWorkspace />}
       <DeleteAccountSection />
     </>
   );
