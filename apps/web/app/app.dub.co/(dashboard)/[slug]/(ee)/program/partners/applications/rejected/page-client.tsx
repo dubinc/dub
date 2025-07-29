@@ -15,6 +15,7 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   Button,
   EditColumnsButton,
+  MenuItem,
   Popover,
   Table,
   usePagination,
@@ -23,7 +24,6 @@ import {
 } from "@dub/ui";
 import { Check, Dots, LoadingSpinner, Users } from "@dub/ui/icons";
 import {
-  cn,
   COUNTRIES,
   fetcher,
   formatDate,
@@ -324,12 +324,10 @@ function PartnerRowMenuButton({
     useAction(approvePartnerAction, {
       onError: ({ error }) => {
         toast.error(error.serverError);
-        setShowApproveModal(false);
       },
       onSuccess: () => {
         toast.success("Partner application approved");
         mutatePrefix(["/api/partners", "/api/partners/count"]);
-        setShowApproveModal(false);
       },
     });
 
@@ -358,19 +356,16 @@ function PartnerRowMenuButton({
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1 text-sm sm:w-auto sm:min-w-[130px]">
-              <Command.Item
-                className={cn(
-                  "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-3.5 py-2 text-sm text-neutral-950",
-                  "data-[selected=true]:bg-neutral-100",
-                )}
+              <MenuItem
+                as={Command.Item}
+                icon={Check}
                 onSelect={() => {
                   setIsOpen(false);
                   setShowApproveModal(true);
                 }}
               >
-                <Check className="h-4 w-4 shrink-0 text-neutral-600" />
                 Approve partner
-              </Command.Item>
+              </MenuItem>
             </Command.List>
           </Command>
         }
