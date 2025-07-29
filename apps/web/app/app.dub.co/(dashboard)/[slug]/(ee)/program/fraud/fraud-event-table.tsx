@@ -1,8 +1,8 @@
 "use client";
 
-import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import usePartner from "@/lib/swr/use-partner";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, FraudEvent } from "@/lib/types";
 import { FRAUD_EVENT_TYPES } from "@/lib/zod/schemas/fraud-events";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
@@ -20,16 +20,16 @@ import {
   useTable,
 } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
-import { currencyFormatter, formatDate } from "@dub/utils";
-import { useParams } from "next/navigation";
+import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
 import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { useColumnVisibility } from "../partners/use-column-visibility";
-import { usePartnerFilters } from "../partners/use-partner-filters";
+import { useFraudEventFilters } from "./use-fraud-event-filters";
 
 export function FraudEventTable() {
-  const { slug } = useParams();
+  const { id: workspaceId, slug } = useWorkspace();
   const { pagination, setPagination } = usePagination();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { queryParams, searchParams, getQueryString } = useRouterStuff();
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const [detailsSheetState, setDetailsSheetState] = useState<{
@@ -44,10 +44,21 @@ export function FraudEventTable() {
   } = useFraudEventsCount<number>();
 
   const {
-    fraudEvents,
-    loading: fraudEventsLoading,
+    data: fraudEvents,
+    isLoading: fraudEventsLoading,
     error: fraudEventsError,
-  } = useFraudEvents();
+  } = useSWR<FraudEvent[]>(
+    `/api/fraud-events${getQueryString(
+      {
+        workspaceId,
+      },
+      { exclude: ["fraudEventId"] },
+    )}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
 
   const {
     filters,
@@ -56,7 +67,7 @@ export function FraudEventTable() {
     onRemove,
     onRemoveAll,
     isFiltered,
-  } = usePartnerFilters({});
+  } = useFraudEventFilters({});
 
   useEffect(() => {
     const fraudEventId = searchParams.get("fraudEventId");

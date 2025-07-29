@@ -27,7 +27,7 @@ export function useFraudEventsCount<T>(
             workspaceId,
           },
           {
-            exclude: ["page", "status"],
+            exclude: ["page"],
           },
         )}`
       : undefined,
