@@ -20,7 +20,7 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import { Button, MoneyBills2, Sheet, Users } from "@dub/ui";
+import { Button, MoneyBills2, Sheet } from "@dub/ui";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -42,13 +42,13 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
-import { RewardPartnersTable } from "../reward-partners-table";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
+import { RewardPartnersCard } from "./reward-partners-card";
 import { RewardsLogic } from "./rewards-logic";
 
 interface RewardSheetProps {
@@ -99,15 +99,7 @@ function RewardSheetContent({
     },
   });
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    setError,
-    control,
-    formState: { errors },
-  } = form;
+  const { handleSubmit, watch, setValue, setError } = form;
 
   const [
     amount,
@@ -365,52 +357,12 @@ function RewardSheetContent({
           />
 
           <VerticalLine />
-          <RewardSheetCard
-            title={
-              <>
-                <RewardIconSquare icon={Users} />
-                {isDefault ? (
-                  <span>
-                    To all partners
-                    {!!excludedPartnerIds?.length && (
-                      <>
-                        , excluding{" "}
-                        <strong className="font-semibold">
-                          {excludedPartnerIds.length}
-                        </strong>{" "}
-                        {pluralize("partner", excludedPartnerIds.length)}
-                      </>
-                    )}
-                  </span>
-                ) : (
-                  <span>
-                    To {includedPartnerIds?.length || 0}{" "}
-                    {pluralize("partner", includedPartnerIds?.length || 0)}
-                  </span>
-                )}
-              </>
-            }
-            content={
-              <div className="space-y-4">
-                <RewardPartnersTable
-                  event={selectedEvent}
-                  rewardId={reward?.id}
-                  partnerIds={
-                    (isDefault ? excludedPartnerIds : includedPartnerIds) || []
-                  }
-                  setPartnerIds={(value: string[]) => {
-                    if (isDefault) {
-                      setValue("excludedPartnerIds", value);
-                    } else {
-                      setValue("includedPartnerIds", value);
-                    }
-                  }}
-                  rewardPartners={rewardPartners || []}
-                  loading={isLoadingRewardPartners}
-                  mode={isDefault ? "exclude" : "include"}
-                />
-              </div>
-            }
+
+          <RewardPartnersCard
+            isDefault={isDefault}
+            rewardPartners={rewardPartners}
+            isLoadingRewardPartners={isLoadingRewardPartners}
+            reward={reward}
           />
         </div>
 
@@ -460,10 +412,6 @@ function RewardSheetContent({
   );
 }
 
-const VerticalLine = () => (
-  <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
-);
-
 function RewardSheetCard({
   title,
   content,
@@ -481,6 +429,10 @@ function RewardSheetCard({
     </div>
   );
 }
+
+const VerticalLine = () => (
+  <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
+);
 
 function AmountInput() {
   const { control, register } = useAddEditRewardForm();
