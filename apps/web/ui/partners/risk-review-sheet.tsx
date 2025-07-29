@@ -15,6 +15,7 @@ import { currencyFormatter, formatDate, nFormatter } from "@dub/utils";
 import { Flag } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { CustomerRowItem } from "../customers/customer-row-item";
+import { useMarkFraudEventBannedModal } from "./mark-fraud-event-banned-modal";
 import { useMarkFraudEventSafeModal } from "./mark-fraud-event-safe-modal";
 import { PartnerInfoSection } from "./partner-info-section";
 
@@ -34,13 +35,20 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
     loading: isLoadingPartner,
   } = usePartner({ partnerId: fraudEvent.partner.id });
 
-  const { setShowModal, MarkFraudEventSafeModal } = useMarkFraudEventSafeModal({
-    fraudEvent,
-  });
+  const { setShowModal: setShowSafeModal, MarkFraudEventSafeModal } =
+    useMarkFraudEventSafeModal({
+      fraudEvent,
+    });
+
+  const { setShowModal: setShowBanModal, MarkFraudEventBannedModal } =
+    useMarkFraudEventBannedModal({
+      fraudEvent,
+    });
 
   return (
     <>
       <MarkFraudEventSafeModal />
+      <MarkFraudEventBannedModal />
       <div className="flex h-full flex-col">
         <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
           <div className="flex h-16 items-center justify-between px-6 py-4">
@@ -144,7 +152,7 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
             </>
           </div>
 
-          {tab === "details" && (
+          {fraudEvent.status === "pending" && tab === "details" && (
             <div className="flex grow flex-col justify-end">
               <div className="border-t border-neutral-200 p-5">
                 <div className="flex gap-3">
@@ -153,7 +161,7 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
                     variant="primary"
                     text="Mark partner as safe"
                     onClick={() => {
-                      setShowModal(true);
+                      setShowSafeModal(true);
                     }}
                   />
                   <Button
@@ -161,8 +169,7 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
                     variant="danger"
                     text="Ban partner"
                     onClick={() => {
-                      // TODO: Implement ban partner action
-                      console.log("Ban partner");
+                      setShowBanModal(true);
                     }}
                   />
                 </div>
