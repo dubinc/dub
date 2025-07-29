@@ -50,6 +50,13 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
           avatar: true,
         },
       },
+      link: {
+        select: {
+          id: true,
+          url: true,
+          shortLink: true,
+        },
+      },
     },
     skip: (page - 1) * pageSize,
     take: pageSize,

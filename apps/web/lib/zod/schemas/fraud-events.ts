@@ -2,6 +2,7 @@ import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import { FraudEventStatus, FraudEventType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
+import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
@@ -27,7 +28,11 @@ export const FraudEventSchema = z.object({
     email: true,
     avatar: true,
   }).nullable(),
-  linkId: z.string().nullable(),
+  link: LinkSchema.pick({
+    id: true,
+    url: true,
+    shortLink: true,
+  }),
   description: z.string().nullable(),
   type: z.nativeEnum(FraudEventType),
   status: z.nativeEnum(FraudEventStatus),
