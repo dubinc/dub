@@ -1,32 +1,41 @@
 "use client";
 
+import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
+  Button,
   EditColumnsButton,
+  Popover,
   Table,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Users } from "@dub/ui/icons";
+import { Check, Dots, LoadingSpinner, Users } from "@dub/ui/icons";
 import {
+  cn,
   COUNTRIES,
   fetcher,
   formatDate,
   getDomainWithoutWWW,
 } from "@dub/utils";
+import { Row } from "@tanstack/react-table";
+import { Command } from "cmdk";
+import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { useColumnVisibility } from "../use-column-visibility";
-import { RowMenuButton } from "@/ui/analytics/events/row-menu-button";
 
 export function ProgramPartnersRejectedApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
@@ -221,7 +230,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         maxSize: 43,
         header: ({ table }) => <EditColumnsButton table={table} />,
         cell: ({ row }) => (
-          <></>
+          <PartnerRowMenuButton row={row} workspaceId={workspaceId!} />
         ),
       },
     ],
@@ -299,6 +308,88 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         />
       )}
     </div>
+  );
+}
+
+function PartnerRowMenuButton({
+  row,
+  workspaceId,
+}: {
+  row: Row<EnrolledPartnerProps>;
+  workspaceId: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { executeAsync: approvePartner, isPending: isApprovingPartner } =
+    useAction(approvePartnerAction, {
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+        setShowApproveModal(false);
+      },
+      onSuccess: () => {
+        toast.success("Partner application approved");
+        mutatePrefix(["/api/partners", "/api/partners/count"]);
+        setShowApproveModal(false);
+      },
+    });
+
+  const {
+    setShowConfirmModal: setShowApproveModal,
+    confirmModal: approveModal,
+  } = useConfirmModal({
+    title: "Approve Application",
+    description: "Are you sure you want to approve this application?",
+    confirmText: "Approve",
+    onConfirm: async () => {
+      await approvePartner({
+        workspaceId: workspaceId!,
+        partnerId: row.original.id,
+        linkId: null,
+      });
+    },
+  });
+
+  return (
+    <>
+      {approveModal}
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1 text-sm sm:w-auto sm:min-w-[130px]">
+              <Command.Item
+                className={cn(
+                  "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-3.5 py-2 text-sm text-neutral-950",
+                  "data-[selected=true]:bg-neutral-100",
+                )}
+                onSelect={() => {
+                  setIsOpen(false);
+                  setShowApproveModal(true);
+                }}
+              >
+                <Check className="h-4 w-4 shrink-0 text-neutral-600" />
+                Approve partner
+              </Command.Item>
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2"
+          variant="outline"
+          icon={
+            isApprovingPartner ? (
+              <LoadingSpinner className="size-4 shrink-0" />
+            ) : (
+              <Dots className="size-4 shrink-0" />
+            )
+          }
+        />
+      </Popover>
+    </>
   );
 }
 
