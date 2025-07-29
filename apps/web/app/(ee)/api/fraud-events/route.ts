@@ -10,57 +10,69 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // GET /api/fraud-events - get all fraud events for a program
-export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const { status, type, page, pageSize, start, end, interval } =
-    getFraudEventsQuerySchema.parse(searchParams);
+    const { status, type, page, pageSize, start, end, interval } =
+      getFraudEventsQuerySchema.parse(searchParams);
 
-  const { startDate, endDate } = getStartEndDates({
-    interval,
-    start,
-    end,
-  });
+    const { startDate, endDate } = getStartEndDates({
+      interval,
+      start,
+      end,
+    });
 
-  const fraudEvents = await prisma.fraudEvent.findMany({
-    where: {
-      programId,
-      ...(status && { status }),
-      ...(type && { type }),
-      createdAt: {
-        gte: startDate.toISOString(),
-        lte: endDate.toISOString(),
-      },
-    },
-    include: {
-      partner: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-          payoutsEnabledAt: true,
+    const fraudEvents = await prisma.fraudEvent.findMany({
+      where: {
+        programId,
+        ...(status && { status }),
+        ...(type && { type }),
+        createdAt: {
+          gte: startDate.toISOString(),
+          lte: endDate.toISOString(),
         },
       },
-      customer: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          avatar: true,
+      include: {
+        partner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            payoutsEnabledAt: true,
+          },
+        },
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+          },
+        },
+        link: {
+          select: {
+            id: true,
+            url: true,
+            shortLink: true,
+          },
         },
       },
-      link: {
-        select: {
-          id: true,
-          url: true,
-          shortLink: true,
-        },
-      },
-    },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-  });
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
 
-  return NextResponse.json(z.array(FraudEventSchema).parse(fraudEvents));
-});
+    return NextResponse.json(z.array(FraudEventSchema).parse(fraudEvents));
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business extra",
+      "business max",
+      "business plus",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);
