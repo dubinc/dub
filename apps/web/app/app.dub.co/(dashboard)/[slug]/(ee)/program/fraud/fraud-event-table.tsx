@@ -10,6 +10,7 @@ import { FraudEventStatusBadges } from "@/ui/partners/fraud-event-status-badges"
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { RiskReviewSheet } from "@/ui/partners/risk-review-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Filter,
@@ -203,7 +204,7 @@ export function FraudEventTable() {
       )}
 
       <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <Filter.Select
             className="w-full md:w-fit"
             filters={filters}
@@ -211,10 +212,10 @@ export function FraudEventTable() {
             onSelect={onSelect}
             onRemove={onRemove}
           />
-          {/* <SearchBoxPersisted
-            placeholder="Search by name, email, or link"
-            inputClassName="md:w-72"
-          /> */}
+          <SimpleDateRangePicker
+            className="w-full sm:min-w-[200px] md:w-fit"
+            defaultInterval="mtd"
+          />
         </div>
 
         <AnimatedSizeContainer height>
