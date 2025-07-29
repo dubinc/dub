@@ -3,7 +3,7 @@ import { EnrolledPartnerProps, RewardProps } from "@/lib/types";
 import { ChevronRight, Users } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import { RewardIconSquare } from "./reward-icon-square";
@@ -20,47 +20,64 @@ export function RewardPartnersCard({
   isLoadingRewardPartners: boolean;
   reward?: RewardProps;
 }) {
-  const { control, setValue } = useAddEditRewardForm();
+  const { control, setValue, getValues } = useAddEditRewardForm();
 
-  const [event, includedPartnerIds, excludedPartnerIds] = useWatch({
-    control,
-    name: ["event", "includedPartnerIds", "excludedPartnerIds"],
-  });
+  const { event, includedPartnerIds, excludedPartnerIds } = {
+    ...useWatch({
+      control,
+    }),
+    ...getValues(),
+  };
 
-  const [isExpanded, setIsExpanded] = useState(!isDefault);
+  const [isExpanded, setIsExpanded] = useState<boolean | null>(
+    isDefault ? false : null,
+  );
+
+  useEffect(() => {
+    if (isExpanded !== null || isLoadingRewardPartners) return;
+
+    setIsExpanded(!isDefault && !rewardPartners?.length);
+  }, [isExpanded, isLoadingRewardPartners, isDefault, rewardPartners]);
 
   return (
     <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
       <button
         type="button"
         onClick={() => setIsExpanded((e) => !e)}
+        disabled={isExpanded === null}
         className="flex w-full items-center justify-between gap-4 p-2.5 pr-4"
       >
         <div className="text-content-emphasis flex items-center gap-2.5 font-medium">
           <RewardIconSquare icon={Users} />
-          {isDefault ? (
-            <span>
-              To all partners
-              {!!excludedPartnerIds?.length && (
-                <>
-                  , excluding{" "}
+          {isExpanded === null ? (
+            <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
+          ) : (
+            <>
+              {isDefault ? (
+                <span>
+                  To all partners
+                  {!!excludedPartnerIds?.length && (
+                    <>
+                      , excluding{" "}
+                      <PartnerPreviewOrCount
+                        ids={excludedPartnerIds}
+                        rewardPartners={rewardPartners}
+                        isExpanded={isExpanded}
+                      />
+                    </>
+                  )}
+                </span>
+              ) : (
+                <span>
+                  To{" "}
                   <PartnerPreviewOrCount
-                    ids={excludedPartnerIds}
+                    ids={includedPartnerIds || []}
                     rewardPartners={rewardPartners}
                     isExpanded={isExpanded}
                   />
-                </>
+                </span>
               )}
-            </span>
-          ) : (
-            <span>
-              To{" "}
-              <PartnerPreviewOrCount
-                ids={includedPartnerIds || []}
-                rewardPartners={rewardPartners}
-                isExpanded={isExpanded}
-              />
-            </span>
+            </>
           )}
         </div>
         <ChevronRight
