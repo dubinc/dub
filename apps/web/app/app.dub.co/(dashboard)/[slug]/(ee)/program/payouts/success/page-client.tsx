@@ -12,6 +12,7 @@ import {
   pluralize,
 } from "@dub/utils";
 import { Invoice } from "@prisma/client";
+import confetti from "canvas-confetti";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -40,6 +41,23 @@ export function PayoutsSuccessPageClient() {
   }, [invoice?._count.payouts]);
 
   const { program } = useProgram();
+
+  useEffect(() => {
+    if (isLoading || !program) return;
+
+    [0.25, 0.5, 0.75].forEach((x) =>
+      confetti({
+        particleCount: 50,
+        startVelocity: 90,
+        spread: 90,
+        ticks: 1000,
+        origin: { x, y: 0 },
+        disableForReducedMotion: true,
+      }),
+    );
+
+    return () => confetti.reset();
+  }, [isLoading, program]);
 
   if (isLoading || !program) {
     return <LayoutLoader />;
