@@ -1,10 +1,12 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { exceededLimitError } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import z from "zod";
 import { authActionClient } from "../safe-action";
@@ -22,6 +24,10 @@ export const confirmPayoutsAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { paymentMethodId, cutoffPeriod, excludedPayoutIds } = parsedInput;
+
+    if (!workspace.defaultProgramId) {
+      throw new Error("Workspace does not have a default program.");
+    }
 
     if (workspace.role !== "owner") {
       throw new Error("Only workspace owners can confirm payouts.");
@@ -55,11 +61,31 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
+    // Generate the next invoice number
+    const totalInvoices = await prisma.invoice.count({
+      where: {
+        workspaceId: workspace.id,
+      },
+    });
+    const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
+    const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
+
+    // Create the invoice for the payouts
+    const invoice = await prisma.invoice.create({
+      data: {
+        id: createId({ prefix: "inv_" }),
+        number: invoiceNumber,
+        programId: workspace.defaultProgramId!,
+        workspaceId: workspace.id,
+      },
+    });
+
     const qstashResponse = await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/confirm`,
       body: {
         workspaceId: workspace.id,
         userId: user.id,
+        invoiceId: invoice.id,
         paymentMethodId,
         cutoffPeriod,
         excludedPayoutIds,
@@ -71,4 +97,8 @@ export const confirmPayoutsAction = authActionClient
     } else {
       console.error("Error sending message to Qstash", qstashResponse);
     }
+
+    return {
+      invoiceId: invoice.id,
+    };
   });

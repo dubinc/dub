@@ -10,9 +10,10 @@ import { splitPayouts } from "./split-payouts";
 
 export const dynamic = "force-dynamic";
 
-const confirmPayoutsSchema = z.object({
+const confirmPayoutsCronSchema = z.object({
   workspaceId: z.string(),
   userId: z.string(),
+  invoiceId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
   excludedPayoutIds: z.array(z.string()).optional(),
@@ -30,10 +31,11 @@ export async function POST(req: Request) {
     const {
       workspaceId,
       userId,
+      invoiceId,
       paymentMethodId,
       cutoffPeriod,
       excludedPayoutIds,
-    } = confirmPayoutsSchema.parse(JSON.parse(rawBody));
+    } = confirmPayoutsCronSchema.parse(JSON.parse(rawBody));
 
     const workspace = await prisma.project.findUniqueOrThrow({
       where: {
@@ -59,6 +61,7 @@ export async function POST(req: Request) {
       workspace,
       program,
       userId,
+      invoiceId,
       paymentMethodId,
       cutoffPeriod,
       excludedPayoutIds,

@@ -7,7 +7,6 @@ import {
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
 import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, PlanProps } from "@/lib/types";
@@ -36,6 +35,7 @@ import {
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import Stripe from "stripe";
@@ -81,7 +81,7 @@ type SelectPaymentMethod =
   };
 
 function PayoutInvoiceSheetContent() {
-  const { queryParams } = useRouterStuff();
+  const router = useRouter();
   const {
     id: workspaceId,
     slug,
@@ -123,16 +123,11 @@ function PayoutInvoiceSheetContent() {
       ),
     [eligiblePayouts, excludedPayoutIds],
   );
-
   const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
-    onSuccess: async () => {
-      await mutatePrefix(`/api/programs/${defaultProgramId}/payouts`);
-      toast.success(
-        "Payouts confirmed successfully! They will be processed soon.",
+    onSuccess: ({ data }) => {
+      router.push(
+        `/${slug}/program/payouts/success?invoiceId=${data?.invoiceId}`,
       );
-      queryParams({
-        del: "confirmPayouts",
-      });
     },
     onError({ error }) {
       toast.error(error.serverError);
