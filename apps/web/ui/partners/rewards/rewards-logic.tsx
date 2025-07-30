@@ -80,7 +80,7 @@ export function RewardsLogic({
           icon={<ArrowTurnRight2 className="size-4" />}
           text="Add logic"
           onClick={() =>
-            getPlanCapabilities(plan).canUseAdvancedRewardLogic && false
+            getPlanCapabilities(plan).canUseAdvancedRewardLogic
               ? appendModifier({
                   operator: "AND",
                   conditions: [{}],
