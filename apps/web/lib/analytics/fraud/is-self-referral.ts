@@ -196,11 +196,17 @@ const checkIpSimilarity = (clickIp?: string, partnerIp?: string) => {
     let clickNormalized = clickAddr.toNormalizedString();
     let partnerNormalized = partnerAddr.toNormalizedString();
 
-    if (clickAddr.kind() === "ipv6" && (clickAddr as any).isIPv4MappedAddress()) {
+    if (
+      clickAddr.kind() === "ipv6" &&
+      (clickAddr as any).isIPv4MappedAddress()
+    ) {
       clickNormalized = (clickAddr as any).toIPv4Address().toString();
     }
 
-    if (partnerAddr.kind() === "ipv6" && (partnerAddr as any).isIPv4MappedAddress()) {
+    if (
+      partnerAddr.kind() === "ipv6" &&
+      (partnerAddr as any).isIPv4MappedAddress()
+    ) {
       partnerNormalized = (partnerAddr as any).toIPv4Address().toString();
     }
 
@@ -215,9 +221,9 @@ const checkIpSimilarity = (clickIp?: string, partnerIp?: string) => {
       reasons,
     };
   } catch (err) {
-    return { 
-      score: 0, 
-      reasons 
+    return {
+      score: 0,
+      reasons,
     };
   }
 };
