@@ -686,7 +686,9 @@ function ConfirmPayoutsButton({
               className={cn(
                 "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
                 roundedProgress < 1 && "-translate-x-1 translate-y-4 opacity-0",
-                roundedProgress >= 1 && isSuccess && "translate-y-4 opacity-0",
+                roundedProgress >= 1 &&
+                  isSuccess &&
+                  "-translate-y-4 translate-x-3 opacity-0",
               )}
               aria-hidden
             >
