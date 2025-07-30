@@ -126,19 +126,11 @@ function PayoutInvoiceSheetContent() {
     [eligiblePayouts, excludedPayoutIds],
   );
 
-  const { executeAsync: confirmPayouts, isPending } = useAction(
-    confirmPayoutsAction,
-    {
-      onSuccess: ({ data }) => {
-        router.push(
-          `/${slug}/program/payouts/success?invoiceId=${data?.invoiceId}`,
-        );
-      },
-      onError({ error }) {
-        toast.error(error.serverError);
-      },
+  const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
+    onError({ error }) {
+      toast.error(error.serverError);
     },
-  );
+  });
 
   const finalPaymentMethods = useMemo(
     () =>
@@ -651,6 +643,7 @@ function ConfirmPayoutsButton({
       textWrapperClassName="!overflow-visible"
       {...(!disabled &&
         !disabledTooltip && {
+          // TODO: Handle keyboard control
           onPointerDown: () => (holding.current = true),
           onPointerUp: () => (holding.current = false),
           onPointerLeave: () => (holding.current = false),
