@@ -16,7 +16,7 @@ export const recordFraudIfDetected = async ({
   click,
 }: {
   program: Pick<ProgramProps, "id">;
-  partner: Pick<PartnerProps, "id" | "name" | "email">;
+  partner: Pick<PartnerProps, "id">;
   link: Pick<LinkProps, "id">;
   customer: Pick<CustomerProps, "id" | "name" | "email">;
   click: {
@@ -24,7 +24,7 @@ export const recordFraudIfDetected = async ({
     ip?: string | null;
   };
 }) => {
-  const partnerWithUser = await prisma.partner.findUniqueOrThrow({
+  const partnerData = await prisma.partner.findUniqueOrThrow({
     where: {
       id: partner.id,
     },
@@ -44,17 +44,11 @@ export const recordFraudIfDetected = async ({
     },
   });
 
-  partner = {
-    id: partnerWithUser.id,
-    name: partnerWithUser.name,
-    email: partnerWithUser.email,
-  };
-
   // Get partner's IP address from their associated user
   let partnerIpAddress: string | null = null;
 
-  if (partnerWithUser.users.length > 0) {
-    const partnerUser = partnerWithUser.users[0]?.user;
+  if (partnerData.users.length > 0) {
+    const partnerUser = partnerData.users[0]?.user;
 
     if (partnerUser?.ipAddress) {
       partnerIpAddress = partnerUser.ipAddress.toString("utf8");
@@ -71,8 +65,8 @@ export const recordFraudIfDetected = async ({
       name: customer.name,
     },
     partner: {
-      email: partner.email || "",
-      name: partner.name || "",
+      email: partnerData.email || "",
+      name: partnerData.name || "",
       ipAddress: partnerIpAddress,
     },
   });
