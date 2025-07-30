@@ -30,7 +30,7 @@ export const recordFraudIfDetected = async ({
     ip?: string | null;
   };
 }) => {
-  const { partner: partnerData, ignoreFraudEventsEnabledAt } =
+  const { partner: partnerData, ...enrollment } =
     await prisma.programEnrollment.findUniqueOrThrow({
       where: {
         partnerId_programId: {
@@ -40,6 +40,7 @@ export const recordFraudIfDetected = async ({
       },
       select: {
         ignoreFraudEventsEnabledAt: true,
+        status: true,
         partner: {
           select: {
             id: true,
@@ -59,7 +60,7 @@ export const recordFraudIfDetected = async ({
       },
     });
 
-  if (ignoreFraudEventsEnabledAt) {
+  if (enrollment.ignoreFraudEventsEnabledAt) {
     return;
   }
 
