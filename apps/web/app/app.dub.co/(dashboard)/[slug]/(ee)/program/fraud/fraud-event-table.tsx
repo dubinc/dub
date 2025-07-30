@@ -35,9 +35,9 @@ import { useColumnVisibility } from "../partners/use-column-visibility";
 import { useFraudEventFilters } from "./use-fraud-event-filters";
 
 export function FraudEventTable() {
-  const { id: workspaceId, slug } = useWorkspace();
+  const { slug } = useWorkspace();
   const { pagination, setPagination } = usePagination();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
 
   const [detailsSheetState, setDetailsSheetState] = useState<{
@@ -272,6 +272,7 @@ export function FraudEventTable() {
 }
 
 function RowMenuButton({ fraudEvent }: { fraudEvent: FraudEvent }) {
+  const { queryParams, searchParams } = useRouterStuff();
   const [isOpen, setIsOpen] = useState(false);
 
   const {
@@ -305,8 +306,13 @@ function RowMenuButton({ fraudEvent }: { fraudEvent: FraudEvent }) {
                 as={Command.Item}
                 icon={Eye}
                 onSelect={() => {
-                  // This will trigger the row click to open the details sheet
                   setIsOpen(false);
+                  queryParams({
+                    set: {
+                      fraudEventId: fraudEvent.id,
+                    },
+                    scroll: false,
+                  });
                 }}
               >
                 View risk
