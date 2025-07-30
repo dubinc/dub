@@ -81,64 +81,100 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
 
         <div className="flex grow flex-col">
           <div className="border-b border-neutral-200 bg-neutral-50 p-6">
-            {partner && <PartnerInfoSection partner={partner} />}
+            {isLoadingPartner ? (
+              <div className="flex items-start justify-between gap-6">
+                <div>
+                  <div className="relative w-fit">
+                    <div className="size-12 animate-pulse rounded-full bg-neutral-200" />
+                    <div className="absolute -right-1 top-0 size-3 animate-pulse rounded-full bg-neutral-200" />
+                  </div>
+                  <div className="mt-4 flex items-start gap-2">
+                    <div className="h-6 w-32 animate-pulse rounded bg-neutral-200" />
+                    <div className="h-5 w-16 animate-pulse rounded bg-neutral-200" />
+                  </div>
+                  <div className="mt-0.5 flex items-center gap-1">
+                    <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+                    <div className="size-4 animate-pulse rounded bg-neutral-200" />
+                  </div>
+                </div>
+                <div />
+              </div>
+            ) : (
+              partner && <PartnerInfoSection partner={partner} />
+            )}
 
-            {partner && (
+            {isLoadingPartner ? (
               <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
-                {[
-                  [
-                    "Clicks",
-                    !partner.clicks
-                      ? "-"
-                      : nFormatter(partner.clicks, { full: true }),
-                  ],
-                  [
-                    "Leads",
-                    !partner.leads
-                      ? "-"
-                      : nFormatter(partner.leads, { full: true }),
-                  ],
-                  [
-                    "Sales",
-                    !partner.sales
-                      ? "-"
-                      : nFormatter(partner.sales, { full: true }),
-                  ],
-                  [
-                    "Revenue",
-                    !partner.saleAmount
-                      ? "-"
-                      : currencyFormatter(partner.saleAmount / 100, {
-                          minimumFractionDigits:
-                            partner.saleAmount % 1 === 0 ? 0 : 2,
-                          maximumFractionDigits: 2,
-                        }),
-                  ],
-                  [
-                    "Commissions",
-                    !partner.totalCommissions
-                      ? "-"
-                      : currencyFormatter(partner.totalCommissions / 100, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        }),
-                  ],
-                  [
-                    "Net revenue",
-                    !partner.netRevenue
-                      ? "-"
-                      : currencyFormatter(partner.netRevenue / 100, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        }),
-                  ],
-                ].map(([label, value]) => (
-                  <div key={label} className="flex flex-col bg-neutral-50 p-3">
-                    <span className="text-xs text-neutral-500">{label}</span>
-                    <span className="text-base text-neutral-900">{value}</span>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex flex-col bg-neutral-50 p-3">
+                    <div className="h-3 w-12 animate-pulse rounded bg-neutral-200" />
+                    <div className="mt-1 h-5 w-16 animate-pulse rounded bg-neutral-200" />
                   </div>
                 ))}
               </div>
+            ) : (
+              partner && (
+                <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
+                  {[
+                    [
+                      "Clicks",
+                      !partner.clicks
+                        ? "-"
+                        : nFormatter(partner.clicks, { full: true }),
+                    ],
+                    [
+                      "Leads",
+                      !partner.leads
+                        ? "-"
+                        : nFormatter(partner.leads, { full: true }),
+                    ],
+                    [
+                      "Sales",
+                      !partner.sales
+                        ? "-"
+                        : nFormatter(partner.sales, { full: true }),
+                    ],
+                    [
+                      "Revenue",
+                      !partner.saleAmount
+                        ? "-"
+                        : currencyFormatter(partner.saleAmount / 100, {
+                            minimumFractionDigits:
+                              partner.saleAmount % 1 === 0 ? 0 : 2,
+                            maximumFractionDigits: 2,
+                          }),
+                    ],
+                    [
+                      "Commissions",
+                      !partner.totalCommissions
+                        ? "-"
+                        : currencyFormatter(partner.totalCommissions / 100, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }),
+                    ],
+                    [
+                      "Net revenue",
+                      !partner.netRevenue
+                        ? "-"
+                        : currencyFormatter(partner.netRevenue / 100, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }),
+                    ],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="flex flex-col bg-neutral-50 p-3"
+                    >
+                      <span className="text-xs text-neutral-500">{label}</span>
+                      <span className="text-base text-neutral-900">
+                        {value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
 
             <div className="-mb-6 mt-2 flex items-center gap-2">
@@ -403,7 +439,7 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
               </div>
             )}
 
-            {helAmount && (
+            {helAmount && helAmount > 0 && (
               <div>
                 <h3 className="text-sm font-medium text-neutral-900">
                   Commission hold
