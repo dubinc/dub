@@ -12,6 +12,7 @@ import { useMarkFraudEventSafeModal } from "@/ui/partners/mark-fraud-event-safe-
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { RiskReviewSheet } from "@/ui/partners/risk-review-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
@@ -95,24 +96,14 @@ export function FraudEventTable() {
     data: fraudEvents || [],
     columns: [
       {
-        id: "partner",
-        header: "Partner",
-        minSize: 150,
-        size: 150,
-        cell: ({ row }) => {
-          return (
-            <PartnerRowItem
-              partner={row.original.partner}
-              showPayoutsEnabled={false}
-            />
-          );
-        },
+        id: "flagged",
+        header: "Flagged",
+        accessorFn: (d: FraudEvent) =>
+          formatDate(d.createdAt, { month: "short" }),
       },
       {
         id: "customer",
         header: "Customer",
-        minSize: 150,
-        size: 150,
         cell: ({ row }) => {
           return row.original.customer ? (
             <CustomerRowItem
@@ -127,18 +118,35 @@ export function FraudEventTable() {
         },
       },
       {
-        id: "flagged",
-        header: "Flagged",
-        minSize: 120,
-        size: 120,
-        accessorFn: (d: FraudEvent) =>
-          formatDate(d.createdAt, { month: "short" }),
+        id: "partner",
+        header: "Partner",
+        cell: ({ row }) => {
+          return (
+            <PartnerRowItem
+              partner={row.original.partner}
+              showPayoutsEnabled={false}
+            />
+          );
+        },
+        meta: {
+          filterParams: ({ row }) => ({
+            partnerId: row.original.partner.id,
+          }),
+        },
+      },
+      {
+        id: "reason",
+        header: "Reason",
+        cell: ({ row }) => FRAUD_EVENT_TYPES[row.original.type].label,
+        meta: {
+          filterParams: ({ row }) => ({
+            type: row.original.type,
+          }),
+        },
       },
       {
         id: "status",
         header: "Status",
-        minSize: 100,
-        size: 100,
         cell: ({ row }) => {
           const badge = FraudEventStatusBadges[row.original.status];
 
@@ -150,19 +158,15 @@ export function FraudEventTable() {
             "-"
           );
         },
-      },
-      {
-        id: "reason",
-        header: "Reason",
-        minSize: 200,
-        size: 200,
-        cell: ({ row }) => FRAUD_EVENT_TYPES[row.original.type].label,
+        meta: {
+          filterParams: ({ row }) => ({
+            status: row.original.status,
+          }),
+        },
       },
       {
         id: "holdAmount",
         header: "Hold amount",
-        minSize: 120,
-        size: 120,
         accessorFn: (d) =>
           d.holdAmount
             ? currencyFormatter(d.holdAmount / 100, {
@@ -173,8 +177,9 @@ export function FraudEventTable() {
       },
       {
         id: "menu",
-        minSize: 43,
-        size: 43,
+        minSize: 40,
+        size: 40,
+        maxSize: 40,
         cell: ({ row }) => <RowMenuButton fraudEvent={row.original} />,
       },
     ],
@@ -185,6 +190,19 @@ export function FraudEventTable() {
         },
         scroll: false,
       });
+    },
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
     },
     pagination,
     onPaginationChange: setPagination,
