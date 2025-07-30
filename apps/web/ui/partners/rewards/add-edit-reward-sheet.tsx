@@ -5,6 +5,7 @@ import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
@@ -45,6 +46,7 @@ import {
 import { RewardIconSquare } from "./reward-icon-square";
 import { RewardPartnersCard } from "./reward-partners-card";
 import { RewardsLogic } from "./rewards-logic";
+import { useRewardsUpgradeModal } from "./rewards-upgrade-modal";
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -74,7 +76,7 @@ function RewardSheetContent({
   reward,
   isDefault,
 }: RewardSheetProps) {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId, plan } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
 
@@ -98,7 +100,7 @@ function RewardSheetContent({
     },
   });
 
-  const { handleSubmit, watch, setValue, setError } = form;
+  const { handleSubmit, watch, getValues, setValue, setError } = form;
 
   const [
     amount,
@@ -243,8 +245,12 @@ function RewardSheetContent({
 
   const canDeleteReward = reward && !reward.default;
 
+  const { rewardsUpgradeModal, setShowRewardsUpgradeModal } =
+    useRewardsUpgradeModal();
+
   return (
     <FormProvider {...form}>
+      {rewardsUpgradeModal}
       <form
         ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
@@ -401,6 +407,16 @@ function RewardSheetContent({
 
             <Button
               type="submit"
+              onClick={(e) => {
+                const modifiers = getValues("modifiers");
+                if (
+                  modifiers?.length &&
+                  !getPlanCapabilities(plan).canUseAdvancedRewardLogic
+                ) {
+                  setShowRewardsUpgradeModal(true);
+                  e.preventDefault();
+                }
+              }}
               variant="primary"
               text={reward ? "Update reward" : "Create reward"}
               className="w-fit"

@@ -159,11 +159,11 @@ export function RewardsUpgradeModal({
 
         <div className="relative mt-6 flex flex-col gap-3">
           <UpgradePlanButton
-            plan={plan.name.toLowerCase()}
+            plan={"pro"}
             period={isAnnual ? "yearly" : "monthly"}
             text={`Continue with ${plan.name}`}
             variant="primary"
-            className=""
+            openInNewTab
           />
           <Button
             text="Maybe later"

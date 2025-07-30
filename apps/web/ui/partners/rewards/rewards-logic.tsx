@@ -20,11 +20,13 @@ import {
   InvoiceDollar,
   MoneyBills2,
   Popover,
+  Tooltip,
+  TooltipContent,
   User,
 } from "@dub/ui";
 import { capitalize, cn, COUNTRIES, pluralize, truncate } from "@dub/utils";
 import { Command } from "cmdk";
-import { Fragment, useContext, useState } from "react";
+import { Fragment, PropsWithChildren, useContext, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import {
@@ -55,42 +57,72 @@ export function RewardsLogic({
     name: "modifiers",
   });
 
+  return (
+    <div
+      className={cn("flex flex-col gap-2", !!modifierFields.length && "-mt-2")}
+    >
+      {modifierFields.map((field, index) => (
+        <ConditionalGroup
+          key={field.id}
+          index={index}
+          groupCount={modifierFields.length}
+          onRemove={() => removeModifier(index)}
+        />
+      ))}
+      <UpgradeTooltip>
+        <Button
+          className="h-8 rounded-lg"
+          icon={<ArrowTurnRight2 className="size-4" />}
+          text={
+            <div className="flex items-center gap-2">
+              <span>Add logic</span>
+              {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
+                <div className="rounded-sm bg-violet-500/50 px-1 py-0.5 text-[0.625rem] uppercase leading-none text-violet-500">
+                  Upgrade
+                </div>
+              )}
+            </div>
+          }
+          onClick={() =>
+            appendModifier({
+              operator: "AND",
+              conditions: [{}],
+              amount: getValues("amount") || 0,
+            })
+          }
+          variant={isDefaultReward ? "primary" : "secondary"}
+        />
+      </UpgradeTooltip>
+    </div>
+  );
+}
+
+function UpgradeTooltip({ children }: PropsWithChildren) {
+  const { plan } = useWorkspace();
+
   const { rewardsUpgradeModal, setShowRewardsUpgradeModal } =
     useRewardsUpgradeModal();
+
+  if (getPlanCapabilities(plan).canUseAdvancedRewardLogic) return children;
 
   return (
     <>
       {rewardsUpgradeModal}
-      <div
-        className={cn(
-          "flex flex-col gap-2",
-          !!modifierFields.length && "-mt-2",
-        )}
-      >
-        {modifierFields.map((field, index) => (
-          <ConditionalGroup
-            key={field.id}
-            index={index}
-            groupCount={modifierFields.length}
-            onRemove={() => removeModifier(index)}
+      <Tooltip
+        content={({ setOpen }) => (
+          <TooltipContent
+            title="Requires the Advanced plan and above."
+            cta="Upgrade to Advanced"
+            onClick={() => {
+              setOpen(false);
+              setShowRewardsUpgradeModal(true);
+            }}
           />
-        ))}
-        <Button
-          className="h-8 rounded-lg"
-          icon={<ArrowTurnRight2 className="size-4" />}
-          text="Add logic"
-          onClick={() =>
-            getPlanCapabilities(plan).canUseAdvancedRewardLogic
-              ? appendModifier({
-                  operator: "AND",
-                  conditions: [{}],
-                  amount: getValues("amount") || 0,
-                })
-              : setShowRewardsUpgradeModal(true)
-          }
-          variant={isDefaultReward ? "primary" : "secondary"}
-        />
-      </div>
+        )}
+        side="bottom"
+      >
+        <div>{children}</div>
+      </Tooltip>
     </>
   );
 }
