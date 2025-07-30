@@ -59,6 +59,13 @@ export const GET = withWorkspace(
             shortLink: true,
           },
         },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
       },
       skip: (page - 1) * pageSize,
       take: pageSize,

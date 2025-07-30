@@ -5,6 +5,7 @@ import { CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
+import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 
 export const FRAUD_EVENT_TYPES = {
@@ -39,6 +40,11 @@ export const FRAUD_EVENT_BAN_REASONS = {
     "Matching email domain with referred customer",
 } as const;
 
+export const FRAUD_EVENT_RESOLUTION_REASONS = {
+  ...FRAUD_EVENT_SAFE_REASONS,
+  ...FRAUD_EVENT_BAN_REASONS,
+} as const;
+
 export const FraudEventSchema = z.object({
   id: z.string(),
   partner: PartnerSchema.pick({
@@ -59,6 +65,7 @@ export const FraudEventSchema = z.object({
     url: true,
     shortLink: true,
   }),
+  user: UserSchema.nullable(),
   description: z.string().nullable(),
   type: z.nativeEnum(FraudEventType),
   status: z.nativeEnum(FraudEventStatus),
