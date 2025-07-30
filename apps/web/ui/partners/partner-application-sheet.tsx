@@ -6,7 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, useRouterStuff } from "@dub/ui";
+import { Button, Sheet, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
@@ -29,39 +29,38 @@ function PartnerApplicationSheetContent({
   setIsOpen,
 }: PartnerApplicationSheetProps) {
   return (
-    <>
-      <div className="flex grow flex-col">
-        <div className="flex h-16 items-center justify-between px-6 py-4">
-          <Sheet.Title className="text-lg font-semibold">
-            Partner application
-          </Sheet.Title>
-          <div className="flex items-center gap-2">
-            <Sheet.Close asChild>
-              <Button
-                variant="outline"
-                icon={<X className="size-5" />}
-                className="h-auto w-fit p-1"
-              />
-            </Sheet.Close>
-          </div>
+    <div className="flex h-full flex-col">
+      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
+        <Sheet.Title className="text-lg font-semibold">
+          Partner application
+        </Sheet.Title>
+        <div className="flex items-center gap-2">
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
         </div>
-        <div className="border-y border-neutral-200 bg-neutral-50 p-6">
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="border-b border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
           <PartnerInfoSection partner={partner} />
         </div>
         <div className="p-6 text-sm text-neutral-600">
           <PendingPartnerSummary partner={partner} />
         </div>
-
-        {partner.status === "pending" && (
-          <div className="flex grow flex-col justify-end">
-            <div className="border-t border-neutral-200 p-5">
-              <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
-            </div>
-          </div>
-        )}
       </div>
-    </>
+
+      {partner.status === "pending" && (
+        <div className="border-t border-neutral-200 p-5">
+          <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -175,6 +174,7 @@ function PartnerApproval({
   partner: EnrolledPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { isMobile } = useMediaQuery();
   const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
@@ -233,6 +233,102 @@ function PartnerApproval({
     return result.id;
   };
 
+  const handleApproveClick = async () => {
+    if (!program || !workspaceId) {
+      return;
+    }
+
+    if (!isApproving) {
+      setIsApproving(true);
+      setLinkError(false);
+      return;
+    }
+
+    // Approve partner
+    await executeAsync({
+      workspaceId: workspaceId!,
+      partnerId: partner.id,
+      linkId: selectedLinkId,
+    });
+  };
+
+  const handleBackClick = () => {
+    setIsApproving(false);
+    setSelectedLinkId(null);
+  };
+
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-3">
+        {/* First row - Approve button */}
+        <div className="flex">
+          <div className="flex grow">
+            <Button
+              type="button"
+              variant="primary"
+              text="Approve"
+              loading={isPending}
+              className="w-full"
+              onClick={handleApproveClick}
+            />
+          </div>
+        </div>
+
+        {/* Second row - Reject button and link selector */}
+        <div className="flex">
+          <div
+            className={cn(
+              "transition-[width] duration-300",
+              isApproving ? "w-10" : "w-full",
+            )}
+          >
+            {isApproving ? (
+              <Button
+                type="button"
+                variant="secondary"
+                icon={<ChevronLeft className="size-4 shrink-0" />}
+                onClick={handleBackClick}
+              />
+            ) : (
+              <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
+            )}
+          </div>
+
+          <div
+            className={cn(
+              "overflow-hidden transition-[width] duration-300",
+              isApproving ? "w-full pl-2" : "w-0",
+            )}
+          >
+            <div
+              className={cn(
+                "w-0 transition-[width] duration-300",
+                isApproving && "w-full",
+              )}
+            >
+              <PartnerLinkSelector
+                selectedLinkId={selectedLinkId}
+                setSelectedLinkId={setSelectedLinkId}
+                showDestinationUrl={false}
+                onCreate={async (search) => {
+                  try {
+                    await createLink(search);
+                    return true;
+                  } catch (error) {
+                    toast.error(error?.message ?? "Failed to create link");
+                  }
+                  return false;
+                }}
+                error={linkError}
+                optional
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex">
       <div
@@ -246,10 +342,7 @@ function PartnerApproval({
             type="button"
             variant="secondary"
             icon={<ChevronLeft className="size-4 shrink-0" />}
-            onClick={() => {
-              setIsApproving(false);
-              setSelectedLinkId(null);
-            }}
+            onClick={handleBackClick}
           />
         ) : (
           <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
@@ -289,24 +382,7 @@ function PartnerApproval({
             variant="primary"
             text="Approve"
             loading={isPending}
-            onClick={async () => {
-              if (!program || !workspaceId) {
-                return;
-              }
-
-              if (!isApproving) {
-                setIsApproving(true);
-                setLinkError(false);
-                return;
-              }
-
-              // Approve partner
-              await executeAsync({
-                workspaceId: workspaceId!,
-                partnerId: partner.id,
-                linkId: selectedLinkId,
-              });
-            }}
+            onClick={handleApproveClick}
           />
         </div>
       </div>

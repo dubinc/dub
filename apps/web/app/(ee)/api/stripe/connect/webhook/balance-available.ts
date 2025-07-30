@@ -80,7 +80,7 @@ export async function balanceAvailable(event: Stripe.Event) {
     availableBalance = Math.floor(availableBalance / 100) * 100;
   }
 
-  const payout = await stripe.payouts.create(
+  const stripePayout = await stripe.payouts.create(
     {
       amount: availableBalance,
       currency,
@@ -93,7 +93,7 @@ export async function balanceAvailable(event: Stripe.Event) {
   );
 
   console.log(
-    `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${payout.id} (${currencyFormatter(payout.amount / 100, { maximumFractionDigits: 2, currency })})`,
+    `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${stripePayout.id} (${currencyFormatter(stripePayout.amount / 100, { maximumFractionDigits: 2, currency: stripePayout.currency })})`,
   );
 
   const transfers = await stripe.transfers.list({
@@ -114,12 +114,12 @@ export async function balanceAvailable(event: Stripe.Event) {
       },
     },
     data: {
-      stripePayoutId: payout.id,
+      stripePayoutId: stripePayout.id,
     },
   });
 
   console.log(
-    `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to have the stripePayoutId: ${payout.id}`,
+    `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to have the stripePayoutId: ${stripePayout.id}`,
   );
 
   if (partner.email) {
@@ -129,7 +129,11 @@ export async function balanceAvailable(event: Stripe.Event) {
       email: partner.email,
       react: PartnerPayoutWithdrawalInitiated({
         email: partner.email,
-        amount: payout.amount,
+        payout: {
+          amount: stripePayout.amount,
+          currency: stripePayout.currency,
+          arrivalDate: stripePayout.arrival_date,
+        },
       }),
     });
 
