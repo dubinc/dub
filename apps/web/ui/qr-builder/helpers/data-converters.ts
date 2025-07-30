@@ -117,10 +117,10 @@ export const convertQRForUpdate = async (
 
   const titleChanged = newQRData.title !== originalQR.title;
   const qrTypeChanged = newQRData.qrType !== originalQR.qrType;
-  const qrTypeChangedFromFileToNonFile =
-    qrTypeChanged &&
-    FILE_QR_TYPES.includes(originalQR.qrType as EQRType) &&
-    !FILE_QR_TYPES.includes(newQRData.qrType as EQRType);
+  const newQrDataHasFileQrType = FILE_QR_TYPES.includes(
+    newQRData.qrType as EQRType,
+  );
+
   const frameOptionsChanged = (() => {
     const originalFrame = originalQR.frameOptions as FrameOptions;
     const newFrame = newQRData.frameOptions;
@@ -179,9 +179,7 @@ export const convertQRForUpdate = async (
   }
 
   const linkUrl =
-    hasNewFiles || (hasExistingFiles && !qrTypeChangedFromFileToNonFile)
-      ? ""
-      : newData;
+    hasNewFiles || (hasExistingFiles && newQrDataHasFileQrType) ? "" : newData;
 
   const updateData: UpdateQrProps = {
     data: newData,

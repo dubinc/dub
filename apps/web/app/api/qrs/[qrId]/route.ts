@@ -47,12 +47,7 @@ export const PATCH = withWorkspace(
     });
 
     const body = updateQrBodySchema.parse(await parseRequestBody(req)) || {};
-
-    const qrTypeChanged = body.qrType && body.qrType !== qr.qrType;
-    const qrTypeChangedFromFileToNonFile =
-      qrTypeChanged &&
-      FILE_QR_TYPES.includes(qr.qrType as EQRType) &&
-      !FILE_QR_TYPES.includes(body.qrType as EQRType);
+    const fileQrType = FILE_QR_TYPES.includes(body.qrType as EQRType);
 
     try {
       // Define the correct URL for the link
@@ -60,7 +55,7 @@ export const PATCH = withWorkspace(
       if (body.fileId) {
         // There is a new file - use the new URL
         linkUrl = `${R2_URL}/qrs-content/${body.fileId}`;
-      } else if (qr.fileId && !qrTypeChangedFromFileToNonFile) {
+      } else if (qr.fileId && fileQrType) {
         // There is no new file, but there is an existing file - use the existing URL
         linkUrl = `${R2_URL}/qrs-content/${qr.fileId}`;
       } else {
