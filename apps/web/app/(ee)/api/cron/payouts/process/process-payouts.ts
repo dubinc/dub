@@ -1,5 +1,4 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { createId } from "@/lib/api/create-id";
 import { exceededLimitError } from "@/lib/api/errors";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
@@ -26,10 +25,11 @@ const paymentMethodToCurrency = {
   acss_debit: "cad",
 } as const;
 
-export async function confirmPayouts({
+export async function processPayouts({
   workspace,
   program,
   userId,
+  invoiceId,
   paymentMethodId,
   cutoffPeriod,
   excludedPayoutIds,
@@ -46,6 +46,7 @@ export async function confirmPayouts({
   >;
   program: Pick<Program, "id" | "name" | "logo" | "minPayoutAmount">;
   userId: string;
+  invoiceId: string;
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
   excludedPayoutIds?: string[];
@@ -159,22 +160,12 @@ export async function confirmPayouts({
     );
   }
 
-  // Generate the next invoice number
-  const totalInvoices = await prisma.invoice.count({
+  // Update the invoice with the finalized payout amount, fee, and total
+  const invoice = await prisma.invoice.update({
     where: {
-      workspaceId: workspace.id,
+      id: invoiceId,
     },
-  });
-  const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
-  const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
-
-  // Create the invoice for the payouts
-  const invoice = await prisma.invoice.create({
     data: {
-      id: createId({ prefix: "inv_" }),
-      number: invoiceNumber,
-      programId: program.id,
-      workspaceId: workspace.id,
       amount: payoutAmount,
       fee: totalFee,
       total,
