@@ -288,6 +288,7 @@ export function Table<T>({
   className,
   containerClassName,
   scrollWrapperClassName,
+  emptyWrapperClassName,
   thClassName,
   tdClassName,
   table,
@@ -517,7 +518,12 @@ export function Table<T>({
           </div>
         </>
       ) : (
-        <div className="text-content-subtle flex h-96 w-full items-center justify-center text-sm">
+        <div
+          className={cn(
+            "text-content-subtle flex h-96 w-full items-center justify-center text-sm",
+            emptyWrapperClassName,
+          )}
+        >
           {error ||
             emptyState ||
             `No ${resourceName?.(true) || "items"} found.`}
