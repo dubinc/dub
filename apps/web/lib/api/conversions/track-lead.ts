@@ -280,6 +280,7 @@ export const trackLead = async ({
             },
             click: {
               url: clickData.url,
+              ip: clickData.ip,
             },
           });
         }

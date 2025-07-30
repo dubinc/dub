@@ -1,13 +1,12 @@
 import { createId } from "@/lib/api/create-id";
-import { CustomerProps, LinkProps, ProgramProps } from "@/lib/types";
+import {
+  CustomerProps,
+  LinkProps,
+  PartnerProps,
+  ProgramProps,
+} from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { detectFraudEvent } from "./detect-fraud-event";
-
-interface PartnerProps {
-  id: string;
-  name?: string | null;
-  email?: string | null;
-}
 
 export const recordFraudIfDetected = async ({
   program,
@@ -17,31 +16,24 @@ export const recordFraudIfDetected = async ({
   click,
 }: {
   program: Pick<ProgramProps, "id">;
-  partner: PartnerProps;
+  partner: Pick<PartnerProps, "id">;
   link: Pick<LinkProps, "id">;
   customer: Pick<CustomerProps, "id" | "name" | "email">;
-  click: { 
+  click: {
     url: string;
     ip?: string | null;
-    ua?: string | null;
   };
 }) => {
-  if (partner.id && !partner.name && !partner.email) {
-    partner = await prisma.partner.findUniqueOrThrow({
-      where: {
-        id: partner.id,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-    });
-  }
-
-  if (!partner) {
-    throw new Error("Partner not found.");
-  }
+  partner = await prisma.partner.findUniqueOrThrow({
+    where: {
+      id: partner.id,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
 
   // Get partner's IP and user agent from their associated user
   let partnerIpAddress: string | null = null;
@@ -65,7 +57,9 @@ export const recordFraudIfDetected = async ({
     if (partnerUser?.user) {
       // Convert IP address from bytes to string if it exists
       if (partnerUser.user.ipAddress) {
-        partnerIpAddress = Buffer.from(partnerUser.user.ipAddress).toString('utf8');
+        partnerIpAddress = Buffer.from(partnerUser.user.ipAddress).toString(
+          "utf8",
+        );
       }
       partnerUserAgent = partnerUser.user.userAgent;
     }

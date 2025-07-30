@@ -226,6 +226,7 @@ export async function invoicePaid(event: Stripe.Event) {
       },
       click: {
         url: saleData.url,
+        ip: saleData.ip,
       },
     });
   }

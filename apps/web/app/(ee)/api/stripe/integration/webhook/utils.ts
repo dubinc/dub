@@ -132,6 +132,7 @@ export async function createNewCustomer(event: Stripe.Event) {
       },
       click: {
         url: leadData.url,
+        ip: leadData.ip,
       },
     });
   }

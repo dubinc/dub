@@ -254,6 +254,7 @@ export const trackSale = async ({
           },
           click: {
             url: clickData.url,
+            ip: clickData.ip,
           },
         });
       }
