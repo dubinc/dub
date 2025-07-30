@@ -18,7 +18,9 @@ import {
   DynamicTooltipWrapper,
   Gear,
   GreekTemple,
+  PaperPlane,
   Sheet,
+  ShimmerDots,
   SimpleTooltipContent,
   Table,
   TooltipContent,
@@ -36,7 +38,7 @@ import {
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Stripe from "stripe";
 import useSWR from "swr";
@@ -123,6 +125,7 @@ function PayoutInvoiceSheetContent() {
       ),
     [eligiblePayouts, excludedPayoutIds],
   );
+
   const { executeAsync: confirmPayouts, isPending } = useAction(
     confirmPayoutsAction,
     {
@@ -466,16 +469,13 @@ function PayoutInvoiceSheetContent() {
       </div>
 
       <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
-        <Button
-          type="button"
-          variant="primary"
-          loading={isPending}
+        <ConfirmPayoutsButton
           onClick={async () => {
             if (!workspaceId || !selectedPaymentMethod) {
-              return;
+              return false;
             }
 
-            await confirmPayouts({
+            const result = await confirmPayouts({
               workspaceId,
               paymentMethodId: selectedPaymentMethod.id,
               cutoffPeriod,
@@ -484,14 +484,27 @@ function PayoutInvoiceSheetContent() {
               fee: fee ?? 0,
               total: total ?? 0,
             });
+
+            if (!result?.data?.invoiceId) return false;
+
+            setTimeout(
+              () =>
+                result?.data?.invoiceId &&
+                router.push(
+                  `/${slug}/program/payouts/success?invoiceId=${result.data.invoiceId}`,
+                ),
+              1000,
+            );
+
+            return true;
           }}
           text={
             amount && amount > 0
-              ? `Confirm ${currencyFormatter(amount / 100, {
+              ? `Hold to confirm ${currencyFormatter(amount / 100, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })} payout`
-              : "Confirm payout"
+              : "Hold to confirm payout"
           }
           disabled={
             eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
@@ -547,5 +560,160 @@ export function PayoutInvoiceSheet() {
     >
       <PayoutInvoiceSheetContent />
     </Sheet>
+  );
+}
+
+function ConfirmPayoutsButton({
+  onClick,
+  text,
+  disabled,
+  disabledTooltip,
+}: {
+  onClick: () => Promise<boolean>;
+  text: string;
+  disabled: boolean;
+  disabledTooltip: React.ReactNode;
+}) {
+  const loadingBar = useRef<HTMLDivElement>(null);
+
+  const holding = useRef(false);
+  const progress = useRef(0);
+
+  const requestRef = useRef<number | null>();
+  const previousTimeRef = useRef();
+
+  // Rounded progress to nearest tenth
+  const [roundedProgress, setRoundedProgress] = useState(0);
+
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const animate = (time) => {
+    if (previousTimeRef.current !== undefined) {
+      const deltaTime = time - previousTimeRef.current;
+
+      if (progress.current < 1) {
+        progress.current = Math.max(
+          0,
+          Math.min(
+            1,
+            progress.current + deltaTime * (holding.current ? 0.0005 : -0.001),
+          ),
+        );
+
+        setRoundedProgress(Math.round(progress.current * 10) / 10);
+
+        if (loadingBar.current)
+          loadingBar.current.style.width = `${progress.current * 100}%`;
+      }
+    }
+
+    previousTimeRef.current = time;
+    requestRef.current = requestAnimationFrame(animate);
+  };
+
+  const submitting = useRef(false);
+
+  // Submit when the progress is >= 1 and not already submitting
+  useEffect(() => {
+    if (roundedProgress < 1 || submitting.current) return;
+
+    submitting.current = true;
+    onClick()
+      .then((result) => {
+        if (result) {
+          setIsSuccess(true);
+        } else {
+          progress.current = 0;
+          setRoundedProgress(0);
+          submitting.current = false;
+        }
+      })
+      .catch(() => {
+        progress.current = 0;
+        setRoundedProgress(0);
+        submitting.current = false;
+      });
+  }, [roundedProgress]);
+
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(requestRef.current!);
+  }, []);
+
+  return (
+    <Button
+      type="button"
+      variant="primary"
+      className={cn(
+        "relative overflow-hidden",
+        isSuccess && "border-green-500 bg-green-500",
+      )}
+      textWrapperClassName="!overflow-visible"
+      {...(!disabled &&
+        !disabledTooltip && {
+          onPointerDown: () => (holding.current = true),
+          onPointerUp: () => (holding.current = false),
+          onPointerLeave: () => (holding.current = false),
+          onPointerCancel: () => (holding.current = false),
+        })}
+      text={
+        <>
+          <div
+            ref={loadingBar}
+            className={cn(
+              "pointer-events-none absolute inset-y-0 left-0 overflow-hidden",
+              !isSuccess && "bg-[linear-gradient(90deg,#fff1,#fff4)]",
+            )}
+          >
+            <ShimmerDots
+              className="inset-[unset] inset-y-0 left-0 w-[600px] opacity-30"
+              color={[1, 1, 1]}
+            />
+          </div>
+          <div className="relative text-center">
+            <div
+              className={cn(
+                "transition-[transform,opacity] duration-300",
+                roundedProgress >= 0.5 && "-translate-y-4 opacity-0",
+              )}
+            >
+              {text}
+            </div>
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-0 transition-[transform,opacity] duration-300",
+                roundedProgress < 0.5 && "translate-y-4 opacity-0",
+                roundedProgress >= 1 && "-translate-y-4 opacity-0",
+              )}
+              aria-hidden
+            >
+              Preparing payout...
+            </div>
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
+                roundedProgress < 1 && "-translate-x-1 translate-y-4 opacity-0",
+                roundedProgress >= 1 && isSuccess && "translate-y-4 opacity-0",
+              )}
+              aria-hidden
+            >
+              <PaperPlane className="size-4" />
+            </div>
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
+                (roundedProgress < 1 || !isSuccess) &&
+                  "translate-y-4 opacity-0",
+              )}
+              aria-hidden
+            >
+              Payout sent
+            </div>
+          </div>
+        </>
+      }
+      disabled={disabled}
+      disabledTooltip={disabledTooltip}
+    />
   );
 }
