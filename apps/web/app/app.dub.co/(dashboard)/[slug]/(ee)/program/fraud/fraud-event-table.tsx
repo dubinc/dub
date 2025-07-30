@@ -108,9 +108,7 @@ export function FraudEventTable() {
           return row.original.customer ? (
             <CustomerRowItem
               customer={row.original.customer}
-              avatarClassName="size-5"
               href={`/${slug}/customers/${row.original.customer.id}`}
-              showChartActivityIcon={false}
             />
           ) : (
             "-"
