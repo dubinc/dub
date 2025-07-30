@@ -186,7 +186,7 @@ function RewardSheetContent({
       return;
     }
 
-    let modifiers: RewardConditionsArray | undefined;
+    let modifiers: RewardConditionsArray | null = null;
     if (data.modifiers?.length) {
       try {
         modifiers = rewardConditionsArraySchema.parse(
