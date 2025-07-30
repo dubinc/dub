@@ -29,39 +29,38 @@ function PartnerApplicationSheetContent({
   setIsOpen,
 }: PartnerApplicationSheetProps) {
   return (
-    <>
-      <div className="flex grow flex-col">
-        <div className="flex h-16 items-center justify-between px-6 py-4">
-          <Sheet.Title className="text-lg font-semibold">
-            Partner application
-          </Sheet.Title>
-          <div className="flex items-center gap-2">
-            <Sheet.Close asChild>
-              <Button
-                variant="outline"
-                icon={<X className="size-5" />}
-                className="h-auto w-fit p-1"
-              />
-            </Sheet.Close>
-          </div>
+    <div className="flex h-full flex-col">
+      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
+        <Sheet.Title className="text-lg font-semibold">
+          Partner application
+        </Sheet.Title>
+        <div className="flex items-center gap-2">
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
         </div>
-        <div className="border-y border-neutral-200 bg-neutral-50 p-6">
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="border-b border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
           <PartnerInfoSection partner={partner} />
         </div>
         <div className="p-6 text-sm text-neutral-600">
           <PendingPartnerSummary partner={partner} />
         </div>
-
-        {partner.status === "pending" && (
-          <div className="flex grow flex-col justify-end">
-            <div className="border-t border-neutral-200 p-5">
-              <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
-            </div>
-          </div>
-        )}
       </div>
-    </>
+
+      {partner.status === "pending" && (
+        <div className="border-t border-neutral-200 p-5">
+          <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
+        </div>
+      )}
+    </div>
   );
 }
 
