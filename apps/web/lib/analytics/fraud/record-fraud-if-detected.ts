@@ -6,6 +6,8 @@ import {
   ProgramProps,
 } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { log } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { detectFraudEvent } from "./detect-fraud-event";
 
 export const recordFraudIfDetected = async ({
@@ -75,14 +77,31 @@ export const recordFraudIfDetected = async ({
     return;
   }
 
-  await prisma.fraudEvent.create({
-    data: {
-      id: createId({ prefix: "fraud_" }),
-      type: fraudEvent.type,
-      programId: program.id,
-      partnerId: partner.id,
-      customerId: customer.id,
-      linkId: link.id,
-    },
-  });
+  try {
+    await prisma.fraudEvent.create({
+      data: {
+        id: createId({ prefix: "fraud_" }),
+        type: fraudEvent.type,
+        programId: program.id,
+        partnerId: partner.id,
+        customerId: customer.id,
+        linkId: link.id,
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return;
+    }
+
+    console.error("Error creating fraud event", error);
+
+    await log({
+      message: `Error creating fraud event - ${error.message}`,
+      type: "errors",
+      mention: true,
+    });
+  }
 };
