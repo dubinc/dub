@@ -183,7 +183,7 @@ function PartnerPreviewOrCount({
 
       <span
         className={cn(
-          "absolute left-2 top-1/2 inline-flex -translate-y-1/2 items-center align-text-top transition-[transform,opacity] duration-200",
+          "absolute left-2 top-1/2 inline-flex min-w-full -translate-y-1/2 items-center align-text-top transition-[transform,opacity] duration-200",
           !showAvatars && "pointer-events-none translate-y-0.5 opacity-0",
         )}
       >
