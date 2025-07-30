@@ -2,8 +2,9 @@
 
 import useProgram from "@/lib/swr/use-program";
 import LayoutLoader from "@/ui/layout/layout-loader";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { X } from "@/ui/shared/icons";
-import { buttonVariants, CircleCheckFill, Grid } from "@dub/ui";
+import { buttonVariants, CircleCheckFill, Grid, Receipt2 } from "@dub/ui";
 import {
   cn,
   currencyFormatter,
@@ -12,7 +13,7 @@ import {
   pluralize,
 } from "@dub/utils";
 import { Invoice } from "@prisma/client";
-import confetti from "canvas-confetti";
+import Confetti from "canvas-confetti";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -25,11 +26,9 @@ export function PayoutsSuccessPageClient() {
 
   const [isCountLoaded, setIsCountLoaded] = useState(false);
 
-  const {
-    data: invoice,
-    isLoading,
-    mutate,
-  } = useSWR<Invoice & { _count: { payouts: number } }>(
+  const { data: invoice, isLoading } = useSWR<
+    Invoice & { _count: { payouts: number } }
+  >(
     invoiceId && `/api/workspaces/${slug}/billing/invoices/${invoiceId}`,
     fetcher,
     // Keep refreshing if the count hasn't been updated yet
@@ -43,10 +42,10 @@ export function PayoutsSuccessPageClient() {
   const { program } = useProgram();
 
   useEffect(() => {
-    if (isLoading || !program) return;
+    if (isLoading || !program || !invoice) return;
 
     [0.25, 0.5, 0.75].forEach((x) =>
-      confetti({
+      Confetti({
         particleCount: 50,
         startVelocity: 90,
         spread: 90,
@@ -56,15 +55,32 @@ export function PayoutsSuccessPageClient() {
       }),
     );
 
-    return () => confetti.reset();
-  }, [isLoading, program]);
+    return () => Confetti.reset();
+  }, [isLoading, program, invoice]);
 
   if (isLoading || !program) {
     return <LayoutLoader />;
   }
 
   if (!invoice) {
-    return "Invoice not found";
+    return (
+      <div className="flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center px-4 py-10">
+        <AnimatedEmptyState
+          title="Invoice not found"
+          description="The invoice you're looking for doesn't exist."
+          cardContent={() => (
+            <>
+              <Receipt2 className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
+          className="border-none"
+          learnMoreText="Back to payouts"
+          learnMoreHref={`/${slug}/program/payouts?status=pending&sortBy=amount`}
+          learnMoreTarget="_self"
+        />
+      </div>
+    );
   }
 
   // Convert total from cents to dollars
@@ -79,7 +95,7 @@ export function PayoutsSuccessPageClient() {
     <div className="rounded-t-[inherit] bg-white">
       <div className="flex justify-end pr-2 pt-2">
         <Link
-          href={`/${slug}/program/payouts`}
+          href={`/${slug}/program/payouts?status=pending&sortBy=amount`}
           className={cn(
             "flex size-8 items-center justify-center whitespace-nowrap rounded-lg border p-0 text-base",
             buttonVariants({ variant: "outline" }),
@@ -191,7 +207,7 @@ export function PayoutsSuccessPageClient() {
           <Link
             href={`/${slug}/program`}
             className={cn(
-              "flex h-9 w-fit items-center justify-center whitespace-nowrap rounded-lg border px-4 text-base text-sm",
+              "flex h-9 w-fit items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
               buttonVariants({ variant: "secondary" }),
             )}
           >
