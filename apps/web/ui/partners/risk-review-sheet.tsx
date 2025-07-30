@@ -13,12 +13,14 @@ import {
   Sheet,
   SimpleTooltipContent,
   TabSelect,
+  Tooltip,
   useRouterStuff,
 } from "@dub/ui";
 import {
   cn,
   currencyFormatter,
   formatDate,
+  formatDateTime,
   nFormatter,
   OG_AVATAR_URL,
 } from "@dub/utils";
@@ -287,20 +289,50 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
           </div>
 
           {user && (
-            <div className="flex items-center gap-2">
-              <img
-                src={user.image || `${OG_AVATAR_URL}${user.name}`}
-                alt={user.name ?? user.id}
-                className="size-5 shrink-0 rounded-full"
-              />
-              <span className="text-sm font-medium text-neutral-700">
-                {formatDate(fraudEvent.updatedAt, {
-                  month: "short",
-                  day: "numeric",
-                  year: undefined,
-                })}
-              </span>
-            </div>
+            <Tooltip
+              content={
+                <div className="flex flex-col gap-1 p-2.5">
+                  <div className="flex flex-col gap-2">
+                    <img
+                      src={user.image || `${OG_AVATAR_URL}${user.name}`}
+                      alt={user.name ?? user.id}
+                      className="size-6 shrink-0 rounded-full"
+                    />
+                    <p className="text-sm font-medium">
+                      {user.name || user.id}
+                    </p>
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    Resolved at{" "}
+                    <span className="font-medium text-neutral-700">
+                      {formatDateTime(fraudEvent.updatedAt, {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                      })}
+                    </span>
+                  </div>
+                </div>
+              }
+              side="left"
+            >
+              <div className="flex items-center gap-2">
+                <img
+                  src={user.image || `${OG_AVATAR_URL}${user.name}`}
+                  alt={user.name ?? user.id}
+                  className="size-5 shrink-0 rounded-full"
+                />
+                <span className="text-sm font-medium text-neutral-700">
+                  {formatDate(fraudEvent.updatedAt, {
+                    month: "short",
+                    day: "numeric",
+                    year: undefined,
+                  })}
+                </span>
+              </div>
+            </Tooltip>
           )}
         </div>
 
