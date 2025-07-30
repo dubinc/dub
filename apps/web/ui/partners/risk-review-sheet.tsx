@@ -82,7 +82,7 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
         <div className="flex grow flex-col">
           <div className="border-b border-neutral-200 bg-neutral-50 p-6">
             {isLoadingPartner ? (
-              <div className="flex items-start justify-between gap-6">
+              <div className="flex items-start justify-between gap-6 min-h-[80px]">
                 <div>
                   <div className="relative w-fit">
                     <div className="size-12 animate-pulse rounded-full bg-neutral-200" />
@@ -104,7 +104,7 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
             )}
 
             {isLoadingPartner ? (
-              <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
+              <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200 min-h-[120px]">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="flex flex-col bg-neutral-50 p-3">
                     <div className="h-3 w-12 animate-pulse rounded bg-neutral-200" />
