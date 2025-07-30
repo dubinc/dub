@@ -15,6 +15,7 @@ const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  amount: z.number(),
   excludedPayoutIds: z.array(z.string()).optional(),
 });
 
@@ -23,7 +24,8 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { paymentMethodId, cutoffPeriod, excludedPayoutIds } = parsedInput;
+    const { paymentMethodId, cutoffPeriod, amount, excludedPayoutIds } =
+      parsedInput;
 
     if (!workspace.defaultProgramId) {
       throw new Error("Workspace does not have a default program.");
@@ -77,11 +79,12 @@ export const confirmPayoutsAction = authActionClient
         number: invoiceNumber,
         programId: workspace.defaultProgramId!,
         workspaceId: workspace.id,
+        amount, // this will be updated later in the payouts/process cron job, we're adding it now for the program/payouts/success screen
       },
     });
 
     const qstashResponse = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/confirm`,
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process`,
       body: {
         workspaceId: workspace.id,
         userId: user.id,

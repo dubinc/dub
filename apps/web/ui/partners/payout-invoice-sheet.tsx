@@ -476,6 +476,7 @@ function PayoutInvoiceSheetContent() {
               workspaceId,
               paymentMethodId: selectedPaymentMethod.id,
               cutoffPeriod,
+              amount: amount ?? 0,
               excludedPayoutIds,
             });
           }}

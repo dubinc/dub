@@ -25,7 +25,7 @@ const paymentMethodToCurrency = {
   acss_debit: "cad",
 } as const;
 
-export async function confirmPayouts({
+export async function processPayouts({
   workspace,
   program,
   userId,
