@@ -51,6 +51,7 @@ export const banPartner = async ({
         clickRewardId: null,
         leadRewardId: null,
         saleRewardId: null,
+        ignoreFraudEventsEnabledAt: null,
       },
     }),
 
@@ -71,6 +72,16 @@ export const banPartner = async ({
       },
       data: {
         status: "canceled",
+      },
+    }),
+
+    prisma.fraudEvent.updateMany({
+      where: {
+        programId: program.id,
+        partnerId: partner.id,
+      },
+      data: {
+        status: "banned",
       },
     }),
   ]);
