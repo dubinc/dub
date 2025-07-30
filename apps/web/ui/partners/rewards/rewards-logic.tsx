@@ -77,7 +77,14 @@ export function RewardsLogic({
             <div className="flex items-center gap-2">
               <span>Add logic</span>
               {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
-                <div className="rounded-sm bg-violet-500/50 px-1 py-0.5 text-[0.625rem] uppercase leading-none text-violet-500">
+                <div
+                  className={cn(
+                    "rounded-sm px-1 py-0.5 text-[0.625rem] uppercase leading-none",
+                    isDefaultReward
+                      ? "bg-violet-500/50 text-violet-400"
+                      : "bg-violet-50 text-violet-600",
+                  )}
+                >
                   Upgrade
                 </div>
               )}
