@@ -12,14 +12,13 @@ const schema = z.object({
   reason: z
     .enum(Object.keys(FRAUD_EVENT_SAFE_REASONS) as [string, ...string[]])
     .optional(),
-  ignoreFutureFlags: z.boolean().default(false),
 });
 
 export const markFraudEventSafeAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { fraudEventId, reason, ignoreFutureFlags } = parsedInput;
+    const { fraudEventId, reason } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -33,10 +32,8 @@ export const markFraudEventSafeAction = authActionClient
       throw new Error(`Fraud event ${fraudEventId} not found.`);
     }
 
-    if (fraudEvent.status !== "pending") {
-      throw new Error(
-        `Fraud event ${fraudEventId} is already marked as ${fraudEvent.status}.`,
-      );
+    if (fraudEvent.status === "safe") {
+      throw new Error(`Fraud event ${fraudEventId} is already marked as safe.`);
     }
 
     await prisma.$transaction(async (tx) => {
@@ -51,18 +48,17 @@ export const markFraudEventSafeAction = authActionClient
         },
       });
 
-      if (ignoreFutureFlags) {
-        await tx.programEnrollment.update({
-          where: {
-            partnerId_programId: {
-              partnerId: fraudEvent.partnerId,
-              programId,
-            },
+      // "Marking them as Safe" should ignore future flags because you are making a decision on that partner
+      await tx.programEnrollment.update({
+        where: {
+          partnerId_programId: {
+            partnerId: fraudEvent.partnerId,
+            programId,
           },
-          data: {
-            ignoreFraudEventsEnabledAt: new Date(),
-          },
-        });
-      }
+        },
+        data: {
+          ignoreFraudEventsEnabledAt: new Date(),
+        },
+      });
     });
   });

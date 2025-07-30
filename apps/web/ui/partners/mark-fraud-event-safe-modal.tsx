@@ -25,7 +25,6 @@ function MarkFraudEventSafeModal({
 }) {
   const { id: workspaceId } = useWorkspace();
   const [reason, setReason] = useState("");
-  const [ignoreFutureFlags, setIgnoreFutureFlags] = useState(false);
 
   const { executeAsync, isPending } = useAction(markFraudEventSafeAction, {
     onSuccess: async () => {
@@ -47,9 +46,8 @@ function MarkFraudEventSafeModal({
       workspaceId,
       fraudEventId: fraudEvent.id,
       reason,
-      ignoreFutureFlags,
     });
-  }, [executeAsync, fraudEvent.id, workspaceId, ignoreFutureFlags, reason]);
+  }, [executeAsync, fraudEvent.id, workspaceId, reason]);
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
@@ -60,43 +58,25 @@ function MarkFraudEventSafeModal({
       </div>
 
       <div className="bg-neutral-50 p-4 sm:p-6">
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-neutral-900">
-              Reason for marking safe (optional)
-            </label>
-            <select
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-            >
-              <option value="">Select</option>
-              {Object.keys(FRAUD_EVENT_SAFE_REASONS).map((reason) => (
-                <option key={reason} value={reason}>
-                  {FRAUD_EVENT_SAFE_REASONS[reason]}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-neutral-500">
-              This is for historical records only
-            </p>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="ignoreFutureFlags"
-              checked={ignoreFutureFlags}
-              onChange={(e) => setIgnoreFutureFlags(e.target.checked)}
-              className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
-            />
-            <label
-              htmlFor="ignoreFutureFlags"
-              className="text-sm text-neutral-900"
-            >
-              Ignore all flags in the future for this partner
-            </label>
-          </div>
+        <div>
+          <label className="text-sm font-medium text-neutral-900">
+            Reason for marking safe (optional)
+          </label>
+          <select
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+          >
+            <option value="">Select</option>
+            {Object.keys(FRAUD_EVENT_SAFE_REASONS).map((reason) => (
+              <option key={reason} value={reason}>
+                {FRAUD_EVENT_SAFE_REASONS[reason]}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-neutral-500">
+            This is for historical records only
+          </p>
         </div>
       </div>
 
