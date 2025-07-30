@@ -202,7 +202,6 @@ const CommissionTableInner = memo(
             );
           },
         },
-        // Menu
         {
           id: "menu",
           enableHiding: false,
