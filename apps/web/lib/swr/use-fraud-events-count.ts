@@ -10,6 +10,7 @@ const partialQuerySchema = fraudEventsCountQuerySchema.partial();
 export function useFraudEventsCount<T>(
   params: z.infer<typeof partialQuerySchema> & {
     enabled?: boolean;
+    exclude?: string[];
   } = {},
 ) {
   const { id: workspaceId } = useWorkspace();
@@ -27,7 +28,7 @@ export function useFraudEventsCount<T>(
             workspaceId,
           },
           {
-            exclude: ["page"],
+            exclude: ["page", ...(params.exclude || [])],
           },
         )}`
       : undefined,

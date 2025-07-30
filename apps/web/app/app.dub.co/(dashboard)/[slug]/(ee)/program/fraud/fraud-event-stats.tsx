@@ -23,6 +23,7 @@ export function FraudEventStats() {
     FraudEventCount[]
   >({
     groupBy: "status",
+    exclude: ["status"],
   });
 
   const totalCount = useMemo(() => {
