@@ -16,7 +16,7 @@ export const recordFraudIfDetected = async ({
   click,
 }: {
   program: Pick<ProgramProps, "id">;
-  partner: Pick<PartnerProps, "id">;
+  partner: Pick<PartnerProps, "id" | "name" | "email">;
   link: Pick<LinkProps, "id">;
   customer: Pick<CustomerProps, "id" | "name" | "email">;
   click: {
@@ -24,7 +24,7 @@ export const recordFraudIfDetected = async ({
     ip?: string | null;
   };
 }) => {
-  partner = await prisma.partner.findUniqueOrThrow({
+  const partnerWithUser = await prisma.partner.findUniqueOrThrow({
     where: {
       id: partner.id,
     },
@@ -32,36 +32,32 @@ export const recordFraudIfDetected = async ({
       id: true,
       name: true,
       email: true,
-    },
-  });
-
-  // Get partner's IP and user agent from their associated user
-  let partnerIpAddress: string | null = null;
-  let partnerUserAgent: string | null = null;
-
-  if (partner.id) {
-    const partnerUser = await prisma.partnerUser.findFirst({
-      where: {
-        partnerId: partner.id,
-      },
-      include: {
-        user: {
-          select: {
-            ipAddress: true,
-            userAgent: true,
+      users: {
+        select: {
+          user: {
+            select: {
+              ipAddress: true,
+            },
           },
         },
       },
-    });
+    },
+  });
 
-    if (partnerUser?.user) {
-      // Convert IP address from bytes to string if it exists
-      if (partnerUser.user.ipAddress) {
-        partnerIpAddress = Buffer.from(partnerUser.user.ipAddress).toString(
-          "utf8",
-        );
-      }
-      partnerUserAgent = partnerUser.user.userAgent;
+  partner = {
+    id: partnerWithUser.id,
+    name: partnerWithUser.name,
+    email: partnerWithUser.email,
+  };
+
+  // Get partner's IP address from their associated user
+  let partnerIpAddress: string | null = null;
+
+  if (partnerWithUser.users.length > 0) {
+    const partnerUser = partnerWithUser.users[0]?.user;
+
+    if (partnerUser?.ipAddress) {
+      partnerIpAddress = partnerUser.ipAddress.toString("utf8");
     }
   }
 
@@ -69,7 +65,6 @@ export const recordFraudIfDetected = async ({
     click: {
       url: click.url,
       ip: click.ip,
-      ua: click.ua,
     },
     customer: {
       email: customer.email || "",
@@ -79,7 +74,6 @@ export const recordFraudIfDetected = async ({
       email: partner.email || "",
       name: partner.name || "",
       ipAddress: partnerIpAddress,
-      userAgent: partnerUserAgent,
     },
   });
 

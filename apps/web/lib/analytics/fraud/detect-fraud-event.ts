@@ -24,7 +24,6 @@ export const detectFraudEvent = async ({
     email: string;
     name: string;
     ipAddress?: string | null;
-    userAgent?: string | null;
   };
 }): Promise<FraudEventResult> => {
   const { selfReferral } = await isSelfReferral({
