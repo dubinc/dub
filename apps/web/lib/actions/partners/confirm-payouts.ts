@@ -15,8 +15,10 @@ const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
-  amount: z.number(),
   excludedPayoutIds: z.array(z.string()).optional(),
+  amount: z.number(),
+  fee: z.number(),
+  total: z.number(),
 });
 
 // Confirm payouts
@@ -24,8 +26,14 @@ export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { paymentMethodId, cutoffPeriod, amount, excludedPayoutIds } =
-      parsedInput;
+    const {
+      paymentMethodId,
+      cutoffPeriod,
+      excludedPayoutIds,
+      amount,
+      fee,
+      total,
+    } = parsedInput;
 
     if (!workspace.defaultProgramId) {
       throw new Error("Workspace does not have a default program.");
@@ -79,7 +87,11 @@ export const confirmPayoutsAction = authActionClient
         number: invoiceNumber,
         programId: workspace.defaultProgramId!,
         workspaceId: workspace.id,
-        amount, // this will be updated later in the payouts/process cron job, we're adding it now for the program/payouts/success screen
+        // these numbers will be updated later in the payouts/process cron job
+        // but we're adding them now for the program/payouts/success screen
+        amount,
+        fee,
+        total,
       },
     });
 

@@ -28,7 +28,7 @@ export function PayoutsSuccessPageClient() {
   }
 
   // Convert total from cents to dollars
-  const amountInDollars = currencyFormatter(invoice.total / 100);
+  const amountInDollars = currencyFormatter(invoice.amount / 100);
 
   return (
     <div className="flex flex-col items-center justify-center">

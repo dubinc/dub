@@ -160,7 +160,7 @@ export async function processPayouts({
     );
   }
 
-  // Create the invoice for the payouts
+  // Update the invoice with the finalized payout amount, fee, and total
   const invoice = await prisma.invoice.update({
     where: {
       id: invoiceId,

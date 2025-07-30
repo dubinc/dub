@@ -123,16 +123,19 @@ function PayoutInvoiceSheetContent() {
       ),
     [eligiblePayouts, excludedPayoutIds],
   );
-  const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
-    onSuccess: ({ data }) => {
-      router.push(
-        `/${slug}/program/payouts/success?invoiceId=${data?.invoiceId}`,
-      );
+  const { executeAsync: confirmPayouts, isPending } = useAction(
+    confirmPayoutsAction,
+    {
+      onSuccess: ({ data }) => {
+        router.push(
+          `/${slug}/program/payouts/success?invoiceId=${data?.invoiceId}`,
+        );
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
+  );
 
   const finalPaymentMethods = useMemo(
     () =>
@@ -180,15 +183,11 @@ function PayoutInvoiceSheetContent() {
     }
   }, [finalPaymentMethods, selectedPaymentMethod]);
 
-  const amount = useMemo(
-    () =>
-      includedPayouts?.reduce((acc, payout) => {
-        return acc + payout.amount;
-      }, 0),
-    [includedPayouts],
-  );
+  const { amount, fee, total } = useMemo(() => {
+    const amount = includedPayouts?.reduce((acc, payout) => {
+      return acc + payout.amount;
+    }, 0);
 
-  const invoiceData = useMemo(() => {
     const fee =
       amount === undefined
         ? undefined
@@ -196,6 +195,10 @@ function PayoutInvoiceSheetContent() {
     const total =
       amount !== undefined && fee !== undefined ? amount + fee : undefined;
 
+    return { amount, fee, total };
+  }, [includedPayouts, selectedPaymentMethod]);
+
+  const invoiceData = useMemo(() => {
     return [
       {
         key: "Method",
@@ -472,12 +475,14 @@ function PayoutInvoiceSheetContent() {
               return;
             }
 
-            await executeAsync({
+            await confirmPayouts({
               workspaceId,
               paymentMethodId: selectedPaymentMethod.id,
               cutoffPeriod,
-              amount: amount ?? 0,
               excludedPayoutIds,
+              amount: amount ?? 0,
+              fee: fee ?? 0,
+              total: total ?? 0,
             });
           }}
           text={
