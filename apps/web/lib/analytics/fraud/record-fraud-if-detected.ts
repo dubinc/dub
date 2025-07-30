@@ -26,25 +26,39 @@ export const recordFraudIfDetected = async ({
     ip?: string | null;
   };
 }) => {
-  const partnerData = await prisma.partner.findUniqueOrThrow({
-    where: {
-      id: partner.id,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      users: {
-        select: {
-          user: {
-            select: {
-              ipAddress: true,
+  const { partner: partnerData, ignoreFraudEventsEnabledAt } =
+    await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId: program.id,
+        },
+      },
+      select: {
+        ignoreFraudEventsEnabledAt: true,
+        partner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            users: {
+              select: {
+                user: {
+                  select: {
+                    ipAddress: true,
+                  },
+                },
+              },
             },
           },
         },
       },
-    },
-  });
+    });
+
+  // Ignore fraud events if the partner has ignoreFraudEventsEnabledAt set
+  if (ignoreFraudEventsEnabledAt) {
+    return;
+  }
 
   // Get partner's IP address from their associated user
   let partnerIpAddress: string | null = null;
