@@ -35,9 +35,9 @@ export const markFraudEventBannedAction = authActionClient
       throw new Error(`Fraud event ${fraudEventId} not found.`);
     }
 
-    if (fraudEvent.status !== "pending") {
+    if (fraudEvent.status === "banned") {
       throw new Error(
-        `Fraud event ${fraudEventId} is already marked as ${fraudEvent.status}.`,
+        `Fraud event ${fraudEventId} is already marked as banned.`,
       );
     }
 
@@ -58,14 +58,12 @@ export const markFraudEventBannedAction = authActionClient
       includePartner: true,
     });
 
-    if (programEnrollment.status !== "banned") {
-      await banPartner({
-        workspaceId: workspace.id,
-        program: programEnrollment.program,
-        partner: programEnrollment.partner,
-        reason: "fraud",
-        user,
-        notifyPartner,
-      });
-    }
+    await banPartner({
+      workspaceId: workspace.id,
+      program: programEnrollment.program,
+      partner: programEnrollment.partner,
+      reason: "fraud",
+      user,
+      notifyPartner,
+    });
   });

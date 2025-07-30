@@ -15,7 +15,7 @@ model FraudEvent {
   programId   String
   partnerId   String
   customerId  String
-  linkId      String?
+  linkId      String
   userId      String?
   description String?
   type        FraudEventType

@@ -95,14 +95,14 @@ export function useFraudEventFilters(
       del: "page",
     });
 
-  const onRemove = (key: string, value: any) =>
+  const onRemove = (key: string) =>
     queryParams({
       del: [key, "page"],
     });
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "type", "search"],
+      del: ["status", "type"],
     });
 
   const searchQuery = useMemo(

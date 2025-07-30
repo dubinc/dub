@@ -7,21 +7,27 @@ import { EnrolledPartnerProps, FraudEvent } from "@/lib/types";
 import { FRAUD_EVENT_TYPES } from "@/lib/zod/schemas/fraud-events";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { FraudEventStatusBadges } from "@/ui/partners/fraud-event-status-badges";
+import { useMarkFraudEventBannedModal } from "@/ui/partners/mark-fraud-event-banned-modal";
+import { useMarkFraudEventSafeModal } from "@/ui/partners/mark-fraud-event-safe-modal";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { RiskReviewSheet } from "@/ui/partners/risk-review-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
+  Button,
   Filter,
+  MenuItem,
+  Popover,
   StatusBadge,
   Table,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Users } from "@dub/ui/icons";
+import { Dots, Eye, Users } from "@dub/ui/icons";
 import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
+import { Command } from "cmdk";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { useColumnVisibility } from "../partners/use-column-visibility";
@@ -91,7 +97,6 @@ export function FraudEventTable() {
       {
         id: "partner",
         header: "Partner",
-        enableHiding: false,
         minSize: 150,
         size: 150,
         cell: ({ row }) => {
@@ -106,7 +111,6 @@ export function FraudEventTable() {
       {
         id: "customer",
         header: "Customer",
-        enableHiding: false,
         minSize: 150,
         size: 150,
         cell: ({ row }) => {
@@ -167,6 +171,12 @@ export function FraudEventTable() {
               })
             : "-",
       },
+      {
+        id: "menu",
+        minSize: 43,
+        size: 43,
+        cell: ({ row }) => <RowMenuButton fraudEvent={row.original} />,
+      },
     ],
     onRowClick: (row) => {
       queryParams({
@@ -214,7 +224,7 @@ export function FraudEventTable() {
           />
           <SimpleDateRangePicker
             className="w-full sm:min-w-[200px] md:w-fit"
-            defaultInterval="mtd"
+            defaultInterval="all"
           />
         </div>
 
@@ -253,6 +263,88 @@ export function FraudEventTable() {
         />
       )}
     </div>
+  );
+}
+
+function RowMenuButton({ fraudEvent }: { fraudEvent: FraudEvent }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const {
+    MarkFraudEventSafeModal,
+    setShowModal: setShowMarkFraudEventSafeModal,
+  } = useMarkFraudEventSafeModal({
+    fraudEvent,
+  });
+
+  const {
+    MarkFraudEventBannedModal,
+    setShowModal: setShowMarkFraudEventBannedModal,
+  } = useMarkFraudEventBannedModal({
+    fraudEvent,
+  });
+
+  const SafeIcon = FraudEventStatusBadges["safe"].icon;
+  const BanIcon = FraudEventStatusBadges["banned"].icon;
+
+  return (
+    <>
+      <MarkFraudEventSafeModal />
+      <MarkFraudEventBannedModal />
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+              <MenuItem
+                as={Command.Item}
+                icon={Eye}
+                onSelect={() => {
+                  // This will trigger the row click to open the details sheet
+                  setIsOpen(false);
+                }}
+              >
+                View risk
+              </MenuItem>
+
+              {["pending", "safe"].includes(fraudEvent.status) && (
+                <MenuItem
+                  as={Command.Item}
+                  icon={<BanIcon className="text-red-600" />}
+                  onSelect={() => {
+                    setIsOpen(false);
+                    setShowMarkFraudEventBannedModal(true);
+                  }}
+                >
+                  Ban partner
+                </MenuItem>
+              )}
+
+              {["pending", "banned"].includes(fraudEvent.status) && (
+                <MenuItem
+                  as={Command.Item}
+                  icon={<SafeIcon className="text-green-600" />}
+                  onSelect={() => {
+                    setIsOpen(false);
+                    setShowMarkFraudEventSafeModal(true);
+                  }}
+                >
+                  Mark partner as safe
+                </MenuItem>
+              )}
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
+    </>
   );
 }
 
