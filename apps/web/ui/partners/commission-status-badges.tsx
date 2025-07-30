@@ -96,4 +96,16 @@ export const CommissionStatusBadges = {
       </LinkifyTooltipContent>
     ),
   },
+  held: {
+    label: "Held",
+    variant: "neutral",
+    className: "text-gray-600 bg-gray-100",
+    icon: Lock,
+    tooltip: (data: CommissionTooltipDataProps) => (
+      <LinkifyTooltipContent>
+        This commission was held due to suspicious activity. Reach out to{" "}
+        {data.supportEmail} if you believe this is incorrect.
+      </LinkifyTooltipContent>
+    ),
+  },
 };
