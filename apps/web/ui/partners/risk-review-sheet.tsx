@@ -14,8 +14,9 @@ import {
 } from "@dub/ui";
 import { currencyFormatter, formatDate, nFormatter } from "@dub/utils";
 import { Flag } from "lucide-react";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { CustomerRowItem } from "../customers/customer-row-item";
+import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { useMarkFraudEventBannedModal } from "./mark-fraud-event-banned-modal";
 import { useMarkFraudEventSafeModal } from "./mark-fraud-event-safe-modal";
 import { PartnerInfoSection } from "./partner-info-section";
@@ -305,8 +306,204 @@ const FraudEventHistory = ({ partnerId }: { partnerId: string }) => {
     },
   });
 
-  return <></>
+  if (fraudEventsLoading || !fraudEvents) {
+    return <FraudEventHistorySkeleton />;
+  }
+
+  if (fraudEventsError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="text-center">
+          <p className="text-sm text-neutral-500">
+            {fraudEventsError ||
+              "There was an error loading the fraud event history."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const resolvedFraudEvents = useMemo(
+    () => fraudEvents.filter(({ status }) => status !== "pending"),
+    [fraudEvents],
+  );
+
+  if (resolvedFraudEvents.length === 0) {
+    return (
+      <AnimatedEmptyState
+        className="md:min-h-80"
+        title="No previous fraud events"
+        description="When fraud events are resolved for this partner, they will appear here."
+        cardContent={() => (
+          <>
+            <div className="flex size-7 items-center justify-center rounded-md border border-neutral-200 bg-neutral-50">
+              <Flag className="size-4 text-neutral-700" />
+            </div>
+            <div className="h-2.5 w-28 min-w-0 rounded-sm bg-neutral-200" />
+          </>
+        )}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {resolvedFraudEvents.map((fraudEvent) => (
+        <FraudEventHistoryCard key={fraudEvent.id} fraudEvent={fraudEvent} />
+      ))}
+    </div>
+  );
 };
+
+function FraudEventHistoryCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
+  const { slug } = useWorkspace();
+  const { label, description } = FRAUD_EVENT_TYPES[fraudEvent.type];
+
+  return (
+    <div className="rounded-lg border border-neutral-200 bg-white p-4">
+      <div className="flex min-w-0 flex-1 flex-col space-y-4">
+        <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-orange-100">
+          <Flag className="size-3.5 text-orange-600" />
+        </div>
+
+        <div className="divide-y divide-neutral-200">
+          <div className="pb-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-neutral-900">
+                {label}
+              </h2>
+              <InfoTooltip
+                content={<SimpleTooltipContent title={description} />}
+              />
+            </div>
+            <span className="text-sm text-neutral-500">
+              {formatDate(fraudEvent.createdAt)}
+            </span>
+          </div>
+
+          {["selfReferral", "disposableEmail"].includes(fraudEvent.type) && (
+            <div className="space-y-4 pt-4">
+              {fraudEvent.customer && (
+                <div className="space-y-0.5">
+                  <h3 className="text-sm font-medium text-neutral-900">
+                    Customer
+                  </h3>
+                  <CustomerRowItem
+                    customer={fraudEvent.customer}
+                    href={`/${slug}/customers/${fraudEvent.customer.id}`}
+                    avatarClassName="size-5"
+                    className="text-sm font-medium leading-5 text-neutral-500"
+                    showChartActivityIcon={false}
+                  />
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-sm font-medium text-neutral-900">Link</h3>
+                <div className="inline-flex items-center bg-orange-50">
+                  <span className="text-sm font-medium text-orange-600">
+                    {fraudEvent.link.shortLink}
+                  </span>
+                </div>
+              </div>
+
+              {fraudEvent.holdAmount && (
+                <div>
+                  <h3 className="text-sm font-medium text-neutral-900">
+                    Commission hold
+                  </h3>
+                  <span className="text-sm font-medium text-neutral-500">
+                    {currencyFormatter(fraudEvent.holdAmount / 100, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {fraudEvent.type === "googleAdsClick" && (
+            <div className="space-y-4 pt-4">
+              <div>
+                <h3 className="text-sm font-medium text-neutral-900">
+                  Parameters used
+                </h3>
+                <div className="inline-flex items-center bg-orange-50">
+                  <span className="text-sm font-medium text-orange-600">
+                    utm_source=google
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-neutral-900">Link</h3>
+                <div className="text-sm text-neutral-500">
+                  {fraudEvent.link.shortLink}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {fraudEvent.description && (
+            <div className="space-y-2 pt-4">
+              <h3 className="text-sm font-medium text-neutral-900">
+                Resolution reason
+              </h3>
+              <p className="text-sm text-neutral-500">
+                {fraudEvent.description}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FraudEventHistorySkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg border border-neutral-200 bg-white p-4">
+        <div className="flex min-w-0 flex-1 flex-col space-y-4">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-orange-100">
+            <div className="size-3.5 animate-pulse rounded bg-orange-200" />
+          </div>
+
+          <div className="divide-y divide-neutral-200">
+            <div className="pb-4">
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
+                <div className="size-4 animate-pulse rounded bg-neutral-200" />
+              </div>
+              <div className="mt-1 h-4 w-24 animate-pulse rounded bg-neutral-200" />
+            </div>
+
+            <div className="space-y-4 pt-4">
+              <div className="space-y-0.5">
+                <div className="h-4 w-16 animate-pulse rounded bg-neutral-200" />
+                <div className="flex items-center gap-2">
+                  <div className="size-5 animate-pulse rounded-full bg-neutral-200" />
+                  <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+                </div>
+              </div>
+
+              <div>
+                <div className="h-4 w-8 animate-pulse rounded bg-neutral-200" />
+                <div className="mt-1 h-4 w-48 animate-pulse rounded bg-orange-100" />
+              </div>
+
+              <div>
+                <div className="h-4 w-28 animate-pulse rounded bg-neutral-200" />
+                <div className="mt-1 h-4 w-20 animate-pulse rounded bg-neutral-200" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function RiskReviewSheet({
   isOpen,
