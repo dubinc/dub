@@ -97,8 +97,9 @@ export interface IUpdateSystemSubscriptionBody {
     amount: number;
     type: string;
   };
+  resetNextBillingDate?: boolean;
   noSubtract: boolean;
-  plan: ISystemSubscription['plan'];
+  plan: ISystemSubscription["plan"];
   attributes: { [key: string]: string | number | boolean | object | null };
 }
 export interface IUpdateSystemSubscriptionRes {
@@ -166,7 +167,7 @@ export interface IGetSystemUserDataRes {
         delayedCaptureTrialDays: number;
         delayedCaptureDays: number;
       };
-      status: 'active' | 'inactive' | 'trial' | 'scheduled_for_cancellation';
+      status: "active" | "inactive" | "trial" | "scheduled_for_cancellation";
       nextBillingDate: string;
       createdAt: string;
       updatedAt: string;
