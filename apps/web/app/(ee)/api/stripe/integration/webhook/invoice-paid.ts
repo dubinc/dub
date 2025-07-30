@@ -228,6 +228,9 @@ export async function invoicePaid(event: Stripe.Event) {
         url: saleData.url,
         ip: saleData.ip,
       },
+      commission: {
+        id: commission?.id,
+      },
     });
   }
 

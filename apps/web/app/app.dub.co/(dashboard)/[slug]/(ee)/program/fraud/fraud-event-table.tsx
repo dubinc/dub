@@ -154,13 +154,19 @@ export function FraudEventTable() {
       {
         id: "holdAmount",
         header: "Hold amount",
-        accessorFn: (d) =>
-          d.holdAmount
-            ? currencyFormatter(d.holdAmount / 100, {
+        cell: ({ row }) => {
+          const holdAmount = row.original.commissions?.reduce(
+            (acc, commission) => acc + commission.earnings,
+            0,
+          );
+
+          return holdAmount
+            ? currencyFormatter(holdAmount / 100, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })
-            : "-",
+            : "-";
+        },
       },
       {
         id: "menu",

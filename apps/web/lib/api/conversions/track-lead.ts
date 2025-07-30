@@ -248,7 +248,7 @@ export const trackLead = async ({
         ]);
 
         if (link.programId && link.partnerId && customer) {
-          await createPartnerCommission({
+          const commission = await createPartnerCommission({
             event: "lead",
             programId: link.programId,
             partnerId: link.partnerId,
@@ -281,6 +281,9 @@ export const trackLead = async ({
             click: {
               url: clickData.url,
               ip: clickData.ip,
+            },
+            commission: {
+              id: commission?.id,
             },
           });
         }

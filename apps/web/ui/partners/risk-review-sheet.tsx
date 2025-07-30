@@ -273,7 +273,15 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
   const { label, description } = FRAUD_EVENT_TYPES[fraudEvent.type];
   const badge = FraudEventStatusBadges[fraudEvent.status];
   const Icon = badge.icon;
+
   const user = fraudEvent.user;
+
+  const helAmount = useMemo(() => {
+    return fraudEvent.commissions?.reduce(
+      (acc, commission) => acc + commission.earnings,
+      0,
+    );
+  }, [fraudEvent.commissions]);
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white p-4">
@@ -395,13 +403,13 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
               </div>
             )}
 
-            {fraudEvent.holdAmount && fraudEvent.status === "pending" && (
+            {helAmount && (
               <div>
                 <h3 className="text-sm font-medium text-neutral-900">
                   Commission hold
                 </h3>
                 <span className="text-sm font-medium text-neutral-500">
-                  {currencyFormatter(fraudEvent.holdAmount / 100, {
+                  {currencyFormatter(helAmount / 100, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}

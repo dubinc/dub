@@ -6,8 +6,8 @@ import {
   ProgramProps,
 } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { log } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import { detectFraudEvent } from "./detect-fraud-event";
 
 export const recordFraudIfDetected = async ({
@@ -15,12 +15,16 @@ export const recordFraudIfDetected = async ({
   partner,
   link,
   customer,
+  commission,
   click,
 }: {
   program: Pick<ProgramProps, "id">;
   partner: Pick<PartnerProps, "id">;
   link: Pick<LinkProps, "id">;
   customer: Pick<CustomerProps, "id" | "name" | "email">;
+  commission?: {
+    id?: string;
+  };
   click: {
     url: string;
     ip?: string | null;
@@ -55,7 +59,6 @@ export const recordFraudIfDetected = async ({
       },
     });
 
-  // Ignore fraud events if the partner has ignoreFraudEventsEnabledAt set
   if (ignoreFraudEventsEnabledAt) {
     return;
   }
@@ -71,7 +74,7 @@ export const recordFraudIfDetected = async ({
     }
   }
 
-  const fraudEvent = await detectFraudEvent({
+  const result = await detectFraudEvent({
     click: {
       url: click.url,
       ip: click.ip,
@@ -87,20 +90,45 @@ export const recordFraudIfDetected = async ({
     },
   });
 
-  if (!fraudEvent) {
+  if (!result) {
     return;
   }
 
   try {
-    await prisma.fraudEvent.create({
-      data: {
-        id: createId({ prefix: "fraud_" }),
-        type: fraudEvent.type,
-        programId: program.id,
-        partnerId: partner.id,
-        customerId: customer.id,
-        linkId: link.id,
-      },
+    await prisma.$transaction(async (tx) => {
+      let fraudEvent = await tx.fraudEvent.findUnique({
+        where: {
+          partnerId_customerId: {
+            partnerId: partner.id,
+            customerId: customer.id,
+          },
+        },
+      });
+
+      if (!fraudEvent) {
+        fraudEvent = await tx.fraudEvent.create({
+          data: {
+            id: createId({ prefix: "fraud_" }),
+            type: result.type,
+            programId: program.id,
+            partnerId: partner.id,
+            customerId: customer.id,
+            linkId: link.id,
+          },
+        });
+      }
+
+      if (commission?.id) {
+        await tx.commission.update({
+          where: {
+            id: commission.id,
+          },
+          data: {
+            fraudEventId: fraudEvent.id,
+            status: "held",
+          },
+        });
+      }
     });
   } catch (error) {
     if (

@@ -63,6 +63,17 @@ export const markFraudEventSafeAction = authActionClient
           ignoreFraudEventsEnabledAt: new Date(),
         },
       });
+
+      // Mark the held commissions as pending
+      await tx.commission.updateMany({
+        where: {
+          fraudEventId,
+        },
+        data: {
+          fraudEventId: null,
+          status: "pending",
+        },
+      });
     });
 
     waitUntil(

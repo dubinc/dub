@@ -24,11 +24,12 @@ model FraudEvent {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  program  Program   @relation(fields: [programId], references: [id])
-  partner  Partner   @relation(fields: [partnerId], references: [id])
-  customer Customer? @relation(fields: [customerId], references: [id])
-  link     Link?     @relation(fields: [linkId], references: [id])
-  user     User?     @relation(fields: [userId], references: [id])
+  program     Program      @relation(fields: [programId], references: [id])
+  partner     Partner      @relation(fields: [partnerId], references: [id])
+  customer    Customer?    @relation(fields: [customerId], references: [id])
+  link        Link?        @relation(fields: [linkId], references: [id])
+  user        User?        @relation(fields: [userId], references: [id])
+  commissions Commission[] // commissions that are associated with this fraud event
 
   @@unique([partnerId, customerId]) // Only one entry for a partner <> customer combination can exist
   @@index([programId, partnerId])

@@ -172,6 +172,9 @@ export async function createShopifySale({
         url: saleData.url,
         ip: saleData.ip,
       },
+      commission: {
+        id: commission?.id,
+      },
     });
   }
 }

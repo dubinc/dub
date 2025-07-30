@@ -382,6 +382,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         url: saleData.url,
         ip: saleData.ip,
       },
+      commission: {
+        id: commission?.id,
+      },
     });
   }
 

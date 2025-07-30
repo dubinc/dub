@@ -100,7 +100,7 @@ export async function createNewCustomer(event: Stripe.Event) {
   ]);
 
   if (link.programId && link.partnerId) {
-    await createPartnerCommission({
+    const commission = await createPartnerCommission({
       event: "lead",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -133,6 +133,9 @@ export async function createNewCustomer(event: Stripe.Event) {
       click: {
         url: leadData.url,
         ip: leadData.ip,
+      },
+      commission: {
+        id: commission?.id,
       },
     });
   }

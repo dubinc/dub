@@ -66,10 +66,17 @@ export const GET = withWorkspace(
             image: true,
           },
         },
+        commissions: {
+          select: {
+            id: true,
+            earnings: true,
+          },
+        },
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
     });
+
 
     return NextResponse.json(z.array(FraudEventSchema).parse(fraudEvents));
   },

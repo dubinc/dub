@@ -7,6 +7,7 @@ import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
+import { CommissionSchema } from "./commissions";
 
 export const FRAUD_EVENT_TYPES = {
   selfReferral: {
@@ -65,9 +66,12 @@ export const FraudEventSchema = z.object({
     url: true,
     shortLink: true,
   }),
+  commissions: z.array(CommissionSchema.pick({
+    id: true,
+    earnings: true,
+  })).nullable(),
   type: z.nativeEnum(FraudEventType),
   status: z.nativeEnum(FraudEventStatus),
-  holdAmount: z.number().nullish().default(2000), // TODO: Fix it
   user: UserSchema.nullable(),
   resolutionReason: z.string().nullable(),
   resolvedAt: z.date().nullable(),
