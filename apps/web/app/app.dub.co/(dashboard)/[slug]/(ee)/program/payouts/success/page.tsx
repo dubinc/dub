@@ -1,3 +1,5 @@
+import { PayoutsSuccessPageClient } from "./page-client";
+
 export default function PayoutsSuccessPage() {
-  return <div>PayoutsSuccessPage</div>;
+  return <PayoutsSuccessPageClient />;
 }
