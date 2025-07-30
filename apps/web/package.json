@@ -78,6 +78,7 @@
     "he": "^1.2.0",
     "html-escaper": "^3.0.3",
     "input-otp": "^1.2.4",
+    "ipaddr.js": "^2.2.0",
     "js-cookie": "^3.0.5",
     "json-2-csv": "^5.5.0",
     "jszip": "^3.10.1",

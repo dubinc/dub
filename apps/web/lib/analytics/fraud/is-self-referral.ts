@@ -1,5 +1,6 @@
 import { genericEmailDomains } from "@/lib/emails";
 import { destructureEmail } from "@dub/utils";
+import * as ipaddr from "ipaddr.js";
 
 // Helper function to normalize name for comparison
 const normalizeName = (name?: string) => {
@@ -179,17 +180,65 @@ const checkNameSimilarity = (customerName?: string, partnerName?: string) => {
   };
 };
 
+// Helper function to check IP address similarity
+const checkIpSimilarity = (clickIp?: string, partnerIp?: string) => {
+  const reasons: string[] = [];
+
+  if (!clickIp || !partnerIp) {
+    return { score: 0, reasons };
+  }
+
+  try {
+    const clickAddr = ipaddr.parse(clickIp);
+    const partnerAddr = ipaddr.parse(partnerIp);
+
+    // Convert IPv4-mapped IPv6 (::ffff:192.168.0.1) to plain IPv4
+    let clickNormalized = clickAddr.toNormalizedString();
+    let partnerNormalized = partnerAddr.toNormalizedString();
+
+    if (clickAddr.kind() === "ipv6" && (clickAddr as any).isIPv4MappedAddress()) {
+      clickNormalized = (clickAddr as any).toIPv4Address().toString();
+    }
+
+    if (partnerAddr.kind() === "ipv6" && (partnerAddr as any).isIPv4MappedAddress()) {
+      partnerNormalized = (partnerAddr as any).toIPv4Address().toString();
+    }
+
+    const isIdentical = clickNormalized === partnerNormalized;
+
+    if (isIdentical) {
+      reasons.push("Identical IP addresses (normalized)");
+    }
+
+    return {
+      score: isIdentical ? 0.8 : 0,
+      reasons,
+    };
+  } catch (err) {
+    return { 
+      score: 0, 
+      reasons 
+    };
+  }
+};
+
 export const isSelfReferral = async ({
-  customer,
   partner,
+  customer,
+  click,
 }: {
+  partner: {
+    email: string | null;
+    name?: string | null;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+  };
   customer: {
     email: string | null;
     name?: string | null;
   };
-  partner: {
-    email: string | null;
-    name?: string | null;
+  click: {
+    ip?: string | null;
   };
 }) => {
   let confidence = 0;
@@ -207,6 +256,13 @@ export const isSelfReferral = async ({
     const nameCheck = checkNameSimilarity(customer.name, partner.name);
     confidence += nameCheck.score;
     reasons.push(...nameCheck.reasons);
+  }
+
+  // Check IP address similarity
+  if (click.ip && partner.ipAddress) {
+    const ipCheck = checkIpSimilarity(click.ip, partner.ipAddress);
+    confidence += ipCheck.score;
+    reasons.push(...ipCheck.reasons);
   }
 
   // Cap confidence at 1.0
