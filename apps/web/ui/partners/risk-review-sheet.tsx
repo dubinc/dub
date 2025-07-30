@@ -437,7 +437,7 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
               </div>
             )}
 
-            {helAmount && helAmount > 0 && (
+            {helAmount && helAmount > 0 ? (
               <div>
                 <h3 className="text-sm font-medium text-neutral-900">
                   Commission hold
@@ -449,7 +449,7 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
                   })}
                 </span>
               </div>
-            )}
+            ) : null}
 
             {fraudEvent.resolutionReason && (
               <div>

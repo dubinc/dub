@@ -61,6 +61,9 @@ export const recordFraudIfDetected = async ({
     });
 
   if (enrollment.ignoreFraudEventsEnabledAt) {
+    console.log(
+      `Skipping fraud event detection for ${partner.id} because ignoreFraudEventsEnabledAt is set`,
+    );
     return;
   }
 
@@ -92,6 +95,7 @@ export const recordFraudIfDetected = async ({
   });
 
   if (!result) {
+    console.log(`No fraud event detected for ${partner.id} and ${customer.id}`);
     return;
   }
 
@@ -129,6 +133,10 @@ export const recordFraudIfDetected = async ({
             status: "held",
           },
         });
+
+        console.log(
+          `Recorded fraud event for ${partner.id} and ${customer.id}`,
+        );
       }
     });
   } catch (error) {
