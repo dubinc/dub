@@ -1,7 +1,7 @@
 import { ipAddress } from "@vercel/functions";
 import { getToken } from "next-auth/jwt";
 import { headers } from "next/headers";
-import { NextRequest } from "next/server";
+import { NextRequest, userAgentFromString } from "next/server";
 import { ratelimit } from "../upstash";
 import { DubApiError } from "./errors";
 
@@ -50,4 +50,8 @@ export const getIP = () => {
   }
 
   return headers().get("x-real-ip") ?? FALLBACK_IP_ADDRESS;
+};
+
+export const getUserAgent = () => {
+  return userAgentFromString(headers().get("user-agent") ?? "");
 };

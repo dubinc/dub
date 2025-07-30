@@ -25,6 +25,7 @@ model User {
   defaultWorkspace     String? // slug of the user's default workspace
   defaultPartnerId     String? // the user's default partner ID
   ipAddress            Bytes? // the user's IP address
+  userAgent            String? // the user's user agent
 
   accounts              Account[]
   sessions              Session[]
