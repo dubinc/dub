@@ -1,8 +1,10 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { FRAUD_EVENT_SAFE_REASONS } from "@/lib/zod/schemas/fraud-events";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -61,4 +63,23 @@ export const markFraudEventSafeAction = authActionClient
         },
       });
     });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "fraud_event.marked_safe",
+        description: `Fraud event ${fraudEventId} marked as safe`,
+        actor: user,
+        targets: [
+          {
+            type: "fraud_event",
+            id: fraudEventId,
+            metadata: {
+              status: "safe",
+            },
+          },
+        ],
+      }),
+    );
   });

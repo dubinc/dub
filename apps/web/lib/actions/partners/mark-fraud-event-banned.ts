@@ -1,10 +1,12 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { banPartner } from "@/lib/api/partners/ban-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { FRAUD_EVENT_BAN_REASONS } from "@/lib/zod/schemas/fraud-events";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -66,4 +68,23 @@ export const markFraudEventBannedAction = authActionClient
       user,
       notifyPartner,
     });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "fraud_event.marked_banned",
+        description: `Fraud event ${fraudEventId} marked as banned`,
+        actor: user,
+        targets: [
+          {
+            type: "fraud_event",
+            id: fraudEventId,
+            metadata: {
+              status: "banned",
+            },
+          },
+        ],
+      }),
+    );
   });
