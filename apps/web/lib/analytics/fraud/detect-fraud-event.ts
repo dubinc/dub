@@ -1,19 +1,44 @@
-import { CustomerProps, LinkProps, PartnerProps } from "@/lib/types";
+import { FraudEventType } from "@dub/prisma/client";
+import { isDisposableEmail } from "./is-disposable-email";
+import { isGoogleAdsClick } from "./is-google-ads-click";
+import { isSelfReferral } from "./is-self-referral";
+
+type FraudEventResult =
+  | {
+      type: FraudEventType;
+    }
+  | undefined;
 
 // Detect and log the fraud events (clicks, leads and sales)
 export const detectFraudEvent = async ({
-  partner,
-  link,
   click,
   customer,
+  partner,
 }: {
-  partner: Pick<PartnerProps, "email">;
-  link: Pick<LinkProps, "id" | "programId">;
   click: { url: string };
-  customer: Pick<CustomerProps, "email">;
-}) => {
-  // TODO:
-  // Finalize the logic for detecting fraud events
+  customer: { email: string; name: string };
+  partner: { email: string; name: string };
+}): Promise<FraudEventResult> => {
+  const { selfReferral } = await isSelfReferral({
+    customer,
+    partner,
+  });
 
-  return true;
+  if (selfReferral) {
+    return {
+      type: FraudEventType.selfReferral,
+    };
+  }
+
+  if (isGoogleAdsClick(click.url)) {
+    return {
+      type: FraudEventType.googleAdsClick,
+    };
+  }
+
+  if (customer.email && (await isDisposableEmail(customer.email))) {
+    return {
+      type: FraudEventType.disposableEmail,
+    };
+  }
 };

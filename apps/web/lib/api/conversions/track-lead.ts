@@ -1,10 +1,9 @@
-import { isSelfReferral } from "@/lib/analytics/fraud/is-self-referral";
+import { recordFraudIfDetected } from "@/lib/analytics/fraud/record-fraud-if-detected";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { detectFraudEvent } from "@/lib/analytics/fraud/detect-fraud-event";
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
@@ -249,7 +248,7 @@ export const trackLead = async ({
         ]);
 
         if (link.programId && link.partnerId && customer) {
-          const commission = await createPartnerCommission({
+          await createPartnerCommission({
             event: "lead",
             programId: link.programId,
             partnerId: link.partnerId,
@@ -264,41 +263,25 @@ export const trackLead = async ({
             },
           });
 
-          const fraudEvent = await detectFraudEvent({
-            click: clickData,
-            link,
-            customer,
-            partner: commission?.partner!,
+          await recordFraudIfDetected({
+            program: {
+              id: link.programId,
+            },
+            partner: {
+              id: link.partnerId,
+            },
+            link: {
+              id: link.id,
+            },
+            customer: {
+              id: customer.id,
+              name: customer.name || "",
+              email: customer.email,
+            },
+            click: {
+              url: clickData.url,
+            },
           });
-
-          if (fraudEvent) {
-            // log fraud event
-          }
-
-          if (customer.email) {
-            const partner = await prisma.partner.findUnique({
-              where: {
-                id: link.partnerId,
-              },
-            });
-
-            if (partner?.email) {
-              const selfReferral = await isSelfReferral({
-                customer: {
-                  email: customer.email,
-                  name: customer.name || undefined,
-                },
-                partner: {
-                  email: partner.email,
-                  name: partner.name,
-                },
-              });
-
-              if (selfReferral.isSelfReferral) {
-                // log fraud event
-              }
-            }
-          }
         }
 
         if (

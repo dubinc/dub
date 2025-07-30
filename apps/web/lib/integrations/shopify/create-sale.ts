@@ -1,3 +1,4 @@
+import { recordFraudIfDetected } from "@/lib/analytics/fraud/record-fraud-if-detected";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -151,5 +152,25 @@ export async function createShopifySale({
         }),
       );
     }
+
+    await recordFraudIfDetected({
+      program: {
+        id: link.programId,
+      },
+      partner: {
+        id: link.partnerId,
+      },
+      link: {
+        id: link.id,
+      },
+      customer: {
+        id: customer.id,
+        name: customer.name || "",
+        email: customer.email,
+      },
+      click: {
+        url: saleData.url,
+      },
+    });
   }
 }

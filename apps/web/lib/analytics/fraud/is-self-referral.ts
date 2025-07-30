@@ -1,23 +1,12 @@
 import { genericEmailDomains } from "@/lib/emails";
-
-interface SelfReferralResult {
-  isSelfReferral: boolean;
-  confidence: number; // 0-1 scale
-  reasons: string[];
-}
-
-// Helper function to destructure email into username and domain
-const destructureEmail = (email: string) => {
-  const [username, domain] = email.toLowerCase().split("@");
-  return {
-    username: username || "",
-    domain: domain || "",
-  };
-};
+import { destructureEmail } from "@dub/utils";
 
 // Helper function to normalize name for comparison
-const normalizeName = (name?: string): string => {
-  if (!name) return "";
+const normalizeName = (name?: string) => {
+  if (!name) {
+    return "";
+  }
+
   return name
     .toLowerCase()
     .replace(/[^a-z\s]/g, "") // Remove special characters
@@ -26,10 +15,14 @@ const normalizeName = (name?: string): string => {
 };
 
 // Helper function to calculate string similarity (Levenshtein distance)
-const calculateSimilarity = (str1: string, str2: string): number => {
-  if (str1 === str2) return 1;
-  if (str1.length === 0) return 0;
-  if (str2.length === 0) return 0;
+const calculateSimilarity = (str1: string, str2: string) => {
+  if (str1 === str2) {
+    return 1;
+  }
+
+  if (str1.length === 0 || str2.length === 0) {
+    return 0;
+  }
 
   const matrix = Array(str2.length + 1)
     .fill(null)
@@ -55,14 +48,12 @@ const calculateSimilarity = (str1: string, str2: string): number => {
   }
 
   const maxLength = Math.max(str1.length, str2.length);
+
   return 1 - matrix[str2.length][str1.length] / maxLength;
 };
 
 // Helper function to check for common email patterns
-const checkEmailPatterns = (
-  customerEmail: string,
-  partnerEmail: string,
-): { score: number; reasons: string[] } => {
+const checkEmailPatterns = (customerEmail: string, partnerEmail: string) => {
   const { username: customerUsername, domain: customerDomain } =
     destructureEmail(customerEmail);
   const { username: partnerUsername, domain: partnerDomain } =
@@ -75,7 +66,11 @@ const checkEmailPatterns = (
   if (customerEmail.toLowerCase() === partnerEmail.toLowerCase()) {
     score += 1.0;
     reasons.push("Identical email addresses");
-    return { score, reasons };
+
+    return {
+      score,
+      reasons,
+    };
   }
 
   // Check for identical domains (for non-generic email domains like gmail.com)
@@ -132,29 +127,36 @@ const checkEmailPatterns = (
     reasons.push("Shared username components");
   }
 
-  return { score, reasons };
+  return {
+    score,
+    reasons,
+  };
 };
 
 // Helper function to check for similar names
-const checkNameSimilarity = (
-  customerName?: string,
-  partnerName?: string,
-): { score: number; reasons: string[] } => {
+const checkNameSimilarity = (customerName?: string, partnerName?: string) => {
   if (!customerName || !partnerName) {
-    return { score: 0, reasons: [] };
+    return {
+      score: 0,
+      reasons: [],
+    };
   }
 
   const normalizedCustomerName = normalizeName(customerName);
   const normalizedPartnerName = normalizeName(partnerName);
 
   if (normalizedCustomerName === normalizedPartnerName) {
-    return { score: 0.5, reasons: ["Identical names"] };
+    return {
+      score: 0.5,
+      reasons: ["Identical names"],
+    };
   }
 
   const nameSimilarity = calculateSimilarity(
     normalizedCustomerName,
     normalizedPartnerName,
   );
+
   if (nameSimilarity > 0.8) {
     return {
       score: 0.4,
@@ -171,7 +173,10 @@ const checkNameSimilarity = (
     };
   }
 
-  return { score: 0, reasons: [] };
+  return {
+    score: 0,
+    reasons: [],
+  };
 };
 
 export const isSelfReferral = async ({
@@ -179,47 +184,39 @@ export const isSelfReferral = async ({
   partner,
 }: {
   customer: {
-    email: string;
-    name?: string;
+    email: string | null;
+    name?: string | null;
   };
   partner: {
-    email: string;
-    name?: string;
+    email: string | null;
+    name?: string | null;
   };
-}): Promise<SelfReferralResult> => {
+}) => {
   let confidence = 0;
   const reasons: string[] = [];
 
   // Check email patterns
-  const emailCheck = checkEmailPatterns(customer.email, partner.email);
-  confidence += emailCheck.score;
-  reasons.push(...emailCheck.reasons);
+  if (customer.email && partner.email) {
+    const emailCheck = checkEmailPatterns(customer.email, partner.email);
+    confidence += emailCheck.score;
+    reasons.push(...emailCheck.reasons);
+  }
 
   // Check name similarity
-  const nameCheck = checkNameSimilarity(customer.name, partner.name);
-  confidence += nameCheck.score;
-  reasons.push(...nameCheck.reasons);
-
-  // Check for disposable email domains
-  // const { domain: customerDomain } = destructureEmail(customer.email);
-  // const isCustomerDisposable = await redis.sismember(
-  //   "disposableEmailDomains",
-  //   customerDomain,
-  // );
-
-  // if (isCustomerDisposable) {
-  //   confidence += 0.3;
-  //   reasons.push("Customer email uses disposable domain");
-  // }
+  if (customer.name && partner.name) {
+    const nameCheck = checkNameSimilarity(customer.name, partner.name);
+    confidence += nameCheck.score;
+    reasons.push(...nameCheck.reasons);
+  }
 
   // Cap confidence at 1.0
   confidence = Math.min(confidence, 1.0);
 
   // Determine if it's a self-referral based on confidence threshold
-  const isSelfReferral = confidence > 0;
+  const selfReferral = confidence > 0;
 
   return {
-    isSelfReferral,
+    selfReferral,
     confidence,
     reasons,
   };

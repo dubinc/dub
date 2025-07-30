@@ -1,4 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { recordFraudIfDetected } from "@/lib/analytics/fraud/record-fraud-if-detected";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
@@ -235,6 +236,26 @@ export const trackSale = async ({
             commission,
           });
         }
+
+        await recordFraudIfDetected({
+          program: {
+            id: link.programId,
+          },
+          partner: {
+            id: link.partnerId,
+          },
+          link: {
+            id: link.id,
+          },
+          customer: {
+            id: customer.id,
+            name: customer.name || "",
+            email: customer.email,
+          },
+          click: {
+            url: clickData.url,
+          },
+        });
       }
 
       // Send workspace webhook

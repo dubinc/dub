@@ -19,66 +19,59 @@ import { actionClient } from "../safe-action";
 // Create a program application (or enrollment if a partner is already logged in)
 export const createProgramApplicationAction = actionClient
   .schema(createProgramApplicationSchema)
-  .action(
-    async ({
-      parsedInput,
-    }): Promise<{
-      programApplicationId: string;
-      programEnrollmentId?: string;
-    }> => {
-      const { programId } = parsedInput;
+  .action(async ({ parsedInput }) => {
+    const { programId } = parsedInput;
 
-      // Limit to 3 requests per minute per program per IP
-      const { success } = await ratelimit(3, "1 m").limit(
-        `create-program-application:${programId}:${getIP()}`,
-      );
+    // Limit to 3 requests per minute per program per IP
+    const { success } = await ratelimit(3, "1 m").limit(
+      `create-program-application:${programId}:${getIP()}`,
+    );
 
-      if (!success) {
-        throw new Error("Too many requests. Please try again later.");
-      }
+    if (!success) {
+      throw new Error("Too many requests. Please try again later.");
+    }
 
-      const program = await prisma.program.findUniqueOrThrow({
-        where: { id: programId },
-      });
+    const program = await prisma.program.findUniqueOrThrow({
+      where: { id: programId },
+    });
 
-      const session = await getSession();
+    const session = await getSession();
 
-      // Get currently logged in partner
-      const existingPartner = session?.user.id
-        ? await prisma.partner.findFirst({
-            where: {
-              users: { some: { userId: session.user.id } },
-            },
-            include: {
-              programs: true,
-            },
-          })
-        : null;
+    // Get currently logged in partner
+    const existingPartner = session?.user.id
+      ? await prisma.partner.findFirst({
+          where: {
+            users: { some: { userId: session.user.id } },
+          },
+          include: {
+            programs: true,
+          },
+        })
+      : null;
 
-      if (existingPartner) {
-        return createApplicationAndEnrollment({
-          program,
-          data: parsedInput,
-          partner: existingPartner,
-        });
-      }
-
-      const application = await createApplication({
+    if (existingPartner) {
+      return createApplicationAndEnrollment({
         program,
         data: parsedInput,
+        partner: existingPartner,
       });
+    }
 
-      await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/program-application-reminder`,
-        delay: 15 * 60, // 15 minutes
-        body: {
-          applicationId: application.programApplicationId,
-        },
-      });
+    const application = await createApplication({
+      program,
+      data: parsedInput,
+    });
 
-      return application;
-    },
-  );
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/program-application-reminder`,
+      delay: 15 * 60, // 15 minutes
+      body: {
+        applicationId: application.programApplicationId,
+      },
+    });
+
+    return application;
+  });
 
 async function createApplicationAndEnrollment({
   partner,

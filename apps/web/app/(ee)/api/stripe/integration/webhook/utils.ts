@@ -1,3 +1,4 @@
+import { recordFraudIfDetected } from "@/lib/analytics/fraud/record-fraud-if-detected";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
@@ -111,6 +112,26 @@ export async function createNewCustomer(event: Stripe.Event) {
         customer: {
           country: customer.country,
         },
+      },
+    });
+
+    await recordFraudIfDetected({
+      program: {
+        id: link.programId,
+      },
+      partner: {
+        id: link.partnerId,
+      },
+      link: {
+        id: link.id,
+      },
+      customer: {
+        id: customer.id,
+        name: customer.name || "",
+        email: customer.email,
+      },
+      click: {
+        url: leadData.url,
       },
     });
   }
