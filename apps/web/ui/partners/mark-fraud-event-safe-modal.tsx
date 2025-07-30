@@ -45,7 +45,7 @@ function MarkFraudEventSafeModal({
     await executeAsync({
       workspaceId,
       fraudEventId: fraudEvent.id,
-      reason,
+      reason: reason || undefined,
     });
   }, [executeAsync, fraudEvent.id, workspaceId, reason]);
 
