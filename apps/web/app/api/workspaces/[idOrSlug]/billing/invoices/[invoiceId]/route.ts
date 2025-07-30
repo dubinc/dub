@@ -11,6 +11,13 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       id: invoiceId,
       workspaceId: workspace.id,
     },
+    include: {
+      _count: {
+        select: {
+          payouts: true,
+        },
+      },
+    },
   });
 
   return NextResponse.json(invoice);
