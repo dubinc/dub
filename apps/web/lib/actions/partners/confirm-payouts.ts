@@ -71,30 +71,33 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
-    // Generate the next invoice number
-    const totalInvoices = await prisma.invoice.count({
-      where: {
-        workspaceId: workspace.id,
-      },
-    });
-    const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
-    const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
+    const invoice = await prisma.$transaction(async (tx) => {
+      // Generate the next invoice number by counting the number of invoices for the workspace
+      const totalInvoices = await tx.invoice.count({
+        where: {
+          workspaceId: workspace.id,
+        },
+      });
+      const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
+      const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
 
-    // Create the invoice for the payouts
-    const invoice = await prisma.invoice.create({
-      data: {
-        id: createId({ prefix: "inv_" }),
-        number: invoiceNumber,
-        programId: workspace.defaultProgramId!,
-        workspaceId: workspace.id,
-        // these numbers will be updated later in the payouts/process cron job
-        // but we're adding them now for the program/payouts/success screen
-        amount,
-        fee,
-        total,
-      },
+      // Create the invoice and return it
+      return await tx.invoice.create({
+        data: {
+          id: createId({ prefix: "inv_" }),
+          number: invoiceNumber,
+          programId: workspace.defaultProgramId!,
+          workspaceId: workspace.id,
+          // these numbers will be updated later in the payouts/process cron job
+          // but we're adding them now for the program/payouts/success screen
+          amount,
+          fee,
+          total,
+        },
+      });
     });
 
+    // Send the message to Qstash to process the payouts
     const qstashResponse = await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process`,
       body: {
