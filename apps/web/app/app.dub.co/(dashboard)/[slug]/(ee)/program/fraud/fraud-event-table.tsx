@@ -2,9 +2,8 @@
 
 import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
-import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, FraudEvent } from "@/lib/types";
+import { FraudEvent } from "@/lib/types";
 import { FRAUD_EVENT_TYPES } from "@/lib/zod/schemas/fraud-events";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { FraudEventStatusBadges } from "@/ui/partners/fraud-event-status-badges";
@@ -78,6 +77,9 @@ export function FraudEventTable() {
 
     if (fraudEvent) {
       setDetailsSheetState({ open: true, fraudEvent });
+    } else {
+      setDetailsSheetState({ open: false, fraudEvent: null });
+      queryParams({ del: "fraudEventId", scroll: false });
     }
   }, [searchParams, fraudEvents]);
 
@@ -363,34 +365,4 @@ function RowMenuButton({ fraudEvent }: { fraudEvent: FraudEvent }) {
       </Popover>
     </>
   );
-}
-
-/** Gets the current partner from the loaded partners array if available, or a separate fetch if not */
-// TODO:
-// Fix this
-function useCurrentPartner({
-  partners,
-  partnerId,
-}: {
-  partners?: EnrolledPartnerProps[];
-  partnerId: string | null;
-}) {
-  let currentPartner = partnerId
-    ? partners?.find(({ id }) => id === partnerId)
-    : null;
-
-  const { partner: fetchedPartner, loading: isLoading } = usePartner(
-    {
-      partnerId: partners && partnerId && !currentPartner ? partnerId : null,
-    },
-    {
-      keepPreviousData: true,
-    },
-  );
-
-  if (!currentPartner && fetchedPartner?.id === partnerId) {
-    currentPartner = fetchedPartner;
-  }
-
-  return { currentPartner, isLoading };
 }

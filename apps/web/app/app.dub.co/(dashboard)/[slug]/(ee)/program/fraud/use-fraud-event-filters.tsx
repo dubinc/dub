@@ -151,7 +151,7 @@ export function useFraudEventFilters(
         workspaceId: workspaceId || "",
         ...extraSearchParams,
       }).toString(),
-    [activeFilters, workspaceId, extraSearchParams],
+    [activeFilters, workspaceId, extraSearchParams, searchParamsObj.search],
   );
 
   const isFiltered = activeFilters.length > 0 || searchParamsObj.search;

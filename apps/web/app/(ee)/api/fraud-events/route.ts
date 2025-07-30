@@ -75,8 +75,10 @@ export const GET = withWorkspace(
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
+      orderBy: {
+        createdAt: "desc",
+      },
     });
-
 
     return NextResponse.json(z.array(FraudEventSchema).parse(fraudEvents));
   },
