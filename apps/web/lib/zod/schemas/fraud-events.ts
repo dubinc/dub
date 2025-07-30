@@ -74,6 +74,7 @@ export const getFraudEventsQuerySchema = z
     interval: z.enum(DATE_RANGE_INTERVAL_PRESETS).default("all"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
+    partnerId: z.string().optional(),
   })
   .merge(
     getPaginationQuerySchema({
