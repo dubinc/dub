@@ -9,6 +9,8 @@ import {
   Combobox,
   Table,
   Tooltip,
+  UserMinus,
+  UserPlus,
   useTable,
 } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
@@ -33,7 +35,7 @@ export function RewardPartnersTable({
   rewardPartners,
   loading,
   mode = "include",
-  label = mode === "include" ? "Eligible partners" : "Non-eligible partners",
+  label = mode === "include" ? "Included partners" : "Excluded partners",
   event,
   rewardId,
 }: RewardPartnersTableProps) {
@@ -231,7 +233,9 @@ export function RewardPartnersTable({
     thClassName: () => cn("border-l-0"),
     tdClassName: () => cn("border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
+    containerClassName: "rounded-md",
     scrollWrapperClassName: "min-h-[40px]",
+    emptyWrapperClassName: "h-24",
     resourceName: (p) => `partner${p ? "s" : ""}`,
     getRowId: (row: EnrolledPartnerProps) => row.id,
     loading,
@@ -240,7 +244,14 @@ export function RewardPartnersTable({
 
   return (
     <div className="flex flex-col gap-3">
-      <label className="text-sm font-medium text-neutral-800">{label}</label>
+      <div className="ml-2 flex items-center gap-2 text-neutral-800">
+        {mode === "include" ? (
+          <UserPlus className="size-4" />
+        ) : (
+          <UserMinus className="size-4" />
+        )}
+        <label className="text-sm font-medium">{label}</label>
+      </div>
 
       <Combobox
         options={partnersOptions}
@@ -255,7 +266,7 @@ export function RewardPartnersTable({
         onSearchChange={setSearch}
         buttonProps={{
           className: cn(
-            "w-full justify-start border-neutral-300 px-3",
+            "w-full justify-start border-neutral-200 px-3",
             "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
             "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
             !selectedPartnersOptions.length && "text-neutral-400",
