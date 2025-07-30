@@ -11,17 +11,18 @@ enum FraudEventStatus {
 }
 
 model FraudEvent {
-  id          String           @id @default(cuid())
-  programId   String
-  partnerId   String
-  customerId  String
-  linkId      String
-  userId      String?
-  description String?
-  type        FraudEventType
-  status      FraudEventStatus @default(pending)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id               String           @id @default(cuid())
+  programId        String
+  partnerId        String
+  customerId       String
+  linkId           String
+  userId           String?
+  type             FraudEventType
+  status           FraudEventStatus @default(pending)
+  resolutionReason String?
+  resolvedAt       DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
   program  Program   @relation(fields: [programId], references: [id])
   partner  Partner   @relation(fields: [partnerId], references: [id])

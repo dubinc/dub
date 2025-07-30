@@ -13,7 +13,7 @@ import { authActionClient } from "../safe-action";
 const schema = z.object({
   workspaceId: z.string().trim().min(1),
   fraudEventId: z.string().trim().min(1),
-  reason: z
+  resolutionReason: z
     .enum(Object.keys(FRAUD_EVENT_BAN_REASONS) as [string, ...string[]])
     .optional(),
   notifyPartner: z.boolean().default(false),
@@ -23,7 +23,7 @@ export const markFraudEventBannedAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { fraudEventId, reason, notifyPartner } = parsedInput;
+    const { fraudEventId, resolutionReason, notifyPartner } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -50,7 +50,8 @@ export const markFraudEventBannedAction = authActionClient
       data: {
         status: "banned",
         userId: user.id,
-        description: reason,
+        resolutionReason,
+        resolvedAt: new Date(),
       },
     });
 

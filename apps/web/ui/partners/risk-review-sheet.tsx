@@ -302,18 +302,21 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
                       {user.name || user.id}
                     </p>
                   </div>
-                  <div className="text-xs text-neutral-500">
-                    Resolved at{" "}
-                    <span className="font-medium text-neutral-700">
-                      {formatDateTime(fraudEvent.updatedAt, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "numeric",
-                        minute: "numeric",
-                      })}
-                    </span>
-                  </div>
+
+                  {fraudEvent.resolvedAt && (
+                    <div className="text-xs text-neutral-500">
+                      Resolved at{" "}
+                      <span className="font-medium text-neutral-700">
+                        {formatDateTime(fraudEvent.resolvedAt, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "numeric",
+                          minute: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  )}
                 </div>
               }
               side="left"
@@ -324,13 +327,16 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
                   alt={user.name ?? user.id}
                   className="size-5 shrink-0 rounded-full"
                 />
-                <span className="text-sm font-medium text-neutral-700">
-                  {formatDate(fraudEvent.updatedAt, {
-                    month: "short",
-                    day: "numeric",
-                    year: undefined,
-                  })}
-                </span>
+
+                {fraudEvent.resolvedAt && (
+                  <span className="text-sm font-medium text-neutral-700">
+                    {formatDate(fraudEvent.resolvedAt, {
+                      month: "short",
+                      day: "numeric",
+                      year: undefined,
+                    })}
+                  </span>
+                )}
               </div>
             </Tooltip>
           )}
@@ -403,13 +409,13 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
               </div>
             )}
 
-            {fraudEvent.description && (
+            {fraudEvent.resolutionReason && (
               <div>
                 <h3 className="text-sm font-medium text-neutral-900">
                   Resolution reason
                 </h3>
                 <p className="text-sm text-neutral-500">
-                  {FRAUD_EVENT_RESOLUTION_REASONS[fraudEvent.description]}
+                  {FRAUD_EVENT_RESOLUTION_REASONS[fraudEvent.resolutionReason]}
                 </p>
               </div>
             )}

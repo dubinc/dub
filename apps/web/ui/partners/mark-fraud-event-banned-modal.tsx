@@ -47,7 +47,7 @@ function MarkFraudEventBannedModal({
       workspaceId,
       fraudEventId: fraudEvent.id,
       notifyPartner,
-      reason: reason || undefined,
+      resolutionReason: reason || undefined,
     });
   }, [executeAsync, fraudEvent.id, workspaceId, notifyPartner, reason]);
 

@@ -65,11 +65,12 @@ export const FraudEventSchema = z.object({
     url: true,
     shortLink: true,
   }),
-  user: UserSchema.nullable(),
-  description: z.string().nullable(),
   type: z.nativeEnum(FraudEventType),
   status: z.nativeEnum(FraudEventStatus),
   holdAmount: z.number().nullish().default(2000), // TODO: Fix it
+  user: UserSchema.nullable(),
+  resolutionReason: z.string().nullable(),
+  resolvedAt: z.date().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
