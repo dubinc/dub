@@ -14,7 +14,7 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { status, type, page, pageSize, start, end, interval } =
+    const { status, type, page, pageSize, start, end, interval, partnerId } =
       getFraudEventsQuerySchema.parse(searchParams);
 
     const { startDate, endDate } = getStartEndDates({
@@ -28,6 +28,7 @@ export const GET = withWorkspace(
         programId,
         ...(status && { status }),
         ...(type && { type }),
+        ...(partnerId && { partnerId }),
         createdAt: {
           gte: startDate.toISOString(),
           lte: endDate.toISOString(),
