@@ -29,6 +29,7 @@ model FraudEvent {
   link     Link?     @relation(fields: [linkId], references: [id])
   user     User?     @relation(fields: [userId], references: [id])
 
+  @@unique([partnerId, customerId]) // Only one entry for a partner <> customer combination can exist
   @@index([programId, partnerId])
   @@index(partnerId)
   @@index(customerId)

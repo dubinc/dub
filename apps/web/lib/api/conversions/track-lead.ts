@@ -4,7 +4,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { detectFraudEvent } from "@/lib/partners/detect-fraud-event";
+import { detectFraudEvent } from "@/lib/analytics/fraud/detect-fraud-event";
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";

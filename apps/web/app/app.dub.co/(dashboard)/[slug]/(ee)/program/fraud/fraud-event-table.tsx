@@ -1,5 +1,6 @@
 "use client";
 
+import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -27,10 +28,9 @@ import {
   useTable,
 } from "@dub/ui";
 import { Dots, Eye, Users } from "@dub/ui/icons";
-import { currencyFormatter, fetcher, formatDate } from "@dub/utils";
+import { currencyFormatter, formatDate } from "@dub/utils";
 import { Command } from "cmdk";
 import { useEffect, useState } from "react";
-import useSWR from "swr";
 import { useColumnVisibility } from "../partners/use-column-visibility";
 import { useFraudEventFilters } from "./use-fraud-event-filters";
 
@@ -52,21 +52,10 @@ export function FraudEventTable() {
   } = useFraudEventsCount<number>();
 
   const {
-    data: fraudEvents,
-    isLoading: fraudEventsLoading,
+    fraudEvents,
+    loading: fraudEventsLoading,
     error: fraudEventsError,
-  } = useSWR<FraudEvent[]>(
-    `/api/fraud-events${getQueryString(
-      {
-        workspaceId,
-      },
-      { exclude: ["fraudEventId"] },
-    )}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  } = useFraudEvents();
 
   const {
     filters,

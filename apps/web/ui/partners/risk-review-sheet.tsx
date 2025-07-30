@@ -1,3 +1,4 @@
+import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudEvent } from "@/lib/types";
@@ -152,7 +153,7 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
             </>
           </div>
 
-          {fraudEvent.status === "pending" && tab === "details" && (
+          {tab === "details" && (
             <div className="flex grow flex-col justify-end">
               <div className="border-t border-neutral-200 p-5">
                 <div className="flex gap-3">
@@ -160,6 +161,12 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
                     type="button"
                     variant="primary"
                     text="Mark partner as safe"
+                    disabled={fraudEvent.status === "safe"}
+                    disabledTooltip={
+                      fraudEvent.status === "safe"
+                        ? "Partner is already marked as safe."
+                        : undefined
+                    }
                     onClick={() => {
                       setShowSafeModal(true);
                     }}
@@ -168,6 +175,12 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
                     type="button"
                     variant="danger"
                     text="Ban partner"
+                    disabled={fraudEvent.status === "banned"}
+                    disabledTooltip={
+                      fraudEvent.status === "banned"
+                        ? "Partner is already banned."
+                        : undefined
+                    }
                     onClick={() => {
                       setShowBanModal(true);
                     }}
@@ -281,9 +294,18 @@ function FraudEventDetails({ fraudEvent }: { fraudEvent: FraudEvent }) {
 }
 
 const FraudEventHistory = ({ partnerId }: { partnerId: string }) => {
-  const { slug } = useWorkspace();
+  const {
+    fraudEvents,
+    loading: fraudEventsLoading,
+    error: fraudEventsError,
+  } = useFraudEvents({
+    query: {
+      partnerId,
+      interval: "all",
+    },
+  });
 
-  return <></>;
+  return <></>
 };
 
 export function RiskReviewSheet({
@@ -298,7 +320,12 @@ export function RiskReviewSheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "partnerId", scroll: false })}
+      onClose={() =>
+        queryParams({
+          del: "fraudEventId",
+          scroll: false,
+        })
+      }
     >
       <RiskReviewSheetContent {...rest} />
     </Sheet>
