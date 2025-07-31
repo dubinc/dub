@@ -9,6 +9,7 @@ import {
 import {
   getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
+  priceConfig,
   TPaymentPlan,
 } from "core/integration/payment/config";
 import { PaymentService } from "core/integration/payment/server";
@@ -36,10 +37,10 @@ const titlesByPlans = {
 };
 
 const getPlanNameByChargePeriodDays = (chargePeriodDays: number) => {
-  if (chargePeriodDays === 365) {
+  if (chargePeriodDays === priceConfig.YEARLY_PLAN_CHARGE_PERIOD_DAYS) {
     return "PRICE_YEAR_PLAN";
   }
-  if (chargePeriodDays === 84) {
+  if (chargePeriodDays === priceConfig.QUARTERLY_PLAN_CHARGE_PERIOD_DAYS) {
     return "PRICE_QUARTER_PLAN";
   }
   return "PRICE_MONTH_PLAN";
