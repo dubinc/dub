@@ -410,7 +410,9 @@ export function AddEditDomainForm({
                     animate={{ height: showOption ? "auto" : 0 }}
                     transition={{ duration: 0.1 }}
                     initial={false}
-                    className="-m-1 overflow-hidden p-1"
+                    className={cn(
+                      id !== "autoRenew" && "-m-1 overflow-hidden p-1",
+                    )}
                     {...{ inert: showOption ? undefined : "" }}
                   >
                     <div className="relative mt-2 rounded-md shadow-sm">
