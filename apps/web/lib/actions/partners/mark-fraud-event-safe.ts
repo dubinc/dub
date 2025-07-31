@@ -11,6 +11,7 @@ import { authActionClient } from "../safe-action";
 const schema = z.object({
   workspaceId: z.string().trim().min(1),
   fraudEventId: z.string().trim().min(1),
+  ignoreFutureFlags: z.boolean().default(false),
   resolutionReason: z
     .enum(Object.keys(FRAUD_EVENT_SAFE_REASONS) as [string, ...string[]])
     .optional(),
@@ -20,7 +21,7 @@ export const markFraudEventSafeAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { fraudEventId, resolutionReason } = parsedInput;
+    const { fraudEventId, resolutionReason, ignoreFutureFlags } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -51,18 +52,19 @@ export const markFraudEventSafeAction = authActionClient
         },
       });
 
-      // "Marking them as Safe" should ignore future flags because you are making a decision on that partner
-      await tx.programEnrollment.update({
-        where: {
-          partnerId_programId: {
-            partnerId: fraudEvent.partnerId,
-            programId,
+      if (ignoreFutureFlags) {
+        await tx.programEnrollment.update({
+          where: {
+            partnerId_programId: {
+              partnerId: fraudEvent.partnerId,
+              programId,
+            },
           },
-        },
-        data: {
-          ignoreFraudEventsEnabledAt: new Date(),
-        },
-      });
+          data: {
+            ignoreFraudEventsEnabledAt: new Date(),
+          },
+        });
+      }
 
       // Mark the held commissions as pending
       await tx.commission.updateMany({
