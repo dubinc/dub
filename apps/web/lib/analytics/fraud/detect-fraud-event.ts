@@ -19,7 +19,10 @@ export const detectFraudEvent = async ({
     url: string;
     ip?: string | null;
   };
-  customer: { email: string; name: string };
+  customer: {
+    email: string;
+    name: string;
+  };
   partner: {
     email: string;
     name: string;
