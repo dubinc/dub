@@ -71,7 +71,7 @@ function EnableAutoRenewalModal({
           This domain will renew each year for $12.
         </p>
 
-        <div className="scrollbar-hide mt-4 flex max-h-[190px] flex-col gap-2 overflow-y-auto p-2">
+        <div className="scrollbar-hide mt-4 flex max-h-[190px] flex-col gap-2 overflow-y-auto">
           <div className="flex items-center gap-4 rounded-xl border border-neutral-200 bg-white p-3">
             <div className="hidden rounded-full border border-neutral-200 sm:block">
               <div className="rounded-full border border-white bg-gradient-to-t from-neutral-100 p-1 md:p-2">
