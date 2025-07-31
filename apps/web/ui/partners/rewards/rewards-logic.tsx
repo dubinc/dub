@@ -35,7 +35,6 @@ import {
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
-import { useRewardsUpgradeModal } from "./rewards-upgrade-modal";
 
 export function RewardsLogic({
   isDefaultReward,
@@ -55,46 +54,50 @@ export function RewardsLogic({
     name: "modifiers",
   });
 
-  const { rewardsUpgradeModal, setShowRewardsUpgradeModal } =
-    useRewardsUpgradeModal();
-
   return (
-    <>
-      {rewardsUpgradeModal}
-      <div
-        className={cn(
-          "flex flex-col gap-2",
-          !!modifierFields.length && "-mt-2",
-        )}
-      >
-        {modifierFields.map((field, index) => (
-          <ConditionalGroup
-            key={field.id}
-            index={index}
-            groupCount={modifierFields.length}
-            onRemove={() => removeModifier(index)}
-          />
-        ))}
-        <Button
-          className="h-8 rounded-lg"
-          icon={<ArrowTurnRight2 className="size-4" />}
-          text="Add logic"
-          onClick={() =>
-            getPlanCapabilities(plan).canUseAdvancedRewardLogic
-              ? appendModifier({
-                  operator: "AND",
-                  conditions: [{}],
-                  amount: getValues("amount") || 0,
-                })
-              : setShowRewardsUpgradeModal(true)
-          }
-          variant={isDefaultReward ? "primary" : "secondary"}
+    <div
+      className={cn("flex flex-col gap-2", !!modifierFields.length && "-mt-2")}
+    >
+      {modifierFields.map((field, index) => (
+        <ConditionalGroup
+          key={field.id}
+          index={index}
+          groupCount={modifierFields.length}
+          onRemove={() => removeModifier(index)}
         />
-      </div>
-    </>
+      ))}
+      <Button
+        className="h-8 rounded-lg"
+        icon={<ArrowTurnRight2 className="size-4" />}
+        text={
+          <div className="flex items-center gap-2">
+            <span>Add condition</span>
+            {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
+              <div
+                className={cn(
+                  "rounded-sm px-1 py-0.5 text-[0.625rem] uppercase leading-none",
+                  isDefaultReward
+                    ? "bg-violet-500/50 text-violet-400"
+                    : "bg-violet-50 text-violet-600",
+                )}
+              >
+                Upgrade required
+              </div>
+            )}
+          </div>
+        }
+        onClick={() =>
+          appendModifier({
+            operator: "AND",
+            conditions: [{}],
+            amount: getValues("amount") || 0,
+          })
+        }
+        variant={isDefaultReward ? "primary" : "secondary"}
+      />
+    </div>
   );
 }
-
 function ConditionalGroup({
   index,
   groupCount,
@@ -120,7 +123,7 @@ function ConditionalGroup({
         <div className="flex items-center gap-1.5 text-neutral-800">
           <ArrowTurnRight2 className="size-3 shrink-0" />
           <span className="text-sm font-medium">
-            {index === 0 ? "Reward logic" : "Additional logic"}
+            {index === 0 ? "Reward condition" : "Additional condition"}
           </span>
         </div>
         <div className="flex items-center gap-1">
