@@ -183,7 +183,7 @@ export function FraudEventTable({ isValidating }: { isValidating: boolean }) {
     tdClassName: "border-l-0",
     resourceName: (p) => `fraud event${p ? "s" : ""}`,
     rowCount: fraudEventsCount || 0,
-    loading: fraudEventsCountLoading || fraudEventsLoading,
+    loading: fraudEventsCountLoading || fraudEventsLoading || isValidating,
     error:
       fraudEventsCountError || fraudEventsError
         ? "Failed to load fraud events"
