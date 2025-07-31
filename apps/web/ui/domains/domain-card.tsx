@@ -356,8 +356,13 @@ function Menu({
       <ArchiveDomainModal />
       <DeleteDomainModal />
       <TransferDomainModal />
-      <EnableAutoRenewalModal />
-      <DisableAutoRenewalModal />
+
+      {isDubProvisioned && (
+        <>
+          <EnableAutoRenewalModal />
+          <DisableAutoRenewalModal />
+        </>
+      )}
 
       <motion.div
         animate={{
