@@ -10,6 +10,7 @@ import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { storage } from "@/lib/storage";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
@@ -164,6 +165,13 @@ export const PATCH = withWorkspace(
             autoRenewDisabledAt: autoRenew ? null : new Date(),
           },
         });
+
+        waitUntil(
+          setRenewOption({
+            domain,
+            autoRenew,
+          }),
+        );
       }
     }
 
