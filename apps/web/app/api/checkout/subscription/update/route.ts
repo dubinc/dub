@@ -9,6 +9,7 @@ import {
 import {
   getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
+  priceConfig,
   TPaymentPlan,
 } from "core/integration/payment/config";
 import { PaymentService } from "core/integration/payment/server";
@@ -33,6 +34,16 @@ const titlesByPlans = {
   PRICE_MONTH_PLAN: "Monthly Plan",
   PRICE_QUARTER_PLAN: "3-Month Plan",
   PRICE_YEAR_PLAN: "12-Month Plan",
+};
+
+const getPlanNameByChargePeriodDays = (chargePeriodDays: number) => {
+  if (chargePeriodDays === priceConfig.YEARLY_PLAN_CHARGE_PERIOD_DAYS) {
+    return "PRICE_YEAR_PLAN";
+  }
+  if (chargePeriodDays === priceConfig.QUARTERLY_PLAN_CHARGE_PERIOD_DAYS) {
+    return "PRICE_QUARTER_PLAN";
+  }
+  return "PRICE_MONTH_PLAN";
 };
 
 const getEmailTemplate = (prevPlan: string, newPlan: string) => {
@@ -106,7 +117,10 @@ export const POST = withSession(
 
     console.log("sub data", subData.subscriptions[0]);
 
-    const prevPlan = subData.subscriptions[0].attributes.plan_name;
+    // TODO: better to use plan_name from attributes but attributes doesn't change after subscription update
+    // so need to remove getPlanNameByChargePeriodDays method if attributes will be reliable
+    // const prevPlan = subData.subscriptions[0].attributes.plan_name;
+    const prevPlan = getPlanNameByChargePeriodDays(subData.subscriptions[0].plan.chargePeriodDays);
 
     try {
       await paymentService.updateClientSubscription(
