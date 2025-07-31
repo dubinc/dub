@@ -16,6 +16,11 @@ import { prisma } from "@dub/prisma";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const extendedUpdateDomainBodySchema = updateDomainBodySchema.extend({
+  autoRenew: z.boolean().nullish(),
+});
 
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
@@ -56,7 +61,12 @@ export const PATCH = withWorkspace(
       archived,
       assetLinks,
       appleAppSiteAssociation,
-    } = await updateDomainBodySchema.parseAsync(await parseRequestBody(req));
+      autoRenew,
+    } = await extendedUpdateDomainBodySchema.parseAsync(
+      await parseRequestBody(req),
+    );
+
+    console.log({ autoRenew });
 
     if (workspace.plan === "free") {
       if (
@@ -93,6 +103,7 @@ export const PATCH = withWorkspace(
           message: "You cannot update a Dub-provisioned domain.",
         });
       }
+
       const validDomain = await validateDomain(newDomain);
       if (validDomain.error && validDomain.code) {
         throw new DubApiError({
@@ -100,6 +111,7 @@ export const PATCH = withWorkspace(
           message: validDomain.error,
         });
       }
+
       const vercelResponse = await addDomainToVercel(newDomain);
       if (vercelResponse.error) {
         throw new DubApiError({
@@ -136,6 +148,26 @@ export const PATCH = withWorkspace(
         registeredDomain: true,
       },
     });
+
+    // Sync the autoRenew setting with the registered domain
+    if (registeredDomain && autoRenew !== undefined) {
+      const { autoRenewDisabledAt } = registeredDomain;
+
+      const shouldUpdate =
+        (autoRenew === false && autoRenewDisabledAt === null) ||
+        (autoRenew === true && autoRenewDisabledAt !== null);
+
+      if (shouldUpdate) {
+        await prisma.registeredDomain.update({
+          where: {
+            domainId: domainId,
+          },
+          data: {
+            autoRenewDisabledAt: autoRenew ? null : new Date(),
+          },
+        });
+      }
+    }
 
     waitUntil(
       (async () => {

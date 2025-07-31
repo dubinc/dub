@@ -9,6 +9,10 @@ import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const RegisteredDomainSchema = z.object({
   id: z.string().describe("The ID of the registered domain record."),
+  autoRenewDisabledAt: z
+    .date()
+    .nullable()
+    .describe("The date the domain auto-renew is disabled."),
   createdAt: z.date().describe("The date the domain was created."),
   expiresAt: z.date().describe("The date the domain expires."),
 });
@@ -66,7 +70,6 @@ export const DomainSchema = z.object({
     .describe(
       "apple-app-site-association configuration file (for deep link support on iOS).",
     ),
-
   logo: z.string().nullable().describe("The logo of the domain."),
   createdAt: z.date().describe("The date the domain was created."),
   updatedAt: z.date().describe("The date the domain was last updated."),

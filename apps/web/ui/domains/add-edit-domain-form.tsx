@@ -27,6 +27,7 @@ import {
   Crown,
   Milestone,
   QrCode,
+  RefreshCw,
   TextCursorInput,
 } from "lucide-react";
 import posthog from "posthog-js";
@@ -579,12 +580,18 @@ export function AddEditDomainForm({
 }
 
 const DOMAIN_OPTIONS: {
-  id: keyof FormData;
+  id: keyof FormData | "autoRenew";
   title: string;
   description: string;
   icon: any;
   proFeature?: boolean;
 }[] = [
+  {
+    id: "autoRenew",
+    title: "Domain auto-renew",
+    description: "Automatically renew your domain registration",
+    icon: RefreshCw,
+  },
   {
     id: "logo",
     title: "Custom QR code logo",
