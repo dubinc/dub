@@ -75,9 +75,9 @@ export function RewardsLogic({
             {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
               <div
                 className={cn(
-                  "rounded-sm px-1 py-0.5 text-[0.625rem] uppercase leading-none",
+                  "rounded-sm px-1.5 py-1 text-[0.625rem] uppercase leading-none",
                   isDefaultReward
-                    ? "bg-violet-500/50 text-violet-400"
+                    ? "bg-violet-500/50 text-violet-200"
                     : "bg-violet-50 text-violet-600",
                 )}
               >
