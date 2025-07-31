@@ -1,23 +1,11 @@
-import {
-  FileUpload,
-  FileUploadDropzone,
-  FileUploadItem,
-  FileUploadItemDelete,
-  FileUploadItemMetadata,
-  FileUploadItemPreview,
-  FileUploadItemProgress,
-  FileUploadList,
-  FileUploadTrigger,
-} from "@/ui/qr-builder/components/file-upload.tsx";
-import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
+import { FileCardTitle } from "@/ui/qr-builder/components/file-card-content/components/file-card-title.tsx";
 import { DEFAULT_QR_BUILDER_DATA } from "@/ui/qr-builder/constants/customization/qr-builder-data.ts";
 import { EAcceptedFileType } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
-import { getMaxSizeLabel } from "@/ui/qr-builder/helpers/get-max-size-label.ts";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { FileUploadProps, useLocalStorage } from "@dub/ui";
-import { cn } from "@dub/utils/src";
-import { Button, Flex } from "@radix-ui/themes";
-import { CloudUpload, Upload, X } from "lucide-react";
+import { cn } from "@dub/utils";
+import { Button } from "@radix-ui/themes";
+import { X } from "lucide-react";
 import {
   Dispatch,
   FC,
@@ -27,7 +15,20 @@ import {
   useRef,
   useState,
 } from "react";
-import { uploadFileWithProgress } from "../helpers/upload-file-with-progress";
+import { uploadFileWithProgress } from "../../helpers/upload-file-with-progress.ts";
+import { FileDropzone } from "./components/file-dropzone.tsx";
+import { FileErrorMessage } from "./components/file-error-message.tsx";
+import {
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadItem,
+  FileUploadItemDelete,
+  FileUploadItemMetadata,
+  FileUploadItemPreview,
+  FileUploadItemProgress,
+  FileUploadList,
+} from "./components/file-upload.tsx";
+import { LogoDropzone } from "./components/logo-dropzone.tsx";
 
 interface IFileCardContentProps {
   files: File[];
@@ -212,14 +213,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <Flex gap="2" align="center">
-        <h3 className="text-neutral text-sm font-medium">{`Upload your ${title}`}</h3>
-        {!isLogo && (
-          <TooltipComponent
-            tooltip={`People will be able to view this ${title} when they scan your QR code.`}
-          />
-        )}
-      </Flex>
+      <FileCardTitle title={title} isLogo={isLogo} />
 
       <FileUpload
         maxFiles={1}
@@ -239,40 +233,9 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
           })}
         >
           {isLogo ? (
-            <div className="flex flex-row flex-wrap items-center gap-2 border-dotted text-center">
-              <CloudUpload className="text-secondary size-5" />
-              Drag and drop or
-              <FileUploadTrigger asChild>
-                <Button variant="outline" size="1" className="p-0">
-                  choose files
-                </Button>
-              </FileUploadTrigger>
-              to upload
-            </div>
+            <LogoDropzone />
           ) : (
-            <>
-              <div className="flex flex-col items-center gap-1 text-center">
-                <div className="border-secondary-100 flex items-center justify-center rounded-full border p-2.5">
-                  <Upload className="text-secondary size-6" />
-                </div>
-                <p className="text-neutral text-sm font-medium">
-                  {`Drag & drop your ${title}`}
-                </p>
-                <p className="text-xs text-neutral-800">
-                  {`or click to browse (1 file, up to ${getMaxSizeLabel(maxFileSize)})`}
-                </p>
-              </div>
-              <FileUploadTrigger asChild>
-                <Button
-                  variant="solid"
-                  color="blue"
-                  size="2"
-                  className="mt-2 w-fit"
-                >
-                  Browse files
-                </Button>
-              </FileUploadTrigger>
-            </>
+            <FileDropzone title={title} maxFileSize={maxFileSize} />
           )}
         </FileUploadDropzone>
         <FileUploadList>
@@ -302,11 +265,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         </FileUploadList>
       </FileUpload>
 
-      {(localFileError || fileError) && (
-        <p className="text-xs font-medium text-red-500 md:text-sm">
-          {localFileError || fileError}
-        </p>
-      )}
+      <FileErrorMessage localFileError={localFileError} fileError={fileError} />
     </div>
   );
 };

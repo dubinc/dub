@@ -1,5 +1,5 @@
 import { CountrySelectAutocompleteComponent } from "@/ui/qr-builder/components/country-select-autocomplete.tsx";
-import { FileCardContent } from "@/ui/qr-builder/components/file-card-content.tsx";
+import { FileCardContent } from "@/ui/qr-builder/components/file-card-content";
 import { PhoneNumberInputComponent } from "@/ui/qr-builder/components/phone-number-input.tsx";
 import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
 import {
