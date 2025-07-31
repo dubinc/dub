@@ -6,7 +6,7 @@ import { isSelfReferral } from "./is-self-referral";
 type FraudEventResult =
   | {
       type: FraudEventType;
-      reason: string | null
+      reason: string | null;
     }
   | undefined;
 
