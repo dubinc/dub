@@ -237,7 +237,6 @@ export const isSelfReferral = async ({
     email: string | null;
     name?: string | null;
     ipAddress?: string | null;
-    userAgent?: string | null;
   };
   customer: {
     email: string | null;
