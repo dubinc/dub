@@ -9,7 +9,6 @@ type FraudEventResult =
     }
   | undefined;
 
-// Checking in the order of priority
 export const detectFraudEvent = async ({
   click,
   customer,
