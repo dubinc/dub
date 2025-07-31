@@ -451,6 +451,13 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
               </div>
             ) : null}
 
+            {fraudEvent.details && (
+              <div>
+                <h3 className="text-sm font-medium text-neutral-900">Reason</h3>
+                <p className="text-sm text-neutral-500">{fraudEvent.details}</p>
+              </div>
+            )}
+
             {fraudEvent.resolutionReason && (
               <div>
                 <h3 className="text-sm font-medium text-neutral-900">
