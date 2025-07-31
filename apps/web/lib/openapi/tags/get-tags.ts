@@ -6,6 +6,24 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 export const getTags: ZodOpenApiOperationObject = {
   operationId: "getTags",
   "x-speakeasy-name-override": "list",
+  "x-speakeasy-pagination": {
+    type: "offsetLimit",
+    inputs: [
+      {
+        name: "page",
+        in: "parameters",
+        type: "page",
+      },
+      {
+        name: "pageSize",
+        in: "parameters",
+        type: "limit",
+      },
+    ],
+    outputs: {
+      results: "$",
+    },
+  },
   summary: "Retrieve a list of tags",
   description: "Retrieve a list of tags for the authenticated workspace.",
   requestParams: {
