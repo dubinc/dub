@@ -630,20 +630,30 @@ export const authOptions: NextAuthOptions = {
                 CustomerIOClient.identify(user.id, {
                   email,
                 }),
-                sendEmail({
-                  email: email,
-                  subject: "Welcome to GetQR",
-                  template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-                  messageData: {
-                    qr_name: qrDataToCreate?.title || "Untitled QR",
-                    qr_type:
-                      QR_TYPES.find(
-                        (item) => item.id === qrDataToCreate?.qrType,
-                      )!.label || "Indefined type",
-                    url: HOME_DOMAIN,
-                  },
-                  customerId: user.id,
-                }),
+                qrDataToCreate 
+                  ? sendEmail({
+                    email: email,
+                    subject: "Welcome to GetQR",
+                    template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+                    messageData: {
+                      qr_name: qrDataToCreate?.title || "Untitled QR",
+                      qr_type:
+                        QR_TYPES.find(
+                          (item) => item.id === qrDataToCreate?.qrType,
+                        )!.label || "Indefined type",
+                      url: HOME_DOMAIN,
+                    },
+                    customerId: user.id,
+                  })
+                  : sendEmail({
+                    email: email,
+                    subject: "Welcome to GetQR",
+                    template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
+                    messageData: {
+                      url: HOME_DOMAIN,
+                    },
+                    customerId: user.id,
+                  }),
               ]),
             );
           }
