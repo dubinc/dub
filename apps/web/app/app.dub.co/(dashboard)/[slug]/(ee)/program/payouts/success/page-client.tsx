@@ -189,7 +189,7 @@ export function PayoutsSuccessPageClient() {
             <Link
               href={`/${slug}/settings/billing/invoices?type=payout`}
               className={cn(
-                "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-lg border px-5 text-base text-sm",
+                "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-lg border px-5 text-sm",
                 buttonVariants({ variant: "primary" }),
               )}
             >

@@ -20,13 +20,11 @@ import {
   InvoiceDollar,
   MoneyBills2,
   Popover,
-  Tooltip,
-  TooltipContent,
   User,
 } from "@dub/ui";
 import { capitalize, cn, COUNTRIES, pluralize, truncate } from "@dub/utils";
 import { Command } from "cmdk";
-import { Fragment, PropsWithChildren, useContext, useState } from "react";
+import { Fragment, useContext, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import {
@@ -37,7 +35,6 @@ import {
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
-import { useRewardsUpgradeModal } from "./rewards-upgrade-modal";
 
 export function RewardsLogic({
   isDefaultReward,
@@ -69,71 +66,38 @@ export function RewardsLogic({
           onRemove={() => removeModifier(index)}
         />
       ))}
-      <UpgradeTooltip>
-        <Button
-          className="h-8 rounded-lg"
-          icon={<ArrowTurnRight2 className="size-4" />}
-          text={
-            <div className="flex items-center gap-2">
-              <span>Add logic</span>
-              {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
-                <div
-                  className={cn(
-                    "rounded-sm px-1 py-0.5 text-[0.625rem] uppercase leading-none",
-                    isDefaultReward
-                      ? "bg-violet-500/50 text-violet-400"
-                      : "bg-violet-50 text-violet-600",
-                  )}
-                >
-                  Upgrade
-                </div>
-              )}
-            </div>
-          }
-          onClick={() =>
-            appendModifier({
-              operator: "AND",
-              conditions: [{}],
-              amount: getValues("amount") || 0,
-            })
-          }
-          variant={isDefaultReward ? "primary" : "secondary"}
-        />
-      </UpgradeTooltip>
+      <Button
+        className="h-8 rounded-lg"
+        icon={<ArrowTurnRight2 className="size-4" />}
+        text={
+          <div className="flex items-center gap-2">
+            <span>Add condition</span>
+            {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
+              <div
+                className={cn(
+                  "rounded-sm px-1 py-0.5 text-[0.625rem] uppercase leading-none",
+                  isDefaultReward
+                    ? "bg-violet-500/50 text-violet-400"
+                    : "bg-violet-50 text-violet-600",
+                )}
+              >
+                Upgrade required
+              </div>
+            )}
+          </div>
+        }
+        onClick={() =>
+          appendModifier({
+            operator: "AND",
+            conditions: [{}],
+            amount: getValues("amount") || 0,
+          })
+        }
+        variant={isDefaultReward ? "primary" : "secondary"}
+      />
     </div>
   );
 }
-
-function UpgradeTooltip({ children }: PropsWithChildren) {
-  const { plan } = useWorkspace();
-
-  const { rewardsUpgradeModal, setShowRewardsUpgradeModal } =
-    useRewardsUpgradeModal();
-
-  if (getPlanCapabilities(plan).canUseAdvancedRewardLogic) return children;
-
-  return (
-    <>
-      {rewardsUpgradeModal}
-      <Tooltip
-        content={({ setOpen }) => (
-          <TooltipContent
-            title="Requires the Advanced plan and above."
-            cta="Upgrade to Advanced"
-            onClick={() => {
-              setOpen(false);
-              setShowRewardsUpgradeModal(true);
-            }}
-          />
-        )}
-        side="bottom"
-      >
-        <div>{children}</div>
-      </Tooltip>
-    </>
-  );
-}
-
 function ConditionalGroup({
   index,
   groupCount,
@@ -159,7 +123,7 @@ function ConditionalGroup({
         <div className="flex items-center gap-1.5 text-neutral-800">
           <ArrowTurnRight2 className="size-3 shrink-0" />
           <span className="text-sm font-medium">
-            {index === 0 ? "Reward logic" : "Additional logic"}
+            {index === 0 ? "Reward condition" : "Additional condition"}
           </span>
         </div>
         <div className="flex items-center gap-1">

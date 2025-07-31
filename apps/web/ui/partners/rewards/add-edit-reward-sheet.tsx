@@ -21,7 +21,7 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import { Button, MoneyBills2, Sheet } from "@dub/ui";
+import { Button, MoneyBills2, Sheet, TooltipContent } from "@dub/ui";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -31,6 +31,7 @@ import {
   SetStateAction,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -199,9 +200,9 @@ function RewardSheetContent({
         );
       } catch (error) {
         console.error(error);
-        setError("root.logic", { message: "Invalid reward logic" });
+        setError("root.logic", { message: "Invalid reward condition" });
         toast.error(
-          "Invalid reward logic. Please fix the errors and try again.",
+          "Invalid reward condition. Please fix the errors and try again.",
         );
         return;
       }
@@ -247,6 +248,17 @@ function RewardSheetContent({
 
   const { rewardsUpgradeModal, setShowRewardsUpgradeModal } =
     useRewardsUpgradeModal();
+
+  const showAdvancedUpsell = useMemo(() => {
+    if (
+      getValues("modifiers")?.length > 0 &&
+      !getPlanCapabilities(plan).canUseAdvancedRewardLogic
+    ) {
+      return true;
+    }
+
+    return false;
+  }, [getValues("modifiers"), plan]);
 
   return (
     <FormProvider {...form}>
@@ -407,22 +419,21 @@ function RewardSheetContent({
 
             <Button
               type="submit"
-              onClick={(e) => {
-                const modifiers = getValues("modifiers");
-                if (
-                  modifiers?.length &&
-                  !getPlanCapabilities(plan).canUseAdvancedRewardLogic
-                ) {
-                  setShowRewardsUpgradeModal(true);
-                  e.preventDefault();
-                }
-              }}
               variant="primary"
               text={reward ? "Update reward" : "Create reward"}
               className="w-fit"
               loading={isCreating || isUpdating}
               disabled={
                 amount == null || isDeleting || isCreating || isUpdating
+              }
+              disabledTooltip={
+                showAdvancedUpsell ? (
+                  <TooltipContent
+                    title="Advanced reward structures are only available on the Advanced plan and above."
+                    cta="Upgrade to Advanced"
+                    onClick={() => setShowRewardsUpgradeModal(true)}
+                  />
+                ) : undefined
               }
             />
           </div>
