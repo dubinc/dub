@@ -47,7 +47,9 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
 
-    if (workspace.payoutsUsage > workspace.payoutsLimit) {
+    // if workspace's payouts usage + the current invoice amount
+    // is greater than the workspace's payouts limit, throw an error
+    if (workspace.payoutsUsage + amount > workspace.payoutsLimit) {
       throw new Error(
         exceededLimitError({
           plan: workspace.plan,
