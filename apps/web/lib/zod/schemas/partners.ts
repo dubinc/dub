@@ -533,7 +533,7 @@ export const approvePartnerSchema = z.object({
   linkId: z.string().nullable(),
 });
 
-export const approvePartnersBulkSchema = z.object({
+export const bulkApprovePartnersSchema = z.object({
   workspaceId: z.string(),
   partnerIds: z
     .array(z.string())
@@ -547,7 +547,7 @@ export const rejectPartnerSchema = z.object({
   partnerId: z.string(),
 });
 
-export const rejectPartnersBulkSchema = z.object({
+export const bulkRejectPartnersSchema = z.object({
   workspaceId: z.string(),
   partnerIds: z
     .array(z.string())
