@@ -58,7 +58,9 @@ const formatJson = (string: string) => {
   }
 };
 
-type FormData = z.infer<typeof createDomainBodySchema>;
+type FormData = z.infer<typeof createDomainBodySchema> & {
+  autoRenew?: boolean;
+};
 
 type DomainStatus = "checking" | "conflict" | "has site" | "available" | "idle";
 
@@ -121,6 +123,16 @@ export function AddEditDomainForm({
     Record<string, boolean>
   >({});
 
+  const isDubProvisioned = !!props?.registeredDomain;
+
+  const isAutoRenewDisabled = useMemo(() => {
+    if (!props?.registeredDomain) {
+      return false;
+    }
+
+    return props.registeredDomain.autoRenewDisabledAt !== null;
+  }, [props?.registeredDomain]);
+
   const {
     register,
     control,
@@ -135,6 +147,9 @@ export function AddEditDomainForm({
       expiredUrl: props?.expiredUrl,
       notFoundUrl: props?.notFoundUrl,
       placeholder: props?.placeholder,
+      ...(isDubProvisioned && {
+        autoRenew: !isAutoRenewDisabled,
+      }),
       appleAppSiteAssociation: props?.appleAppSiteAssociation
         ? formatJson(props.appleAppSiteAssociation)
         : undefined,
@@ -203,8 +218,6 @@ export function AddEditDomainForm({
   }, [props, workspaceId]);
 
   const { isMobile } = useMediaQuery();
-
-  const isDubProvisioned = !!props?.registeredDomain;
 
   const onSubmit = async (formData: FormData) => {
     try {
@@ -364,7 +377,9 @@ export function AddEditDomainForm({
               ({ id }) => id !== "autoRenew" || isDubProvisioned,
             ).map(({ id, title, description, icon: Icon, proFeature }) => {
               const showOption =
-                showOptionStates[id] || !!watch(id as keyof FormData);
+                id === "autoRenew"
+                  ? isDubProvisioned
+                  : showOptionStates[id] || !!watch(id as keyof FormData);
 
               return (
                 <div key={id}>
@@ -391,16 +406,24 @@ export function AddEditDomainForm({
                       </div>
                     </div>
                     <Switch
-                      checked={showOption}
+                      checked={
+                        id === "autoRenew" ? watch("autoRenew") : showOption
+                      }
                       fn={(checked) => {
-                        setShowOptionStates((prev) => ({
-                          ...prev,
-                          [id]: checked,
-                        }));
-                        if (!checked && id !== "autoRenew") {
-                          setValue(id as keyof FormData, "", {
+                        if (id === "autoRenew") {
+                          setValue("autoRenew", checked, {
                             shouldDirty: true,
                           });
+                        } else {
+                          setShowOptionStates((prev) => ({
+                            ...prev,
+                            [id]: checked,
+                          }));
+                          if (!checked) {
+                            setValue(id as keyof FormData, "", {
+                              shouldDirty: true,
+                            });
+                          }
                         }
                       }}
                       disabled={isSubmitting}
