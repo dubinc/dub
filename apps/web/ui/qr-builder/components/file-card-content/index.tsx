@@ -223,7 +223,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         onValueChange={setFiles}
         onFileAccept={onFileAccept}
         onFileReject={onFileReject}
-        onUpload={onUpload}
+        onUpload={isLogo ? undefined : onUpload}
         accept={acceptedFileType}
         disabled={isUploading}
       >
@@ -259,7 +259,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
                   </Button>
                 </FileUploadItemDelete>
               </div>
-              <FileUploadItemProgress />
+              {!isLogo && <FileUploadItemProgress />}
             </FileUploadItem>
           ))}
         </FileUploadList>
