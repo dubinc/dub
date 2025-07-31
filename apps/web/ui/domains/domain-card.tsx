@@ -1,5 +1,4 @@
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -40,8 +39,9 @@ import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
-import { useConfirmModal } from "../modals/confirm-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
+import { useDisableAutoRenewalModal } from "../modals/disable-auto-renewal-modal";
+import { useEnableAutoRenewalModal } from "../modals/enable-auto-renewal-modal";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
@@ -321,6 +321,16 @@ function Menu({
     props: linkProps || DEFAULT_LINK_PROPS,
   });
 
+  const { setShowEnableAutoRenewalModal, EnableAutoRenewalModal } =
+    useEnableAutoRenewalModal({
+      domain: props,
+    });
+
+  const { setShowDisableAutoRenewalModal, DisableAutoRenewalModal } =
+    useDisableAutoRenewalModal({
+      domain: props,
+    });
+
   const copyLinkId = () => {
     if (!linkProps) {
       toast.error("Link ID not found");
@@ -330,47 +340,6 @@ function Menu({
       success: "Link ID copied!",
     });
   };
-
-  const updateAutoRenewal = async (autoRenew: boolean) => {
-    const response = await fetch(
-      `/api/domains/${domain}?workspaceId=${workspaceId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          autoRenew,
-        }),
-      },
-    );
-
-    if (response.ok) {
-      setAutoRenew(autoRenew);
-      await mutatePrefix("/api/domains");
-    }
-  };
-
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: !autoRenew
-      ? `Enable Auto-Renew for ${domain}`
-      : `Disable Auto-Renew for ${domain}`,
-    description: !autoRenew
-      ? "Are you sure you want to enable auto-renewal for this domain? This will ensure your domain is automatically renewed before it expires."
-      : "Are you sure you want to disable auto-renewal for this domain?",
-    confirmText: !autoRenew ? "Enable" : "Disable",
-    onConfirm: async () => {
-      if (!isDubProvisioned) {
-        return;
-      }
-
-      toast.promise(updateAutoRenewal(!autoRenew), {
-        loading: "Updating auto-renewal status...",
-        success: "Auto-renewal status updated!",
-        error: "Failed to update auto-renewal status",
-      });
-    },
-  });
 
   const activeDomainsCount = activeWorkspaceDomains?.length || 0;
 
@@ -383,7 +352,8 @@ function Menu({
       <ArchiveDomainModal />
       <DeleteDomainModal />
       <TransferDomainModal />
-      {confirmModal}
+      <EnableAutoRenewalModal />
+      <DisableAutoRenewalModal />
 
       <motion.div
         animate={{
@@ -487,7 +457,11 @@ function Menu({
                     variant="outline"
                     onClick={() => {
                       setOpenPopover(false);
-                      setShowConfirmModal(true);
+                      if (!autoRenew) {
+                        setShowEnableAutoRenewalModal(true);
+                      } else {
+                        setShowDisableAutoRenewalModal(true);
+                      }
                     }}
                     icon={
                       <Repeat
@@ -500,6 +474,7 @@ function Menu({
                     className="h-9 justify-start px-2 font-medium"
                   />
                 )}
+
                 {!primary && (
                   <Button
                     text="Set as Primary"
