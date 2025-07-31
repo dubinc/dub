@@ -163,7 +163,6 @@ export function RewardsUpgradeModal({
             period={isAnnual ? "yearly" : "monthly"}
             text={`Continue with ${plan.name}`}
             variant="primary"
-            openInNewTab
           />
           <Button
             text="Maybe later"

@@ -12,12 +12,10 @@ import { useState } from "react";
 export function UpgradePlanButton({
   plan,
   period,
-  openInNewTab = false,
   ...rest
 }: {
   plan: string;
   period: "monthly" | "yearly";
-  openInNewTab?: boolean;
 } & Partial<ButtonProps>) {
   const router = useRouter();
   const pathname = usePathname();
@@ -75,9 +73,7 @@ export function UpgradePlanButton({
               stripe?.redirectToCheckout({ sessionId });
             } else {
               const { url } = await res.json();
-              if (openInNewTab)
-                window.open(url, "_blank"); // May cause "pop-up blocked" due to the navigation being delayed from the click
-              else router.push(url);
+              router.push(url);
             }
           })
           .catch((err) => {
