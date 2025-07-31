@@ -115,6 +115,7 @@ export const recordFraudIfDetected = async ({
           data: {
             id: createId({ prefix: "fraud_" }),
             type: result.type,
+            details: result.reason,
             programId: program.id,
             partnerId: partner.id,
             customerId: customer.id,

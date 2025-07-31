@@ -75,6 +75,7 @@ export const FraudEventSchema = z.object({
     )
     .nullable(),
   type: z.nativeEnum(FraudEventType),
+  details: z.string().nullable(),
   status: z.nativeEnum(FraudEventStatus),
   user: UserSchema.nullable(),
   resolutionReason: z.string().nullable(),

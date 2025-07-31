@@ -18,6 +18,7 @@ model FraudEvent {
   linkId           String
   userId           String?
   type             FraudEventType
+  details          String?
   status           FraudEventStatus @default(pending)
   resolutionReason String?
   resolvedAt       DateTime?

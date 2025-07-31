@@ -6,6 +6,7 @@ import { isSelfReferral } from "./is-self-referral";
 type FraudEventResult =
   | {
       type: FraudEventType;
+      reason: string | null
     }
   | undefined;
 
@@ -28,7 +29,7 @@ export const detectFraudEvent = async ({
     ipAddress?: string | null;
   };
 }): Promise<FraudEventResult> => {
-  const { selfReferral } = await isSelfReferral({
+  const { selfReferral, reasons } = await isSelfReferral({
     partner,
     customer,
     click,
@@ -37,18 +38,21 @@ export const detectFraudEvent = async ({
   if (selfReferral) {
     return {
       type: FraudEventType.selfReferral,
+      reason: reasons.join(", "),
     };
   }
 
   if (isGoogleAdsClick(click.url)) {
     return {
       type: FraudEventType.googleAdsClick,
+      reason: null,
     };
   }
 
   if (customer.email && (await isDisposableEmail(customer.email))) {
     return {
       type: FraudEventType.disposableEmail,
+      reason: null,
     };
   }
 };
