@@ -103,20 +103,22 @@ function RewardSheetContent({
   const { handleSubmit, watch, getValues, setValue, setError } = form;
 
   const [
+    selectedEvent,
     amount,
     type,
     maxDuration,
+    modifiers,
     includedPartnerIds = [],
     excludedPartnerIds = [],
   ] = watch([
+    "event",
     "amount",
     "type",
     "maxDuration",
+    "modifiers",
     "includedPartnerIds",
     "excludedPartnerIds",
   ]);
-
-  const selectedEvent = watch("event");
 
   const { data: rewardPartners, loading: isLoadingRewardPartners } =
     useRewardPartners({
@@ -187,12 +189,12 @@ function RewardSheetContent({
 
   useEffect(() => {
     if (
-      getValues("modifiers")?.length > 0 &&
+      modifiers?.length > 0 &&
       !getPlanCapabilities(plan).canUseAdvancedRewardLogic
     ) {
       setShowAdvancedUpsell(true);
     }
-  }, [getValues("modifiers"), plan]);
+  }, [modifiers, plan]);
 
   const onSubmit = async (data: FormData) => {
     if (!workspaceId || !defaultProgramId || showAdvancedUpsell) {
