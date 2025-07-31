@@ -35,6 +35,16 @@ const titlesByPlans = {
   PRICE_YEAR_PLAN: "12-Month Plan",
 };
 
+const getPlanNameByChargePeriodDays = (chargePeriodDays: number) => {
+  if (chargePeriodDays === 365) {
+    return "PRICE_YEAR_PLAN";
+  }
+  if (chargePeriodDays === 84) {
+    return "PRICE_QUARTER_PLAN";
+  }
+  return "PRICE_MONTH_PLAN";
+};
+
 const getEmailTemplate = (prevPlan: string, newPlan: string) => {
   if (newPlan === "PRICE_MONTH_PLAN") {
     return CUSTOMER_IO_TEMPLATES.DOWNGRADE_TO_MONTHLY;
@@ -106,7 +116,10 @@ export const POST = withSession(
 
     console.log("sub data", subData.subscriptions[0]);
 
-    const prevPlan = subData.subscriptions[0].attributes.plan_name;
+    // TODO: better to use plan_name from attributes but attributes doesn't change after subscription update
+    // so need to remove getPlanNameByChargePeriodDays method if attributes will be reliable
+    // const prevPlan = subData.subscriptions[0].attributes.plan_name;
+    const prevPlan = getPlanNameByChargePeriodDays(subData.subscriptions[0].plan.chargePeriodDays);
 
     try {
       await paymentService.updateClientSubscription(
