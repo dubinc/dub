@@ -25,9 +25,10 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, Eye, Users } from "@dub/ui/icons";
+import { Dots, Eye } from "@dub/ui/icons";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { Command } from "cmdk";
+import { Flag } from "lucide-react";
 import { useState } from "react";
 import { useColumnVisibility } from "../partners/use-column-visibility";
 import { useFraudEventFilters } from "./use-fraud-event-filters";
@@ -235,7 +236,7 @@ export function FraudEventTable({ isValidating }: { isValidating: boolean }) {
           }
           cardContent={() => (
             <>
-              <Users className="size-4 text-neutral-700" />
+              <Flag className="size-4 text-neutral-700" />
               <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
             </>
           )}
