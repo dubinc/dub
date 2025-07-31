@@ -3,7 +3,12 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
-import { AlertCircleFill, CheckCircleFill, Lock } from "@/ui/shared/icons";
+import {
+  AlertCircleFill,
+  CheckCircleFill,
+  Lock,
+  Repeat,
+} from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   AndroidLogo,
@@ -27,7 +32,6 @@ import {
   Crown,
   Milestone,
   QrCode,
-  RefreshCw,
   TextCursorInput,
 } from "lucide-react";
 import posthog from "posthog-js";
@@ -616,7 +620,7 @@ const DOMAIN_OPTIONS: {
     id: "autoRenew",
     title: "Domain auto-renew",
     description: "Automatically renew your domain registration",
-    icon: RefreshCw,
+    icon: Repeat,
   },
   {
     id: "logo",

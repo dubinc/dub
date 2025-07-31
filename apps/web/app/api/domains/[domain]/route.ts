@@ -66,8 +66,6 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    console.log({ autoRenew });
-
     if (workspace.plan === "free") {
       if (
         logo ||

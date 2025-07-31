@@ -1,4 +1,5 @@
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -6,7 +7,7 @@ import {
   DomainVerificationStatusProps,
   LinkProps,
 } from "@/lib/types";
-import { CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
+import { CheckCircleFill, Delete, Repeat, ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
   CircleCheck,
@@ -39,6 +40,7 @@ import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
+import { useConfirmModal } from "../modals/confirm-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
@@ -273,16 +275,19 @@ function Menu({
   const isDubProvisioned = !!registeredDomain;
 
   const { isMobile } = useMediaQuery();
+  const { activeWorkspaceDomains } = useDomains();
+  const { role, id: workspaceId } = useWorkspace();
+  const [openPopover, setOpenPopover] = useState(false);
+  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
-  const { role } = useWorkspace();
+  const [autoRenew, setAutoRenew] = useState(
+    registeredDomain?.autoRenewDisabledAt === null,
+  );
+
   const permissionsError = clientAccessCheck({
     action: "domains.write",
     role,
   }).error;
-
-  const { activeWorkspaceDomains } = useDomains();
-
-  const [openPopover, setOpenPopover] = useState(false);
 
   const { setShowAddEditDomainModal, AddEditDomainModal } =
     useAddEditDomainModal({
@@ -316,8 +321,6 @@ function Menu({
     props: linkProps || DEFAULT_LINK_PROPS,
   });
 
-  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
-
   const copyLinkId = () => {
     if (!linkProps) {
       toast.error("Link ID not found");
@@ -327,6 +330,47 @@ function Menu({
       success: "Link ID copied!",
     });
   };
+
+  const updateAutoRenewal = async (autoRenew: boolean) => {
+    const response = await fetch(
+      `/api/domains/${domain}?workspaceId=${workspaceId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          autoRenew,
+        }),
+      },
+    );
+
+    if (response.ok) {
+      setAutoRenew(autoRenew);
+      await mutatePrefix("/api/domains");
+    }
+  };
+
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: !autoRenew
+      ? `Enable Auto-Renew for ${domain}`
+      : `Disable Auto-Renew for ${domain}`,
+    description: !autoRenew
+      ? "Are you sure you want to enable auto-renewal for this domain? This will ensure your domain is automatically renewed before it expires."
+      : "Are you sure you want to disable auto-renewal for this domain?",
+    confirmText: !autoRenew ? "Enable" : "Disable",
+    onConfirm: async () => {
+      if (!isDubProvisioned) {
+        return;
+      }
+
+      toast.promise(updateAutoRenewal(!autoRenew), {
+        loading: "Updating auto-renewal status...",
+        success: "Auto-renewal status updated!",
+        error: "Failed to update auto-renewal status",
+      });
+    },
+  });
 
   const activeDomainsCount = activeWorkspaceDomains?.length || 0;
 
@@ -339,6 +383,7 @@ function Menu({
       <ArchiveDomainModal />
       <DeleteDomainModal />
       <TransferDomainModal />
+      {confirmModal}
 
       <motion.div
         animate={{
@@ -433,6 +478,28 @@ function Menu({
                   icon={<PenWriting className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
                 />
+
+                {isDubProvisioned && (
+                  <Button
+                    text={
+                      !autoRenew ? "Enable Auto-Renew" : "Disable Auto-Renew"
+                    }
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      setShowConfirmModal(true);
+                    }}
+                    icon={
+                      <Repeat
+                        className={cn(
+                          "h-4 w-4",
+                          !autoRenew ? "text-green-600" : "text-red-600",
+                        )}
+                      />
+                    }
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
                 {!primary && (
                   <Button
                     text="Set as Primary"
