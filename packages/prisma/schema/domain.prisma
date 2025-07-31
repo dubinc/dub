@@ -32,7 +32,7 @@ model RegisteredDomain {
   domainId              String?   @unique
   invoiceId             String?
   autoRenewalDisabledAt DateTime?
-  renewalFee            Int       @default(0)
+  renewalFee            Int       @default(1200) // $12
   expiresAt             DateTime
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt

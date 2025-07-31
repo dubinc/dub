@@ -6,6 +6,7 @@ import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutFailed from "@dub/email/templates/partner-payout-failed";
 import { prisma } from "@dub/prisma";
+import { Invoice } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
@@ -13,25 +14,32 @@ import Stripe from "stripe";
 export async function chargeFailed(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Charge;
 
-  const {
-    amount,
-    transfer_group: invoiceId,
-    failure_message: failedReason,
-  } = charge;
+  const { transfer_group: invoiceId, failure_message: failedReason } = charge;
 
   if (!invoiceId) {
     console.log("No transfer group found, skipping...");
     return;
   }
 
-  await log({
-    message: `Partner payout failed for invoice ${invoiceId}.`,
-    type: "errors",
-    mention: true,
+  const invoice = await prisma.invoice.findUnique({
+    where: {
+      id: invoiceId,
+    },
+    select: {
+      id: true,
+      status: true,
+      type: true,
+      workspaceId: true,
+      amount: true,
+    },
   });
 
-  // Mark the invoice as failed
-  const invoice = await prisma.invoice.update({
+  if (!invoice) {
+    console.log(`Invoice with transfer group ${invoiceId} not found.`);
+    return;
+  }
+
+  await prisma.invoice.update({
     where: {
       id: invoiceId,
     },
@@ -41,10 +49,30 @@ export async function chargeFailed(event: Stripe.Event) {
     },
   });
 
+  if (invoice.type === "partnerPayout") {
+    await processPayoutInvoice({ invoice, charge });
+  } else if (invoice.type === "domainRenewal") {
+    await processRenewalInvoice({ invoice, charge });
+  }
+}
+
+async function processPayoutInvoice({
+  invoice,
+  charge,
+}: {
+  invoice: Pick<Invoice, "id" | "workspaceId" | "amount">;
+  charge: Stripe.Charge;
+}) {
+  await log({
+    message: `Partner payout failed for invoice ${invoice.id}.`,
+    type: "errors",
+    mention: true,
+  });
+
   // Mark the payouts as pending again
   await prisma.payout.updateMany({
     where: {
-      invoiceId,
+      invoiceId: invoice.id,
     },
     data: {
       status: "pending",
@@ -149,7 +177,7 @@ export async function chargeFailed(event: Stripe.Event) {
           name: workspace.programs[0].name,
         },
         payout: {
-          amount,
+          amount: charge.amount,
           ...(chargedFailureFee && {
             failureFee: PAYOUT_FAILURE_FEE_CENTS,
             cardLast4,
@@ -174,4 +202,16 @@ export async function chargeFailed(event: Stripe.Event) {
       );
     })(),
   );
+}
+
+async function processRenewalInvoice({
+  invoice,
+  charge,
+}: {
+  invoice: Pick<Invoice, "id">;
+  charge: Stripe.Charge;
+}) {
+  // TODO:
+  // Schedule another charge in 3 days (total 3 charges) using qstash
+  // Send email to the user
 }
