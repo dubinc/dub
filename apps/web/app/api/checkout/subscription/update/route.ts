@@ -76,16 +76,10 @@ export const POST = withSession(
 
     console.log("Update subscription");
     console.log("body", body);
-    console.log("paymentData", paymentData);
-    console.log("priceForPay", priceForPay);
-    console.log("chargePeriodDays", chargePeriodDays);
-
-    console.log("user", user);
 
     const subData = await paymentService.getClientSubscriptionDataByEmail({ email: user?.email || authUser?.email });
 
     console.log("sub data", subData.subscriptions[0]);
-    console.log("plan data", subData.subscriptions[0].plan);
 
     try {
       await paymentService.updateClientSubscription(
@@ -133,7 +127,6 @@ export const POST = withSession(
       const subDataAfterUpdate = await paymentService.getClientSubscriptionDataByEmail({ email: user?.email || authUser?.email });
 
       console.log("sub data after update", subDataAfterUpdate.subscriptions[0]);
-      console.log("plan data after update", subDataAfterUpdate.subscriptions[0].plan);
 
       await Promise.all([
         prisma.user.update({
