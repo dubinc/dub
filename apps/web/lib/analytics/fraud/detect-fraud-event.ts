@@ -9,7 +9,7 @@ type FraudEventResult =
     }
   | undefined;
 
-// Detect and log the fraud events (clicks, leads and sales)
+// Checking in the order of priority
 export const detectFraudEvent = async ({
   click,
   customer,
