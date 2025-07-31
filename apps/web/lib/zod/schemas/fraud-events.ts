@@ -1,13 +1,13 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import { FraudEventStatus, FraudEventType } from "@dub/prisma/client";
 import { z } from "zod";
+import { CommissionSchema } from "./commissions";
 import { CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
-import { CommissionSchema } from "./commissions";
 
 export const FRAUD_EVENT_TYPES = {
   selfReferral: {
@@ -66,10 +66,14 @@ export const FraudEventSchema = z.object({
     url: true,
     shortLink: true,
   }),
-  commissions: z.array(CommissionSchema.pick({
-    id: true,
-    earnings: true,
-  })).nullable(),
+  commissions: z
+    .array(
+      CommissionSchema.pick({
+        id: true,
+        earnings: true,
+      }),
+    )
+    .nullable(),
   type: z.nativeEnum(FraudEventType),
   status: z.nativeEnum(FraudEventStatus),
   user: UserSchema.nullable(),
@@ -87,6 +91,7 @@ export const getFraudEventsQuerySchema = z
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
     partnerId: z.string().optional(),
+    fraudEventId: z.string().optional(),
   })
   .merge(
     getPaginationQuerySchema({

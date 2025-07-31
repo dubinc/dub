@@ -14,8 +14,17 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { status, type, page, pageSize, start, end, interval, partnerId } =
-      getFraudEventsQuerySchema.parse(searchParams);
+    const {
+      status,
+      type,
+      page,
+      pageSize,
+      start,
+      end,
+      interval,
+      partnerId,
+      fraudEventId,
+    } = getFraudEventsQuerySchema.parse(searchParams);
 
     const { startDate, endDate } = getStartEndDates({
       interval,
@@ -25,6 +34,7 @@ export const GET = withWorkspace(
 
     const fraudEvents = await prisma.fraudEvent.findMany({
       where: {
+        ...(fraudEventId && { id: fraudEventId }),
         programId,
         ...(status && { status }),
         ...(type && { type }),

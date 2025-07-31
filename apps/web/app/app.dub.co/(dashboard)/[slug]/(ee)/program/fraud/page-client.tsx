@@ -9,49 +9,86 @@ import { FraudEventStats } from "./fraud-event-stats";
 import { FraudEventTable } from "./fraud-event-table";
 
 export function ProgramFraudRiskPageClient() {
+  const { fraudEvents } = useFraudEvents();
   const { queryParams, searchParams } = useRouterStuff();
 
   const [detailsSheetState, setDetailsSheetState] = useState<{
     open: boolean;
-    fraudEvent: FraudEvent | null;
-  }>({ open: false, fraudEvent: null });
+    fraudEventId: string | null;
+  }>({
+    open: false,
+    fraudEventId: null,
+  });
 
-  const { fraudEvents } = useFraudEvents();
+  const { currentFraudEvent, loading: isCurrentPartnerLoading } =
+    useCurrentFraudEvent({
+      fraudEvents,
+      fraudEventId: detailsSheetState.fraudEventId,
+    });
 
   useEffect(() => {
     const fraudEventId = searchParams.get("fraudEventId");
 
-    if (!fraudEvents || !fraudEventId) {
-      setDetailsSheetState({ open: false, fraudEvent: null });
-      return;
-    }
-
-    const fraudEvent = fraudEvents.find((f) => f.id === fraudEventId);
-
-    if (fraudEvent) {
-      setDetailsSheetState({ open: true, fraudEvent });
+    if (fraudEventId) {
+      setDetailsSheetState({ open: true, fraudEventId });
     } else {
-      setDetailsSheetState({ open: false, fraudEvent: null });
+      setDetailsSheetState({ open: false, fraudEventId: null });
       queryParams({ del: "fraudEventId", scroll: false });
     }
-  }, [searchParams, fraudEvents]);
+  }, [searchParams]);
 
   return (
     <>
-      {detailsSheetState.fraudEvent && (
+      {currentFraudEvent && (
         <RiskReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open: boolean) =>
             setDetailsSheetState((s) => ({ ...s, open }))
           }
-          fraudEvent={detailsSheetState.fraudEvent}
+          fraudEvent={currentFraudEvent}
         />
       )}
 
       <FraudEventStats />
       <div className="mt-6">
-        <FraudEventTable />
+        <FraudEventTable isValidating={isCurrentPartnerLoading} />
       </div>
     </>
   );
+}
+
+// Gets the current fraud event from the loaded fraudEvents array if available, or a separate fetch if not
+function useCurrentFraudEvent({
+  fraudEvents,
+  fraudEventId,
+}: {
+  fraudEvents?: FraudEvent[];
+  fraudEventId: string | null;
+}) {
+  let currentFraudEvent = fraudEventId
+    ? fraudEvents?.find(({ id }) => id === fraudEventId)
+    : null;
+
+  const shouldFetch = fraudEvents && fraudEventId && !currentFraudEvent;
+
+  const { fraudEvents: fetchedFraudEvents, loading } = useFraudEvents({
+    query: {
+      fraudEventId: shouldFetch ? fraudEventId : undefined,
+    },
+  });
+
+  console.log(fetchedFraudEvents);
+
+  if (
+    !currentFraudEvent &&
+    fetchedFraudEvents &&
+    fetchedFraudEvents.length > 0
+  ) {
+    currentFraudEvent = fetchedFraudEvents[0];
+  }
+
+  return {
+    currentFraudEvent,
+    loading,
+  };
 }

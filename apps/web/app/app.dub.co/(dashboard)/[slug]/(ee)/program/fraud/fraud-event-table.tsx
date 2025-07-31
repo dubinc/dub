@@ -32,7 +32,7 @@ import { useState } from "react";
 import { useColumnVisibility } from "../partners/use-column-visibility";
 import { useFraudEventFilters } from "./use-fraud-event-filters";
 
-export function FraudEventTable() {
+export function FraudEventTable({ isValidating }: { isValidating: boolean }) {
   const { slug } = useWorkspace();
   const { queryParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
