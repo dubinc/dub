@@ -61,6 +61,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
   const [localFileError, setLocalFileError] = useState<string>("");
   const fileItemRef = useRef<HTMLDivElement | null>(null);
   const hadFileBeforeRef = useRef<boolean>(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
 
@@ -72,8 +73,21 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
     setLocalFileError("");
   };
 
+  const handleFileRemoval = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    setFiles([]);
+    setIsUploading?.(false);
+    setLocalFileError("");
+  };
+
   const onUpload: NonNullable<FileUploadProps["onUpload"]> = useCallback(
     async (files: File[], { onProgress, onSuccess, onError }) => {
+      abortControllerRef.current = new AbortController();
+
       setIsUploading?.(true);
       try {
         await Promise.all(
@@ -81,7 +95,11 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
             try {
               onProgress(file, 0);
 
-              const result = await uploadFileWithProgress(file, onProgress);
+              const result = await uploadFileWithProgress(
+                file,
+                onProgress,
+                abortControllerRef.current?.signal,
+              );
 
               onSuccess(file);
 
@@ -100,6 +118,13 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
                 onFileIdReceived?.(fileId);
               }
             } catch (fileError) {
+              if (
+                fileError instanceof Error &&
+                fileError.name === "AbortError"
+              ) {
+                return;
+              }
+
               const error =
                 fileError instanceof Error
                   ? fileError
@@ -111,6 +136,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         );
       } finally {
         setIsUploading?.(false);
+        abortControllerRef.current = null;
       }
     },
     [homePageDemo, qrDataToCreate, setQrDataToCreate, onFileIdReceived],
@@ -175,6 +201,13 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
     }
 
     hadFileBeforeRef.current = hasFile;
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
   }, [files]);
 
   return (
@@ -258,13 +291,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
                 <FileUploadItemPreview />
                 <FileUploadItemMetadata />
                 <FileUploadItemDelete asChild>
-                  <Button
-                    variant="ghost"
-                    size="1"
-                    onClick={() => {
-                      setFiles([]);
-                    }}
-                  >
+                  <Button variant="ghost" size="1" onClick={handleFileRemoval}>
                     <X className="stroke-neutral-200" />
                   </Button>
                 </FileUploadItemDelete>

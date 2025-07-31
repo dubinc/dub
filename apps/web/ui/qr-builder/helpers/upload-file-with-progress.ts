@@ -1,12 +1,19 @@
 export const uploadFileWithProgress = (
   file: File,
   onProgress: (file: File, progress: number) => void,
+  signal?: AbortSignal,
 ) => {
   return new Promise<any>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
     const formData = new FormData();
     formData.append("file", file);
+
+    if (signal) {
+      signal.addEventListener("abort", () => {
+        xhr.abort();
+      });
+    }
 
     xhr.upload.addEventListener(
       "progress",
