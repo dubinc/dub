@@ -150,11 +150,11 @@ export const PATCH = withWorkspace(
 
     // Sync the autoRenew setting with the registered domain
     if (registeredDomain && autoRenew !== undefined) {
-      const { autoRenewDisabledAt } = registeredDomain;
+      const { autoRenewalDisabledAt } = registeredDomain;
 
       const shouldUpdate =
-        (autoRenew === false && autoRenewDisabledAt === null) ||
-        (autoRenew === true && autoRenewDisabledAt !== null);
+        (autoRenew === false && autoRenewalDisabledAt === null) ||
+        (autoRenew === true && autoRenewalDisabledAt !== null);
 
       if (shouldUpdate) {
         await prisma.registeredDomain.update({
@@ -162,7 +162,7 @@ export const PATCH = withWorkspace(
             domainId: domainId,
           },
           data: {
-            autoRenewDisabledAt: autoRenew ? null : new Date(),
+            autoRenewalDisabledAt: autoRenew ? null : new Date(),
           },
         });
 

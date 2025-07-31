@@ -134,7 +134,7 @@ export function AddEditDomainForm({
       return false;
     }
 
-    return props.registeredDomain.autoRenewDisabledAt !== null;
+    return props.registeredDomain.autoRenewalDisabledAt !== null;
   }, [props?.registeredDomain]);
 
   const {

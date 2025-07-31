@@ -26,19 +26,23 @@ model Domain {
 }
 
 model RegisteredDomain {
-  id                  String    @id @default(cuid())
-  slug                String
-  projectId           String
-  domainId            String?   @unique
-  autoRenewDisabledAt DateTime?
-  expiresAt           DateTime
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                    String    @id @default(cuid())
+  slug                  String
+  projectId             String
+  domainId              String?   @unique
+  invoiceId             String?
+  autoRenewalDisabledAt DateTime?
+  renewalFee            Int       @default(0)
+  expiresAt             DateTime
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  project Project @relation(fields: [projectId], references: [id])
-  domain  Domain? @relation(fields: [domainId], references: [id], onDelete: SetNull)
+  project Project  @relation(fields: [projectId], references: [id])
+  domain  Domain?  @relation(fields: [domainId], references: [id], onDelete: SetNull)
+  invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
   @@index(projectId)
+  @@index(invoiceId)
   @@index(expiresAt(sort: Asc))
 }
 

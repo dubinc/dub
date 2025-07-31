@@ -271,18 +271,22 @@ function Menu({
   };
   groupHover: boolean;
 }) {
-  const { primary, archived, slug: domain, registeredDomain } = props;
-  const isDubProvisioned = !!registeredDomain;
-
+  const { role } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { activeWorkspaceDomains } = useDomains();
-  const { role, id: workspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
-  const [autoRenew, setAutoRenew] = useState(
-    registeredDomain?.autoRenewDisabledAt === null,
-  );
+  const { primary, archived, slug: domain, registeredDomain } = props;
+  const isDubProvisioned = !!registeredDomain;
+
+  const autoRenew = useMemo(() => {
+    if (!registeredDomain) {
+      return false;
+    }
+
+    return registeredDomain.autoRenewalDisabledAt === null;
+  }, [registeredDomain]);
 
   const permissionsError = clientAccessCheck({
     action: "domains.write",

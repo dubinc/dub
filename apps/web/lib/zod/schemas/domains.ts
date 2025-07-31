@@ -9,7 +9,7 @@ import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const RegisteredDomainSchema = z.object({
   id: z.string().describe("The ID of the registered domain record."),
-  autoRenewDisabledAt: z
+  autoRenewalDisabledAt: z
     .date()
     .nullable()
     .describe("The date the domain auto-renew is disabled."),
