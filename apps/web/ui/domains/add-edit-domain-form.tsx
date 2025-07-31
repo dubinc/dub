@@ -360,105 +360,106 @@ export function AddEditDomainForm({
         <>
           <div className="h-0.5 w-full bg-neutral-200" />
           <div className="flex flex-col gap-y-6">
-            {DOMAIN_OPTIONS.map(
-              ({ id, title, description, icon: Icon, proFeature }) => {
-                const showOption = showOptionStates[id] || !!watch(id);
+            {DOMAIN_OPTIONS.filter(
+              ({ id }) => id !== "autoRenew" || isDubProvisioned,
+            ).map(({ id, title, description, icon: Icon, proFeature }) => {
+              const showOption =
+                showOptionStates[id] || !!watch(id as keyof FormData);
 
-                return (
-                  <div key={id}>
-                    <label className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
-                          <Icon className="size-5 text-neutral-500" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h2 className="text-sm font-medium text-neutral-900">
-                              {title}
-                            </h2>
-                            {proFeature && plan === "free" && (
-                              <Badge className="flex items-center space-x-1 bg-white">
-                                <Crown size={12} />
-                                <p className="uppercase">Pro</p>
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-neutral-500">
-                            {description}
-                          </p>
-                        </div>
+              return (
+                <div key={id}>
+                  <label className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
+                        <Icon className="size-5 text-neutral-500" />
                       </div>
-                      <Switch
-                        checked={showOption}
-                        fn={(checked) => {
-                          setShowOptionStates((prev) => ({
-                            ...prev,
-                            [id]: checked,
-                          }));
-                          if (!checked) {
-                            setValue(id, "", {
-                              shouldDirty: true,
-                            });
-                          }
-                        }}
-                        disabled={isSubmitting}
-                      />
-                    </label>
-                    <motion.div
-                      animate={{ height: showOption ? "auto" : 0 }}
-                      transition={{ duration: 0.1 }}
-                      initial={false}
-                      className="-m-1 overflow-hidden p-1"
-                      {...{ inert: showOption ? undefined : "" }}
-                    >
-                      <div className="relative mt-2 rounded-md shadow-sm">
-                        {id === "logo" ? (
-                          <div className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-neutral-300">
-                            {!isMobile && (
-                              <ShimmerDots className="pointer-events-none z-10 opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-sm font-medium text-neutral-900">
+                            {title}
+                          </h2>
+                          {proFeature && plan === "free" && (
+                            <Badge className="flex items-center space-x-1 bg-white">
+                              <Crown size={12} />
+                              <p className="uppercase">Pro</p>
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-neutral-500">
+                          {description}
+                        </p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={showOption}
+                      fn={(checked) => {
+                        setShowOptionStates((prev) => ({
+                          ...prev,
+                          [id]: checked,
+                        }));
+                        if (!checked && id !== "autoRenew") {
+                          setValue(id as keyof FormData, "", {
+                            shouldDirty: true,
+                          });
+                        }
+                      }}
+                      disabled={isSubmitting}
+                    />
+                  </label>
+                  <motion.div
+                    animate={{ height: showOption ? "auto" : 0 }}
+                    transition={{ duration: 0.1 }}
+                    initial={false}
+                    className="-m-1 overflow-hidden p-1"
+                    {...{ inert: showOption ? undefined : "" }}
+                  >
+                    <div className="relative mt-2 rounded-md shadow-sm">
+                      {id === "logo" ? (
+                        <div className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-neutral-300">
+                          {!isMobile && (
+                            <ShimmerDots className="pointer-events-none z-10 opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
+                          )}
+                          <Controller
+                            control={control}
+                            name="logo"
+                            render={({ field }) => (
+                              <FileUpload
+                                accept="images"
+                                className="h-24 rounded-md"
+                                iconClassName="size-5 text-neutral-700"
+                                variant="plain"
+                                imageSrc={field.value}
+                                readFile
+                                onChange={({ src }) => field.onChange(src)}
+                                maxFileSizeMB={2}
+                                targetResolution={{
+                                  width: 160,
+                                  height: 160,
+                                }}
+                                customPreview={
+                                  <QRCode
+                                    url="https://dub.co"
+                                    fgColor="#000"
+                                    logo={field.value || ""}
+                                    scale={0.6}
+                                  />
+                                }
+                              />
                             )}
-                            <Controller
-                              control={control}
-                              name="logo"
-                              render={({ field }) => (
-                                <FileUpload
-                                  accept="images"
-                                  className="h-24 rounded-md"
-                                  iconClassName="size-5 text-neutral-700"
-                                  variant="plain"
-                                  imageSrc={field.value}
-                                  readFile
-                                  onChange={({ src }) => field.onChange(src)}
-                                  maxFileSizeMB={2}
-                                  targetResolution={{
-                                    width: 160,
-                                    height: 160,
-                                  }}
-                                  customPreview={
-                                    <QRCode
-                                      url="https://dub.co"
-                                      fgColor="#000"
-                                      logo={field.value || ""}
-                                      scale={0.6}
-                                    />
-                                  }
-                                />
-                              )}
-                            />
-                          </div>
-                        ) : (
-                          <input
-                            {...register(id)}
-                            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                            placeholder="https://yourwebsite.com"
                           />
-                        )}
-                      </div>
-                    </motion.div>
-                  </div>
-                );
-              },
-            )}
+                        </div>
+                      ) : id !== "autoRenew" ? (
+                        <input
+                          {...register(id as keyof FormData)}
+                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                          placeholder="https://yourwebsite.com"
+                        />
+                      ) : null}
+                    </div>
+                  </motion.div>
+                </div>
+              );
+            })}
           </div>
 
           <div className="flex flex-col">
