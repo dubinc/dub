@@ -29,8 +29,8 @@ export const detectFraudEvent = async ({
   };
 }): Promise<FraudEventResult> => {
   const { selfReferral } = await isSelfReferral({
-    customer,
     partner,
+    customer,
     click,
   });
 
