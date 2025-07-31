@@ -1,0 +1,69 @@
+import { log } from "@dub/utils";
+import { stripe } from ".";
+
+export const createPaymentIntent = async ({
+  stripeId,
+  amount,
+  invoiceId,
+  description,
+  statementDescriptor,
+}: {
+  stripeId: string;
+  amount: number;
+  invoiceId: string;
+  description: string;
+  statementDescriptor: string;
+}) => {
+  const [cards, links] = await Promise.all([
+    stripe.paymentMethods.list({
+      customer: stripeId,
+      type: "card",
+    }),
+
+    stripe.paymentMethods.list({
+      customer: stripeId,
+      type: "link",
+    }),
+  ]);
+
+  if (cards.data.length === 0 && links.data.length === 0) {
+    console.error(`No valid payment methods found for customer ${stripeId}.`);
+    return;
+  }
+
+  const paymentMethod = cards.data[0] || links.data[0];
+
+  if (!paymentMethod) {
+    console.error(`No valid payment method found for customer ${stripeId}.`);
+    return;
+  }
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      customer: stripeId,
+      transfer_group: invoiceId,
+      payment_method_types: ["card", "link"],
+      payment_method: paymentMethod.id,
+      currency: "usd",
+      confirmation_method: "automatic",
+      confirm: true,
+      statement_descriptor: statementDescriptor,
+      description,
+    });
+
+    console.log(
+      `Payment intent ${paymentIntent.id} created for the invoice ${invoiceId}.`,
+    );
+
+    return paymentIntent;
+  } catch (error) {
+    console.error(error);
+
+    await log({
+      message: `Failed to create payment intent for the invoice ${invoiceId}.`,
+      type: "errors",
+      mention: true,
+    });
+  }
+};

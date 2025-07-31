@@ -1,3 +1,4 @@
+import { qstash } from "@/lib/cron";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   PAYOUT_FAILURE_FEE_CENTS,
@@ -7,7 +8,7 @@ import { sendEmail } from "@dub/email";
 import PartnerPayoutFailed from "@dub/email/templates/partner-payout-failed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
-import { log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
 
@@ -21,16 +22,9 @@ export async function chargeFailed(event: Stripe.Event) {
     return;
   }
 
-  const invoice = await prisma.invoice.findUnique({
+  let invoice = await prisma.invoice.findUnique({
     where: {
       id: invoiceId,
-    },
-    select: {
-      id: true,
-      status: true,
-      type: true,
-      workspaceId: true,
-      amount: true,
     },
   });
 
@@ -39,13 +33,16 @@ export async function chargeFailed(event: Stripe.Event) {
     return;
   }
 
-  await prisma.invoice.update({
+  invoice = await prisma.invoice.update({
     where: {
       id: invoiceId,
     },
     data: {
       status: "failed",
       failedReason,
+      failedAttempts: {
+        increment: 1,
+      },
     },
   });
 
@@ -208,10 +205,20 @@ async function processRenewalInvoice({
   invoice,
   charge,
 }: {
-  invoice: Pick<Invoice, "id">;
+  invoice: Pick<Invoice, "id" | "failedAttempts">;
   charge: Stripe.Charge;
 }) {
+  if (invoice.failedAttempts < 3) {
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/invoices/retry-failed`,
+      delay: 3 * 24 * 60 * 60, // 3 days in seconds
+      deduplicationId: `${invoice.id}-attempt-${invoice.failedAttempts + 1}`,
+      body: {
+        invoiceId: invoice.id,
+      },
+    });
+  }
+
   // TODO:
-  // Schedule another charge in 3 days (total 3 charges) using qstash
   // Send email to the user
 }
