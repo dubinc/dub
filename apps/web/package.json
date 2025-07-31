@@ -65,6 +65,7 @@
     "bcryptjs": "^2.4.3",
     "bottleneck": "^2.19.5",
     "buffer-crc32": "0.2.13",
+    "canvas-confetti": "^1.9.3",
     "cmdk": "^1.1.1",
     "concurrently": "^8.0.1",
     "date-fns": "^3.6.0",

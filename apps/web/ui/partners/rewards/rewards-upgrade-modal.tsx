@@ -96,7 +96,7 @@ export function RewardsUpgradeModal({
           </h2>
           <p className="text-content-subtle text-sm">
             When you upgrade to Advanced, you&rsquo;ll get access higher payout
-            limits, flexible reward logic, white-labeling support, and much
+            limits, advanced reward structures, white-labeling support, and
             more.
           </p>
         </div>
@@ -163,7 +163,6 @@ export function RewardsUpgradeModal({
             period={isAnnual ? "yearly" : "monthly"}
             text={`Continue with ${plan.name}`}
             variant="primary"
-            className=""
           />
           <Button
             text="Maybe later"

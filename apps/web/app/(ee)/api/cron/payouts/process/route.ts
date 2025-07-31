@@ -5,21 +5,22 @@ import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import z from "zod";
-import { confirmPayouts } from "./confirm-payouts";
+import { processPayouts } from "./process-payouts";
 import { splitPayouts } from "./split-payouts";
 
 export const dynamic = "force-dynamic";
 
-const confirmPayoutsSchema = z.object({
+const processPayoutsCronSchema = z.object({
   workspaceId: z.string(),
   userId: z.string(),
+  invoiceId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
   excludedPayoutIds: z.array(z.string()).optional(),
 });
 
-// POST /api/cron/payouts/confirm
-// This route is used to confirm payouts for a given invoice
+// POST /api/cron/payouts/process
+// This route is used to process payouts for a given invoice
 // we're intentionally offloading this to a cron job to avoid blocking the main thread
 export async function POST(req: Request) {
   try {
@@ -30,10 +31,11 @@ export async function POST(req: Request) {
     const {
       workspaceId,
       userId,
+      invoiceId,
       paymentMethodId,
       cutoffPeriod,
       excludedPayoutIds,
-    } = confirmPayoutsSchema.parse(JSON.parse(rawBody));
+    } = processPayoutsCronSchema.parse(JSON.parse(rawBody));
 
     const workspace = await prisma.project.findUniqueOrThrow({
       where: {
@@ -55,10 +57,11 @@ export async function POST(req: Request) {
       });
     }
 
-    await confirmPayouts({
+    await processPayouts({
       workspace,
       program,
       userId,
+      invoiceId,
       paymentMethodId,
       cutoffPeriod,
       excludedPayoutIds,
