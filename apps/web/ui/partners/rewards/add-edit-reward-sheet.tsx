@@ -31,7 +31,6 @@ import {
   SetStateAction,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -184,8 +183,19 @@ function RewardSheetContent({
     },
   );
 
+  const [showAdvancedUpsell, setShowAdvancedUpsell] = useState(false);
+
+  useEffect(() => {
+    if (
+      getValues("modifiers")?.length > 0 &&
+      !getPlanCapabilities(plan).canUseAdvancedRewardLogic
+    ) {
+      setShowAdvancedUpsell(true);
+    }
+  }, [getValues("modifiers"), plan]);
+
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !defaultProgramId) {
+    if (!workspaceId || !defaultProgramId || showAdvancedUpsell) {
       return;
     }
 
@@ -248,17 +258,6 @@ function RewardSheetContent({
 
   const { rewardsUpgradeModal, setShowRewardsUpgradeModal } =
     useRewardsUpgradeModal();
-
-  const showAdvancedUpsell = useMemo(() => {
-    if (
-      getValues("modifiers")?.length > 0 &&
-      !getPlanCapabilities(plan).canUseAdvancedRewardLogic
-    ) {
-      return true;
-    }
-
-    return false;
-  }, [getValues("modifiers"), plan]);
 
   return (
     <FormProvider {...form}>
