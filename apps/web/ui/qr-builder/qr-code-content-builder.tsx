@@ -19,6 +19,9 @@ interface IQRContentBuilderProps {
   validateFields: () => void;
   homePageDemo?: boolean;
   hideNameField?: boolean;
+  isEdit?: boolean;
+  isUploading?: boolean;
+  setIsUploading: (isUploading: boolean) => void;
 }
 
 export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
@@ -28,6 +31,9 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   validateFields,
   homePageDemo = false,
   hideNameField = false,
+  isEdit = false,
+  isUploading = false,
+  setIsUploading,
 }) => {
   const { isMobile } = useMediaQuery();
 
@@ -52,6 +58,10 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
             id={field.id}
             initFromPlaceholder={field.initFromPlaceholder}
             tooltip={field.tooltip}
+            homePageDemo={homePageDemo}
+            isEdit={isEdit}
+            isUploading={isUploading}
+            setIsUploading={setIsUploading}
             {...field}
           />
         </div>

@@ -18,10 +18,8 @@ export const QRTabs: FC<
 > = forwardRef(({ sessionId }, ref) => {
   const { AuthModal, showModal } = useAuthModal({ sessionId });
 
-  const [, setQrDataToCreate] = useLocalStorage<QRBuilderData | null>(
-    `qr-data-to-create`,
-    null,
-  );
+  const [qrDataToCreate, setQrDataToCreate] =
+    useLocalStorage<QRBuilderData | null>(`qr-data-to-create`, null);
 
   const { isMobile } = useMediaQuery();
 
@@ -52,7 +50,15 @@ export const QRTabs: FC<
   }, [isMobile]);
 
   const handleSaveQR = async (data: QRBuilderData) => {
-    setQrDataToCreate(data);
+    console.log("handleSaveQR qrDataToCreate", qrDataToCreate);
+    const existingData = JSON.parse(
+      localStorage.getItem("qr-data-to-create") || "null",
+    );
+
+    const merged = existingData ? { ...existingData, ...data } : data;
+
+    setQrDataToCreate(merged);
+
     showModal("signup");
   };
 

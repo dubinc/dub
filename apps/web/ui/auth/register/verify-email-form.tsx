@@ -3,7 +3,6 @@
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
 import { showMessage } from "@/ui/auth/helpers";
 import { MessageType } from "@/ui/modals/auth-modal.tsx";
-import { prepareRegistrationQrData } from "@/ui/qr-builder/helpers/process-qr-data.ts";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import {
   AnimatedSizeContainer,
@@ -42,7 +41,6 @@ export const VerifyEmailForm = ({
   const { email, password } = useRegisterContext();
   const [isInvalidCode, setIsInvalidCode] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
 
   const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
@@ -100,22 +98,11 @@ export const VerifyEmailForm = ({
   }
 
   const handleSubmit = async () => {
-    const processedQrDataToCreate = await prepareRegistrationQrData(
-      qrDataToCreate,
-      {
-        onUploadStart: () => setIsUploading(true),
-        onUploadEnd: () => setIsUploading(false),
-        onError: (errorMessage) => {
-          showMessage(errorMessage, "error", authModal, setAuthModalMessage);
-        },
-      },
-    );
-
     await executeAsync({
       email,
       password,
       code,
-      qrDataToCreate: processedQrDataToCreate,
+      qrDataToCreate,
     });
   };
 
@@ -172,16 +159,10 @@ export const VerifyEmailForm = ({
 
             <Button
               className="border-border-500 mt-8"
-              text={
-                isUploading
-                  ? "Uploading file..."
-                  : isPending
-                    ? "Verifying..."
-                    : "Continue"
-              }
+              text={isPending ? "Verifying..." : "Continue"}
               type="submit"
-              loading={isPending || isRedirecting || isUploading}
-              disabled={!code || code.length < 6 || isUploading}
+              loading={isPending || isRedirecting}
+              disabled={!code || code.length < 6}
             />
           </div>
         </form>

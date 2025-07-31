@@ -15,7 +15,7 @@ export type QRBuilderData = {
   styles: Options;
   frameOptions: FrameOptions;
   qrType: EQRType;
-  files: File[];
+  fileId?: string;
 };
 
 export type FileProps = File;
@@ -29,7 +29,7 @@ export type QrStorageData = QRProps & {
 export type QRPartialUpdateData = {
   title?: string;
   data?: string;
-  files?: File[];
+  fileId?: string;
 };
 
 export type QRUpdateResult = {

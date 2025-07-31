@@ -27,7 +27,6 @@ import {
   LINKED_QR_TYPES,
   QR_TYPES,
 } from "./constants/get-qr-config.ts";
-import { getFiles, setFiles } from "./helpers/file-store.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
 
 interface IQRBuilderProps {
@@ -96,6 +95,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         qrBuilderButtonsWrapperRef,
         0.6,
       );
+      const [isUploading, setIsUploading] = useState<boolean>(false);
 
       // ===== EVENT HANDLERS =====
       const handleScroll = () => {
@@ -132,20 +132,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 ),
           );
 
-          let files: File[] | null = null;
-          switch (qrType) {
-            case EQRType.PDF:
-              files = (inputValues.filesPDF as File[]) || null;
-              break;
-            case EQRType.IMAGE:
-              files = (inputValues.filesImage as File[]) || null;
-              break;
-            case EQRType.VIDEO:
-              files = (inputValues.filesVideo as File[]) || null;
-              break;
-          }
-
-          setFiles(files);
           handleScroll();
         },
         [setData],
@@ -202,8 +188,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         const title =
           (formValues[qrNameFieldId] as string) || props?.title || "QR Code";
 
-        const files = getFiles() as File[];
-
         handleSaveQR?.({
           title,
           styles: options,
@@ -214,9 +198,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
             textColor: frameTextColor,
           },
           qrType: selectedQRType,
-          files: files || [],
-        }).then(() => {
-          // setFiles(null);
+          fileId: formValues["fileId"] as string,
         });
       };
 
@@ -360,6 +342,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                             isHiddenNetwork={isHiddenNetwork}
                             onHiddenNetworkChange={handleSetIsHiddenNetwork}
                             validateFields={handleValidationAndContentSubmit}
+                            isUploading={isUploading}
+                            setIsUploading={setIsUploading}
                             homePageDemo
                           />
                         </FormProvider>
@@ -402,7 +386,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           onBack={handleBack}
                           onContinue={handleContinue}
                           isEdit={isEdit}
-                          isProcessing={isProcessing}
+                          isProcessing={isProcessing || isUploading}
                           homePageDemo={homepageDemo}
                         />
                       </div>

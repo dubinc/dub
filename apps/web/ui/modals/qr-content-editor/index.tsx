@@ -1,7 +1,6 @@
 "use client";
 
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { setFiles } from "@/ui/qr-builder/helpers";
 import { convertQrStorageDataToBuilderWithPartialUpdate } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
@@ -127,19 +126,10 @@ export function QRContentEditorModal({
         return;
       }
 
-      const files = [
-        ...(formData.filesImage ? (formData.filesImage as File[]) : []),
-        ...(formData.filesPDF ? (formData.filesPDF as File[]) : []),
-        ...(formData.filesVideo ? (formData.filesVideo as File[]) : []),
-      ];
-
-      // We need to update global files
-      setFiles(files);
-
       const partialUpdate: QRPartialUpdateData = {
         title: formData.qrName as string,
         data: qrDataString,
-        files: files.length > 0 ? files : undefined,
+        fileId: formData.fileId as string,
       };
 
       const qrBuilderData = convertQrStorageDataToBuilderWithPartialUpdate(
@@ -230,7 +220,6 @@ export function QRContentEditorModal({
           <div className="px-6 pb-6">
             <FormProvider {...methods}>
               {/* QR Content Builder */}
-
               <QRCodeContentBuilder
                 qrType={selectedQRType}
                 isHiddenNetwork={isHiddenNetwork}
@@ -238,6 +227,7 @@ export function QRContentEditorModal({
                 validateFields={validateFields}
                 homePageDemo
                 hideNameField
+                isEdit
               />
 
               {/* Actions */}

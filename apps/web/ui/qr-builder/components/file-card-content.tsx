@@ -5,12 +5,16 @@ import {
   FileUploadItemDelete,
   FileUploadItemMetadata,
   FileUploadItemPreview,
+  FileUploadItemProgress,
   FileUploadList,
   FileUploadTrigger,
 } from "@/ui/qr-builder/components/file-upload.tsx";
 import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
+import { DEFAULT_QR_BUILDER_DATA } from "@/ui/qr-builder/constants/customization/qr-builder-data.ts";
 import { EAcceptedFileType } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { getMaxSizeLabel } from "@/ui/qr-builder/helpers/get-max-size-label.ts";
+import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
+import { FileUploadProps, useLocalStorage } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { Button, Flex } from "@radix-ui/themes";
 import { CloudUpload, Upload, X } from "lucide-react";
@@ -18,10 +22,12 @@ import {
   Dispatch,
   FC,
   SetStateAction,
+  useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
+import { uploadFileWithProgress } from "../helpers/upload-file-with-progress";
 
 interface IFileCardContentProps {
   files: File[];
@@ -31,6 +37,11 @@ interface IFileCardContentProps {
   fileError: string;
   title?: string;
   isLogo?: boolean;
+  homePageDemo?: boolean;
+  onFileIdReceived?: (fileId: string) => void;
+  isEdit?: boolean;
+  isUploading?: boolean;
+  setIsUploading?: Dispatch<SetStateAction<boolean>>;
 }
 
 export const FileCardContent: FC<IFileCardContentProps> = ({
@@ -41,10 +52,17 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
   fileError,
   title,
   isLogo = false,
+  homePageDemo = false,
+  onFileIdReceived,
+  isEdit = false,
+  isUploading = false,
+  setIsUploading,
 }) => {
   const [localFileError, setLocalFileError] = useState<string>("");
   const fileItemRef = useRef<HTMLDivElement | null>(null);
   const hadFileBeforeRef = useRef<boolean>(false);
+  const [qrDataToCreate, setQrDataToCreate] =
+    useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
 
   const onFileReject = (file: File, message: string) => {
     setLocalFileError(message);
@@ -53,6 +71,50 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
   const onFileAccept = (file: File) => {
     setLocalFileError("");
   };
+
+  const onUpload: NonNullable<FileUploadProps["onUpload"]> = useCallback(
+    async (files: File[], { onProgress, onSuccess, onError }) => {
+      setIsUploading?.(true);
+      try {
+        await Promise.all(
+          files.map(async (file: File) => {
+            try {
+              onProgress(file, 0);
+
+              const result = await uploadFileWithProgress(file, onProgress);
+
+              onSuccess(file);
+
+              if (result?.file?.id) {
+                const fileId = result.file.id;
+
+                if (homePageDemo) {
+                  const updatedData: QRBuilderData = {
+                    ...(qrDataToCreate || DEFAULT_QR_BUILDER_DATA),
+                    fileId,
+                  };
+
+                  setQrDataToCreate(updatedData);
+                }
+
+                onFileIdReceived?.(fileId);
+              }
+            } catch (fileError) {
+              const error =
+                fileError instanceof Error
+                  ? fileError
+                  : new Error("Upload failed");
+              onError(file, error);
+              setLocalFileError(error.message);
+            }
+          }),
+        );
+      } finally {
+        setIsUploading?.(false);
+      }
+    },
+    [homePageDemo, qrDataToCreate, setQrDataToCreate, onFileIdReceived],
+  );
 
   const scrollToFileItem = () => {
     setTimeout(() => {
@@ -134,7 +196,9 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         onValueChange={setFiles}
         onFileAccept={onFileAccept}
         onFileReject={onFileReject}
+        onUpload={onUpload}
         accept={acceptedFileType}
+        disabled={isUploading}
       >
         <FileUploadDropzone
           className={cn("border-secondary-100", {
@@ -186,14 +250,26 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
               ref={(el) => {
                 fileItemRef.current = el;
               }}
+              className={cn("", {
+                "flex-col": isEdit,
+              })}
             >
-              <FileUploadItemPreview />
-              <FileUploadItemMetadata />
-              <FileUploadItemDelete asChild>
-                <Button variant="ghost" size="1">
-                  <X className="stroke-neutral-200" />
-                </Button>
-              </FileUploadItemDelete>
+              <div className="flex w-full items-center gap-2">
+                <FileUploadItemPreview />
+                <FileUploadItemMetadata />
+                <FileUploadItemDelete asChild>
+                  <Button
+                    variant="ghost"
+                    size="1"
+                    onClick={() => {
+                      setFiles([]);
+                    }}
+                  >
+                    <X className="stroke-neutral-200" />
+                  </Button>
+                </FileUploadItemDelete>
+              </div>
+              <FileUploadItemProgress />
             </FileUploadItem>
           ))}
         </FileUploadList>

@@ -10,7 +10,14 @@ import { Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
 import Cookies from "js-cookie";
-import { FC, ReactNode, useEffect, useState } from "react";
+import {
+  Dispatch,
+  FC,
+  ReactNode,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import PhoneInput from "react-phone-number-input";
 import { Country } from "react-phone-number-input/input";
@@ -24,11 +31,14 @@ interface IInputWithLabelProps {
   value?: string;
   setValue?: (value: string) => void;
   errorMessage?: string;
-  minimalFlow?: boolean;
   initFromPlaceholder?: boolean;
   tooltip?: string;
   acceptedFileType?: EAcceptedFileType;
   maxFileSize?: number;
+  homePageDemo?: boolean;
+  isEdit?: boolean;
+  isUploading?: boolean;
+  setIsUploading?: Dispatch<SetStateAction<boolean>>;
 }
 
 export const InputWithLabel: FC<IInputWithLabelProps> = ({
@@ -39,11 +49,14 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
   value = "",
   setValue,
   errorMessage,
-  minimalFlow = false,
   initFromPlaceholder = false,
   tooltip = "",
   acceptedFileType,
   maxFileSize,
+  homePageDemo = false,
+  isEdit = false,
+  isUploading,
+  setIsUploading,
   ...props
 }) => {
   const {
@@ -78,12 +91,30 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
             title={label}
             files={value}
             setFiles={(files) => {
-              onChange(files);
+              if (!Array.isArray(files)) {
+                onChange(files);
+                trigger(id);
+                return;
+              }
+
+              const filesWithProgressStatus = files.map((file) => {
+                return Object.assign(file, {
+                  uploadStatus: "success",
+                  uploadProgress: 100,
+                });
+              });
+
+              onChange(filesWithProgressStatus);
               trigger(id);
             }}
             acceptedFileType={acceptedFileType}
             maxFileSize={maxFileSize}
             fileError={error?.message || ""}
+            homePageDemo={homePageDemo}
+            onFileIdReceived={(fileId) => setFormValue("fileId", fileId)}
+            isEdit={isEdit}
+            isUploading={isUploading}
+            setIsUploading={setIsUploading}
           />
         )}
       />

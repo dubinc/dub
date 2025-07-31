@@ -134,10 +134,18 @@ function createStore(
         for (const file of action.files) {
           const existingState = files.get(file);
           if (!existingState) {
+            const customFile = file as File & {
+              uploadStatus: "success";
+              uploadProgress: number;
+            };
+            const isAlreadyUploaded =
+              customFile.uploadStatus === "success" ||
+              customFile.uploadProgress === 100;
+
             files.set(file, {
               file,
-              progress: 0,
-              status: "idle",
+              progress: isAlreadyUploaded ? 100 : 0,
+              status: isAlreadyUploaded ? "success" : "idle",
             });
           }
         }
@@ -254,13 +262,14 @@ function useStore<T>(selector: (state: StoreState) => T): T {
 
   const getSnapshot = React.useCallback(() => {
     const state = store.getState();
+    const nextValue = selector(state);
     const prevValue = lastValueRef.current;
 
-    if (prevValue && prevValue.state === state) {
+    // Fix progress bar updates: detect changes in selected values, not state object
+    if (prevValue && prevValue.value === nextValue) {
       return prevValue.value;
     }
 
-    const nextValue = selector(state);
     lastValueRef.current = { value: nextValue, state };
     return nextValue;
   }, [store, selector, lastValueRef]);
