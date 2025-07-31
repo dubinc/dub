@@ -95,7 +95,7 @@ export const getFraudEventsQuerySchema = z
   })
   .merge(
     getPaginationQuerySchema({
-      pageSize: 50,
+      pageSize: 100,
     }),
   );
 
