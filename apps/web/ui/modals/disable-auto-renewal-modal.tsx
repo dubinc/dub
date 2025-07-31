@@ -3,6 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Button, Modal } from "@dub/ui";
 import { Globe } from "@dub/ui/icons";
+import { formatDate } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -68,10 +69,16 @@ function DisableAutoRenewalModal({
 
       <div className="bg-neutral-50 p-4 sm:p-6">
         <p className="text-sm text-neutral-800">
-          This domain will not renew automatically each year.
+          By disabling auto-renewal, your domain <strong>{domain.slug}</strong>{" "}
+          will expire on{" "}
+          <strong>{formatDate(domain.registeredDomain?.expiresAt!)}</strong>.
+          <br />
+          <br />
+          Once your domain expires, there is no guarantee that you’ll be able to
+          get it back. To avoid that, turn auto-renewal back on.
         </p>
 
-        <div className="scrollbar-hide mt-4 flex max-h-[190px] flex-col gap-2 overflow-y-auto p-2">
+        <div className="scrollbar-hide mt-4 flex max-h-[190px] flex-col gap-2 overflow-y-auto">
           <div className="flex items-center gap-4 rounded-xl border border-neutral-200 bg-white p-3">
             <div className="hidden rounded-full border border-neutral-200 sm:block">
               <div className="rounded-full border border-white bg-gradient-to-t from-neutral-100 p-1 md:p-2">
