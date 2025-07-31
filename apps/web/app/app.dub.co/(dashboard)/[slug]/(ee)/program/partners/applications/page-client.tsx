@@ -1,8 +1,8 @@
 "use client";
 
 import { bulkApprovePartnersAction } from "@/lib/actions/partners/bulk-approve-partners";
+import { bulkRejectPartnersAction } from "@/lib/actions/partners/bulk-reject-partners";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
-import { rejectPartnersBulkAction } from "@/lib/actions/partners/reject-partners-bulk";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -88,7 +88,7 @@ export function ProgramPartnersApplicationsPageClient() {
     });
 
   const { executeAsync: rejectPartners, isPending: isRejectingPartners } =
-    useAction(rejectPartnersBulkAction, {
+    useAction(bulkRejectPartnersAction, {
       onError: ({ error }) => {
         toast.error(error.serverError);
       },
