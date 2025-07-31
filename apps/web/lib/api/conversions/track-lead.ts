@@ -263,29 +263,31 @@ export const trackLead = async ({
             },
           });
 
-          await recordFraudIfDetected({
-            program: {
-              id: link.programId,
-            },
-            partner: {
-              id: link.partnerId,
-            },
-            link: {
-              id: link.id,
-            },
-            customer: {
-              id: customer.id,
-              name: customer.name || "",
-              email: customer.email,
-            },
-            click: {
-              url: clickData.url,
-              ip: clickData.ip,
-            },
-            commission: {
-              id: commission?.id,
-            },
-          });
+          waitUntil(
+            recordFraudIfDetected({
+              program: {
+                id: link.programId,
+              },
+              partner: {
+                id: link.partnerId,
+              },
+              link: {
+                id: link.id,
+              },
+              customer: {
+                id: customer.id,
+                name: customer.name || "",
+                email: customer.email,
+              },
+              click: {
+                url: clickData.url,
+                ip: clickData.ip,
+              },
+              commission: {
+                id: commission?.id,
+              },
+            }),
+          );
         }
 
         if (

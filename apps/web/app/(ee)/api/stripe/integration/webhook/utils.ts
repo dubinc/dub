@@ -115,29 +115,31 @@ export async function createNewCustomer(event: Stripe.Event) {
       },
     });
 
-    await recordFraudIfDetected({
-      program: {
-        id: link.programId,
-      },
-      partner: {
-        id: link.partnerId,
-      },
-      link: {
-        id: link.id,
-      },
-      customer: {
-        id: customer.id,
-        name: customer.name || "",
-        email: customer.email,
-      },
-      click: {
-        url: leadData.url,
-        ip: leadData.ip,
-      },
-      commission: {
-        id: commission?.id,
-      },
-    });
+    waitUntil(
+      recordFraudIfDetected({
+        program: {
+          id: link.programId,
+        },
+        partner: {
+          id: link.partnerId,
+        },
+        link: {
+          id: link.id,
+        },
+        customer: {
+          id: customer.id,
+          name: customer.name || "",
+          email: customer.email,
+        },
+        click: {
+          url: leadData.url,
+          ip: leadData.ip,
+        },
+        commission: {
+          id: commission?.id,
+        },
+      }),
+    );
   }
 
   waitUntil(

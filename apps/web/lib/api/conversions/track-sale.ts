@@ -230,36 +230,39 @@ export const trackSale = async ({
           },
         });
 
-        if (commission) {
-          await notifyPartnerSale({
-            link,
-            commission,
-          });
-        }
+        waitUntil(
+          Promise.allSettled([
+            commission &&
+              notifyPartnerSale({
+                link,
+                commission,
+              }),
 
-        await recordFraudIfDetected({
-          program: {
-            id: link.programId,
-          },
-          partner: {
-            id: link.partnerId,
-          },
-          link: {
-            id: link.id,
-          },
-          customer: {
-            id: customer.id,
-            name: customer.name || "",
-            email: customer.email,
-          },
-          click: {
-            url: clickData.url,
-            ip: clickData.ip,
-          },
-          commission: {
-            id: commission?.id,
-          },
-        });
+            recordFraudIfDetected({
+              program: {
+                id: link.programId,
+              },
+              partner: {
+                id: link.partnerId,
+              },
+              link: {
+                id: link.id,
+              },
+              customer: {
+                id: customer.id,
+                name: customer.name || "",
+                email: customer.email,
+              },
+              click: {
+                url: clickData.url,
+                ip: clickData.ip,
+              },
+              commission: {
+                id: commission?.id,
+              },
+            }),
+          ]),
+        );
       }
 
       // Send workspace webhook
