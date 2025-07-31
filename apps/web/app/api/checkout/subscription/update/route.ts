@@ -1,5 +1,7 @@
 import { withSession } from "@/lib/auth";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
 import { prisma } from "@dub/prisma";
+import { format } from "date-fns";
 import {
   IUpdateSubscriptionBody,
   IUpdateSubscriptionRes,
@@ -26,6 +28,27 @@ const allowedPaymentPlans: Partial<TPaymentPlan>[] = [
   "PRICE_QUARTER_PLAN",
   "PRICE_YEAR_PLAN",
 ];
+
+const titlesByPlans = {
+  PRICE_MONTH_PLAN: "Monthly Plan",
+  PRICE_QUARTER_PLAN: "3-Month Plan",
+  PRICE_YEAR_PLAN: "12-Month Plan",
+};
+
+const getEmailTemplate = (prevPlan: string, newPlan: string) => {
+  if (newPlan === "PRICE_MONTH_PLAN") {
+    return CUSTOMER_IO_TEMPLATES.DOWNGRADE_TO_MONTHLY;
+  }
+  if (prevPlan === "PRICE_YEAR_PLAN" && newPlan === "PRICE_QUARTER_PLAN") {
+    return CUSTOMER_IO_TEMPLATES.DOWNGRADE_TO_3_MONTH;
+  }
+  if (prevPlan === "PRICE_MONTH_PLAN") {
+    return CUSTOMER_IO_TEMPLATES.UPGRADE_FROM_MONTHLY;
+  }
+  if (prevPlan === "PRICE_QUARTER_PLAN" && newPlan === "PRICE_YEAR_PLAN") {
+    return CUSTOMER_IO_TEMPLATES.UPGRADE_FROM_3_MONTH;
+  }
+};
 
 // update user subscription
 export const POST = withSession(
@@ -74,12 +97,16 @@ export const POST = withSession(
       user: user!,
     });
 
+    const email = user?.email || authUser?.email;
+
     console.log("Update subscription");
     console.log("body", body);
 
     const subData = await paymentService.getClientSubscriptionDataByEmail({ email: user?.email || authUser?.email });
 
     console.log("sub data", subData.subscriptions[0]);
+
+    const prevPlan = subData.subscriptions[0].attributes.plan_name;
 
     try {
       await paymentService.updateClientSubscription(
@@ -101,7 +128,7 @@ export const POST = withSession(
             ...(paymentData?.sessions && { ...paymentData.sessions }),
 
             //**** for analytics ****//
-            email: user?.email || null,
+            email: email,
             flow_type: "internal",
             locale: "en",
             mixpanel_user_id:
@@ -124,7 +151,8 @@ export const POST = withSession(
         },
       );
 
-      const subDataAfterUpdate = await paymentService.getClientSubscriptionDataByEmail({ email: user?.email || authUser?.email });
+      const subDataAfterUpdate = await paymentService.getClientSubscriptionDataByEmail({ email: email });
+      const newSubData = subDataAfterUpdate.subscriptions[0];
 
       console.log("sub data after update", subDataAfterUpdate.subscriptions[0]);
 
@@ -148,6 +176,20 @@ export const POST = withSession(
             ...user?.paymentInfo,
             subscriptionPlanCode: body.paymentPlan,
           },
+        }),
+        sendEmail({
+          email,
+          subject: "Sub upgrade",
+          template: getEmailTemplate(prevPlan, body.paymentPlan),
+          messageData: {
+            amount: (newSubData.plan.price / 100).toFixed(2) + ' ' + newSubData.plan.currencyCode,
+            next_billing_date: format(
+              new Date(newSubData.nextBillingDate),
+              "yyyy-MM-dd",
+            ),
+            plan: titlesByPlans[body.paymentPlan],
+          },
+          customerId: user?.id,
         }),
       ]);
 

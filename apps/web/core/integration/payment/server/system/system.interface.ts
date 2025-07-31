@@ -175,6 +175,7 @@ export interface IGetSystemUserDataRes {
         hostname: string;
         application: string;
         subscriptionType: string;
+        plan_name: string;
       };
       cancelReason: string;
     },
