@@ -10,7 +10,6 @@ import { FraudEventStatusBadges } from "@/ui/partners/fraud-event-status-badges"
 import { useMarkFraudEventBannedModal } from "@/ui/partners/mark-fraud-event-banned-modal";
 import { useMarkFraudEventSafeModal } from "@/ui/partners/mark-fraud-event-safe-modal";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { RiskReviewSheet } from "@/ui/partners/risk-review-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -29,20 +28,15 @@ import {
 import { Dots, Eye, Users } from "@dub/ui/icons";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { Command } from "cmdk";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useColumnVisibility } from "../partners/use-column-visibility";
 import { useFraudEventFilters } from "./use-fraud-event-filters";
 
 export function FraudEventTable() {
   const { slug } = useWorkspace();
+  const { queryParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
-  const { queryParams, searchParams } = useRouterStuff();
   const { columnVisibility, setColumnVisibility } = useColumnVisibility();
-
-  const [detailsSheetState, setDetailsSheetState] = useState<{
-    open: boolean;
-    fraudEvent: FraudEvent | null;
-  }>({ open: false, fraudEvent: null });
 
   const {
     fraudEventsCount,
@@ -64,24 +58,6 @@ export function FraudEventTable() {
     onRemoveAll,
     isFiltered,
   } = useFraudEventFilters({});
-
-  useEffect(() => {
-    const fraudEventId = searchParams.get("fraudEventId");
-
-    if (!fraudEvents || !fraudEventId) {
-      setDetailsSheetState({ open: false, fraudEvent: null });
-      return;
-    }
-
-    const fraudEvent = fraudEvents.find((f) => f.id === fraudEventId);
-
-    if (fraudEvent) {
-      setDetailsSheetState({ open: true, fraudEvent });
-    } else {
-      setDetailsSheetState({ open: false, fraudEvent: null });
-      queryParams({ del: "fraudEventId", scroll: false });
-    }
-  }, [searchParams, fraudEvents]);
 
   const { table, ...tableProps } = useTable({
     data: fraudEvents || [],
@@ -216,16 +192,6 @@ export function FraudEventTable() {
 
   return (
     <div className="flex flex-col gap-6">
-      {detailsSheetState.fraudEvent && (
-        <RiskReviewSheet
-          isOpen={detailsSheetState.open}
-          setIsOpen={(open: boolean) =>
-            setDetailsSheetState((s) => ({ ...s, open }))
-          }
-          fraudEvent={detailsSheetState.fraudEvent}
-        />
-      )}
-
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <Filter.Select
@@ -280,7 +246,7 @@ export function FraudEventTable() {
 }
 
 function RowMenuButton({ fraudEvent }: { fraudEvent: FraudEvent }) {
-  const { queryParams, searchParams } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
   const [isOpen, setIsOpen] = useState(false);
 
   const {

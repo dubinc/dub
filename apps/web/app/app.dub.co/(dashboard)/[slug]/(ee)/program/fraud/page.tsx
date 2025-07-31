@@ -1,7 +1,6 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { FraudEventStats } from "./fraud-event-stats";
-import { FraudEventTable } from "./fraud-event-table";
+import { ProgramFraudRiskPageClient } from "./page-client";
 
 export default function ProgramFraudRiskPage() {
   return (
@@ -14,10 +13,7 @@ export default function ProgramFraudRiskPage() {
       }}
     >
       <PageWidthWrapper>
-        <FraudEventStats />
-        <div className="mt-6">
-          <FraudEventTable />
-        </div>
+        <ProgramFraudRiskPageClient />
       </PageWidthWrapper>
     </PageContent>
   );
