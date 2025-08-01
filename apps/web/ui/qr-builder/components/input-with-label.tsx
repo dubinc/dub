@@ -37,8 +37,10 @@ interface IInputWithLabelProps {
   maxFileSize?: number;
   homePageDemo?: boolean;
   isEdit?: boolean;
-  isUploading?: boolean;
-  setIsUploading?: Dispatch<SetStateAction<boolean>>;
+  isFileUploading?: boolean;
+  setIsFileUploading?: Dispatch<SetStateAction<boolean>>;
+  isFileProcessing?: boolean;
+  setIsFileProcessing?: Dispatch<SetStateAction<boolean>>;
 }
 
 export const InputWithLabel: FC<IInputWithLabelProps> = ({
@@ -55,8 +57,10 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
   maxFileSize,
   homePageDemo = false,
   isEdit = false,
-  isUploading,
-  setIsUploading,
+  isFileUploading,
+  setIsFileUploading,
+  isFileProcessing,
+  setIsFileProcessing,
   ...props
 }) => {
   const {
@@ -113,8 +117,10 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
             homePageDemo={homePageDemo}
             onFileIdReceived={(fileId) => setFormValue("fileId", fileId)}
             isEdit={isEdit}
-            isUploading={isUploading}
-            setIsUploading={setIsUploading}
+            isFileUploading={isFileUploading}
+            setIsFileUploading={setIsFileUploading}
+            isFileProcessing={isFileProcessing}
+            setIsFileProcessing={setIsFileProcessing}
           />
         )}
       />

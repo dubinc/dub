@@ -4,7 +4,7 @@ import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex, Text } from "@radix-ui/themes";
 import { Info } from "lucide-react";
-import { FC, useEffect } from "react";
+import { Dispatch, FC, SetStateAction, useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { CheckboxWithLabel } from "./components/checkbox-with-label.tsx";
 import { InputWithLabel } from "./components/input-with-label.tsx";
@@ -20,8 +20,10 @@ interface IQRContentBuilderProps {
   homePageDemo?: boolean;
   hideNameField?: boolean;
   isEdit?: boolean;
-  isUploading?: boolean;
-  setIsUploading: (isUploading: boolean) => void;
+  isFileUploading?: boolean;
+  setIsFileUploading?: Dispatch<SetStateAction<boolean>>;
+  isFileProcessing?: boolean;
+  setIsFileProcessing?: Dispatch<SetStateAction<boolean>>;
 }
 
 export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
@@ -32,8 +34,10 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
   homePageDemo = false,
   hideNameField = false,
   isEdit = false,
-  isUploading = false,
-  setIsUploading,
+  isFileUploading = false,
+  setIsFileUploading,
+  isFileProcessing = false,
+  setIsFileProcessing,
 }) => {
   const { isMobile } = useMediaQuery();
 
@@ -60,8 +64,10 @@ export const QRCodeContentBuilder: FC<IQRContentBuilderProps> = ({
             tooltip={field.tooltip}
             homePageDemo={homePageDemo}
             isEdit={isEdit}
-            isUploading={isUploading}
-            setIsUploading={setIsUploading}
+            isFileUploading={isFileUploading}
+            setIsFileUploading={setIsFileUploading}
+            isFileProcessing={isFileProcessing}
+            setIsFileProcessing={setIsFileProcessing}
             {...field}
           />
         </div>

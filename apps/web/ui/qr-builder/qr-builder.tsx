@@ -95,7 +95,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         qrBuilderButtonsWrapperRef,
         0.6,
       );
-      const [isUploading, setIsUploading] = useState<boolean>(false);
+
+      const [isFileUploading, setIsFileUploading] = useState<boolean>(false);
+      const [isFileProcessing, setIsFileProcessing] = useState<boolean>(false);
 
       // ===== EVENT HANDLERS =====
       const handleScroll = () => {
@@ -342,8 +344,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                             isHiddenNetwork={isHiddenNetwork}
                             onHiddenNetworkChange={handleSetIsHiddenNetwork}
                             validateFields={handleValidationAndContentSubmit}
-                            isUploading={isUploading}
-                            setIsUploading={setIsUploading}
+                            isFileUploading={isFileUploading}
+                            setIsFileUploading={setIsFileUploading}
+                            isFileProcessing={isFileProcessing}
+                            setIsFileProcessing={setIsFileProcessing}
                             homePageDemo
                           />
                         </FormProvider>
@@ -386,7 +390,11 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                           onBack={handleBack}
                           onContinue={handleContinue}
                           isEdit={isEdit}
-                          isProcessing={isProcessing || isUploading}
+                          isProcessing={
+                            isProcessing || isFileUploading || isFileProcessing
+                          }
+                          isFileUploading={isFileUploading}
+                          isFileProcessing={isFileProcessing}
                           homePageDemo={homepageDemo}
                         />
                       </div>

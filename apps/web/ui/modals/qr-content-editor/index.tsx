@@ -59,6 +59,10 @@ type QRContentEditorModalProps = {
   setShowQRContentEditorModal: Dispatch<SetStateAction<boolean>>;
   isProcessing: boolean;
   setIsProcessing: Dispatch<SetStateAction<boolean>>;
+  isFileUploading?: boolean;
+  setIsFileUploading?: Dispatch<SetStateAction<boolean>>;
+  isFileProcessing?: boolean;
+  setIsFileProcessing?: Dispatch<SetStateAction<boolean>>;
 };
 
 export function QRContentEditorModal({
@@ -67,8 +71,13 @@ export function QRContentEditorModal({
   setShowQRContentEditorModal,
   isProcessing,
   setIsProcessing,
+  isFileUploading = false,
+  setIsFileUploading,
+  isFileProcessing = false,
+  setIsFileProcessing,
 }: QRContentEditorModalProps) {
   const selectedQRType = (qrCode?.qrType as EQRType) || EQRType.WEBSITE;
+  const isLoading = isProcessing || isFileUploading || isFileProcessing;
 
   const { parsedInputValues } = useQrCustomization(qrCode);
   const { updateQrWithOriginal } = useQrOperations();
@@ -182,6 +191,18 @@ export function QRContentEditorModal({
     setIsHiddenNetwork(checked);
   };
 
+  const getSaveButtonText = () => {
+    if (isFileUploading) {
+      return "Uploading...";
+    }
+
+    if (isFileProcessing) {
+      return "Processing...";
+    }
+
+    return "Save Changes";
+  };
+
   return (
     <Modal
       showModal={showQRContentEditorModal}
@@ -228,6 +249,10 @@ export function QRContentEditorModal({
                 homePageDemo
                 hideNameField
                 isEdit
+                isFileUploading={isFileUploading}
+                setIsFileUploading={setIsFileUploading}
+                isFileProcessing={isFileProcessing}
+                setIsFileProcessing={setIsFileProcessing}
               />
 
               {/* Actions */}
@@ -236,14 +261,14 @@ export function QRContentEditorModal({
                   type="button"
                   variant="outline"
                   onClick={handleClose}
-                  disabled={isProcessing}
+                  disabled={isLoading}
                   text="Cancel"
                 />
                 <Button
                   type="button"
                   onClick={() => validateFields()}
-                  loading={isProcessing}
-                  text="Save Changes"
+                  loading={isLoading}
+                  text={getSaveButtonText()}
                 />
               </div>
             </FormProvider>
@@ -258,6 +283,8 @@ export function useQRContentEditor(data?: { qrCode?: QrStorageData }) {
   const { qrCode } = data ?? {};
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isFileUploading, setIsFileUploading] = useState<boolean>(false);
+  const [isFileProcessing, setIsFileProcessing] = useState<boolean>(false);
   const [showQRContentEditorModal, setShowQRContentEditorModal] =
     useState(false);
 
@@ -269,6 +296,10 @@ export function useQRContentEditor(data?: { qrCode?: QrStorageData }) {
         setShowQRContentEditorModal={setShowQRContentEditorModal}
         isProcessing={isProcessing}
         setIsProcessing={setIsProcessing}
+        isFileUploading={isFileUploading}
+        setIsFileUploading={setIsFileUploading}
+        isFileProcessing={isFileProcessing}
+        setIsFileProcessing={setIsFileProcessing}
       />
     );
   }, [
@@ -277,6 +308,10 @@ export function useQRContentEditor(data?: { qrCode?: QrStorageData }) {
     setShowQRContentEditorModal,
     isProcessing,
     setIsProcessing,
+    isFileUploading,
+    setIsFileUploading,
+    isFileProcessing,
+    setIsFileProcessing,
   ]);
 
   return useMemo(

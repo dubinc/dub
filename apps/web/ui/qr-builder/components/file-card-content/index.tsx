@@ -41,8 +41,10 @@ interface IFileCardContentProps {
   homePageDemo?: boolean;
   onFileIdReceived?: (fileId: string) => void;
   isEdit?: boolean;
-  isUploading?: boolean;
-  setIsUploading?: Dispatch<SetStateAction<boolean>>;
+  isFileUploading?: boolean;
+  setIsFileUploading?: Dispatch<SetStateAction<boolean>>;
+  isFileProcessing?: boolean;
+  setIsFileProcessing?: Dispatch<SetStateAction<boolean>>;
 }
 
 export const FileCardContent: FC<IFileCardContentProps> = ({
@@ -56,8 +58,10 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
   homePageDemo = false,
   onFileIdReceived,
   isEdit = false,
-  isUploading = false,
-  setIsUploading,
+  isFileUploading = false,
+  setIsFileUploading,
+  isFileProcessing = false,
+  setIsFileProcessing,
 }) => {
   const [localFileError, setLocalFileError] = useState<string>("");
   const fileItemRef = useRef<HTMLDivElement | null>(null);
@@ -81,7 +85,8 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
     }
 
     setFiles([]);
-    setIsUploading?.(false);
+    setIsFileUploading?.(false);
+    setIsFileProcessing?.(false);
     setLocalFileError("");
   };
 
@@ -89,7 +94,8 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
     async (files: File[], { onProgress, onSuccess, onError }) => {
       abortControllerRef.current = new AbortController();
 
-      setIsUploading?.(true);
+      setIsFileUploading?.(true);
+
       try {
         await Promise.all(
           files.map(async (file: File) => {
@@ -98,7 +104,14 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
 
               const result = await uploadFileWithProgress(
                 file,
-                onProgress,
+                (file, progress) => {
+                  onProgress(file, progress);
+
+                  if (progress === 100) {
+                    setIsFileUploading?.(false);
+                    setIsFileProcessing?.(true);
+                  }
+                },
                 abortControllerRef.current?.signal,
               );
 
@@ -136,7 +149,8 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
           }),
         );
       } finally {
-        setIsUploading?.(false);
+        setIsFileUploading?.(false);
+        setIsFileProcessing?.(false);
         abortControllerRef.current = null;
       }
     },
@@ -202,13 +216,6 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
     }
 
     hadFileBeforeRef.current = hasFile;
-
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-        abortControllerRef.current = null;
-      }
-    };
   }, [files]);
 
   return (
@@ -225,7 +232,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
         onFileReject={onFileReject}
         onUpload={isLogo ? undefined : onUpload}
         accept={acceptedFileType}
-        disabled={isUploading}
+        disabled={isFileUploading || isFileProcessing}
       >
         <FileUploadDropzone
           className={cn("border-secondary-100", {
