@@ -3,10 +3,12 @@ import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus, Program } from "@prisma/client";
+import { ZERO_DECIMAL_CURRENCIES } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
+import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
@@ -24,6 +26,8 @@ export async function importCommissions(payload: RewardfulImportPayload) {
   const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
+
+  const fxRates = await redis.hgetall<Record<string, string>>("fxRates:usd");
 
   let currentPage = page;
   let hasMore = true;
@@ -45,9 +49,11 @@ export async function importCommissions(payload: RewardfulImportPayload) {
           commission,
           program,
           campaignId,
+          fxRates,
         }),
       ),
     );
+
     currentPage++;
     processedBatches++;
   }
@@ -97,10 +103,12 @@ async function createCommission({
   commission,
   program,
   campaignId,
+  fxRates,
 }: {
   commission: RewardfulCommission;
   program: Program;
   campaignId: string;
+  fxRates: Record<string, string> | null;
 }) {
   if (commission.campaign.id !== campaignId) {
     console.log(
@@ -133,6 +141,43 @@ async function createCommission({
   if (commissionFound) {
     console.log(`Commission ${commission.id} already exists, skipping...`);
     return;
+  }
+
+  // Sale amount
+  let amount = sale.sale_amount_cents;
+  let currency = sale.currency.toUpperCase();
+
+  if (currency !== "USD" && fxRates) {
+    const fxRate = fxRates[currency];
+    const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currency);
+
+    if (fxRate) {
+      let convertedAmount = amount / Number(fxRates);
+
+      if (isZeroDecimalCurrency) {
+        convertedAmount = convertedAmount * 100;
+      }
+
+      amount = Math.round(convertedAmount);
+    }
+  }
+
+  let earnings = commission.amount;
+  currency = commission.currency.toUpperCase();
+
+  if (currency !== "USD" && fxRates) {
+    const fxRate = fxRates[currency];
+    const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currency);
+
+    if (fxRate) {
+      let convertedEarnings = earnings / Number(fxRates);
+
+      if (isZeroDecimalCurrency) {
+        convertedEarnings = convertedEarnings * 100;
+      }
+
+      earnings = Math.round(convertedEarnings);
+    }
   }
 
   // here, we also check for commissions that have already been recorded on Dub
@@ -223,8 +268,8 @@ async function createCommission({
         partnerId: customerFound.link.partnerId,
         linkId: customerFound.linkId,
         customerId: customerFound.id,
-        amount: sale.sale_amount_cents,
-        earnings: commission.amount,
+        amount,
+        earnings,
         currency: sale.currency.toLowerCase(),
         quantity: 1,
         status: toDubStatus[commission.state],
@@ -237,7 +282,7 @@ async function createCommission({
       ...clickData,
       event_id: eventId,
       event_name: "Invoice paid",
-      amount: sale.sale_amount_cents,
+      amount,
       customer_id: customerFound.id,
       payment_processor: "stripe",
       currency: sale.currency.toLowerCase(),
