@@ -137,10 +137,12 @@ function createStore(
             const customFile = file as File & {
               uploadStatus: "success";
               uploadProgress: number;
+              fileId: string;
             };
             const isAlreadyUploaded =
               customFile.uploadStatus === "success" ||
-              customFile.uploadProgress === 100;
+              customFile.uploadProgress === 100 ||
+              customFile.fileId;
 
             files.set(file, {
               file,
