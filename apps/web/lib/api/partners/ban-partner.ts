@@ -26,12 +26,14 @@ export const banPartner = async ({
   user: Session["user"];
   notifyPartner: boolean;
 }) => {
+  const commonWhere = {
+    programId: program.id,
+    partnerId: partner.id,
+  };
+
   await prisma.$transaction([
     prisma.link.updateMany({
-      where: {
-        programId: program.id,
-        partnerId: partner.id,
-      },
+      where: commonWhere,
       data: {
         expiresAt: new Date(),
       },
@@ -40,8 +42,8 @@ export const banPartner = async ({
     prisma.programEnrollment.update({
       where: {
         partnerId_programId: {
-          programId: program.id,
           partnerId: partner.id,
+          programId: program.id,
         },
       },
       data: {
@@ -56,30 +58,21 @@ export const banPartner = async ({
     }),
 
     prisma.commission.updateMany({
-      where: {
-        programId: program.id,
-        partnerId: partner.id,
-      },
+      where: commonWhere,
       data: {
         status: "canceled",
       },
     }),
 
     prisma.payout.updateMany({
-      where: {
-        programId: program.id,
-        partnerId: partner.id,
-      },
+      where: commonWhere,
       data: {
         status: "canceled",
       },
     }),
 
     prisma.fraudEvent.updateMany({
-      where: {
-        programId: program.id,
-        partnerId: partner.id,
-      },
+      where: commonWhere,
       data: {
         status: "banned",
       },
@@ -100,10 +93,7 @@ export const banPartner = async ({
 
       // Delete links from cache
       const links = await prisma.link.findMany({
-        where: {
-          programId: program.id,
-          partnerId: partner.id,
-        },
+        where: commonWhere,
         select: {
           domain: true,
           key: true,
