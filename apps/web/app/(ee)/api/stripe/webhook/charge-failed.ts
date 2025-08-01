@@ -1,4 +1,5 @@
 import { qstash } from "@/lib/cron";
+import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   PAYOUT_FAILURE_FEE_CENTS,
@@ -205,6 +206,18 @@ async function processPayoutInvoice({
 }
 
 async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
+  const domains = await prisma.registeredDomain.findMany({
+    where: {
+      slug: {
+        in: invoice.registeredDomains as string[],
+      },
+    },
+    select: {
+      slug: true,
+      expiresAt: true,
+    },
+  });
+
   if (invoice.failedAttempts < 3) {
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/invoices/retry-failed`,
@@ -214,6 +227,15 @@ async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
         invoiceId: invoice.id,
       },
     });
+  } else {
+    await Promise.allSettled(
+      domains.map((domain) =>
+        setRenewOption({
+          domain: domain.slug,
+          autoRenew: false,
+        }),
+      ),
+    );
   }
 
   const workspace = await prisma.project.findUniqueOrThrow({
@@ -238,18 +260,6 @@ async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
     console.log("No users found to send domain renewal failed email.");
     return;
   }
-
-  const domains = await prisma.registeredDomain.findMany({
-    where: {
-      slug: {
-        in: invoice.registeredDomains as string[],
-      },
-    },
-    select: {
-      slug: true,
-      expiresAt: true,
-    },
-  });
 
   await resend?.batch.send(
     workspaceOwners.map(({ user }) => ({
