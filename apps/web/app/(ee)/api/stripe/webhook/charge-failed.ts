@@ -218,8 +218,19 @@ async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
     },
   });
 
-  // if invoice failed attempts is less than 3, retry in 3 days
-  // otherwise, turn off auto-renew for the domains
+  // Domain renewal failed 3 times, turn off auto-renew for the domains
+  if (invoice.failedAttempts >= 3) {
+    await Promise.allSettled(
+      domains.map((domain) =>
+        setRenewOption({
+          domain: domain.slug,
+          autoRenew: false,
+        }),
+      ),
+    );
+  }
+
+  // We'll retry the invoice 3 times, if it fails 3 times, we'll turn off auto-renew for the domains
   if (invoice.failedAttempts < 3) {
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/invoices/retry-failed`,
@@ -229,19 +240,6 @@ async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
         invoiceId: invoice.id,
       },
     });
-  } else {
-    await Promise.allSettled(
-      domains.map((domain) =>
-        setRenewOption({
-          domain: domain.slug,
-          autoRenew: false,
-        }),
-      ),
-    );
-
-    // TODO:
-    // Archive the domains
-    // Remove from Vercel
   }
 
   const workspace = await prisma.project.findUniqueOrThrow({
@@ -263,7 +261,7 @@ async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
   const workspaceOwners = workspace.users.filter(({ user }) => user.email);
 
   if (workspaceOwners.length === 0) {
-    console.log("No users found to send domain renewal failed email.");
+    console.log("No workspace owners found, skipping...");
     return;
   }
 
