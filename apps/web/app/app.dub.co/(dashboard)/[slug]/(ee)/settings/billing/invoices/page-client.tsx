@@ -42,7 +42,8 @@ export default function WorkspaceInvoicesClient() {
           className="px-4 md:px-5"
           options={[
             { id: "subscription", label: "Subscription" },
-            { id: "payout", label: "Partner Payouts" },
+            { id: "domainRenewal", label: "Domain Renewals" },
+            { id: "partnerPayout", label: "Partner Payouts" },
           ]}
           selected={invoiceType}
           onSelect={(id) => {

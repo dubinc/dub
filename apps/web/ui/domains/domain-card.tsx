@@ -6,7 +6,7 @@ import {
   DomainVerificationStatusProps,
   LinkProps,
 } from "@/lib/types";
-import { CheckCircleFill, Delete, ThreeDots } from "@/ui/shared/icons";
+import { CheckCircleFill, Delete, Repeat, ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
   CircleCheck,
@@ -29,7 +29,14 @@ import {
   Hyperlink,
   PenWriting,
 } from "@dub/ui/icons";
-import { cn, DEFAULT_LINK_PROPS, fetcher, nFormatter } from "@dub/utils";
+import {
+  cn,
+  DEFAULT_LINK_PROPS,
+  fetcher,
+  formatDate,
+  nFormatter,
+} from "@dub/utils";
+import { isPast } from "date-fns";
 import { motion } from "framer-motion";
 import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";
 import Link from "next/link";
@@ -40,6 +47,8 @@ import useSWRImmutable from "swr/immutable";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
+import { useDisableAutoRenewalModal } from "../modals/disable-auto-renewal-modal";
+import { useEnableAutoRenewalModal } from "../modals/enable-auto-renewal-modal";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
@@ -92,6 +101,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "active";
 
+  const expiresAt = props.registeredDomain?.expiresAt;
+  const isExpired = expiresAt && isPast(new Date(expiresAt));
+
   return (
     <>
       <div
@@ -102,12 +114,31 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       >
         {isDubProvisioned && (
           <div className="flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs">
-            <div className="flex items-center gap-1.5">
-              <Wordmark className="h-4" />
-              <span className="font-medium text-neutral-900">
-                Provisioned by Dub
-              </span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <Wordmark className="h-4" />
+                <span className="font-medium text-neutral-900">
+                  Provisioned by Dub
+                </span>
+              </div>
+
+              {expiresAt && (
+                <div
+                  className={cn(
+                    "flex items-center gap-1",
+                    isExpired ? "text-red-600" : "text-neutral-700",
+                  )}
+                >
+                  <Repeat className="size-3.5" />
+                  <span className="text-xs font-medium">
+                    {isExpired
+                      ? `Expired on ${formatDate(expiresAt)}`
+                      : `Renews on ${formatDate(expiresAt)}`}
+                  </span>
+                </div>
+              )}
             </div>
+
             <a
               href="https://dub.co/help/article/free-dot-link-domain"
               target="_blank"
@@ -269,20 +300,27 @@ function Menu({
   };
   groupHover: boolean;
 }) {
+  const { role } = useWorkspace();
+  const { isMobile } = useMediaQuery();
+  const { activeWorkspaceDomains } = useDomains();
+  const [openPopover, setOpenPopover] = useState(false);
+  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
+
   const { primary, archived, slug: domain, registeredDomain } = props;
   const isDubProvisioned = !!registeredDomain;
 
-  const { isMobile } = useMediaQuery();
+  const autoRenew = useMemo(() => {
+    if (!registeredDomain) {
+      return false;
+    }
 
-  const { role } = useWorkspace();
+    return registeredDomain.autoRenewalDisabledAt === null;
+  }, [registeredDomain]);
+
   const permissionsError = clientAccessCheck({
     action: "domains.write",
     role,
   }).error;
-
-  const { activeWorkspaceDomains } = useDomains();
-
-  const [openPopover, setOpenPopover] = useState(false);
 
   const { setShowAddEditDomainModal, AddEditDomainModal } =
     useAddEditDomainModal({
@@ -316,7 +354,15 @@ function Menu({
     props: linkProps || DEFAULT_LINK_PROPS,
   });
 
-  const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
+  const { setShowEnableAutoRenewalModal, EnableAutoRenewalModal } =
+    useEnableAutoRenewalModal({
+      domain: props,
+    });
+
+  const { setShowDisableAutoRenewalModal, DisableAutoRenewalModal } =
+    useDisableAutoRenewalModal({
+      domain: props,
+    });
 
   const copyLinkId = () => {
     if (!linkProps) {
@@ -339,6 +385,13 @@ function Menu({
       <ArchiveDomainModal />
       <DeleteDomainModal />
       <TransferDomainModal />
+
+      {isDubProvisioned && (
+        <>
+          <EnableAutoRenewalModal />
+          <DisableAutoRenewalModal />
+        </>
+      )}
 
       <motion.div
         animate={{
@@ -433,6 +486,33 @@ function Menu({
                   icon={<PenWriting className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
                 />
+
+                {isDubProvisioned && (
+                  <Button
+                    text={
+                      !autoRenew ? "Enable Auto-Renew" : "Disable Auto-Renew"
+                    }
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      if (!autoRenew) {
+                        setShowEnableAutoRenewalModal(true);
+                      } else {
+                        setShowDisableAutoRenewalModal(true);
+                      }
+                    }}
+                    icon={
+                      <Repeat
+                        className={cn(
+                          "h-4 w-4",
+                          !autoRenew ? "text-green-600" : "text-red-600",
+                        )}
+                      />
+                    }
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
+
                 {!primary && (
                   <Button
                     text="Set as Primary"

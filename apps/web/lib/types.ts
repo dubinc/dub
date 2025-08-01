@@ -232,6 +232,7 @@ export interface DomainProps {
 
 export interface RegisteredDomainProps {
   id: string;
+  autoRenewalDisabledAt: Date | null;
   createdAt: Date;
   expiresAt: Date;
 }

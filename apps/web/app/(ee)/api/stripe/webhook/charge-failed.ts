@@ -1,50 +1,79 @@
+import { qstash } from "@/lib/cron";
+import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   PAYOUT_FAILURE_FEE_CENTS,
 } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import DomainRenewalFailed from "@dub/email/templates/domain-renewal-failed";
 import PartnerPayoutFailed from "@dub/email/templates/partner-payout-failed";
 import { prisma } from "@dub/prisma";
-import { log } from "@dub/utils";
+import { Invoice } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
 
 export async function chargeFailed(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Charge;
 
-  const {
-    amount,
-    transfer_group: invoiceId,
-    failure_message: failedReason,
-  } = charge;
+  const { transfer_group: invoiceId, failure_message: failedReason } = charge;
 
   if (!invoiceId) {
     console.log("No transfer group found, skipping...");
     return;
   }
 
-  await log({
-    message: `Partner payout failed for invoice ${invoiceId}.`,
-    type: "errors",
-    mention: true,
+  let invoice = await prisma.invoice.findUnique({
+    where: {
+      id: invoiceId,
+    },
   });
 
-  // Mark the invoice as failed
-  const invoice = await prisma.invoice.update({
+  if (!invoice) {
+    console.log(`Invoice with transfer group ${invoiceId} not found.`);
+    return;
+  }
+
+  invoice = await prisma.invoice.update({
     where: {
       id: invoiceId,
     },
     data: {
       status: "failed",
       failedReason,
+      failedAttempts: {
+        increment: 1,
+      },
     },
+  });
+
+  if (invoice.type === "partnerPayout") {
+    await processPayoutInvoice({ invoice, charge });
+  } else if (invoice.type === "domainRenewal") {
+    await processDomainRenewalInvoice({ invoice });
+  }
+}
+
+async function processPayoutInvoice({
+  invoice,
+  charge,
+}: {
+  invoice: Invoice;
+  charge: Stripe.Charge;
+}) {
+  await log({
+    message: `Partner payout failed for invoice ${invoice.id}.`,
+    type: "errors",
+    mention: true,
   });
 
   // Mark the payouts as pending again
   await prisma.payout.updateMany({
     where: {
-      invoiceId,
+      invoiceId: invoice.id,
     },
     data: {
       status: "pending",
@@ -149,7 +178,7 @@ export async function chargeFailed(event: Stripe.Event) {
           name: workspace.programs[0].name,
         },
         payout: {
-          amount,
+          amount: charge.amount,
           ...(chargedFailureFee && {
             failureFee: PAYOUT_FAILURE_FEE_CENTS,
             cardLast4,
@@ -173,5 +202,81 @@ export async function chargeFailed(event: Stripe.Event) {
         }),
       );
     })(),
+  );
+}
+
+async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
+  const domains = await prisma.registeredDomain.findMany({
+    where: {
+      slug: {
+        in: invoice.registeredDomains as string[],
+      },
+    },
+    select: {
+      slug: true,
+      expiresAt: true,
+    },
+  });
+
+  // Domain renewal failed 3 times, turn off auto-renew for the domains
+  if (invoice.failedAttempts >= 3) {
+    await Promise.allSettled(
+      domains.map((domain) =>
+        setRenewOption({
+          domain: domain.slug,
+          autoRenew: false,
+        }),
+      ),
+    );
+  }
+
+  // We'll retry the invoice 3 times, if it fails 3 times, we'll turn off auto-renew for the domains
+  if (invoice.failedAttempts < 3) {
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/invoices/retry-failed`,
+      delay: 3 * 24 * 60 * 60, // 3 days in seconds
+      deduplicationId: `${invoice.id}-attempt-${invoice.failedAttempts + 1}`,
+      body: {
+        invoiceId: invoice.id,
+      },
+    });
+  }
+
+  const workspace = await prisma.project.findUniqueOrThrow({
+    where: {
+      id: invoice.workspaceId,
+    },
+    include: {
+      users: {
+        where: {
+          role: "owner",
+        },
+        select: {
+          user: true,
+        },
+      },
+    },
+  });
+
+  const workspaceOwners = workspace.users.filter(({ user }) => user.email);
+
+  if (workspaceOwners.length === 0) {
+    console.log("No workspace owners found, skipping...");
+    return;
+  }
+
+  await resend?.batch.send(
+    workspaceOwners.map(({ user }) => ({
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: user.email!,
+      subject: "Domain renewal failed",
+      react: DomainRenewalFailed({
+        email: user.email!,
+        workspace: {
+          slug: workspace.slug,
+        },
+        domains,
+      }),
+    })),
   );
 }

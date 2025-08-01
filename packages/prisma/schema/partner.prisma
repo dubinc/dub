@@ -56,6 +56,7 @@ model Partner {
   payouts     Payout[]
   commissions Commission[]
 }
+
 model PartnerInvite {
   email     String
   expires   DateTime
@@ -85,12 +86,13 @@ model PartnerUser {
   @@unique([userId, partnerId])
   @@index([partnerId])
 }
-model PartnerNotificationPreferences {
-  id                         String  @id @default(cuid())
-  partnerUserId              String  @unique
 
-  commissionCreated              Boolean @default(true)
-  applicationApproved        Boolean @default(true)
+model PartnerNotificationPreferences {
+  id            String @id @default(cuid())
+  partnerUserId String @unique
+
+  commissionCreated   Boolean @default(true)
+  applicationApproved Boolean @default(true)
 
   partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
 }
