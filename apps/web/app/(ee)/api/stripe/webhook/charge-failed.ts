@@ -218,6 +218,8 @@ async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
     },
   });
 
+  // if invoice failed attempts is less than 3, retry in 3 days
+  // otherwise, turn off auto-renew for the domains
   if (invoice.failedAttempts < 3) {
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/invoices/retry-failed`,
