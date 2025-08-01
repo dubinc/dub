@@ -93,8 +93,6 @@ export const GET = withWorkspace(
       skip: (page! - 1) * pageSize!,
     });
 
-    console.log(fraudEvents);
-
     return NextResponse.json(z.array(FraudEventSchema).parse(fraudEvents));
   },
   {
