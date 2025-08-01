@@ -22,11 +22,11 @@ const states: Record<
       </>
     ),
   }),
-  rejected: () => ({
-    title: "Application reviewed",
+  rejected: (programEnrollment) => ({
+    title: "Application rejected",
     description: "Your application has been rejected.",
   }),
-  banned: () => ({
+  banned: (programEnrollment) => ({
     title: "Program unavailable",
     description: "You have been banned from this program.",
   }),
@@ -59,6 +59,19 @@ export function UnapprovedProgramPage({
           </h2>
           <p className="text-content-subtle [&_strong]:text-content-default mt-2 max-w-sm text-sm font-medium [&_strong]:font-semibold">
             {description}
+            {programEnrollment.program.supportEmail &&
+              ["rejected", "banned"].includes(programEnrollment.status) && (
+                <>
+                  Contact{" "}
+                  <a
+                    href={`mailto:${programEnrollment.program.supportEmail}`}
+                    className="text-neutral-500 underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-800"
+                  >
+                    {programEnrollment.program.supportEmail}
+                  </a>{" "}
+                  to appeal.
+                </>
+              )}
           </p>
         </div>
       </PageWidthWrapper>
