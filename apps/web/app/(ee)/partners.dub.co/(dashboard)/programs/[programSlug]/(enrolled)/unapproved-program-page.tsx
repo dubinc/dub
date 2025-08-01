@@ -53,7 +53,7 @@ export function UnapprovedProgramPage({
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Withdraw Application",
     description: `Are you sure you want to withdraw your application for ${programEnrollment.program.name}? This will delete your application completely and you'll have to re-apply if you want to join again.`,
-    confirmText: "Withdraw Application",
+    confirmText: "Withdraw application",
     onConfirm: async () => {
       try {
         await withdrawPartnerApplicationAction({
