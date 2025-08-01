@@ -4,10 +4,10 @@ import { isDisposableEmail } from "./is-disposable-email";
 import { isGoogleAdsClick } from "./is-google-ads-click";
 import { isSelfReferral } from "./is-self-referral";
 
-type FraudEvent = {
+interface FraudEvent {
   type: z.infer<typeof fraudEventTypeSchema>;
   reason: string | null;
-};
+}
 
 export const detectFraudEvents = async ({
   click,
