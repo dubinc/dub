@@ -45,6 +45,10 @@ export const setRenewOption = async ({
     if (Status !== "success") {
       throw new Error(`Failed to set renew option: ${Status}`);
     }
+
+    console.log(
+      `Auto-renew for ${domain} is ${autoRenew ? "enabled" : "disabled"}.`,
+    );
   } catch (error) {
     await log({
       message: `Failed to set renew option for ${domain}: ${error.message}`,

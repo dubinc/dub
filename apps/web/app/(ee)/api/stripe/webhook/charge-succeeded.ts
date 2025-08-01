@@ -50,7 +50,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
   if (invoice.type === "partnerPayout") {
     await processPayoutInvoice({ invoice });
   } else if (invoice.type === "domainRenewal") {
-    await processRenewalInvoice({ invoice });
+    await processDomainRenewalInvoice({ invoice });
   }
 }
 
@@ -89,7 +89,7 @@ async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
   }
 }
 
-async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
+async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
   const domains = await prisma.registeredDomain.findMany({
     where: {
       slug: {
