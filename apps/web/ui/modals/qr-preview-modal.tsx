@@ -7,11 +7,12 @@ import {
 } from "@/ui/qr-code/use-qr-download.ts";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr";
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Theme } from "@radix-ui/themes";
+import { useSearchParams } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
 import {
   Dispatch,
@@ -46,14 +47,26 @@ function QRPreviewModal({
   width = 200,
   height = 200,
 }: IQRPreviewModalProps) {
+  const { queryParams } = useRouterStuff();
+  const searchParams = useSearchParams();
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<TDownloadFormat>("svg");
 
   const { downloadQrCode } = useQrDownload(qrCode);
 
+  const isWelcomeModal =
+    searchParams.has("onboarded") || searchParams.has("upgraded");
+  const planId = searchParams.get("plan");
+  const isForUsersWithoutPlan = isWelcomeModal && !planId;
+
   const handleClose = () => {
     if (!isDownloading) {
       setShowQRPreviewModal(false);
+      if (isForUsersWithoutPlan) {
+        queryParams({
+          del: ["onboarded", "upgraded", "plan", "period"],
+        });
+      }
     }
   };
 
@@ -78,26 +91,56 @@ function QRPreviewModal({
     <Modal
       showModal={showQRPreviewModal}
       setShowModal={setShowQRPreviewModal}
+      onClose={() =>
+        queryParams({
+          del: ["onboarded", "upgraded", "plan", "period"],
+        })
+      }
       className="border-border-500 h-fit"
     >
       <Theme>
         <div className="flex flex-col gap-2">
-          <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
-            <div className="flex items-center gap-2">
-              <QRIcon className="text-primary h-5 w-5" />
-              <h3 className="!mt-0 max-w-xs truncate text-lg font-medium">
-                QR Code Preview
-              </h3>
-            </div>
+          {isForUsersWithoutPlan && (
             <button
               disabled={isDownloading}
               type="button"
               onClick={handleClose}
-              className="group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:right-0 md:block"
+              className="hidden rounded-full p-1.5 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:absolute md:right-1 md:block"
             >
               <X className="h-5 w-5" />
             </button>
-          </div>
+          )}
+          {!isForUsersWithoutPlan && (
+            <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
+              <div className="flex items-center gap-2">
+                <QRIcon className="text-primary h-5 w-5" />
+                <h3 className="!mt-0 max-w-xs truncate text-lg font-medium">
+                  QR Code Preview
+                </h3>
+              </div>
+              <button
+                disabled={isDownloading}
+                type="button"
+                onClick={handleClose}
+                className="group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:right-0 md:block"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          )}
+
+          {isForUsersWithoutPlan && (
+            <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
+              <div className="flex flex-col items-center justify-start gap-1">
+                <h3 className="text-neutral !mt-0 max-w-xs truncate text-lg font-medium">
+                  Your QR Code Is Ready!
+                </h3>
+                <h2 className={"text-center text-base text-neutral-800"}>
+                  Download and share to track every scan from your dashboard.
+                </h2>
+              </div>
+            </div>
+          )}
 
           <div className="px-6 pb-6">
             <div className="flex flex-col items-center gap-6">
