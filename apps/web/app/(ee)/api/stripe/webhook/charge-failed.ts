@@ -238,6 +238,10 @@ async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
         }),
       ),
     );
+
+    // TODO:
+    // Archive the domains
+    // Remove from Vercel
   }
 
   const workspace = await prisma.project.findUniqueOrThrow({
