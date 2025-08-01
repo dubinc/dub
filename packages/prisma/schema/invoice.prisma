@@ -21,15 +21,15 @@ model Invoice {
   total                Int           @default(0) // amount + fee in usd cents
   receiptUrl           String?       @db.Text
   failedReason         String?       @db.Text
+  registeredDomains    Json?         @db.Json // Array of RegisteredDomain
   stripeChargeMetadata Json?         @db.Json // Stripe charge metadata
   failedAttempts       Int           @default(0) // number of failed attempts to charge the invoice
   createdAt            DateTime      @default(now())
   paidAt               DateTime?
 
-  payouts           Payout[]
-  registeredDomains RegisteredDomain[]
-  program           Program            @relation(fields: [programId], references: [id])
-  workspace         Project            @relation(fields: [workspaceId], references: [id])
+  payouts   Payout[]
+  program   Program  @relation(fields: [programId], references: [id])
+  workspace Project  @relation(fields: [workspaceId], references: [id])
 
   @@index(programId)
   @@index(workspaceId)
