@@ -59,10 +59,6 @@ type QRContentEditorModalProps = {
   setShowQRContentEditorModal: Dispatch<SetStateAction<boolean>>;
   isProcessing: boolean;
   setIsProcessing: Dispatch<SetStateAction<boolean>>;
-  isFileUploading?: boolean;
-  setIsFileUploading?: Dispatch<SetStateAction<boolean>>;
-  isFileProcessing?: boolean;
-  setIsFileProcessing?: Dispatch<SetStateAction<boolean>>;
 };
 
 export function QRContentEditorModal({
@@ -71,12 +67,10 @@ export function QRContentEditorModal({
   setShowQRContentEditorModal,
   isProcessing,
   setIsProcessing,
-  isFileUploading = false,
-  setIsFileUploading,
-  isFileProcessing = false,
-  setIsFileProcessing,
 }: QRContentEditorModalProps) {
   const selectedQRType = (qrCode?.qrType as EQRType) || EQRType.WEBSITE;
+  const [isFileUploading, setIsFileUploading] = useState<boolean>(false);
+  const [isFileProcessing, setIsFileProcessing] = useState<boolean>(false);
   const isLoading = isProcessing || isFileUploading || isFileProcessing;
 
   const { parsedInputValues } = useQrCustomization(qrCode);
@@ -283,8 +277,6 @@ export function useQRContentEditor(data?: { qrCode?: QrStorageData }) {
   const { qrCode } = data ?? {};
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isFileUploading, setIsFileUploading] = useState<boolean>(false);
-  const [isFileProcessing, setIsFileProcessing] = useState<boolean>(false);
   const [showQRContentEditorModal, setShowQRContentEditorModal] =
     useState(false);
 
@@ -296,10 +288,6 @@ export function useQRContentEditor(data?: { qrCode?: QrStorageData }) {
         setShowQRContentEditorModal={setShowQRContentEditorModal}
         isProcessing={isProcessing}
         setIsProcessing={setIsProcessing}
-        isFileUploading={isFileUploading}
-        setIsFileUploading={setIsFileUploading}
-        isFileProcessing={isFileProcessing}
-        setIsFileProcessing={setIsFileProcessing}
       />
     );
   }, [
@@ -308,10 +296,6 @@ export function useQRContentEditor(data?: { qrCode?: QrStorageData }) {
     setShowQRContentEditorModal,
     isProcessing,
     setIsProcessing,
-    isFileUploading,
-    setIsFileUploading,
-    isFileProcessing,
-    setIsFileProcessing,
   ]);
 
   return useMemo(
