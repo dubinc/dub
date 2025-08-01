@@ -3,7 +3,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import { fraudEventsCountQuerySchema } from "@/lib/zod/schemas/fraud-events";
 import { prisma } from "@dub/prisma";
-import { FraudEventStatus, FraudEventType, Prisma } from "@dub/prisma/client";
+import { FraudEventStatus, Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/fraud-events/count - get the count of fraud events for a program
@@ -23,7 +23,11 @@ export const GET = withWorkspace(
     const commonWhere: Prisma.FraudEventWhereInput = {
       programId,
       ...(status && { status }),
-      ...(type && { type }),
+      ...(type && {
+        ...(type.selfReferral && { selfReferral: true }),
+        ...(type.googleAdsClick && { googleAdsClick: true }),
+        ...(type.disposableEmail && { disposableEmail: true }),
+      }),
       createdAt: {
         gte: startDate.toISOString(),
         lte: endDate.toISOString(),
@@ -57,27 +61,40 @@ export const GET = withWorkspace(
 
     // Get the count of fraud events by type
     if (groupBy === "type") {
-      const fraudEvents = await prisma.fraudEvent.groupBy({
-        by: [groupBy],
+      const fraudEvents = await prisma.fraudEvent.findMany({
         where: commonWhere,
-        _count: true,
+        select: {
+          selfReferral: true,
+          googleAdsClick: true,
+          disposableEmail: true,
+        },
       });
 
-      const counts = fraudEvents.map((p) => ({
-        type: p.type,
-        count: p._count,
-      }));
+      const counts = {
+        selfReferral: 0,
+        googleAdsClick: 0,
+        disposableEmail: 0,
+      };
 
-      Object.values(FraudEventType).forEach((type) => {
-        if (!counts.find((p) => p.type === type)) {
-          counts.push({
-            type,
-            count: 0,
-          });
+      fraudEvents.forEach((event) => {
+        if (event.selfReferral) {
+          counts.selfReferral += 1;
+        }
+
+        if (event.googleAdsClick) {
+          counts.googleAdsClick += 1;
+        }
+
+        if (event.disposableEmail) {
+          counts.disposableEmail += 1;
         }
       });
 
-      return NextResponse.json(counts);
+      return NextResponse.json([
+        { type: "selfReferral", count: counts.selfReferral },
+        { type: "googleAdsClick", count: counts.googleAdsClick },
+        { type: "disposableEmail", count: counts.disposableEmail },
+      ]);
     }
 
     // Get the total count of fraud events

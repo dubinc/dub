@@ -1,5 +1,5 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
-import { FraudEventStatus, FraudEventType } from "@dub/prisma/client";
+import { FraudEventStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
 import { CustomerSchema } from "./customers";
@@ -8,6 +8,12 @@ import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
+
+export const fraudEventTypeSchema = z.enum([
+  "selfReferral",
+  "googleAdsClick",
+  "disposableEmail",
+]);
 
 export const FRAUD_EVENT_TYPES = {
   selfReferral: {
@@ -57,7 +63,6 @@ export const FraudEventSchema = z.object({
   }),
   customer: CustomerSchema.pick({
     id: true,
-    name: true,
     email: true,
     avatar: true,
   }).nullable(),
@@ -74,7 +79,9 @@ export const FraudEventSchema = z.object({
       }),
     )
     .nullable(),
-  type: z.nativeEnum(FraudEventType),
+  selfReferral: z.boolean(),
+  googleAdsClick: z.boolean(),
+  disposableEmail: z.boolean(),
   details: z.string().nullable(),
   status: z.nativeEnum(FraudEventStatus),
   user: UserSchema.nullable(),
@@ -87,18 +94,14 @@ export const FraudEventSchema = z.object({
 export const getFraudEventsQuerySchema = z
   .object({
     status: z.nativeEnum(FraudEventStatus).optional(),
-    type: z.nativeEnum(FraudEventType).optional(),
+    type: fraudEventTypeSchema.optional(),
     interval: z.enum(DATE_RANGE_INTERVAL_PRESETS).default("all"),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
     partnerId: z.string().optional(),
     fraudEventId: z.string().optional(),
   })
-  .merge(
-    getPaginationQuerySchema({
-      pageSize: 100,
-    }),
-  );
+  .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const fraudEventsCountQuerySchema = getFraudEventsQuerySchema
   .pick({

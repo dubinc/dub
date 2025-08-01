@@ -8,7 +8,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { log } from "@dub/utils";
-import { detectFraudEvent } from "./detect-fraud-event";
+import { detectFraudEvents } from "./detect-fraud-events";
 
 export const recordFraudIfDetected = async ({
   program,
@@ -78,7 +78,7 @@ export const recordFraudIfDetected = async ({
     }
   }
 
-  const result = await detectFraudEvent({
+  const events = await detectFraudEvents({
     click: {
       url: click.url,
       ip: click.ip,
@@ -94,10 +94,12 @@ export const recordFraudIfDetected = async ({
     },
   });
 
-  if (!result) {
+  if (events.length === 0) {
     console.log(`No fraud event detected for ${partner.id} and ${customer.id}`);
     return;
   }
+
+  const fraudTypesFound = new Set(events.map(({ type }) => type));
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -114,8 +116,9 @@ export const recordFraudIfDetected = async ({
         fraudEvent = await tx.fraudEvent.create({
           data: {
             id: createId({ prefix: "fraud_" }),
-            type: result.type,
-            details: result.reason,
+            selfReferral: fraudTypesFound.has("selfReferral"),
+            googleAdsClick: fraudTypesFound.has("googleAdsClick"),
+            disposableEmail: fraudTypesFound.has("disposableEmail"),
             programId: program.id,
             partnerId: partner.id,
             customerId: customer.id,

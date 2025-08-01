@@ -37,7 +37,11 @@ export const GET = withWorkspace(
         ...(fraudEventId && { id: fraudEventId }),
         programId,
         ...(status && { status }),
-        ...(type && { type }),
+        ...(type && {
+          ...(type === "selfReferral" && { selfReferral: true }),
+          ...(type === "googleAdsClick" && { googleAdsClick: true }),
+          ...(type === "disposableEmail" && { disposableEmail: true }),
+        }),
         ...(partnerId && { partnerId }),
         createdAt: {
           gte: startDate.toISOString(),
@@ -57,7 +61,6 @@ export const GET = withWorkspace(
         customer: {
           select: {
             id: true,
-            name: true,
             email: true,
             avatar: true,
           },
@@ -83,12 +86,14 @@ export const GET = withWorkspace(
           },
         },
       },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
       orderBy: {
         createdAt: "desc",
       },
+      take: pageSize,
+      skip: (page! - 1) * pageSize!,
     });
+
+    console.log(fraudEvents);
 
     return NextResponse.json(z.array(FraudEventSchema).parse(fraudEvents));
   },

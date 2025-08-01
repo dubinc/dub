@@ -1,9 +1,3 @@
-enum FraudEventType {
-  selfReferral
-  googleAdsClick
-  disposableEmail
-}
-
 enum FraudEventStatus {
   pending
   safe
@@ -17,7 +11,9 @@ model FraudEvent {
   customerId       String
   linkId           String
   userId           String?
-  type             FraudEventType
+  selfReferral     Boolean          @default(false)
+  googleAdsClick   Boolean          @default(false)
+  disposableEmail  Boolean          @default(false)
   details          String?          @db.Text
   status           FraudEventStatus @default(pending)
   resolutionReason String?

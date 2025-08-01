@@ -77,8 +77,6 @@ function useCurrentFraudEvent({
     },
   });
 
-  console.log(fetchedFraudEvents);
-
   if (
     !currentFraudEvent &&
     fetchedFraudEvents &&

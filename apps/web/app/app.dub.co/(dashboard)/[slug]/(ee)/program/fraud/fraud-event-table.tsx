@@ -21,6 +21,7 @@ import {
   Popover,
   StatusBadge,
   Table,
+  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
@@ -102,13 +103,8 @@ export function FraudEventTable({ isValidating }: { isValidating: boolean }) {
       },
       {
         id: "reason",
-        header: "Reason",
-        cell: ({ row }) => FRAUD_EVENT_TYPES[row.original.type].label,
-        meta: {
-          filterParams: ({ row }) => ({
-            type: row.original.type,
-          }),
-        },
+        header: "Reasons",
+        cell: ({ row }) => <FraudEventReasons fraudEvent={row.original} />,
       },
       {
         id: "status",
@@ -331,5 +327,52 @@ function RowMenuButton({ fraudEvent }: { fraudEvent: FraudEvent }) {
         />
       </Popover>
     </>
+  );
+}
+
+function FraudEventReasons({ fraudEvent }: { fraudEvent: FraudEvent }) {
+  const reasons: string[] = [];
+
+  if (fraudEvent.selfReferral) {
+    reasons.push(FRAUD_EVENT_TYPES.selfReferral.label);
+  }
+
+  if (fraudEvent.googleAdsClick) {
+    reasons.push(FRAUD_EVENT_TYPES.googleAdsClick.label);
+  }
+
+  if (fraudEvent.disposableEmail) {
+    reasons.push(FRAUD_EVENT_TYPES.disposableEmail.label);
+  }
+
+  if (reasons.length === 0) {
+    return <span className="text-neutral-500">-</span>;
+  }
+
+  if (reasons.length === 1) {
+    return <span className="text-sm">{reasons[0]}</span>;
+  }
+
+  return (
+    <Tooltip
+      content={
+        <div className="flex flex-col gap-1 p-3">
+          {reasons.map((reason, index) => (
+            <div key={index} className="text-sm text-neutral-600">
+              {reason}
+            </div>
+          ))}
+        </div>
+      }
+      side="top"
+      align="start"
+    >
+      <div className="flex cursor-help items-center gap-1.5">
+        <span className="text-sm">{reasons[0]}</span>
+        <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-500">
+          +{reasons.length - 1}
+        </span>
+      </div>
+    </Tooltip>
   );
 }

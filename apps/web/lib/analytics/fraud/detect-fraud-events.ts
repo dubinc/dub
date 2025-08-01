@@ -1,16 +1,15 @@
-import { FraudEventType } from "@dub/prisma/client";
+import { fraudEventTypeSchema } from "@/lib/zod/schemas/fraud-events";
+import { z } from "zod";
 import { isDisposableEmail } from "./is-disposable-email";
 import { isGoogleAdsClick } from "./is-google-ads-click";
 import { isSelfReferral } from "./is-self-referral";
 
-type FraudEventResult =
-  | {
-      type: FraudEventType;
-      reason: string | null;
-    }
-  | undefined;
+type FraudEvent = {
+  type: z.infer<typeof fraudEventTypeSchema>;
+  reason: string | null;
+};
 
-export const detectFraudEvent = async ({
+export const detectFraudEvents = async ({
   click,
   customer,
   partner,
@@ -28,31 +27,35 @@ export const detectFraudEvent = async ({
     name: string;
     ipAddress?: string | null;
   };
-}): Promise<FraudEventResult> => {
+}) => {
   const { selfReferral, reasons } = await isSelfReferral({
     partner,
     customer,
     click,
   });
 
+  const events: FraudEvent[] = [];
+
   if (selfReferral) {
-    return {
-      type: FraudEventType.selfReferral,
+    events.push({
+      type: "selfReferral",
       reason: reasons.join(", "),
-    };
+    });
   }
 
   if (isGoogleAdsClick(click.url)) {
-    return {
-      type: FraudEventType.googleAdsClick,
+    events.push({
+      type: "googleAdsClick",
       reason: null,
-    };
+    });
   }
 
   if (customer.email && (await isDisposableEmail(customer.email))) {
-    return {
-      type: FraudEventType.disposableEmail,
+    events.push({
+      type: "disposableEmail",
       reason: null,
-    };
+    });
   }
+
+  return events;
 };
