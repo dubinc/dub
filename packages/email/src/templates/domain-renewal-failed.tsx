@@ -1,6 +1,7 @@
-import { DUB_WORDMARK, formatDate } from "@dub/utils";
+import { DUB_WORDMARK, formatDate, pluralize } from "@dub/utils";
 import {
   Body,
+  Column,
   Container,
   Head,
   Heading,
@@ -8,6 +9,7 @@ import {
   Img,
   Link,
   Preview,
+  Row,
   Section,
   Tailwind,
   Text,
@@ -19,19 +21,25 @@ export default function DomainRenewalFailed({
   workspace = {
     slug: "acme",
   },
-  domain = {
-    slug: "getacme.link",
-    expiresAt: new Date("2025-07-29"),
-  },
+  domains = [
+    {
+      slug: "getacme.link",
+      expiresAt: new Date("2025-07-29"),
+    },
+    {
+      slug: "example.link",
+      expiresAt: new Date("2025-07-29"),
+    },
+  ],
 }: {
   email: string;
   workspace: {
     slug: string;
   };
-  domain: {
+  domains: {
     slug: string;
     expiresAt: Date;
-  };
+  }[];
 }) {
   return (
     <Html>
@@ -49,22 +57,51 @@ export default function DomainRenewalFailed({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              We attempted to charge your card to renew the domain{" "}
-              <Link
-                href={domain.slug}
-                className="font-semibold text-black underline"
-              >
-                {domain.slug}
-              </Link>
-              , which expires on{" "}
-              <span className="font-semibold text-black">
-                {formatDate(domain.expiresAt)}
-              </span>
-              , but it failed. We will try again in 3 days.
+              We attempted to charge your card to renew the following{" "}
+              {pluralize("domain", domains.length)} but it failed. We will try
+              again in 3 days.
             </Text>
 
+            <Section>
+              <Row className="pb-2">
+                <Column align="left" className="text-sm text-neutral-500">
+                  Domain
+                </Column>
+                <Column align="right" className="text-sm text-neutral-500">
+                  Expires on
+                </Column>
+              </Row>
+
+              {domains.map((domain, index) => (
+                <div key={index}>
+                  <Row>
+                    <Column align="left" className="text-sm font-medium">
+                      <Link
+                        href={domain.slug}
+                        className="font-semibold text-black underline"
+                      >
+                        {domain.slug}
+                      </Link>
+                    </Column>
+                    <Column
+                      align="right"
+                      className="text-sm text-neutral-600"
+                      suppressHydrationWarning
+                    >
+                      {formatDate(domain.expiresAt)}
+                    </Column>
+                  </Row>
+
+                  {index !== domains.length - 1 && (
+                    <div className="my-2 w-full" />
+                  )}
+                </div>
+              ))}
+            </Section>
+
             <Text className="text-sm leading-6 text-neutral-600">
-              If you don't want to renew your domain, turn off auto-renewal in
+              If you don't want to renew your{" "}
+              {pluralize("domain", domains.length)}, turn off auto-renewal in
               your{" "}
               <Link
                 href={`https://app.dub.co/${workspace.slug}/links/domains`}

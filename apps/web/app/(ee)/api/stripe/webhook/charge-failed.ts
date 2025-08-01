@@ -239,23 +239,30 @@ async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
     return;
   }
 
-  const emails = workspaceOwners.map(({ user }) => ({
-    from: VARIANT_TO_FROM_MAP.notifications,
-    to: user.email!,
-    subject: "Domain renewal failed",
-    react: DomainRenewalFailed({
-      email: user.email!,
-      workspace: {
-        slug: workspace.slug,
+  const domains = await prisma.registeredDomain.findMany({
+    where: {
+      slug: {
+        in: invoice.registeredDomains as string[],
       },
-      // TODO:
-      // Fix this
-      domain: {
-        slug: "getacme.link",
-        expiresAt: new Date(),
-      },
-    }),
-  }));
+    },
+    select: {
+      slug: true,
+      expiresAt: true,
+    },
+  });
 
-  await resend?.batch.send(emails);
+  await resend?.batch.send(
+    workspaceOwners.map(({ user }) => ({
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: user.email!,
+      subject: "Domain renewal failed",
+      react: DomainRenewalFailed({
+        email: user.email!,
+        workspace: {
+          slug: workspace.slug,
+        },
+        domains,
+      }),
+    })),
+  );
 }
