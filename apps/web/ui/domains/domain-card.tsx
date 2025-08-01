@@ -29,7 +29,14 @@ import {
   Hyperlink,
   PenWriting,
 } from "@dub/ui/icons";
-import { cn, DEFAULT_LINK_PROPS, fetcher, nFormatter } from "@dub/utils";
+import {
+  cn,
+  DEFAULT_LINK_PROPS,
+  fetcher,
+  formatDate,
+  nFormatter,
+} from "@dub/utils";
+import { isPast } from "date-fns";
 import { motion } from "framer-motion";
 import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";
 import Link from "next/link";
@@ -94,6 +101,9 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "active";
 
+  const expiresAt = props.registeredDomain?.expiresAt;
+  const isExpired = expiresAt && isPast(new Date(expiresAt));
+
   return (
     <>
       <div
@@ -104,12 +114,31 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       >
         {isDubProvisioned && (
           <div className="flex items-center justify-between gap-2 rounded-t-xl border-b border-neutral-100 bg-neutral-50 px-5 py-2 text-xs">
-            <div className="flex items-center gap-1.5">
-              <Wordmark className="h-4" />
-              <span className="font-medium text-neutral-900">
-                Provisioned by Dub
-              </span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <Wordmark className="h-4" />
+                <span className="font-medium text-neutral-900">
+                  Provisioned by Dub
+                </span>
+              </div>
+
+              {expiresAt && (
+                <div
+                  className={cn(
+                    "flex items-center gap-1",
+                    isExpired ? "text-red-600" : "text-neutral-700",
+                  )}
+                >
+                  <Repeat className="size-3.5" />
+                  <span className="text-xs font-medium">
+                    {isExpired
+                      ? `Expired on ${formatDate(expiresAt)}`
+                      : `Renews on ${formatDate(expiresAt)}`}
+                  </span>
+                </div>
+              )}
             </div>
+
             <a
               href="https://dub.co/help/article/free-dot-link-domain"
               target="_blank"
