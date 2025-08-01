@@ -29,19 +29,23 @@ export const withdrawPartnerApplicationAction = authPartnerActionClient
       );
     }
 
-    const res = await Promise.all([
-      prisma.programEnrollment.delete({
+    const res = await prisma.$transaction(async (tx) => {
+      const deletedProgramEnrollment = await tx.programEnrollment.delete({
         where: {
           id: programEnrollment.id,
         },
-      }),
-      programEnrollment.applicationId &&
-        prisma.programApplication.delete({
+      });
+
+      if (programEnrollment.applicationId) {
+        await tx.programApplication.delete({
           where: {
             id: programEnrollment.applicationId,
           },
-        }),
-    ]);
+        });
+      }
+
+      return deletedProgramEnrollment;
+    });
 
     console.log("Deleted program enrollment", res);
 

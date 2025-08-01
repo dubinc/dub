@@ -1,4 +1,5 @@
 import { withdrawPartnerApplicationAction } from "@/lib/actions/partners/withdraw-partner-application";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -6,7 +7,7 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { Button, StatusBadge } from "@dub/ui";
 import { useRouter } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { toast } from "sonner";
 
 const states: Record<
@@ -42,7 +43,6 @@ export function UnapprovedProgramPage({
   programEnrollment: ProgramEnrollmentProps;
 }) {
   const router = useRouter();
-  const [isWithdrawing, setIsWithdrawing] = useState(false);
 
   const { title, description } = (
     states?.[programEnrollment.status] ?? states.pending
@@ -56,17 +56,15 @@ export function UnapprovedProgramPage({
     confirmText: "Withdraw Application",
     onConfirm: async () => {
       try {
-        setIsWithdrawing(true);
-        router.push("/programs");
         await withdrawPartnerApplicationAction({
           programId: programEnrollment.programId,
         });
+        mutatePrefix("/api/partner-profile/programs");
+        router.push("/programs");
         toast.success("Application withdrawn successfully");
       } catch (error) {
         console.error("Error withdrawing application:", error);
         toast.error("Failed to withdraw application. Please try again.");
-      } finally {
-        setIsWithdrawing(false);
       }
     },
   });
@@ -108,7 +106,6 @@ export function UnapprovedProgramPage({
               <Button
                 variant="secondary"
                 text="Withdraw Application"
-                loading={isWithdrawing}
                 onClick={() => setShowConfirmModal(true)}
                 className="h-8 px-2.5"
               />
