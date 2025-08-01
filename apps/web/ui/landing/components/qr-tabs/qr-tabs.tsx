@@ -50,14 +50,13 @@ export const QRTabs: FC<
   }, [isMobile]);
 
   const handleSaveQR = async (data: QRBuilderData) => {
-    console.log("handleSaveQR qrDataToCreate", qrDataToCreate);
     const existingData = JSON.parse(
       localStorage.getItem("qr-data-to-create") || "null",
     );
 
-    const merged = existingData ? { ...existingData, ...data } : data;
+    const mergedData = existingData ? { ...existingData, ...data } : data;
 
-    setQrDataToCreate(merged);
+    setQrDataToCreate(mergedData);
 
     showModal("signup");
   };
