@@ -1,7 +1,9 @@
 import { qstash } from "@/lib/cron";
+import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { addDays } from "date-fns";
 import Stripe from "stripe";
 
 export async function chargeSucceeded(event: Stripe.Event) {
@@ -14,14 +16,9 @@ export async function chargeSucceeded(event: Stripe.Event) {
     return;
   }
 
-  const invoice = await prisma.invoice.findUnique({
+  let invoice = await prisma.invoice.findUnique({
     where: {
       id: invoiceId,
-    },
-    select: {
-      id: true,
-      status: true,
-      type: true,
     },
   });
 
@@ -35,20 +32,26 @@ export async function chargeSucceeded(event: Stripe.Event) {
     return;
   }
 
+  invoice = await prisma.invoice.update({
+    where: {
+      id: invoice.id,
+    },
+    data: {
+      receiptUrl: charge.receipt_url,
+      status: "completed",
+      paidAt: new Date(),
+      stripeChargeMetadata: JSON.parse(JSON.stringify(charge)),
+    },
+  });
+
   if (invoice.type === "partnerPayout") {
-    await processPayoutInvoice({ invoice, charge });
+    await processPayoutInvoice({ invoice });
   } else if (invoice.type === "domainRenewal") {
-    await processRenewalInvoice({ invoice, charge });
+    await processRenewalInvoice({ invoice });
   }
 }
 
-async function processPayoutInvoice({
-  invoice,
-  charge,
-}: {
-  invoice: Pick<Invoice, "id">;
-  charge: Stripe.Charge;
-}) {
+async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
   const payouts = await prisma.payout.findMany({
     where: {
       invoiceId: invoice.id,
@@ -69,18 +72,6 @@ async function processPayoutInvoice({
     return;
   }
 
-  await prisma.invoice.update({
-    where: {
-      id: invoice.id,
-    },
-    data: {
-      receiptUrl: charge.receipt_url,
-      status: "completed",
-      paidAt: new Date(),
-      stripeChargeMetadata: JSON.parse(JSON.stringify(charge)),
-    },
-  });
-
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
     body: {
@@ -95,16 +86,41 @@ async function processPayoutInvoice({
   }
 }
 
-async function processRenewalInvoice({
-  invoice,
-  charge,
-}: {
-  invoice: Pick<Invoice, "id">;
-  charge: Stripe.Charge;
-}) {
+async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
+  const domains = await prisma.registeredDomain.findMany({
+    where: {
+      slug: {
+        in: invoice.registeredDomains as string[],
+      },
+    },
+  });
+
+  if (domains.length === 0) {
+    console.log(`No domains found for invoice ${invoice.id}, skipping...`);
+    return;
+  }
+
+  await prisma.registeredDomain.updateMany({
+    where: {
+      id: {
+        in: domains.map(({ id }) => id),
+      },
+    },
+    data: {
+      expiresAt: addDays(new Date(), 365),
+      autoRenewalDisabledAt: null,
+    },
+  });
+
+  await Promise.allSettled(
+    domains.map((domain) =>
+      setRenewOption({
+        domain: domain.slug,
+        autoRenew: true,
+      }),
+    ),
+  );
+
   // TODO:
-  // Find all domains associated with the invoice
-  // Update the domains with the new expiration date
-  // set domain's renew_option to "auto" on Dynadot
   // Send email to the user
 }

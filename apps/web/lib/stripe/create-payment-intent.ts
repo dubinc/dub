@@ -1,5 +1,5 @@
-import { log } from "@dub/utils";
-import { stripe } from ".";
+import { stripe } from "@/lib/stripe";
+import { currencyFormatter, log } from "@dub/utils";
 
 export const createPaymentIntent = async ({
   stripeId,
@@ -53,7 +53,7 @@ export const createPaymentIntent = async ({
     });
 
     console.log(
-      `Payment intent ${paymentIntent.id} created for the invoice ${invoiceId}.`,
+      `Payment intent ${paymentIntent.id} created for invoice ${invoiceId} with amount ${currencyFormatter(paymentIntent.amount / 100)}`,
     );
 
     return paymentIntent;

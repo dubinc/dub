@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       description: `Domain renewal invoice (${invoice.id})`,
     });
 
-    return new Response(`Retrying invoice ${invoice.id}...`);
+    return new Response(`Retrying invoice charge ${invoice.id}...`);
   } catch (error) {
     console.error(error);
 
