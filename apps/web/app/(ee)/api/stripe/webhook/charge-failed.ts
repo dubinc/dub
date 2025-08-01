@@ -52,7 +52,7 @@ export async function chargeFailed(event: Stripe.Event) {
   if (invoice.type === "partnerPayout") {
     await processPayoutInvoice({ invoice, charge });
   } else if (invoice.type === "domainRenewal") {
-    await processRenewalInvoice({ invoice, charge });
+    await processRenewalInvoice({ invoice });
   }
 }
 
@@ -204,13 +204,7 @@ async function processPayoutInvoice({
   );
 }
 
-async function processRenewalInvoice({
-  invoice,
-  charge,
-}: {
-  invoice: Invoice;
-  charge: Stripe.Charge;
-}) {
+async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
   if (invoice.failedAttempts < 3) {
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/invoices/retry-failed`,
