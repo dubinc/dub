@@ -307,7 +307,7 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
     );
   }, [fraudEvent.commissions]);
 
-  const reasons = useMemo(() => {
+  const fraudTypes = useMemo(() => {
     return [
       ...(fraudEvent.selfReferral
         ? [FRAUD_EVENT_TYPES["selfReferral"].label]
@@ -392,7 +392,7 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
           <div className="pb-4">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-semibold text-neutral-900">
-                {reasons.join(", ")}
+                {fraudTypes.join(", ")}
               </h2>
             </div>
             <span className="text-sm text-neutral-500">
