@@ -1,8 +1,11 @@
 import { qstash } from "@/lib/cron";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import DomainRenewed from "@dub/email/templates/domain-renewed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
 import { addDays } from "date-fns";
 import Stripe from "stripe";
 
@@ -100,6 +103,8 @@ async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
     return;
   }
 
+  const newExpiresAt = addDays(new Date(), 365);
+
   await prisma.registeredDomain.updateMany({
     where: {
       id: {
@@ -107,7 +112,7 @@ async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
       },
     },
     data: {
-      expiresAt: addDays(new Date(), 365),
+      expiresAt: newExpiresAt,
       autoRenewalDisabledAt: null,
     },
   });
@@ -121,6 +126,42 @@ async function processRenewalInvoice({ invoice }: { invoice: Invoice }) {
     ),
   );
 
-  // TODO:
-  // Send email to the user
+  const workspace = await prisma.project.findUniqueOrThrow({
+    where: {
+      id: invoice.workspaceId,
+    },
+    include: {
+      users: {
+        where: {
+          role: "owner",
+        },
+        select: {
+          user: true,
+        },
+      },
+    },
+  });
+
+  const workspaceOwners = workspace.users.filter(({ user }) => user.email);
+
+  if (workspaceOwners.length === 0) {
+    console.log("No users found to send domain renewal failed email.");
+    return;
+  }
+
+  await resend?.batch.send(
+    workspaceOwners.map(({ user }) => ({
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: user.email!,
+      subject: `Your ${pluralize("domain", domains.length)} have been renewed`,
+      react: DomainRenewed({
+        email: user.email!,
+        workspace: {
+          slug: workspace.slug,
+        },
+        domains: domains.map(({ slug }) => ({ slug })),
+        expiresAt: newExpiresAt,
+      }),
+    })),
+  );
 }
