@@ -24,9 +24,9 @@ export const GET = withWorkspace(
       programId,
       ...(status && { status }),
       ...(type && {
-        ...(type.selfReferral && { selfReferral: true }),
-        ...(type.googleAdsClick && { googleAdsClick: true }),
-        ...(type.disposableEmail && { disposableEmail: true }),
+        ...(type === "selfReferral" && { selfReferral: true }),
+        ...(type === "googleAdsClick" && { googleAdsClick: true }),
+        ...(type === "disposableEmail" && { disposableEmail: true }),
       }),
       createdAt: {
         gte: startDate.toISOString(),
