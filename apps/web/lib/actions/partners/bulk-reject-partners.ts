@@ -2,15 +2,15 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { rejectPartnersBulkSchema } from "@/lib/zod/schemas/partners";
+import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 // Reject a list of pending partners
-export const rejectPartnersBulkAction = authActionClient
-  .schema(rejectPartnersBulkSchema)
+export const bulkRejectPartnersAction = authActionClient
+  .schema(bulkRejectPartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds } = parsedInput;
