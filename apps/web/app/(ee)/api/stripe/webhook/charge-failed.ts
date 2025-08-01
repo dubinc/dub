@@ -5,6 +5,9 @@ import {
 } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import DomainRenewalFailed from "@dub/email/templates/domain-renewal-failed";
 import PartnerPayoutFailed from "@dub/email/templates/partner-payout-failed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
@@ -57,7 +60,7 @@ async function processPayoutInvoice({
   invoice,
   charge,
 }: {
-  invoice: Pick<Invoice, "id" | "workspaceId" | "amount">;
+  invoice: Invoice;
   charge: Stripe.Charge;
 }) {
   await log({
@@ -205,7 +208,7 @@ async function processRenewalInvoice({
   invoice,
   charge,
 }: {
-  invoice: Pick<Invoice, "id" | "failedAttempts">;
+  invoice: Invoice;
   charge: Stripe.Charge;
 }) {
   if (invoice.failedAttempts < 3) {
@@ -219,6 +222,46 @@ async function processRenewalInvoice({
     });
   }
 
-  // TODO:
-  // Send email to the user
+  const workspace = await prisma.project.findUniqueOrThrow({
+    where: {
+      id: invoice.workspaceId,
+    },
+    include: {
+      users: {
+        where: {
+          role: "owner",
+        },
+        select: {
+          user: true,
+        },
+      },
+    },
+  });
+
+  const workspaceOwners = workspace.users.filter(({ user }) => user.email);
+
+  if (workspaceOwners.length === 0) {
+    console.log("No users found to send domain renewal failed email.");
+    return;
+  }
+
+  const emails = workspaceOwners.map(({ user }) => ({
+    from: VARIANT_TO_FROM_MAP.notifications,
+    to: user.email!,
+    subject: "Domain renewal failed",
+    react: DomainRenewalFailed({
+      email: user.email!,
+      workspace: {
+        slug: workspace.slug,
+      },
+      // TODO:
+      // Fix this
+      domain: {
+        slug: "getacme.link",
+        expiresAt: new Date(),
+      },
+    }),
+  }));
+
+  await resend?.batch.send(emails);
 }
