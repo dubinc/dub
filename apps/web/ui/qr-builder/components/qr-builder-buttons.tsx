@@ -38,27 +38,11 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   const isLastStep = step === maxStep;
 
   const getButtonText = () => {
-    const isFileUploadActive = isFileUploading || isFileProcessing;
-
-    if (!isLastStep && !isFileUploadActive) {
-      return "Continue";
-    }
-
-    if (isEdit && !isFileUploadActive) {
-      return "Save changes";
-    }
-
-    if (homePageDemo && !isFileUploadActive) {
-      return "Download QR Code";
-    }
-
-    if (isFileUploading) {
-      return "Uploading...";
-    }
-
-    if (isFileProcessing) {
-      return "Processing...";
-    }
+    if (isFileUploading) return "Uploading...";
+    if (isFileProcessing) return "Processing...";
+    if (isEdit) return "Save changes";
+    if (!isLastStep) return "Continue";
+    if (homePageDemo) return "Download QR Code";
 
     return "Create QR Code";
   };
