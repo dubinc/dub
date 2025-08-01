@@ -7,15 +7,7 @@ import {
   FRAUD_EVENT_TYPES,
 } from "@/lib/zod/schemas/fraud-events";
 import { X } from "@/ui/shared/icons";
-import {
-  Button,
-  InfoTooltip,
-  Sheet,
-  SimpleTooltipContent,
-  TabSelect,
-  Tooltip,
-  useRouterStuff,
-} from "@dub/ui";
+import { Button, Sheet, TabSelect, Tooltip, useRouterStuff } from "@dub/ui";
 import {
   cn,
   currencyFormatter,
@@ -304,10 +296,8 @@ const FraudEventHistory = ({ partnerId }: { partnerId: string }) => {
 function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
   const { slug } = useWorkspace();
 
-  const { label, description } = FRAUD_EVENT_TYPES[fraudEvent.type];
   const badge = FraudEventStatusBadges[fraudEvent.status];
   const Icon = badge.icon;
-
   const user = fraudEvent.user;
 
   const helAmount = useMemo(() => {
@@ -316,6 +306,20 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
       0,
     );
   }, [fraudEvent.commissions]);
+
+  const reasons = useMemo(() => {
+    return [
+      ...(fraudEvent.selfReferral
+        ? [FRAUD_EVENT_TYPES["selfReferral"].label]
+        : []),
+      ...(fraudEvent.googleAdsClick
+        ? [FRAUD_EVENT_TYPES["googleAdsClick"].label]
+        : []),
+      ...(fraudEvent.disposableEmail
+        ? [FRAUD_EVENT_TYPES["disposableEmail"].label]
+        : []),
+    ];
+  }, [fraudEvent]);
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white p-4">
@@ -386,13 +390,11 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
 
         <div className="divide-y divide-neutral-200">
           <div className="pb-4">
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-neutral-900">
-                {label}
-              </h2>
-              <InfoTooltip
-                content={<SimpleTooltipContent title={description} />}
-              />
+            <div>
+              <h3 className="text-sm font-medium text-neutral-900">Reasons</h3>
+              <div className="text-sm text-neutral-500">
+                {reasons.join(", ")}
+              </div>
             </div>
             <span className="text-sm text-neutral-500">
               {formatDate(fraudEvent.createdAt)}
@@ -400,7 +402,7 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
           </div>
 
           <div className="space-y-4 pt-4">
-            {fraudEvent.type === "googleAdsClick" && (
+            {fraudEvent.googleAdsClick && (
               <div>
                 <h3 className="text-sm font-medium text-neutral-900">
                   Parameters used
@@ -453,7 +455,9 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
 
             {fraudEvent.details && (
               <div>
-                <h3 className="text-sm font-medium text-neutral-900">Reason</h3>
+                <h3 className="text-sm font-medium text-neutral-900">
+                  Additional details
+                </h3>
                 <p className="text-sm text-neutral-500">{fraudEvent.details}</p>
               </div>
             )}
