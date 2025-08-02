@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
+import { UserSchema } from "./users";
 
 export const createManualPayoutSchema = z.object({
   workspaceId: z.string(),
@@ -67,13 +68,7 @@ export const PayoutSchema = z.object({
 export const PayoutResponseSchema = PayoutSchema.merge(
   z.object({
     partner: PartnerSchema,
-    user: z
-      .object({
-        id: z.string(),
-        name: z.string().nullable(),
-        image: z.string().nullable(),
-      })
-      .nullish(),
+    user: UserSchema.nullish(),
   }),
 );
 

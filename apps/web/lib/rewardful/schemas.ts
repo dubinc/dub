@@ -13,5 +13,5 @@ export const rewardfulImportPayloadSchema = z.object({
   rewardId: z.string().optional(),
   campaignId: z.string(),
   action: rewardfulImportSteps,
-  page: z.number().optional()
+  page: z.number().optional(),
 });

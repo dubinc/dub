@@ -1,3 +1,4 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import { Button, Icon, Popover, useCopyToClipboard } from "@dub/ui";
 import {
@@ -5,18 +6,22 @@ import {
   CircleXmark,
   Dots,
   Duplicate,
+  Eye,
   InvoiceDollar,
   ShieldAlert,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useMarkCommissionDuplicateModal } from "./mark-commission-duplicate-modal";
 import { useMarkCommissionFraudOrCanceledModal } from "./mark-commission-fraud-or-canceled-modal";
 
 export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
+  const router = useRouter();
+  const { slug } = useWorkspace();
   const [isOpen, setIsOpen] = useState(false);
 
   const {
@@ -91,18 +96,34 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
                   />
                 </Command.Group>
               )}
-              {row.original.invoiceId && (
+
+              {(row.original.invoiceId || row.original.fraudEventId) && (
                 <>
                   <Command.Separator className="w-full border-t border-neutral-200" />
                   <Command.Group className="p-1.5">
-                    <MenuItem
-                      icon={copiedInvoiceId ? CircleCheck : InvoiceDollar}
-                      label="Copy invoice ID"
-                      onSelect={() => {
-                        copyInvoiceIdToClipboard(row.original.invoiceId!);
-                        toast.success("Invoice ID copied to clipboard");
-                      }}
-                    />
+                    {row.original.invoiceId && (
+                      <MenuItem
+                        icon={copiedInvoiceId ? CircleCheck : InvoiceDollar}
+                        label="Copy invoice ID"
+                        onSelect={() => {
+                          copyInvoiceIdToClipboard(row.original.invoiceId!);
+                          toast.success("Invoice ID copied to clipboard");
+                        }}
+                      />
+                    )}
+
+                    {row.original.fraudEventId && (
+                      <MenuItem
+                        icon={Eye}
+                        label="Review risk"
+                        onSelect={() => {
+                          router.push(
+                            `/${slug}/program/fraud?fraudEventId=${row.original.fraudEventId}`,
+                          );
+                          setIsOpen(false);
+                        }}
+                      />
+                    )}
                   </Command.Group>
                 </>
               )}

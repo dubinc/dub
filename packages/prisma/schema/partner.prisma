@@ -55,6 +55,7 @@ model Partner {
   invites     PartnerInvite[]
   payouts     Payout[]
   commissions Commission[]
+  fraudEvents FraudEvent[]
 }
 model PartnerInvite {
   email     String

@@ -1,4 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { recordFraudIfDetected } from "@/lib/analytics/fraud/record-fraud-if-detected";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -199,17 +200,38 @@ export async function invoicePaid(event: Stripe.Event) {
       },
     });
 
-    if (commission) {
-      waitUntil(
-        notifyPartnerSale({
-          link,
-          commission,
+    waitUntil(
+      Promise.allSettled([
+        commission &&
+          notifyPartnerSale({
+            link,
+            commission,
+          }),
+
+        recordFraudIfDetected({
+          partner: {
+            id: link.partnerId,
+            linkId: link.id,
+            programId: link.programId,
+          },
+          customer: {
+            id: customer.id,
+            name: customer.name || "",
+            email: customer.email,
+          },
+          click: {
+            url: saleData.url,
+            ip: saleData.ip,
+            referer: saleData.referer,
+          },
+          commission: {
+            id: commission?.id,
+          },
         }),
-      );
-    }
+      ]),
+    );
   }
 
-  // send workspace webhook
   waitUntil(
     sendWorkspaceWebhook({
       trigger: "sale.created",

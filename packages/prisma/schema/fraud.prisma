@@ -1,0 +1,37 @@
+enum FraudEventStatus {
+  pending
+  safe
+  banned
+}
+
+model FraudEvent {
+  id               String           @id @default(cuid())
+  programId        String
+  partnerId        String
+  customerId       String
+  linkId           String
+  userId           String?
+  selfReferral     Boolean          @default(false)
+  googleAdsClick   Boolean          @default(false)
+  disposableEmail  Boolean          @default(false)
+  details          String?          @db.Text
+  status           FraudEventStatus @default(pending)
+  resolutionReason String?
+  resolvedAt       DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  program     Program      @relation(fields: [programId], references: [id])
+  partner     Partner      @relation(fields: [partnerId], references: [id])
+  customer    Customer     @relation(fields: [customerId], references: [id])
+  link        Link         @relation(fields: [linkId], references: [id])
+  user        User?        @relation(fields: [userId], references: [id])
+  commissions Commission[] // commissions that are associated with this fraud event
+
+  @@unique([partnerId, customerId]) // Only one entry for a partner <> customer combination can exist
+  @@index([programId, partnerId])
+  @@index(partnerId)
+  @@index(customerId)
+  @@index(linkId)
+  @@index(userId)
+}

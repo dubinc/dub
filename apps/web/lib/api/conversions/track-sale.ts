@@ -1,4 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { recordFraudIfDetected } from "@/lib/analytics/fraud/record-fraud-if-detected";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
@@ -229,12 +230,36 @@ export const trackSale = async ({
           },
         });
 
-        if (commission) {
-          await notifyPartnerSale({
-            link,
-            commission,
-          });
-        }
+        waitUntil(
+          Promise.allSettled([
+            commission &&
+              notifyPartnerSale({
+                link,
+                commission,
+              }),
+
+            recordFraudIfDetected({
+              partner: {
+                id: link.partnerId,
+                linkId: link.id,
+                programId: link.programId,
+              },
+              customer: {
+                id: customer.id,
+                name: customer.name || "",
+                email: customer.email,
+              },
+              click: {
+                url: clickData.url,
+                ip: clickData.ip,
+                referer: clickData.referer,
+              },
+              commission: {
+                id: commission?.id,
+              },
+            }),
+          ]),
+        );
       }
 
       // Send workspace webhook
