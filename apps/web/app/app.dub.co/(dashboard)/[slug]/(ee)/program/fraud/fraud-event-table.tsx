@@ -130,10 +130,11 @@ export function FraudEventTable({ isValidating }: { isValidating: boolean }) {
         id: "holdAmount",
         header: "Hold amount",
         cell: ({ row }) => {
-          const holdAmount = row.original.commissions?.reduce(
-            (acc, commission) => acc + commission.earnings,
-            0,
-          ) ?? 0;
+          const holdAmount =
+            row.original.commissions?.reduce(
+              (acc, commission) => acc + commission.earnings,
+              0,
+            ) ?? 0;
 
           return holdAmount
             ? currencyFormatter(holdAmount / 100, {
