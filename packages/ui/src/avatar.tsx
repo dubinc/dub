@@ -45,7 +45,12 @@ export function Avatar({
   const [url, setUrl] = useState(user.image || "");
 
   if (!url) {
-    return <CircleUserRound className={cn("text-neutral-500", className)} />;
+    return (
+      <CircleUserRound
+        strokeWidth={1.5}
+        className={cn("text-neutral-500", className)}
+      />
+    );
   }
 
   return (
