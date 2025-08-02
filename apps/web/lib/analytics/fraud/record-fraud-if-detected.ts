@@ -1,37 +1,27 @@
 import { createId } from "@/lib/api/create-id";
-import {
-  ClickEventTB,
-  CustomerProps,
-  LinkProps,
-  PartnerProps,
-  ProgramProps,
-} from "@/lib/types";
+import { ClickEventTB, CustomerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { detectFraudEvents } from "./detect-fraud-events";
 
 export const recordFraudIfDetected = async ({
-  program,
   partner,
-  link,
   customer,
-  commission,
   click,
+  commission,
 }: {
-  program: Pick<ProgramProps, "id">;
-  partner: Pick<PartnerProps, "id">;
-  link: Pick<LinkProps, "id">;
+  partner: { id: string; programId: string; linkId: string };
   customer: Pick<CustomerProps, "id" | "name" | "email">;
-  commission: { id?: string };
   click: Pick<ClickEventTB, "url" | "ip" | "referer">;
+  commission: { id?: string };
 }) => {
   const { partner: partnerData, ...enrollment } =
     await prisma.programEnrollment.findUniqueOrThrow({
       where: {
         partnerId_programId: {
           partnerId: partner.id,
-          programId: program.id,
+          programId: partner.programId,
         },
       },
       select: {
@@ -113,10 +103,10 @@ export const recordFraudIfDetected = async ({
             selfReferral: fraudTypesFound.has("selfReferral"),
             googleAdsClick: fraudTypesFound.has("googleAdsClick"),
             disposableEmail: fraudTypesFound.has("disposableEmail"),
-            programId: program.id,
+            programId: partner.programId,
             partnerId: partner.id,
             customerId: customer.id,
-            linkId: link.id,
+            linkId: partner.linkId,
             details,
           },
         });

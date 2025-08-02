@@ -239,14 +239,10 @@ export const trackSale = async ({
               }),
 
             recordFraudIfDetected({
-              program: {
-                id: link.programId,
-              },
               partner: {
                 id: link.partnerId,
-              },
-              link: {
-                id: link.id,
+                linkId: link.id,
+                programId: link.programId,
               },
               customer: {
                 id: customer.id,
