@@ -3,14 +3,23 @@ import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus, Program } from "@prisma/client";
+import { convertCurrency } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
+import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulCommission, RewardfulImportPayload } from "./types";
+
+const toDubStatus: Record<RewardfulCommission["state"], CommissionStatus> = {
+  pending: "pending",
+  due: "pending",
+  paid: "paid",
+  voided: "canceled",
+};
 
 export async function importCommissions(payload: RewardfulImportPayload) {
   const { programId, userId, campaignId, page = 1 } = payload;
@@ -24,6 +33,8 @@ export async function importCommissions(payload: RewardfulImportPayload) {
   const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
+
+  const fxRates = await redis.hgetall<Record<string, string>>("fxRates:usd");
 
   let currentPage = page;
   let hasMore = true;
@@ -45,9 +56,11 @@ export async function importCommissions(payload: RewardfulImportPayload) {
           commission,
           program,
           campaignId,
+          fxRates,
         }),
       ),
     );
+
     currentPage++;
     processedBatches++;
   }
@@ -97,10 +110,12 @@ async function createCommission({
   commission,
   program,
   campaignId,
+  fxRates,
 }: {
   commission: RewardfulCommission;
   program: Program;
   campaignId: string;
+  fxRates: Record<string, string> | null;
 }) {
   if (commission.campaign.id !== campaignId) {
     console.log(
@@ -135,6 +150,34 @@ async function createCommission({
     return;
   }
 
+  // Sale amount
+  let amount = sale.sale_amount_cents;
+  const saleCurrency = sale.currency.toUpperCase();
+
+  if (saleCurrency !== "USD" && fxRates) {
+    const { amount: convertedAmount } = await convertCurrency({
+      currency: saleCurrency,
+      amount,
+      fxRates,
+    });
+
+    amount = convertedAmount;
+  }
+
+  // Earnings
+  let earnings = commission.amount;
+  const earningsCurrency = commission.currency.toUpperCase();
+
+  if (earningsCurrency !== "USD" && fxRates) {
+    const { amount: convertedAmount } = await convertCurrency({
+      currency: earningsCurrency,
+      amount: earnings,
+      fxRates,
+    });
+
+    earnings = convertedAmount;
+  }
+
   // here, we also check for commissions that have already been recorded on Dub
   // e.g. during the transition period
   // since we don't have the Stripe invoiceId from Rewardful, we use the referral's Stripe customer ID
@@ -151,7 +194,7 @@ async function createCommission({
         stripeCustomerId: sale.referral.stripe_customer_id,
       },
       type: "sale",
-      amount: sale.sale_amount_cents,
+      amount: amount,
     },
   });
 
@@ -206,13 +249,6 @@ async function createCommission({
 
   const eventId = nanoid(16);
 
-  const toDubStatus: Record<RewardfulCommission["state"], CommissionStatus> = {
-    pending: "pending",
-    due: "pending",
-    paid: "paid",
-    voided: "canceled",
-  };
-
   await Promise.all([
     prisma.commission.create({
       data: {
@@ -223,8 +259,8 @@ async function createCommission({
         partnerId: customerFound.link.partnerId,
         linkId: customerFound.linkId,
         customerId: customerFound.id,
-        amount: sale.sale_amount_cents,
-        earnings: commission.amount,
+        amount,
+        earnings,
         currency: sale.currency.toLowerCase(),
         quantity: 1,
         status: toDubStatus[commission.state],
@@ -237,7 +273,7 @@ async function createCommission({
       ...clickData,
       event_id: eventId,
       event_name: "Invoice paid",
-      amount: sale.sale_amount_cents,
+      amount,
       customer_id: customerFound.id,
       payment_processor: "stripe",
       currency: sale.currency.toLowerCase(),
@@ -250,7 +286,7 @@ async function createCommission({
       where: { id: customerFound.linkId },
       data: {
         sales: { increment: 1 },
-        saleAmount: { increment: sale.sale_amount_cents },
+        saleAmount: { increment: amount },
       },
     }),
 
@@ -259,7 +295,7 @@ async function createCommission({
       where: { id: customerFound.id },
       data: {
         sales: { increment: 1 },
-        saleAmount: { increment: sale.sale_amount_cents },
+        saleAmount: { increment: amount },
       },
     }),
   ]);

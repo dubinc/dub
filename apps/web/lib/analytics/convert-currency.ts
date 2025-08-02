@@ -22,19 +22,21 @@ export const ZERO_DECIMAL_CURRENCIES = [
 export const convertCurrency = async ({
   currency,
   amount,
+  fxRates,
 }: {
   currency: string;
   amount: number;
+  fxRates?: Record<string, string>;
 }) => {
-  const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(
-    currency.toUpperCase(),
-  );
+  const currencyCode = currency.toUpperCase();
+  const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currencyCode);
+  const fxRate =
+    fxRates?.[currencyCode] ?? (await redis.hget("fxRates:usd", currencyCode)); // e.g. for MYR it'll be around 4.4
 
-  const fxRates = await redis.hget("fxRates:usd", currency.toUpperCase()); // e.g. for MYR it'll be around 4.4
-
-  if (fxRates) {
+  if (fxRate) {
     // convert amount to USD based on the current FX rate
-    let convertedAmount = amount / Number(fxRates);
+    let convertedAmount = amount / Number(fxRate);
+
     // if the currency is a zero decimal currency, we need to multiply the converted amount by 100
     if (isZeroDecimalCurrency) {
       convertedAmount = convertedAmount * 100;
