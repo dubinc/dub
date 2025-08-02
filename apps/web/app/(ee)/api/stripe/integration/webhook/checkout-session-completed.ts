@@ -380,6 +380,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           click: {
             url: saleData.url,
             ip: saleData.ip,
+            referer: saleData.referer,
           },
           commission: {
             id: commission?.id,

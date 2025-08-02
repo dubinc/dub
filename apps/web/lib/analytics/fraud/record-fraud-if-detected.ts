@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import {
+  ClickEventTB,
   CustomerProps,
   LinkProps,
   PartnerProps,
@@ -22,13 +23,8 @@ export const recordFraudIfDetected = async ({
   partner: Pick<PartnerProps, "id">;
   link: Pick<LinkProps, "id">;
   customer: Pick<CustomerProps, "id" | "name" | "email">;
-  commission?: {
-    id?: string;
-  };
-  click: {
-    url: string;
-    ip?: string | null;
-  };
+  commission: { id?: string };
+  click: Pick<ClickEventTB, "url" | "ip" | "referer">;
 }) => {
   const { partner: partnerData, ...enrollment } =
     await prisma.programEnrollment.findUniqueOrThrow({
@@ -79,14 +75,8 @@ export const recordFraudIfDetected = async ({
   }
 
   const events = await detectFraudEvents({
-    click: {
-      url: click.url,
-      ip: click.ip,
-    },
-    customer: {
-      email: customer.email || "",
-      name: customer.name,
-    },
+    click,
+    customer,
     partner: {
       email: partnerData.email || "",
       name: partnerData.name || "",

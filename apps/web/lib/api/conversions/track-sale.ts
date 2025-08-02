@@ -256,6 +256,7 @@ export const trackSale = async ({
               click: {
                 url: clickData.url,
                 ip: clickData.ip,
+                referer: clickData.referer,
               },
               commission: {
                 id: commission?.id,

@@ -170,6 +170,7 @@ export async function createShopifySale({
           click: {
             url: saleData.url,
             ip: saleData.ip,
+            referer: saleData.referer,
           },
           commission: {
             id: commission?.id,

@@ -1,3 +1,4 @@
+import { ClickEventTB, CustomerProps, PartnerProps } from "@/lib/types";
 import { fraudEventTypeSchema } from "@/lib/zod/schemas/fraud-events";
 import { z } from "zod";
 import { isDisposableEmail } from "./is-disposable-email";
@@ -14,19 +15,11 @@ export const detectFraudEvents = async ({
   customer,
   partner,
 }: {
-  click: {
-    url: string;
-    ip?: string | null;
+  partner: Pick<PartnerProps, "name" | "email"> & {
+    ipAddress: string | null;
   };
-  customer: {
-    email: string;
-    name: string;
-  };
-  partner: {
-    email: string;
-    name: string;
-    ipAddress?: string | null;
-  };
+  customer: Pick<CustomerProps, "name" | "email">;
+  click: Pick<ClickEventTB, "url" | "ip" | "referer">;
 }) => {
   const { selfReferral, reasons } = await isSelfReferral({
     partner,
@@ -43,7 +36,12 @@ export const detectFraudEvents = async ({
     });
   }
 
-  if (isGoogleAdsClick(click.url)) {
+  if (
+    isGoogleAdsClick({
+      url: click.url,
+      referer: click.referer,
+    })
+  ) {
     events.push({
       type: "googleAdsClick",
       reason: null,

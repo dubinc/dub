@@ -1,4 +1,5 @@
 import { genericEmailDomains } from "@/lib/emails";
+import { ClickEventTB, CustomerProps, PartnerProps } from "@/lib/types";
 import { destructureEmail } from "@dub/utils";
 import * as ipaddr from "ipaddr.js";
 
@@ -233,18 +234,11 @@ export const isSelfReferral = async ({
   customer,
   click,
 }: {
-  partner: {
-    email: string | null;
-    name?: string | null;
-    ipAddress?: string | null;
+  partner: Pick<PartnerProps, "name" | "email"> & {
+    ipAddress: string | null;
   };
-  customer: {
-    email: string | null;
-    name?: string | null;
-  };
-  click: {
-    ip?: string | null;
-  };
+  customer: Pick<CustomerProps, "name" | "email">;
+  click: Pick<ClickEventTB, "ip">;
 }) => {
   let confidence = 0;
   const reasons: string[] = [];
