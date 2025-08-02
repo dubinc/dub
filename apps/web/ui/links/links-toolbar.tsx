@@ -1,6 +1,6 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useFolderPermissions } from "@/lib/swr/use-folder-permissions";
-import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
+import { useIsMegaWorkspace } from "@/lib/swr/use-is-mega-workspace";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -8,15 +8,15 @@ import {
   Button,
   CircleCheck,
   CircleDollar,
+  CursorPaginationControls,
   Folder,
   Icon,
   LoadingSpinner,
-  PaginationControls,
   Tag,
   TooltipContent,
   Trash,
+  useCursorPagination,
   useKeyboardShortcut,
-  usePagination,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { memo, ReactNode, useContext, useMemo } from "react";
@@ -50,11 +50,11 @@ export const LinksToolbar = memo(
     linksCount: number;
   }) => {
     const { slug, plan } = useWorkspace();
-
-    const { isMegaFolder } = useIsMegaFolder();
-
+    const { isMegaWorkspace } = useIsMegaWorkspace();
     const { canManageFolderPermissions } = getPlanCapabilities(plan);
     const { folders } = useFolderPermissions();
+    const { pagination: basePagination, setPagination } = useCursorPagination();
+
     const conversionsEnabled = !!plan && plan !== "free" && plan !== "pro";
 
     const { openMenuLinkId } = useContext(LinksListContext);
@@ -64,7 +64,6 @@ export const LinksToolbar = memo(
       selectedLinkIds,
       setSelectedLinkIds,
     } = useLinkSelection();
-    const { pagination, setPagination } = usePagination();
 
     const selectedLinks = useMemo(
       () => links.filter(({ id }) => selectedLinkIds.includes(id)),
@@ -192,6 +191,19 @@ export const LinksToolbar = memo(
       modal: false,
     });
 
+    const pagination = useMemo(() => {
+      const hasNextPage = links && links.length === basePagination.pageSize;
+      const hasPreviousPage = Boolean(
+        basePagination.startingAfter || basePagination.endingBefore,
+      );
+
+      return {
+        ...basePagination,
+        hasNextPage,
+        hasPreviousPage,
+      };
+    }, [basePagination, links]);
+
     const isSelecting = isSelectMode || selectedLinkIds.length > 0;
 
     return (
@@ -222,14 +234,28 @@ export const LinksToolbar = memo(
                       "pointer-events-none absolute inset-0 translate-y-1/2 opacity-0",
                   )}
                 >
-                  <PaginationControls
+                  <CursorPaginationControls
                     pagination={pagination}
-                    setPagination={setPagination}
+                    onNextPage={() => {
+                      const lastLink = links[links.length - 1];
+                      if (lastLink?.id) {
+                        setPagination({
+                          startingAfter: lastLink.id,
+                        });
+                      }
+                    }}
+                    onPreviousPage={() => {
+                      const firstLink = links[0];
+                      if (firstLink?.id) {
+                        setPagination({
+                          endingBefore: firstLink.id,
+                        });
+                      }
+                    }}
                     totalCount={linksCount}
                     unit={(plural) => `${plural ? "links" : "link"}`}
-                    showTotalCount={!isMegaFolder}
                   >
-                    {!isMegaFolder && (
+                    {!isMegaWorkspace && (
                       <>
                         {loading ? (
                           <LoadingSpinner className="size-3.5" />
@@ -240,7 +266,8 @@ export const LinksToolbar = memo(
                         )}
                       </>
                     )}
-                  </PaginationControls>
+                  </CursorPaginationControls>
+
                   <div className="flex items-center gap-2 pt-3 sm:hidden">
                     <CreateLinkButton
                       className="h-8"

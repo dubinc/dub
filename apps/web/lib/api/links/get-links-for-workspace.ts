@@ -18,6 +18,8 @@ export async function getLinksForWorkspace({
   sortOrder,
   page,
   pageSize,
+  startingAfter,
+  endingBefore,
   userId,
   showArchived,
   withTags,
@@ -56,6 +58,8 @@ export async function getLinksForWorkspace({
       }
     } catch (e) {}
   }
+
+  const cursorId = startingAfter || endingBefore;
 
   const links = await prisma.link.findMany({
     where: {
@@ -149,8 +153,20 @@ export async function getLinksForWorkspace({
     orderBy: {
       [sortBy]: sortOrder,
     },
-    take: pageSize,
-    skip: (page - 1) * pageSize,
+    ...(cursorId
+      ? {
+          cursor: { id: cursorId },
+          skip: 1, // skip the cursor item itself
+          take: startingAfter ? pageSize : -pageSize,
+        }
+      : page
+        ? {
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+          }
+        : {
+            take: pageSize, // default if neither page nor cursorId
+          }),
   });
 
   return links.map((link) => transformLink(link));

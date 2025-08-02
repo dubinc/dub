@@ -1,6 +1,5 @@
 "use client";
 
-import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -92,8 +91,6 @@ function LinksList({
   compact: boolean;
 }) {
   const searchParams = useSearchParams();
-  const { isMegaFolder } = useIsMegaFolder();
-
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
   const isFiltered = [
@@ -159,7 +156,7 @@ function LinksList({
           <LinksToolbar
             loading={!!loading}
             links={links}
-            linksCount={isMegaFolder ? Infinity : count ?? links?.length ?? 0}
+            linksCount={count ?? links?.length ?? 0}
           />
         )}
       </LinkSelectionProvider>
