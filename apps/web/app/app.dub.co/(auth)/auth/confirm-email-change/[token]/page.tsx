@@ -48,6 +48,7 @@ const VerifyEmailChange = async ({
     },
   });
 
+
   if (!tokenFound || tokenFound.expires < new Date()) {
     return (
       <EmptyState
@@ -80,13 +81,18 @@ const VerifyEmailChange = async ({
     redirect(`/login?next=/auth/confirm-email-change/${token}`);
   }
 
-  const { id: currentUserId, defaultPartnerId } = session.user;
+  const { id: userId, defaultPartnerId: partnerId } = session.user;
+
+  const identifier = "user_1K1A7E86362MHCHEMX11KHKQ8"
 
   const data = await redis.get<{
     email: string;
     newEmail: string;
     isPartnerProfile?: boolean;
-  }>(`email-change-request:user:${currentUserId}`);
+  }>(`email-change-request:user:${identifier}`);
+
+  console.log({identifier})
+
 
   if (!data) {
     return (
@@ -102,7 +108,7 @@ const VerifyEmailChange = async ({
 
   // Update the partner profile email
   if (data.isPartnerProfile) {
-    if (!defaultPartnerId) {
+    if (!partnerId) {
       return (
         <EmptyState
           icon={InputPassword}
@@ -114,7 +120,7 @@ const VerifyEmailChange = async ({
 
     await prisma.partner.update({
       where: {
-        id: defaultPartnerId,
+        id: partnerId,
       },
       data: {
         email: data.newEmail,
@@ -126,7 +132,7 @@ const VerifyEmailChange = async ({
   else {
     user = await prisma.user.update({
       where: {
-        id: currentUserId,
+        id: userId,
       },
       data: {
         email: data.newEmail,
@@ -159,11 +165,13 @@ const VerifyEmailChange = async ({
     ]),
   );
 
-  return <ConfirmEmailChangePageClient />;
+  return (
+    <ConfirmEmailChangePageClient isPartnerProfile={!!data.isPartnerProfile} />
+  );
 };
 
 const deleteRequest = async (tokenFound: VerificationToken) => {
-  await Promise.all([
+  await Promise.allSettled([
     prisma.verificationToken.delete({
       where: {
         token: tokenFound.token,
