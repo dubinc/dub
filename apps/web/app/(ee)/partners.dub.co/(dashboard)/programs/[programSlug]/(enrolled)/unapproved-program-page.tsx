@@ -1,9 +1,14 @@
+import { withdrawPartnerApplicationAction } from "@/lib/actions/partners/withdraw-partner-application";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
-import { StatusBadge } from "@dub/ui";
+import { Button, StatusBadge } from "@dub/ui";
+import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
+import { toast } from "sonner";
 
 const states: Record<
   string,
@@ -22,11 +27,11 @@ const states: Record<
       </>
     ),
   }),
-  rejected: (programEnrollment) => ({
+  rejected: () => ({
     title: "Application rejected",
     description: "Your application has been rejected.",
   }),
-  banned: (programEnrollment) => ({
+  banned: () => ({
     title: "Program unavailable",
     description: "You have been banned from this program.",
   }),
@@ -37,11 +42,32 @@ export function UnapprovedProgramPage({
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
+  const router = useRouter();
+
   const { title, description } = (
     states?.[programEnrollment.status] ?? states.pending
   )(programEnrollment);
 
   const badge = PartnerStatusBadges[programEnrollment.status];
+
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Withdraw Application",
+    description: `Are you sure you want to withdraw your application for ${programEnrollment.program.name}? This will delete your application completely and you'll have to re-apply if you want to join again.`,
+    confirmText: "Withdraw application",
+    onConfirm: async () => {
+      try {
+        await withdrawPartnerApplicationAction({
+          programId: programEnrollment.programId,
+        });
+        mutatePrefix("/api/partner-profile/programs");
+        router.push("/programs");
+        toast.success("Application withdrawn successfully");
+      } catch (error) {
+        console.error("Error withdrawing application:", error);
+        toast.error("Failed to withdraw application. Please try again.");
+      }
+    },
+  });
 
   return (
     <PageContent title="Application">
@@ -73,8 +99,22 @@ export function UnapprovedProgramPage({
                 </>
               )}
           </p>
+
+          {/* Withdraw button - only show for pending applications */}
+          {programEnrollment.status === "pending" && (
+            <div className="mt-6">
+              <Button
+                variant="secondary"
+                text="Withdraw Application"
+                onClick={() => setShowConfirmModal(true)}
+                className="h-8 px-2.5"
+              />
+            </div>
+          )}
         </div>
       </PageWidthWrapper>
+
+      {confirmModal}
     </PageContent>
   );
 }

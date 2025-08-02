@@ -45,6 +45,13 @@ export const updatePartnerPayoutSettingsAction = authPartnerActionClient
               status: "processed",
               stripeTransferId: null,
             },
+            include: {
+              program: {
+                select: {
+                  name: true,
+                },
+              },
+            },
           });
 
           if (previouslyProcessedPayouts.length > 0) {
