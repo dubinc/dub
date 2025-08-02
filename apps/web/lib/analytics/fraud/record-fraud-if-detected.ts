@@ -122,10 +122,6 @@ export const recordFraudIfDetected = async ({
             status: "held",
           },
         });
-
-        console.log(
-          `Recorded fraud event for ${partner.id} and ${customer.id}`,
-        );
       }
     });
   } catch (error) {
