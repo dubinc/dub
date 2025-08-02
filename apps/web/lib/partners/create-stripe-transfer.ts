@@ -7,14 +7,20 @@ import {
   MIN_WITHDRAWAL_AMOUNT_CENTS,
 } from "./constants";
 
+type PayoutWithProgramName = Pick<Payout, "id" | "amount" | "invoiceId"> & {
+  program: {
+    name: string;
+  };
+};
+
 export const createStripeTransfer = async ({
   partner,
   previouslyProcessedPayouts,
   currentInvoicePayouts,
 }: {
   partner: Pick<Partner, "id" | "minWithdrawalAmount" | "stripeConnectId">;
-  previouslyProcessedPayouts: Pick<Payout, "id" | "amount" | "invoiceId">[];
-  currentInvoicePayouts?: Pick<Payout, "id" | "amount" | "invoiceId">[];
+  previouslyProcessedPayouts: PayoutWithProgramName[];
+  currentInvoicePayouts?: PayoutWithProgramName[];
 }) => {
   // this should never happen since we guard for it outside, but just in case
   if (!partner.stripeConnectId) {
@@ -92,7 +98,7 @@ export const createStripeTransfer = async ({
       // (even though the transfer could technically include payouts from multiple invoices)
       transfer_group: finalPayoutInvoiceId!,
       destination: partner.stripeConnectId,
-      description: `Dub Partners payout for ${allPayouts.map((p) => p.id).join(", ")}`,
+      description: `Dub Partners payout ${pluralize("transfer", allPayouts.length)} (${allPayouts.map((p) => p.program.name).join(", ")})`,
     },
     {
       idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,
