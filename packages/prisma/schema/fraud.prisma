@@ -23,8 +23,8 @@ model FraudEvent {
 
   program     Program      @relation(fields: [programId], references: [id])
   partner     Partner      @relation(fields: [partnerId], references: [id])
-  customer    Customer?    @relation(fields: [customerId], references: [id])
-  link        Link?        @relation(fields: [linkId], references: [id])
+  customer    Customer     @relation(fields: [customerId], references: [id])
+  link        Link         @relation(fields: [linkId], references: [id])
   user        User?        @relation(fields: [userId], references: [id])
   commissions Commission[] // commissions that are associated with this fraud event
 
