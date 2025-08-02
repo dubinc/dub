@@ -1,7 +1,6 @@
 import { sendEmail } from "@dub/email";
 import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { randomBytes } from "crypto";
 import { hashToken } from ".";
@@ -14,11 +13,13 @@ export const confirmEmailChange = async ({
   newEmail,
   identifier,
   isPartnerProfile = false,
+  hostName,
 }: {
   email: string;
   newEmail: string;
   identifier: string;
   isPartnerProfile?: boolean; // If true, the email is being changed for a partner profile
+  hostName: string;
 }) => {
   const { success } = await ratelimit(3, "1 d").limit(
     `email-change-request:${identifier}`,
@@ -64,8 +65,6 @@ export const confirmEmailChange = async ({
     },
   );
 
-  const confirmUrl = `${!isPartnerProfile ? APP_DOMAIN : PARTNERS_DOMAIN}/auth/confirm-email-change/${token}`;
-
   waitUntil(
     sendEmail({
       subject: "Confirm your email address change",
@@ -73,7 +72,7 @@ export const confirmEmailChange = async ({
       react: ConfirmEmailChange({
         email,
         newEmail,
-        confirmUrl,
+        confirmUrl: `${hostName}/auth/confirm-email-change/${token}`,
       }),
     }),
   );

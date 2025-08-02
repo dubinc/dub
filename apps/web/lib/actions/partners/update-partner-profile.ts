@@ -9,6 +9,7 @@ import {
   COUNTRIES,
   deepEqual,
   nanoid,
+  PARTNERS_DOMAIN,
 } from "@dub/utils";
 import { Partner, PartnerProfileType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -111,6 +112,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
           newEmail,
           identifier: partner.id,
           isPartnerProfile: true,
+          hostName: PARTNERS_DOMAIN,
         });
 
         needsEmailVerification = true;

@@ -5,7 +5,14 @@ import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/misc";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
 import { prisma } from "@dub/prisma";
-import { R2_URL, nanoid, trim } from "@dub/utils";
+import {
+  APP_DOMAIN,
+  APP_HOSTNAMES,
+  PARTNERS_DOMAIN,
+  R2_URL,
+  nanoid,
+  trim,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -103,10 +110,13 @@ export const PATCH = withSession(async ({ req, session }) => {
       });
     }
 
+    const hostName = req.headers.get("host") || "";
+
     await confirmEmailChange({
       email: session.user.email,
       newEmail: email,
       identifier: session.user.id,
+      hostName: APP_HOSTNAMES.has(hostName) ? APP_DOMAIN : PARTNERS_DOMAIN,
     });
   }
 
