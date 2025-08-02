@@ -48,7 +48,6 @@ const VerifyEmailChange = async ({
     },
   });
 
-
   if (!tokenFound || tokenFound.expires < new Date()) {
     return (
       <EmptyState
@@ -83,16 +82,15 @@ const VerifyEmailChange = async ({
 
   const { id: userId, defaultPartnerId: partnerId } = session.user;
 
-  const identifier = "user_1K1A7E86362MHCHEMX11KHKQ8"
+  const identifier = tokenFound.identifier.startsWith("pn_")
+    ? partnerId
+    : userId;
 
   const data = await redis.get<{
     email: string;
     newEmail: string;
     isPartnerProfile?: boolean;
   }>(`email-change-request:user:${identifier}`);
-
-  console.log({identifier})
-
 
   if (!data) {
     return (
