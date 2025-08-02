@@ -12,7 +12,7 @@ export async function splitPayouts({
   cutoffPeriod,
   excludedPayoutIds,
 }: {
-  program: Pick<Program, "id" | "minPayoutAmount">;
+  program: Pick<Program, "id" | "name" | "minPayoutAmount">;
   cutoffPeriod: CUTOFF_PERIOD_TYPES;
   excludedPayoutIds?: string[];
 }) {
@@ -100,7 +100,7 @@ export async function splitPayouts({
               (total, commission) => total + commission.earnings,
               0,
             ),
-            description: "Dub Partners payout",
+            description: `Dub Partners payout (${program.name})`,
           },
         });
 
