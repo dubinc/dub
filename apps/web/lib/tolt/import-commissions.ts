@@ -3,6 +3,7 @@ import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus } from "@prisma/client";
+import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
@@ -257,6 +258,14 @@ async function createCommission({
         id: customerFound.linkId,
       },
       data: {
+        ...(isFirstConversion({
+          customer: customerFound,
+          linkId: customerFound.linkId,
+        }) && {
+          conversions: {
+            increment: 1,
+          },
+        }),
         sales: {
           increment: 1,
         },

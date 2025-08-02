@@ -1,4 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
@@ -155,12 +156,20 @@ export const trackSale = async ({
       const [_sale, link] = await Promise.all([
         recordSale(saleData),
 
-        // update link sales count
+        // update link conversions, sales, and saleAmount
         prisma.link.update({
           where: {
             id: clickData.link_id,
           },
           data: {
+            ...(isFirstConversion({
+              customer,
+              linkId: clickData.link_id,
+            }) && {
+              conversions: {
+                increment: 1,
+              },
+            }),
             sales: {
               increment: 1,
             },

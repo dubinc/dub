@@ -72,7 +72,6 @@ export const handleDomainUpdates = async ({
     await log({
       message: `Domain *${domain}* is invalid but not associated with any workspace, skipping.`,
       type: "cron",
-      mention: true,
     });
     return;
   }
