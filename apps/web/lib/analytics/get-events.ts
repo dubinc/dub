@@ -22,6 +22,7 @@ import {
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
 import { EventsFilters } from "./types";
+import { parseFiltersFromQuery } from "./utils/analytics-query-parser";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/events
@@ -39,6 +40,7 @@ export const getEvents = async (params: EventsFilters) => {
     order,
     sortOrder,
     dataAvailableFrom,
+    query,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -78,6 +80,8 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
+  const filters = parseFiltersFromQuery(query);
+
   const response = await pipe({
     ...params,
     eventType,
@@ -89,6 +93,7 @@ export const getEvents = async (params: EventsFilters) => {
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+    filters: filters ? JSON.stringify(filters) : undefined,
   });
 
   const [linksMap, customersMap] = await Promise.all([
