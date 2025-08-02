@@ -3,7 +3,7 @@ import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus, Program } from "@prisma/client";
-import { ZERO_DECIMAL_CURRENCIES } from "../analytics/convert-currency";
+import { convertCurrency } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
@@ -13,6 +13,13 @@ import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulCommission, RewardfulImportPayload } from "./types";
+
+const toDubStatus: Record<RewardfulCommission["state"], CommissionStatus> = {
+  pending: "pending",
+  due: "pending",
+  paid: "paid",
+  voided: "canceled",
+};
 
 export async function importCommissions(payload: RewardfulImportPayload) {
   const { programId, userId, campaignId, page = 1 } = payload;
@@ -145,39 +152,30 @@ async function createCommission({
 
   // Sale amount
   let amount = sale.sale_amount_cents;
-  let currency = sale.currency.toUpperCase();
+  const saleCurrency = sale.currency.toUpperCase();
 
-  if (currency !== "USD" && fxRates) {
-    const fxRate = fxRates[currency];
-    const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currency);
+  if (saleCurrency !== "USD" && fxRates) {
+    const { amount: convertedAmount } = await convertCurrency({
+      currency: saleCurrency,
+      amount,
+      fxRates,
+    });
 
-    if (fxRate) {
-      let convertedAmount = amount / Number(fxRates);
-
-      if (isZeroDecimalCurrency) {
-        convertedAmount = convertedAmount * 100;
-      }
-
-      amount = Math.round(convertedAmount);
-    }
+    amount = convertedAmount;
   }
 
+  // Earnings
   let earnings = commission.amount;
-  currency = commission.currency.toUpperCase();
+  const earningsCurrency = commission.currency.toUpperCase();
 
-  if (currency !== "USD" && fxRates) {
-    const fxRate = fxRates[currency];
-    const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currency);
+  if (earningsCurrency !== "USD" && fxRates) {
+    const { amount: convertedAmount } = await convertCurrency({
+      currency: earningsCurrency,
+      amount: earnings,
+      fxRates,
+    });
 
-    if (fxRate) {
-      let convertedEarnings = earnings / Number(fxRates);
-
-      if (isZeroDecimalCurrency) {
-        convertedEarnings = convertedEarnings * 100;
-      }
-
-      earnings = Math.round(convertedEarnings);
-    }
+    earnings = convertedAmount;
   }
 
   // here, we also check for commissions that have already been recorded on Dub
@@ -196,7 +194,7 @@ async function createCommission({
         stripeCustomerId: sale.referral.stripe_customer_id,
       },
       type: "sale",
-      amount: sale.sale_amount_cents,
+      amount: amount,
     },
   });
 
@@ -251,13 +249,6 @@ async function createCommission({
 
   const eventId = nanoid(16);
 
-  const toDubStatus: Record<RewardfulCommission["state"], CommissionStatus> = {
-    pending: "pending",
-    due: "pending",
-    paid: "paid",
-    voided: "canceled",
-  };
-
   await Promise.all([
     prisma.commission.create({
       data: {
@@ -295,7 +286,7 @@ async function createCommission({
       where: { id: customerFound.linkId },
       data: {
         sales: { increment: 1 },
-        saleAmount: { increment: sale.sale_amount_cents },
+        saleAmount: { increment: amount },
       },
     }),
 
@@ -304,7 +295,7 @@ async function createCommission({
       where: { id: customerFound.id },
       data: {
         sales: { increment: 1 },
-        saleAmount: { increment: sale.sale_amount_cents },
+        saleAmount: { increment: amount },
       },
     }),
   ]);

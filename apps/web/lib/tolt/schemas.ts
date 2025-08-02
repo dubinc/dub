@@ -22,6 +22,7 @@ export const ToltProgramSchema = z.object({
   name: z.string(),
   subdomain: z.string(),
   payout_term: z.string(),
+  currency_code: z.string(),
 });
 
 export const ToltAffiliateSchema = z.object({

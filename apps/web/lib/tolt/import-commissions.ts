@@ -3,10 +3,12 @@ import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus } from "@prisma/client";
+import { convertCurrency } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
+import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
@@ -35,8 +37,13 @@ export async function importCommissions(payload: ToltImportPayload) {
   const { workspace } = program;
 
   const { token } = await toltImporter.getCredentials(workspace.id);
-
   const toltApi = new ToltApi({ token });
+
+  const toltProgram = await toltApi.getProgram({
+    programId: toltProgramId,
+  });
+
+  const fxRates = await redis.hgetall<Record<string, string>>("fxRates:usd");
 
   let hasMore = true;
   let processedBatches = 0;
@@ -58,6 +65,8 @@ export async function importCommissions(payload: ToltImportPayload) {
           workspaceId: workspace.id,
           programId,
           commission,
+          fxRates,
+          currency: toltProgram.currency_code.toLowerCase(),
         }),
       ),
     );
@@ -121,10 +130,14 @@ async function createCommission({
   workspaceId,
   programId,
   commission,
+  fxRates,
+  currency,
 }: {
   workspaceId: string;
   programId: string;
   commission: ToltCommission;
+  fxRates: Record<string, string> | null;
+  currency: string;
 }) {
   const { customer, partner, ...sale } = commission;
 
@@ -166,6 +179,32 @@ async function createCommission({
     return;
   }
 
+  // Sale amount
+  let amount = Number(sale.amount);
+
+  if (currency.toUpperCase() !== "USD" && fxRates) {
+    const { amount: convertedAmount } = await convertCurrency({
+      currency,
+      amount,
+      fxRates,
+    });
+
+    amount = convertedAmount;
+  }
+
+  // Earnings
+  let earnings = Number(commission.amount);
+
+  if (currency.toUpperCase() !== "USD" && fxRates) {
+    const { amount: convertedAmount } = await convertCurrency({
+      currency,
+      amount: earnings,
+      fxRates,
+    });
+
+    earnings = convertedAmount;
+  }
+
   // here, we also check for commissions that have already been recorded on Dub
   // e.g. during the transition period
   // since we don't have the Stripe invoiceId from Tolt, we use the referral's customer ID
@@ -180,7 +219,7 @@ async function createCommission({
       },
       customerId: customerFound.id,
       type: "sale",
-      amount: Number(sale.amount),
+      amount,
     },
   });
 
@@ -229,9 +268,9 @@ async function createCommission({
         partnerId: customerFound.link.partnerId,
         linkId: customerFound.linkId,
         customerId: customerFound.id,
-        amount: Number(sale.revenue),
-        earnings: Number(commission.amount),
-        currency: "usd", // TODO: there is no currency in the commission
+        amount,
+        earnings,
+        currency,
         quantity: 1,
         status: toDubStatus[commission.status],
         invoiceId: sale.transaction_id, // this is not the actual invoice ID, but we use this to deduplicate the sales
@@ -243,10 +282,10 @@ async function createCommission({
       ...clickData,
       event_id: eventId,
       event_name: "Invoice paid",
-      amount: Number(sale.revenue),
+      amount,
       customer_id: customerFound.id,
       payment_processor: "stripe",
-      currency: "usd", // TODO: there is no currency in the commission
+      currency,
       metadata: JSON.stringify(commission),
       timestamp: new Date(sale.created_at).toISOString(),
     }),
@@ -261,7 +300,7 @@ async function createCommission({
           increment: 1,
         },
         saleAmount: {
-          increment: Number(sale.revenue),
+          increment: amount,
         },
       },
     }),
@@ -276,7 +315,7 @@ async function createCommission({
           increment: 1,
         },
         saleAmount: {
-          increment: Number(sale.revenue),
+          increment: amount,
         },
       },
     }),
