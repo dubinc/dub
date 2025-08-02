@@ -6,7 +6,7 @@ import { subscribe } from "@dub/email/resend/subscribe";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
 import EmailUpdated from "@dub/email/templates/email-updated";
 import { prisma } from "@dub/prisma";
-import { VerificationToken } from "@dub/prisma/client";
+import { User, VerificationToken } from "@dub/prisma/client";
 import { InputPassword, LoadingSpinner } from "@dub/ui";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
@@ -80,12 +80,17 @@ const VerifyEmailChange = async ({
     redirect(`/login?next=/auth/confirm-email-change/${token}`);
   }
 
-  const currentUserId = session.user.id;
+  const { id: userId, defaultPartnerId: partnerId } = session.user;
+
+  const identifier = tokenFound.identifier.startsWith("pn_")
+    ? partnerId
+    : userId;
 
   const data = await redis.get<{
     email: string;
     newEmail: string;
-  }>(`email-change-request:user:${currentUserId}`);
+    isPartnerProfile?: boolean;
+  }>(`email-change-request:user:${identifier}`);
 
   if (!data) {
     return (
@@ -97,23 +102,50 @@ const VerifyEmailChange = async ({
     );
   }
 
-  const user = await prisma.user.update({
-    where: {
-      id: currentUserId,
-    },
-    data: {
-      email: data.newEmail,
-    },
-    select: {
-      subscribed: true,
-    },
-  });
+  let user: Pick<User, "subscribed"> | null = null;
+
+  // Update the partner profile email
+  if (data.isPartnerProfile) {
+    if (!partnerId) {
+      return (
+        <EmptyState
+          icon={InputPassword}
+          title="No Partner Profile Found"
+          description="We couldn’t find a partner profile for your account. Please make sure you’re logged in with the correct account at https://partners.dub.co"
+        />
+      );
+    }
+
+    await prisma.partner.update({
+      where: {
+        id: partnerId,
+      },
+      data: {
+        email: data.newEmail,
+      },
+    });
+  }
+
+  // Update the user email
+  else {
+    user = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        email: data.newEmail,
+      },
+      select: {
+        subscribed: true,
+      },
+    });
+  }
 
   waitUntil(
-    Promise.all([
+    Promise.allSettled([
       deleteRequest(tokenFound),
 
-      ...(user.subscribed
+      ...(user?.subscribed
         ? [
             unsubscribe({ email: data.email }),
             subscribe({ email: data.newEmail }),
@@ -131,11 +163,13 @@ const VerifyEmailChange = async ({
     ]),
   );
 
-  return <ConfirmEmailChangePageClient />;
+  return (
+    <ConfirmEmailChangePageClient isPartnerProfile={!!data.isPartnerProfile} />
+  );
 };
 
 const deleteRequest = async (tokenFound: VerificationToken) => {
-  await Promise.all([
+  await Promise.allSettled([
     prisma.verificationToken.delete({
       where: {
         token: tokenFound.token,

@@ -205,8 +205,14 @@ function ProfileForm({
   const { handleKeyDown } = useEnterSubmit();
 
   const { executeAsync } = useAction(updatePartnerProfileAction, {
-    onSuccess: async () => {
-      toast.success("Profile updated successfully.");
+    onSuccess: async ({ data }) => {
+      if (data?.needsEmailVerification) {
+        toast.success(
+          "Please check your email to verify your new email address.",
+        );
+      } else {
+        toast.success("Your profile has been updated.");
+      }
     },
     onError({ error }) {
       setError("root.serverError", {
