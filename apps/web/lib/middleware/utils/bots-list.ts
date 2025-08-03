@@ -16,6 +16,7 @@ export const UA_BOTS = [
   "bluesky", // Bluesky crawler
   "facebookexternalhit", // Facebook crawler
   "meta-externalagent", // Meta external agent
+  "thirdLandingPageFeInfra", // TikTok preloader (https://ads.tiktok.com/help/article/preloading-web-content)
   "WhatsApp", // WhatsApp crawler
   "google", // Google crawler
   "baidu", // Baidu crawler
