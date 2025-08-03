@@ -28,10 +28,15 @@ export const convertCurrency = async ({
   amount: number;
   fxRates?: Record<string, string>;
 }) => {
+  let fxRate: string | null = null;
   const currencyCode = currency.toUpperCase();
   const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currencyCode);
-  const fxRate =
-    fxRates?.[currencyCode] ?? (await redis.hget("fxRates:usd", currencyCode)); // e.g. for MYR it'll be around 4.4
+
+  if (fxRates) {
+    fxRate = fxRates[currencyCode] ?? null;
+  } else {
+    fxRate = await redis.hget("fxRates:usd", currencyCode); // e.g. for MYR it'll be around 4.4
+  }
 
   if (fxRate) {
     // convert amount to USD based on the current FX rate
