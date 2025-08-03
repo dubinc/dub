@@ -1,5 +1,5 @@
 import { sendEmail } from "@dub/email";
-import CampaignImported from "@dub/email/templates/campaign-imported";
+import ProgramImported from "@dub/email/templates/program-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus } from "@prisma/client";
@@ -109,7 +109,7 @@ export async function importCommissions(payload: ToltImportPayload) {
     await sendEmail({
       email: workspaceUser.user.email,
       subject: "Tolt program imported",
-      react: CampaignImported({
+      react: ProgramImported({
         email: workspaceUser.user.email,
         workspace,
         program,

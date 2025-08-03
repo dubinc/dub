@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function CampaignImported({
+export default function ProgramImported({
   email = "panic@thedis.co",
   provider = "Rewardful",
   workspace = {

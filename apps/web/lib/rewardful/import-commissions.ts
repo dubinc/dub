@@ -1,5 +1,5 @@
 import { sendEmail } from "@dub/email";
-import CampaignImported from "@dub/email/templates/campaign-imported";
+import ProgramImported from "@dub/email/templates/program-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus, Program } from "@prisma/client";
@@ -97,7 +97,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
     await sendEmail({
       email: workspaceUser.user.email,
       subject: "Rewardful campaign imported",
-      react: CampaignImported({
+      react: ProgramImported({
         email: workspaceUser.user.email,
         workspace: workspaceUser.project,
         program,
