@@ -42,7 +42,7 @@ export const startToltImportAction = authActionClient
     }
 
     await toltImporter.queue({
-      importId: createId(),
+      importId: createId({ prefix: "import_" }),
       userId: user.id,
       programId: program.id,
       toltProgramId,

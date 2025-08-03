@@ -7,7 +7,7 @@ SQL >
 
     %
     SELECT *
-    FROM dub_import_logs
+    FROM dub_import_error_logs
     WHERE
         workspace_id
         = {{

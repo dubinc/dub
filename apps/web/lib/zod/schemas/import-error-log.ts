@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const importLogSchema = z.object({
+export const importErrorLogSchema = z.object({
   workspace_id: z.string(),
   import_id: z.string(),
   source: z.enum(["rewardful", "tolt", "partnerstack"]),

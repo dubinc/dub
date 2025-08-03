@@ -3,8 +3,7 @@ import { Program, Reward } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
-import { recordImportLog } from "../tinybird/record-import-logs";
-import { ImportLogInput } from "../types";
+import { logImportError } from "../tinybird/log-import-error";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
@@ -33,7 +32,6 @@ export async function importPartners(payload: RewardfulImportPayload) {
   let currentPage = page;
   let hasMore = true;
   let processedBatches = 0;
-  const importLogs: ImportLogInput[] = [];
 
   const reward = await prisma.reward.findUniqueOrThrow({
     where: {
@@ -80,29 +78,27 @@ export async function importPartners(payload: RewardfulImportPayload) {
       );
     }
 
+    const commonImportLogInputs = {
+      workspace_id: program.workspaceId,
+      import_id: importId,
+      source: "rewardful",
+    } as const;
+
     if (notImportedAffiliates.length > 0) {
-      for (const affiliate of notImportedAffiliates) {
-        importLogs.push({
+      await logImportError(
+        notImportedAffiliates.map((affiliate) => ({
+          ...commonImportLogInputs,
           entity: "partner",
           entity_id: affiliate.id,
           code: "INACTIVE_PARTNER",
           message: `Partner ${affiliate.email} not imported because it is not active or has no leads.`,
-        });
-      }
+        })),
+      );
     }
 
     currentPage++;
     processedBatches++;
   }
-
-  await recordImportLog(
-    importLogs.map((log) => ({
-      ...log,
-      workspace_id: program.workspaceId,
-      import_id: importId,
-      source: "rewardful",
-    })),
-  );
 
   const action = hasMore ? "import-partners" : "import-customers";
 

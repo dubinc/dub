@@ -7,9 +7,8 @@ import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
-import { recordImportLog } from "../tinybird/record-import-logs";
+import { logImportError } from "../tinybird/log-import-error";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
-import { ImportLogInput } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
@@ -41,7 +40,6 @@ export async function importCommissions(payload: RewardfulImportPayload) {
   let currentPage = page;
   let hasMore = true;
   let processedBatches = 0;
-  const importLogs: ImportLogInput[] = [];
 
   while (hasMore && processedBatches < MAX_BATCHES) {
     const commissions = await rewardfulApi.listCommissions({
@@ -60,7 +58,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
           program,
           campaignId,
           fxRates,
-          importLogs,
+          importId,
         }),
       ),
     );
@@ -68,15 +66,6 @@ export async function importCommissions(payload: RewardfulImportPayload) {
     currentPage++;
     processedBatches++;
   }
-
-  await recordImportLog(
-    importLogs.map((log) => ({
-      ...log,
-      workspace_id: program.workspaceId,
-      import_id: importId,
-      source: "rewardful",
-    })),
-  );
 
   if (hasMore) {
     await rewardfulImporter.queue({
@@ -124,14 +113,20 @@ async function createCommission({
   program,
   campaignId,
   fxRates,
-  importLogs,
+  importId,
 }: {
   commission: RewardfulCommission;
   program: Program;
   campaignId: string;
   fxRates: Record<string, string> | null;
-  importLogs: ImportLogInput[];
+  importId: string;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: program.workspaceId,
+    import_id: importId,
+    source: "rewardful",
+  } as const;
+
   if (commission.campaign.id !== campaignId) {
     console.log(
       `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaign ${campaignId} (they're in ${commission.campaign.id}). Skipping...`,
@@ -146,7 +141,8 @@ async function createCommission({
     !sale.referral.stripe_customer_id ||
     !sale.referral.stripe_customer_id.startsWith("cus_")
   ) {
-    importLogs.push({
+    await logImportError({
+      ...commonImportLogInputs,
       entity: "commission",
       entity_id: commission.id,
       code: "STRIPE_CUSTOMER_ID_NOT_FOUND",
@@ -219,7 +215,8 @@ async function createCommission({
   });
 
   if (trackedCommission) {
-    importLogs.push({
+    await logImportError({
+      ...commonImportLogInputs,
       entity: "commission",
       entity_id: commission.id,
       code: "COMMISSION_ALREADY_EXISTS",
@@ -239,7 +236,8 @@ async function createCommission({
   });
 
   if (!customerFound) {
-    importLogs.push({
+    await logImportError({
+      ...commonImportLogInputs,
       entity: "commission",
       entity_id: commission.id,
       code: "CUSTOMER_NOT_FOUND",
@@ -250,7 +248,8 @@ async function createCommission({
   }
 
   if (!customerFound.linkId) {
-    importLogs.push({
+    await logImportError({
+      ...commonImportLogInputs,
       entity: "commission",
       entity_id: commission.id,
       code: "LINK_NOT_FOUND",
@@ -261,7 +260,8 @@ async function createCommission({
   }
 
   if (!customerFound.clickId) {
-    importLogs.push({
+    await logImportError({
+      ...commonImportLogInputs,
       entity: "commission",
       entity_id: commission.id,
       code: "CLICK_NOT_FOUND",
@@ -272,7 +272,8 @@ async function createCommission({
   }
 
   if (!customerFound.link?.partnerId) {
-    importLogs.push({
+    await logImportError({
+      ...commonImportLogInputs,
       entity: "commission",
       entity_id: commission.id,
       code: "PARTNER_NOT_FOUND",
@@ -287,7 +288,8 @@ async function createCommission({
   });
 
   if (!leadEvent || leadEvent.data.length === 0) {
-    importLogs.push({
+    await logImportError({
+      ...commonImportLogInputs,
       entity: "commission",
       entity_id: commission.id,
       code: "LEAD_NOT_FOUND",

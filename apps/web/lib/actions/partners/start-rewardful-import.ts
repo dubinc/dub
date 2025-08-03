@@ -34,7 +34,7 @@ export const startRewardfulImportAction = authActionClient
     }
 
     await rewardfulImporter.queue({
-      importId: createId(),
+      importId: createId({ prefix: "import_" }),
       userId: user.id,
       programId,
       campaignId,

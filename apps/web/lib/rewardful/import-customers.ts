@@ -2,10 +2,9 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { logImportError } from "../tinybird/log-import-error";
 import { recordClick } from "../tinybird/record-click";
-import { recordImportLog } from "../tinybird/record-import-logs";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
-import { ImportLogInput } from "../types";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
@@ -30,7 +29,6 @@ export async function importCustomers(payload: RewardfulImportPayload) {
   let currentPage = page;
   let hasMore = true;
   let processedBatches = 0;
-  const importLogs: ImportLogInput[] = [];
 
   while (hasMore && processedBatches < MAX_BATCHES) {
     const referrals = await rewardfulApi.listCustomers({
@@ -49,7 +47,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
           workspace,
           program,
           campaignId,
-          importLogs,
+          importId,
         }),
       ),
     );
@@ -57,15 +55,6 @@ export async function importCustomers(payload: RewardfulImportPayload) {
     currentPage++;
     processedBatches++;
   }
-
-  await recordImportLog(
-    importLogs.map((log) => ({
-      ...log,
-      workspace_id: workspace.id,
-      import_id: importId,
-      source: "rewardful",
-    })),
-  );
 
   await rewardfulImporter.queue({
     ...payload,
@@ -80,14 +69,20 @@ async function createCustomer({
   workspace,
   program,
   campaignId,
-  importLogs,
+  importId,
 }: {
   referral: RewardfulReferral;
   workspace: Project;
   program: Program;
   campaignId: string;
-  importLogs: ImportLogInput[];
+  importId: string;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: workspace.id,
+    import_id: importId,
+    source: "rewardful",
+  } as const;
+
   const referralId = referral.customer ? referral.customer.email : referral.id;
   if (
     referral.affiliate?.campaign?.id &&
@@ -110,7 +105,8 @@ async function createCustomer({
   });
 
   if (!link) {
-    importLogs.push({
+    await logImportError({
+      ...commonImportLogInputs,
       entity: "customer",
       entity_id: referralId,
       code: "LINK_NOT_FOUND",
@@ -124,7 +120,8 @@ async function createCustomer({
     !referral.stripe_customer_id ||
     !referral.stripe_customer_id.startsWith("cus_")
   ) {
-    importLogs.push({
+    await logImportError({
+      ...commonImportLogInputs,
       entity: "customer",
       entity_id: referralId,
       code: "STRIPE_CUSTOMER_ID_NOT_FOUND",

@@ -35,7 +35,6 @@ import {
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
-import { importLogSchema } from "./zod/schemas/import-logs";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -512,10 +511,3 @@ export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
 export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
-
-export type ImportLog = z.infer<typeof importLogSchema>;
-
-export type ImportLogInput = Pick<
-  ImportLog,
-  "entity" | "entity_id" | "code" | "message"
->;
