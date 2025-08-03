@@ -134,7 +134,7 @@ async function createCommission({
 }) {
   if (commission.campaign.id !== campaignId) {
     console.log(
-      `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaign ${campaignId} (they're in ${commission.campaign.id}).`,
+      `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaign ${campaignId} (they're in ${commission.campaign.id}). Skipping...`,
     );
 
     return;
