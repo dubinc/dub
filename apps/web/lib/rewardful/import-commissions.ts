@@ -216,13 +216,9 @@ async function createCommission({
   });
 
   if (trackedCommission) {
-    await logImportError({
-      ...commonImportLogInputs,
-      entity: "commission",
-      entity_id: commission.id,
-      code: "COMMISSION_ALREADY_EXISTS",
-      message: `Commission ${commission.id} with sale amount ${amount} was already recorded on Dub.`,
-    });
+    console.log(
+      `Commission ${commission.id} with sale amount ${amount} was already recorded on Dub. Skipping...`,
+    );
 
     return;
   }

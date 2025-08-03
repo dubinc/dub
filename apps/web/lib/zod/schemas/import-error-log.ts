@@ -14,7 +14,6 @@ export const importErrorLogSchema = z.object({
     "LEAD_NOT_FOUND",
     "CLICK_NOT_FOUND",
     "STRIPE_CUSTOMER_ID_NOT_FOUND",
-    "COMMISSION_ALREADY_EXISTS",
   ]),
   message: z.string(),
 });
