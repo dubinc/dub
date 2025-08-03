@@ -1,11 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
-import { hashToken, withSession } from "@/lib/auth";
+import { withSession } from "@/lib/auth";
+import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { storage } from "@/lib/storage";
-import { ratelimit, redis } from "@/lib/upstash";
 import { uploadedImageSchema } from "@/lib/zod/schemas/misc";
-import { sendEmail } from "@dub/email";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
-import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN,
@@ -16,7 +14,6 @@ import {
   trim,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -113,56 +110,14 @@ export const PATCH = withSession(async ({ req, session }) => {
       });
     }
 
-    const { success } = await ratelimit(10, "1 d").limit(
-      `email-change-request:${session.user.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "You've requested too many email change requests. Please try again later.",
-      });
-    }
-
-    const token = randomBytes(32).toString("hex");
-    const expiresIn = 15 * 60 * 1000;
-
-    await prisma.verificationToken.create({
-      data: {
-        identifier: session.user.id,
-        token: await hashToken(token, { secret: true }),
-        expires: new Date(Date.now() + expiresIn),
-      },
-    });
-
-    await redis.set(
-      `email-change-request:user:${session.user.id}`,
-      {
-        email: session.user.email,
-        newEmail: email,
-      },
-      {
-        px: expiresIn,
-      },
-    );
-
     const hostName = req.headers.get("host") || "";
-    const confirmUrl = APP_HOSTNAMES.has(hostName)
-      ? `${APP_DOMAIN}/auth/confirm-email-change/${token}`
-      : `${PARTNERS_DOMAIN}/auth/confirm-email-change/${token}`;
 
-    waitUntil(
-      sendEmail({
-        subject: "Confirm your email address change",
-        email,
-        react: ConfirmEmailChange({
-          email: session.user.email,
-          newEmail: email,
-          confirmUrl,
-        }),
-      }),
-    );
+    await confirmEmailChange({
+      email: session.user.email,
+      newEmail: email,
+      identifier: session.user.id,
+      hostName: APP_HOSTNAMES.has(hostName) ? APP_DOMAIN : PARTNERS_DOMAIN,
+    });
   }
 
   const response = await prisma.user.update({

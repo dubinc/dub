@@ -1,7 +1,10 @@
+import { revokeProgramInviteAction } from "@/lib/actions/partners/revoke-program-invite";
 import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/partners/constants";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots, X } from "@/ui/shared/icons";
 import {
   Button,
@@ -22,6 +25,7 @@ import { useCreateCommissionSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)
 import { LockOpen } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
+import { toast } from "sonner";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { useAddPartnerLinkModal } from "./add-partner-link-modal";
 import { useBanPartnerModal } from "./ban-partner-modal";
@@ -398,6 +402,9 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
 function Menu({ partner }: { partner: EnrolledPartnerProps }) {
   const [openPopover, setOpenPopover] = useState(false);
 
+  const { id: workspaceId } = useWorkspace();
+  const { queryParams } = useRouterStuff();
+
   const { partnerProfileSheet, setIsOpen: setPartnerProfileSheetOpen } =
     usePartnerProfileSheet({ nested: true, partner });
 
@@ -412,12 +419,40 @@ function Menu({ partner }: { partner: EnrolledPartnerProps }) {
     partner,
   });
 
+  const {
+    setShowConfirmModal: setShowRevokeInviteModal,
+    confirmModal: RevokeInviteModal,
+  } = useConfirmModal({
+    title: "Revoke program invite",
+    description: `Are you sure you want to revoke the program invite for ${partner.name}? This will remove them from the program and delete all their links.`,
+    confirmText: "Revoke invite",
+    onConfirm: async () => {
+      if (!workspaceId) {
+        return;
+      }
+
+      try {
+        await revokeProgramInviteAction({
+          workspaceId,
+          partnerId: partner.id,
+        });
+        queryParams({ del: "partnerId", scroll: false });
+        await mutatePrefix("/api/partners");
+        toast.success("Program invite revoked successfully");
+      } catch (error) {
+        console.error("Error revoking program invite:", error);
+        toast.error("Failed to revoke program invite. Please try again.");
+      }
+    },
+  });
+
   return (
     <>
       {partnerProfileSheet}
       {partnerApplicationSheet}
       <BanPartnerModal />
       <UnbanPartnerModal />
+      {RevokeInviteModal}
 
       <div className="flex items-center gap-2">
         {(partner.status === "approved" || partner.status === "banned") && (
@@ -441,6 +476,18 @@ function Menu({ partner }: { partner: EnrolledPartnerProps }) {
                   }}
                 >
                   View application
+                </MenuItem>
+              )}
+
+              {partner.status === "invited" && (
+                <MenuItem
+                  icon={User}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowRevokeInviteModal(true);
+                  }}
+                >
+                  Revoke invite
                 </MenuItem>
               )}
 
