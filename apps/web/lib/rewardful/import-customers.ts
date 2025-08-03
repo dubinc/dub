@@ -94,7 +94,7 @@ async function createCustomer({
     referral.affiliate.campaign.id !== campaignId
   ) {
     console.log(
-      `Referral ${referralId} not in campaign ${campaignId} (they're in ${referral.affiliate.campaign.id}).`,
+      `Referral ${referralId} not in campaign ${campaignId} (they're in ${referral.affiliate.campaign.id}). Skipping...`,
     );
 
     return;
