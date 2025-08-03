@@ -3,7 +3,7 @@ import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus, Program } from "@prisma/client";
-import { convertCurrency } from "../analytics/convert-currency";
+import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
@@ -175,7 +175,7 @@ async function createCommission({
   const saleCurrency = sale.currency.toUpperCase();
 
   if (saleCurrency !== "USD" && fxRates) {
-    const { amount: convertedAmount } = await convertCurrency({
+    const { amount: convertedAmount } = convertCurrencyWithFxRates({
       currency: saleCurrency,
       amount,
       fxRates,
@@ -189,7 +189,7 @@ async function createCommission({
   const earningsCurrency = commission.currency.toUpperCase();
 
   if (earningsCurrency !== "USD" && fxRates) {
-    const { amount: convertedAmount } = await convertCurrency({
+    const { amount: convertedAmount } = convertCurrencyWithFxRates({
       currency: earningsCurrency,
       amount: earnings,
       fxRates,
@@ -315,7 +315,8 @@ async function createCommission({
         customerId: customerFound.id,
         amount,
         earnings,
-        currency: sale.currency.toLowerCase(),
+        // TODO: allow custom "defaultCurrency" on workspace table in the future
+        currency: "usd",
         quantity: 1,
         status: toDubStatus[commission.state],
         invoiceId: sale.id, // this is not the actual invoice ID, but we use this to deduplicate the sales
@@ -330,7 +331,8 @@ async function createCommission({
       amount,
       customer_id: customerFound.id,
       payment_processor: "stripe",
-      currency: sale.currency.toLowerCase(),
+      // TODO: allow custom "defaultCurrency" on workspace table in the future
+      currency: "usd",
       metadata: JSON.stringify(commission),
       timestamp: new Date(sale.created_at).toISOString(),
     }),

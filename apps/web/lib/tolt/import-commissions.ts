@@ -3,7 +3,7 @@ import CampaignImported from "@dub/email/templates/campaign-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus } from "@prisma/client";
-import { convertCurrency } from "../analytics/convert-currency";
+import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
@@ -66,7 +66,7 @@ export async function importCommissions(payload: ToltImportPayload) {
           programId,
           commission,
           fxRates,
-          currency: toltProgram.currency_code.toLowerCase(),
+          programCurrency: toltProgram.currency_code.toLowerCase(),
         }),
       ),
     );
@@ -131,13 +131,13 @@ async function createCommission({
   programId,
   commission,
   fxRates,
-  currency,
+  programCurrency,
 }: {
   workspaceId: string;
   programId: string;
   commission: ToltCommission;
   fxRates: Record<string, string> | null;
-  currency: string;
+  programCurrency: string;
 }) {
   const { customer, partner, ...sale } = commission;
 
@@ -182,9 +182,9 @@ async function createCommission({
   // Sale amount
   let amount = Number(sale.amount);
 
-  if (currency.toUpperCase() !== "USD" && fxRates) {
-    const { amount: convertedAmount } = await convertCurrency({
-      currency,
+  if (programCurrency.toUpperCase() !== "USD" && fxRates) {
+    const { amount: convertedAmount } = convertCurrencyWithFxRates({
+      currency: programCurrency,
       amount,
       fxRates,
     });
@@ -195,9 +195,9 @@ async function createCommission({
   // Earnings
   let earnings = Number(commission.amount);
 
-  if (currency.toUpperCase() !== "USD" && fxRates) {
-    const { amount: convertedAmount } = await convertCurrency({
-      currency,
+  if (programCurrency.toUpperCase() !== "USD" && fxRates) {
+    const { amount: convertedAmount } = convertCurrencyWithFxRates({
+      currency: programCurrency,
       amount: earnings,
       fxRates,
     });
@@ -270,7 +270,8 @@ async function createCommission({
         customerId: customerFound.id,
         amount,
         earnings,
-        currency,
+        // TODO: allow custom "defaultCurrency" on workspace table in the future
+        currency: "usd",
         quantity: 1,
         status: toDubStatus[commission.status],
         invoiceId: sale.transaction_id, // this is not the actual invoice ID, but we use this to deduplicate the sales
@@ -285,7 +286,8 @@ async function createCommission({
       amount,
       customer_id: customerFound.id,
       payment_processor: "stripe",
-      currency,
+      // TODO: allow custom "defaultCurrency" on workspace table in the future
+      currency: "usd",
       metadata: JSON.stringify(commission),
       timestamp: new Date(sale.created_at).toISOString(),
     }),

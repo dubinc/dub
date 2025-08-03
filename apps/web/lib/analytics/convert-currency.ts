@@ -22,25 +22,52 @@ export const ZERO_DECIMAL_CURRENCIES = [
 export const convertCurrency = async ({
   currency,
   amount,
+}: {
+  currency: string;
+  amount: number;
+}) => {
+  const currencyCode = currency.toUpperCase();
+  const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currencyCode);
+
+  const fxRates = await redis.hget("fxRates:usd", currencyCode); // e.g. for MYR it'll be around 4.4
+
+  if (fxRates) {
+    // convert amount to USD based on the current FX rate
+    let convertedAmount = amount / Number(fxRates);
+
+    // if the currency is a zero decimal currency, we need to multiply the converted amount by 100
+    if (isZeroDecimalCurrency) {
+      convertedAmount = convertedAmount * 100;
+    }
+
+    return {
+      currency: "usd",
+      // round the final converted amount to 0 decimal places (USD in cents)
+      amount: Math.round(convertedAmount),
+    };
+  }
+
+  return {
+    currency,
+    amount,
+  };
+};
+
+export const convertCurrencyWithFxRates = ({
+  currency,
+  amount,
   fxRates,
 }: {
   currency: string;
   amount: number;
   fxRates?: Record<string, string>;
 }) => {
-  let fxRate: string | null = null;
   const currencyCode = currency.toUpperCase();
   const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currencyCode);
 
   if (fxRates) {
-    fxRate = fxRates[currencyCode] ?? null;
-  } else {
-    fxRate = await redis.hget("fxRates:usd", currencyCode); // e.g. for MYR it'll be around 4.4
-  }
-
-  if (fxRate) {
     // convert amount to USD based on the current FX rate
-    let convertedAmount = amount / Number(fxRate);
+    let convertedAmount = amount / Number(fxRates);
 
     // if the currency is a zero decimal currency, we need to multiply the converted amount by 100
     if (isZeroDecimalCurrency) {

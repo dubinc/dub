@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus } from "@prisma/client";
-import { convertCurrency } from "../analytics/convert-currency";
+import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent, recordSaleWithTimestamp } from "../tinybird";
@@ -146,7 +146,7 @@ async function createCommission({
   const saleCurrency = commission.transaction.currency;
 
   if (saleCurrency.toUpperCase() !== "USD" && fxRates) {
-    const { amount: convertedAmount } = await convertCurrency({
+    const { amount: convertedAmount } = convertCurrencyWithFxRates({
       currency: saleCurrency,
       amount,
       fxRates,
@@ -160,7 +160,7 @@ async function createCommission({
   const earningsCurrency = commission.currency;
 
   if (earningsCurrency.toUpperCase() !== "USD" && fxRates) {
-    const { amount: convertedAmount } = await convertCurrency({
+    const { amount: convertedAmount } = convertCurrencyWithFxRates({
       currency: earningsCurrency,
       amount: earnings,
       fxRates,
@@ -236,7 +236,8 @@ async function createCommission({
         customerId: customer.id,
         amount,
         earnings,
-        currency: commission.transaction.currency,
+        // TODO: allow custom "defaultCurrency" on workspace table in the future
+        currency: "usd",
         quantity: 1,
         status: toDubStatus[commission.reward_status],
         invoiceId: commission.key, // this is not the actual invoice ID, but we use this to deduplicate the sales
@@ -251,7 +252,8 @@ async function createCommission({
       amount,
       customer_id: customer.id,
       payment_processor: "stripe",
-      currency: commission.transaction.currency,
+      // TODO: allow custom "defaultCurrency" on workspace table in the future
+      currency: "usd",
       metadata: JSON.stringify(commission),
       timestamp: new Date(commission.created_at).toISOString(),
     }),
