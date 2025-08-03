@@ -7,6 +7,7 @@ import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { partnerStackCredentialsSchema } from "@/lib/partnerstack/schemas";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
+import { nanoid } from "@dub/utils";
 
 const schema = partnerStackCredentialsSchema.extend({
   workspaceId: z.string(),
@@ -46,6 +47,7 @@ export const startPartnerStackImportAction = authActionClient
     });
 
     await partnerStackImporter.queue({
+      importId: nanoid(),
       programId,
       userId: user.id,
       action: "import-partners",

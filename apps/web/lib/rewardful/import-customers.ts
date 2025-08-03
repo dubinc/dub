@@ -4,13 +4,20 @@ import { Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { recordClick } from "../tinybird/record-click";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
+import { recordProgramImportLog } from "../tinybird/record-program-import-log";
+import { ProgramImportLog } from "../types";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulImportPayload, RewardfulReferral } from "./types";
 
+const importLogs: Pick<
+  ProgramImportLog,
+  "entity" | "entity_id" | "code" | "message"
+>[] = [];
+
 export async function importCustomers(payload: RewardfulImportPayload) {
-  const { programId, campaignId, page = 1 } = payload;
+  const { importId, programId, campaignId, page = 1 } = payload;
 
   const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
     where: {
@@ -54,6 +61,15 @@ export async function importCustomers(payload: RewardfulImportPayload) {
     processedBatches++;
   }
 
+  await recordProgramImportLog(
+    importLogs.map((log) => ({
+      ...log,
+      workspace_id: workspace.id,
+      import_id: importId,
+      source: "rewardful",
+    })),
+  );
+
   await rewardfulImporter.queue({
     ...payload,
     page: hasMore ? currentPage : undefined,
@@ -78,9 +94,13 @@ async function createReferral({
     referral.affiliate?.campaign?.id &&
     referral.affiliate.campaign.id !== campaignId
   ) {
-    console.log(
-      `Referral ${referralId} not in campaign ${campaignId} (they're in ${referral.affiliate.campaign.id}). Skipping...`,
-    );
+    importLogs.push({
+      entity: "customer",
+      entity_id: referralId,
+      code: "REFERRAL_NOT_IN_CAMPAIGN",
+      message: `Referral ${referralId} not in campaign ${campaignId} (they're in ${referral.affiliate.campaign.id}).`,
+    });
+
     return;
   }
 
@@ -94,9 +114,13 @@ async function createReferral({
   });
 
   if (!link) {
-    console.log(
-      `Link not found for referral ${referralId} (token: ${referral.link.token}), skipping...`,
-    );
+    importLogs.push({
+      entity: "customer",
+      entity_id: referralId,
+      code: "LINK_NOT_FOUND",
+      message: `Link not found for referral ${referralId} (token: ${referral.link.token}).`,
+    });
+
     return;
   }
 
@@ -104,9 +128,13 @@ async function createReferral({
     !referral.stripe_customer_id ||
     !referral.stripe_customer_id.startsWith("cus_")
   ) {
-    console.log(
-      `No Stripe customer ID provided for referral ${referralId}, skipping...`,
-    );
+    importLogs.push({
+      entity: "customer",
+      entity_id: referralId,
+      code: "STRIPE_CUSTOMER_ID_NOT_FOUND",
+      message: `No Stripe customer ID provided for referral ${referralId}.`,
+    });
+
     return;
   }
 

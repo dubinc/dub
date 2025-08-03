@@ -5,6 +5,7 @@ import { toltImporter } from "@/lib/tolt/importer";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
+import { nanoid } from "@dub/utils";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -41,6 +42,7 @@ export const startToltImportAction = authActionClient
     }
 
     await toltImporter.queue({
+      importId: nanoid(),
       userId: user.id,
       programId: program.id,
       toltProgramId,

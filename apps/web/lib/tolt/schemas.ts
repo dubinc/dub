@@ -10,6 +10,7 @@ export const toltImportSteps = z.enum([
 ]);
 
 export const toltImportPayloadSchema = z.object({
+  importId: z.string(),
   userId: z.string(),
   programId: z.string(),
   toltProgramId: z.string(),

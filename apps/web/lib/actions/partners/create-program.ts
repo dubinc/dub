@@ -143,6 +143,7 @@ export const createProgram = async ({
   // Start the import process if the import source is set
   if (importSource === "rewardful" && rewardful?.id) {
     await rewardfulImporter.queue({
+      importId: nanoid(),
       userId: user.id,
       programId: program.id,
       campaignId: rewardful.id,
@@ -150,6 +151,7 @@ export const createProgram = async ({
     });
   } else if (importSource === "tolt" && tolt?.id) {
     await toltImporter.queue({
+      importId: nanoid(),
       userId: user.id,
       programId: program.id,
       toltProgramId: tolt.id,
@@ -157,6 +159,7 @@ export const createProgram = async ({
     });
   } else if (importSource === "partnerstack") {
     await partnerStackImporter.queue({
+      importId: nanoid(),
       userId: user.id,
       programId: program.id,
       action: "import-partners",

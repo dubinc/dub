@@ -2,6 +2,7 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
+import { nanoid } from "@dub/utils";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
@@ -33,6 +34,7 @@ export const startRewardfulImportAction = authActionClient
     }
 
     await rewardfulImporter.queue({
+      importId: nanoid(),
       userId: user.id,
       programId,
       campaignId,

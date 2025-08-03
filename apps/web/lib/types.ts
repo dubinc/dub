@@ -21,6 +21,7 @@ import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
+import { programImportLogSchema } from "./tinybird/record-program-import-log";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   clickEventResponseSchema,
@@ -511,3 +512,5 @@ export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
 export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
+
+export type ProgramImportLog = z.infer<typeof programImportLogSchema>;

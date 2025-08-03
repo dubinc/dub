@@ -7,7 +7,9 @@ import { convertCurrency } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
+import { recordProgramImportLog } from "../tinybird/record-program-import-log";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
+import { ProgramImportLog } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
@@ -21,8 +23,13 @@ const toDubStatus: Record<RewardfulCommission["state"], CommissionStatus> = {
   voided: "canceled",
 };
 
+const importLogs: Pick<
+  ProgramImportLog,
+  "entity" | "entity_id" | "code" | "message"
+>[] = [];
+
 export async function importCommissions(payload: RewardfulImportPayload) {
-  const { programId, userId, campaignId, page = 1 } = payload;
+  const { importId, programId, userId, campaignId, page = 1 } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -64,6 +71,15 @@ export async function importCommissions(payload: RewardfulImportPayload) {
     currentPage++;
     processedBatches++;
   }
+
+  await recordProgramImportLog(
+    importLogs.map((log) => ({
+      ...log,
+      workspace_id: program.workspaceId,
+      import_id: importId,
+      source: "rewardful",
+    })),
+  );
 
   if (hasMore) {
     await rewardfulImporter.queue({
@@ -118,9 +134,13 @@ async function createCommission({
   fxRates: Record<string, string> | null;
 }) {
   if (commission.campaign.id !== campaignId) {
-    console.log(
-      `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaign ${campaignId} (they're in ${commission.campaign.id}). Skipping...`,
-    );
+    importLogs.push({
+      entity: "commission",
+      entity_id: commission.id,
+      code: "AFFILIATE_NOT_IN_CAMPAIGN",
+      message: `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaign ${campaignId} (they're in ${commission.campaign.id}).`,
+    });
+
     return;
   }
 
@@ -130,9 +150,13 @@ async function createCommission({
     !sale.referral.stripe_customer_id ||
     !sale.referral.stripe_customer_id.startsWith("cus_")
   ) {
-    console.log(
-      `No Stripe customer ID provided for referral ${sale.referral.id}, skipping...`,
-    );
+    importLogs.push({
+      entity: "commission",
+      entity_id: commission.id,
+      code: "STRIPE_CUSTOMER_ID_NOT_FOUND",
+      message: `No Stripe customer ID provided for referral ${sale.referral.id}`,
+    });
+
     return;
   }
 
@@ -199,9 +223,13 @@ async function createCommission({
   });
 
   if (trackedCommission) {
-    console.log(
-      `Commission ${trackedCommission.id} was already recorded on Dub, skipping...`,
-    );
+    importLogs.push({
+      entity: "commission",
+      entity_id: commission.id,
+      code: "COMMISSION_ALREADY_EXISTS",
+      message: `Commission ${commission.id} with sale amount ${amount} was already recorded on Dub.`,
+    });
+
     return;
   }
 
@@ -215,20 +243,46 @@ async function createCommission({
   });
 
   if (!customerFound) {
-    console.log(
-      `No customer found for Stripe customer ID ${sale.referral.stripe_customer_id}, skipping...`,
-    );
+    importLogs.push({
+      entity: "commission",
+      entity_id: commission.id,
+      code: "CUSTOMER_NOT_FOUND",
+      message: `No customer found for Stripe customer ID ${sale.referral.stripe_customer_id}.`,
+    });
+
     return;
   }
 
-  if (
-    !customerFound.linkId ||
-    !customerFound.clickId ||
-    !customerFound.link?.partnerId
-  ) {
-    console.log(
-      `No link or click ID or partner ID found for customer ${customerFound.id}, skipping...`,
-    );
+  if (!customerFound.linkId) {
+    importLogs.push({
+      entity: "commission",
+      entity_id: commission.id,
+      code: "LINK_NOT_FOUND",
+      message: `No link found for customer ${customerFound.id}.`,
+    });
+
+    return;
+  }
+
+  if (!customerFound.clickId) {
+    importLogs.push({
+      entity: "commission",
+      entity_id: commission.id,
+      code: "CLICK_NOT_FOUND",
+      message: `No click ID found for customer ${customerFound.id}.`,
+    });
+
+    return;
+  }
+
+  if (!customerFound.link?.partnerId) {
+    importLogs.push({
+      entity: "commission",
+      entity_id: commission.id,
+      code: "PARTNER_NOT_FOUND",
+      message: `No partner ID found for customer ${customerFound.id}.`,
+    });
+
     return;
   }
 
@@ -237,9 +291,13 @@ async function createCommission({
   });
 
   if (!leadEvent || leadEvent.data.length === 0) {
-    console.log(
-      `No lead event found for customer ${customerFound.id}, skipping...`,
-    );
+    importLogs.push({
+      entity: "commission",
+      entity_id: commission.id,
+      code: "LEAD_EVENT_NOT_FOUND",
+      message: `No lead event found for customer ${customerFound.id}.`,
+    });
+
     return;
   }
 

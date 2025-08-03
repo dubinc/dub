@@ -14,6 +14,7 @@ export const partnerStackCredentialsSchema = z.object({
 });
 
 export const partnerStackImportPayloadSchema = z.object({
+  importId: z.string(),
   userId: z.string(),
   programId: z.string(),
   action: partnerStackImportSteps,
