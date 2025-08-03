@@ -102,6 +102,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
         workspace: workspaceUser.project,
         program,
         provider: "Rewardful",
+        importId,
       }),
     });
   }
