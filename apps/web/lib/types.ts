@@ -21,7 +21,6 @@ import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
-import { programImportLogSchema } from "./tinybird/record-program-import-log";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   clickEventResponseSchema,
@@ -36,6 +35,7 @@ import {
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
+import { importLogSchema } from "./zod/schemas/import-logs";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -513,9 +513,9 @@ export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 
-export type ProgramImportLog = z.infer<typeof programImportLogSchema>;
+export type ImportLog = z.infer<typeof importLogSchema>;
 
-export type ProgramImportLogInput = Pick<
-ProgramImportLog,
-"entity" | "entity_id" | "code" | "message"
->
+export type ImportLogInput = Pick<
+  ImportLog,
+  "entity" | "entity_id" | "code" | "message"
+>;

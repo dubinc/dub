@@ -1,4 +1,4 @@
-# A datasource for logging program import records from external sources
+# A datasource for logging import records from external sources
 # Useful for debugging and tracking import issues
 
 SCHEMA >
@@ -13,5 +13,5 @@ SCHEMA >
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
-ENGINE_SORTING_KEY "timestamp, workspace_id"
+ENGINE_SORTING_KEY "timestamp, workspace_id, import_id"
 ENGINE_TTL "toDateTime(timestamp) + toIntervalDay(180)" 

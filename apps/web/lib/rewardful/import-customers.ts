@@ -3,9 +3,9 @@ import { nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { recordClick } from "../tinybird/record-click";
+import { recordImportLog } from "../tinybird/record-import-logs";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
-import { recordProgramImportLog } from "../tinybird/record-program-import-log";
-import { ProgramImportLogInput } from "../types";
+import { ImportLogInput } from "../types";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
@@ -30,7 +30,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
   let currentPage = page;
   let hasMore = true;
   let processedBatches = 0;
-  const importLogs: ProgramImportLogInput[] = [];
+  const importLogs: ImportLogInput[] = [];
 
   while (hasMore && processedBatches < MAX_BATCHES) {
     const referrals = await rewardfulApi.listCustomers({
@@ -58,7 +58,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
     processedBatches++;
   }
 
-  await recordProgramImportLog(
+  await recordImportLog(
     importLogs.map((log) => ({
       ...log,
       workspace_id: workspace.id,
@@ -86,19 +86,16 @@ async function createCustomer({
   workspace: Project;
   program: Program;
   campaignId: string;
-  importLogs: ProgramImportLogInput[];
+  importLogs: ImportLogInput[];
 }) {
   const referralId = referral.customer ? referral.customer.email : referral.id;
   if (
     referral.affiliate?.campaign?.id &&
     referral.affiliate.campaign.id !== campaignId
   ) {
-    importLogs.push({
-      entity: "customer",
-      entity_id: referralId,
-      code: "REFERRAL_NOT_IN_CAMPAIGN",
-      message: `Referral ${referralId} not in campaign ${campaignId} (they're in ${referral.affiliate.campaign.id}).`,
-    });
+    console.log(
+      `Referral ${referralId} not in campaign ${campaignId} (they're in ${referral.affiliate.campaign.id}).`,
+    );
 
     return;
   }

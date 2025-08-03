@@ -7,9 +7,9 @@ import { convertCurrency } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
-import { recordProgramImportLog } from "../tinybird/record-program-import-log";
+import { recordImportLog } from "../tinybird/record-import-logs";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
-import { ProgramImportLogInput } from "../types";
+import { ImportLogInput } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
@@ -41,7 +41,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
   let currentPage = page;
   let hasMore = true;
   let processedBatches = 0;
-  const importLogs: ProgramImportLogInput[] = [];
+  const importLogs: ImportLogInput[] = [];
 
   while (hasMore && processedBatches < MAX_BATCHES) {
     const commissions = await rewardfulApi.listCommissions({
@@ -69,7 +69,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
     processedBatches++;
   }
 
-  await recordProgramImportLog(
+  await recordImportLog(
     importLogs.map((log) => ({
       ...log,
       workspace_id: program.workspaceId,
@@ -130,15 +130,12 @@ async function createCommission({
   program: Program;
   campaignId: string;
   fxRates: Record<string, string> | null;
-  importLogs: ProgramImportLogInput[];
+  importLogs: ImportLogInput[];
 }) {
   if (commission.campaign.id !== campaignId) {
-    importLogs.push({
-      entity: "commission",
-      entity_id: commission.id,
-      code: "AFFILIATE_NOT_IN_CAMPAIGN",
-      message: `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaign ${campaignId} (they're in ${commission.campaign.id}).`,
-    });
+    console.log(
+      `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaign ${campaignId} (they're in ${commission.campaign.id}).`,
+    );
 
     return;
   }
@@ -293,7 +290,7 @@ async function createCommission({
     importLogs.push({
       entity: "commission",
       entity_id: commission.id,
-      code: "LEAD_EVENT_NOT_FOUND",
+      code: "LEAD_NOT_FOUND",
       message: `No lead event found for customer ${customerFound.id}.`,
     });
 

@@ -3,8 +3,8 @@ import { Program, Reward } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
-import { recordProgramImportLog } from "../tinybird/record-program-import-log";
-import { ProgramImportLogInput } from "../types";
+import { recordImportLog } from "../tinybird/record-import-logs";
+import { ImportLogInput } from "../types";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
@@ -33,7 +33,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
   let currentPage = page;
   let hasMore = true;
   let processedBatches = 0;
-  const importLogs: ProgramImportLogInput[] = [];
+  const importLogs: ImportLogInput[] = [];
 
   const reward = await prisma.reward.findUniqueOrThrow({
     where: {
@@ -85,7 +85,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
         importLogs.push({
           entity: "partner",
           entity_id: affiliate.id,
-          code: "PARTNER_NOT_IMPORTED",
+          code: "INACTIVE_PARTNER",
           message: `Partner ${affiliate.email} not imported because it is not active or has no leads.`,
         });
       }
@@ -95,7 +95,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
     processedBatches++;
   }
 
-  await recordProgramImportLog(
+  await recordImportLog(
     importLogs.map((log) => ({
       ...log,
       workspace_id: program.workspaceId,
