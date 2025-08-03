@@ -514,3 +514,8 @@ export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 
 export type ProgramImportLog = z.infer<typeof programImportLogSchema>;
+
+export type ProgramImportLogInput = Pick<
+ProgramImportLog,
+"entity" | "entity_id" | "code" | "message"
+>

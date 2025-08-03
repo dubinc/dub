@@ -3,13 +3,22 @@ import { Program, Reward } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
+import { recordProgramImportLog } from "../tinybird/record-program-import-log";
+import { ProgramImportLogInput } from "../types";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate, RewardfulImportPayload } from "./types";
 
 export async function importPartners(payload: RewardfulImportPayload) {
-  const { programId, userId, campaignId, page = 1, rewardId } = payload;
+  const {
+    importId,
+    programId,
+    userId,
+    campaignId,
+    page = 1,
+    rewardId,
+  } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -24,6 +33,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
   let currentPage = page;
   let hasMore = true;
   let processedBatches = 0;
+  const importLogs: ProgramImportLogInput[] = [];
 
   const reward = await prisma.reward.findUniqueOrThrow({
     where: {
@@ -46,11 +56,16 @@ export async function importPartners(payload: RewardfulImportPayload) {
       break;
     }
 
-    const activeAffiliates = affiliates.filter(
-      (affiliate) =>
-        // only active affiliates and have more than 1 lead
-        affiliate.state === "active" && affiliate.leads > 0,
-    );
+    const activeAffiliates: typeof affiliates = [];
+    const notImportedAffiliates: typeof affiliates = [];
+
+    for (const affiliate of affiliates) {
+      if (affiliate.state === "active" && affiliate.leads > 0) {
+        activeAffiliates.push(affiliate);
+      } else {
+        notImportedAffiliates.push(affiliate);
+      }
+    }
 
     if (activeAffiliates.length > 0) {
       await Promise.all(
@@ -65,9 +80,29 @@ export async function importPartners(payload: RewardfulImportPayload) {
       );
     }
 
+    if (notImportedAffiliates.length > 0) {
+      for (const affiliate of notImportedAffiliates) {
+        importLogs.push({
+          entity: "partner",
+          entity_id: affiliate.id,
+          code: "PARTNER_NOT_IMPORTED",
+          message: `Partner ${affiliate.email} not imported because it is not active or has no leads.`,
+        });
+      }
+    }
+
     currentPage++;
     processedBatches++;
   }
+
+  await recordProgramImportLog(
+    importLogs.map((log) => ({
+      ...log,
+      workspace_id: program.workspaceId,
+      import_id: importId,
+      source: "rewardful",
+    })),
+  );
 
   const action = hasMore ? "import-partners" : "import-customers";
 

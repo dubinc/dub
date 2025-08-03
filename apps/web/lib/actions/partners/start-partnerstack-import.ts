@@ -1,5 +1,6 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { PartnerStackApi } from "@/lib/partnerstack/api";
@@ -7,7 +8,6 @@ import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { partnerStackCredentialsSchema } from "@/lib/partnerstack/schemas";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
-import { nanoid } from "@dub/utils";
 
 const schema = partnerStackCredentialsSchema.extend({
   workspaceId: z.string(),
@@ -47,7 +47,7 @@ export const startPartnerStackImportAction = authActionClient
     });
 
     await partnerStackImporter.queue({
-      importId: nanoid(),
+      importId: createId(),
       programId,
       userId: user.id,
       action: "import-partners",

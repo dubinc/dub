@@ -9,7 +9,7 @@ import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
 import { recordProgramImportLog } from "../tinybird/record-program-import-log";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
-import { ProgramImportLog } from "../types";
+import { ProgramImportLogInput } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
@@ -22,11 +22,6 @@ const toDubStatus: Record<RewardfulCommission["state"], CommissionStatus> = {
   paid: "paid",
   voided: "canceled",
 };
-
-const importLogs: Pick<
-  ProgramImportLog,
-  "entity" | "entity_id" | "code" | "message"
->[] = [];
 
 export async function importCommissions(payload: RewardfulImportPayload) {
   const { importId, programId, userId, campaignId, page = 1 } = payload;
@@ -46,6 +41,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
   let currentPage = page;
   let hasMore = true;
   let processedBatches = 0;
+  const importLogs: ProgramImportLogInput[] = [];
 
   while (hasMore && processedBatches < MAX_BATCHES) {
     const commissions = await rewardfulApi.listCommissions({
@@ -64,6 +60,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
           program,
           campaignId,
           fxRates,
+          importLogs,
         }),
       ),
     );
@@ -127,11 +124,13 @@ async function createCommission({
   program,
   campaignId,
   fxRates,
+  importLogs,
 }: {
   commission: RewardfulCommission;
   program: Program;
   campaignId: string;
   fxRates: Record<string, string> | null;
+  importLogs: ProgramImportLogInput[];
 }) {
   if (commission.campaign.id !== campaignId) {
     importLogs.push({

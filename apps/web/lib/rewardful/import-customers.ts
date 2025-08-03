@@ -5,16 +5,11 @@ import { createId } from "../api/create-id";
 import { recordClick } from "../tinybird/record-click";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
 import { recordProgramImportLog } from "../tinybird/record-program-import-log";
-import { ProgramImportLog } from "../types";
+import { ProgramImportLogInput } from "../types";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulImportPayload, RewardfulReferral } from "./types";
-
-const importLogs: Pick<
-  ProgramImportLog,
-  "entity" | "entity_id" | "code" | "message"
->[] = [];
 
 export async function importCustomers(payload: RewardfulImportPayload) {
   const { importId, programId, campaignId, page = 1 } = payload;
@@ -35,6 +30,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
   let currentPage = page;
   let hasMore = true;
   let processedBatches = 0;
+  const importLogs: ProgramImportLogInput[] = [];
 
   while (hasMore && processedBatches < MAX_BATCHES) {
     const referrals = await rewardfulApi.listCustomers({
@@ -48,11 +44,12 @@ export async function importCustomers(payload: RewardfulImportPayload) {
 
     await Promise.all(
       referrals.map((referral) =>
-        createReferral({
+        createCustomer({
           referral,
           workspace,
           program,
           campaignId,
+          importLogs,
         }),
       ),
     );
@@ -78,16 +75,18 @@ export async function importCustomers(payload: RewardfulImportPayload) {
 }
 
 // Create individual referral entries
-async function createReferral({
+async function createCustomer({
   referral,
   workspace,
   program,
   campaignId,
+  importLogs,
 }: {
   referral: RewardfulReferral;
   workspace: Project;
   program: Program;
   campaignId: string;
+  importLogs: ProgramImportLogInput[];
 }) {
   const referralId = referral.customer ? referral.customer.email : referral.id;
   if (

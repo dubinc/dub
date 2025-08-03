@@ -8,6 +8,7 @@ export const programImportLogSchema = z.object({
   entity: z.enum(["partner", "link", "customer", "commission"]),
   entity_id: z.string(),
   code: z.enum([
+    "PARTNER_NOT_IMPORTED",
     "REFERRAL_NOT_IN_CAMPAIGN",
     "LINK_NOT_FOUND",
     "STRIPE_CUSTOMER_ID_NOT_FOUND",
@@ -35,7 +36,7 @@ export const recordProgramImportLog = async (
     return;
   }
 
-  console.log(logs);
+  console.log("importLogs", logs.length);
 
   await recordProgramImportLogTB(logs);
 };

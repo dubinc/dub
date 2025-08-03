@@ -56,7 +56,7 @@ export const createId = ({
   prefix,
 }: {
   prefix?: (typeof prefixes)[number];
-}) => {
+} = {}) => {
   const buf = createULIDBuffer();
   const id = base32.encode(buf);
 

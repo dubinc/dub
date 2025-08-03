@@ -6,6 +6,7 @@ import { nanoid } from "@dub/utils";
 import { z } from "zod";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
+import { createId } from "@/lib/api/create-id";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -34,7 +35,7 @@ export const startRewardfulImportAction = authActionClient
     }
 
     await rewardfulImporter.queue({
-      importId: nanoid(),
+      importId: createId(),
       userId: user.id,
       programId,
       campaignId,
