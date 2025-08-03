@@ -61,7 +61,7 @@ export const markFraudEventSafeAction = authActionClient
             },
           },
           data: {
-            ignoreFraudEventsEnabledAt: new Date(),
+            trustedAt: new Date(),
           },
         });
       }

@@ -21,7 +21,7 @@ export const detectFraudEvents = async ({
   customer: Pick<CustomerProps, "name" | "email">;
   click: Pick<ClickEventTB, "url" | "ip" | "referer">;
 }) => {
-  const { selfReferral, reasons } = await isSelfReferral({
+  const { selfReferral, reasons } = isSelfReferral({
     partner,
     customer,
     click,

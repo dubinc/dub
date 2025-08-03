@@ -197,7 +197,7 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
                   <Button
                     type="button"
                     variant="primary"
-                    text="Mark partner as safe"
+                    text="Mark partner as trusted"
                     disabled={fraudEvent.status === "safe"}
                     disabledTooltip={
                       fraudEvent.status === "safe"

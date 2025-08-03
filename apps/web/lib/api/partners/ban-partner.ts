@@ -53,7 +53,7 @@ export const banPartner = async ({
         clickRewardId: null,
         leadRewardId: null,
         saleRewardId: null,
-        ignoreFraudEventsEnabledAt: null,
+        trustedAt: null,
       },
     }),
 

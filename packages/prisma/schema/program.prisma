@@ -83,7 +83,7 @@ model ProgramEnrollment {
   updatedAt                  DateTime                @updatedAt
   bannedAt                   DateTime?
   bannedReason               PartnerBannedReason?
-  ignoreFraudEventsEnabledAt DateTime?
+  trustedAt DateTime?
 
   partner     Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)

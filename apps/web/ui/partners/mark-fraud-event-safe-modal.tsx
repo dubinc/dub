@@ -55,7 +55,7 @@ function MarkFraudEventSafeModal({
     <Modal showModal={showModal} setShowModal={setShowModal}>
       <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
         <h3 className="text-lg font-medium leading-none">
-          Mark partner as safe
+          Mark partner as trusted
         </h3>
       </div>
 
@@ -63,7 +63,7 @@ function MarkFraudEventSafeModal({
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium text-neutral-900">
-              Reason for marking safe (optional)
+              Reason for marking trusted (optional)
             </label>
             <select
               value={reason}
@@ -111,7 +111,7 @@ function MarkFraudEventSafeModal({
           onClick={handleMarkAsSafe}
           autoFocus
           loading={isPending}
-          text="Mark partner as safe"
+          text="Mark partner as trusted"
           className="h-8 w-fit px-3"
         />
       </div>

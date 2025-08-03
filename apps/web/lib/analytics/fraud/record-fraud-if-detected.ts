@@ -25,7 +25,7 @@ export const recordFraudIfDetected = async ({
         },
       },
       select: {
-        ignoreFraudEventsEnabledAt: true,
+        trustedAt: true,
         status: true,
         partner: {
           select: {
@@ -46,9 +46,9 @@ export const recordFraudIfDetected = async ({
       },
     });
 
-  if (enrollment.ignoreFraudEventsEnabledAt) {
+  if (enrollment.trustedAt) {
     console.log(
-      `Skipping fraud event detection for ${partner.id} because ignoreFraudEventsEnabledAt is set`,
+      `Skipping fraud event detection for ${partner.id} because trustedAt is set`,
     );
     return;
   }

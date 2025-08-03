@@ -229,7 +229,7 @@ const checkIpSimilarity = (clickIp?: string, partnerIp?: string) => {
   }
 };
 
-export const isSelfReferral = async ({
+export const isSelfReferral = ({
   partner,
   customer,
   click,
