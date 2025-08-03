@@ -312,7 +312,7 @@ function RowMenuButton({ fraudEvent }: { fraudEvent: FraudEvent }) {
                     setShowMarkFraudEventSafeModal(true);
                   }}
                 >
-                  Mark partner as trusted
+                  Mark event as safe
                 </MenuItem>
               )}
             </Command.List>

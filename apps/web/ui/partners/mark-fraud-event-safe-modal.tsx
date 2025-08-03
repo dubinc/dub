@@ -54,16 +54,14 @@ function MarkFraudEventSafeModal({
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
       <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">
-          Mark partner as trusted
-        </h3>
+        <h3 className="text-lg font-medium leading-none">Mark event as safe</h3>
       </div>
 
       <div className="bg-neutral-50 p-4 sm:p-6">
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium text-neutral-900">
-              Reason for marking trusted (optional)
+              Reason for marking safe (optional)
             </label>
             <select
               value={reason}
@@ -94,7 +92,8 @@ function MarkFraudEventSafeModal({
               htmlFor="ignoreFutureFlags"
               className="text-sm text-neutral-900"
             >
-              Ignore all flags in the future for this partner
+              Mark partner as trusted (ignore all future fraud alerts for this
+              partner)
             </label>
           </div>
         </div>
@@ -111,7 +110,7 @@ function MarkFraudEventSafeModal({
           onClick={handleMarkAsSafe}
           autoFocus
           loading={isPending}
-          text="Mark partner as trusted"
+          text="Mark event as safe"
           className="h-8 w-fit px-3"
         />
       </div>
