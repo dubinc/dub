@@ -36,7 +36,7 @@ export const saveQrDataToRedisAction = actionClient
   .action(async ({ parsedInput }) => {
     const { sessionId, qrData } = parsedInput;
     try {
-      redis.set(
+      await redis.set(
         `${ERedisArg.QR_DATA_REG}:${sessionId}`,
         JSON.stringify(qrData),
         {
