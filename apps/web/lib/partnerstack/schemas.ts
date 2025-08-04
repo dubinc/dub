@@ -14,6 +14,7 @@ export const partnerStackCredentialsSchema = z.object({
 });
 
 export const partnerStackImportPayloadSchema = z.object({
+  importId: z.string(),
   userId: z.string(),
   programId: z.string(),
   action: partnerStackImportSteps,
@@ -64,6 +65,7 @@ export const partnerStackCustomer = z.object({
 export const partnerStackCommission = z.object({
   key: z.string(),
   amount: z.number().describe("The amount of the reward in cents (USD)."),
+  currency: z.string(),
   created_at: z.number(),
   customer: z
     .object({

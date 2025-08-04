@@ -6,21 +6,89 @@ import type { RewardProps } from "@/lib/types";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { useRewardSheet } from "@/ui/partners/rewards/add-edit-reward-sheet";
+import {
+  RewardSheet,
+  useRewardSheet,
+} from "@/ui/partners/rewards/add-edit-reward-sheet";
 import { EventType } from "@dub/prisma/client";
-import { Badge, Button, Popover, useKeyboardShortcut } from "@dub/ui";
+import {
+  Badge,
+  Button,
+  Popover,
+  useKeyboardShortcut,
+  useRouterStuff,
+} from "@dub/ui";
 import { pluralize } from "@dub/utils";
 import { Gift } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export function Rewards() {
+export function ProgramRewards() {
+  const { searchParams } = useRouterStuff();
+  const { rewards } = useRewards();
+
+  const [rewardSheetState, setRewardSheetState] = useState<
+    { open: false; rewardId: string | null } | { open: true; rewardId: string }
+  >({ open: false, rewardId: null });
+
+  useEffect(() => {
+    const rewardId = searchParams.get("rewardId");
+    if (rewardId) {
+      setRewardSheetState({ open: true, rewardId });
+    } else {
+      setRewardSheetState({ open: false, rewardId: null });
+    }
+  }, [searchParams]);
+
+  const currentReward = rewardSheetState.rewardId
+    ? rewards?.find((r) => r.id === rewardSheetState.rewardId)
+    : undefined;
+
+  const isNewReward = rewardSheetState.rewardId?.startsWith("new-");
+  const newRewardEvent = isNewReward
+    ? (rewardSheetState.rewardId?.replace("new-", "") as EventType)
+    : undefined;
+
   return (
     <div className="flex flex-col gap-6">
+      {rewardSheetState.rewardId && (currentReward || isNewReward) && (
+        <RewardSheetWrapper
+          reward={currentReward}
+          event={newRewardEvent}
+          isOpen={rewardSheetState.open}
+          setIsOpen={(open) =>
+            setRewardSheetState((s) => ({ ...s, open }) as any)
+          }
+        />
+      )}
       <DefaultRewards />
       <AdditionalRewards />
     </div>
   );
 }
+
+const RewardSheetWrapper = ({
+  reward,
+  event,
+  isOpen,
+  setIsOpen,
+}: {
+  reward?: RewardProps;
+  event?: EventType;
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}) => {
+  return (
+    <RewardSheet
+      isOpen={isOpen}
+      setIsOpen={setIsOpen}
+      event={event || reward?.event || "sale"}
+      reward={reward}
+      isDefault={reward?.default || false}
+    />
+  );
+};
 
 const DefaultRewards = () => {
   const { rewards, loading } = useRewards();
@@ -224,6 +292,7 @@ const RewardItem = ({
   event: EventType;
   isDefault?: boolean;
 }) => {
+  const { slug } = useParams();
   const { RewardSheet, setIsOpen } = useRewardSheet({
     event,
     reward,
@@ -248,12 +317,13 @@ const RewardItem = ({
       : undefined;
 
   const Icon = REWARD_EVENTS[event].icon;
+  const As = reward ? Link : "div";
 
   return (
     <>
-      <div
+      <As
+        href={reward ? `/${slug}/program/rewards?rewardId=${reward.id}` : ""}
         className="flex cursor-pointer items-center gap-4 rounded-lg border border-neutral-200 p-4 transition-all hover:border-neutral-300"
-        onClick={() => setIsOpen(true)}
       >
         <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
           <Icon className="size-4 text-neutral-600" />
@@ -296,7 +366,7 @@ const RewardItem = ({
             </Badge>
           )}
         </div>
-      </div>
+      </As>
       {RewardSheet}
     </>
   );

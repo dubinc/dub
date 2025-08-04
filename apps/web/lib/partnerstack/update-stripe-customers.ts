@@ -1,5 +1,5 @@
 import { sendEmail } from "@dub/email";
-import CampaignImported from "@dub/email/templates/campaign-imported";
+import ProgramImported from "@dub/email/templates/program-imported";
 import { prisma } from "@dub/prisma";
 import { Customer, Project } from "@dub/prisma/client";
 import Stripe from "stripe";
@@ -119,7 +119,7 @@ export async function updateStripeCustomers(
     await sendEmail({
       email: workspaceUser.user.email,
       subject: "PartnerStack program imported",
-      react: CampaignImported({
+      react: ProgramImported({
         email: workspaceUser.user.email,
         workspace,
         program,

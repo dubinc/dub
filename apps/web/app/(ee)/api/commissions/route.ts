@@ -1,4 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -66,6 +67,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   });
 
   return NextResponse.json(
-    z.array(CommissionEnrichedSchema).parse(commissions),
+    z.array(CommissionEnrichedSchema).parse(
+      commissions.map((c) => ({
+        ...c,
+        customer: transformCustomerForCommission(c.customer),
+      })),
+    ),
   );
 });

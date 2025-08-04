@@ -40,8 +40,6 @@ export class RewardfulApi {
 
     const data = await response.json();
 
-    console.debug("Rewardful API Response:", { url, data });
-
     return data as T;
   }
 
