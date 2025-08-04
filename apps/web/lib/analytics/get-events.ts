@@ -48,12 +48,8 @@ export const getEvents = async (params: EventsFilters) => {
     dataAvailableFrom,
   });
 
-  if (trigger) {
-    if (trigger === "qr") {
-      qr = true;
-    } else if (trigger === "link") {
-      qr = false;
-    }
+  if (qr) {
+    trigger = "qr";
   }
 
   if (region) {
@@ -82,7 +78,7 @@ export const getEvents = async (params: EventsFilters) => {
     ...params,
     eventType,
     workspaceId,
-    qr,
+    trigger,
     country,
     region,
     order: sortOrder,
