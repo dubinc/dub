@@ -23,9 +23,11 @@ import { QrCodeCard } from "./qr-code-card.tsx";
 export default function QrCodesContainer({
   CreateQrCodeButton,
   isTrialOver = false,
+  initialQrs,
 }: {
   CreateQrCodeButton: () => ReactNode;
   isTrialOver?: boolean;
+  initialQrs: QrStorageData[];
 }) {
   const {
     viewMode,
@@ -33,7 +35,12 @@ export default function QrCodesContainer({
     // showArchived
   } = useContext(QrCodesDisplayContext);
 
-  const { qrs, isValidating } = useQrs({ sortBy, showArchived: true });
+  const { qrs: clientQrs, isValidating } = useQrs({
+    sortBy,
+    showArchived: true,
+  });
+
+  const qrs = clientQrs || initialQrs;
 
   // State to hold QRs with preloaded previews
   const [qrsWithPreviews, setQrsWithPreviews] = useState<
