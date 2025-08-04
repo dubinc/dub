@@ -62,6 +62,7 @@ export const SignUpOAuth = ({
         //   },
         // });
         await saveQrDataToRedis({ sessionId, qrData: processedData });
+
         setQrDataToCreate(null);
       }
 
