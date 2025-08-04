@@ -2,13 +2,14 @@ import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { CommissionStatus, Program } from "@prisma/client";
+import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
-import { getLeadEvent } from "../tinybird";
+import { getLeadEvents } from "../tinybird/get-lead-events";
 import { logImportError } from "../tinybird/log-import-error";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
+import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
@@ -55,6 +56,24 @@ export async function importCommissions(payload: ToltImportPayload) {
       break;
     }
 
+    const customersData = await prisma.customer.findMany({
+      where: {
+        projectId: program.workspaceId,
+        email: {
+          in: commissions
+            .map((commission) => commission.customer.email)
+            .filter((email): email is string => email !== null),
+        },
+      },
+      include: {
+        link: true,
+      },
+    });
+
+    const customerLeadEvents = await getLeadEvents({
+      customerIds: customersData.map((customer) => customer.id),
+    }).then((res) => res.data);
+
     await Promise.allSettled(
       commissions.map((commission) =>
         createCommission({
@@ -63,6 +82,8 @@ export async function importCommissions(payload: ToltImportPayload) {
           fxRates,
           programCurrency: toltProgram.currency_code.toLowerCase(),
           importId,
+          customersData,
+          customerLeadEvents,
         }),
       ),
     );
@@ -126,12 +147,16 @@ async function createCommission({
   fxRates,
   programCurrency,
   importId,
+  customersData,
+  customerLeadEvents,
 }: {
   program: Program;
   commission: ToltCommission;
   fxRates: Record<string, string> | null;
   programCurrency: string;
   importId: string;
+  customersData: (Customer & { link: Link | null })[];
+  customerLeadEvents: LeadEventTB[];
 }) {
   const commonImportLogInputs = {
     workspace_id: program.workspaceId,
@@ -167,15 +192,9 @@ async function createCommission({
     return;
   }
 
-  const customerFound = await prisma.customer.findFirst({
-    where: {
-      projectId: program.workspaceId,
-      email: customer.email,
-    },
-    include: {
-      link: true,
-    },
-  });
+  const customerFound = customersData.find(
+    ({ email }) => email === customer.email,
+  );
 
   if (!customerFound) {
     await logImportError({
@@ -268,11 +287,11 @@ async function createCommission({
     return;
   }
 
-  const leadEvent = await getLeadEvent({
-    customerId: customerFound.id,
-  });
+  const leadEvent = customerLeadEvents.find(
+    (event) => event.customer_id === customerFound.id,
+  );
 
-  if (!leadEvent || leadEvent.data.length === 0) {
+  if (!leadEvent) {
     await logImportError({
       ...commonImportLogInputs,
       code: "LEAD_NOT_FOUND",
@@ -284,7 +303,7 @@ async function createCommission({
 
   const clickData = clickEventSchemaTB
     .omit({ timestamp: true })
-    .parse(leadEvent.data[0]);
+    .parse(leadEvent);
 
   const eventId = nanoid(16);
 
