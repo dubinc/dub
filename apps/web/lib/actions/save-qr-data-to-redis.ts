@@ -40,13 +40,13 @@ export const saveQrDataToRedisAction = actionClient
 
     const key = `${ERedisArg.QR_DATA_REG}:${sessionId}`;
 
-    console.log("key", key);
-
-    redis.set(key, JSON.stringify(qrData), {
-      ex: 60 * 10, // 10 minutes
-    }).catch((error) => {
-      console.error("Error saving QR data to redis in background:", error);
-    });
+    await redis
+      .set(key, JSON.stringify(qrData), {
+        ex: 60 * 10, // 10 minutes
+      })
+      .catch((error) => {
+        console.error("Error saving QR data to redis in background:", error);
+      });
 
     return { success: true };
   });
