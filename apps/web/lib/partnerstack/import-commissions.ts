@@ -5,6 +5,7 @@ import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent, recordSaleWithTimestamp } from "../tinybird";
+import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { PartnerStackApi } from "./api";
@@ -23,7 +24,7 @@ const toDubStatus: Record<
 };
 
 export async function importCommissions(payload: PartnerStackImportPayload) {
-  const { programId, startingAfter } = payload;
+  const { importId, programId, startingAfter } = payload;
 
   const { workspaceId } = await prisma.program.findUniqueOrThrow({
     where: {
@@ -65,6 +66,7 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
           programId,
           commission,
           fxRates,
+          importId,
         }),
       ),
     );
@@ -91,19 +93,39 @@ async function createCommission({
   programId,
   commission,
   fxRates,
+  importId,
 }: {
   workspaceId: string;
   programId: string;
   commission: PartnerStackCommission;
   fxRates: Record<string, string> | null;
+  importId: string;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: workspaceId,
+    import_id: importId,
+    source: "partnerstack",
+    entity: "commission",
+    entity_id: commission.key,
+  } as const;
+
   if (!commission.transaction) {
-    console.log(`Commission ${commission.key} has no transaction, skipping...`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "TRANSACTION_NOT_FOUND",
+      message: `Commission ${commission.key} has no transaction.`,
+    });
+
     return;
   }
 
   if (!commission.customer) {
-    console.log(`Commission ${commission.key} has no customer, skipping...`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CUSTOMER_NOT_FOUND",
+      message: `Commission ${commission.key} has no customer.`,
+    });
+
     return;
   }
 
@@ -135,9 +157,12 @@ async function createCommission({
   });
 
   if (!customer) {
-    console.log(
-      `No customer found for customer email ${commission.customer.email}, skipping...`,
-    );
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CUSTOMER_NOT_FOUND",
+      message: `No customer found for customer email ${commission.customer.email}.`,
+    });
+
     return;
   }
 
@@ -195,17 +220,32 @@ async function createCommission({
   }
 
   if (!customer.linkId) {
-    console.log(`No link found for customer ${customer.id}, skipping...`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `No link found for customer ${customer.id}.`,
+    });
+
     return;
   }
 
   if (!customer.clickId) {
-    console.log(`No click ID found for customer ${customer.id}, skipping...`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CLICK_NOT_FOUND",
+      message: `No click found for customer ${customer.id}.`,
+    });
+
     return;
   }
 
   if (!customer.link?.partnerId) {
-    console.log(`No partner ID found for customer ${customer.id}, skipping...`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "PARTNER_NOT_FOUND",
+      message: `No partner found for customer ${customer.id}.`,
+    });
+
     return;
   }
 
@@ -214,7 +254,12 @@ async function createCommission({
   });
 
   if (!leadEvent || leadEvent.data.length === 0) {
-    console.log(`No lead event found for customer ${customer.id}, skipping...`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LEAD_NOT_FOUND",
+      message: `No lead event found for customer ${customer.id}.`,
+    });
+
     return;
   }
 

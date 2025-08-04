@@ -131,13 +131,13 @@ async function createReferral({
     workspace_id: workspace.id,
     import_id: importId,
     source: "tolt",
+    entity: "customer",
+    entity_id: customer.customer_id,
   } as const;
 
   if (links.length === 0) {
     await logImportError({
       ...commonImportLogInputs,
-      entity: "customer",
-      entity_id: customer.customer_id,
       code: "LINK_NOT_FOUND",
       message: `Link not found for customer ${customer.customer_id}`,
     });
