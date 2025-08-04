@@ -184,7 +184,7 @@ export const analyticsQuerySchema = z
       .enum(TRIGGER_TYPES)
       .optional()
       .describe(
-        "The trigger to retrieve analytics for. If undefined, return both QR and link clicks.",
+        "The trigger to retrieve analytics for. If undefined, returns all trigger types.",
       ),
     referer: z
       .string()
@@ -246,7 +246,7 @@ export const analyticsFilterTB = z
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     saleType: z.string().optional(),
-    qr: z.boolean().optional(),
+    trigger: z.enum(TRIGGER_TYPES).optional(),
     start: z.string(),
     end: z.string(),
     granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
