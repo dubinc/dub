@@ -262,12 +262,12 @@ export async function DomainRenewalInvoice({
           <View style={tw("mb-6 border border-neutral-200 rounded-xl")}>
             <View style={tw("flex-row border-neutral-200 border-b")}>
               <Text
-                style={tw("w-1/2 p-3.5 text-sm font-medium text-neutral-700")}
+                style={tw("w-[70%] p-2.5 text-sm font-medium text-neutral-700")}
               >
                 Domain
               </Text>
               <Text
-                style={tw("w-1/2 p-3.5 text-sm font-medium text-neutral-700")}
+                style={tw("w-[30%] p-2.5 text-sm font-medium text-neutral-700")}
               >
                 Renewal Fee
               </Text>
@@ -280,8 +280,8 @@ export async function DomainRenewalInvoice({
                   `flex-row text-sm font-medium text-neutral-700 border-neutral-200 items-center ${index + 1 === domains.length ? "" : "border-b"}`,
                 )}
               >
-                <Text style={tw("w-1/2 p-3.5")}>{domain.slug}</Text>
-                <Text style={tw("w-1/2 p-3.5")}>
+                <Text style={tw("w-[70%] p-2.5")}>{domain.slug}</Text>
+                <Text style={tw("w-[30%] p-2.5")}>
                   {currencyFormatter(domain.renewalFee / 100, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
