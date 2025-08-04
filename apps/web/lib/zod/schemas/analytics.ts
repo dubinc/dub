@@ -184,7 +184,7 @@ export const analyticsQuerySchema = z
       .enum(TRIGGER_TYPES)
       .optional()
       .describe(
-        "The trigger to retrieve analytics for. If undefined, return both QR and link clicks.",
+        "The trigger to retrieve analytics for. If undefined, returns all trigger types.",
       ),
     referer: z
       .string()
@@ -219,6 +219,16 @@ export const analyticsQuerySchema = z
       .describe(
         "Filter sales by type: 'new' for first-time purchases, 'recurring' for repeat purchases. If undefined, returns both.",
       ),
+    query: z
+      .string()
+      .max(10000)
+      .optional()
+      .describe(
+        "Search the events by a custom metadata value. Only available for lead and sale events.",
+      )
+      .openapi({
+        example: "metadata['key']:'value'",
+      }),
     // deprecated fields
     tagId: z
       .string()
@@ -247,7 +257,7 @@ export const analyticsFilterTB = z
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     saleType: z.string().optional(),
-    qr: z.boolean().optional(),
+    trigger: z.enum(TRIGGER_TYPES).optional(),
     start: z.string(),
     end: z.string(),
     granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
@@ -262,6 +272,10 @@ export const analyticsFilterTB = z
       .optional()
       .describe("The folder IDs to retrieve analytics for."),
     isMegaFolder: z.boolean().optional(),
+    filters: z
+      .string()
+      .optional()
+      .describe("The filters to apply to the analytics."),
   })
   .merge(
     analyticsQuerySchema.pick({

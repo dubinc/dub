@@ -127,11 +127,13 @@ export const saleEventSchemaTBEndpoint = z.object({
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
+  trigger: z.string().nullish(), // backwards compatibility
   referer: z.string().nullable(),
   referer_url: z.string().nullable(),
   referer_url_processed: z.string().nullable(),
   qr: z.number().nullable(),
   ip: z.string().nullable(),
+  metadata: z.string().nullish(),
 });
 
 // response from dub api
@@ -139,17 +141,20 @@ export const saleEventResponseSchema = z
   .object({
     event: z.literal("sale"),
     timestamp: z.coerce.string(),
+    // core event fields
     eventId: z.string(),
     eventName: z.string(),
-    // nested objects
-    link: linkEventSchema,
-    click: clickEventSchema,
-    customer: CustomerSchema,
     sale: trackSaleRequestSchema.pick({
       amount: true,
       invoiceId: true,
       paymentProcessor: true,
     }),
+    metadata: z.any().nullish(),
+    // nested objects
+    link: linkEventSchema,
+    click: clickEventSchema,
+    customer: CustomerSchema,
+    // deprecated fields
     saleAmount: z
       .number()
       .describe("Deprecated: Use `sale.amount` instead.")
@@ -165,14 +170,3 @@ export const saleEventResponseSchema = z
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "SaleEvent", title: "SaleEvent" });
-
-export const saleEventResponseSchemaExtended = saleEventResponseSchema.merge(
-  z.object({
-    metadata: z
-      .string()
-      .nullish()
-      .transform((val) => (val === "" ? null : val))
-      .default(null)
-      .openapi({ type: "string" }),
-  }),
-);

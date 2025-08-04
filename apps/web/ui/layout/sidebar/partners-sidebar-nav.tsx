@@ -4,12 +4,12 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useRouterStuff } from "@dub/ui";
 import {
+  Bell,
   CircleDollar,
   CircleInfo,
   CircleUser,
   ColorPalette2,
   Gauge6,
-  Gear,
   Gear2,
   Globe,
   GridIcon,
@@ -60,13 +60,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
     icon: SquareUserSparkle2,
     href: "/profile",
     active: pathname.startsWith("/profile"),
-  },
-  {
-    name: "Settings",
-    description: "Manage preferences for your partner account.",
-    icon: Gear,
-    href: "/settings/notifications",
-    active: pathname.startsWith("/settings"),
   },
 ];
 
@@ -233,6 +226,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Security",
             icon: ShieldCheck,
             href: "/account/settings/security",
+          },
+          {
+            name: "Notifications",
+            icon: Bell,
+            href: "/account/settings/notifications",
           },
         ],
       },
