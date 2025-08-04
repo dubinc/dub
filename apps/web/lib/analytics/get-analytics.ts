@@ -80,12 +80,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     dataAvailableFrom,
   });
 
-  if (trigger) {
-    if (trigger === "qr") {
-      qr = true;
-    } else if (trigger === "link") {
-      qr = false;
-    }
+  if (qr) {
+    trigger = "qr";
   }
 
   if (region) {
@@ -116,7 +112,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     eventType: event,
     workspaceId,
     tagIds,
-    qr,
+    trigger,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
     granularity,
