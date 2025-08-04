@@ -29,11 +29,11 @@ export const convertCurrency = async ({
   const currencyCode = currency.toUpperCase();
   const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currencyCode);
 
-  const fxRates = await redis.hget("fxRates:usd", currencyCode); // e.g. for MYR it'll be around 4.4
+  const fxRate = await redis.hget("fxRates:usd", currencyCode); // e.g. for MYR it'll be around 4.4
 
-  if (fxRates) {
+  if (fxRate) {
     // convert amount to USD based on the current FX rate
-    let convertedAmount = amount / Number(fxRates);
+    let convertedAmount = amount / Number(fxRate);
 
     // if the currency is a zero decimal currency, we need to multiply the converted amount by 100
     if (isZeroDecimalCurrency) {
@@ -56,7 +56,7 @@ export const convertCurrency = async ({
 export const convertCurrencyWithFxRates = ({
   currency,
   amount,
-  fxRates: fxRatesData,
+  fxRates,
 }: {
   currency: string;
   amount: number;
@@ -64,19 +64,27 @@ export const convertCurrencyWithFxRates = ({
 }) => {
   const currencyCode = currency.toUpperCase();
   const isZeroDecimalCurrency = ZERO_DECIMAL_CURRENCIES.includes(currencyCode);
-  const fxRates = fxRatesData[currencyCode];
 
-  // convert amount to USD based on the current FX rate
-  let convertedAmount = amount / Number(fxRates);
+  if (fxRates) {
+    const fxRate = fxRates[currencyCode];
 
-  // if the currency is a zero decimal currency, we need to multiply the converted amount by 100
-  if (isZeroDecimalCurrency) {
-    convertedAmount = convertedAmount * 100;
+    // convert amount to USD based on the current FX rate
+    let convertedAmount = amount / Number(fxRate);
+
+    // if the currency is a zero decimal currency, we need to multiply the converted amount by 100
+    if (isZeroDecimalCurrency) {
+      convertedAmount = convertedAmount * 100;
+    }
+
+    return {
+      currency: "usd",
+      // round the final converted amount to 0 decimal places (USD in cents)
+      amount: Math.round(convertedAmount),
+    };
   }
 
   return {
-    currency: "usd",
-    // round the final converted amount to 0 decimal places (USD in cents)
-    amount: Math.round(convertedAmount),
+    currency,
+    amount,
   };
 };
