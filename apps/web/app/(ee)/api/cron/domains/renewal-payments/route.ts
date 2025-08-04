@@ -106,7 +106,7 @@ export async function GET(req: Request) {
           type: "domainRenewal",
           amount: totalAmount,
           total: totalAmount,
-          registeredDomains: domains.map(({ slug }) => slug), // array of domain slugs
+          registeredDomains: domains.map(({ slug }) => slug), // array of domain slugs,
         },
       });
 
@@ -132,6 +132,7 @@ export async function GET(req: Request) {
         invoiceId: invoice.id,
         statementDescriptor: "Dub",
         description: `Domain renewal invoice (${invoice.id})`,
+        idempotencyKey: `${invoice.id}-${invoice.failedAttempts}`,
       });
     }
 

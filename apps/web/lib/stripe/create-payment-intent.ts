@@ -7,12 +7,14 @@ export const createPaymentIntent = async ({
   invoiceId,
   description,
   statementDescriptor,
+  idempotencyKey,
 }: {
   stripeId: string;
   amount: number;
   invoiceId: string;
   description: string;
   statementDescriptor: string;
+  idempotencyKey?: string;
 }) => {
   const [cards, links] = await Promise.all([
     stripe.paymentMethods.list({
@@ -39,18 +41,27 @@ export const createPaymentIntent = async ({
   }
 
   try {
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount,
-      customer: stripeId,
-      transfer_group: invoiceId,
-      payment_method_types: ["card", "link"],
-      payment_method: paymentMethod.id,
-      currency: "usd",
-      confirmation_method: "automatic",
-      confirm: true,
-      statement_descriptor: statementDescriptor,
-      description,
-    });
+    const paymentIntent = await stripe.paymentIntents.create(
+      {
+        amount,
+        customer: stripeId,
+        transfer_group: invoiceId,
+        payment_method_types: ["card", "link"],
+        payment_method: paymentMethod.id,
+        currency: "usd",
+        confirmation_method: "automatic",
+        confirm: true,
+        statement_descriptor: statementDescriptor,
+        description,
+      },
+      {
+        ...(idempotencyKey
+          ? {
+              idempotencyKey,
+            }
+          : {}),
+      },
+    );
 
     console.log(
       `Payment intent ${paymentIntent.id} created for invoice ${invoiceId} with amount ${currencyFormatter(paymentIntent.amount / 100)}`,

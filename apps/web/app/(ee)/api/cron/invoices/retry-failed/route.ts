@@ -69,6 +69,7 @@ export async function POST(req: Request) {
       invoiceId: invoice.id,
       statementDescriptor: "Dub",
       description: `Domain renewal invoice (${invoice.id})`,
+      idempotencyKey: `${invoice.id}-${invoice.failedAttempts}`,
     });
 
     return new Response(`Retrying invoice charge ${invoice.id}...`);
