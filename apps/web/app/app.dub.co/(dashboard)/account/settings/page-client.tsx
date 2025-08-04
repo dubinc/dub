@@ -5,16 +5,17 @@ import UpdateDefaultWorkspace from "@/ui/account/update-default-workspace";
 import UpdateSubscription from "@/ui/account/update-subscription";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import UserId from "@/ui/account/user-id";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { Form } from "@dub/ui";
 import { APP_NAME } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
-export default function SettingsPageClient() {
+export function SettingsPageClient() {
   const { data: session, update, status } = useSession();
 
   return (
-    <>
+    <PageWidthWrapper className="mb-8 grid gap-8">
       <Form
         title="Your Name"
         description={`This will be your display name on ${APP_NAME}.`}
@@ -77,6 +78,6 @@ export default function SettingsPageClient() {
       <UserId />
       <UpdateDefaultWorkspace />
       <DeleteAccountSection />
-    </>
+    </PageWidthWrapper>
   );
 }
