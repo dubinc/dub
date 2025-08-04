@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function CampaignImported({
+export default function ProgramImported({
   email = "panic@thedis.co",
   provider = "Rewardful",
   workspace = {
@@ -23,6 +23,7 @@ export default function CampaignImported({
   program = {
     name: "Cal",
   },
+  importId = "1K1QFYS3W9CJTEJ325SQKWCHF",
 }: {
   email: string;
   provider: "Rewardful" | "Tolt" | "PartnerStack";
@@ -32,6 +33,7 @@ export default function CampaignImported({
   program: {
     name: string;
   };
+  importId?: string;
 }) {
   return (
     <Html>
@@ -56,6 +58,23 @@ export default function CampaignImported({
               </Link>{" "}
               into Dub.
             </Text>
+
+            {importId && (
+              <Text className="mt-4 text-sm leading-6 text-black">
+                You can{" "}
+                <Link
+                  href={`https://app.dub.co/api/${workspace.slug}/import/${importId}/download`}
+                  className="font-medium text-blue-600 no-underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                >
+                  download the import logs here ↗
+                </Link>
+                .
+              </Text>
+            )}
+
             <Footer email={email} />
           </Container>
         </Body>
