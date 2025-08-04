@@ -59,7 +59,6 @@ export const FraudEventSchema = z.object({
     name: true,
     email: true,
     image: true,
-    payoutsEnabledAt: true,
   }),
   customer: CustomerSchema.pick({
     id: true,
