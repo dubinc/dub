@@ -142,15 +142,19 @@ export default function EventsTable({
         // Click trigger
         {
           id: "trigger",
-          header: "Event",
-          accessorKey: "trigger",
+          header: "Trigger",
+          accessorKey: "click",
+          minSize: 150,
+          size: 150,
+          maxSize: 150,
           meta: {
             filterParams: ({ getValue }) => ({
-              trigger: getValue(),
+              trigger: getValue().trigger,
             }),
           },
           cell: ({ getValue }) => {
-            const { title, icon: Icon } = TRIGGER_DISPLAY[getValue()];
+            const trigger = getValue().trigger ?? "link";
+            const { title, icon: Icon } = TRIGGER_DISPLAY[trigger];
             return (
               <div className="flex items-center gap-3">
                 <Icon className="size-4 shrink-0" />
@@ -530,7 +534,6 @@ export default function EventsTable({
       keepPreviousData: true,
     },
   );
-
   const { table, ...tableProps } = useTable({
     data: (data ??
       (requiresUpgrade ? EXAMPLE_EVENTS_DATA[tab] : [])) as EventDatum[],
