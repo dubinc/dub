@@ -1,6 +1,7 @@
 "use client";
 
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useQrs from "@/lib/swr/use-qrs.ts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { SimpleLinkProps } from "@/lib/types";
@@ -11,6 +12,7 @@ import { useAuthModal } from "@/ui/modals/auth-modal.tsx";
 import { useImportBitlyModal } from "@/ui/modals/import-bitly-modal";
 import { useImportCsvModal } from "@/ui/modals/import-csv-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
+import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { useCookies } from "@dub/ui";
 import { DEFAULT_LINK_PROPS, getUrlFromString } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -23,6 +25,7 @@ import {
   createContext,
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 import { toast } from "sonner";
 import { useAddEditTagModal } from "./add-edit-tag-modal";
@@ -30,6 +33,7 @@ import { AuthType } from "./auth-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useImportRewardfulModal } from "./import-rewardful-modal";
 import { useLinkBuilder } from "./link-builder";
+import { useQRPreviewModal } from "./qr-preview-modal";
 import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
@@ -120,13 +124,24 @@ function ModalProviderClient({
     useImportRewardfulModal();
   const { AuthModal, showModal: showAuthModal } = useAuthModal({ sessionId });
 
-  useEffect(
-    () =>
-      setShowWelcomeModal(
-        searchParams.has("onboarded") || searchParams.has("upgraded"),
-      ),
-    [searchParams],
-  );
+  const { qrs } = useQrs({ sortBy: "createdAt", showArchived: false });
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const firstQr = qrs?.[0];
+
+  const { qrCode: builtQrCodeObject } = useQrCustomization(firstQr);
+  const { QRPreviewModal, setShowQRPreviewModal } = useQRPreviewModal({
+    canvasRef,
+    qrCode: builtQrCodeObject,
+    width: 200,
+    height: 200,
+  });
+
+  const shouldShowWelcomeModal = searchParams.has("onboarded");
+
+  useEffect(() => {
+    setShowWelcomeModal(shouldShowWelcomeModal && !builtQrCodeObject);
+    setShowQRPreviewModal(shouldShowWelcomeModal && !!builtQrCodeObject);
+  }, [searchParams, shouldShowWelcomeModal, builtQrCodeObject]);
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
@@ -231,6 +246,7 @@ function ModalProviderClient({
       <ImportCsvModal />
       <ImportRewardfulModal />
       <WelcomeModal />
+      <QRPreviewModal />
       <AuthModal />
       {children}
     </ModalContext.Provider>

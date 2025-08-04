@@ -94,8 +94,8 @@ export function TrialExpiredModal({
           <div className="w-full space-y-3 sm:space-y-4">
             <div className="text-left">
               <p className="text-medium text-sm leading-relaxed text-neutral-800 sm:text-base">
-                Free access has expired because you’ve either reached the 10‑day
-                usage limit or created 30 QR codes.
+                Free access has expired because you’ve either reached the 10-day
+                usage limit or completed 30 scans.
                 <br />
                 <br />
                 <span className="text-neutral">
