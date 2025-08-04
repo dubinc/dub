@@ -80,10 +80,10 @@ export const recordFraudIfDetected = async ({
   }
 
   const fraudTypesFound = new Set(events.map(({ type }) => type));
-  const details = events
-    .map(({ reason }) => reason)
-    .filter((reason) => reason !== null)
-    .join(", ");
+
+  const eventsWithDetails = events.filter(
+    ({ reasons, parameters }) => reasons || parameters,
+  );
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -107,7 +107,9 @@ export const recordFraudIfDetected = async ({
             partnerId: partner.id,
             customerId: customer.id,
             linkId: partner.linkId,
-            details,
+            ...(eventsWithDetails.length > 0 && {
+              details: eventsWithDetails as unknown as Prisma.InputJsonValue,
+            }),
           },
         });
       }

@@ -513,4 +513,10 @@ export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 
-export type FraudEvent = z.infer<typeof FraudEventSchema>;
+export type FraudEvent = z.infer<typeof FraudEventSchema> & {
+  details: {
+    type: string;
+    reasons?: string[];
+    parameters?: Record<string, string>;
+  }[];
+};

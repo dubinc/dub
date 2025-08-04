@@ -89,6 +89,11 @@ const allowedQueryParams = [
   "utm_term",
   "utm_content",
   "ref",
+
+  // For Google Ads click detection
+  "gclid",
+  "gad_source",
+  "gad_campaignid",
 ];
 
 // Get final cleaned url for storing in TB

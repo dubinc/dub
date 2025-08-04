@@ -81,7 +81,7 @@ export const FraudEventSchema = z.object({
   selfReferral: z.boolean(),
   googleAdsClick: z.boolean(),
   disposableEmail: z.boolean(),
-  details: z.string().nullable(),
+  details: z.any().nullable(),
   status: z.nativeEnum(FraudEventStatus),
   user: UserSchema.nullable(),
   resolutionReason: z.string().nullable(),

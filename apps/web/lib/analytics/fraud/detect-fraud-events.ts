@@ -7,7 +7,8 @@ import { isSelfReferral } from "./is-self-referral";
 
 interface FraudEvent {
   type: z.infer<typeof fraudEventTypeSchema>;
-  reason: string | null;
+  reasons?: string[] | null;
+  parameters?: Record<string, string> | null;
 }
 
 export const detectFraudEvents = async ({
@@ -32,26 +33,25 @@ export const detectFraudEvents = async ({
   if (selfReferral) {
     events.push({
       type: "selfReferral",
-      reason: reasons.join(", "),
+      reasons,
     });
   }
 
-  if (
-    isGoogleAdsClick({
-      url: click.url,
-      referer: click.referer,
-    })
-  ) {
+  const { googleAdsClick, parameters } = isGoogleAdsClick({
+    url: click.url,
+    referer: click.referer,
+  });
+
+  if (googleAdsClick) {
     events.push({
       type: "googleAdsClick",
-      reason: null,
+      parameters,
     });
   }
 
   if (customer.email && (await isDisposableEmail(customer.email))) {
     events.push({
       type: "disposableEmail",
-      reason: null,
     });
   }
 

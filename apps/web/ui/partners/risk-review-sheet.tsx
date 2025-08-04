@@ -22,6 +22,7 @@ import {
   formatDateTime,
   nFormatter,
   OG_AVATAR_URL,
+  pluralize,
 } from "@dub/utils";
 import { ChevronDown, Flag, Mail } from "lucide-react";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
@@ -367,6 +368,18 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
     ];
   }, [fraudEvent]);
 
+  const reasons: string[] = useMemo(() => {
+    return fraudEvent.details
+      ?.map(({ reasons }) => reasons)
+      .flat()
+      .filter(Boolean);
+  }, [fraudEvent]);
+
+  const parameters: Record<string, string> | undefined = useMemo(() => {
+    return fraudEvent.details?.find(({ type }) => type === "googleAdsClick")
+      ?.parameters;
+  }, [fraudEvent]);
+
   return (
     <div className="rounded-lg border border-neutral-200 bg-white p-4">
       <div className="flex min-w-0 flex-1 flex-col space-y-4">
@@ -447,15 +460,19 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
           </div>
 
           <div className="space-y-4 pt-4">
-            {fraudEvent.googleAdsClick && (
+            {parameters && (
               <div>
                 <h3 className="text-sm font-medium text-neutral-900">
                   Parameters used
                 </h3>
-                <div className="inline-flex items-center bg-orange-50">
-                  <span className="text-sm font-medium text-orange-600">
-                    utm_source=google
-                  </span>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(parameters).map(([key, value]) => (
+                    <div className="inline-flex items-center bg-orange-50">
+                      <span className="text-sm font-medium text-orange-600">
+                        {key}={value}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -498,10 +515,16 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
               </div>
             ) : null}
 
-            {fraudEvent.details && (
+            {reasons && reasons.length > 0 && (
               <div>
-                <h3 className="text-sm font-medium text-neutral-900">Reason</h3>
-                <p className="text-sm text-neutral-500">{fraudEvent.details}</p>
+                <h3 className="text-sm font-medium text-neutral-900">
+                  {pluralize("Reason", reasons.length)}
+                </h3>
+                <div className="text-sm text-neutral-500">
+                  {reasons.map((reason, index) => (
+                    <div key={index}>{reason}.</div>
+                  ))}
+                </div>
               </div>
             )}
 
