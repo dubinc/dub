@@ -65,12 +65,12 @@ export const parseFiltersFromQuery = (query: EventsFilters["query"]) => {
     }
 
     // Check if the operand is allowed
-    const isAllowedOperand = allowedOperands.some(
+    const isOperandAllowed = allowedOperands.some(
       (allowed) =>
         filter.operand === allowed || filter.operand.startsWith(`${allowed}.`),
     );
 
-    if (!isAllowedOperand) {
+    if (!isOperandAllowed) {
       throw new Error(
         `Field ${filter.operand} is an unsupported search field.`,
       );
