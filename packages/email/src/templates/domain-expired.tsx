@@ -1,6 +1,7 @@
-import { DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK, formatDate, pluralize } from "@dub/utils";
 import {
   Body,
+  Column,
   Container,
   Head,
   Heading,
@@ -8,6 +9,7 @@ import {
   Img,
   Link,
   Preview,
+  Row,
   Section,
   Tailwind,
   Text,
@@ -20,18 +22,26 @@ export default function DomainExpired({
     name: "Acme, Inc",
     slug: "acme",
   },
-  domain = {
-    slug: "getacme.link",
-  },
+  domains = [
+    {
+      slug: "getacme.link",
+      expiresAt: new Date("2025-07-29"),
+    },
+    {
+      slug: "example.link",
+      expiresAt: new Date("2025-07-29"),
+    },
+  ],
 }: {
   email: string;
   workspace: {
     name: string;
     slug: string;
   };
-  domain: {
+  domains: {
     slug: string;
-  };
+    expiresAt: Date;
+  }[];
 }) {
   return (
     <Html>
@@ -49,21 +59,53 @@ export default function DomainExpired({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              The domain{" "}
-              <Link
-                href={domain.slug}
-                className="font-semibold text-black underline"
-              >
-                {domain.slug}
-              </Link>{" "}
-              has expired and is no longer available to use with your workspace{" "}
+              The following {pluralize("domain", domains.length)} have expired
+              and are no longer available to use with your workspace{" "}
               <span className="font-semibold text-black">{workspace.name}</span>
               .
             </Text>
 
+            <Section>
+              <Row className="pb-2">
+                <Column align="left" className="text-sm text-neutral-500">
+                  Domain
+                </Column>
+                <Column align="right" className="text-sm text-neutral-500">
+                  Expired on
+                </Column>
+              </Row>
+
+              {domains.map((domain, index) => (
+                <div key={index}>
+                  <Row>
+                    <Column align="left" className="text-sm font-medium">
+                      <Link
+                        href={domain.slug}
+                        className="font-semibold text-black underline"
+                      >
+                        {domain.slug}
+                      </Link>
+                    </Column>
+                    <Column
+                      align="right"
+                      className="text-sm text-neutral-600"
+                      suppressHydrationWarning
+                    >
+                      {formatDate(domain.expiresAt)}
+                    </Column>
+                  </Row>
+
+                  {index !== domains.length - 1 && (
+                    <div className="my-2 w-full" />
+                  )}
+                </div>
+              ))}
+            </Section>
+
             <Text className="text-sm leading-6 text-neutral-600">
-              If you own the domain again in the future, you can add it to your
-              workspace anytime in the{" "}
+              If you own any of these {pluralize("domain", domains.length)}{" "}
+              again in the future, you can add them to your workspace anytime in
+              the{" "}
               <Link
                 href={`https://app.dub.co/${workspace.slug}/links/domains`}
                 className="font-semibold text-black underline"
