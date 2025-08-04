@@ -1,5 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import DomainRenewalReminder from "@dub/email/templates/domain-renewal-reminder";
 import { prisma } from "@dub/prisma";
 import { Project, RegisteredDomain, User } from "@dub/prisma/client";
 import { log } from "@dub/utils";
@@ -47,8 +50,6 @@ export async function GET(req: Request) {
         days,
       };
     });
-
-    console.log(targetDates);
 
     // Find all domains that are eligible for renewal reminders
     const domains = await prisma.registeredDomain.findMany({
@@ -119,6 +120,32 @@ export async function GET(req: Request) {
     // Send reminders to each workspace
     for (const workspaceId in groupedByWorkspace) {
       const { workspace, domains } = groupedByWorkspace[workspaceId];
+
+      // TODO:
+      // Send Email
+      // Fix it
+
+      await resend?.batch.send(
+        workspace.users.map((user) => ({
+          from: VARIANT_TO_FROM_MAP.notifications,
+          to: user.email!,
+          subject: `Your domain is expiring soon`,
+          react: DomainRenewalReminder({
+            email: user.email!,
+            workspace: {
+              slug: workspace.slug,
+            },
+            domains: domains.map(
+              ({ slug, expiresAt, renewalFee, daysLeft }) => ({
+                slug,
+                expiresAt,
+                renewalFee,
+                daysLeft,
+              }),
+            ),
+          }),
+        })),
+      );
     }
 
     return NextResponse.json(groupedByWorkspace);
