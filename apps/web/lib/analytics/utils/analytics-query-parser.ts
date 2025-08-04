@@ -2,6 +2,7 @@ import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { EventsFilters } from "../types";
 
 type LogicalOperator = "AND" | "OR";
+type Operator = "=" | "!=" | ">" | "<" | ">=" | "<=";
 
 const allowedOperands = Object.keys(analyticsQuerySchema.shape)
   .filter((key) => {
@@ -9,6 +10,11 @@ const allowedOperands = Object.keys(analyticsQuerySchema.shape)
     return !["tagId", "qr", "order", "query"].includes(key);
   })
   .concat(["metadata"]) as (keyof typeof analyticsQuerySchema.shape)[];
+
+const allowedOperators: Record<string, Operator[]> = {
+  // TODO:
+  // Define what operators are allowed to use with each operand
+};
 
 interface InternalFilter {
   operand: string;
@@ -131,7 +137,6 @@ function parseCondition(condition: string): InternalFilter | null {
 // Maps operator strings to our internal operator types
 function mapOperator(operator: string): InternalFilter["operator"] {
   switch (operator) {
-    case ":":
     case "=":
       return "equals";
     case ">":
