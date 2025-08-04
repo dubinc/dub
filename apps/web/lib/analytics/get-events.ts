@@ -80,7 +80,7 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
-  const filters = parseFiltersFromQuery(query);
+  const queryFilters = parseFiltersFromQuery(query);
 
   const response = await pipe({
     ...params,
@@ -93,7 +93,11 @@ export const getEvents = async (params: EventsFilters) => {
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
-    filters: filters ? JSON.stringify(filters) : undefined,
+    ...(queryFilters &&
+      queryFilters.filters.length > 0 && {
+        filters: JSON.stringify(queryFilters.filters),
+        logicalOperator: queryFilters.logicalOperator,
+      }),
   });
 
   const [linksMap, customersMap] = await Promise.all([

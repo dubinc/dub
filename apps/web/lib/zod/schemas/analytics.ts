@@ -235,9 +235,7 @@ export const analyticsQuerySchema = z
     query: z
       .string()
       .optional()
-      .describe(
-        "Search the events by a custom metadata value. Only available for lead and sale events.",
-      )
+      .describe("Search the events by a custom filters.")
       .openapi({
         example: "metadata['key']:'value'",
       }),
@@ -270,10 +268,8 @@ export const analyticsFilterTB = z
       .optional()
       .describe("The folder IDs to retrieve analytics for."),
     isMegaFolder: z.boolean().optional(),
-    filters: z
-      .string()
-      .optional()
-      .describe("The filters to apply to the analytics."),
+    filters: z.string().optional(),
+    logicalOperator: z.enum(["AND", "OR"]).optional(),
   })
   .merge(
     analyticsQuerySchema.pick({

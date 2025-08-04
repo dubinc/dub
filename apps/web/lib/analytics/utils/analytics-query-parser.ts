@@ -1,4 +1,14 @@
+import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { EventsFilters } from "../types";
+
+type LogicalOperator = "AND" | "OR";
+
+const allowedOperands = Object.keys(analyticsQuerySchema.shape)
+  .filter((key) => {
+    // Filter out deprecated fields + query
+    return !["tagId", "qr", "order", "query"].includes(key);
+  })
+  .concat(["metadata"]) as (keyof typeof analyticsQuerySchema.shape)[];
 
 interface InternalFilter {
   operand: string;
@@ -13,19 +23,33 @@ interface InternalFilter {
 }
 
 // Query parser that can parse the query string into a list of filters
-export const parseFiltersFromQuery = (
-  query: EventsFilters["query"],
-  allowedOperands = ["metadata"],
-) => {
+export const parseFiltersFromQuery = (query: EventsFilters["query"]) => {
   if (!query) {
     return undefined;
   }
 
-  const filters: InternalFilter[] = [];
+  // Check for unsupported logical operators
+  const unsupportedOperators = query.match(
+    /\s+(?!(?:AND|and|OR|or)\b)\b[A-Za-z]{2,}\s+/,
+  );
+
+  if (unsupportedOperators) {
+    throw new Error(`Query must use either AND or OR.`);
+  }
+
+  // Check for mixed AND/OR operators
+  const hasAnd = /\s+(?:AND|and)\s+/.test(query);
+  const hasOr = /\s+(?:OR|or)\s+/.test(query);
+
+  if (hasAnd && hasOr) {
+    throw new Error(
+      "Query must use either AND or OR exclusively. Mixed logic is not allowed.",
+    );
+  }
 
   // Split the query by logical operators (AND/OR) to handle multiple conditions
-  // For now, we'll focus on single conditions, but this structure allows for future expansion
   const conditions = query.split(/\s+(?:AND|and|OR|or)\s+/);
+  const filters: InternalFilter[] = [];
 
   for (const condition of conditions) {
     const trimmedCondition = condition.trim();
@@ -40,26 +64,29 @@ export const parseFiltersFromQuery = (
       continue;
     }
 
-    const isAllowed = allowedOperands.some((allowed) => {
-      if (filter.operand === allowed) {
-        return true;
-      }
+    // Check if the operand is allowed
+    const isAllowedOperand = allowedOperands.some(
+      (allowed) =>
+        filter.operand === allowed || filter.operand.startsWith(`${allowed}.`),
+    );
 
-      if (filter.operand.startsWith(`${allowed}.`)) {
-        return true;
-      }
-
-      return false;
-    });
-
-    if (!isAllowed) {
-      continue;
+    if (!isAllowedOperand) {
+      throw new Error(
+        `Field ${filter.operand} is an unsupported search field.`,
+      );
     }
 
     filters.push(filter);
   }
 
-  return filters.length > 0 ? filters : undefined;
+  // Determine the logical operator used
+  const logicalOperator: LogicalOperator = hasAnd
+    ? "AND"
+    : hasOr
+      ? "OR"
+      : "AND";
+
+  return filters.length > 0 ? { filters, logicalOperator } : undefined;
 };
 
 // Parses a single condition in the format: field:value, field>value, or metadata['key']:value
@@ -77,10 +104,8 @@ function parseCondition(condition: string): InternalFilter | null {
     return null;
   }
 
-  // Extract the matched groups
-  const [, fieldOrMetadata, operator, value] = match;
-
   let operand: string;
+  const [, fieldOrMetadata, operator, value] = match;
 
   // Determine the operand based on whether it's metadata or a regular field
   if (fieldOrMetadata.startsWith("metadata")) {
