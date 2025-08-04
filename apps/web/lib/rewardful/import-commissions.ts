@@ -150,6 +150,8 @@ async function createCommission({
     workspace_id: program.workspaceId,
     import_id: importId,
     source: "rewardful",
+    entity: "commission",
+    entity_id: commission.id,
   } as const;
 
   if (commission.campaign.id !== campaignId) {
@@ -168,9 +170,7 @@ async function createCommission({
   ) {
     await logImportError({
       ...commonImportLogInputs,
-      entity: "commission",
-      entity_id: commission.id,
-      code: "STRIPE_CUSTOMER_ID_NOT_FOUND",
+      code: "STRIPE_CUSTOMER_NOT_FOUND",
       message: `No Stripe customer ID provided for referral ${sale.referral.id}`,
     });
 
@@ -255,8 +255,6 @@ async function createCommission({
   if (!customerFound) {
     await logImportError({
       ...commonImportLogInputs,
-      entity: "commission",
-      entity_id: commission.id,
       code: "CUSTOMER_NOT_FOUND",
       message: `No customer found for Stripe customer ID ${sale.referral.stripe_customer_id}.`,
     });
@@ -267,8 +265,6 @@ async function createCommission({
   if (!customerFound.linkId) {
     await logImportError({
       ...commonImportLogInputs,
-      entity: "commission",
-      entity_id: commission.id,
       code: "LINK_NOT_FOUND",
       message: `No link found for customer ${customerFound.id}.`,
     });
@@ -291,8 +287,6 @@ async function createCommission({
   if (!customerFound.link?.partnerId) {
     await logImportError({
       ...commonImportLogInputs,
-      entity: "commission",
-      entity_id: commission.id,
       code: "PARTNER_NOT_FOUND",
       message: `No partner ID found for customer ${customerFound.id}.`,
     });
@@ -307,8 +301,6 @@ async function createCommission({
   if (!leadEvent) {
     await logImportError({
       ...commonImportLogInputs,
-      entity: "commission",
-      entity_id: commission.id,
       code: "LEAD_NOT_FOUND",
       message: `No lead event found for customer ${customerFound.id}.`,
     });

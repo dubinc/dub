@@ -7,6 +7,7 @@ import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent } from "../tinybird";
+import { logImportError } from "../tinybird/log-import-error";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -23,7 +24,7 @@ const toDubStatus: Record<ToltCommission["status"], CommissionStatus> = {
 };
 
 export async function importCommissions(payload: ToltImportPayload) {
-  let { programId, toltProgramId, userId, startingAfter } = payload;
+  let { importId, programId, toltProgramId, userId, startingAfter } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -67,6 +68,7 @@ export async function importCommissions(payload: ToltImportPayload) {
           commission,
           fxRates,
           programCurrency: toltProgram.currency_code.toLowerCase(),
+          importId,
         }),
       ),
     );
@@ -114,6 +116,7 @@ export async function importCommissions(payload: ToltImportPayload) {
         workspace,
         program,
         provider: "Tolt",
+        importId,
       }),
     });
   }
@@ -132,19 +135,32 @@ async function createCommission({
   commission,
   fxRates,
   programCurrency,
+  importId,
 }: {
   workspaceId: string;
   programId: string;
   commission: ToltCommission;
   fxRates: Record<string, string> | null;
   programCurrency: string;
+  importId: string;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: workspaceId,
+    import_id: importId,
+    source: "tolt",
+    entity: "commission",
+    entity_id: commission.id,
+  } as const;
+
   const { customer, partner, ...sale } = commission;
 
   if (!sale.transaction_id) {
-    console.log(
-      `Commission ${commission.id} has no transaction ID, skipping...`,
-    );
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "TRANSACTION_NOT_FOUND",
+      message: `No transaction ID provided for commission ${commission.id}`,
+    });
+
     return;
   }
 
@@ -173,9 +189,12 @@ async function createCommission({
   });
 
   if (!customerFound) {
-    console.log(
-      `No customer found for customer email ${customer.email}, skipping...`,
-    );
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CUSTOMER_NOT_FOUND",
+      message: `No customer ${customer.email} found for commission ${commission.id}.`,
+    });
+
     return;
   }
 
@@ -230,14 +249,33 @@ async function createCommission({
     return;
   }
 
-  if (
-    !customerFound.linkId ||
-    !customerFound.clickId ||
-    !customerFound.link?.partnerId
-  ) {
-    console.log(
-      `No link or click ID or partner ID found for customer ${customerFound.id}, skipping...`,
-    );
+  if (!customerFound.linkId) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `No link found for customer ${customerFound.id}.`,
+    });
+
+    return;
+  }
+
+  if (!customerFound.clickId) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CLICK_NOT_FOUND",
+      message: `No click found for customer ${customerFound.id}.`,
+    });
+
+    return;
+  }
+
+  if (!customerFound.link?.partnerId) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "PARTNER_NOT_FOUND",
+      message: `No partner found for customer ${customerFound.id}.`,
+    });
+
     return;
   }
 
@@ -246,9 +284,12 @@ async function createCommission({
   });
 
   if (!leadEvent || leadEvent.data.length === 0) {
-    console.log(
-      `No lead event found for customer ${customerFound.id}, skipping...`,
-    );
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LEAD_NOT_FOUND",
+      message: `No lead event found for customer ${customerFound.id}.`,
+    });
+
     return;
   }
 

@@ -13,7 +13,8 @@ export const importErrorLogSchema = z.object({
     "CUSTOMER_NOT_FOUND",
     "LEAD_NOT_FOUND",
     "CLICK_NOT_FOUND",
-    "STRIPE_CUSTOMER_ID_NOT_FOUND",
+    "STRIPE_CUSTOMER_NOT_FOUND",
+    "TRANSACTION_NOT_FOUND"
   ]),
   message: z.string(),
 });
