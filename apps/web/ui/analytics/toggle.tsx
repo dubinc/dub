@@ -398,7 +398,7 @@ export default function Toggle({
             {
               key: "link",
               icon: Hyperlink,
-              label: "Link",
+              label: "QR name",
               getOptionIcon: (value, props) => {
                 const url = props.option?.data?.url;
                 const [domain, key] = value.split("/");
@@ -412,9 +412,10 @@ export default function Toggle({
                     key,
                     url,
                     count,
-                  }: LinkProps & { count?: number }) => ({
+                    qr,
+                  }: LinkProps & { count?: number, qr?: { title: string } }) => ({
                     value: linkConstructor({ domain, key, pretty: true }),
-                    label: linkConstructor({ domain, key, pretty: true }),
+                    label: qr?.title,
                     right: nFormatter(count, { full: true }),
                     data: { url },
                   }),
@@ -436,21 +437,22 @@ export default function Toggle({
                   label: "Regular short link",
                 },
               ],
+              separatorAfter: !dashboardProps,
             },
           ]),
-      {
-        key: "trigger",
-        icon: CursorRays,
-        label: "Trigger",
-        options:
-          triggers?.map(({ trigger, count }) => ({
-            value: trigger,
-            label: TRIGGER_DISPLAY[trigger],
-            icon: trigger === "qr" ? QRCode : CursorRays,
-            right: nFormatter(count, { full: true }),
-          })) ?? null,
-        separatorAfter: !dashboardProps,
-      },
+      // {
+      //   key: "trigger",
+      //   icon: CursorRays,
+      //   label: "Trigger",
+      //   options:
+      //     triggers?.map(({ trigger, count }) => ({
+      //       value: trigger,
+      //       label: TRIGGER_DISPLAY[trigger],
+      //       icon: trigger === "qr" ? QRCode : CursorRays,
+      //       right: nFormatter(count, { full: true }),
+      //     })) ?? null,
+      //   separatorAfter: !dashboardProps,
+      // },
       {
         key: "country",
         icon: FlagWavy,
