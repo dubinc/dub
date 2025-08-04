@@ -1,4 +1,4 @@
-import { parseFiltersFromQuery } from "@/lib/analytics/utils/analytics-query-parser";
+import { parseFiltersFromQuery } from "@/lib/analytics/query-parser";
 import { describe, expect, it } from "vitest";
 
 describe("Analytics Query Parser", () => {

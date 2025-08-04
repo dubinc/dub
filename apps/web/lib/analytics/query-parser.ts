@@ -1,4 +1,4 @@
-import { EventsFilters } from "../types";
+import { EventsFilters } from "./types";
 
 interface InternalFilter {
   operand: string;

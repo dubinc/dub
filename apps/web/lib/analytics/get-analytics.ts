@@ -12,8 +12,8 @@ import {
   DIMENSIONAL_ANALYTICS_FILTERS,
   SINGULAR_ANALYTICS_ENDPOINTS,
 } from "./constants";
+import { parseFiltersFromQuery } from "./query-parser";
 import { AnalyticsFilters } from "./types";
-import { parseFiltersFromQuery } from "./utils/analytics-query-parser";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/analytics

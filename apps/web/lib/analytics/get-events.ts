@@ -21,8 +21,8 @@ import {
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
+import { parseFiltersFromQuery } from "./query-parser";
 import { EventsFilters } from "./types";
-import { parseFiltersFromQuery } from "./utils/analytics-query-parser";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/events

@@ -134,14 +134,14 @@ SQL >
             AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
         {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
-        
+
         {% if defined(filters) %}
             {% for item in JSON(filters, '[]') %}
                 {% if item.get('operand', '').startswith('metadata.') %}
                     {% set metadataKey = item.get('operand', '').split('.')[1] %}
                     {% set operator = item.get('operator', 'equals') %}
                     {% set value = item.get('value', '') %}
-                    
+
                     {% if operator == 'equals' %}
                         AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
                     {% elif operator == 'notEquals' %}
@@ -158,7 +158,7 @@ SQL >
                 {% end %}
             {% end %}
         {% end %}
-
+    
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
     {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
@@ -194,11 +194,22 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%') {% end %}
-        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%') {% end %}
-        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%') {% end %}
-        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%') {% end %}
-        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%') {% end %}
+        {% if defined(utm_source) %}
+            AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND url
+            LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
+        {% end %}
+        {% if defined(utm_term) %}
+            AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+        {% end %}
+        {% if defined(utm_content) %}
+            AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+        {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
 
         {% if defined(filters) %}
@@ -207,7 +218,7 @@ SQL >
                     {% set metadataKey = item.get('operand', '').split('.')[1] %}
                     {% set operator = item.get('operator', 'equals') %}
                     {% set value = item.get('value', '') %}
-                    
+
                     {% if operator == 'equals' %}
                         AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
                     {% elif operator == 'notEquals' %}
