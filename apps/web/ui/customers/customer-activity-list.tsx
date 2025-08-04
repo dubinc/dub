@@ -85,18 +85,10 @@ const activityData = {
   lead: {
     icon: UserCheck,
     content: (event) => {
-      let metadata = null;
-
-      try {
-        metadata = event.metadata ? JSON.parse(event.metadata) : null;
-      } catch (e) {
-        //
-      }
-
       return (
         <div className="flex flex-col gap-1">
           <span>{event.eventName || "New lead"}</span>
-          {metadata && <MetadataViewer metadata={metadata} />}
+          {event.metadata && <MetadataViewer metadata={event.metadata} />}
         </div>
       );
     },
@@ -105,18 +97,10 @@ const activityData = {
   sale: {
     icon: MoneyBill2,
     content: (event) => {
-      let metadata = null;
-
-      try {
-        metadata = event.metadata ? JSON.parse(event.metadata) : null;
-      } catch (e) {
-        //
-      }
-
       return (
         <div className="flex flex-col gap-1">
           <span>{event.eventName || "New sale"}</span>
-          {metadata && <MetadataViewer metadata={metadata} />}
+          {event.metadata && <MetadataViewer metadata={event.metadata} />}
         </div>
       );
     },

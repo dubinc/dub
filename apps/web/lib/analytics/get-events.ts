@@ -135,6 +135,7 @@ export const getEvents = async (params: EventsFilters) => {
           ? {
               eventId: evt.event_id,
               eventName: evt.event_name,
+              metadata: evt.metadata ? JSON.parse(evt.metadata) : undefined,
               customer: customersMap[evt.customer_id] ?? {
                 id: evt.customer_id,
                 name: "Deleted Customer",
