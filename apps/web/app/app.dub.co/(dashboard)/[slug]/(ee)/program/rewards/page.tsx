@@ -1,6 +1,6 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { Rewards } from "./rewards";
+import { ProgramRewards } from "./rewards";
 
 export default async function ProgramSettingsRewardsPage() {
   return (
@@ -14,7 +14,7 @@ export default async function ProgramSettingsRewardsPage() {
     >
       <PageWidthWrapper>
         <div className="mb-8">
-          <Rewards />
+          <ProgramRewards />
         </div>
       </PageWidthWrapper>
     </PageContent>

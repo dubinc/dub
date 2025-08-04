@@ -21,7 +21,13 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import { Button, MoneyBills2, Sheet, TooltipContent } from "@dub/ui";
+import {
+  Button,
+  MoneyBills2,
+  Sheet,
+  TooltipContent,
+  useRouterStuff,
+} from "@dub/ui";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -516,8 +522,15 @@ export function RewardSheet({
   isOpen: boolean;
   nested?: boolean;
 }) {
+  const { queryParams } = useRouterStuff();
+
   return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={rest.setIsOpen}
+      nested={nested}
+      onClose={() => queryParams({ del: "rewardId", scroll: false })}
+    >
       <RewardSheetContent {...rest} />
     </Sheet>
   );
