@@ -8,6 +8,13 @@ import { Invoice, Project, RegisteredDomain } from "@prisma/client";
 import { addDays, endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
 
+/**
+ * Daily cron job to create payment intents for `.link` domain renewals.
+ *
+ * Payment intents are created 14 days before domain expiration to ensure
+ * timely processing and avoid domain expiration.
+ */
+
 export const dynamic = "force-dynamic";
 
 interface GroupedWorkspace {
