@@ -45,3 +45,13 @@ packages/stripe-app/.build/*
 *.csv
 *.ndjson
 .vitest
+.cursorrules
+
+fixtures/visits.sql
+endpoints/top_pages.pipe
+endpoints/get_visits.pipe
+endpoints/daily_visits_stats.pipe
+datasources/visits.datasource
+README.md
+pnpm-lock.yaml
+packages/tinybird/Test

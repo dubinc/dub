@@ -1,23 +1,29 @@
 NODE mv
 SQL >
-
     SELECT
-        timestamp,
-        event_id,
-        click_id,
-        link_id,
-        customer_id,
-        event_name,
-        url,
-        continent,
-        country,
-        city,
-        device,
-        browser,
-        os,
-        referer,
-        qr,
-        ip
+        engine,          
+        country,         
+        qr,              
+        ua,              
+        os,              
+        latitude,        
+        event_name,      
+        url,             
+        event_id,        
+        referer,         
+        timestamp,       
+        city,            
+        ip,              
+        region,          
+        customer_id,     
+        continent,       
+        longitude,       
+        device,          
+        link_id,         
+        referer_url,     
+        click_id,        
+        browser          
+        
     FROM dub_lead_events
 
 TYPE materialized

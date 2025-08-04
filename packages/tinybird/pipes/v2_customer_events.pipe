@@ -6,7 +6,6 @@ TAGS "Dub Endpoints"
 
 NODE lead_events
 SQL >
-
     %
     SELECT
         timestamp,
@@ -32,8 +31,7 @@ SQL >
         splitByString('?', referer_url)[1] as referer_url_processed,
         'lead' as event,
         event_id,
-        event_name,
-        metadata
+        event_name 
     FROM dub_lead_events_mv
     WHERE
         customer_id
@@ -88,7 +86,6 @@ SQL >
 
 NODE sale_events
 SQL >
-
     %
     SELECT
         timestamp,
@@ -114,8 +111,7 @@ SQL >
         splitByString('?', referer_url)[1] as referer_url_processed,
         'sale' as event,
         event_id,
-        event_name,
-        metadata,
+        event_name, 
         amount as saleAmount,
         invoice_id,
         payment_processor
@@ -137,28 +133,106 @@ SQL >
 
 NODE endpoint
 SQL >
-
     %
     SELECT *
-    FROM
-        (
-            SELECT *, NULL AS saleAmount, NULL AS invoice_id, NULL AS payment_processor
-            FROM lead_events
-            UNION ALL
-            SELECT
-                *,
-                NULL AS event_id,
-                NULL AS event_name,
-                NULL AS metadata,
-                NULL AS saleAmount,
-                NULL AS invoice_id,
-                NULL AS payment_processor
-            FROM click_events
-            UNION ALL
-            SELECT *
-            FROM sale_events
-        )
+    FROM (
+        -- Branch 1: lead_events
+        SELECT
+            timestamp,
+            click_id,
+            link_id,
+            url,
+            continent,
+            country,
+            city,
+            region,
+            latitude,
+            longitude,
+            device,
+            browser,
+            os,
+            engine,
+            ua,
+            referer,
+            referer_url,
+            qr,
+            ip,
+            region_processed,
+            referer_url_processed,
+            event,
+            event_id,         
+            event_name,      
+            NULL AS saleAmount, 
+            NULL AS invoice_id, 
+            NULL AS payment_processor
+        FROM lead_events
+
+        UNION ALL
+
+        -- Branch 2: click_events
+        SELECT
+            timestamp,
+            click_id,
+            link_id,
+            url,
+            continent,
+            country,
+            city,
+            region,
+            latitude,
+            longitude,
+            device,
+            browser,
+            os,
+            engine,
+            ua,
+            referer,
+            referer_url,
+            qr,
+            ip,
+            region_processed,
+            referer_url_processed,
+            event,
+            NULL AS event_id,         
+            NULL AS event_name,       
+            NULL AS saleAmount,       
+            NULL AS invoice_id,       
+            NULL AS payment_processor 
+        FROM click_events
+
+        UNION ALL
+
+        -- Branch 3: sale_events
+        SELECT
+            timestamp,
+            click_id,
+            link_id,
+            url,
+            continent,
+            country,
+            city,
+            region,
+            latitude,
+            longitude,
+            device,
+            browser,
+            os,
+            engine,
+            ua,
+            referer,
+            referer_url,
+            qr,
+            ip,
+            region_processed,
+            referer_url_processed,
+            event,
+            event_id,        
+            event_name,      
+            saleAmount,      
+            invoice_id,      
+            payment_processor
+        FROM sale_events
+    ) AS final_union
     ORDER BY
-        timestamp DESC, CASE event WHEN 'click' THEN 1 WHEN 'lead' THEN 2 WHEN 'sale' THEN 3 END DESC
-
-
+        timestamp DESC,
+        CASE event WHEN 'click' THEN 1 WHEN 'lead' THEN 2 WHEN 'sale' THEN 3 END DESC

@@ -1,6 +1,5 @@
 NODE mv
 SQL >
-
     SELECT
         timestamp,
         click_id,
@@ -9,15 +8,20 @@ SQL >
         continent,
         country,
         city,
+        region,         
+        latitude,       
+        longitude,   
         device,
         browser,
         os,
+        engine,         
+        ua,             
+        identity_hash,  
         referer,
+        referer_url,    
         qr,
         ip
     FROM dub_click_events
 
 TYPE materialized
 DATASOURCE dub_click_events_mv
-
-
