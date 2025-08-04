@@ -22,7 +22,7 @@ const columnNames: Record<string, string> = {
 };
 
 const columnAccessors = {
-  trigger: (r: Row) => (r.qr ? "QR scan" : "Link click"),
+  trigger: (r: Row) => r.click.trigger,
   event: (r: LeadEvent | SaleEvent) => r.eventName,
   link: (r: Row) => r.domain + (r.key === "_root" ? "" : `/${r.key}`),
   country: (r: Row) =>

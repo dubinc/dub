@@ -17,7 +17,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CursorRays, Globe, Magnifier, QRCode } from "@dub/ui/icons";
+import { Globe, Magnifier } from "@dub/ui/icons";
 import {
   CONTINENTS,
   COUNTRIES,
@@ -39,8 +39,10 @@ import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
+import { TRIGGER_DISPLAY } from "../trigger-display";
 import { EventsContext } from "./events-provider";
 import { EXAMPLE_EVENTS_DATA } from "./example-data";
+import { MetadataViewer } from "./metadata-viewer";
 import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 
@@ -141,32 +143,27 @@ export default function EventsTable({
         // Click trigger
         {
           id: "trigger",
-          header: "Event",
-          accessorKey: "qr",
+          header: "Trigger",
+          accessorKey: "click.trigger",
+          minSize: 150,
+          size: 150,
+          maxSize: 150,
           meta: {
             filterParams: ({ getValue }) => ({
-              qr: !!getValue(),
+              trigger: getValue() ?? "link",
             }),
           },
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-3">
-              {getValue() ? (
-                <>
-                  <QRCode className="size-4 shrink-0" />
-                  <span className="truncate" title="QR scan">
-                    QR scan
-                  </span>
-                </>
-              ) : (
-                <>
-                  <CursorRays className="size-4 shrink-0" />
-                  <span className="truncate" title="Link click">
-                    Link click
-                  </span>
-                </>
-              )}
-            </div>
-          ),
+          cell: ({ getValue }) => {
+            const { title, icon: Icon } = TRIGGER_DISPLAY[getValue() ?? "link"];
+            return (
+              <div className="flex items-center gap-3">
+                <Icon className="size-4 shrink-0" />
+                <span className="truncate" title={title}>
+                  {title}
+                </span>
+              </div>
+            );
+          },
         },
         // Lead/sale event name
         {
@@ -477,6 +474,22 @@ export default function EventsTable({
                   ),
               },
             ]),
+        // Metadata
+        {
+          id: "metadata",
+          header: "Metadata",
+          accessorKey: "metadata",
+          minSize: 120,
+          size: 120,
+          maxSize: 120,
+          cell: ({ getValue }) => {
+            const metadata = getValue();
+            if (!metadata || Object.keys(metadata).length === 0) {
+              return <span className="text-neutral-400">-</span>;
+            }
+            return <MetadataViewer metadata={metadata} previewItems={0} />;
+          },
+        },
         // Menu
         {
           id: "menu",
@@ -537,7 +550,6 @@ export default function EventsTable({
       keepPreviousData: true,
     },
   );
-
   const { table, ...tableProps } = useTable({
     data: (data ??
       (requiresUpgrade ? EXAMPLE_EVENTS_DATA[tab] : [])) as EventDatum[],

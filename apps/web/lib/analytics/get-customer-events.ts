@@ -8,23 +8,15 @@ import {
   clickEventResponseSchema,
   clickEventSchema,
 } from "../zod/schemas/clicks";
-import {
-  leadEventResponseSchema,
-  leadEventResponseSchemaExtended,
-} from "../zod/schemas/leads";
-import {
-  saleEventResponseSchema,
-  saleEventResponseSchemaExtended,
-} from "../zod/schemas/sales";
+import { leadEventResponseSchema } from "../zod/schemas/leads";
+import { saleEventResponseSchema } from "../zod/schemas/sales";
 
 export const getCustomerEvents = async ({
   customerId,
   linkIds,
-  includeMetadata,
 }: {
   customerId: string;
   linkIds?: string[];
-  includeMetadata?: boolean;
 }) => {
   const pipe = tb.buildPipe({
     pipe: "v2_customer_events",
@@ -68,6 +60,7 @@ export const getCustomerEvents = async ({
           ? {
               eventId: evt.event_id,
               eventName: evt.event_name,
+              metadata: evt.metadata ? JSON.parse(evt.metadata) : undefined,
               ...(evt.event === "sale"
                 ? {
                     sale: {
@@ -83,14 +76,8 @@ export const getCustomerEvents = async ({
 
       return {
         click: clickEventResponseSchema,
-        lead: (includeMetadata
-          ? leadEventResponseSchemaExtended
-          : leadEventResponseSchema
-        ).omit({ customer: true }),
-        sale: (includeMetadata
-          ? saleEventResponseSchemaExtended
-          : saleEventResponseSchema
-        ).omit({ customer: true }),
+        lead: leadEventResponseSchema.omit({ customer: true }),
+        sale: saleEventResponseSchema.omit({ customer: true }),
       }[evt.event].parse(eventData);
     })
     .filter((d) => d !== null);
