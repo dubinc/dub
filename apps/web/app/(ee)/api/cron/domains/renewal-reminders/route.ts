@@ -4,9 +4,15 @@ import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import DomainRenewalReminder from "@dub/email/templates/domain-renewal-reminder";
 import { prisma } from "@dub/prisma";
-import { Project, RegisteredDomain, User } from "@dub/prisma/client";
-import { log } from "@dub/utils";
-import { endOfDay, startOfDay, subDays } from "date-fns";
+import { chunk, log } from "@dub/utils";
+import {
+  addDays,
+  differenceInCalendarDays,
+  endOfDay,
+  formatDistanceStrict,
+  startOfDay,
+  subDays,
+} from "date-fns";
 import { NextResponse } from "next/server";
 
 /**
@@ -21,18 +27,6 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 const REMINDER_WINDOWS = [30, 23, 16];
-
-interface GroupedWorkspace {
-  workspace: Pick<Project, "id" | "slug"> & {
-    users: Pick<User, "id" | "email">[];
-  };
-  domains: (Pick<
-    RegisteredDomain,
-    "id" | "slug" | "expiresAt" | "renewalFee"
-  > & {
-    daysLeft: number;
-  })[];
-}
 
 // GET /api/cron/domains/renewal-reminders
 export async function GET(req: Request) {
@@ -82,73 +76,55 @@ export async function GET(req: Request) {
       return NextResponse.json("No domains found to send reminders for.");
     }
 
-    // Group domains by workspaceId
-    const groupedByWorkspace = domains.reduce(
-      (acc, domain) => {
-        const workspace = domain.project;
+    const reminderDomains = domains.flatMap(
+      ({ slug, expiresAt, renewalFee, project }) => {
+        const reminderWindow = differenceInCalendarDays(expiresAt, now);
+        const chargeAt: Date = addDays(now, reminderWindow);
 
-        if (!acc[workspace.id]) {
-          acc[workspace.id] = {
-            workspace: {
-              id: workspace.id,
-              slug: workspace.slug,
-              users: workspace.users.map((user) => ({
-                id: user.id,
-                email: user.user.email,
-              })),
-            },
-            domains: [],
-          };
-        }
-
-        acc[workspace.id].domains.push({
-          id: domain.id,
-          slug: domain.slug,
-          expiresAt: domain.expiresAt,
-          renewalFee: domain.renewalFee,
-          daysLeft: Math.ceil(
-            (domain.expiresAt.getTime() - now.getTime()) /
-              (1000 * 60 * 60 * 24),
-          ),
-        });
-
-        return acc;
+        return project.users.map(({ user }) => ({
+          domain: {
+            slug,
+            renewalFee,
+            expiresAt,
+            reminderWindow,
+            chargeAt,
+            chargeInText: formatDistanceStrict(chargeAt, now),
+          },
+          workspace: {
+            slug: project.slug,
+          },
+          user: {
+            email: user.email,
+          },
+        }));
       },
-      {} as Record<string, GroupedWorkspace>,
     );
 
-    // Send reminders to each workspace
-    for (const workspaceId in groupedByWorkspace) {
-      const { workspace, domains } = groupedByWorkspace[workspaceId];
+    const reminderDomainsChunks = chunk(reminderDomains, 100);
 
-      // TODO:
-      // Send Email
-      // Fix it
+    if (!resend) {
+      return NextResponse.json(
+        "Resend is not configured, skipping email sending.",
+      );
+    }
 
-      await resend?.batch.send(
-        workspace.users.map((user) => ({
+    for (const reminderDomainsChunk of reminderDomainsChunks) {
+      await resend.batch.send(
+        reminderDomainsChunk.map(({ workspace, user, domain }) => ({
           from: VARIANT_TO_FROM_MAP.notifications,
           to: user.email!,
-          subject: `Your domain is expiring soon`,
+          subject: "Your domain is expiring soon",
+          variant: "notifications",
           react: DomainRenewalReminder({
             email: user.email!,
-            workspace: {
-              slug: workspace.slug,
-            },
-            domains: domains.map(
-              ({ slug, expiresAt, renewalFee, daysLeft }) => ({
-                slug,
-                expiresAt,
-                renewalFee,
-                daysLeft,
-              }),
-            ),
+            workspace,
+            domain,
           }),
         })),
       );
     }
 
-    return NextResponse.json(groupedByWorkspace);
+    return NextResponse.json(reminderDomains);
   } catch (error) {
     await log({
       message: "Domains renewal reminders cron failed. Error: " + error.message,

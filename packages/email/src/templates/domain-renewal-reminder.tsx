@@ -21,9 +21,11 @@ export default function DomainRenewalReminder({
   },
   domain = {
     slug: "getacme.link",
-    expiresAt: new Date("2025-07-29"),
     renewalFee: 1200,
-    nextChargeAt: new Date("2025-08-11"),
+    expiresAt: new Date("2025-08-19"),
+    chargeAt: new Date("2025-08-16"),
+    reminderWindow: 30,
+    chargeInText: "2 weeks",
   },
 }: {
   email: string;
@@ -34,7 +36,9 @@ export default function DomainRenewalReminder({
     slug: string;
     expiresAt: Date;
     renewalFee: number;
-    nextChargeAt: Date;
+    chargeAt: Date;
+    reminderWindow: number;
+    chargeInText: string;
   };
 }) {
   return (
@@ -60,13 +64,13 @@ export default function DomainRenewalReminder({
               >
                 {domain.slug}
               </Link>{" "}
-              will renew in 30 days on{" "}
+              will renew in {domain.reminderWindow} days on{" "}
               <span className="font-semibold text-black">
                 {formatDate(domain.expiresAt)}
               </span>
               . We will attempt to charge your card on file{" "}
-              {currencyFormatter(domain.renewalFee / 100)} in 2 weeks on{" "}
-              {formatDate(domain.nextChargeAt)}.
+              {currencyFormatter(domain.renewalFee / 100)} in{" "}
+              {domain.chargeInText} on {formatDate(domain.chargeAt)}.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
