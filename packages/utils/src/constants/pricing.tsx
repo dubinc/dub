@@ -10,6 +10,30 @@ export type PlanFeature = {
   };
 };
 
+export const LEGACY_PRO_PRICE_IDS = [
+  "price_1LodNLAlJJEpqkPVQSrt33Lc", // old monthly
+  "price_1LodNLAlJJEpqkPVRxUyCQgZ", // old yearly
+  "price_1OTcQBAlJJEpqkPViGtGEsbb", // new monthly (test)
+  "price_1OYJeBAlJJEpqkPVLjTsjX0E", // new monthly (prod)
+  "price_1OTcQBAlJJEpqkPVYlCMqdLL", // new yearly (test)
+  "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly (prod)
+];
+
+export const LEGACY_BUSINESS_PRICE_IDS = [
+  "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
+  "price_1LodLoAlJJEpqkPVJdwv5zrG", // oldest yearly
+  "price_1OZgmnAlJJEpqkPVOj4kV64R", // old yearly
+  "price_1OzNlmAlJJEpqkPV7s9HXNAC", // new monthly (test)
+  "price_1OzNmXAlJJEpqkPVYO89lTdx", // new yearly (test)
+  "price_1OzOFIAlJJEpqkPVJxzc9irl", // new monthly (prod)
+  "price_1OzOXMAlJJEpqkPV9ERrjjbw", // new yearly (prod)
+];
+
+export const LEGACY_PRICE_IDS = [
+  ...LEGACY_PRO_PRICE_IDS,
+  ...LEGACY_BUSINESS_PRICE_IDS,
+];
+
 export const PLANS = [
   {
     name: "Free",
@@ -37,13 +61,7 @@ export const PLANS = [
       monthly: 30,
       yearly: 25,
       ids: [
-        "price_1LodNLAlJJEpqkPVQSrt33Lc", // old monthly
-        "price_1LodNLAlJJEpqkPVRxUyCQgZ", // old yearly
-        "price_1OTcQBAlJJEpqkPViGtGEsbb", // new monthly (test)
-        "price_1OYJeBAlJJEpqkPVLjTsjX0E", // new monthly (prod)
-        "price_1OTcQBAlJJEpqkPVYlCMqdLL", // new yearly (test)
-        "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly (prod)
-
+        ...LEGACY_PRO_PRICE_IDS,
         // 2025 pricing
         "price_1R8XtyAlJJEpqkPV5WZ4c0jF", //  yearly
         "price_1R8XtEAlJJEpqkPV4opVvVPq", // monthly
@@ -123,14 +141,7 @@ export const PLANS = [
       monthly: 90,
       yearly: 75,
       ids: [
-        "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
-        "price_1LodLoAlJJEpqkPVJdwv5zrG", // oldest yearly
-        "price_1OZgmnAlJJEpqkPVOj4kV64R", // old yearly
-        "price_1OzNlmAlJJEpqkPV7s9HXNAC", // new monthly (test)
-        "price_1OzNmXAlJJEpqkPVYO89lTdx", // new yearly (test)
-        "price_1OzOFIAlJJEpqkPVJxzc9irl", // new monthly (prod)
-        "price_1OzOXMAlJJEpqkPV9ERrjjbw", // new yearly (prod)
-
+        ...LEGACY_BUSINESS_PRICE_IDS,
         // 2025 pricing
         "price_1R3j01AlJJEpqkPVXuG1eNzm", //  yearly
         "price_1R6JedAlJJEpqkPVMUkfjch4", // monthly
