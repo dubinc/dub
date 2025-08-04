@@ -1,7 +1,9 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { unbanPartner } from "@/lib/api/partners/unban-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { FRAUD_EVENT_SAFE_REASONS } from "@/lib/zod/schemas/fraud-events";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -77,6 +79,20 @@ export const markFraudEventSafeAction = authActionClient
         },
       });
     });
+
+    const programEnrollment = await getProgramEnrollmentOrThrow({
+      partnerId: fraudEvent.partnerId,
+      programId: fraudEvent.programId,
+    });
+
+    if (programEnrollment.status === "banned") {
+      await unbanPartner({
+        workspace,
+        program: programEnrollment.program,
+        partner: programEnrollment.partner,
+        user,
+      });
+    }
 
     waitUntil(
       recordAuditLog({

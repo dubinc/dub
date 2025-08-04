@@ -62,7 +62,7 @@ export const markFraudEventBannedAction = authActionClient
     });
 
     await banPartner({
-      workspaceId: workspace.id,
+      workspace,
       program: programEnrollment.program,
       partner: programEnrollment.partner,
       reason: "fraud",

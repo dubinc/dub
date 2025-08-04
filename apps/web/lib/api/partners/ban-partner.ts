@@ -8,32 +8,37 @@ import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
-import { Partner, PartnerBannedReason, Program } from "@dub/prisma/client";
+import {
+  Partner,
+  PartnerBannedReason,
+  Program,
+  Project,
+} from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 
 export const banPartner = async ({
-  workspaceId,
+  workspace,
   program,
   partner,
   reason,
   user,
   notifyPartner = true,
 }: {
-  workspaceId: string;
+  workspace: Pick<Project, "id">;
   program: Pick<Program, "id" | "name" | "supportEmail">;
   partner: Pick<Partner, "id" | "name" | "email">;
   reason: PartnerBannedReason;
   user: Session["user"];
   notifyPartner: boolean;
 }) => {
-  const commonWhere = {
+  const where = {
     programId: program.id,
     partnerId: partner.id,
   };
 
   await prisma.$transaction([
     prisma.link.updateMany({
-      where: commonWhere,
+      where,
       data: {
         expiresAt: new Date(),
       },
@@ -58,21 +63,21 @@ export const banPartner = async ({
     }),
 
     prisma.commission.updateMany({
-      where: commonWhere,
+      where,
       data: {
         status: "canceled",
       },
     }),
 
     prisma.payout.updateMany({
-      where: commonWhere,
+      where,
       data: {
         status: "canceled",
       },
     }),
 
     prisma.fraudEvent.updateMany({
-      where: commonWhere,
+      where,
       data: {
         status: "banned",
       },
@@ -93,7 +98,7 @@ export const banPartner = async ({
 
       // Delete links from cache
       const links = await prisma.link.findMany({
-        where: commonWhere,
+        where,
         select: {
           domain: true,
           key: true,
@@ -126,7 +131,7 @@ export const banPartner = async ({
           : Promise.resolve(),
 
         recordAuditLog({
-          workspaceId,
+          workspaceId: workspace.id,
           programId: program.id,
           action: "partner.banned",
           description: `Partner ${partner.id} banned`,
