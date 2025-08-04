@@ -63,7 +63,7 @@ export default function ProgramImported({
               <Text className="mt-4 text-sm leading-6 text-black">
                 You can{" "}
                 <Link
-                  href={`https://app.dub.co/api/${workspace.slug}/import/${importId}/download`}
+                  href={`https://app.dub.co/api/workspaces/${workspace.slug}/import/${importId}/download`}
                   className="font-medium text-blue-600 no-underline"
                   target="_blank"
                   rel="noopener noreferrer"
