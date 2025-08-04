@@ -106,7 +106,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         : analyticsResponse[groupBy],
   });
 
-  const filters = parseFiltersFromQuery(query);
+  const queryFilters = parseFiltersFromQuery(query);
 
   const response = await pipe({
     ...params,
@@ -123,7 +123,11 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone,
     country,
     region,
-    filters: filters ? JSON.stringify(filters) : undefined,
+    ...(queryFilters &&
+      queryFilters.filters.length > 0 && {
+        filters: JSON.stringify(queryFilters.filters),
+        logicalOperator: queryFilters.logicalOperator,
+      }),
   });
 
   if (groupBy === "count") {
