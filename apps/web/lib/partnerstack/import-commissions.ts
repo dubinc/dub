@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { CommissionStatus } from "@prisma/client";
+import { CommissionStatus, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
@@ -26,17 +26,15 @@ const toDubStatus: Record<
 export async function importCommissions(payload: PartnerStackImportPayload) {
   const { importId, programId, startingAfter } = payload;
 
-  const { workspaceId } = await prisma.program.findUniqueOrThrow({
+  const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
-    select: {
-      workspaceId: true,
-    },
   });
 
-  const { publicKey, secretKey } =
-    await partnerStackImporter.getCredentials(workspaceId);
+  const { publicKey, secretKey } = await partnerStackImporter.getCredentials(
+    program.workspaceId,
+  );
 
   const partnerStackApi = new PartnerStackApi({
     publicKey,
@@ -62,8 +60,7 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
     await Promise.allSettled(
       commissions.map((commission) =>
         createCommission({
-          workspaceId,
-          programId,
+          program,
           commission,
           fxRates,
           importId,
@@ -78,7 +75,7 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
   }
 
   if (!hasMore) {
-    await partnerStackImporter.deleteCredentials(workspaceId);
+    await partnerStackImporter.deleteCredentials(program.workspaceId);
   }
 
   await partnerStackImporter.queue({
@@ -89,20 +86,18 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
 }
 
 async function createCommission({
-  workspaceId,
-  programId,
+  program,
   commission,
   fxRates,
   importId,
 }: {
-  workspaceId: string;
-  programId: string;
+  program: Program;
   commission: PartnerStackCommission;
   fxRates: Record<string, string> | null;
   importId: string;
 }) {
   const commonImportLogInputs = {
-    workspace_id: workspaceId,
+    workspace_id: program.workspaceId,
     import_id: importId,
     source: "partnerstack",
     entity: "commission",
@@ -133,7 +128,7 @@ async function createCommission({
     where: {
       invoiceId_programId: {
         invoiceId: commission.key, // This is not the actual invoice ID, but we use this to deduplicate the commissions
-        programId,
+        programId: program.id,
       },
     },
   });
@@ -145,7 +140,7 @@ async function createCommission({
 
   const customer = await prisma.customer.findFirst({
     where: {
-      projectId: workspaceId,
+      projectId: program.workspaceId,
       OR: [
         { email: commission.customer.email },
         { externalId: commission.customer.external_key },
@@ -201,7 +196,7 @@ async function createCommission({
   const chargedAt = new Date(commission.created_at);
   const trackedCommission = await prisma.commission.findFirst({
     where: {
-      programId,
+      programId: program.id,
       createdAt: {
         gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
         lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
@@ -275,7 +270,7 @@ async function createCommission({
         id: createId({ prefix: "cm_" }),
         eventId,
         type: "sale",
-        programId,
+        programId: program.id,
         partnerId: customer.link.partnerId,
         linkId: customer.linkId,
         customerId: customer.id,
@@ -336,6 +331,6 @@ async function createCommission({
 
   await syncTotalCommissions({
     partnerId: customer.link.partnerId,
-    programId,
+    programId: program.id,
   });
 }
