@@ -1,5 +1,6 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { toltImporter } from "@/lib/tolt/importer";
 import { z } from "zod";
@@ -41,6 +42,7 @@ export const startToltImportAction = authActionClient
     }
 
     await toltImporter.queue({
+      importId: createId({ prefix: "import_" }),
       userId: user.id,
       programId: program.id,
       toltProgramId,

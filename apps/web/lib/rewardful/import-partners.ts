@@ -3,13 +3,21 @@ import { Program, Reward } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
+import { logImportError } from "../tinybird/log-import-error";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate, RewardfulImportPayload } from "./types";
 
 export async function importPartners(payload: RewardfulImportPayload) {
-  const { programId, userId, campaignId, page = 1, rewardId } = payload;
+  const {
+    importId,
+    programId,
+    userId,
+    campaignId,
+    page = 1,
+    rewardId,
+  } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -46,11 +54,16 @@ export async function importPartners(payload: RewardfulImportPayload) {
       break;
     }
 
-    const activeAffiliates = affiliates.filter(
-      (affiliate) =>
-        // only active affiliates and have more than 1 lead
-        affiliate.state === "active" && affiliate.leads > 0,
-    );
+    const activeAffiliates: typeof affiliates = [];
+    const notImportedAffiliates: typeof affiliates = [];
+
+    for (const affiliate of affiliates) {
+      if (affiliate.state === "active" && affiliate.leads > 0) {
+        activeAffiliates.push(affiliate);
+      } else {
+        notImportedAffiliates.push(affiliate);
+      }
+    }
 
     if (activeAffiliates.length > 0) {
       await Promise.all(
@@ -62,6 +75,24 @@ export async function importPartners(payload: RewardfulImportPayload) {
             reward,
           }),
         ),
+      );
+    }
+
+    const commonImportLogInputs = {
+      workspace_id: program.workspaceId,
+      import_id: importId,
+      source: "rewardful",
+    } as const;
+
+    if (notImportedAffiliates.length > 0) {
+      await logImportError(
+        notImportedAffiliates.map((affiliate) => ({
+          ...commonImportLogInputs,
+          entity: "partner",
+          entity_id: affiliate.id,
+          code: "INACTIVE_PARTNER",
+          message: `Partner ${affiliate.email} not imported because it is not active or has no leads.`,
+        })),
       );
     }
 

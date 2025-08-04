@@ -33,3 +33,14 @@ export const transformCustomer = (customer: CustomerWithLink) => {
     discount: programEnrollment?.discount || undefined,
   };
 };
+
+export const transformCustomerForCommission = (customer?: Customer | null) => {
+  if (!customer) {
+    return customer;
+  }
+
+  return {
+    ...customer,
+    name: customer.name || customer.email || generateRandomName(),
+  };
+};
