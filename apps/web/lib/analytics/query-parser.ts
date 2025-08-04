@@ -13,7 +13,7 @@ interface InternalFilter {
 }
 
 // Query parser that can parse the query string into a list of filters
-export const parseFiltersFromQuery = (
+export const queryParser = (
   query: EventsFilters["query"],
   allowedOperands = ["metadata"],
 ) => {

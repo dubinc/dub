@@ -12,7 +12,7 @@ import {
   DIMENSIONAL_ANALYTICS_FILTERS,
   SINGULAR_ANALYTICS_ENDPOINTS,
 } from "./constants";
-import { parseFiltersFromQuery } from "./query-parser";
+import { queryParser } from "./query-parser";
 import { AnalyticsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -102,7 +102,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         : analyticsResponse[groupBy],
   });
 
-  const filters = parseFiltersFromQuery(query);
+  const filters = queryParser(query);
 
   const response = await pipe({
     ...params,

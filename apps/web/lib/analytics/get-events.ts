@@ -21,7 +21,7 @@ import {
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
-import { parseFiltersFromQuery } from "./query-parser";
+import { queryParser } from "./query-parser";
 import { EventsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -76,7 +76,7 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
-  const filters = parseFiltersFromQuery(query);
+  const filters = queryParser(query);
 
   const response = await pipe({
     ...params,

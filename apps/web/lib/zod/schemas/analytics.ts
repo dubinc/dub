@@ -234,6 +234,7 @@ export const analyticsQuerySchema = z
       ),
     query: z
       .string()
+      .max(10000)
       .optional()
       .describe(
         "Search the events by a custom metadata value. Only available for lead and sale events.",
