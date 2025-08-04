@@ -54,7 +54,14 @@ export const SignUpOAuth = ({
       });
 
       if (processedData) {
-        saveQrDataToRedis({ sessionId, qrData: processedData });
+        await fetch("/api/test-auth", {
+          method: "POST",
+          body: JSON.stringify({ sessionId, qrData: processedData }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        // saveQrDataToRedis({ sessionId, qrData: processedData });
         setQrDataToCreate(null);
       }
 
