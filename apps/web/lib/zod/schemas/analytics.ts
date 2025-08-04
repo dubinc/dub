@@ -197,13 +197,6 @@ export const analyticsQuerySchema = z
       .describe("The full referer URL to retrieve analytics for.")
       .openapi({ example: "https://dub.co/blog" }),
     url: z.string().optional().describe("The URL to retrieve analytics for."),
-    tagId: z
-      .string()
-      .optional()
-      .describe(
-        "Deprecated. Use `tagIds` instead. The tag ID to retrieve analytics for.",
-      )
-      .openapi({ deprecated: true }),
     tagIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -215,12 +208,6 @@ export const analyticsQuerySchema = z
       .describe(
         "The folder ID to retrieve analytics for. If not provided, return analytics for unsorted links.",
       ),
-    qr: booleanQuerySchema
-      .optional()
-      .describe(
-        "Deprecated. Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
-      )
-      .openapi({ deprecated: true }),
     root: booleanQuerySchema
       .optional()
       .describe(
@@ -242,6 +229,20 @@ export const analyticsQuerySchema = z
       .openapi({
         example: "metadata['key']:'value'",
       }),
+    // deprecated fields
+    tagId: z
+      .string()
+      .optional()
+      .describe(
+        "Deprecated: Use `tagIds` instead. The tag ID to retrieve analytics for.",
+      )
+      .openapi({ deprecated: true }),
+    qr: booleanQuerySchema
+      .optional()
+      .describe(
+        "Deprecated: Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
+      )
+      .openapi({ deprecated: true }),
   })
   .merge(utmTagsSchema);
 

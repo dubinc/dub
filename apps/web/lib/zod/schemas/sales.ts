@@ -157,15 +157,16 @@ export const saleEventResponseSchema = z
     // deprecated fields
     saleAmount: z
       .number()
-      .describe("Deprecated. Use `sale.amount` instead.")
+      .describe("Deprecated: Use `sale.amount` instead.")
       .openapi({ deprecated: true }),
     invoice_id: z
       .string()
-      .describe("Deprecated. Use `sale.invoiceId` instead.")
+      .describe("Deprecated: Use `sale.invoiceId` instead.")
       .openapi({ deprecated: true }),
     payment_processor: z
       .string()
-      .describe("Deprecated. Use `sale.paymentProcessor` instead."),
+      .describe("Deprecated: Use `sale.paymentProcessor` instead.")
+      .openapi({ deprecated: true }),
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "SaleEvent", title: "SaleEvent" });
