@@ -136,34 +136,12 @@ function ModalProviderClient({
     height: 200,
   });
 
-  const planId = searchParams.get("plan");
-  const shouldShowWelcomeModal =
-    searchParams.has("onboarded") || searchParams.has("upgraded");
-  const hasPlan = planId !== null;
+  const shouldShowWelcomeModal = searchParams.has("onboarded");
 
   useEffect(() => {
-    let showWelcomeModal = false;
-    let showPreviewModal = false;
-
-    if (shouldShowWelcomeModal) {
-      if (hasPlan) {
-        showWelcomeModal = true;
-      } else if (builtQrCodeObject) {
-        showPreviewModal = true;
-      } else {
-        showWelcomeModal = true;
-      }
-    }
-
-    setShowWelcomeModal(showWelcomeModal);
-    setShowQRPreviewModal(showPreviewModal);
-  }, [
-    searchParams,
-    planId,
-    shouldShowWelcomeModal,
-    hasPlan,
-    builtQrCodeObject,
-  ]);
+    setShowWelcomeModal(shouldShowWelcomeModal && !builtQrCodeObject);
+    setShowQRPreviewModal(shouldShowWelcomeModal && !!builtQrCodeObject);
+  }, [searchParams, shouldShowWelcomeModal, builtQrCodeObject]);
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,

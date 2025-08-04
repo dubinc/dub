@@ -54,17 +54,14 @@ function QRPreviewModal({
 
   const { downloadQrCode } = useQrDownload(qrCode);
 
-  const isWelcomeModal =
-    searchParams.has("onboarded") || searchParams.has("upgraded");
-  const planId = searchParams.get("plan");
-  const isForUsersWithoutPlan = isWelcomeModal && !planId;
+  const isWelcomeModal = searchParams.has("onboarded");
 
   const handleClose = () => {
     if (!isDownloading) {
       setShowQRPreviewModal(false);
-      if (isForUsersWithoutPlan) {
+      if (isWelcomeModal) {
         queryParams({
-          del: ["onboarded", "upgraded", "plan", "period"],
+          del: ["onboarded"],
         });
       }
     }
@@ -93,14 +90,14 @@ function QRPreviewModal({
       setShowModal={setShowQRPreviewModal}
       onClose={() =>
         queryParams({
-          del: ["onboarded", "upgraded", "plan", "period"],
+          del: ["onboarded"],
         })
       }
       className="border-border-500 h-fit"
     >
       <Theme>
         <div className="flex flex-col gap-2">
-          {isForUsersWithoutPlan && (
+          {isWelcomeModal && (
             <button
               disabled={isDownloading}
               type="button"
@@ -110,7 +107,7 @@ function QRPreviewModal({
               <X className="h-5 w-5" />
             </button>
           )}
-          {!isForUsersWithoutPlan && (
+          {!isWelcomeModal && (
             <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
               <div className="flex items-center gap-2">
                 <QRIcon className="text-primary h-5 w-5" />
@@ -129,7 +126,7 @@ function QRPreviewModal({
             </div>
           )}
 
-          {isForUsersWithoutPlan && (
+          {isWelcomeModal && (
             <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
               <div className="flex flex-col items-center justify-start gap-1">
                 <h3 className="text-neutral !mt-0 max-w-xs truncate text-lg font-medium">
