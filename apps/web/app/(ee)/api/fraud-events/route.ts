@@ -55,7 +55,6 @@ export const GET = withWorkspace(
             name: true,
             email: true,
             image: true,
-            payoutsEnabledAt: true,
           },
         },
         customer: {
