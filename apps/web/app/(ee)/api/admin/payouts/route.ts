@@ -90,8 +90,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
 
   const formattedInvoices = invoices.map((invoice) => ({
     date: invoice.createdAt,
-    programName: invoice.program.name,
-    programLogo: invoice.program.logo,
+    programName: invoice.program?.name,
+    programLogo: invoice.program?.logo,
     status: invoice.status,
     amount: invoice.amount,
     fee: invoice.fee,
