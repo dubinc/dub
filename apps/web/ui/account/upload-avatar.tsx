@@ -71,7 +71,7 @@ const UploadAvatar: FC<Readonly<IUploadAvatarProps>> = ({ sessionId }) => {
             className="border-border-500 h-24 w-24 rounded-full border"
             iconClassName="w-5 h-5"
             variant="plain"
-            imageSrc={session?.user?.image || null}
+            imageSrc={image}
             readFile
             onChange={({ src }) => setImage(src)}
             content={null}
