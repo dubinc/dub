@@ -36,22 +36,13 @@ export const saveQrDataToRedisAction = actionClient
   .action(async ({ parsedInput }) => {
     const { sessionId, qrData } = parsedInput;
     try {
-      await redis.set(
+      redis.set(
         `${ERedisArg.QR_DATA_REG}:${sessionId}`,
         JSON.stringify(qrData),
         {
           ex: 60 * 10, // 10 minutes
         },
       );
-
-      const cachedRedis = await redis.get(
-        `${ERedisArg.QR_DATA_REG}:${sessionId}`,
-      );
-      console.log(
-        "saveQrDataToRedisAction redis key:",
-        `${ERedisArg.QR_DATA_REG}:${sessionId}`,
-      );
-      console.log("saveQrDataToRedisAction cachedRedis:", cachedRedis);
     } catch (error) {
       console.error("Error saving QR data to redis:", error);
       throw new Error("Failed to save QR data");
