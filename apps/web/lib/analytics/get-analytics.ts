@@ -212,13 +212,16 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       },
     });
 
-    return topPartnersData.map((item) => {
-      const partner = partners.find((p) => p.id === item.partnerId);
-      return {
-        ...item,
-        partner,
-      };
-    });
+    return topPartnersData
+      .map((item) => {
+        const partner = partners.find((p) => p.id === item.partnerId);
+        if (!partner) return null;
+        return {
+          ...item,
+          partner,
+        };
+      })
+      .filter((d) => d !== null);
   }
 
   // Return array for other endpoints
