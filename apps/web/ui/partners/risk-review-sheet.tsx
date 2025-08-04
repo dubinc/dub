@@ -467,7 +467,10 @@ function FraudEventCard({ fraudEvent }: { fraudEvent: FraudEvent }) {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(parameters).map(([key, value]) => (
-                    <div className="inline-flex items-center bg-orange-50">
+                    <div
+                      className="inline-flex items-center bg-orange-50"
+                      key={key}
+                    >
                       <span className="text-sm font-medium text-orange-600">
                         {key}={value}
                       </span>
