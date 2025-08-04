@@ -42,6 +42,7 @@ import DeviceIcon from "../device-icon";
 import { TRIGGER_DISPLAY } from "../trigger-display";
 import { EventsContext } from "./events-provider";
 import { EXAMPLE_EVENTS_DATA } from "./example-data";
+import { MetadataViewer } from "./metadata-viewer";
 import { RowMenuButton } from "./row-menu-button";
 import { eventColumns, useColumnVisibility } from "./use-column-visibility";
 
@@ -473,6 +474,22 @@ export default function EventsTable({
                   ),
               },
             ]),
+        // Metadata
+        {
+          id: "metadata",
+          header: "Metadata",
+          accessorKey: "metadata",
+          minSize: 120,
+          size: 120,
+          maxSize: 120,
+          cell: ({ getValue }) => {
+            const metadata = getValue();
+            if (!metadata || Object.keys(metadata).length === 0) {
+              return <span className="text-neutral-400">-</span>;
+            }
+            return <MetadataViewer metadata={metadata} previewItems={0} />;
+          },
+        },
         // Menu
         {
           id: "menu",

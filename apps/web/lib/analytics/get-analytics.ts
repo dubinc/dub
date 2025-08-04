@@ -12,6 +12,7 @@ import {
   DIMENSIONAL_ANALYTICS_FILTERS,
   SINGULAR_ANALYTICS_ENDPOINTS,
 } from "./constants";
+import { queryParser } from "./query-parser";
 import { AnalyticsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -32,6 +33,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone = "UTC",
     isDeprecatedClicksEndpoint = false,
     dataAvailableFrom,
+    query,
   } = params;
 
   const tagIds = combineTagIds(params);
@@ -100,6 +102,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         : analyticsResponse[groupBy],
   });
 
+  const filters = queryParser(query);
+
   const response = await pipe({
     ...params,
     ...(UTM_TAGS_PLURAL_LIST.includes(groupBy)
@@ -115,6 +119,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone,
     country,
     region,
+    filters: filters ? JSON.stringify(filters) : undefined,
   });
 
   if (groupBy === "count") {
@@ -207,13 +212,16 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       },
     });
 
-    return topPartnersData.map((item) => {
-      const partner = partners.find((p) => p.id === item.partnerId);
-      return {
-        ...item,
-        partner,
-      };
-    });
+    return topPartnersData
+      .map((item) => {
+        const partner = partners.find((p) => p.id === item.partnerId);
+        if (!partner) return null;
+        return {
+          ...item,
+          partner,
+        };
+      })
+      .filter((d) => d !== null);
   }
 
   // Return array for other endpoints

@@ -119,6 +119,7 @@ export const leadEventSchemaTBEndpoint = z.object({
   referer_url_processed: z.string().nullable(),
   qr: z.number().nullable(),
   ip: z.string().nullable(),
+  metadata: z.string().nullish(),
 });
 
 // response from dub api
@@ -126,8 +127,10 @@ export const leadEventResponseSchema = z
   .object({
     event: z.literal("lead"),
     timestamp: z.coerce.string(),
+    // core event fields
     eventId: z.string(),
     eventName: z.string(),
+    metadata: z.any().nullish(),
     // nested objects
     click: clickEventSchema,
     link: linkEventSchema,
@@ -135,14 +138,3 @@ export const leadEventResponseSchema = z
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "LeadEvent", title: "LeadEvent" });
-
-export const leadEventResponseSchemaExtended = leadEventResponseSchema.merge(
-  z.object({
-    metadata: z
-      .string()
-      .nullish()
-      .transform((val) => (val === "" ? null : val))
-      .default(null)
-      .openapi({ type: "string" }),
-  }),
-);
