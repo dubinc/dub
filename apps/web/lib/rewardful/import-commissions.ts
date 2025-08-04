@@ -2,13 +2,14 @@ import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { CommissionStatus, Program } from "@prisma/client";
+import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
-import { getLeadEvent } from "../tinybird";
+import { getLeadEvents } from "../tinybird/get-lead-events";
 import { logImportError } from "../tinybird/log-import-error";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
+import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
@@ -51,6 +52,23 @@ export async function importCommissions(payload: RewardfulImportPayload) {
       break;
     }
 
+    const customersData = await prisma.customer.findMany({
+      where: {
+        stripeCustomerId: {
+          in: commissions
+            .map((commission) => commission.sale.referral.stripe_customer_id)
+            .filter(Boolean),
+        },
+      },
+      include: {
+        link: true,
+      },
+    });
+
+    const customerLeadEvents = await getLeadEvents({
+      customerIds: customersData.map((customer) => customer.id),
+    }).then((res) => res.data);
+
     await Promise.all(
       commissions.map((commission) =>
         createCommission({
@@ -59,6 +77,8 @@ export async function importCommissions(payload: RewardfulImportPayload) {
           campaignId,
           fxRates,
           importId,
+          customersData,
+          customerLeadEvents,
         }),
       ),
     );
@@ -115,12 +135,16 @@ async function createCommission({
   campaignId,
   fxRates,
   importId,
+  customersData,
+  customerLeadEvents,
 }: {
   commission: RewardfulCommission;
   program: Program;
   campaignId: string;
   fxRates: Record<string, string> | null;
   importId: string;
+  customersData: (Customer & { link: Link | null })[];
+  customerLeadEvents: LeadEventTB[];
 }) {
   const commonImportLogInputs = {
     workspace_id: program.workspaceId,
@@ -223,14 +247,10 @@ async function createCommission({
     return;
   }
 
-  const customerFound = await prisma.customer.findUnique({
-    where: {
-      stripeCustomerId: sale.referral.stripe_customer_id,
-    },
-    include: {
-      link: true,
-    },
-  });
+  const customerFound = customersData.find(
+    (customer) =>
+      customer.stripeCustomerId === sale.referral.stripe_customer_id,
+  );
 
   if (!customerFound) {
     await logImportError({
@@ -280,11 +300,11 @@ async function createCommission({
     return;
   }
 
-  const leadEvent = await getLeadEvent({
-    customerId: customerFound.id,
-  });
+  const leadEvent = customerLeadEvents.find(
+    (event) => event.customer_id === customerFound.id,
+  );
 
-  if (!leadEvent || leadEvent.data.length === 0) {
+  if (!leadEvent) {
     await logImportError({
       ...commonImportLogInputs,
       entity: "commission",
@@ -298,7 +318,7 @@ async function createCommission({
 
   const clickData = clickEventSchemaTB
     .omit({ timestamp: true })
-    .parse(leadEvent.data[0]);
+    .parse(leadEvent);
 
   const eventId = nanoid(16);
 
