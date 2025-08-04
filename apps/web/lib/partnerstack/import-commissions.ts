@@ -1,10 +1,12 @@
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus } from "@prisma/client";
+import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvent, recordSaleWithTimestamp } from "../tinybird";
+import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { PartnerStackApi } from "./api";
 import { MAX_BATCHES, partnerStackImporter } from "./importer";
@@ -41,6 +43,8 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
     secretKey,
   });
 
+  const fxRates = await redis.hgetall<Record<string, string>>("fxRates:usd");
+
   let hasMore = true;
   let processedBatches = 0;
   let currentStartingAfter = startingAfter;
@@ -61,6 +65,7 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
           workspaceId,
           programId,
           commission,
+          fxRates,
         }),
       ),
     );
@@ -86,10 +91,12 @@ async function createCommission({
   workspaceId,
   programId,
   commission,
+  fxRates,
 }: {
   workspaceId: string;
   programId: string;
   commission: PartnerStackCommission;
+  fxRates: Record<string, string> | null;
 }) {
   if (!commission.transaction) {
     console.log(`Commission ${commission.key} has no transaction, skipping...`);
@@ -133,6 +140,34 @@ async function createCommission({
       `No customer found for customer email ${commission.customer.email}, skipping...`,
     );
     return;
+  }
+
+  // Sale amount
+  let amount = commission.transaction.amount;
+  const saleCurrency = commission.transaction.currency;
+
+  if (saleCurrency.toUpperCase() !== "USD" && fxRates) {
+    const { amount: convertedAmount } = convertCurrencyWithFxRates({
+      currency: saleCurrency,
+      amount,
+      fxRates,
+    });
+
+    amount = convertedAmount;
+  }
+
+  // Earnings
+  let earnings = commission.amount;
+  const earningsCurrency = commission.currency;
+
+  if (earningsCurrency.toUpperCase() !== "USD" && fxRates) {
+    const { amount: convertedAmount } = convertCurrencyWithFxRates({
+      currency: earningsCurrency,
+      amount: earnings,
+      fxRates,
+    });
+
+    earnings = convertedAmount;
   }
 
   // here, we also check for commissions that have already been recorded on Dub
@@ -200,9 +235,10 @@ async function createCommission({
         partnerId: customer.link.partnerId,
         linkId: customer.linkId,
         customerId: customer.id,
-        amount: commission.transaction.amount,
-        earnings: commission.amount,
-        currency: commission.transaction.currency,
+        amount,
+        earnings,
+        // TODO: allow custom "defaultCurrency" on workspace table in the future
+        currency: "usd",
         quantity: 1,
         status: toDubStatus[commission.reward_status],
         invoiceId: commission.key, // this is not the actual invoice ID, but we use this to deduplicate the sales
@@ -214,10 +250,11 @@ async function createCommission({
       ...clickData,
       event_id: eventId,
       event_name: "Invoice paid",
-      amount: commission.transaction.amount,
+      amount,
       customer_id: customer.id,
       payment_processor: "stripe",
-      currency: commission.transaction.currency,
+      // TODO: allow custom "defaultCurrency" on workspace table in the future
+      currency: "usd",
       metadata: JSON.stringify(commission),
       timestamp: new Date(commission.created_at).toISOString(),
     }),
@@ -240,7 +277,7 @@ async function createCommission({
           increment: 1,
         },
         saleAmount: {
-          increment: commission.transaction.amount,
+          increment: amount,
         },
       },
     }),
@@ -255,7 +292,7 @@ async function createCommission({
           increment: 1,
         },
         saleAmount: {
-          increment: commission.transaction.amount,
+          increment: amount,
         },
       },
     }),

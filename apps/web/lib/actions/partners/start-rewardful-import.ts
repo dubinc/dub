@@ -1,5 +1,6 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { z } from "zod";
@@ -33,6 +34,7 @@ export const startRewardfulImportAction = authActionClient
     }
 
     await rewardfulImporter.queue({
+      importId: createId({ prefix: "import_" }),
       userId: user.id,
       programId,
       campaignId,

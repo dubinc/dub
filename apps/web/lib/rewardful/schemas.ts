@@ -8,10 +8,11 @@ export const rewardfulImportSteps = z.enum([
 ]);
 
 export const rewardfulImportPayloadSchema = z.object({
+  importId: z.string(),
   userId: z.string(),
   programId: z.string(),
   rewardId: z.string().optional(),
   campaignId: z.string(),
   action: rewardfulImportSteps,
-  page: z.number().optional()
+  page: z.number().optional(),
 });

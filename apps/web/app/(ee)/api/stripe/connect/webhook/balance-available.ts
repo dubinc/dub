@@ -2,7 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalInitiated from "@dub/email/templates/partner-payout-withdrawal-initiated";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, formatDate } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function balanceAvailable(event: Stripe.Event) {
@@ -84,7 +84,8 @@ export async function balanceAvailable(event: Stripe.Event) {
     {
       amount: availableBalance,
       currency,
-      description: "Dub Partners payout",
+      // example: "Dub Partners auto-withdrawal (Aug 1, 2025)"
+      description: `Dub Partners auto-withdrawal (${formatDate(new Date(), { month: "short" })})`,
       method: "standard",
     },
     {

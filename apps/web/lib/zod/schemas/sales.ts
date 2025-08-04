@@ -98,7 +98,10 @@ export const saleEventSchemaTB = clickEventSchemaTB
       payment_processor: z.string(),
       amount: z.number(),
       invoice_id: z.string().default(""),
-      currency: z.string().default("usd"),
+      currency: z
+        .string()
+        .default("usd")
+        .transform((val) => val.toLowerCase()),
       metadata: z.string().default(""),
     }),
   );

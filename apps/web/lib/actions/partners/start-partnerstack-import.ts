@@ -1,5 +1,6 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { PartnerStackApi } from "@/lib/partnerstack/api";
@@ -46,6 +47,7 @@ export const startPartnerStackImportAction = authActionClient
     });
 
     await partnerStackImporter.queue({
+      importId: createId({ prefix: "import_" }),
       programId,
       userId: user.id,
       action: "import-partners",

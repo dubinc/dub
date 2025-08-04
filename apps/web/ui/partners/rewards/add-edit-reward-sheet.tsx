@@ -5,6 +5,7 @@ import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useRewardPartners from "@/lib/swr/use-reward-partners";
@@ -20,7 +21,13 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import { Button, MoneyBills2, Sheet } from "@dub/ui";
+import {
+  Button,
+  MoneyBills2,
+  Sheet,
+  TooltipContent,
+  useRouterStuff,
+} from "@dub/ui";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -45,6 +52,7 @@ import {
 import { RewardIconSquare } from "./reward-icon-square";
 import { RewardPartnersCard } from "./reward-partners-card";
 import { RewardsLogic } from "./rewards-logic";
+import { useRewardsUpgradeModal } from "./rewards-upgrade-modal";
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -74,7 +82,7 @@ function RewardSheetContent({
   reward,
   isDefault,
 }: RewardSheetProps) {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId, plan } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
 
@@ -98,23 +106,25 @@ function RewardSheetContent({
     },
   });
 
-  const { handleSubmit, watch, setValue, setError } = form;
+  const { handleSubmit, watch, getValues, setValue, setError } = form;
 
   const [
+    selectedEvent,
     amount,
     type,
     maxDuration,
+    modifiers,
     includedPartnerIds = [],
     excludedPartnerIds = [],
   ] = watch([
+    "event",
     "amount",
     "type",
     "maxDuration",
+    "modifiers",
     "includedPartnerIds",
     "excludedPartnerIds",
   ]);
-
-  const selectedEvent = watch("event");
 
   const { data: rewardPartners, loading: isLoadingRewardPartners } =
     useRewardPartners({
@@ -181,8 +191,19 @@ function RewardSheetContent({
     },
   );
 
+  const [showAdvancedUpsell, setShowAdvancedUpsell] = useState(false);
+
+  useEffect(() => {
+    if (
+      modifiers?.length > 0 &&
+      !getPlanCapabilities(plan).canUseAdvancedRewardLogic
+    ) {
+      setShowAdvancedUpsell(true);
+    }
+  }, [modifiers, plan]);
+
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !defaultProgramId) {
+    if (!workspaceId || !defaultProgramId || showAdvancedUpsell) {
       return;
     }
 
@@ -197,9 +218,9 @@ function RewardSheetContent({
         );
       } catch (error) {
         console.error(error);
-        setError("root.logic", { message: "Invalid reward logic" });
+        setError("root.logic", { message: "Invalid reward condition" });
         toast.error(
-          "Invalid reward logic. Please fix the errors and try again.",
+          "Invalid reward condition. Please fix the errors and try again.",
         );
         return;
       }
@@ -243,8 +264,12 @@ function RewardSheetContent({
 
   const canDeleteReward = reward && !reward.default;
 
+  const { rewardsUpgradeModal, setShowRewardsUpgradeModal } =
+    useRewardsUpgradeModal();
+
   return (
     <FormProvider {...form}>
+      {rewardsUpgradeModal}
       <form
         ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
@@ -408,6 +433,15 @@ function RewardSheetContent({
               disabled={
                 amount == null || isDeleting || isCreating || isUpdating
               }
+              disabledTooltip={
+                showAdvancedUpsell ? (
+                  <TooltipContent
+                    title="Advanced reward structures are only available on the Advanced plan and above."
+                    cta="Upgrade to Advanced"
+                    onClick={() => setShowRewardsUpgradeModal(true)}
+                  />
+                ) : undefined
+              }
             />
           </div>
         </div>
@@ -488,8 +522,15 @@ export function RewardSheet({
   isOpen: boolean;
   nested?: boolean;
 }) {
+  const { queryParams } = useRouterStuff();
+
   return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={rest.setIsOpen}
+      nested={nested}
+      onClose={() => queryParams({ del: "rewardId", scroll: false })}
+    >
       <RewardSheetContent {...rest} />
     </Sheet>
   );

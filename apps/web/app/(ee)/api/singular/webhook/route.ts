@@ -20,11 +20,11 @@ const supportedEvents = Object.keys(singularToDubEvent);
 const authSchema = z.object({
   dub_token: z
     .string()
-    .min(1)
+    .min(1, "dub_token is required")
     .describe("Global token to identify Singular events."),
   dub_workspace_id: z
     .string()
-    .min(1)
+    .min(1, "dub_workspace_id is required")
     .describe(" Unique to identify the advertiser."),
 });
 
@@ -42,8 +42,6 @@ export const GET = async (req: Request) => {
     }
 
     const queryParams = getSearchParams(req.url);
-
-    console.log(queryParams);
 
     const { dub_token: token, dub_workspace_id: workspaceId } =
       authSchema.parse(queryParams);
@@ -65,10 +63,11 @@ export const GET = async (req: Request) => {
     }
 
     if (!supportedEvents.includes(eventName)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Event ${eventName} is not supported by Singular <> Dub integration.`,
-      });
+      console.error(
+        `Event ${eventName} is not supported by Singular <> Dub integration.`,
+      );
+
+      return NextResponse.json("OK");
     }
 
     const workspace = await prisma.project.findUnique({
@@ -90,6 +89,9 @@ export const GET = async (req: Request) => {
     }
 
     const dubEvent = singularToDubEvent[eventName];
+
+    delete queryParams.dub_token;
+    delete queryParams.dub_workspace_id;
 
     if (dubEvent === "lead") {
       await trackSingularLeadEvent({

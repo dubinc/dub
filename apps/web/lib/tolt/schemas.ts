@@ -10,6 +10,7 @@ export const toltImportSteps = z.enum([
 ]);
 
 export const toltImportPayloadSchema = z.object({
+  importId: z.string(),
   userId: z.string(),
   programId: z.string(),
   toltProgramId: z.string(),
@@ -22,6 +23,7 @@ export const ToltProgramSchema = z.object({
   name: z.string(),
   subdomain: z.string(),
   payout_term: z.string(),
+  currency_code: z.string(),
 });
 
 export const ToltAffiliateSchema = z.object({
