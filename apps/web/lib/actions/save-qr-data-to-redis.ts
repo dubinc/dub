@@ -4,8 +4,8 @@ import { redis } from "@/lib/upstash";
 import { ERedisArg } from "core/interfaces/redis.interface.ts";
 import z from "../zod";
 import { actionClient } from "./safe-action";
-import { waitUntil } from "@vercel/functions";
 
+// schema for qr data
 const schema = z.object({
   sessionId: z.string(),
   qrData: z.object({
@@ -32,22 +32,21 @@ const schema = z.object({
   }),
 });
 
+// save qr data to redis in background
 export const saveQrDataToRedisAction = actionClient
   .schema(schema)
   .action(async ({ parsedInput }) => {
     const { sessionId, qrData } = parsedInput;
 
-    waitUntil(
-      redis.set(
-        `${ERedisArg.QR_DATA_REG}:${sessionId}`,
-        JSON.stringify(qrData),
-        {
-          ex: 60 * 10, // 10 minutes
-        },
-      ).catch(error => {
-        console.error("Error saving QR data to redis in background:", error);
-      })
-    );
-    
+    const key = `${ERedisArg.QR_DATA_REG}:${sessionId}`;
+
+    console.log("key", key);
+
+    redis.set(key, JSON.stringify(qrData), {
+      ex: 60 * 10, // 10 minutes
+    }).catch((error) => {
+      console.error("Error saving QR data to redis in background:", error);
+    });
+
     return { success: true };
   });
