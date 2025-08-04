@@ -88,7 +88,7 @@ export default function DeviceIcon({
         );
     }
   } else if (tab === "triggers") {
-    const { icon: Icon } = TRIGGER_DISPLAY[display];
+    const { icon: Icon } = TRIGGER_DISPLAY[display ?? "link"];
     return <Icon className={className} />;
   } else {
     return (

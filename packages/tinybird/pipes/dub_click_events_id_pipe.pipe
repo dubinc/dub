@@ -37,6 +37,6 @@ SQL >
     FROM dub_click_events
 
 TYPE materialized
-DATASOURCE dub_click_events_id_new
+DATASOURCE dub_click_events_id
 
 

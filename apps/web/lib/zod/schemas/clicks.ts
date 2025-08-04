@@ -20,7 +20,7 @@ export const clickEventSchemaTB = z.object({
   browser_version: z.string().nullable(),
   os: z.string().nullable(),
   os_version: z.string().nullable(),
-  trigger: z.string().nullish(), // special case in case it's not present
+  trigger: z.string().nullish(), // backwards compatibility
   engine: z.string().nullable(),
   engine_version: z.string().nullable(),
   cpu_architecture: z.string().nullable(),
@@ -46,7 +46,7 @@ export const clickEventSchemaTBEndpoint = z.object({
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
-  trigger: z.string().nullable(),
+  trigger: z.string().nullish(), // backwards compatibility
   referer: z.string().nullable(),
   referer_url: z.string().nullable(),
   referer_url_processed: z.string().nullable(),
@@ -65,7 +65,7 @@ export const clickEventSchema = z.object({
   device: z.string(),
   browser: z.string(),
   os: z.string(),
-  trigger: z.string().nullish(), // special case in case it's not present
+  trigger: z.string().nullish(), // backwards compatibility
   referer: z.string(),
   refererUrl: z.string(),
   qr: z.coerce.boolean(),
