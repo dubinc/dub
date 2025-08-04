@@ -20,6 +20,7 @@ export const clickEventSchemaTB = z.object({
   browser_version: z.string().nullable(),
   os: z.string().nullable(),
   os_version: z.string().nullable(),
+  trigger: z.string().nullish(), // special case in case it's not present
   engine: z.string().nullable(),
   engine_version: z.string().nullable(),
   cpu_architecture: z.string().nullable(),
@@ -64,7 +65,7 @@ export const clickEventSchema = z.object({
   device: z.string(),
   browser: z.string(),
   os: z.string(),
-  trigger: z.string(),
+  trigger: z.string().nullish(), // special case in case it's not present
   referer: z.string(),
   refererUrl: z.string(),
   qr: z.coerce.boolean(),

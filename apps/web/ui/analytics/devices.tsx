@@ -18,7 +18,7 @@ export default function Devices() {
   const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
   const [tab, setTab] = useState<DeviceTabs>("devices");
-  const { data, loading } = useAnalyticsFilterOption(tab);
+  const { data } = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
   return (
