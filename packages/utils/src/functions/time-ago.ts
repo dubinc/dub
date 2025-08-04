@@ -25,7 +25,10 @@
 //   return `${ms(diff)}${withAgo ? " ago" : ""}`;
 // };
 
-export const timeAgo = (timestamp: Date | null): string => {
+export const timeAgo = (
+  timestamp: Date | null,
+  { withAgo }: { withAgo?: boolean } = {},
+): string => {
   if (!timestamp) return "Never";
 
   return new Date(timestamp).toLocaleDateString("en-US", {
