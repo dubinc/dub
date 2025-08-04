@@ -113,7 +113,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: isUnapproved ? "Application" : "Overview",
-            icon: Gauge6,
+            icon: isUnapproved ? UserCheck : Gauge6,
             href: `/programs/${programSlug}`,
             exact: true,
           },

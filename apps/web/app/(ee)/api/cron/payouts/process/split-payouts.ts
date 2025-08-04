@@ -10,9 +10,11 @@ import { endOfMonth } from "date-fns";
 export async function splitPayouts({
   program,
   cutoffPeriod,
+  excludedPayoutIds,
 }: {
-  program: Pick<Program, "id" | "minPayoutAmount">;
+  program: Pick<Program, "id" | "name" | "minPayoutAmount">;
   cutoffPeriod: CUTOFF_PERIOD_TYPES;
+  excludedPayoutIds?: string[];
 }) {
   const payouts = await prisma.payout.findMany({
     where: {
@@ -30,6 +32,7 @@ export async function splitPayouts({
       periodStart: {
         not: null, // exclude the manual payouts
       },
+      ...(excludedPayoutIds && { id: { notIn: excludedPayoutIds } }),
     },
     include: {
       commissions: true,
@@ -97,7 +100,7 @@ export async function splitPayouts({
               (total, commission) => total + commission.earnings,
               0,
             ),
-            description: "Dub Partners payout",
+            description: `Dub Partners payout (${program.name})`,
           },
         });
 
