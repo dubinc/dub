@@ -68,6 +68,9 @@ export async function importCommissions(payload: ToltImportPayload) {
       include: {
         link: true,
       },
+      orderBy: {
+        createdAt: "asc",
+      },
     });
 
     const customerLeadEvents = await getLeadEvents({
