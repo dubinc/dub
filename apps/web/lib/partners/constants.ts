@@ -85,3 +85,10 @@ export const PROGRAM_IMPORT_SOURCES = [
     helpUrl: "https://dub.co/help/article/migrating-from-partnerstack",
   },
 ] as const;
+
+export const INVOICE_AVAILABLE_PAYOUT_STATUSES = [
+  "processing",
+  "processing",
+  "sent",
+  "completed",
+];
