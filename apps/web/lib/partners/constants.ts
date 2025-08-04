@@ -88,7 +88,6 @@ export const PROGRAM_IMPORT_SOURCES = [
 
 export const INVOICE_AVAILABLE_PAYOUT_STATUSES = [
   "processing",
-  "processing",
   "sent",
   "completed",
 ];

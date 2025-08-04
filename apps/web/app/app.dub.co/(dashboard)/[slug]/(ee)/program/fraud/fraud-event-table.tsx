@@ -29,7 +29,7 @@ import {
 import { Dots, Eye } from "@dub/ui/icons";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { Command } from "cmdk";
-import { Flag } from "lucide-react";
+import { Flag, Mail } from "lucide-react";
 import { useState } from "react";
 import { useColumnVisibility } from "../partners/use-column-visibility";
 import { useFraudEventFilters } from "./use-fraud-event-filters";
@@ -290,17 +290,33 @@ function RowMenuButton({ fraudEvent }: { fraudEvent: FraudEvent }) {
                 View risk
               </MenuItem>
 
+              <MenuItem
+                as={Command.Item}
+                icon={Mail}
+                onSelect={() => {
+                  setIsOpen(false);
+                  window.open(
+                    `mailto:${fraudEvent.partner.email}?subject=Question about fraud event`,
+                    "_blank",
+                  );
+                }}
+              >
+                Reach out to partner
+              </MenuItem>
+
               {["pending", "safe"].includes(fraudEvent.status) && (
-                <MenuItem
-                  as={Command.Item}
-                  icon={<BanIcon className="text-red-600" />}
-                  onSelect={() => {
-                    setIsOpen(false);
-                    setShowMarkFraudEventBannedModal(true);
-                  }}
-                >
-                  Ban partner
-                </MenuItem>
+                <>
+                  <MenuItem
+                    as={Command.Item}
+                    icon={<BanIcon className="text-red-600" />}
+                    onSelect={() => {
+                      setIsOpen(false);
+                      setShowMarkFraudEventBannedModal(true);
+                    }}
+                  >
+                    Ban partner
+                  </MenuItem>
+                </>
               )}
 
               {["pending", "banned"].includes(fraudEvent.status) && (

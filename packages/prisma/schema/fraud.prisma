@@ -14,7 +14,7 @@ model FraudEvent {
   selfReferral     Boolean          @default(false)
   googleAdsClick   Boolean          @default(false)
   disposableEmail  Boolean          @default(false)
-  details          String?          @db.Text
+  details          Json?
   status           FraudEventStatus @default(pending)
   resolutionReason String?
   resolvedAt       DateTime?

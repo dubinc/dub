@@ -7,7 +7,14 @@ import {
   FRAUD_EVENT_TYPES,
 } from "@/lib/zod/schemas/fraud-events";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, TabSelect, Tooltip, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  Popover,
+  Sheet,
+  TabSelect,
+  Tooltip,
+  useRouterStuff,
+} from "@dub/ui";
 import {
   cn,
   currencyFormatter,
@@ -16,7 +23,7 @@ import {
   nFormatter,
   OG_AVATAR_URL,
 } from "@dub/utils";
-import { Flag } from "lucide-react";
+import { ChevronDown, Flag, Mail } from "lucide-react";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { CustomerRowItem } from "../customers/customer-row-item";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
@@ -34,6 +41,7 @@ type Tab = "details" | "history";
 
 function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
   const [tab, setTab] = useState<Tab>("details");
+  const [isOpen, setIsOpen] = useState(false);
 
   const { partner, loading: isLoadingPartner } = usePartner({
     partnerId: fraudEvent.partner.id,
@@ -48,6 +56,8 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
     useMarkFraudEventBannedModal({
       fraudEvent,
     });
+
+  const BanIcon = FraudEventStatusBadges["banned"].icon;
 
   return (
     <>
@@ -201,27 +211,63 @@ function RiskReviewSheetContent({ fraudEvent }: RiskReviewSheetProps) {
                     disabled={fraudEvent.status === "safe"}
                     disabledTooltip={
                       fraudEvent.status === "safe"
-                        ? "Partner is already marked as safe."
+                        ? "This event is already marked as safe."
                         : undefined
                     }
                     onClick={() => {
                       setShowSafeModal(true);
                     }}
                   />
-                  <Button
-                    type="button"
-                    variant="danger"
-                    text="Ban partner"
-                    disabled={fraudEvent.status === "banned"}
-                    disabledTooltip={
-                      fraudEvent.status === "banned"
-                        ? "Partner is already banned."
-                        : undefined
+
+                  <Popover
+                    content={
+                      <div className="w-full md:w-56">
+                        <div className="grid gap-px p-2">
+                          <Button
+                            onClick={() => {
+                              setIsOpen(false);
+                              window.open(
+                                `mailto:${fraudEvent.partner.email}?subject=Question about fraud event`,
+                                "_blank",
+                              );
+                            }}
+                            variant="outline"
+                            className="w-full justify-start"
+                            icon={<Mail className="h-4 w-4 text-neutral-500" />}
+                            text="Reach out to partner"
+                          />
+
+                          <Button
+                            onClick={() => {
+                              setIsOpen(false);
+                              setShowBanModal(true);
+                            }}
+                            variant="outline"
+                            className="w-full justify-start"
+                            icon={<BanIcon className="h-4 w-4 text-red-600" />}
+                            text="Ban partner"
+                            disabled={fraudEvent.status === "banned"}
+                            disabledTooltip={
+                              fraudEvent.status === "banned"
+                                ? "Partner is already banned."
+                                : undefined
+                            }
+                          />
+                        </div>
+                      </div>
                     }
-                    onClick={() => {
-                      setShowBanModal(true);
-                    }}
-                  />
+                    openPopover={isOpen}
+                    setOpenPopover={setIsOpen}
+                    align="end"
+                  >
+                    <Button
+                      onClick={() => setIsOpen(!isOpen)}
+                      variant="danger"
+                      text="Take action"
+                      icon={<ChevronDown className="size-4 text-white" />}
+                      className="w-fit"
+                    />
+                  </Popover>
                 </div>
               </div>
             </div>
