@@ -145,7 +145,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
   const workspaceOwners = workspace.users.filter(({ user }) => user.email);
 
   if (workspaceOwners.length === 0) {
-    console.log("No users found to send domain renewal failed email.");
+    console.log("No users found to send domain renewal success email.");
     return;
   }
 
