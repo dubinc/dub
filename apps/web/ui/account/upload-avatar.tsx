@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, FileUpload, getUserAvatarUrl } from "@dub/ui";
+import { Button, FileUpload } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { useSession } from "next-auth/react";
@@ -17,7 +17,7 @@ const UploadAvatar: FC<Readonly<IUploadAvatarProps>> = ({ sessionId }) => {
   const [image, setImage] = useState<string | null>();
 
   useEffect(() => {
-    setImage(session?.user ? getUserAvatarUrl(session.user) : null);
+    setImage(session?.user?.image || null);
   }, [session]);
 
   const [uploading, setUploading] = useState(false);
@@ -71,7 +71,7 @@ const UploadAvatar: FC<Readonly<IUploadAvatarProps>> = ({ sessionId }) => {
             className="border-border-500 h-24 w-24 rounded-full border"
             iconClassName="w-5 h-5"
             variant="plain"
-            imageSrc={image}
+            imageSrc={session?.user?.image || null}
             readFile
             onChange={({ src }) => setImage(src)}
             content={null}
