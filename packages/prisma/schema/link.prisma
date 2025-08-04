@@ -58,7 +58,7 @@ model Link {
   leads       Int       @default(0) // number of leads
   conversions Int       @default(0) // number of leads that converted to sales
   sales       Int       @default(0) // number of sales (includes recurring sales)
-  saleAmount  Int       @default(0) // Deprecated: drop this column after migration is complete + backwards compatibility is added
+  saleAmount  Int       @default(0) // total revenue from sales (in cents)
 
   lastClicked DateTime? // when the link was last clicked
   createdAt   DateTime  @default(now())
