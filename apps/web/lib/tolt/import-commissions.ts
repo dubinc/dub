@@ -2,7 +2,7 @@ import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { CommissionStatus } from "@prisma/client";
+import { CommissionStatus, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
@@ -30,14 +30,9 @@ export async function importCommissions(payload: ToltImportPayload) {
     where: {
       id: programId,
     },
-    include: {
-      workspace: true,
-    },
   });
 
-  const { workspace } = program;
-
-  const { token } = await toltImporter.getCredentials(workspace.id);
+  const { token } = await toltImporter.getCredentials(program.workspaceId);
   const toltApi = new ToltApi({ token });
 
   const toltProgram = await toltApi.getProgram({
@@ -63,8 +58,7 @@ export async function importCommissions(payload: ToltImportPayload) {
     await Promise.allSettled(
       commissions.map((commission) =>
         createCommission({
-          workspaceId: workspace.id,
-          programId,
+          program,
           commission,
           fxRates,
           programCurrency: toltProgram.currency_code.toLowerCase(),
@@ -89,21 +83,18 @@ export async function importCommissions(payload: ToltImportPayload) {
     return;
   }
 
-  await toltImporter.deleteCredentials(workspace.id);
+  await toltImporter.deleteCredentials(program.workspaceId);
 
   const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
     where: {
       userId_projectId: {
         userId,
-        projectId: workspace.id,
+        projectId: program.workspaceId,
       },
     },
-    select: {
-      user: {
-        select: {
-          email: true,
-        },
-      },
+    include: {
+      project: true,
+      user: true,
     },
   });
 
@@ -113,7 +104,7 @@ export async function importCommissions(payload: ToltImportPayload) {
       subject: "Tolt program imported",
       react: ProgramImported({
         email: workspaceUser.user.email,
-        workspace,
+        workspace: workspaceUser.project,
         program,
         provider: "Tolt",
         importId,
@@ -130,22 +121,20 @@ export async function importCommissions(payload: ToltImportPayload) {
 
 // Backfill historical commissions
 async function createCommission({
-  workspaceId,
-  programId,
+  program,
   commission,
   fxRates,
   programCurrency,
   importId,
 }: {
-  workspaceId: string;
-  programId: string;
+  program: Program;
   commission: ToltCommission;
   fxRates: Record<string, string> | null;
   programCurrency: string;
   importId: string;
 }) {
   const commonImportLogInputs = {
-    workspace_id: workspaceId,
+    workspace_id: program.workspaceId,
     import_id: importId,
     source: "tolt",
     entity: "commission",
@@ -168,7 +157,7 @@ async function createCommission({
     where: {
       invoiceId_programId: {
         invoiceId: sale.transaction_id,
-        programId,
+        programId: program.id,
       },
     },
   });
@@ -180,7 +169,7 @@ async function createCommission({
 
   const customerFound = await prisma.customer.findFirst({
     where: {
-      projectId: workspaceId,
+      projectId: program.workspaceId,
       email: customer.email,
     },
     include: {
@@ -231,7 +220,7 @@ async function createCommission({
   const chargedAt = new Date(sale.created_at);
   const trackedCommission = await prisma.commission.findFirst({
     where: {
-      programId,
+      programId: program.id,
       createdAt: {
         gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
         lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
@@ -305,7 +294,7 @@ async function createCommission({
         id: createId({ prefix: "cm_" }),
         eventId,
         type: "sale",
-        programId,
+        programId: program.id,
         partnerId: customerFound.link.partnerId,
         linkId: customerFound.linkId,
         customerId: customerFound.id,
@@ -366,6 +355,6 @@ async function createCommission({
 
   await syncTotalCommissions({
     partnerId: customerFound.link.partnerId,
-    programId,
+    programId: program.id,
   });
 }
