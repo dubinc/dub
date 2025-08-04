@@ -143,18 +143,17 @@ export default function EventsTable({
         {
           id: "trigger",
           header: "Trigger",
-          accessorKey: "click",
+          accessorKey: "click.trigger",
           minSize: 150,
           size: 150,
           maxSize: 150,
           meta: {
             filterParams: ({ getValue }) => ({
-              trigger: getValue().trigger,
+              trigger: getValue() ?? "link",
             }),
           },
           cell: ({ getValue }) => {
-            const trigger = getValue().trigger ?? "link";
-            const { title, icon: Icon } = TRIGGER_DISPLAY[trigger];
+            const { title, icon: Icon } = TRIGGER_DISPLAY[getValue() ?? "link"];
             return (
               <div className="flex items-center gap-3">
                 <Icon className="size-4 shrink-0" />
