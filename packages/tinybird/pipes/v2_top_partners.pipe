@@ -29,6 +29,7 @@ SQL >
         {% if defined(device) %} AND ce.device = {{ device }} {% end %}
         {% if defined(browser) %} AND ce.browser = {{ browser }} {% end %}
         {% if defined(os) %} AND ce.os = {{ os }} {% end %}
+        {% if defined(trigger) %} AND trigger = {{ trigger }} {% end %}
         {% if defined(referer) %} AND ce.referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %}
             AND splitByString('?', ce.referer_url)[1] = {{ refererUrl }}
@@ -77,6 +78,7 @@ SQL >
         {% if defined(device) %} AND le.device = {{ device }} {% end %}
         {% if defined(browser) %} AND le.browser = {{ browser }} {% end %}
         {% if defined(os) %} AND le.os = {{ os }} {% end %}
+        {% if defined(trigger) %} AND trigger = {{ trigger }} {% end %}
         {% if defined(referer) %} AND le.referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %}
             AND splitByString('?', le.referer_url)[1] = {{ refererUrl }}

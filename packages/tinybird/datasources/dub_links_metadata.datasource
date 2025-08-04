@@ -1,3 +1,4 @@
+
 SCHEMA >
     `timestamp` DateTime `json:$.timestamp` DEFAULT now(),
     `link_id` String `json:$.link_id`,
