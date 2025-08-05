@@ -64,11 +64,14 @@ export function LinksSelector({
     [selectedLinkIds, links, selectedLinks],
   );
 
+  // Calculate how many additional links are not displayed:
   const plusCount =
     selectedLinkIds.length > selectedOptions.length
-      ? selectedLinkIds.length -
+      ? // Case 1: Selected IDs without loaded links
+        selectedLinkIds.length -
         Math.min(selectedOptions.length, MAX_DISPLAYED_LINKS)
-      : Math.max(0, selectedOptions.length - MAX_DISPLAYED_LINKS);
+      : // Case 2: More selected options than display limit
+        Math.max(0, selectedOptions.length - MAX_DISPLAYED_LINKS);
 
   return (
     <Combobox
