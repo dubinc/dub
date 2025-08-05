@@ -128,7 +128,7 @@ export const createCommissionAction = authActionClient
         headers: new Headers({
           "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
           "x-forwarded-for": "127.0.0.1",
-          "x-vercel-ip-country": "US",
+          "x-vercel-ip-country": customer.country?.toUpperCase() ?? "US",
           "x-vercel-ip-country-region": "CA",
           "x-vercel-ip-continent": "NA",
         }),
