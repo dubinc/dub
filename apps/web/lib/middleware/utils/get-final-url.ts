@@ -69,16 +69,11 @@ export const getFinalUrl = (
     const { shortLink } = parse(req);
     const existingReferrer = urlObj.searchParams.get("referrer");
 
-    const referrerParams = new URLSearchParams(
+    const referrerSearchParam = new URLSearchParams(
       existingReferrer ? decodeURIComponent(existingReferrer) : "",
     );
-
-    referrerParams.set("deepLink", shortLink);
-
-    urlObj.searchParams.set(
-      "referrer",
-      encodeURIComponent(referrerParams.toString()),
-    );
+    referrerSearchParam.set("deepLink", shortLink);
+    urlObj.searchParams.set("referrer", referrerSearchParam.toString());
   }
 
   // if there are no query params, then return the target url as is (no need to parse it)
