@@ -1,7 +1,6 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
-import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
@@ -38,10 +37,10 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    if (links.length >= PARTNER_LINKS_LIMIT) {
+    if (links.length >= program.maxPartnerLinks) {
       throw new DubApiError({
         code: "bad_request",
-        message: `You have reached the limit of ${PARTNER_LINKS_LIMIT} program links.`,
+        message: `You have reached the limit of ${program.maxPartnerLinks} program links.`,
       });
     }
 

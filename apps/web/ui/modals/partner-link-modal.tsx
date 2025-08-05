@@ -76,12 +76,10 @@ export function PartnerLinkModal({
 }
 
 function QRCodePreview({
-  programId,
   shortLink,
   shortLinkDomain,
   _key,
 }: {
-  programId: string;
   shortLink: string;
   shortLinkDomain: string;
   _key: string;
@@ -91,7 +89,7 @@ function QRCodePreview({
   const { logo } = programEnrollment?.program ?? {};
 
   const [data, setData] = useLocalStorage<QRCodeDesign>(
-    `qr-code-design-program-${programId}`,
+    `qr-code-design-program-${programEnrollment?.program?.id}`,
     {
       fgColor: "#000000",
       logo: logo ?? undefined,
@@ -103,7 +101,6 @@ function QRCodePreview({
       domain: shortLinkDomain,
       key: _key,
     },
-    programId,
     onSave: (data) => setData(data),
   });
 
@@ -415,7 +412,6 @@ function PartnerLinkModalContent({
 
           {programEnrollment && (
             <QRCodePreview
-              programId={programEnrollment.program.id}
               shortLink={shortLink}
               shortLinkDomain={shortLinkDomain}
               _key={key}

@@ -3,7 +3,6 @@ import { createLink, processLink } from "@/lib/api/links";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { getApexDomain } from "@dub/utils";
@@ -49,18 +48,28 @@ export const POST = withPartnerProfile(
       });
     }
 
-    if (links.length >= PARTNER_LINKS_LIMIT) {
+    if (links.length >= program.maxPartnerLinks) {
       throw new DubApiError({
         code: "bad_request",
-        message: `You have reached the limit of ${PARTNER_LINKS_LIMIT} program links.`,
+        message: `You have reached this program's limit of ${program.maxPartnerLinks} partner links.`,
       });
     }
 
-    if (url && getApexDomain(url) !== getApexDomain(program.url)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-      });
+    if (url) {
+      if (
+        program.urlValidationMode === "domain" &&
+        getApexDomain(url) !== getApexDomain(program.url)
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
+        });
+      } else if (program.urlValidationMode === "exact" && url !== program.url) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `The provided URL (${url}) does not match the program's URL (${program.url}).`,
+        });
+      }
     }
 
     const { link, error, code } = await processLink({
