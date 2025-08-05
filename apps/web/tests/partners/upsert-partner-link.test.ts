@@ -15,15 +15,13 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     await h.deleteLink(createdLink.id);
   });
 
-  const url = `${E2E_PROGRAM.url}/${randomId()}`;
-
   test("New link", async () => {
     const { data, status } = await http.put<Link>({
       path: "/partners/links/upsert",
       body: {
         programId: E2E_PROGRAM.id,
         partnerId: E2E_PARTNER.id,
-        url,
+        url: E2E_PROGRAM.url,
       },
     });
 
@@ -32,20 +30,19 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     expect(status).toEqual(200);
     expect(createdLink).toStrictEqual({
       ...partnerLink,
-      url,
+      url: E2E_PROGRAM.url,
     });
   });
 
   test("Existing link", async () => {
-    const key = randomId();
+    const newKey = randomId();
 
     const { data: updatedLink, status } = await http.put<Link>({
       path: "/partners/links/upsert",
       body: {
         programId: E2E_PROGRAM.id,
         partnerId: E2E_PARTNER.id,
-        url,
-        key,
+        key: newKey,
       },
     });
 
@@ -53,9 +50,9 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     expect(updatedLink).toStrictEqual({
       ...createdLink,
       updatedAt: expect.any(String),
-      key,
-      shortLink: `https://${E2E_PROGRAM.domain}/${key}`,
-      qrCode: `https://api.dub.co/qr?url=https://${E2E_PROGRAM.domain}/${key}?qr=1`,
+      key: newKey,
+      shortLink: `https://${E2E_PROGRAM.domain}/${newKey}`,
+      qrCode: `https://api.dub.co/qr?url=https://${E2E_PROGRAM.domain}/${newKey}?qr=1`,
     });
   });
 });

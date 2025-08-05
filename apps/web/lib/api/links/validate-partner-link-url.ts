@@ -1,12 +1,12 @@
+import { ProgramProps } from "@/lib/types";
 import { getApexDomain } from "@dub/utils";
-import { Program } from "@prisma/client";
 import { DubApiError } from "../errors";
 
 export const validatePartnerLinkUrl = ({
   program,
   url,
 }: {
-  program: Pick<Program, "urlValidationMode" | "url">;
+  program: Pick<ProgramProps, "urlValidationMode" | "url">;
   url?: string | null;
 }) => {
   if (!url || !program.url) {
