@@ -62,7 +62,8 @@ export function ProgramLinksPageClient() {
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
         {links &&
-          links.length < programEnrollment?.program?.maxPartnerLinks && (
+          links.length <
+            (programEnrollment?.program?.maxPartnerLinks ?? 10) && (
             <Button
               text="Create Link"
               className="w-fit"

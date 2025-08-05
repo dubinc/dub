@@ -20,7 +20,7 @@ import {
   useLocalStorage,
   Wordmark,
 } from "@dub/ui";
-import { cn, getDomainWithoutWWW, getPrettyUrl } from "@dub/utils";
+import { cn, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
@@ -98,11 +98,6 @@ export function ReferralsEmbedPageClient({
   useEffect(() => {
     if (!tabs.includes(selectedTab)) setSelectedTab(tabs[0]);
   }, [tabs, selectedTab]);
-
-  const shortLinkDomain = program.domain || "";
-  const destinationDomain = program.url
-    ? getDomainWithoutWWW(program.url)!
-    : "";
 
   const partnerLink =
     links.length > 0
@@ -257,11 +252,7 @@ export function ReferralsEmbedPageClient({
               ) : selectedTab === "Earnings" ? (
                 <ReferralsEmbedEarnings salesCount={stats.sales} />
               ) : selectedTab === "Links" ? (
-                <ReferralsEmbedLinks
-                  links={links}
-                  destinationDomain={destinationDomain}
-                  shortLinkDomain={shortLinkDomain}
-                />
+                <ReferralsEmbedLinks links={links} program={program} />
               ) : selectedTab === "Leaderboard" &&
                 programEmbedData?.leaderboard?.mode !== "disabled" ? (
                 <ReferralsEmbedLeaderboard />

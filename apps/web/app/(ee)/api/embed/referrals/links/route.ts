@@ -44,11 +44,21 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    if (url && getApexDomain(url) !== getApexDomain(program.url)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-      });
+    if (url) {
+      if (
+        program.urlValidationMode === "domain" &&
+        getApexDomain(url) !== getApexDomain(program.url)
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
+        });
+      } else if (program.urlValidationMode === "exact" && url !== program.url) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `The provided URL (${url}) does not match the program's URL (${program.url}).`,
+        });
+      }
     }
 
     const workspaceOwner = await prisma.projectUsers.findFirst({
