@@ -1,19 +1,8 @@
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 
 type LogicalOperator = "AND" | "OR";
+
 type Operator = "=" | "!=" | ">" | "<" | ">=" | "<=";
-
-const allowedOperands = Object.keys(analyticsQuerySchema.shape)
-  .filter((key) => {
-    // Filter out deprecated fields + query
-    return !["tagId", "qr", "order", "query"].includes(key);
-  })
-  .concat(["metadata"]) as (keyof typeof analyticsQuerySchema.shape)[];
-
-const allowedOperators: Record<string, Operator[]> = {
-  // TODO:
-  // Define what operators are allowed to use with each operand
-};
 
 interface InternalFilter {
   operand: string;
@@ -26,6 +15,20 @@ interface InternalFilter {
     | "lessThanOrEqual";
   value: string;
 }
+
+const MAX_FILTERS = 10;
+
+const allowedOperands = Object.keys(analyticsQuerySchema.shape)
+  .filter((key) => {
+    // Filter out deprecated fields + query
+    return !["tagId", "qr", "order", "query"].includes(key);
+  })
+  .concat(["metadata"]) as (keyof typeof analyticsQuerySchema.shape)[];
+
+const allowedOperators: Record<string, Operator[]> = {
+  // TODO:
+  // Define what operators are allowed to use with each operand
+};
 
 // Query parser that can parse the query string into a list of filters
 export const queryParser = (query: string | undefined) => {
@@ -70,18 +73,24 @@ export const queryParser = (query: string | undefined) => {
     }
 
     // Check if the operand is allowed
-    const isOperandAllowed = allowedOperands.some(
+    const isAllowed = allowedOperands.some(
       (allowed) =>
         filter.operand === allowed || filter.operand.startsWith(`${allowed}.`),
     );
 
-    if (!isOperandAllowed) {
+    if (!isAllowed) {
       throw new Error(
         `Field ${filter.operand} is an unsupported search field.`,
       );
     }
 
     filters.push(filter);
+  }
+
+  if (filters.length > MAX_FILTERS) {
+    throw new Error(
+      `Maximum number of filters exceeded. (Max: ${MAX_FILTERS})`,
+    );
   }
 
   // Determine the logical operator used
@@ -95,7 +104,7 @@ export const queryParser = (query: string | undefined) => {
 };
 
 // Parses a single condition in the format: field:value, field>value, or metadata['key']:value
-function parseCondition(condition: string): InternalFilter | null {
+const parseCondition = (condition: string): InternalFilter | null => {
   // This regex captures:
   // 1. field - either a regular field name OR metadata with bracket notation (supports both single and double quotes)
   // 2. operator - :, >, <, >=, <=, !=
@@ -131,10 +140,10 @@ function parseCondition(condition: string): InternalFilter | null {
     operator: mapOperator(operator),
     value: value.trim().replace(/^['"`]|['"`]$/g, ""),
   };
-}
+};
 
 // Maps operator strings to our internal operator types
-function mapOperator(operator: string): InternalFilter["operator"] {
+const mapOperator = (operator: string): InternalFilter["operator"] => {
   switch (operator) {
     case "=":
       return "equals";
@@ -152,4 +161,4 @@ function mapOperator(operator: string): InternalFilter["operator"] {
       // For unsupported operators, default to equals
       return "equals";
   }
-}
+};
