@@ -118,7 +118,7 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     const response = await fetch(`${h.baseUrl}/gps`, fetchOptions);
     // location to include referrer query param with the short link (https://dub.sh/gps)
     expect(response.headers.get("location")).toMatch(
-      /referrer=https:\/\/dub\.sh\/gps/,
+      /referrer=deepLink%3Dhttps%3A%2F%2Fdub\.sh%2Fgps/,
     );
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
