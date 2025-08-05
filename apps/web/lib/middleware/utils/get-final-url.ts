@@ -67,7 +67,18 @@ export const getFinalUrl = (
   // for Google Play Store links
   if (isGooglePlayStoreUrl(url)) {
     const { shortLink } = parse(req);
-    urlObj.searchParams.set("referrer", shortLink);
+    const existingReferrer = urlObj.searchParams.get("referrer");
+
+    const referrerParams = new URLSearchParams(
+      existingReferrer ? decodeURIComponent(existingReferrer) : "",
+    );
+
+    referrerParams.set("deepLink", shortLink);
+
+    urlObj.searchParams.set(
+      "referrer",
+      encodeURIComponent(referrerParams.toString()),
+    );
   }
 
   // if there are no query params, then return the target url as is (no need to parse it)
