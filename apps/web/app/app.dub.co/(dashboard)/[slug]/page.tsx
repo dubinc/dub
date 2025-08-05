@@ -21,7 +21,7 @@ const WorkspaceQRsPage = async () => {
     showArchived: true,
     withTags: false,
     page: 1,
-    pageSize: 100,
+    pageSize: 1,
   });
 
   return (
@@ -29,6 +29,7 @@ const WorkspaceQRsPage = async () => {
       <PageContent title={<LinksTitle />}>
         <WorkspaceLinksClient initialQrs={qrs as any} />
       </PageContent>
+
       <PageViewedTrackerComponent
         sessionId={authUser.id!}
         pageName="dashboard"

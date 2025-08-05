@@ -1,10 +1,6 @@
 "use client";
 
 import { useTrialStatus } from "@/lib/contexts/trial-status-context";
-import {
-  useCheckFolderPermission,
-  useFolderPermissions,
-} from "@/lib/swr/use-folder-permissions";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
@@ -14,9 +10,8 @@ import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
 import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
 import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.tsx";
-import { useQrCodeFilters } from "@/ui/qr-code/use-qr-code-filters.tsx";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { Button, Filter, MaxWidthWrapper } from "@dub/ui";
+import { Button, MaxWidthWrapper } from "@dub/ui";
 import { ShieldAlert } from "@dub/ui/icons";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -36,6 +31,7 @@ export default function WorkspaceQRsClient({
   return (
     <QrCodesDisplayProvider>
       <WorkspaceQRs initialQrs={initialQrs} />
+
       <QRPreviewModalWrapper initialQrs={initialQrs} />
     </QrCodesDisplayProvider>
   );
@@ -44,19 +40,8 @@ export default function WorkspaceQRsClient({
 function WorkspaceQRs({ initialQrs }: { initialQrs: QrStorageData[] }) {
   const router = useRouter();
   const { isValidating } = useQrs({}, {}, true); // listenOnly mode
-  const searchParams = useSearchParams();
 
   const { isTrialOver } = useTrialStatus();
-
-  const { filters, activeFilters, onRemove, onRemoveAll } = useQrCodeFilters();
-
-  const folderId = searchParams.get("folderId");
-
-  const { isLoading } = useFolderPermissions();
-  const canCreateLinks = useCheckFolderPermission(
-    folderId,
-    "folders.links.write",
-  );
 
   const { CreateQRButton, QRBuilderModal } = useQRBuilder();
 
@@ -123,35 +108,18 @@ function WorkspaceQRs({ initialQrs }: { initialQrs: QrStorageData[] }) {
                   />
                 </div>
 
-                {isLoading ? (
-                  <div className="flex grow-0 animate-pulse items-center space-x-2">
-                    <div className="h-10 w-24 rounded-md bg-neutral-200" />
-                    <div className="h-10 w-10 rounded-md bg-neutral-200" />
-                  </div>
-                ) : canCreateLinks ? (
-                  <>
-                    <div className="grow-0">
-                      <CreateQRButton />
-                    </div>
-                  </>
-                ) : null}
+                <div className="grow-0">
+                  <CreateQRButton />
+                </div>
               </div>
             </div>
           )}
-          <Filter.List
-            filters={filters}
-            activeFilters={activeFilters}
-            onRemove={onRemove}
-            onRemoveAll={onRemoveAll}
-          />
         </MaxWidthWrapper>
       </div>
 
       <div className="mt-3">
         <QrCodesContainer
-          CreateQrCodeButton={
-            canCreateLinks && !isTrialOver ? CreateQRButton : () => <></>
-          }
+          CreateQrCodeButton={!isTrialOver ? CreateQRButton : () => <></>}
           isTrialOver={isTrialOver}
           initialQrs={initialQrs}
         />
