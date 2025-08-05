@@ -677,6 +677,8 @@ export default function Toggle({
       searchParamsObj.domain,
     ],
   );
+  console.log('filters', filters);
+  console.log('activeFilters', activeFilters);
 
   const { isMobile } = useMediaQuery();
 
