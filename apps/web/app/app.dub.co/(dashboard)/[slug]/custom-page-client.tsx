@@ -7,7 +7,10 @@ import {
 } from "@/lib/swr/use-folder-permissions";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
+import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
 import { preloadAllFrames } from "@/ui/qr-builder/constants/customization/frames.ts";
+import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
 import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
 import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.tsx";
@@ -17,6 +20,16 @@ import { Button, Filter, MaxWidthWrapper } from "@dub/ui";
 import { ShieldAlert } from "@dub/ui/icons";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
+
+interface WorkspaceQRsClientProps {
+  initialQrs: QrStorageData[];
+}
+
+export default function WorkspaceQRsClient({
+  initialQrs,
+}: WorkspaceQRsClientProps) {
+  const { data: session } = useSession();
 
 export default function WorkspaceQRsClient() {
   if (typeof window !== "undefined") {
@@ -25,12 +38,13 @@ export default function WorkspaceQRsClient() {
 
   return (
     <QrCodesDisplayProvider>
-      <WorkspaceQRs />
+      <WorkspaceQRs initialQrs={initialQrs} />
+      <QRPreviewModalWrapper initialQrs={initialQrs} />
     </QrCodesDisplayProvider>
   );
 }
 
-function WorkspaceQRs() {
+function WorkspaceQRs({ initialQrs }: { initialQrs: QrStorageData[] }) {
   const router = useRouter();
   const { isValidating } = useQrs({}, {}, true); // listenOnly mode
   const searchParams = useSearchParams();
@@ -142,8 +156,37 @@ function WorkspaceQRs() {
             canCreateLinks && !isTrialOver ? CreateQRButton : () => <></>
           }
           isTrialOver={isTrialOver}
+          initialQrs={initialQrs}
         />
       </div>
     </>
   );
+}
+
+function QRPreviewModalWrapper({
+  initialQrs,
+}: {
+  initialQrs: QrStorageData[];
+}) {
+  const searchParams = useSearchParams();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const firstQr = initialQrs?.[0];
+
+  const { qrCode: builtQrCodeObject } = useQrCustomization(firstQr);
+  const { QRPreviewModal, setShowQRPreviewModal } = useQRPreviewModal({
+    canvasRef,
+    qrCode: builtQrCodeObject,
+    width: 200,
+    height: 200,
+  });
+
+  const shouldShowWelcomeModal = searchParams.has("onboarded");
+
+  useEffect(() => {
+    setShowQRPreviewModal(
+      shouldShowWelcomeModal && !!builtQrCodeObject && !!firstQr,
+    );
+  }, [searchParams, shouldShowWelcomeModal, builtQrCodeObject, firstQr]);
+
+  return firstQr ? <QRPreviewModal /> : null;
 }
