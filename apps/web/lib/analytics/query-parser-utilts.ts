@@ -4,6 +4,8 @@ export type LogicalOperator = "AND" | "OR";
 
 export type Operator = "=" | "!=" | ">" | "<" | ">=" | "<=" | "in";
 
+type Operand = keyof typeof analyticsQuerySchema.shape;
+
 type TBOperator =
   | "equals"
   | "notEquals"
@@ -14,7 +16,7 @@ type TBOperator =
   | "in";
 
 export interface InternalFilter {
-  operand: string;
+  operand: Operand;
   operator: TBOperator;
   value: string;
 }
@@ -55,14 +57,28 @@ export const parseFilter = (condition: string): InternalFilter | null => {
   }
 
   const parsedFilter = {
-    operand,
-    operator: mapOperator(operator),
+    operand: operand as Operand,
+    operator: mapToInternalOperator(operator),
     value: value.trim().replace(/^['"`]|['"`]$/g, ""),
   };
 
   validateFilter(parsedFilter);
 
   return parsedFilter;
+};
+
+export const allowedOperands = Object.keys(analyticsQuerySchema.shape)
+  .filter((key) => {
+    return !["tagId", "qr", "order", "query"].includes(key);
+  })
+  .concat(["metadata"]) as Operand[];
+
+export const allowedOperators = (operand: Operand): TBOperator[] => {
+  if (operand === "tagIds") {
+    return ["equals", "in"];
+  }
+
+  return ["equals"];
 };
 
 export const validateFilter = ({
@@ -87,7 +103,7 @@ export const validateFilter = ({
     throw new Error(`Invalid value for the field "${operand}".`);
   }
 
-  if (!allowedOperators[operand].includes(operator)) {
+  if (!allowedOperators(operand).includes(operator)) {
     throw new Error(
       `The operator is not supported for the field "${operand}".`,
     );
@@ -96,54 +112,8 @@ export const validateFilter = ({
   return true;
 };
 
-// Supported operands for the query
-export const allowedOperands = Object.keys(analyticsQuerySchema.shape)
-  .filter((key) => {
-    return !["tagId", "qr", "order", "query"].includes(key);
-  })
-  .concat(["metadata"]) as (keyof typeof analyticsQuerySchema.shape)[];
-
-// Supported operators for each operand
-// TODO: We should expand this to support is_in, is_not, etc.
-export const allowedOperators: Record<string, TBOperator[]> = {
-  event: ["equals"],
-  groupBy: ["equals"],
-  domain: ["equals"],
-  key: ["equals"],
-  linkId: ["equals"],
-  externalId: ["equals"],
-  tenantId: ["equals"],
-  programId: ["equals"],
-  partnerId: ["equals"],
-  customerId: ["equals"],
-  interval: ["equals"],
-  start: ["equals"],
-  end: ["equals"],
-  timezone: ["equals"],
-  country: ["equals"],
-  city: ["equals"],
-  region: ["equals"],
-  continent: ["equals"],
-  device: ["equals"],
-  browser: ["equals"],
-  os: ["equals"],
-  trigger: ["equals"],
-  referer: ["equals"],
-  refererUrl: ["equals"],
-  url: ["equals"],
-  tagIds: ["equals", "in"],
-  folderId: ["equals"],
-  root: ["equals"],
-  saleType: ["equals"],
-  utm_source: ["equals"],
-  utm_medium: ["equals"],
-  utm_campaign: ["equals"],
-  utm_term: ["equals"],
-  utm_content: ["equals"],
-};
-
 // Maps operator strings to our internal operator types
-const mapOperator = (operator: string): InternalFilter["operator"] => {
+const mapToInternalOperator = (operator: string): TBOperator => {
   switch (operator) {
     case ":":
     case "=":
