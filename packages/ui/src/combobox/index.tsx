@@ -44,9 +44,10 @@ export type ComboboxProps<
   selected: TMultiple extends true
     ? ComboboxOption<TMeta>[]
     : ComboboxOption<TMeta> | null;
-  setSelected: TMultiple extends true
+  setSelected?: TMultiple extends true
     ? (options: ComboboxOption<TMeta>[]) => void
     : (option: ComboboxOption<TMeta> | null) => void;
+  onSelect?: (option: ComboboxOption<TMeta>) => void;
   options?: ComboboxOption<TMeta>[];
   icon?: Icon | ReactNode;
   placeholder?: ReactNode;
@@ -81,6 +82,7 @@ export function Combobox({
   multiple,
   selected: selectedProp,
   setSelected,
+  onSelect,
   options,
   icon: Icon,
   placeholder = "Select...",
@@ -127,6 +129,10 @@ export function Combobox({
   const [isCreating, setIsCreating] = useState(false);
 
   const handleSelect = (option: ComboboxOption) => {
+    onSelect?.(option);
+
+    if (!setSelected) return;
+
     if (isMultiple) {
       const isAlreadySelected = selected.some(
         ({ value }) => value === option.value,
