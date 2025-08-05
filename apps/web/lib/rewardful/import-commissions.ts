@@ -276,8 +276,6 @@ async function createCommission({
   if (!customerFound.clickId) {
     await logImportError({
       ...commonImportLogInputs,
-      entity: "commission",
-      entity_id: commission.id,
       code: "CLICK_NOT_FOUND",
       message: `No click ID found for customer ${customerFound.id}.`,
     });
