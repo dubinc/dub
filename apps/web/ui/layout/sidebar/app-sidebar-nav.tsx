@@ -6,8 +6,8 @@ import { useFraudEventsCount } from "@/lib/swr/use-fraud-events-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
+  Bell,
   Brush,
-  CircleInfo,
   ConnectedDots,
   CubeSettings,
   DiamondTurnRight,
@@ -354,7 +354,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "Notifications",
-            icon: CircleInfo,
+            icon: Bell,
             href: `/${slug}/settings/notifications`,
           },
         ],

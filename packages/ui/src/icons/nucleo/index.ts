@@ -10,6 +10,7 @@ export * from "./arrows-opposite-direction-x";
 export * from "./arrows-opposite-direction-y";
 export * from "./badge-check";
 export * from "./badge-check2-fill";
+export * from "./bell";
 export * from "./blog";
 export * from "./bolt";
 export * from "./bolt-fill";

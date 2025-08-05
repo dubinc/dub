@@ -1,4 +1,5 @@
 import { recordFraudIfDetected } from "@/lib/analytics/fraud/record-fraud-if-detected";
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -62,6 +63,12 @@ export async function createShopifySale({
     metadata: JSON.stringify(order),
   };
 
+  const existingCustomer = await prisma.customer.findUniqueOrThrow({
+    where: {
+      id: customerId,
+    },
+  });
+
   const [_sale, link, workspace, customer] = await Promise.all([
     // record sale
     recordSale(saleData),
@@ -72,6 +79,14 @@ export async function createShopifySale({
         id: linkId,
       },
       data: {
+        ...(isFirstConversion({
+          customer: existingCustomer,
+          linkId,
+        }) && {
+          conversions: {
+            increment: 1,
+          },
+        }),
         sales: {
           increment: 1,
         },
@@ -93,7 +108,6 @@ export async function createShopifySale({
         },
       },
     }),
-
     prisma.customer.update({
       where: {
         id: customerId,
@@ -107,7 +121,6 @@ export async function createShopifySale({
         },
       },
     }),
-
     redis.del(`shopify:checkout:${checkoutToken}`),
   ]);
 

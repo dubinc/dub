@@ -17,7 +17,6 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 
   const events = await getCustomerEvents({
     customerId: customer.id,
-    includeMetadata: true,
   });
 
   // get the first partner link that this customer interacted with

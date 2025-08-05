@@ -71,6 +71,7 @@ SQL >
         {% if defined(device) %} AND device = {{ device }} {% end %}
         {% if defined(browser) %} AND browser = {{ browser }} {% end %}
         {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(trigger) %} AND trigger = {{ trigger }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
         {% if defined(utm_source) %}

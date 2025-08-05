@@ -4,6 +4,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
+import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvents } from "../tinybird/get-lead-events";
@@ -360,6 +361,14 @@ async function createCommission({
     prisma.link.update({
       where: { id: customerFound.linkId },
       data: {
+        ...(isFirstConversion({
+          customer: customerFound,
+          linkId: customerFound.linkId,
+        }) && {
+          conversions: {
+            increment: 1,
+          },
+        }),
         sales: { increment: 1 },
         saleAmount: { increment: amount },
       },
