@@ -67,8 +67,9 @@ export const parseFilter = (condition: string): InternalFilter | null => {
 
 export const validateFilter = ({
   operand,
+  operator,
   value,
-}: Pick<InternalFilter, "operand" | "value">) => {
+}: InternalFilter) => {
   if (operand.startsWith("metadata.")) {
     return true;
   }
@@ -79,11 +80,15 @@ export const validateFilter = ({
     ];
 
   if (!schema) {
-    throw new Error(`Invalid operand ${operand}.`);
+    throw new Error(`Invalid field "${operand}".`);
   }
 
   if (!schema.safeParse(value).success) {
-    throw new Error(`Invalid value ${value} for operand ${operand}.`);
+    throw new Error(`Invalid value for the field "${operand}".`);
+  }
+
+  if (!allowedOperators[operand].includes(operator)) {
+    throw new Error(`The operator is not supported for the field "${operand}".`);
   }
 
   return true;
@@ -95,6 +100,45 @@ export const allowedOperands = Object.keys(analyticsQuerySchema.shape)
     return !["tagId", "qr", "order", "query"].includes(key);
   })
   .concat(["metadata"]) as (keyof typeof analyticsQuerySchema.shape)[];
+
+// Supported operators for each operand
+// TODO: We should expand this to support is_in, is_not, etc.
+export const allowedOperators: Record<string, TBOperator[]> = {
+  event: ["equals"],
+  groupBy: ["equals"],
+  domain: ["equals"],
+  key: ["equals"],
+  linkId: ["equals"],
+  externalId: ["equals"],
+  tenantId: ["equals"],
+  programId: ["equals"],
+  partnerId: ["equals"],
+  customerId: ["equals"],
+  interval: ["equals"],
+  start: ["equals"],
+  end: ["equals"],
+  timezone: ["equals"],
+  country: ["equals"],
+  city: ["equals"],
+  region: ["equals"],
+  continent: ["equals"],
+  device: ["equals"],
+  browser: ["equals"],
+  os: ["equals"],
+  trigger: ["equals"],
+  referer: ["equals"],
+  refererUrl: ["equals"],
+  url: ["equals"],
+  tagIds: ["equals", "in"],
+  folderId: ["equals"],
+  root: ["equals"],
+  saleType: ["equals"],
+  utm_source: ["equals"],
+  utm_medium: ["equals"],
+  utm_campaign: ["equals"],
+  utm_term: ["equals"],
+  utm_content: ["equals"],
+};
 
 // Maps operator strings to our internal operator types
 const mapOperator = (operator: string): InternalFilter["operator"] => {
@@ -118,42 +162,4 @@ const mapOperator = (operator: string): InternalFilter["operator"] => {
       // For unsupported operators, default to equals
       return "equals";
   }
-};
-
-// Supported operators for each operand
-export const allowedOperators: Record<string, Operator[]> = {
-  event: ["="],
-  groupBy: ["="],
-  domain: ["="],
-  key: ["="],
-  linkId: ["="],
-  externalId: ["="],
-  tenantId: ["="],
-  programId: ["="],
-  partnerId: ["="],
-  customerId: ["="],
-  interval: ["="],
-  start: ["="],
-  end: ["="],
-  timezone: ["="],
-  country: ["="],
-  city: ["="],
-  region: ["="],
-  continent: ["="],
-  device: ["="],
-  browser: ["="],
-  os: ["="],
-  trigger: ["="],
-  referer: ["="],
-  refererUrl: ["="],
-  url: ["="],
-  tagIds: ["=", "in"],
-  folderId: ["="],
-  root: ["="],
-  saleType: ["="],
-  utm_source: ["="],
-  utm_medium: ["="],
-  utm_campaign: ["="],
-  utm_term: ["="],
-  utm_content: ["="],
 };

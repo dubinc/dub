@@ -2,6 +2,7 @@ import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { OG_AVATAR_URL } from "@dub/utils";
+import { DubApiError } from "../api/errors";
 import { transformLink } from "../api/links";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { generateRandomName } from "../names";
@@ -22,6 +23,7 @@ import {
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
 import { queryParser } from "./query-parser";
+import { InternalFilter, LogicalOperator } from "./query-parser-utilts";
 import { EventsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -76,7 +78,21 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
-  const parsedQuery = queryParser(query);
+  let parsedQuery:
+    | { filters: InternalFilter[]; logicalOperator: LogicalOperator }
+    | undefined;
+
+  try {
+    parsedQuery = queryParser(query);
+  } catch (error) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        error instanceof Error
+          ? `We were unable to parse your search query. ${error.message}`
+          : `We were unable to parse your search query. Try using the format key:"value" to query for fields.`,
+    });
+  }
 
   const response = await pipe({
     ...params,
