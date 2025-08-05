@@ -34,6 +34,7 @@ export const parse = (req: NextRequest) => {
     fullPath,
     key,
     fullKey,
+    shortLink: `https://${domain}/${fullKey}`,
     searchParamsObj,
     searchParamsString,
   };
