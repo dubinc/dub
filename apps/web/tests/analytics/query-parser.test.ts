@@ -64,7 +64,11 @@ describe("Analytics Query Parser", () => {
     const result = queryParser("metadata['status']!=completed");
     expect(result).toEqual({
       filters: [
-        { operand: "metadata.status", operator: "notEquals", value: "completed" },
+        {
+          operand: "metadata.status",
+          operator: "notEquals",
+          value: "completed",
+        },
       ],
       logicalOperator: "AND",
     });
