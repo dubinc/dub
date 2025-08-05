@@ -29,9 +29,6 @@ interface WorkspaceQRsClientProps {
 export default function WorkspaceQRsClient({
   initialQrs,
 }: WorkspaceQRsClientProps) {
-  const { data: session } = useSession();
-
-export default function WorkspaceQRsClient() {
   if (typeof window !== "undefined") {
     preloadAllFrames();
   }
