@@ -90,7 +90,7 @@ export function QRBuilderModal({
           onClick={() => setShowQRBuilderModal(false)}
           disabled={isProcessing}
           type="button"
-          className="group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:right-0 md:block"
+          className="active:bg-border-500 group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none md:right-0 md:block"
         >
           <X className="h-5 w-5" />
         </button>
