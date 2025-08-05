@@ -68,6 +68,7 @@ export const GET = withWorkspace(
       domain,
       key,
       folderId,
+      qrType,
     } = parsedParams;
 
     let link: Link | null = null;

@@ -19,6 +19,7 @@ import {
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 import { utmTagsSchema } from "./utm";
+import { EQRType, QR_TYPES } from '@/ui/qr-builder/constants/get-qr-config';
 
 const analyticsEvents = z
   .enum([...EVENT_TYPES, "composite"], {
@@ -213,6 +214,10 @@ export const analyticsQuerySchema = z
       .describe(
         "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
       ),
+    qrType: z
+      .enum(QR_TYPES.map((type) => type.id) as [EQRType, ...EQRType[]])
+      .optional()
+      .describe("The type of QR to retrieve analytics for."),
   })
   .merge(utmTagsSchema);
 
@@ -271,11 +276,12 @@ export const analyticsFilterTB = z
       partnerId: true,
       tenantId: true,
       folderId: true,
+      qrType: true,
     }),
   );
 
 export const eventsFilterTB = analyticsFilterTB
-  .omit({ granularity: true, timezone: true, page: true })
+  .omit({ granularity: true, timezone: true })
   .and(
     z.object({
       offset: z.coerce.number().default(0),
