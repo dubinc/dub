@@ -4,8 +4,9 @@ import {
 } from "@/lib/analytics/constants";
 import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
 import {
-  LinkStructure,
   PartnerBannedReason,
+  PartnerLinkStructure,
+  PartnerUrlValidationMode,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
 import { z } from "zod";
@@ -28,8 +29,10 @@ export const ProgramSchema = z.object({
   cookieLength: z.number(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
-  linkStructure: z.nativeEnum(LinkStructure),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
   linkParameter: z.string().nullish(),
+  urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
+  maxPartnerLinks: z.number(),
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
   rewards: z.array(RewardSchema).nullish(),
@@ -65,7 +68,7 @@ export const updateProgramSchema = z.object({
     .refine((val) => ALLOWED_MIN_PAYOUT_AMOUNTS.includes(val), {
       message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
     }),
-  linkStructure: z.nativeEnum(LinkStructure),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),
