@@ -114,6 +114,16 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("google play store url", async () => {
+    const response = await fetch(`${h.baseUrl}/gps`, fetchOptions);
+    // location to include referrer query param with the short link (https://dub.sh/gps)
+    expect(response.headers.get("location")).toMatch(
+      /referrer=https:\/\/dub\.sh\/gps/,
+    );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("query params with no value", async () => {
     const response = await fetch(
       `${h.baseUrl}/query-params-no-value`,
