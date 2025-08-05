@@ -3,7 +3,7 @@
 import { PartnerLinkStructure } from "@dub/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
 
-export const getPartnerLinkStructureOptions = ({
+export const getLinkStructureOptions = ({
   domain,
   url,
 }: {
