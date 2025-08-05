@@ -1,4 +1,4 @@
-import { recordFraudIfDetected } from "@/lib/analytics/fraud/record-fraud-if-detected";
+import { detectAndRecordFraud } from "@/lib/analytics/fraud/detect-and-record-fraud";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
@@ -116,7 +116,7 @@ export async function createNewCustomer(event: Stripe.Event) {
     });
 
     waitUntil(
-      recordFraudIfDetected({
+      detectAndRecordFraud({
         partner: {
           id: link.partnerId,
           linkId: link.id,

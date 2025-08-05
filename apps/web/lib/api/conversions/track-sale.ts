@@ -1,5 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
-import { recordFraudIfDetected } from "@/lib/analytics/fraud/record-fraud-if-detected";
+import { detectAndRecordFraud } from "@/lib/analytics/fraud/detect-and-record-fraud";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -247,7 +247,7 @@ export const trackSale = async ({
                 commission,
               }),
 
-            recordFraudIfDetected({
+            detectAndRecordFraud({
               partner: {
                 id: link.partnerId,
                 linkId: link.id,

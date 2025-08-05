@@ -5,7 +5,7 @@ import { Prisma } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { detectFraudEvents } from "./detect-fraud-events";
 
-export const recordFraudIfDetected = async ({
+export const detectAndRecordFraud = async ({
   partner,
   customer,
   click,

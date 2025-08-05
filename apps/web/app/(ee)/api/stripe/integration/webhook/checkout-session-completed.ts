@@ -1,5 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
-import { recordFraudIfDetected } from "@/lib/analytics/fraud/record-fraud-if-detected";
+import { detectAndRecordFraud } from "@/lib/analytics/fraud/detect-and-record-fraud";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -371,7 +371,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             commission,
           }),
 
-        recordFraudIfDetected({
+        detectAndRecordFraud({
           partner: {
             id: link.partnerId,
             linkId: link.id,

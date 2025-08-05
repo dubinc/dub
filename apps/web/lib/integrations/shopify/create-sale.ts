@@ -1,4 +1,4 @@
-import { recordFraudIfDetected } from "@/lib/analytics/fraud/record-fraud-if-detected";
+import { detectAndRecordFraud } from "@/lib/analytics/fraud/detect-and-record-fraud";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
@@ -165,7 +165,7 @@ export async function createShopifySale({
             commission,
           }),
 
-        recordFraudIfDetected({
+        detectAndRecordFraud({
           partner: {
             id: link.partnerId,
             linkId: link.id,
