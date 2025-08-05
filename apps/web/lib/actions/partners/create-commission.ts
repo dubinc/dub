@@ -14,6 +14,7 @@ import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
+import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -123,14 +124,22 @@ export const createCommissionAction = authActionClient
       leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
     } else {
       // else, if there's no existing lead event and there is also no custom leadEventName/Date
-      // we need to create a dummy click + lead event
+      // we need to create a dummy click + lead event (using the customer's country if available)
       const dummyRequest = new Request(link.url, {
         headers: new Headers({
           "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
           "x-forwarded-for": "127.0.0.1",
-          "x-vercel-ip-country": customer.country?.toUpperCase() ?? "US",
-          "x-vercel-ip-country-region": "CA",
-          "x-vercel-ip-continent": "NA",
+          ...(customer.country
+            ? {
+                "x-vercel-ip-country": customer.country.toUpperCase(),
+                "x-vercel-ip-continent":
+                  COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()],
+              }
+            : {
+                "x-vercel-ip-country": "US",
+                "x-vercel-ip-country-region": "CA",
+                "x-vercel-ip-continent": "NA",
+              }),
         }),
       });
 

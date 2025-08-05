@@ -1,4 +1,3 @@
-import { PayoutStatus } from "@prisma/client";
 import Stripe from "stripe";
 import { PaymentMethodOption } from "../types";
 
@@ -88,7 +87,7 @@ export const PROGRAM_IMPORT_SOURCES = [
 ] as const;
 
 export const INVOICE_AVAILABLE_PAYOUT_STATUSES = [
-  PayoutStatus.processed,
-  PayoutStatus.sent,
-  PayoutStatus.completed,
+  "processed",
+  "sent",
+  "completed",
 ];
