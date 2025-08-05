@@ -236,7 +236,12 @@ function PartnerLinkModalContent({
               },
               body: JSON.stringify({
                 ...data,
-                url: isExactMode ? undefined : data.url,
+                url: isExactMode
+                  ? undefined
+                  : linkConstructor({
+                      domain: destinationDomain,
+                      key: data.url,
+                    }),
               }),
             },
           );

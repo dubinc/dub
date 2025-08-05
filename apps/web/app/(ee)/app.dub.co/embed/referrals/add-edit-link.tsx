@@ -10,6 +10,7 @@ import {
 import {
   cn,
   getDomainWithoutWWW,
+  linkConstructor,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
 import { Program } from "@prisma/client";
@@ -87,7 +88,12 @@ export function ReferralsEmbedCreateUpdateLink({
         },
         body: JSON.stringify({
           ...data,
-          url: isExactMode ? undefined : data.url,
+          url: isExactMode
+            ? undefined
+            : linkConstructor({
+                domain: destinationDomain,
+                key: data.url,
+              }),
         }),
       });
 
