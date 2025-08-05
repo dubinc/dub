@@ -124,6 +124,19 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("google play store url with existing referrer", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/gps-with-referrer`,
+      fetchOptions,
+    );
+    // location should include both existing referrer (utm_source=google) and new deepLink parameter
+    expect(response.headers.get("location")).toMatch(
+      /referrer=utm_source%3Dgoogle%26deepLink%3Dhttps%3A%2F%2Fdub\.sh%2Fgps-with-referrer/,
+    );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("query params with no value", async () => {
     const response = await fetch(
       `${h.baseUrl}/query-params-no-value`,
