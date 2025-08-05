@@ -4,6 +4,7 @@ import { prisma } from "@dub/prisma";
 import { Customer, Project } from "@dub/prisma/client";
 import Stripe from "stripe";
 import { stripeAppClient } from "../stripe";
+import { logImportError } from "../tinybird/log-import-error";
 import { MAX_BATCHES, partnerStackImporter } from "./importer";
 import { PartnerStackImportPayload } from "./types";
 
@@ -18,7 +19,7 @@ const stripe = stripeAppClient({
 export async function updateStripeCustomers(
   payload: PartnerStackImportPayload,
 ) {
-  const { programId, userId, startingAfter } = payload;
+  const { importId, programId, userId, startingAfter } = payload;
 
   const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
     where: {
@@ -80,6 +81,7 @@ export async function updateStripeCustomers(
         searchStripeAndUpdateCustomer({
           workspace,
           customer,
+          importId,
         }),
       ),
     );
@@ -132,10 +134,20 @@ export async function updateStripeCustomers(
 async function searchStripeAndUpdateCustomer({
   workspace,
   customer,
+  importId,
 }: {
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
   customer: Pick<Customer, "id" | "email">;
+  importId: string;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: workspace.id,
+    import_id: importId,
+    source: "partnerstack",
+    entity: "customer",
+    entity_id: customer.id,
+  } as const;
+
   const stripeCustomers = await stripe.customers.search(
     {
       query: `email:'${customer.email}'`,
@@ -146,7 +158,12 @@ async function searchStripeAndUpdateCustomer({
   );
 
   if (stripeCustomers.data.length === 0) {
-    console.error(`Stripe search returned no customer for ${customer.email}`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "STRIPE_CUSTOMER_NOT_FOUND",
+      message: `Stripe search returned no customer for ${customer.email}`,
+    });
+
     return null;
   }
 
@@ -161,9 +178,11 @@ async function searchStripeAndUpdateCustomer({
     if (partnerStackStripeCustomer) {
       stripeCustomer = partnerStackStripeCustomer;
     } else {
-      console.error(
-        `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.customer_key set`,
-      );
+      await logImportError({
+        ...commonImportLogInputs,
+        code: "STRIPE_CUSTOMER_NOT_FOUND",
+        message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.tolt_referral set`,
+      });
 
       return null;
     }
