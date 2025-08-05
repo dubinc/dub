@@ -90,8 +90,6 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
       },
     });
 
-    console.log(customersData);
-
     const customerLeadEvents = await getLeadEvents({
       customerIds: customersData.map((customer) => customer.id),
     }).then((res) => res.data);
