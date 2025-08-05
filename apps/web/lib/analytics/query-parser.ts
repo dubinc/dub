@@ -17,7 +17,7 @@ export const queryParser = (query: string | undefined) => {
   );
 
   if (unsupportedOperators) {
-    throw new Error(`Query must use either AND or OR.`);
+    throw new Error("Query must use either AND or OR.");
   }
 
   // Check for mixed AND/OR operators
