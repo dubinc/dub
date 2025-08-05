@@ -12,8 +12,8 @@ import {
   DIMENSIONAL_ANALYTICS_FILTERS,
   SINGULAR_ANALYTICS_ENDPOINTS,
 } from "./constants";
+import { queryParser } from "./query-parser";
 import { AnalyticsFilters } from "./types";
-import { parseFiltersFromQuery } from "./utils/analytics-query-parser";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/analytics
@@ -80,12 +80,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     dataAvailableFrom,
   });
 
-  if (trigger) {
-    if (trigger === "qr") {
-      qr = true;
-    } else if (trigger === "link") {
-      qr = false;
-    }
+  if (qr) {
+    trigger = "qr";
   }
 
   if (region) {
@@ -106,7 +102,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         : analyticsResponse[groupBy],
   });
 
-  const queryFilters = parseFiltersFromQuery(query);
+  const parsedQuery = queryParser(query);
 
   const response = await pipe({
     ...params,
@@ -116,17 +112,17 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     eventType: event,
     workspaceId,
     tagIds,
-    qr,
+    trigger,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
     granularity,
     timezone,
     country,
     region,
-    ...(queryFilters &&
-      queryFilters.filters.length > 0 && {
-        filters: JSON.stringify(queryFilters.filters),
-        logicalOperator: queryFilters.logicalOperator,
+    ...(parsedQuery &&
+      parsedQuery.filters.length > 0 && {
+        filters: JSON.stringify(parsedQuery.filters),
+        logicalOperator: parsedQuery.logicalOperator,
       }),
   });
 
@@ -220,13 +216,16 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       },
     });
 
-    return topPartnersData.map((item) => {
-      const partner = partners.find((p) => p.id === item.partnerId);
-      return {
-        ...item,
-        partner,
-      };
-    });
+    return topPartnersData
+      .map((item) => {
+        const partner = partners.find((p) => p.id === item.partnerId);
+        if (!partner) return null;
+        return {
+          ...item,
+          partner,
+        };
+      })
+      .filter((d) => d !== null);
   }
 
   // Return array for other endpoints

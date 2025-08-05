@@ -55,10 +55,12 @@ model Link {
 
   publicStats Boolean   @default(false) // whether to show public stats or not
   clicks      Int       @default(0) // number of clicks
+  leads       Int       @default(0) // number of leads
+  conversions Int       @default(0) // number of leads that converted to sales
+  sales       Int       @default(0) // number of sales (includes recurring sales)
+  saleAmount  Int       @default(0) // total revenue from sales (in cents)
+
   lastClicked DateTime? // when the link was last clicked
-  leads       Int       @default(0)
-  sales       Int       @default(0) // number of sales
-  saleAmount  Int       @default(0) // total dollar value of sales (in cents)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

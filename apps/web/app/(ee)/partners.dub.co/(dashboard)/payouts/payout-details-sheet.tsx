@@ -1,4 +1,7 @@
-import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/partners/constants";
+import {
+  INVOICE_AVAILABLE_PAYOUT_STATUSES,
+  PAYOUTS_SHEET_ITEMS_LIMIT,
+} from "@/lib/partners/constants";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -87,7 +90,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             })}
           </strong>
 
-          {["completed", "processing"].includes(payout.status) && (
+          {INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
             <Tooltip content="View invoice">
               <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
                 <Link

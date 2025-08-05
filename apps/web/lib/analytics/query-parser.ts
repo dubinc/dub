@@ -1,5 +1,4 @@
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { EventsFilters } from "../types";
 
 type LogicalOperator = "AND" | "OR";
 type Operator = "=" | "!=" | ">" | "<" | ">=" | "<=";
@@ -29,7 +28,7 @@ interface InternalFilter {
 }
 
 // Query parser that can parse the query string into a list of filters
-export const parseFiltersFromQuery = (query: EventsFilters["query"]) => {
+export const queryParser = (query: string) => {
   if (!query) {
     return undefined;
   }

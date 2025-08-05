@@ -21,8 +21,8 @@ import {
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
+import { queryParser } from "./query-parser";
 import { EventsFilters } from "./types";
-import { parseFiltersFromQuery } from "./utils/analytics-query-parser";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
 // Fetch data for /api/events
@@ -50,12 +50,8 @@ export const getEvents = async (params: EventsFilters) => {
     dataAvailableFrom,
   });
 
-  if (trigger) {
-    if (trigger === "qr") {
-      qr = true;
-    } else if (trigger === "link") {
-      qr = false;
-    }
+  if (qr) {
+    trigger = "qr";
   }
 
   if (region) {
@@ -80,23 +76,23 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
-  const queryFilters = parseFiltersFromQuery(query);
+  const parsedQuery = queryParser(query);
 
   const response = await pipe({
     ...params,
     eventType,
     workspaceId,
-    qr,
+    trigger,
     country,
     region,
     order: sortOrder,
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
-    ...(queryFilters &&
-      queryFilters.filters.length > 0 && {
-        filters: JSON.stringify(queryFilters.filters),
-        logicalOperator: queryFilters.logicalOperator,
+    ...(parsedQuery &&
+      parsedQuery.filters.length > 0 && {
+        filters: JSON.stringify(parsedQuery.filters),
+        logicalOperator: parsedQuery.logicalOperator,
       }),
   });
 
@@ -143,6 +139,7 @@ export const getEvents = async (params: EventsFilters) => {
           ? {
               eventId: evt.event_id,
               eventName: evt.event_name,
+              metadata: evt.metadata ? JSON.parse(evt.metadata) : undefined,
               customer: customersMap[evt.customer_id] ?? {
                 id: evt.customer_id,
                 name: "Deleted Customer",

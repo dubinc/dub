@@ -41,6 +41,7 @@ export const expectedLink: Partial<Link> & {
   clicks: 0,
   lastClicked: null,
   leads: 0,
+  conversions: 0,
   sales: 0,
   saleAmount: 0,
   identifier: null, // backwards compatibility

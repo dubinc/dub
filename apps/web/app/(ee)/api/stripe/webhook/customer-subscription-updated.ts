@@ -2,7 +2,7 @@ import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folde
 import { tokenCache } from "@/lib/auth/token-cache";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { getPlanFromPriceId } from "@dub/utils";
+import { getPlanFromPriceId, LEGACY_PRICE_IDS } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils";
@@ -70,11 +70,9 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const shouldDeleteFolders =
     newPlanName === "free" && workspace.foldersUsage > 0;
 
-  // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
-  if (
-    workspace.plan !== newPlanName ||
-    workspace.payoutsLimit !== plan.limits.payouts
-  ) {
+  // If a workspace upgrades/downgrades their subscription and it's not a legacy plan
+  // update their usage limit in the database
+  if (workspace.plan !== newPlanName && !LEGACY_PRICE_IDS.includes(priceId)) {
     await Promise.allSettled([
       prisma.project.update({
         where: {
