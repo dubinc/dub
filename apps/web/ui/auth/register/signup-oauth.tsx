@@ -57,9 +57,10 @@ export const SignUpOAuth = ({
       setQrDataToCreate(null);
     }
 
-    signIn("google", {
-      ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-    });
+    const callbackUrl =
+      next && next.length > 0 ? `${next}?onboarded=true` : "/?onboarded=true";
+
+    signIn("google", { callbackUrl });
   };
 
   return (
