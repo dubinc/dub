@@ -4,7 +4,6 @@ import { useTrialStatus } from "@/lib/contexts/trial-status-context";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
-import { preloadAllFrames } from "@/ui/qr-builder/constants/customization/frames.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
@@ -24,10 +23,6 @@ interface WorkspaceQRsClientProps {
 export default function WorkspaceQRsClient({
   initialQrs,
 }: WorkspaceQRsClientProps) {
-  if (typeof window !== "undefined") {
-    preloadAllFrames();
-  }
-
   return (
     <QrCodesDisplayProvider>
       <WorkspaceQRs initialQrs={initialQrs} />

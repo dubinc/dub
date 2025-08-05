@@ -6,7 +6,6 @@ import {
 import {
   FRAME_TEXT,
   FRAMES,
-  preloadAllFrames,
 } from "@/ui/qr-builder/constants/customization/frames.ts";
 import { isValidHex } from "@/ui/qr-builder/helpers/is-valid-hex.ts";
 import { FrameOptions } from "@/ui/qr-builder/types/types.ts";
@@ -60,10 +59,6 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
   isMobile,
   frameOptions,
 }) => {
-  useEffect(() => {
-    preloadAllFrames();
-  }, []);
-
   const [frameColor, setFrameColor] = useState<string>(
     frameOptions?.color || BLACK_COLOR,
   );

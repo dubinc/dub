@@ -1,3 +1,4 @@
+import { frameMemoryCache, loadAndCacheFrame } from "@/ui/qr-builder/helpers/frame-cache";
 import { lightenHexColor } from "@/ui/qr-builder/helpers/lighten-hex-color.ts";
 import { measureTextWidth } from "@/ui/qr-builder/helpers/measure-text-width.ts";
 import CardFirstPreview from "@/ui/qr-builder/icons/frames/card-1-preview.svg";
@@ -24,8 +25,6 @@ import NoLogoIcon from "@/ui/qr-builder/icons/no-logo.svg";
 import { StaticImageData } from "next/image";
 import { BLACK_COLOR, WHITE_COLOR } from "./colors.ts";
 import { TStyleOption } from "./styles.ts";
-
-const frameCache = new Map<string, HTMLElement>();
 
 export const FRAME_TEXT = "Scan Me!";
 
@@ -136,24 +135,20 @@ export async function preloadAllFrames() {
     ClipboardFrame,
   ];
 
-  await Promise.all(
-    framesToLoad.map(async (frame) => {
-      const { src } = frame;
-      if (!frameCache.has(src)) {
+  const BATCH_SIZE = 3;
+  
+  for (let i = 0; i < framesToLoad.length; i += BATCH_SIZE) {
+    const batch = framesToLoad.slice(i, i + BATCH_SIZE);
+    await Promise.all(
+      batch.map(async (frame) => {
         try {
-          const res = await fetch(src);
-          const svgText = await res.text();
-          const parsed = new DOMParser().parseFromString(
-            svgText,
-            "image/svg+xml",
-          ).documentElement;
-          frameCache.set(src, parsed);
+          await loadAndCacheFrame(frame);
         } catch (err) {
-          console.error(`Failed to preload frame SVG: ${src}`, err);
+          console.error(`Failed to preload frame: ${frame.src}`, err);
         }
-      }
-    }),
-  );
+      })
+    );
+  }
 }
 
 export const isDefaultTextColor = (color: string): boolean => {
@@ -178,9 +173,13 @@ async function embedQRIntoFrame(
   const { src } = frame;
 
   try {
-    const frameSvg = frameCache.get(src);
+    let frameSvg = frameMemoryCache.get(src);
     if (!frameSvg) {
-      throw new Error(`Frame SVG not preloaded: ${src}`);
+      const loadedFrame = await loadAndCacheFrame(frame);
+      if (!loadedFrame) {
+        throw new Error(`Failed to load frame SVG: ${src}`);
+      }
+      frameSvg = loadedFrame;
     }
 
     const frameClone = frameSvg.cloneNode(true) as SVGElement;
