@@ -1,8 +1,8 @@
+import { FileCardContent } from "@/ui/qr-builder/components/file-card-content";
 import { SUGGESTED_LOGOS } from "@/ui/qr-builder/constants/customization/logos.ts";
 import { EAcceptedFileType } from "@/ui/qr-builder/constants/qr-type-inputs-config.ts";
 import { FC, useEffect, useRef } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
-import { FileCardContent } from "./file-card-content.tsx";
 import { StylePicker } from "./style-picker.tsx";
 
 const FILE_UPLOAD_FIELD_NAME = "fileUploadLogo";
@@ -36,12 +36,13 @@ export const LogoSelector: FC<ILogoSelectorProps> = ({
 
   useEffect(() => {
     const lastFile = uploadedLogoFiles?.[uploadedLogoFiles.length - 1] || null;
-    const previousLastFile = previousFilesRef.current?.[previousFilesRef.current.length - 1] || null;
+    const previousLastFile =
+      previousFilesRef.current?.[previousFilesRef.current.length - 1] || null;
 
     if (lastFile !== previousLastFile) {
       onUploadLogo(lastFile);
     }
-    
+
     previousFilesRef.current = uploadedLogoFiles || [];
   }, [uploadedLogoFiles, onUploadLogo]);
 

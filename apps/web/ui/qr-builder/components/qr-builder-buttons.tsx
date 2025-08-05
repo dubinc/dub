@@ -15,6 +15,8 @@ interface IQrBuilderButtonsProps {
   display?: Responsive<"none" | "inline-flex" | "flex"> | undefined;
   isEdit?: boolean;
   isProcessing?: boolean;
+  isFileUploading?: boolean;
+  isFileProcessing?: boolean;
   homePageDemo?: boolean;
 }
 
@@ -29,22 +31,18 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   display = "flex",
   isEdit = false,
   isProcessing = false,
+  isFileUploading = false,
+  isFileProcessing = false,
   homePageDemo = false,
 }) => {
   const isLastStep = step === maxStep;
 
   const getButtonText = () => {
-    if (!isLastStep) {
-      return "Continue";
-    }
-
-    if (isEdit) {
-      return "Save changes";
-    }
-
-    if (homePageDemo) {
-      return "Download QR Code";
-    }
+    if (isFileUploading) return "Uploading...";
+    if (isFileProcessing) return "Processing...";
+    if (isEdit) return "Save changes";
+    if (!isLastStep) return "Continue";
+    if (homePageDemo) return "Download QR Code";
 
     return "Create QR Code";
   };
