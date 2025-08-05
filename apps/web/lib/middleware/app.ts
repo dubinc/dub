@@ -9,7 +9,13 @@ import { getUserViaToken } from "./utils/get-user-via-token";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 import WorkspacesMiddleware from "./workspaces";
 
-export default async function AppMiddleware(req: NextRequest) {
+/**
+ * App middleware to handle routing for app.dub.co domain
+ * Handles authentication, onboarding, and workspace routing
+ * @param req - The incoming request
+ * @returns NextResponse with appropriate redirect, rewrite, or next() to continue
+ */
+export default async function AppMiddleware(req: NextRequest): Promise<NextResponse> {
   const { path, fullPath, searchParamsString } = parse(req);
 
   if (path.startsWith("/embed")) {
@@ -99,6 +105,16 @@ export default async function AppMiddleware(req: NextRequest) {
     ) {
       return WorkspacesMiddleware(req, user);
     } else if (appRedirect(path)) {
+      // Check if the user is already on a workspace-specific path to prevent redirect loops
+      const pathSegments = path.split("/").filter(Boolean);
+      const defaultWorkspace = await getDefaultWorkspace(user);
+      const isAlreadyOnWorkspace = pathSegments.length > 0 && pathSegments[0] === defaultWorkspace;
+      
+      if (isAlreadyOnWorkspace) {
+        // User is already on the correct workspace, no need to redirect
+        return NextResponse.next();
+      }
+      
       return NextResponse.redirect(
         new URL(`${appRedirect(path)}${searchParamsString}`, req.url),
       );
