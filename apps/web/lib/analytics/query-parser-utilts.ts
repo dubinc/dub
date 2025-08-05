@@ -88,7 +88,9 @@ export const validateFilter = ({
   }
 
   if (!allowedOperators[operand].includes(operator)) {
-    throw new Error(`The operator is not supported for the field "${operand}".`);
+    throw new Error(
+      `The operator is not supported for the field "${operand}".`,
+    );
   }
 
   return true;
