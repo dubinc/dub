@@ -1,11 +1,11 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
+import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
-import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/embed/referrals/links – get links for a partner
@@ -44,22 +44,7 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    if (url) {
-      if (
-        program.urlValidationMode === "domain" &&
-        getApexDomain(url) !== getApexDomain(program.url)
-      ) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-        });
-      } else if (program.urlValidationMode === "exact" && url !== program.url) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: `The provided URL (${url}) does not match the program's URL (${program.url}).`,
-        });
-      }
-    }
+    validatePartnerLinkUrl({ program, url });
 
     const workspaceOwner = await prisma.projectUsers.findFirst({
       where: {
