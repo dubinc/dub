@@ -60,6 +60,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
         userId: generatedUserId,
         email: data.email,
         name: data.name,
+        image: data.image, // Add image from OAuth profile
       });
 
       if (qrDataToCreate) {
@@ -576,6 +577,7 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
+      console.log("events signIn message: ", JSON.stringify(message));
       const cookieStore = cookies();
 
       const customerUser = convertSessionUserToCustomerBody(
