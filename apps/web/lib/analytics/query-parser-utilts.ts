@@ -72,7 +72,17 @@ export const parseFilter = (condition: string): InternalFilter | null => {
 
 export const allowedOperands = Object.keys(analyticsQuerySchema.shape)
   .filter((key) => {
-    return !["tagId", "qr", "order", "query"].includes(key);
+    return ![
+      "tagId",
+      "qr",
+      "order",
+      "query",
+      "workspaceId",
+      "page",
+      "limit",
+      "sortOrder",
+      "sortBy",
+    ].includes(key);
   })
   .concat(["metadata"]) as Operand[];
 
