@@ -1,13 +1,10 @@
 "use client";
 
-import { saveQrDataToRedisAction } from "@/lib/actions/save-qr-data-to-redis.ts";
-import { showMessage } from "@/ui/auth/helpers.ts";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { Button, Github, Google, useLocalStorage } from "@dub/ui";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { trackClientEvents } from "core/integration/analytic/services/analytic.service.ts";
 import { signIn } from "next-auth/react";
-import { useAction } from "next-safe-action/hooks";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -26,10 +23,6 @@ export const SignUpOAuth = ({
   const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
 
-  const { executeAsync: saveQrDataToRedis } = useAction(
-    saveQrDataToRedisAction,
-  );
-
   useEffect(() => {
     // when leave page, reset state
     return () => {
@@ -37,20 +30,6 @@ export const SignUpOAuth = ({
       setClickedGithub(false);
     };
   }, []);
-
-  const handleQrDataProcessing = async () => {
-    if (!qrDataToCreate) return null;
-
-    try {
-      await saveQrDataToRedis({ sessionId, qrData: qrDataToCreate });
-      setQrDataToCreate(null);
-      return qrDataToCreate;
-    } catch (error) {
-      console.error("Error saving QR data:", error);
-      showMessage("Failed to save QR data", "error");
-      return null;
-    }
-  };
 
   const handleGoogleClick = async () => {
     trackClientEvents({
@@ -74,11 +53,13 @@ export const SignUpOAuth = ({
       sessionId,
     });
 
-    handleQrDataProcessing().then(() =>
-      signIn("google", {
-        ...(next && next.length > 0 ? { callbackUrl: next } : {}),
-      }),
-    );
+    if (qrDataToCreate) {
+      setQrDataToCreate(null);
+    }
+
+    signIn("google", {
+      ...(next && next.length > 0 ? { callbackUrl: next } : {}),
+    });
   };
 
   return (
