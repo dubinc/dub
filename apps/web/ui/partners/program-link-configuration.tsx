@@ -89,7 +89,7 @@ export function ProgramLinkConfiguration({
 
       <div className="space-y-2">
         <label className="block text-sm font-medium text-neutral-800">
-          Destination URL
+          Website URL
         </label>
         <Input
           value={url || ""}

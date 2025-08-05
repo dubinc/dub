@@ -77,6 +77,7 @@ export const DUB_DOMAINS = [
             "calendar.notion.so",
             "chillipiper.com",
             "fantastical.app",
+            "fillout.com",
             "hubspot.com",
             "savvycal.com",
             "scheduler.default.com",
