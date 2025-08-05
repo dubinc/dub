@@ -60,7 +60,7 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
         userId: generatedUserId,
         email: data.email,
         name: data?.name,
-        image: data?.image, // Add image from OAuth profile
+        image: data?.image,
       });
 
       if (qrDataToCreate) {
