@@ -15,7 +15,7 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     await h.deleteLink(createdLink.id);
   });
 
-  const url = E2E_PROGRAM.url;
+  const url = `${E2E_PROGRAM.url}/${randomId()}`;
 
   test("New link", async () => {
     const { data, status } = await http.put<Link>({
