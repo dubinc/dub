@@ -608,6 +608,10 @@ export const authOptions: NextAuthOptions = {
           // process.env.NEXT_PUBLIC_IS_DUB
         ) {
           if (message?.account?.provider === "google") {
+            const qrDataToCreate: NewQrProps | null = await redis.get(
+              `${ERedisArg.QR_DATA_REG}:${user.id}`,
+            );
+
             cookieStore.set(
               ECookieArg.OAUTH_FLOW,
               JSON.stringify({
@@ -615,6 +619,7 @@ export const authOptions: NextAuthOptions = {
                 provider: "google",
                 email,
                 userId: user.id,
+                signupOrigin: qrDataToCreate ? "qr" : "none",
               }),
               {
                 httpOnly: true,
@@ -622,39 +627,35 @@ export const authOptions: NextAuthOptions = {
               },
             );
 
-            const qrDataToCreate: NewQrProps | null = await redis.get(
-              `${ERedisArg.QR_DATA_REG}:${user.id}`,
-            );
-
             waitUntil(
               Promise.all([
                 CustomerIOClient.identify(user.id, {
                   email,
                 }),
-                qrDataToCreate 
+                qrDataToCreate
                   ? sendEmail({
-                    email: email,
-                    subject: "Welcome to GetQR",
-                    template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-                    messageData: {
-                      qr_name: qrDataToCreate?.title || "Untitled QR",
-                      qr_type:
-                        QR_TYPES.find(
-                          (item) => item.id === qrDataToCreate?.qrType,
-                        )!.label || "Indefined type",
-                      url: HOME_DOMAIN,
-                    },
-                    customerId: user.id,
-                  })
+                      email: email,
+                      subject: "Welcome to GetQR",
+                      template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+                      messageData: {
+                        qr_name: qrDataToCreate?.title || "Untitled QR",
+                        qr_type:
+                          QR_TYPES.find(
+                            (item) => item.id === qrDataToCreate?.qrType,
+                          )!.label || "Indefined type",
+                        url: HOME_DOMAIN,
+                      },
+                      customerId: user.id,
+                    })
                   : sendEmail({
-                    email: email,
-                    subject: "Welcome to GetQR",
-                    template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
-                    messageData: {
-                      url: HOME_DOMAIN,
-                    },
-                    customerId: user.id,
-                  }),
+                      email: email,
+                      subject: "Welcome to GetQR",
+                      template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
+                      messageData: {
+                        url: HOME_DOMAIN,
+                      },
+                      customerId: user.id,
+                    }),
               ]),
             );
           }

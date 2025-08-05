@@ -53,6 +53,7 @@ export const VerifyEmailForm = ({
           page_name: "profile",
           method: "email",
           email,
+          signup_origin: "qr",
           event_category: "nonAuthorized",
         },
         sessionId,
