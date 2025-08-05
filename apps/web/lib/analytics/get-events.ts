@@ -23,7 +23,7 @@ import {
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
 import { queryParser } from "./query-parser";
-import { InternalFilter, LogicalOperator } from "./query-parser-utilts";
+import { ParsedQuery } from "./query-parser-utilts";
 import { EventsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -78,9 +78,7 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
-  let parsedQuery:
-    | { filters: InternalFilter[]; logicalOperator: LogicalOperator }
-    | undefined;
+  let parsedQuery: ParsedQuery | undefined;
 
   try {
     parsedQuery = queryParser(query);
@@ -94,6 +92,8 @@ export const getEvents = async (params: EventsFilters) => {
     });
   }
 
+  console.log(parsedQuery);
+
   const response = await pipe({
     ...params,
     eventType,
@@ -105,11 +105,10 @@ export const getEvents = async (params: EventsFilters) => {
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
-    ...(parsedQuery &&
-      parsedQuery.filters.length > 0 && {
-        filters: JSON.stringify(parsedQuery.filters),
-        logicalOperator: parsedQuery.logicalOperator,
-      }),
+    ...(parsedQuery && {
+      filters: JSON.stringify(parsedQuery.filters),
+      logicalOperator: parsedQuery.logicalOperator,
+    }),
   });
 
   const [linksMap, customersMap] = await Promise.all([

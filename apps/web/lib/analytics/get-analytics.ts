@@ -14,7 +14,7 @@ import {
   SINGULAR_ANALYTICS_ENDPOINTS,
 } from "./constants";
 import { queryParser } from "./query-parser";
-import { InternalFilter, LogicalOperator } from "./query-parser-utilts";
+import { ParsedQuery } from "./query-parser-utilts";
 import { AnalyticsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -104,9 +104,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         : analyticsResponse[groupBy],
   });
 
-  let parsedQuery:
-    | { filters: InternalFilter[]; logicalOperator: LogicalOperator }
-    | undefined;
+  let parsedQuery: ParsedQuery | undefined;
 
   try {
     parsedQuery = queryParser(query);
@@ -119,6 +117,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           : `We were unable to parse your search query. Try using the format key:"value" to query for fields.`,
     });
   }
+
+  console.log(parsedQuery);
 
   const response = await pipe({
     ...params,
@@ -135,11 +135,10 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone,
     country,
     region,
-    ...(parsedQuery &&
-      parsedQuery.filters.length > 0 && {
-        filters: JSON.stringify(parsedQuery.filters),
-        logicalOperator: parsedQuery.logicalOperator,
-      }),
+    ...(parsedQuery && {
+      filters: JSON.stringify(parsedQuery.filters),
+      logicalOperator: parsedQuery.logicalOperator,
+    }),
   });
 
   if (groupBy === "count") {

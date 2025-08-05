@@ -3,10 +3,13 @@ import {
   InternalFilter,
   LogicalOperator,
   MAX_FILTERS,
+  ParsedQuery,
   parseFilter,
 } from "./query-parser-utilts";
 
-export const queryParser = (query: string | undefined) => {
+export const queryParser = (
+  query: string | undefined,
+): ParsedQuery | undefined => {
   if (!query) {
     return undefined;
   }
@@ -75,5 +78,22 @@ export const queryParser = (query: string | undefined) => {
       ? "OR"
       : "AND";
 
-  return filters.length > 0 ? { filters, logicalOperator } : undefined;
+  if (filters.length === 0) {
+    return;
+  }
+
+  // Transform the parsed filters to a format that can be used by Tinybird
+  const parsedQuery: ParsedQuery = {
+    filters: {},
+    logicalOperator,
+  };
+
+  for (const filter of filters) {
+    parsedQuery.filters[filter.operand] = {
+      operator: filter.operator,
+      value: filter.value,
+    };
+  }
+
+  return parsedQuery;
 };

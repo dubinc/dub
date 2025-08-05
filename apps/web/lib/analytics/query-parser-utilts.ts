@@ -13,11 +13,16 @@ type TBOperator =
   | "lessThanOrEqual"
   | "in";
 
-export interface InternalFilter {
+export type InternalFilter = {
   operand: Operand;
   operator: TBOperator;
   value: string;
-}
+};
+
+export type ParsedQuery = {
+  filters: Partial<Record<Operand, { operator: TBOperator; value: any }>>;
+  logicalOperator: LogicalOperator;
+};
 
 // Combine up to 10 filter clauses in a query
 export const MAX_FILTERS = 10;
