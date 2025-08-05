@@ -207,12 +207,6 @@ export const DIMENSIONAL_ANALYTICS_FILTERS = [
   "utm_content",
 ];
 
-export const TRIGGER_DISPLAY = {
-  qr: "QR Code Scan",
-  link: "Link Click",
-  pageview: "Page View",
-  deeplink: "Deep Link",
-};
 export const TRIGGER_TYPES = ["qr", "link", "pageview", "deeplink"] as const;
 
 export const EVENT_TYPES = ["clicks", "leads", "sales"] as const;

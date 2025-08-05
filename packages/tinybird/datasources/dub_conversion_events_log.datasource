@@ -1,4 +1,3 @@
-# A datasource for logging conversion events for debugging purposes
 
 SCHEMA >
     `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),

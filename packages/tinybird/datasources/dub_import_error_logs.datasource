@@ -1,5 +1,3 @@
-# A datasource for logging import records from external sources
-# Useful for debugging and tracking import issues
 
 SCHEMA >
     `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),
@@ -14,4 +12,4 @@ SCHEMA >
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
 ENGINE_SORTING_KEY "timestamp, workspace_id, import_id"
-ENGINE_TTL "toDateTime(timestamp) + toIntervalDay(180)" 
+ENGINE_TTL "toDateTime(timestamp) + toIntervalDay(180)"

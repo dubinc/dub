@@ -184,7 +184,7 @@ export const analyticsQuerySchema = z
       .enum(TRIGGER_TYPES)
       .optional()
       .describe(
-        "The trigger to retrieve analytics for. If undefined, return both QR and link clicks.",
+        "The trigger to retrieve analytics for. If undefined, returns all trigger types.",
       ),
     referer: z
       .string()
@@ -197,13 +197,6 @@ export const analyticsQuerySchema = z
       .describe("The full referer URL to retrieve analytics for.")
       .openapi({ example: "https://dub.co/blog" }),
     url: z.string().optional().describe("The URL to retrieve analytics for."),
-    tagId: z
-      .string()
-      .optional()
-      .describe(
-        "Deprecated. Use `tagIds` instead. The tag ID to retrieve analytics for.",
-      )
-      .openapi({ deprecated: true }),
     tagIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -215,12 +208,6 @@ export const analyticsQuerySchema = z
       .describe(
         "The folder ID to retrieve analytics for. If not provided, return analytics for unsorted links.",
       ),
-    qr: booleanQuerySchema
-      .optional()
-      .describe(
-        "Deprecated. Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
-      )
-      .openapi({ deprecated: true }),
     root: booleanQuerySchema
       .optional()
       .describe(
@@ -232,6 +219,30 @@ export const analyticsQuerySchema = z
       .describe(
         "Filter sales by type: 'new' for first-time purchases, 'recurring' for repeat purchases. If undefined, returns both.",
       ),
+    query: z
+      .string()
+      .max(10000)
+      .optional()
+      .describe(
+        "Search the events by a custom metadata value. Only available for lead and sale events.",
+      )
+      .openapi({
+        example: "metadata['key']:'value'",
+      }),
+    // deprecated fields
+    tagId: z
+      .string()
+      .optional()
+      .describe(
+        "Deprecated: Use `tagIds` instead. The tag ID to retrieve analytics for.",
+      )
+      .openapi({ deprecated: true }),
+    qr: booleanQuerySchema
+      .optional()
+      .describe(
+        "Deprecated: Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
+      )
+      .openapi({ deprecated: true }),
   })
   .merge(utmTagsSchema);
 
@@ -246,7 +257,7 @@ export const analyticsFilterTB = z
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     saleType: z.string().optional(),
-    qr: z.boolean().optional(),
+    trigger: z.enum(TRIGGER_TYPES).optional(),
     start: z.string(),
     end: z.string(),
     granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
@@ -261,6 +272,10 @@ export const analyticsFilterTB = z
       .optional()
       .describe("The folder IDs to retrieve analytics for."),
     isMegaFolder: z.boolean().optional(),
+    filters: z
+      .string()
+      .optional()
+      .describe("The filters to apply to the analytics."),
   })
   .merge(
     analyticsQuerySchema.pick({
