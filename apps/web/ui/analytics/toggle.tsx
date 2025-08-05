@@ -82,7 +82,7 @@ import EventsOptions from "./events/events-options";
 import RefererIcon from "./referer-icon";
 import { useAnalyticsFilterOption } from "./utils";
 import { Icon } from "@iconify/react";
-import { QR_TYPES } from '../qr-builder/constants/get-qr-config';
+import { ANALYTICS_QR_TYPES_DATA } from '../qr-builder/constants/get-qr-config';
 
 export default function Toggle({
   page = "analytics",
@@ -427,7 +427,7 @@ export default function Toggle({
               key: "qrType",
               icon: Sliders,
               label: "QR type",
-              options: QR_TYPES.map((type) => ({
+              options: ANALYTICS_QR_TYPES_DATA.map((type) => ({
                 value: type.id,
                 icon: () => (
                   <Icon

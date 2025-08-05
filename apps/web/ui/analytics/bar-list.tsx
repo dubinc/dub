@@ -155,7 +155,7 @@ export function LineItem({
       <div className="z-10 flex items-center space-x-4 overflow-hidden px-3">
         {icon}
         <div className="truncate text-sm text-neutral-800">
-          {getPrettyUrl(title)}
+          {linkData?.qr?.title || getPrettyUrl(title)}
         </div>
       </div>
     );
