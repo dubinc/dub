@@ -59,8 +59,8 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
         email: data.email,
-        name: data.name,
-        image: data.image, // Add image from OAuth profile
+        name: data?.name,
+        image: data?.image, // Add image from OAuth profile
       });
 
       if (qrDataToCreate) {
