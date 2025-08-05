@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
@@ -21,14 +22,20 @@ async function main() {
       console.table(dataArray);
 
       for (const { conversions, linkIds } of dataArray) {
-        await prisma.link.updateMany({
-          where: {
-            id: { in: linkIds },
-          },
-          data: {
-            conversions,
-          },
-        });
+        const chunks = chunk(linkIds, 1000);
+        for (const chunk of chunks) {
+          const res = await prisma.link.updateMany({
+            where: {
+              id: { in: chunk },
+            },
+            data: {
+              conversions,
+            },
+          });
+          console.log(
+            `Updated ${res.count} links with ${conversions} conversions.`,
+          );
+        }
       }
     },
   });
