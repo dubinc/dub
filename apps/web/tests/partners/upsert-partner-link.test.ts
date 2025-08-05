@@ -15,13 +15,15 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     await h.deleteLink(createdLink.id);
   });
 
+  const url = `${E2E_PROGRAM.url}/${randomId()}`;
+
   test("New link", async () => {
     const { data, status } = await http.put<Link>({
       path: "/partners/links/upsert",
       body: {
         programId: E2E_PROGRAM.id,
         partnerId: E2E_PARTNER.id,
-        url: E2E_PROGRAM.url,
+        url,
       },
     });
 
@@ -30,7 +32,7 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     expect(status).toEqual(200);
     expect(createdLink).toStrictEqual({
       ...partnerLink,
-      url: E2E_PROGRAM.url,
+      url,
     });
   });
 
@@ -42,7 +44,7 @@ describe.sequential("PUT /partners/links/upsert", async () => {
       body: {
         programId: E2E_PROGRAM.id,
         partnerId: E2E_PARTNER.id,
-        url: E2E_PROGRAM.url,
+        url,
         key,
       },
     });
