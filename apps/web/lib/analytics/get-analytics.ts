@@ -106,6 +106,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     region,
   });
 
+  console.log('groupBy', groupBy);
   if (groupBy === "count") {
     // Return the count value for deprecated endpoints
     if (isDeprecatedClicksEndpoint) {
@@ -133,8 +134,16 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         url: true,
         comments: true,
         createdAt: true,
+        qrs: {
+          select: {
+            id: true,
+            qrType: true,
+            title: true,
+          },
+        },
       },
     });
+    console.log('links', links);
 
     return topLinksData
       .map((topLink) => {
@@ -142,6 +151,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         if (!link) {
           return null;
         }
+        console.log('link', link);
         return analyticsResponse[groupBy].parse({
           id: link.id,
           domain: link.domain,
@@ -153,6 +163,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           }),
           comments: link.comments,
           createdAt: link.createdAt.toISOString(),
+          qr: link.qrs[0],
           ...topLink,
         });
       })

@@ -30,7 +30,7 @@ import { AuthType } from "./auth-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useImportRewardfulModal } from "./import-rewardful-modal";
 import { useLinkBuilder } from "./link-builder";
-import { useWelcomeModal } from "./welcome-modal";
+// import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
   setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
@@ -115,18 +115,10 @@ function ModalProviderClient({
   const { setShowImportRebrandlyModal, ImportRebrandlyModal } =
     useImportRebrandlyModal();
   const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
-  const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
+  // const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
   const { setShowImportRewardfulModal, ImportRewardfulModal } =
     useImportRewardfulModal();
   const { AuthModal, showModal: showAuthModal } = useAuthModal({ sessionId });
-
-  useEffect(
-    () =>
-      setShowWelcomeModal(
-        searchParams.has("onboarded") || searchParams.has("upgraded"),
-      ),
-    [searchParams],
-  );
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
@@ -230,7 +222,7 @@ function ModalProviderClient({
       <ImportRebrandlyModal />
       <ImportCsvModal />
       <ImportRewardfulModal />
-      <WelcomeModal />
+      {/*<WelcomeModal />*/}
       <AuthModal />
       {children}
     </ModalContext.Provider>

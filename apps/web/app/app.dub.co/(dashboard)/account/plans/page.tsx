@@ -36,7 +36,7 @@ const PlansPage: NextPage = async () => {
 
   return (
     <>
-      <PageContent title="Plans and Payments">
+      <PageContent>
         <MaxWidthWrapper>
           <PlansContent user={user!} mostScannedQR={mostScannedQR} />
         </MaxWidthWrapper>

@@ -11,6 +11,7 @@ export interface CreateWorkspaceParams {
   code?: string;
   userId: string;
   email: string;
+  name?: string;
 }
 
 export async function verifyAndCreateUser({
@@ -18,6 +19,7 @@ export async function verifyAndCreateUser({
   code,
   userId,
   email,
+  name,
 }: CreateWorkspaceParams) {
   return prisma.$transaction(async (tx) => {
     if (code) {
@@ -83,11 +85,13 @@ export async function verifyAndCreateUser({
           email,
           emailVerified: new Date(),
           defaultWorkspace: workspaceRes.slug,
+          ...(name && { name }),
           ...(password && { passwordHash: await hashPassword(password) }),
         },
         select: {
           id: true,
           email: true,
+          name: true,
           emailVerified: true,
           defaultWorkspace: true,
         },

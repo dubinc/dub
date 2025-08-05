@@ -7,7 +7,10 @@ import {
 } from "@/lib/swr/use-folder-permissions";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
+import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
 import { preloadAllFrames } from "@/ui/qr-builder/constants/customization/frames.ts";
+import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
 import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
 import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.tsx";
@@ -16,35 +19,29 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { Button, Filter, MaxWidthWrapper } from "@dub/ui";
 import { ShieldAlert } from "@dub/ui/icons";
 import { motion } from "framer-motion";
-import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-export default function WorkspaceQRsClient() {
-  const { data: session } = useSession();
+interface WorkspaceQRsClientProps {
+  initialQrs: QrStorageData[];
+}
 
+export default function WorkspaceQRsClient({
+  initialQrs,
+}: WorkspaceQRsClientProps) {
   if (typeof window !== "undefined") {
     preloadAllFrames();
   }
 
-  useEffect(() => {
-    if (session?.user) {
-      posthog.identify(session.user["id"], {
-        email: session.user.email,
-        name: session.user.name,
-      });
-    }
-  }, [session?.user]);
-
   return (
     <QrCodesDisplayProvider>
-      <WorkspaceQRs />
+      <WorkspaceQRs initialQrs={initialQrs} />
+      <QRPreviewModalWrapper initialQrs={initialQrs} />
     </QrCodesDisplayProvider>
   );
 }
 
-function WorkspaceQRs() {
+function WorkspaceQRs({ initialQrs }: { initialQrs: QrStorageData[] }) {
   const router = useRouter();
   const { isValidating } = useQrs({}, {}, true); // listenOnly mode
   const searchParams = useSearchParams();
@@ -114,66 +111,6 @@ function WorkspaceQRs() {
           {!isTrialOver && (
             <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
               <div className="flex w-full grow gap-2 md:w-auto">
-                {/* @USEFUL_FEATURE: links table filters */}
-                {/*<div className="grow basis-0 md:grow-0">*/}
-                {/*  <Filter.Select*/}
-                {/*    filters={filters}*/}
-                {/*    activeFilters={activeFilters}*/}
-                {/*    onSelect={onSelect}*/}
-                {/*    onRemove={onRemove}*/}
-                {/*    onSearchChange={setSearch}*/}
-                {/*    onSelectedFilterChange={setSelectedFilter}*/}
-                {/*    className="w-full"*/}
-                {/*    emptyState={{*/}
-                {/*      tagIds: (*/}
-                {/*        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">*/}
-                {/*          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">*/}
-                {/*            <Tag className="size-6 text-neutral-700" />*/}
-                {/*          </div>*/}
-                {/*          <p className="mt-2 font-medium text-neutral-950">*/}
-                {/*            No tags found*/}
-                {/*          </p>*/}
-                {/*          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">*/}
-                {/*            Add tags to organize your links*/}
-                {/*          </p>*/}
-                {/*          <div>*/}
-                {/*            <Button*/}
-                {/*              className="mt-1 h-8"*/}
-                {/*              onClick={() => setShowAddEditTagModal(true)}*/}
-                {/*              text="Add tag"*/}
-                {/*            />*/}
-                {/*          </div>*/}
-                {/*        </div>*/}
-                {/*      ),*/}
-                {/*      domain: (*/}
-                {/*        <div className="flex flex-col items-center gap-2 p-2 text-center text-sm">*/}
-                {/*          <div className="flex items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 p-3">*/}
-                {/*            <Globe className="size-6 text-neutral-700" />*/}
-                {/*          </div>*/}
-                {/*          <p className="mt-2 font-medium text-neutral-950">*/}
-                {/*            No domains found*/}
-                {/*          </p>*/}
-                {/*          <p className="mx-auto mt-1 w-full max-w-[180px] text-neutral-700">*/}
-                {/*            Add a custom domain to match your brand*/}
-                {/*          </p>*/}
-                {/*          <div>*/}
-                {/*            <Button*/}
-                {/*              className="mt-1 h-8"*/}
-                {/*              onClick={() =>*/}
-                {/*                router.push(`/${slug}/settings/domains`)*/}
-                {/*              }*/}
-                {/*              text="Add domain"*/}
-                {/*            />*/}
-                {/*          </div>*/}
-                {/*        </div>*/}
-                {/*      ),*/}
-                {/*    }}*/}
-                {/*  />*/}
-                {/*</div>*/}
-                {/* @USEFUL_FEATURE: link table display settings */}
-                {/*<div className="grow basis-0 md:grow-0">*/}
-                {/*  <LinkDisplay />*/}
-                {/*</div>*/}
                 <div className="grow basis-0 md:grow-0">
                   <QrCodeSort />
                 </div>
@@ -186,31 +123,18 @@ function WorkspaceQRs() {
                   />
                 </div>
 
-                {
-                  isLoading ? (
-                    <div className="flex grow-0 animate-pulse items-center space-x-2">
-                      <div className="h-10 w-24 rounded-md bg-neutral-200" />
-                      <div className="h-10 w-10 rounded-md bg-neutral-200" />
+                {isLoading ? (
+                  <div className="flex grow-0 animate-pulse items-center space-x-2">
+                    <div className="h-10 w-24 rounded-md bg-neutral-200" />
+                    <div className="h-10 w-10 rounded-md bg-neutral-200" />
+                  </div>
+                ) : canCreateLinks ? (
+                  <>
+                    <div className="grow-0">
+                      <CreateQRButton />
                     </div>
-                  ) : canCreateLinks ? (
-                    <>
-                      <div className="grow-0">
-                        <CreateQRButton />
-                      </div>
-                      {/* @USEFUL_FEATURE: more links next to Create QR button */}
-                      {/*<MoreLinkOptions />*/}
-                    </>
-                  ) : null
-                  // (
-                  //     <div className="w-fit">
-                  //       <RequestFolderEditAccessButton
-                  //           folderId={folderId!}
-                  //           workspaceId={workspaceId!}
-                  //           variant="primary"
-                  //       />
-                  //     </div>
-                  // )
-                }
+                  </>
+                ) : null}
               </div>
             </div>
           )}
@@ -229,8 +153,37 @@ function WorkspaceQRs() {
             canCreateLinks && !isTrialOver ? CreateQRButton : () => <></>
           }
           isTrialOver={isTrialOver}
+          initialQrs={initialQrs}
         />
       </div>
     </>
   );
+}
+
+function QRPreviewModalWrapper({
+  initialQrs,
+}: {
+  initialQrs: QrStorageData[];
+}) {
+  const searchParams = useSearchParams();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const firstQr = initialQrs?.[0];
+
+  const { qrCode: builtQrCodeObject } = useQrCustomization(firstQr);
+  const { QRPreviewModal, setShowQRPreviewModal } = useQRPreviewModal({
+    canvasRef,
+    qrCode: builtQrCodeObject,
+    width: 200,
+    height: 200,
+  });
+
+  const shouldShowWelcomeModal = searchParams.has("onboarded");
+
+  useEffect(() => {
+    setShowQRPreviewModal(
+      shouldShowWelcomeModal && !!builtQrCodeObject && !!firstQr,
+    );
+  }, [searchParams, shouldShowWelcomeModal, builtQrCodeObject, firstQr]);
+
+  return firstQr ? <QRPreviewModal /> : null;
 }

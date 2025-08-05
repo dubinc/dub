@@ -51,14 +51,15 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       const { sessionId } = await getUserCookieService();
 
       const generatedUserId = sessionId ?? createId({ prefix: "user_" });
-      console.log("CustomPrismaAdapter generatedUserId:", generatedUserId);
+
       const qrDataToCreate: NewQrProps | null = await redis.get(
         `${ERedisArg.QR_DATA_REG}:${generatedUserId}`,
       );
-      console.log("CustomPrismaAdapter qrDataRedis:", qrDataToCreate);
+
       const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
         email: data.email,
+        name: data.name,
       });
 
       if (qrDataToCreate) {
@@ -630,20 +631,30 @@ export const authOptions: NextAuthOptions = {
                 CustomerIOClient.identify(user.id, {
                   email,
                 }),
-                sendEmail({
-                  email: email,
-                  subject: "Welcome to GetQR",
-                  template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-                  messageData: {
-                    qr_name: qrDataToCreate?.title || "Untitled QR",
-                    qr_type:
-                      QR_TYPES.find(
-                        (item) => item.id === qrDataToCreate?.qrType,
-                      )!.label || "Indefined type",
-                    url: HOME_DOMAIN,
-                  },
-                  customerId: user.id,
-                }),
+                qrDataToCreate 
+                  ? sendEmail({
+                    email: email,
+                    subject: "Welcome to GetQR",
+                    template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+                    messageData: {
+                      qr_name: qrDataToCreate?.title || "Untitled QR",
+                      qr_type:
+                        QR_TYPES.find(
+                          (item) => item.id === qrDataToCreate?.qrType,
+                        )!.label || "Indefined type",
+                      url: HOME_DOMAIN,
+                    },
+                    customerId: user.id,
+                  })
+                  : sendEmail({
+                    email: email,
+                    subject: "Welcome to GetQR",
+                    template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
+                    messageData: {
+                      url: HOME_DOMAIN,
+                    },
+                    customerId: user.id,
+                  }),
               ]),
             );
           }
