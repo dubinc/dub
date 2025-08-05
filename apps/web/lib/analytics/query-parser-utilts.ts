@@ -2,34 +2,28 @@ import { analyticsQuerySchema } from "../zod/schemas/analytics";
 
 export type LogicalOperator = "AND" | "OR";
 
-export type Operator = "=" | "!=" | ">" | "<" | ">=" | "<=";
+export type Operator = "=" | "!=" | ">" | "<" | ">=" | "<=" | "in";
+
+type TBOperator =
+  | "equals"
+  | "notEquals"
+  | "greaterThan"
+  | "lessThan"
+  | "greaterThanOrEqual"
+  | "lessThanOrEqual"
+  | "in";
 
 export interface InternalFilter {
   operand: string;
-  operator:
-    | "equals"
-    | "notEquals"
-    | "greaterThan"
-    | "lessThan"
-    | "greaterThanOrEqual"
-    | "lessThanOrEqual";
+  operator: TBOperator;
   value: string;
 }
 
+// Combine up to 10 filter clauses in a query
 export const MAX_FILTERS = 10;
 
-export const allowedOperands = Object.keys(analyticsQuerySchema.shape)
-  .filter((key) => {
-    return !["tagId", "qr", "order", "query"].includes(key);
-  })
-  .concat(["metadata"]) as (keyof typeof analyticsQuerySchema.shape)[];
-
-export const allowedOperators: Record<string, Operator[]> = {
-  // TODO
-};
-
 // Parses a single condition in the format: field:value, field>value, or metadata['key']:value
-export const parseCondition = (condition: string): InternalFilter | null => {
+export const parseFilter = (condition: string): InternalFilter | null => {
   // This regex captures:
   // 1. field - either a regular field name OR metadata with bracket notation (supports both single and double quotes)
   // 2. operator - :, >, <, >=, <=, !=
@@ -60,12 +54,47 @@ export const parseCondition = (condition: string): InternalFilter | null => {
     operand = fieldOrMetadata;
   }
 
-  return {
+  const parsedFilter = {
     operand,
     operator: mapOperator(operator),
     value: value.trim().replace(/^['"`]|['"`]$/g, ""),
   };
+
+  validateFilter(parsedFilter);
+
+  return parsedFilter;
 };
+
+export const validateFilter = ({
+  operand,
+  value,
+}: Pick<InternalFilter, "operand" | "value">) => {
+  if (operand.startsWith("metadata.")) {
+    return true;
+  }
+
+  const schema =
+    analyticsQuerySchema.shape[
+      operand as keyof typeof analyticsQuerySchema.shape
+    ];
+
+  if (!schema) {
+    throw new Error(`Invalid operand ${operand}.`);
+  }
+
+  if (!schema.safeParse(value).success) {
+    throw new Error(`Invalid value ${value} for operand ${operand}.`);
+  }
+
+  return true;
+};
+
+// Supported operands for the query
+export const allowedOperands = Object.keys(analyticsQuerySchema.shape)
+  .filter((key) => {
+    return !["tagId", "qr", "order", "query"].includes(key);
+  })
+  .concat(["metadata"]) as (keyof typeof analyticsQuerySchema.shape)[];
 
 // Maps operator strings to our internal operator types
 const mapOperator = (operator: string): InternalFilter["operator"] => {
@@ -83,8 +112,48 @@ const mapOperator = (operator: string): InternalFilter["operator"] => {
       return "lessThanOrEqual";
     case "!=":
       return "notEquals";
+    case "in":
+      return "in";
     default:
       // For unsupported operators, default to equals
       return "equals";
   }
+};
+
+// Supported operators for each operand
+export const allowedOperators: Record<string, Operator[]> = {
+  event: ["="],
+  groupBy: ["="],
+  domain: ["="],
+  key: ["="],
+  linkId: ["="],
+  externalId: ["="],
+  tenantId: ["="],
+  programId: ["="],
+  partnerId: ["="],
+  customerId: ["="],
+  interval: ["="],
+  start: ["="],
+  end: ["="],
+  timezone: ["="],
+  country: ["="],
+  city: ["="],
+  region: ["="],
+  continent: ["="],
+  device: ["="],
+  browser: ["="],
+  os: ["="],
+  trigger: ["="],
+  referer: ["="],
+  refererUrl: ["="],
+  url: ["="],
+  tagIds: ["=", "in"],
+  folderId: ["="],
+  root: ["="],
+  saleType: ["="],
+  utm_source: ["="],
+  utm_medium: ["="],
+  utm_campaign: ["="],
+  utm_term: ["="],
+  utm_content: ["="],
 };

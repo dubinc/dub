@@ -3,7 +3,7 @@ import {
   InternalFilter,
   LogicalOperator,
   MAX_FILTERS,
-  parseCondition,
+  parseFilter,
 } from "./query-parser-utilts";
 
 export const queryParser = (query: string | undefined) => {
@@ -41,7 +41,7 @@ export const queryParser = (query: string | undefined) => {
       continue;
     }
 
-    const filter = parseCondition(trimmedCondition);
+    const filter = parseFilter(trimmedCondition);
 
     if (!filter) {
       continue;
