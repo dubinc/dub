@@ -69,6 +69,7 @@ model Program {
   commissions   Commission[]
   rewards       Reward[]
   discounts     Discount[]           @relation("ProgramDiscounts")
+  emails        ProgramEmail[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -122,6 +123,40 @@ model ProgramApplication {
 
   program    Program            @relation(fields: [programId], references: [id])
   enrollment ProgramEnrollment?
+
+  @@index(programId)
+}
+
+enum ProgramEmailType {
+  marketing
+  transactional
+}
+
+enum ProgramEmailStatus {
+  draft
+  active
+  paused
+  sent
+}
+
+model ProgramEmail {
+  id        String   @id @default(cuid())
+  programId String
+
+  type      ProgramEmailType @default(marketing)
+  status    ProgramEmailStatus @default(draft)
+
+  name      String
+  subject   String
+  body      String
+
+  deliverAt   DateTime?
+  deliverWhen Json?     @db.Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program Program @relation(fields: [programId], references: [id])
 
   @@index(programId)
 }
