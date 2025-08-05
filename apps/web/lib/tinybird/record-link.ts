@@ -1,6 +1,7 @@
 import z from "@/lib/zod";
 import { ExpandedLink } from "../api/links";
 import { tb } from "./client";
+import { EQRType } from '@/ui/qr-builder/constants/get-qr-config';
 
 export const dubLinksMetadataSchema = z.object({
   link_id: z.string(),
@@ -42,6 +43,14 @@ export const dubLinksMetadataSchema = z.object({
     .boolean()
     .default(false)
     .transform((v) => (v ? 1 : 0)),
+  qr_id: z
+    .string()
+    .nullish()
+    .transform((v) => (v ? v : "")),
+  qr_type: z
+    .string()
+    .nullish()
+    .transform((v) => (v ? v : "")),
 });
 
 export const recordLinkTB = tb.buildIngestEndpoint({
@@ -50,7 +59,10 @@ export const recordLinkTB = tb.buildIngestEndpoint({
   wait: true,
 });
 
-export const transformLinkTB = (link: ExpandedLink) => {
+export const transformLinkTB = (
+  link: ExpandedLink,
+  qrData?: { id?: string; qrType?: EQRType }
+) => {
   return {
     link_id: link.id,
     domain: link.domain,
@@ -63,13 +75,18 @@ export const transformLinkTB = (link: ExpandedLink) => {
     partner_id: link.partnerId ?? "",
     workspace_id: link.projectId,
     created_at: link.createdAt,
+    qr_id: qrData?.id || "",
+    qr_type: qrData?.qrType || "",
   };
 };
 
-export const recordLink = async (payload: ExpandedLink | ExpandedLink[]) => {
+export const recordLink = async (
+  payload: ExpandedLink | ExpandedLink[],
+  qrData?: { id?: string; qrType?: EQRType }
+) => {
   if (Array.isArray(payload)) {
-    return await recordLinkTB(payload.map(transformLinkTB));
+    return await recordLinkTB(payload.map((link) => transformLinkTB(link, qrData)));
   } else {
-    return await recordLinkTB(transformLinkTB(payload));
+    return await recordLinkTB(transformLinkTB(payload, qrData));
   }
 };

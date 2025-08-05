@@ -191,6 +191,7 @@ export const VALID_ANALYTICS_FILTERS = [
   // "utm_campaign",
   // "utm_term",
   // "utm_content",
+  "qrType",
 ];
 
 export const TRIGGER_DISPLAY = {

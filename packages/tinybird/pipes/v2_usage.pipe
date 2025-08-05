@@ -46,6 +46,7 @@ SQL >
                 required=True,
             )
         }}
+        {% if defined(qrType) %} AND qr_type = {{ qrType }} {% end %}
 
 
 

@@ -81,6 +81,8 @@ import DeviceIcon from "./device-icon";
 import EventsOptions from "./events/events-options";
 import RefererIcon from "./referer-icon";
 import { useAnalyticsFilterOption } from "./utils";
+import { Icon } from "@iconify/react";
+import { QR_TYPES } from '../qr-builder/constants/get-qr-config';
 
 export default function Toggle({
   page = "analytics",
@@ -422,23 +424,41 @@ export default function Toggle({
                 ) ?? null,
             },
             {
-              key: "root",
+              key: "qrType",
               icon: Sliders,
-              label: "Link type",
-              options: [
-                {
-                  value: true,
-                  icon: Globe2,
-                  label: "Root domain link",
-                },
-                {
-                  value: false,
-                  icon: Hyperlink,
-                  label: "Regular short link",
-                },
-              ],
+              label: "QR type",
+              options: QR_TYPES.map((type) => ({
+                value: type.id,
+                icon: () => (
+                  <Icon
+                    icon={type.icon}
+                    className={cn(
+                      "h-4 w-4",
+                    )}
+                  />
+                ),
+                label: type.label,
+              })),
               separatorAfter: !dashboardProps,
             },
+            // {
+            //   key: "root",
+            //   icon: Sliders,
+            //   label: "Link type",
+            //   options: [
+            //     {
+            //       value: true,
+            //       icon: Globe2,
+            //       label: "Root domain link",
+            //     },
+            //     {
+            //       value: false,
+            //       icon: Hyperlink,
+            //       label: "Regular short link",
+            //     },
+            //   ],
+            //   separatorAfter: !dashboardProps,
+            // },
           ]),
       // {
       //   key: "trigger",
@@ -657,6 +677,8 @@ export default function Toggle({
       searchParamsObj.domain,
     ],
   );
+  console.log('filters', filters);
+  console.log('activeFilters', activeFilters);
 
   const { isMobile } = useMediaQuery();
 

@@ -106,7 +106,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     region,
   });
 
-  console.log('groupBy', groupBy);
   if (groupBy === "count") {
     // Return the count value for deprecated endpoints
     if (isDeprecatedClicksEndpoint) {
@@ -143,7 +142,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         },
       },
     });
-    console.log('links', links);
 
     return topLinksData
       .map((topLink) => {
