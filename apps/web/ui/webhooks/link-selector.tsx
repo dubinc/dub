@@ -7,6 +7,8 @@ import { cn, getApexDomain, linkConstructor, truncate } from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
+const MAX_DISPLAYED_LINKS = 10;
+
 const getLinkOption = (link: LinkProps) => ({
   value: link.id,
   label: linkConstructor({ ...link, pretty: true }),
@@ -62,6 +64,12 @@ export function LinksSelector({
     [selectedLinkIds, links, selectedLinks],
   );
 
+  const plusCount =
+    selectedLinkIds.length > selectedOptions.length
+      ? selectedLinkIds.length -
+        Math.min(selectedOptions.length, MAX_DISPLAYED_LINKS)
+      : Math.max(0, selectedOptions.length - MAX_DISPLAYED_LINKS);
+
   return (
     <Combobox
       multiple
@@ -70,9 +78,13 @@ export function LinksSelector({
       side="top" // Since this control is near the bottom of the page, prefer top to avoid jumping
       options={options}
       selected={selectedOptions ?? []}
-      setSelected={(selected) => {
-        setSelectedLinkIds(selected.map(({ value: id }) => id));
-      }}
+      onSelect={({ value: id }) =>
+        setSelectedLinkIds(
+          selectedLinkIds.includes(id)
+            ? selectedLinkIds.filter((sid) => sid !== id)
+            : [...selectedLinkIds, id],
+        )
+      }
       shouldFilter={false}
       onSearchChange={setSearch}
       buttonProps={{
@@ -86,7 +98,7 @@ export function LinksSelector({
         <div className="py-0.5">Select links...</div>
       ) : selectedLinks && selectedOptions ? (
         <div className="flex flex-wrap gap-2">
-          {selectedOptions.slice(0, 10).map((option) => (
+          {selectedOptions.slice(0, MAX_DISPLAYED_LINKS).map((option) => (
             <span
               key={option.value}
               className="animate-fade-in flex min-w-0 items-center gap-1 rounded-md bg-neutral-100 px-1.5 py-1 text-xs text-neutral-600"
@@ -100,6 +112,11 @@ export function LinksSelector({
               </span>
             </span>
           ))}
+          {plusCount > 0 && (
+            <span className="animate-fade-in flex rounded-md bg-neutral-100 px-1.5 py-1 text-xs font-medium text-neutral-600">
+              + {plusCount} more
+            </span>
+          )}
         </div>
       ) : (
         <div className="my-0.5 h-5 w-1/3 animate-pulse rounded bg-neutral-200" />
