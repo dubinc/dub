@@ -1,12 +1,12 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { ProgramCommunication } from "./page-client";
+import { ProgramEmailsPageClient } from "./page-client";
 
-export default function ProgramSettingsCommunicationPage() {
+export default function ProgramEmailsPage() {
   return (
-    <PageContent title="Help & Support">
+    <PageContent title="Email campaigns">
       <PageWidthWrapper className="mb-8">
-        <ProgramCommunication />
+        <ProgramEmailsPageClient />
       </PageWidthWrapper>
     </PageContent>
   );

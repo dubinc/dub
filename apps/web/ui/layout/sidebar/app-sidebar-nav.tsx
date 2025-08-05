@@ -18,6 +18,7 @@ import {
   Globe,
   InvoiceDollar,
   Key,
+  LifeRing,
   LinesY as LinesYStatic,
   MoneyBills2,
   PaperPlane,
@@ -244,6 +245,23 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         ],
       },
       {
+        name: "Communication",
+        items: [
+          {
+            name: "Email Campaigns",
+            icon: PaperPlane,
+            href: `/${slug}/program/communication/emails`,
+            badge: "New",
+          },
+          {
+            name: "Help & Support",
+            icon: LifeRing,
+            href: `/${slug}/program/communication`,
+            exact: true,
+          },
+        ],
+      },
+      {
         name: "Configuration",
         items: [
           {
@@ -265,11 +283,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Link Settings",
             icon: Sliders,
             href: `/${slug}/program/link-settings`,
-          },
-          {
-            name: "Communication",
-            icon: PaperPlane,
-            href: `/${slug}/program/communication`,
           },
         ],
       },
