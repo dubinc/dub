@@ -4,7 +4,7 @@ import { ProgramCommunication } from "./page-client";
 
 export default function ProgramSettingsCommunicationPage() {
   return (
-    <PageContent title="Help & Support">
+    <PageContent title="Help and support">
       <PageWidthWrapper className="mb-8">
         <ProgramCommunication />
       </PageWidthWrapper>
