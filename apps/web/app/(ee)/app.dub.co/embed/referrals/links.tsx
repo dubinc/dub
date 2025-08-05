@@ -1,3 +1,4 @@
+import { Program } from "@prisma/client";
 import { useState } from "react";
 import { ReferralsEmbedCreateUpdateLink } from "./add-edit-link";
 import { ReferralsEmbedLinksList } from "./links-list";
@@ -5,15 +6,13 @@ import { ReferralsEmbedLink } from "./types";
 
 interface Props {
   links: ReferralsEmbedLink[];
-  destinationDomain: string;
-  shortLinkDomain: string;
+  program: Pick<
+    Program,
+    "domain" | "url" | "urlValidationMode" | "maxPartnerLinks"
+  >;
 }
 
-export default function ReferralsEmbedLinks({
-  links,
-  destinationDomain,
-  shortLinkDomain,
-}: Props) {
+export default function ReferralsEmbedLinks({ links, program }: Props) {
   const [createLink, setCreateLink] = useState(false);
   const [link, setLink] = useState<ReferralsEmbedLink | null>(null);
 
@@ -21,8 +20,7 @@ export default function ReferralsEmbedLinks({
     <div className="flex flex-col space-y-6">
       {createLink ? (
         <ReferralsEmbedCreateUpdateLink
-          destinationDomain={destinationDomain}
-          shortLinkDomain={shortLinkDomain}
+          program={program}
           link={link}
           onCancel={() => {
             setCreateLink(false);
@@ -32,6 +30,7 @@ export default function ReferralsEmbedLinks({
       ) : (
         <ReferralsEmbedLinksList
           links={links}
+          program={program}
           onCreateLink={() => setCreateLink(true)}
           onEditLink={(link) => {
             setLink(link);

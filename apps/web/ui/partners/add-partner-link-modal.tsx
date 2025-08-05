@@ -46,6 +46,7 @@ const AddPartnerLinkModal = ({
       key: "",
     },
   });
+  const isExactMode = program?.urlValidationMode === "exact";
 
   const key = watch("key");
   const destinationDomain = getDomainWithoutWWW(program?.url || "");
@@ -69,10 +70,12 @@ const AddPartnerLinkModal = ({
           partnerId: partner.id,
           programId: program.id,
           domain: program.domain,
-          url: linkConstructor({
-            domain: destinationDomain,
-            key: formData.url,
-          }),
+          url: isExactMode
+            ? program.url
+            : linkConstructor({
+                domain: destinationDomain,
+                key: formData.url,
+              }),
           trackConversion: true,
           folderId: program.defaultFolderId,
         }),
@@ -164,52 +167,54 @@ const AddPartnerLinkModal = ({
               )}
             </div>
 
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="url"
-                  className="block text-sm font-medium text-neutral-700"
-                >
-                  Destination URL
-                </label>
+            {!isExactMode && (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="url"
+                    className="block text-sm font-medium text-neutral-700"
+                  >
+                    Destination URL
+                  </label>
 
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="The URL your users will get redirected to when they visit your short link."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/how-to-create-link"
-                    />
-                  }
-                />
-              </div>
-
-              <div className="flex">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                  {destinationDomain}
-                </span>
-
-                <input
-                  {...register("url", { required: false })}
-                  type="text"
-                  id="url"
-                  placeholder="(optional)"
-                  className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
-                    e.preventDefault();
-
-                    const text = e.clipboardData.getData("text/plain");
-
-                    try {
-                      const url = new URL(text);
-                      e.currentTarget.value = url.pathname.slice(1);
-                    } catch (err) {
-                      e.currentTarget.value = text;
+                  <InfoTooltip
+                    content={
+                      <SimpleTooltipContent
+                        title="The URL your users will get redirected to when they visit your short link."
+                        cta="Learn more."
+                        href="https://dub.co/help/article/how-to-create-link"
+                      />
                     }
-                  }}
-                />
+                  />
+                </div>
+
+                <div className="flex">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                    {destinationDomain}
+                  </span>
+
+                  <input
+                    {...register("url", { required: false })}
+                    type="text"
+                    id="url"
+                    placeholder="(optional)"
+                    className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                    onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+                      e.preventDefault();
+
+                      const text = e.clipboardData.getData("text/plain");
+
+                      try {
+                        const url = new URL(text);
+                        e.currentTarget.value = url.pathname.slice(1);
+                      } catch (err) {
+                        e.currentTarget.value = text;
+                      }
+                    }}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

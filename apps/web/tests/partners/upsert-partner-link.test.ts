@@ -1,4 +1,5 @@
 import { Link } from "@dub/prisma/client";
+import { nanoid } from "@dub/utils";
 import { randomId } from "tests/utils/helpers";
 import { afterAll, describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
@@ -15,7 +16,7 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     await h.deleteLink(createdLink.id);
   });
 
-  const url = `${E2E_PROGRAM.url}/${randomId()}`;
+  const randomUrl = `${E2E_PROGRAM.url}/${nanoid()}`;
 
   test("New link", async () => {
     const { data, status } = await http.put<Link>({
@@ -23,7 +24,7 @@ describe.sequential("PUT /partners/links/upsert", async () => {
       body: {
         programId: E2E_PROGRAM.id,
         partnerId: E2E_PARTNER.id,
-        url,
+        url: randomUrl,
       },
     });
 
@@ -32,7 +33,7 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     expect(status).toEqual(200);
     expect(createdLink).toStrictEqual({
       ...partnerLink,
-      url,
+      url: randomUrl,
     });
   });
 
@@ -44,7 +45,7 @@ describe.sequential("PUT /partners/links/upsert", async () => {
       body: {
         programId: E2E_PROGRAM.id,
         partnerId: E2E_PARTNER.id,
-        url,
+        url: randomUrl,
         key,
       },
     });
