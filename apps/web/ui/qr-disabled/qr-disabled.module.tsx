@@ -1,5 +1,3 @@
-"use client";
-
 import { Flex, Heading, Text } from "@radix-ui/themes";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,18 +48,19 @@ export const QrDisabledModule: FC = () => {
               size="4"
               className="text-neutral text-center leading-[120%] tracking-[0.02em]"
             >
-              This QR code has been temporarily disabled
+              This QR code is temporarily deactivated.
             </Heading>
 
             <Flex direction="column" align="center">
               <Text as="p" size="2" className="text-neutral-800">
                 Are you the owner?
               </Text>
-              <Text as="span" size="2" className="text-neutral-800">
+              <Text as="span" size="2" className="text-center text-neutral-800">
+                Please{" "}
                 <Link href="/login" className="text-secondary">
                   Log in
                 </Link>{" "}
-                to activate it again
+                to renew your subscription or reactivate your QR code.
               </Text>
             </Flex>
           </Flex>
