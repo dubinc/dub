@@ -51,14 +51,15 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
       const { sessionId } = await getUserCookieService();
 
       const generatedUserId = sessionId ?? createId({ prefix: "user_" });
-      console.log("CustomPrismaAdapter generatedUserId:", generatedUserId);
+
       const qrDataToCreate: NewQrProps | null = await redis.get(
         `${ERedisArg.QR_DATA_REG}:${generatedUserId}`,
       );
-      console.log("CustomPrismaAdapter qrDataRedis:", qrDataToCreate);
+
       const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
         email: data.email,
+        name: data.name,
       });
 
       if (qrDataToCreate) {

@@ -8,7 +8,6 @@ import {
   Books2,
   CircleInfo,
   ConnectedDots,
-  ConnectedDots4,
   CubeSettings,
   Gear2,
   Globe,
@@ -43,9 +42,7 @@ const NAV_AREAS: SidebarNavAreas<{
     slug,
     pathname,
     queryString,
-    programs,
     showNews,
-    session,
     setShowTrialExpiredModal,
     isTrialOver,
   }) => ({
@@ -55,27 +52,6 @@ const NAV_AREAS: SidebarNavAreas<{
     content: [
       {
         items: [
-          // {
-          //   name: "Links",
-          //   icon: Hyperlink,
-          //   href: `/${slug}${pathname === `/${slug}` ? "" : queryString}`,
-          //   exact: true,
-          // },
-          // {
-          //   name: "Analytics",
-          //   icon: LinesY,
-          //   href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
-          // },
-          // {
-          //   name: "Events",
-          //   icon: CursorRays,
-          //   href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
-          // },
-          // {
-          //   name: "Settings",
-          //   icon: Gear,
-          //   href: `/${slug}/settings`,
-          // },
           {
             name: "My QR Codes",
             icon: () => <Icon icon="mage:qr-code" className="h-5 w-5" />,
@@ -95,75 +71,8 @@ const NAV_AREAS: SidebarNavAreas<{
                 }
               : undefined,
           },
-          // {
-          //   name: "Plans and Payments",
-          //   icon: () => <Icon icon="ion:card-outline" className="h-5 w-5" />,
-          //   href: `/${slug}/plans`, // Link to plans page
-          // },
-          // {
-          //   name: "Account",
-          //   icon: () => (
-          //     <Icon
-          //       className="h-5 w-5 text-neutral-200"
-          //       icon="iconoir:profile-circle"
-          //     />
-          //   ),
-          //   // href: "/account/settings",
-          //   href: `/${slug}/settings`,
-          // },
-          // {
-          //   name: "FAQ",
-          //   icon: () => (
-          //     <Icon
-          //       className="h-5 w-5 text-neutral-200"
-          //       icon="iconoir:question-mark-circle"
-          //     />
-          //   ),
-          //   href: "/faq", // @TODO: Add FAQ page
-          // },
         ],
       },
-      ...(programs?.length
-        ? [
-            {
-              name: "Programs",
-              items: [
-                {
-                  name: "Affiliate",
-                  icon: ConnectedDots4,
-                  href: `/${slug}/programs/${programs[0].id}`,
-                  items: [
-                    {
-                      name: "Overview",
-                      href: `/${slug}/programs/${programs[0].id}`,
-                      exact: true,
-                    },
-                    {
-                      name: "Partners",
-                      href: `/${slug}/programs/${programs[0].id}/partners`,
-                    },
-                    {
-                      name: "Sales",
-                      href: `/${slug}/programs/${programs[0].id}/sales`,
-                    },
-                    {
-                      name: "Payouts",
-                      href: `/${slug}/programs/${programs[0].id}/payouts`,
-                    },
-                    {
-                      name: "Resources",
-                      href: `/${slug}/programs/${programs[0].id}/resources`,
-                    },
-                    {
-                      name: "Configuration",
-                      href: `/${slug}/programs/${programs[0].id}/settings`,
-                    },
-                  ],
-                },
-              ],
-            },
-          ]
-        : []),
     ],
   }),
 
@@ -291,11 +200,6 @@ const NAV_AREAS: SidebarNavAreas<{
             },
             exact: true,
           },
-          // {
-          //   name: "Security",
-          //   icon: ShieldCheck,
-          //   href: "/account/settings/security",
-          // },
         ],
       },
     ],
@@ -349,18 +253,6 @@ export function AppSidebarNav({
         toolContent={toolContent}
         newsContent={newsContent}
         switcher={<WorkspaceDropdown />}
-        // bottom={
-        //   <div className="p-3">
-        //     <Link
-        //       className="text-content-inverted hover:bg-inverted hover:ring-border-subtle bordbg-secondary bg-secondary flex h-9 items-center justify-center rounded-md border px-4 text-sm text-white transition-all hover:ring-4 dark:border-white dark:bg-white"
-        //       href={"/upgrade"} // @TODO: Add upgrade page
-        //     >
-        //       Upgrade
-        //     </Link>
-        //     {/*<UserSurveyButton />*/}
-        //     {/*<Usage />*/}
-        //   </div>
-        // }
       />
     </>
   );
