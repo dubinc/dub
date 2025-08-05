@@ -2,7 +2,6 @@
 
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import useWorkspaces from "@/lib/swr/use-workspaces";
 import { SimpleLinkProps } from "@/lib/types";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
@@ -13,7 +12,6 @@ import { useImportCsvModal } from "@/ui/modals/import-csv-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useCookies } from "@dub/ui";
 import { DEFAULT_LINK_PROPS, getUrlFromString } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -166,29 +164,6 @@ function ModalProviderClient({
       setShowLinkBuilder(true);
     }
   }, []);
-
-  const { data: session, update } = useSession();
-  const { workspaces } = useWorkspaces();
-
-  // if user has workspaces but no defaultWorkspace, refresh to get defaultWorkspace
-  useEffect(() => {
-    if (
-      workspaces &&
-      workspaces.length > 0 &&
-      session?.user &&
-      !session.user["defaultWorkspace"]
-    ) {
-      fetch("/api/user", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          defaultWorkspace: workspaces[0].slug,
-        }),
-      }).then(() => update());
-    }
-  }, [session]);
 
   useEffect(() => {
     const authType = searchParams.get("auth");
