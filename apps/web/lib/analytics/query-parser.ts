@@ -28,7 +28,7 @@ interface InternalFilter {
 }
 
 // Query parser that can parse the query string into a list of filters
-export const queryParser = (query: string) => {
+export const queryParser = (query: string | undefined) => {
   if (!query) {
     return undefined;
   }
