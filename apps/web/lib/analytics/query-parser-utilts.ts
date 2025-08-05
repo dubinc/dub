@@ -2,8 +2,6 @@ import { analyticsQuerySchema } from "../zod/schemas/analytics";
 
 export type LogicalOperator = "AND" | "OR";
 
-export type Operator = "=" | "!=" | ">" | "<" | ">=" | "<=" | "in";
-
 type Operand = keyof typeof analyticsQuerySchema.shape;
 
 type TBOperator =
