@@ -70,9 +70,14 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const shouldDeleteFolders =
     newPlanName === "free" && workspace.foldersUsage > 0;
 
-  // If a workspace upgrades/downgrades their subscription and it's not a legacy plan
+  // If a workspace upgrades/downgrades their subscription
+  // or if the payouts limit changes and the new plan is not a legacy plan
   // update their usage limit in the database
-  if (workspace.plan !== newPlanName && !LEGACY_PRICE_IDS.includes(priceId)) {
+  if (
+    workspace.plan !== newPlanName ||
+    (workspace.payoutsLimit !== plan.limits.payouts &&
+      !LEGACY_PRICE_IDS.includes(priceId))
+  ) {
     await Promise.allSettled([
       prisma.project.update({
         where: {
