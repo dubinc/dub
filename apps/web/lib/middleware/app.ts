@@ -3,11 +3,9 @@ import { UserProps } from "@/lib/types.ts";
 import { userSessionIdInit } from "core/services/cookie/user-session-id-init.service.ts";
 import { NextRequest, NextResponse } from "next/server";
 // import EmbedMiddleware from "./embed";
+import { isTopLevelSettingsRedirect } from "@/lib/middleware/utils/is-top-level-settings-redirect.ts";
+import WorkspacesMiddleware from "@/lib/middleware/workspaces.ts";
 import { appRedirect } from "./utils/app-redirect";
-import { getDefaultWorkspace } from "./utils/get-default-workspace";
-import { getOnboardingStep } from "./utils/get-onboarding-step";
-import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
-import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(
   req: NextRequest,
@@ -70,34 +68,35 @@ export default async function AppMiddleware(
     //     - The user has not completed the onboarding step
     //   */
     // } else if (
+    // if (
+    //   new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
+    //   !isWorkspaceInvite &&
+    //   !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
+    //   !(await getDefaultWorkspace(user)) &&
+    //   (await getOnboardingStep(user)) !== "completed"
+    // ) {
+    //   let step = await getOnboardingStep(user);
+    //   if (!step) {
+    //     return NextResponse.redirect(new URL("/onboarding", req.url));
+    //   } else if (step === "completed") {
+    //     return WorkspacesMiddleware(req, user);
+    //   }
+    //
+    //   const defaultWorkspace = await getDefaultWorkspace(user);
+    //
+    //   if (defaultWorkspace) {
+    //     // Skip workspace step if user already has a workspace
+    //     step = step === "workspace" ? "link" : step;
+    //     return NextResponse.redirect(
+    //       new URL(`/onboarding/${step}?workspace=${defaultWorkspace}`, req.url),
+    //     );
+    //   } else {
+    //     return NextResponse.redirect(new URL("/onboarding", req.url));
+    //   }
+    //
+    //   // if the path is / or /login or /register, redirect to the default workspace
+    // } else
     if (
-      new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
-      !isWorkspaceInvite &&
-      !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
-      !(await getDefaultWorkspace(user)) &&
-      (await getOnboardingStep(user)) !== "completed"
-    ) {
-      let step = await getOnboardingStep(user);
-      if (!step) {
-        return NextResponse.redirect(new URL("/onboarding", req.url));
-      } else if (step === "completed") {
-        return WorkspacesMiddleware(req, user);
-      }
-
-      const defaultWorkspace = await getDefaultWorkspace(user);
-
-      if (defaultWorkspace) {
-        // Skip workspace step if user already has a workspace
-        step = step === "workspace" ? "link" : step;
-        return NextResponse.redirect(
-          new URL(`/onboarding/${step}?workspace=${defaultWorkspace}`, req.url),
-        );
-      } else {
-        return NextResponse.redirect(new URL("/onboarding", req.url));
-      }
-
-      // if the path is / or /login or /register, redirect to the default workspace
-    } else if (
       [
         "/",
         "/login",
