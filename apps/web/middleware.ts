@@ -14,6 +14,7 @@ import {
   PUBLIC_ROUTES,
 } from "./app/[domain]/(public)/constants/types.ts";
 import { userSessionIdInit } from "./core/services/cookie/user-session-id-init.service.ts";
+import {DEFAULT_REDIRECTS} from "@dub/utils/src";
 
 export const config = {
   matcher: [
