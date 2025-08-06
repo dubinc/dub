@@ -10,12 +10,18 @@ import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { storage } from "@/lib/storage";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const extendedUpdateDomainBodySchema = updateDomainBodySchema.extend({
+  autoRenew: z.boolean().nullish(),
+});
 
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
@@ -56,7 +62,10 @@ export const PATCH = withWorkspace(
       archived,
       assetLinks,
       appleAppSiteAssociation,
-    } = await updateDomainBodySchema.parseAsync(await parseRequestBody(req));
+      autoRenew,
+    } = await extendedUpdateDomainBodySchema.parseAsync(
+      await parseRequestBody(req),
+    );
 
     if (workspace.plan === "free") {
       if (
@@ -93,6 +102,7 @@ export const PATCH = withWorkspace(
           message: "You cannot update a Dub-provisioned domain.",
         });
       }
+
       const validDomain = await validateDomain(newDomain);
       if (validDomain.error && validDomain.code) {
         throw new DubApiError({
@@ -100,6 +110,7 @@ export const PATCH = withWorkspace(
           message: validDomain.error,
         });
       }
+
       const vercelResponse = await addDomainToVercel(newDomain);
       if (vercelResponse.error) {
         throw new DubApiError({
@@ -136,6 +147,33 @@ export const PATCH = withWorkspace(
         registeredDomain: true,
       },
     });
+
+    // Sync the autoRenew setting with the registered domain
+    if (registeredDomain && autoRenew !== undefined) {
+      const { autoRenewalDisabledAt } = registeredDomain;
+
+      const shouldUpdate =
+        (autoRenew === false && autoRenewalDisabledAt === null) ||
+        (autoRenew === true && autoRenewalDisabledAt !== null);
+
+      if (shouldUpdate) {
+        await prisma.registeredDomain.update({
+          where: {
+            domainId: domainId,
+          },
+          data: {
+            autoRenewalDisabledAt: autoRenew ? null : new Date(),
+          },
+        });
+
+        waitUntil(
+          setRenewOption({
+            domain,
+            autoRenew,
+          }),
+        );
+      }
+    }
 
     waitUntil(
       (async () => {

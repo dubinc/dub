@@ -42,9 +42,18 @@ export const GET = withAdmin(async ({ searchParams }) => {
   // Fetch invoices
   const invoices = await prisma.invoice.findMany({
     where: {
-      programId: {
-        not: ACME_PROGRAM_ID,
-      },
+      AND: [
+        {
+          programId: {
+            not: ACME_PROGRAM_ID,
+          },
+        },
+        {
+          program: {
+            isNot: null,
+          },
+        },
+      ],
       status: {
         not: "failed",
       },
@@ -90,8 +99,9 @@ export const GET = withAdmin(async ({ searchParams }) => {
 
   const formattedInvoices = invoices.map((invoice) => ({
     date: invoice.createdAt,
-    programName: invoice.program.name,
-    programLogo: invoice.program.logo,
+    // we're coercing this cause we've filtered out invoices without a programId above
+    programName: invoice.program!.name,
+    programLogo: invoice.program!.logo,
     status: invoice.status,
     amount: invoice.amount,
     fee: invoice.fee,
