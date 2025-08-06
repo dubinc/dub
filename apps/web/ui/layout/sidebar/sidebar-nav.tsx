@@ -6,6 +6,7 @@ import { AnimatedSizeContainer, ClientOnly, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { trackClientEvents } from "core/integration/analytic/services/analytic.service.ts";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -17,9 +18,6 @@ import {
   useState,
 } from "react";
 import UserDropdown from "./user-dropdown";
-
-// Import framer-motion normally - dynamic import causes type issues
-import { AnimatePresence, motion } from "framer-motion";
 
 export type NavItemCommon = {
   name: string;
