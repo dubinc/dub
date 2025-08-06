@@ -1,11 +1,6 @@
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
-import {
-  currencyFormatter,
-  DUB_WORDMARK,
-  EU_COUNTRY_CODES,
-  formatDate,
-} from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK, formatDate } from "@dub/utils";
 import { Invoice, Project } from "@prisma/client";
 import {
   Document,
@@ -75,30 +70,6 @@ export async function DomainRenewalInvoice({
       }),
     },
   ];
-
-  const EU_CUSTOMER =
-    customer?.address?.country &&
-    EU_COUNTRY_CODES.includes(customer.address.country);
-  const AU_CUSTOMER =
-    customer?.address?.country && customer.address.country === "AU";
-
-  const { amount: chargeAmount, currency: chargeCurrency } =
-    invoice.stripeChargeMetadata
-      ? (invoice.stripeChargeMetadata as unknown as Stripe.Charge)
-      : { amount: undefined, currency: undefined };
-
-  const nonUsdTransactionDisplay =
-    chargeAmount && chargeCurrency && chargeCurrency !== "usd"
-      ? ` (${currencyFormatter(
-          chargeAmount / 100,
-          {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-          chargeCurrency.toUpperCase(),
-        )})`
-      : "";
-
   const invoiceSummaryDetails = [
     {
       label: "Invoice amount",
@@ -116,20 +87,11 @@ export async function DomainRenewalInvoice({
     },
     {
       label: "Invoice total",
-      value: `${currencyFormatter(invoice.total / 100, {
+      value: currencyFormatter(invoice.total / 100, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-      })}${nonUsdTransactionDisplay}`,
+      }),
     },
-    // if customer is in EU or AU, add VAT/GST reverse charge note
-    ...(EU_CUSTOMER || AU_CUSTOMER
-      ? [
-          {
-            label: `${AU_CUSTOMER ? "GST" : "VAT"} reverse charge`,
-            value: "Tax to be paid on reverse charge basis.",
-          },
-        ]
-      : []),
   ];
 
   // Get the first tax ID if available
