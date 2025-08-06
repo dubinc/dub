@@ -1,13 +1,14 @@
 import { prisma } from "@dub/prisma";
 import { Partner, Program, Reward } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
+import { logImportError } from "../tinybird/log-import-error";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
 import { ToltAffiliate, ToltImportPayload } from "./types";
 
 export async function importPartners(payload: ToltImportPayload) {
-  let { programId, toltProgramId, startingAfter } = payload;
+  let { importId, programId, toltProgramId, startingAfter } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -34,6 +35,12 @@ export async function importPartners(payload: ToltImportPayload) {
   const clickReward = program.rewards.find((r) => r.event === "click");
   const defaultReward = saleReward || leadReward || clickReward;
 
+  const commonImportLogInputs = {
+    workspace_id: program.workspaceId,
+    import_id: importId,
+    source: "tolt",
+  } as const;
+
   while (hasMore && processedBatches < MAX_BATCHES) {
     const affiliates = await toltApi.listPartners({
       programId: toltProgramId,
@@ -45,9 +52,16 @@ export async function importPartners(payload: ToltImportPayload) {
       break;
     }
 
-    const activeAffiliates = affiliates.filter(
-      ({ status }) => status === "active",
-    );
+    const activeAffiliates: typeof affiliates = [];
+    const notImportedAffiliates: typeof affiliates = [];
+
+    for (const affiliate of affiliates) {
+      if (affiliate.status === "active") {
+        activeAffiliates.push(affiliate);
+      } else {
+        notImportedAffiliates.push(affiliate);
+      }
+    }
 
     if (activeAffiliates.length > 0) {
       const partnersPromise = await Promise.allSettled(
@@ -72,6 +86,18 @@ export async function importPartners(payload: ToltImportPayload) {
           partnerIds: partners.map((p) => p.id),
         });
       }
+    }
+
+    if (notImportedAffiliates.length > 0) {
+      await logImportError(
+        notImportedAffiliates.map((affiliate) => ({
+          ...commonImportLogInputs,
+          entity: "partner",
+          entity_id: affiliate.id,
+          code: "INACTIVE_PARTNER",
+          message: `Partner ${affiliate.email} not imported because it is not active.`,
+        })),
+      );
     }
 
     await new Promise((resolve) => setTimeout(resolve, 2000));

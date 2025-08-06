@@ -14,7 +14,7 @@ import { Button, CardList, useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
 import { useParams } from "next/navigation";
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
 
 const PartnerLinksContext = createContext<{
@@ -50,16 +50,6 @@ export function ProgramLinksPageClient() {
     interval?: IntervalOptions;
   };
 
-  // Get first link sorted by createdAt
-  const defaultLinkId = useMemo(
-    () =>
-      links?.sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      )[0]?.id,
-    [links],
-  );
-
   useKeyboardShortcut("c", () => setShowPartnerLinkModal(true));
 
   return (
@@ -71,20 +61,22 @@ export function ProgramLinksPageClient() {
           align="start"
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
-        {!["framer"].includes(programSlug) && (
-          <Button
-            text="Create Link"
-            className="w-fit"
-            shortcut="C"
-            onClick={() => setShowPartnerLinkModal(true)}
-            disabled={programEnrollment?.status === "banned"}
-            disabledTooltip={
-              programEnrollment?.status === "banned"
-                ? "You are banned from this program."
-                : undefined
-            }
-          />
-        )}
+        {links &&
+          links.length <
+            (programEnrollment?.program?.maxPartnerLinks ?? 10) && (
+            <Button
+              text="Create Link"
+              className="w-fit"
+              shortcut="C"
+              onClick={() => setShowPartnerLinkModal(true)}
+              disabled={programEnrollment?.status === "banned"}
+              disabledTooltip={
+                programEnrollment?.status === "banned"
+                  ? "You are banned from this program."
+                  : undefined
+              }
+            />
+          )}
       </div>
       <PartnerLinksContext.Provider
         value={{

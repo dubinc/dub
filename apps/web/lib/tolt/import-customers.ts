@@ -3,13 +3,14 @@ import { nanoid } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
+import { logImportError } from "../tinybird/log-import-error";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
 import { ToltAffiliate, ToltCustomer, ToltImportPayload } from "./types";
 
 export async function importCustomers(payload: ToltImportPayload) {
-  let { programId, toltProgramId, startingAfter } = payload;
+  let { importId, programId, toltProgramId, startingAfter } = payload;
 
   const { workspace } = await prisma.program.findUniqueOrThrow({
     where: {
@@ -94,6 +95,7 @@ export async function importCustomers(payload: ToltImportPayload) {
           customer,
           partner,
           links: partnerEmailToLinks.get(partner.email) ?? [],
+          importId,
         }),
       ),
     );
@@ -117,17 +119,29 @@ async function createReferral({
   workspace,
   links,
   partner,
+  importId,
 }: {
   customer: Omit<ToltCustomer, "partner">;
   partner: ToltAffiliate;
   workspace: Pick<Project, "id" | "stripeConnectId">;
   links: Pick<Link, "id" | "key" | "domain" | "url">[];
+  importId: string;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: workspace.id,
+    import_id: importId,
+    source: "tolt",
+    entity: "customer",
+    entity_id: customer.customer_id,
+  } as const;
+
   if (links.length === 0) {
-    console.log("Link not found for referral, skipping...", {
-      customerEmail: customer.email,
-      partnerEmail: partner.email,
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `Link not found for customer ${customer.customer_id}`,
     });
+
     return;
   }
 

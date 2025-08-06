@@ -144,13 +144,15 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                   </span>
                   {link.comments && <CommentsBadge comments={link.comments} />}
                 </div>
-                <div className="group/desturl flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
+                {/* The max width implementation here is a bit hacky, we should improve in the future */}
+                <div className="group/desturl flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100 sm:w-fit sm:max-w-[400px]">
                   <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
                   <a
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="truncate text-sm text-neutral-500 transition-colors hover:text-neutral-700"
+                    title={getPrettyUrl(link.url)}
                   >
                     {getPrettyUrl(link.url)}
                   </a>

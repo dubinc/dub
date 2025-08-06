@@ -76,12 +76,10 @@ export function PartnerLinkModal({
 }
 
 function QRCodePreview({
-  programId,
   shortLink,
   shortLinkDomain,
   _key,
 }: {
-  programId: string;
   shortLink: string;
   shortLinkDomain: string;
   _key: string;
@@ -91,7 +89,7 @@ function QRCodePreview({
   const { logo } = programEnrollment?.program ?? {};
 
   const [data, setData] = useLocalStorage<QRCodeDesign>(
-    `qr-code-design-program-${programId}`,
+    `qr-code-design-program-${programEnrollment?.program?.id}`,
     {
       fgColor: "#000000",
       logo: logo ?? undefined,
@@ -103,7 +101,6 @@ function QRCodePreview({
       domain: shortLinkDomain,
       key: _key,
     },
-    programId,
     onSave: (data) => setData(data),
   });
 
@@ -173,6 +170,9 @@ function PartnerLinkModalContent({
     getDomainWithoutWWW(programEnrollment?.program?.url || "https://dub.co") ??
     "dub.co";
   const shortLinkDomain = programEnrollment?.program?.domain ?? "dub.sh";
+  const urlValidationMode =
+    programEnrollment?.program?.urlValidationMode ?? "domain";
+  const isExactMode = urlValidationMode === "exact";
 
   const [lockKey, setLockKey] = useState(Boolean(link));
   const [isLoading, setIsLoading] = useState(false);
@@ -236,10 +236,12 @@ function PartnerLinkModalContent({
               },
               body: JSON.stringify({
                 ...data,
-                url: linkConstructor({
-                  domain: destinationDomain,
-                  key: data.url,
-                }),
+                url: isExactMode
+                  ? undefined
+                  : linkConstructor({
+                      domain: destinationDomain,
+                      key: data.url,
+                    }),
               }),
             },
           );
@@ -342,48 +344,50 @@ function PartnerLinkModalContent({
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="url"
-                className="block text-sm font-medium text-neutral-700"
-              >
-                Destination URL
-              </label>
-              <InfoTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="The URL your users will get redirected to when they visit your short link."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/how-to-create-link"
-                  />
-                }
-              />
-            </div>
-            <div className="mt-2 flex rounded-md">
-              <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                {destinationDomain}
-              </span>
-              <input
-                {...register("url", { required: false })}
-                type="text"
-                id="url"
-                placeholder="(optional)"
-                onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
-                  e.preventDefault();
-                  // if pasting in a URL, extract the pathname
-                  const text = e.clipboardData.getData("text/plain");
-                  try {
-                    const url = new URL(text);
-                    e.currentTarget.value = url.pathname.slice(1);
-                  } catch (err) {
-                    e.currentTarget.value = text;
+          {!isExactMode && (
+            <div>
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="url"
+                  className="block text-sm font-medium text-neutral-700"
+                >
+                  Destination URL
+                </label>
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="The URL your users will get redirected to when they visit your short link."
+                      cta="Learn more."
+                      href="https://dub.co/help/article/how-to-create-link"
+                    />
                   }
-                }}
-                className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-              />
+                />
+              </div>
+              <div className="mt-2 flex rounded-md">
+                <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                  {destinationDomain}
+                </span>
+                <input
+                  {...register("url", { required: false })}
+                  type="text"
+                  id="url"
+                  placeholder="(optional)"
+                  onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+                    e.preventDefault();
+                    // if pasting in a URL, extract the pathname
+                    const text = e.clipboardData.getData("text/plain");
+                    try {
+                      const url = new URL(text);
+                      e.currentTarget.value = url.pathname.slice(1);
+                    } catch (err) {
+                      e.currentTarget.value = text;
+                    }
+                  }}
+                  className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <div className="flex items-center gap-2">
@@ -415,7 +419,6 @@ function PartnerLinkModalContent({
 
           {programEnrollment && (
             <QRCodePreview
-              programId={programEnrollment.program.id}
               shortLink={shortLink}
               shortLinkDomain={shortLinkDomain}
               _key={key}
