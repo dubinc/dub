@@ -216,7 +216,10 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
 
   const workspaceOwners = workspace.users.filter(({ user }) => user.email);
 
-  // Domain renewal failed 3 times, turn off auto-renew for the domains
+  // Domain renewal failed 3 times:
+  // 1. Turn off auto-renew for the domains on Dynadot
+  // 2. Disable auto-renew for the domains on Dub
+  // 3. Send email to the workspace users
   if (invoice.failedAttempts >= 3) {
     await Promise.allSettled(
       domains.map((domain) =>
@@ -225,6 +228,20 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
           autoRenew: false,
         }),
       ),
+    );
+
+    const updateDomains = await prisma.registeredDomain.updateMany({
+      where: {
+        slug: {
+          in: domains.map(({ slug }) => slug),
+        },
+      },
+      data: {
+        autoRenewalDisabledAt: new Date(),
+      },
+    });
+    console.log(
+      `Updated autoRenewalDisabledAt for ${updateDomains.count} domains.`,
     );
 
     if (workspaceOwners.length > 0) {

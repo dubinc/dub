@@ -42,24 +42,29 @@ export async function POST(req: Request) {
     });
 
     if (!invoice) {
+      console.log(`Invoice ${invoiceId} not found.`);
       return new Response(`Invoice ${invoiceId} not found.`);
     }
 
     if (invoice.status !== "failed") {
+      console.log(`Invoice ${invoiceId} is not failed.`);
       return new Response(`Invoice ${invoiceId} is not failed.`);
     }
 
     if (invoice.failedAttempts >= 3) {
+      console.log(`Invoice ${invoiceId} has reached max failed attempts of 3.`);
       return new Response(
         `Invoice ${invoiceId} has reached max failed attempts of 3.`,
       );
     }
 
     if (invoice.type !== "domainRenewal") {
+      console.log(`Only domain renewals can be retried at this time.`);
       return new Response(`Only domain renewals can be retried at this time.`);
     }
 
     if (!invoice.workspace.stripeId) {
+      console.log(`Workspace ${invoice.workspace.id} has no stripeId.`);
       return new Response(`Workspace ${invoice.workspace.id} has no stripeId.`);
     }
 
