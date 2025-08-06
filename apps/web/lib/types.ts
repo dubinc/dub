@@ -57,7 +57,7 @@ import {
   PayoutResponseSchema,
   PayoutSchema,
 } from "./zod/schemas/payouts";
-import { ProgramEmailSchema } from "./zod/schemas/program-emails";
+import { programEmailSchema } from "./zod/schemas/program-emails";
 import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
@@ -432,7 +432,7 @@ export type PartnerProgramInviteProps = z.infer<
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
-export type ProgramEmailProps = z.infer<typeof ProgramEmailSchema>;
+export type ProgramEmailProps = z.infer<typeof programEmailSchema>;
 
 export type PayoutsCount = {
   status: PayoutStatus;

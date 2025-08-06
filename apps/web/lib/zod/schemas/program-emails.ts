@@ -2,7 +2,7 @@ import { ProgramEmailStatus, ProgramEmailType } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
 
-export const ProgramEmailSchema = z.object({
+export const programEmailSchema = z.object({
   id: z.string(),
   programId: z.string(),
 

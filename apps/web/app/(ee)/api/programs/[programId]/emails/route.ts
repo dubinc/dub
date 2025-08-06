@@ -1,7 +1,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  ProgramEmailSchema,
+  programEmailSchema,
   programEmailsQuerySchema,
 } from "@/lib/zod/schemas/program-emails";
 import { prisma } from "@dub/prisma";
@@ -28,5 +28,5 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
   });
 
-  return NextResponse.json(z.array(ProgramEmailSchema).parse(emails));
+  return NextResponse.json(z.array(programEmailSchema).parse(emails));
 });

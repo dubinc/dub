@@ -2,7 +2,7 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
 import {
-  ProgramEmailSchema,
+  programEmailSchema,
   programEmailsQuerySchema,
 } from "../zod/schemas/program-emails";
 import useWorkspace from "./use-workspace";
@@ -14,7 +14,7 @@ export default function useProgramEmails({
 } = {}) {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
-  const { data: emails, error } = useSWR<z.infer<typeof ProgramEmailSchema>[]>(
+  const { data: emails, error } = useSWR<z.infer<typeof programEmailSchema>[]>(
     workspaceId &&
       defaultProgramId &&
       `/api/programs/${defaultProgramId}/emails?${new URLSearchParams({
