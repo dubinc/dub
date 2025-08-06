@@ -30,14 +30,14 @@ export const createPaymentIntent = async ({
 
   if (cards.data.length === 0 && links.data.length === 0) {
     console.error(`No valid payment methods found for customer ${stripeId}.`);
-    return;
+    return { paymentIntent: null, paymentMethod: null };
   }
 
   const paymentMethod = cards.data[0] || links.data[0];
 
   if (!paymentMethod) {
     console.error(`No valid payment method found for customer ${stripeId}.`);
-    return;
+    return { paymentIntent: null, paymentMethod: null };
   }
 
   try {
@@ -54,20 +54,14 @@ export const createPaymentIntent = async ({
         statement_descriptor: statementDescriptor,
         description,
       },
-      {
-        ...(idempotencyKey
-          ? {
-              idempotencyKey,
-            }
-          : {}),
-      },
+      idempotencyKey ? { idempotencyKey } : {},
     );
 
     console.log(
       `Payment intent ${paymentIntent.id} created for invoice ${invoiceId} with amount ${currencyFormatter(paymentIntent.amount / 100)}`,
     );
 
-    return paymentIntent;
+    return { paymentIntent, paymentMethod };
   } catch (error) {
     console.error(error);
 
@@ -76,5 +70,7 @@ export const createPaymentIntent = async ({
       type: "errors",
       mention: true,
     });
+
+    return { paymentIntent: null, paymentMethod: null };
   }
 };

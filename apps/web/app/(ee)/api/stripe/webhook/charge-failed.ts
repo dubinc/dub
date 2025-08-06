@@ -4,7 +4,7 @@ import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   PAYOUT_FAILURE_FEE_CENTS,
 } from "@/lib/partners/constants";
-import { stripe } from "@/lib/stripe";
+import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { sendEmail } from "@dub/email";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
@@ -126,44 +126,23 @@ async function processPayoutInvoice({
       charge.payment_method_details.type as Stripe.PaymentMethod.Type,
     )
   ) {
-    const [cards, links] = await Promise.all([
-      stripe.paymentMethods.list({
-        customer: workspace.stripeId,
-        type: "card",
-      }),
-      stripe.paymentMethods.list({
-        customer: workspace.stripeId,
-        type: "link",
-      }),
-    ]);
+    const { paymentIntent, paymentMethod } = await createPaymentIntent({
+      stripeId: workspace.stripeId,
+      amount: PAYOUT_FAILURE_FEE_CENTS,
+      invoiceId: invoice.id,
+      description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
+      statementDescriptor: "Dub Partners",
+    });
 
-    if (cards.data.length === 0 && links.data.length === 0) {
-      console.log("No valid payment methods found for workspace, skipping...");
-      return;
-    }
-
-    const paymentMethod = cards.data[0] || links.data[0];
-
-    if (paymentMethod) {
-      cardLast4 = paymentMethod.card?.last4;
-
-      await stripe.paymentIntents.create({
-        amount: PAYOUT_FAILURE_FEE_CENTS,
-        customer: workspace.stripeId,
-        payment_method_types: ["card", "link"],
-        payment_method: paymentMethod.id,
-        currency: "usd",
-        confirmation_method: "automatic",
-        confirm: true,
-        statement_descriptor: "Dub Partners",
-        description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
-      });
-
+    if (paymentIntent) {
       chargedFailureFee = true;
-
       console.log(
         `Charged a failure fee of $${PAYOUT_FAILURE_FEE_CENTS / 100} to ${workspace.slug}.`,
       );
+    }
+
+    if (paymentMethod?.card) {
+      cardLast4 = paymentMethod.card.last4;
     }
   }
 
