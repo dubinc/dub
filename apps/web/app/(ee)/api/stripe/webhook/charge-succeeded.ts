@@ -96,6 +96,9 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
         in: invoice.registeredDomains as string[],
       },
     },
+    orderBy: {
+      expiresAt: "asc",
+    },
   });
 
   if (domains.length === 0) {
@@ -103,7 +106,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     return;
   }
 
-  const newExpiresAt = addDays(new Date(), 365);
+  const newExpiresAt = addDays(domains[0].expiresAt, 365);
 
   await prisma.registeredDomain.updateMany({
     where: {
