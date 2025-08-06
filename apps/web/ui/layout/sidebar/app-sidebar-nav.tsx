@@ -5,8 +5,8 @@ import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
+  Bell,
   Brush,
-  CircleInfo,
   ConnectedDots,
   CubeSettings,
   DiamondTurnRight,
@@ -347,7 +347,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "Notifications",
-            icon: CircleInfo,
+            icon: Bell,
             href: `/${slug}/settings/notifications`,
           },
         ],
@@ -407,7 +407,10 @@ export function AppSidebarNav({
         ? "workspaceSettings"
         : // hacky fix for guides because slug is undefined at render time
           // TODO: remove when we migrate to Next.js 15 + PPR
-          pathname.endsWith("/guides") || pathname.includes("/guides/")
+          pathname.endsWith("/guides") ||
+            pathname.includes("/guides/") ||
+            // this one is for the payout success page
+            pathname.endsWith("/program/payouts/success")
           ? null
           : pathname.startsWith(`/${slug}/program`)
             ? "program"

@@ -17,7 +17,7 @@ import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   useFormContext,
   UseFormRegister,
@@ -25,6 +25,7 @@ import {
   UseFormWatch,
 } from "react-hook-form";
 import { toast } from "sonner";
+import { ImportPartnerStackForm } from "./import-partnerstack-form";
 import { ImportRewardfulForm } from "./import-rewardful-form";
 import { ImportToltForm } from "./import-tolt-form";
 
@@ -64,25 +65,24 @@ type ImportSource = (typeof PROGRAM_IMPORT_SOURCES)[number];
 
 export function Form() {
   const router = useRouter();
-  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [selectedSource, setSelectedSource] = useState<ImportSource>(
-    PROGRAM_IMPORT_SOURCES[0],
-  );
+  const { id: workspaceId, slug: workspaceSlug, mutate } = useWorkspace();
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    getValues,
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [programType, rewardful, tolt, amount] = watch([
+  const [programType, importSource, amount, type, defaultRewardType] = watch([
     "programType",
-    "rewardful",
-    "tolt",
+    "importSource",
     "amount",
+    "type",
+    "defaultRewardType",
   ]);
 
   useEffect(() => {
@@ -95,17 +95,6 @@ export function Form() {
       setValue("maxDuration", null);
     }
   }, [programType]);
-
-  // Set the import source based on existing program data
-  useEffect(() => {
-    if (programType === "import") {
-      if (rewardful && rewardful.id) {
-        setSelectedSource(PROGRAM_IMPORT_SOURCES[0]);
-      } else if (tolt && tolt.id) {
-        setSelectedSource(PROGRAM_IMPORT_SOURCES[1]);
-      }
-    }
-  }, [programType, tolt, rewardful]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -133,19 +122,47 @@ export function Form() {
     });
   };
 
-  const buttonDisabled =
-    isSubmitting ||
-    isPending ||
-    hasSubmitted ||
-    (programType === "new" && !amount) ||
-    (programType === "import" &&
-      (!rewardful || !rewardful.id) &&
-      (!tolt || !tolt.id));
+  const selectedSource = useMemo(() => {
+    return PROGRAM_IMPORT_SOURCES.find((source) => source.id === importSource);
+  }, [importSource]);
 
-  const hideContinueButton =
-    programType === "import" &&
-    (!rewardful || !rewardful.id) &&
-    (!tolt || !tolt.id);
+  const renderImportForm = () => {
+    const isPendingAction = isSubmitting || isPending || hasSubmitted;
+
+    switch (selectedSource?.id) {
+      case "rewardful":
+        return (
+          <ImportRewardfulForm
+            register={register}
+            watch={watch}
+            setValue={setValue}
+            onSuccess={() => onSubmit(getValues())}
+            isPending={isPendingAction}
+          />
+        );
+      case "tolt":
+        return (
+          <ImportToltForm
+            watch={watch}
+            setValue={setValue}
+            onSuccess={() => onSubmit(getValues())}
+            isPending={isPendingAction}
+          />
+        );
+      case "partnerstack":
+        return (
+          <ImportPartnerStackForm
+            onSuccess={() => onSubmit(getValues())}
+            isPending={isPendingAction}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  const buttonDisabled =
+    programType === "new" && (!amount || !type || !defaultRewardType);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -208,8 +225,14 @@ export function Form() {
                 items={
                   PROGRAM_IMPORT_SOURCES as unknown as InputSelectItemProps[]
                 }
-                selectedItem={selectedSource}
-                setSelectedItem={setSelectedSource}
+                selectedItem={selectedSource ?? null}
+                setSelectedItem={(item: ImportSource) => {
+                  if (item) {
+                    setValue("importSource", item.id, {
+                      shouldDirty: true,
+                    });
+                  }
+                }}
                 className="w-full"
                 inputAttrs={{
                   placeholder: "Select import source",
@@ -229,24 +252,16 @@ export function Form() {
             )}
           </div>
 
-          {selectedSource.id === "rewardful" ? (
-            <ImportRewardfulForm
-              register={register}
-              watch={watch}
-              setValue={setValue}
-            />
-          ) : (
-            <ImportToltForm watch={watch} setValue={setValue} />
-          )}
+          {renderImportForm()}
         </div>
       )}
 
-      {!hideContinueButton && (
+      {programType === "new" && (
         <Button
           text="Continue"
           className="w-full"
-          loading={isSubmitting || isPending || hasSubmitted}
-          disabled={buttonDisabled}
+          loading={isSubmitting || isPending}
+          disabled={buttonDisabled || hasSubmitted}
           type="submit"
         />
       )}

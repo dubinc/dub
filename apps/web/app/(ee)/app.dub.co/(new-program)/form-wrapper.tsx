@@ -25,7 +25,10 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
           defaultRewardType: programOnboarding.defaultRewardType ?? "sale",
           programType: programOnboarding.programType ?? "new",
           type: programOnboarding.type ?? "percentage",
-          amount: programOnboarding.amount ?? null,
+          amount:
+            programOnboarding.type === "flat" && programOnboarding.amount
+              ? programOnboarding.amount / 100
+              : programOnboarding.amount ?? null,
           partners: programOnboarding.partners?.length
             ? programOnboarding.partners
             : [{ email: "" }],

@@ -1,8 +1,8 @@
 "use client";
 
 import { bulkApprovePartnersAction } from "@/lib/actions/partners/bulk-approve-partners";
+import { bulkRejectPartnersAction } from "@/lib/actions/partners/bulk-reject-partners";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
-import { rejectPartnersBulkAction } from "@/lib/actions/partners/reject-partners-bulk";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -56,7 +56,6 @@ export function ProgramPartnersApplicationsPageClient() {
     data: partners,
     error,
     isValidating,
-    mutate,
   } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString(
       {
@@ -89,7 +88,7 @@ export function ProgramPartnersApplicationsPageClient() {
     });
 
   const { executeAsync: rejectPartners, isPending: isRejectingPartners } =
-    useAction(rejectPartnersBulkAction, {
+    useAction(bulkRejectPartnersAction, {
       onError: ({ error }) => {
         toast.error(error.serverError);
       },
@@ -299,7 +298,7 @@ export function ProgramPartnersApplicationsPageClient() {
         maxSize: 43,
         header: ({ table }) => <EditColumnsButton table={table} />,
         cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} mutate={mutate} />
+          <RowMenuButton row={row} workspaceId={workspaceId!} />
         ),
       },
     ],
@@ -421,11 +420,9 @@ export function ProgramPartnersApplicationsPageClient() {
 function RowMenuButton({
   row,
   workspaceId,
-  mutate,
 }: {
   row: Row<EnrolledPartnerProps>;
   workspaceId: string;
-  mutate: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 

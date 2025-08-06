@@ -10,6 +10,7 @@ import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { Folder, Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
+// GET /api/events
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);

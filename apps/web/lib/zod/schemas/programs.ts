@@ -3,7 +3,12 @@ import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
 import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
-import { LinkStructure, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import {
+  PartnerBannedReason,
+  PartnerLinkStructure,
+  PartnerUrlValidationMode,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
@@ -24,8 +29,10 @@ export const ProgramSchema = z.object({
   cookieLength: z.number(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
-  linkStructure: z.nativeEnum(LinkStructure),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
   linkParameter: z.string().nullish(),
+  urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
+  maxPartnerLinks: z.number(),
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
   couponCodeTrackingEnabledAt: z.date().nullish(),
@@ -62,7 +69,7 @@ export const updateProgramSchema = z.object({
     .refine((val) => ALLOWED_MIN_PAYOUT_AMOUNTS.includes(val), {
       message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
     }),
-  linkStructure: z.nativeEnum(LinkStructure),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),
@@ -90,6 +97,7 @@ export const ProgramEnrollmentSchema = z.object({
     ),
   programId: z.string().describe("The program's unique ID on Dub."),
   program: ProgramSchema,
+  createdAt: z.date(),
   status: z
     .nativeEnum(ProgramEnrollmentStatus)
     .describe("The status of the partner's enrollment in the program."),
@@ -99,8 +107,29 @@ export const ProgramEnrollmentSchema = z.object({
     .describe("The partner's referral links in this program."),
   totalCommissions: z.number().default(0),
   rewards: z.array(RewardSchema).nullish(),
+  clickRewardId: z.string().nullish(),
+  leadRewardId: z.string().nullish(),
+  saleRewardId: z.string().nullish(),
   discount: DiscountSchema.nullish(),
-  createdAt: z.date(),
+  discountId: z.string().nullish(),
+  applicationId: z
+    .string()
+    .nullish()
+    .describe(
+      "If the partner submitted an application to join the program, this is the ID of the application.",
+    ),
+  bannedAt: z
+    .date()
+    .nullish()
+    .describe(
+      "If the partner was banned from the program, this is the date of the ban.",
+    ),
+  bannedReason: z
+    .enum(Object.keys(PartnerBannedReason) as [PartnerBannedReason])
+    .nullish()
+    .describe(
+      "If the partner was banned from the program, this is the reason for the ban.",
+    ),
 });
 
 export const ProgramInviteSchema = z.object({

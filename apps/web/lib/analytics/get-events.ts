@@ -21,6 +21,7 @@ import {
   saleEventResponseSchema,
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
+import { queryParser } from "./query-parser";
 import { EventsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -39,6 +40,7 @@ export const getEvents = async (params: EventsFilters) => {
     order,
     sortOrder,
     dataAvailableFrom,
+    query,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -48,12 +50,8 @@ export const getEvents = async (params: EventsFilters) => {
     dataAvailableFrom,
   });
 
-  if (trigger) {
-    if (trigger === "qr") {
-      qr = true;
-    } else if (trigger === "link") {
-      qr = false;
-    }
+  if (qr) {
+    trigger = "qr";
   }
 
   if (region) {
@@ -78,17 +76,20 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
+  const filters = queryParser(query);
+
   const response = await pipe({
     ...params,
     eventType,
     workspaceId,
-    qr,
+    trigger,
     country,
     region,
     order: sortOrder,
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+    filters: filters ? JSON.stringify(filters) : undefined,
   });
 
   const [linksMap, customersMap] = await Promise.all([
@@ -134,6 +135,7 @@ export const getEvents = async (params: EventsFilters) => {
           ? {
               eventId: evt.event_id,
               eventName: evt.event_name,
+              metadata: evt.metadata ? JSON.parse(evt.metadata) : undefined,
               customer: customersMap[evt.customer_id] ?? {
                 id: evt.customer_id,
                 name: "Deleted Customer",

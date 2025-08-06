@@ -65,14 +65,12 @@ export class ToltApi {
     }
 
     return {
-      ...ToltProgramSchema.parse({
-        ...partner.program,
-      }),
+      ...ToltProgramSchema.parse(partner.program),
       affiliates: total_count,
     };
   }
 
-  async listAffiliates({
+  async listPartners({
     programId,
     startingAfter,
   }: {

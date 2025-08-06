@@ -1,5 +1,6 @@
 "use client";
 
+import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
@@ -113,7 +114,9 @@ export function PayoutTable() {
               minPayoutAmount={row.original.program.minPayoutAmount}
             />
 
-            {["completed", "processing"].includes(row.original.status) && (
+            {INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(
+              row.original.status,
+            ) && (
               <Tooltip content="View invoice">
                 <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
                   <Link

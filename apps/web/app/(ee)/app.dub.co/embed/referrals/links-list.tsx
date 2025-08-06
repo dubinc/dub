@@ -1,4 +1,3 @@
-import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button, CopyButton, Table, Users, useTable } from "@dub/ui";
 import { Pen2, Plus2 } from "@dub/ui/icons";
@@ -9,6 +8,7 @@ import {
   nFormatter,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
+import { Program } from "@prisma/client";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -17,12 +17,17 @@ import { ReferralsEmbedLink } from "./types";
 
 interface Props {
   links: ReferralsEmbedLink[];
+  program: Pick<
+    Program,
+    "domain" | "url" | "urlValidationMode" | "maxPartnerLinks"
+  >;
   onCreateLink: () => void;
   onEditLink: (link: ReferralsEmbedLink) => void;
 }
 
 export function ReferralsEmbedLinksList({
   links,
+  program,
   onCreateLink,
   onEditLink,
 }: Props) {
@@ -48,7 +53,8 @@ export function ReferralsEmbedLinksList({
     }
   }, [refreshedLinks]);
 
-  const linksLimitReached = partnerLinks.length >= PARTNER_LINKS_LIMIT;
+  const maxPartnerLinks = program.maxPartnerLinks;
+  const linksLimitReached = partnerLinks.length >= maxPartnerLinks;
 
   const { table, ...tableProps } = useTable({
     data: partnerLinks,
@@ -100,7 +106,7 @@ export function ReferralsEmbedLinksList({
             disabled={linksLimitReached}
             disabledTooltip={
               linksLimitReached
-                ? `You have reached the limit of ${PARTNER_LINKS_LIMIT} referral links.`
+                ? `You have reached the limit of ${maxPartnerLinks} referral links.`
                 : undefined
             }
           />

@@ -2,7 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalInitiated from "@dub/email/templates/partner-payout-withdrawal-initiated";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, formatDate } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function balanceAvailable(event: Stripe.Event) {
@@ -80,11 +80,12 @@ export async function balanceAvailable(event: Stripe.Event) {
     availableBalance = Math.floor(availableBalance / 100) * 100;
   }
 
-  const payout = await stripe.payouts.create(
+  const stripePayout = await stripe.payouts.create(
     {
       amount: availableBalance,
       currency,
-      description: "Dub Partners payout",
+      // example: "Dub Partners auto-withdrawal (Aug 1, 2025)"
+      description: `Dub Partners auto-withdrawal (${formatDate(new Date(), { month: "short" })})`,
       method: "standard",
     },
     {
@@ -93,7 +94,7 @@ export async function balanceAvailable(event: Stripe.Event) {
   );
 
   console.log(
-    `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${payout.id} (${currencyFormatter(payout.amount / 100, { maximumFractionDigits: 2, currency })})`,
+    `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${stripePayout.id} (${currencyFormatter(stripePayout.amount / 100, { maximumFractionDigits: 2, currency: stripePayout.currency })})`,
   );
 
   const transfers = await stripe.transfers.list({
@@ -114,12 +115,12 @@ export async function balanceAvailable(event: Stripe.Event) {
       },
     },
     data: {
-      stripePayoutId: payout.id,
+      stripePayoutId: stripePayout.id,
     },
   });
 
   console.log(
-    `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to have the stripePayoutId: ${payout.id}`,
+    `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to have the stripePayoutId: ${stripePayout.id}`,
   );
 
   if (partner.email) {
@@ -129,7 +130,11 @@ export async function balanceAvailable(event: Stripe.Event) {
       email: partner.email,
       react: PartnerPayoutWithdrawalInitiated({
         email: partner.email,
-        amount: payout.amount,
+        payout: {
+          amount: stripePayout.amount,
+          currency: stripePayout.currency,
+          arrivalDate: stripePayout.arrival_date,
+        },
       }),
     });
 

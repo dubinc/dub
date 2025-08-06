@@ -21,6 +21,7 @@ export const createPayout = async ({
       status: true,
       program: {
         select: {
+          name: true,
           holdingPeriodDays: true,
         },
       },
@@ -153,7 +154,7 @@ export const createPayout = async ({
           partnerId,
           periodStart,
           periodEnd,
-          description: "Dub Partners payout",
+          description: `Dub Partners payout (${programEnrollment.program.name})`,
         },
       });
     }

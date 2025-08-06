@@ -1,6 +1,6 @@
 "use client";
 
-import { LinkStructure } from "@dub/prisma/client";
+import { PartnerLinkStructure } from "@dub/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
 
 export const getLinkStructureOptions = ({
@@ -15,19 +15,19 @@ export const getLinkStructureOptions = ({
 
   return [
     {
-      id: LinkStructure.short,
+      id: PartnerLinkStructure.short,
       label: "Short link",
       example: `${shortDomain}/{partnerName}`,
       comingSoon: false,
     },
     {
-      id: LinkStructure.query,
+      id: PartnerLinkStructure.query,
       label: "Query parameter",
       example: `${websiteDomain}?via={partnerName}`,
       comingSoon: false,
     },
     {
-      id: LinkStructure.path,
+      id: PartnerLinkStructure.path,
       label: "Dynamic path",
       example: `${websiteDomain}/refer/{partnerName}`,
       comingSoon: true,

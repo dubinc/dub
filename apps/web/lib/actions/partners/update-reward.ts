@@ -3,11 +3,13 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   REWARD_EVENT_COLUMN_MAPPING,
   updateRewardSchema,
 } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { Reward } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
@@ -23,6 +25,7 @@ export const updateRewardAction = authActionClient
       type,
       includedPartnerIds,
       excludedPartnerIds,
+      modifiers,
     } = parsedInput;
 
     includedPartnerIds = includedPartnerIds || [];
@@ -34,6 +37,14 @@ export const updateRewardAction = authActionClient
       rewardId,
       programId,
     });
+
+    if (
+      modifiers &&
+      !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
+    )
+      throw new Error(
+        "Advanced reward structures are only available on the Advanced plan and above.",
+      );
 
     const finalPartnerIds = [...includedPartnerIds, ...excludedPartnerIds];
 
@@ -66,6 +77,7 @@ export const updateRewardAction = authActionClient
         type,
         amount,
         maxDuration,
+        modifiers: modifiers === null ? Prisma.JsonNull : modifiers,
       },
     });
 

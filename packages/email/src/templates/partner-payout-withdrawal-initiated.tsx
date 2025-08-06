@@ -17,12 +17,21 @@ import { Footer } from "../components/footer";
 // Send this email after initiating a Stripe payout to the partner
 export default function PartnerPayoutWithdrawalInitiated({
   email = "panic@thedis.co",
-  amount = 45590,
+  payout = {
+    amount: 45590,
+    currency: "usd",
+    arrivalDate: 1722163200,
+  },
 }: {
   email: string;
-  amount: number;
+  payout: {
+    amount: number;
+    currency: string;
+    arrivalDate: number;
+  };
 }) {
-  const amountInDollars = currencyFormatter(amount / 100, {
+  const amountInDollars = currencyFormatter(payout.amount / 100, {
+    currency: payout.currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -47,13 +56,20 @@ export default function PartnerPayoutWithdrawalInitiated({
               <span className="font-semibold text-neutral-800">
                 {amountInDollars}
               </span>{" "}
-              is being transferred to your bank account.
+              is being transferred from your Stripe Express account to your
+              connected bank account.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Depending on your bank's location, this process can{" "}
+              The funds are expected to arrive in your bank account by{" "}
               <span className="font-semibold text-neutral-800">
-                can take anywhere between 1-14 business days
+                {new Date(payout.arrivalDate * 1000).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "short",
+                    day: "numeric",
+                  },
+                )}
               </span>
               . If there are any delays, please contact{" "}
               <Link

@@ -28,12 +28,12 @@ export const navItems = [
     content: ProductContent,
     childItems: FEATURES_LIST,
     segments: [
-      "/home",
-      "/partners",
+      "/links",
       "/analytics",
-      "/features",
-      "/compare",
+      "/partners",
       "/integrations",
+      "/compare",
+      "/features",
     ],
   },
   {

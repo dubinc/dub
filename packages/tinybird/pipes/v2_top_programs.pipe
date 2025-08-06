@@ -26,6 +26,7 @@ SQL >
             {% if defined(city) %} AND ce.city = {{ city }} {% end %}
             {% if defined(device) %} AND ce.device = {{ device }} {% end %}
             {% if defined(browser) %} AND ce.browser = {{ browser }} {% end %}
+            {% if defined(trigger) %} AND trigger = {{ trigger }} {% end %}
             {% if defined(os) %} AND ce.os = {{ os }} {% end %}
             {% if defined(referer) %} AND ce.referer = {{ referer }} {% end %}
             {% if defined(refererUrl) %}

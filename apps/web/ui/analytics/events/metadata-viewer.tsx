@@ -1,13 +1,15 @@
 import { Button, Tooltip, useCopyToClipboard } from "@dub/ui";
-import { cn, truncate } from "@dub/utils";
+import { cn, pluralize, truncate } from "@dub/utils";
 import { Check, Copy } from "lucide-react";
 import { Fragment } from "react";
 
 // Display the event metadata
 export function MetadataViewer({
   metadata,
+  previewItems = 3,
 }: {
   metadata: Record<string, any>;
+  previewItems?: number;
 }) {
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -34,9 +36,9 @@ export function MetadataViewer({
     })
     .flat();
 
-  const hasMoreItems = displayEntries.length > 3;
+  const hasMoreItems = displayEntries.length > previewItems;
   const visibleEntries = hasMoreItems
-    ? displayEntries.slice(0, 3)
+    ? displayEntries.slice(0, previewItems)
     : displayEntries;
 
   return (
@@ -93,7 +95,10 @@ export function MetadataViewer({
           className="rounded-md border border-neutral-200 bg-white px-1.5 py-0.5 hover:bg-neutral-50"
         >
           {hasMoreItems
-            ? `+${displayEntries.length - 3} more`
+            ? `+${displayEntries.length - previewItems} ${pluralize(
+                "item",
+                displayEntries.length - previewItems,
+              )}`
             : "View metadata"}
         </button>
       </Tooltip>

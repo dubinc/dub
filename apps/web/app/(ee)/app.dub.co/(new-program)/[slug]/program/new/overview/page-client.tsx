@@ -103,7 +103,7 @@ export function PageClient() {
       href: `/${workspaceSlug}/program/new`,
     },
     {
-      title: "Destination URL",
+      title: "Website URL",
       content: data.url,
       href: `/${workspaceSlug}/program/new`,
     },

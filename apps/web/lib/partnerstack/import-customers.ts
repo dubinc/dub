@@ -2,7 +2,9 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
+
 import { recordLeadWithTimestamp } from "../tinybird";
+import { logImportError } from "../tinybird/log-import-error";
 import { recordFakeClick } from "../tinybird/record-fake-click";
 import { redis } from "../upstash";
 import { PartnerStackApi } from "./api";
@@ -14,7 +16,7 @@ import {
 import { PartnerStackCustomer, PartnerStackImportPayload } from "./types";
 
 export async function importCustomers(payload: PartnerStackImportPayload) {
-  const { programId, startingAfter } = payload;
+  const { importId, programId, startingAfter } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -115,6 +117,7 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
             workspace: program.workspace,
             links,
             customer,
+            importId,
           });
         }),
       );
@@ -126,11 +129,9 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
     currentStartingAfter = customers[customers.length - 1].key;
   }
 
-  delete payload?.startingAfter;
-
   await partnerStackImporter.queue({
     ...payload,
-    ...(hasMore && { startingAfter: currentStartingAfter }),
+    startingAfter: hasMore ? currentStartingAfter : undefined,
     action: hasMore ? "import-customers" : "import-commissions",
   });
 
@@ -143,20 +144,38 @@ async function createCustomer({
   workspace,
   links,
   customer,
+  importId,
 }: {
   workspace: Pick<Project, "id" | "stripeConnectId">;
   links: Pick<Link, "id" | "key" | "domain" | "url" | "projectId">[];
   customer: PartnerStackCustomer;
+  importId: string;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: workspace.id,
+    import_id: importId,
+    source: "partnerstack",
+    entity: "customer",
+    entity_id: customer.customer_key || customer.email,
+  } as const;
+
   if (links.length === 0) {
-    console.log(
-      `Link not found for customer. See the details at https://app.partnerstack.com/partners/${customer.partnership_key}/details`,
-    );
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `Link not found for customer ${customer.customer_key}.`,
+    });
+
     return;
   }
 
   if (!customer.email) {
-    console.log("Customer email not found, skipping...");
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CUSTOMER_EMAIL_NOT_FOUND",
+      message: `Email not found for customer ${customer.customer_key}.`,
+    });
+
     return;
   }
 

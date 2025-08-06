@@ -1,13 +1,14 @@
 import { prisma } from "@dub/prisma";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/create-partner-link";
+import { logImportError } from "../tinybird/log-import-error";
 import { PartnerProps, ProgramProps, WorkspaceProps } from "../types";
 import { PartnerStackApi } from "./api";
 import { partnerStackImporter } from "./importer";
 import { PartnerStackImportPayload, PartnerStackLink } from "./types";
 
 export async function importLinks(payload: PartnerStackImportPayload) {
-  const { programId, userId, startingAfter } = payload;
+  const { importId, programId, userId, startingAfter } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -83,6 +84,7 @@ export async function importLinks(payload: PartnerStackImportPayload) {
             partner,
             link,
             userId,
+            importId,
           }),
         ),
       );
@@ -95,11 +97,9 @@ export async function importLinks(payload: PartnerStackImportPayload) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
-  delete payload?.startingAfter;
-
   await partnerStackImporter.queue({
     ...payload,
-    ...(hasMore && { startingAfter: currentStartingAfter }),
+    startingAfter: hasMore ? currentStartingAfter : undefined,
     action: hasMore ? "import-links" : "import-customers",
   });
 }
@@ -110,17 +110,32 @@ async function createPartnerLink({
   partner,
   link,
   userId,
+  importId,
 }: {
   workspace: WorkspaceProps;
   program: ProgramProps;
   partner: Pick<PartnerProps, "id" | "name" | "email">;
   link: PartnerStackLink;
   userId: string;
+  importId: string;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: workspace.id,
+    import_id: importId,
+    source: "partnerstack",
+    entity: "link",
+    entity_id: link.key,
+  } as const;
+
   const key = link.url.split("/").pop();
 
   if (!key) {
-    console.error(`No key found in the link ${link.url}`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `No key found in the link ${link.url}`,
+    });
+
     return null;
   }
 

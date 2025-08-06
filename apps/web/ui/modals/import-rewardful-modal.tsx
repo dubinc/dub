@@ -126,7 +126,7 @@ function ImportRewardfulModal({
 
     await startRewardfulImport({
       workspaceId,
-      campaignId: selectedCampaign?.id,
+      campaignId: selectedCampaign.id,
     });
   };
 

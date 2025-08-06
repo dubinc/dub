@@ -95,6 +95,13 @@ function DiscountSheetContent({
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
+      amount:
+        discount?.type === "flat" ? discount.amount / 100 : discount?.amount,
+      type: discount?.type || "percentage",
+      maxDuration:
+        discount?.maxDuration === null ? Infinity : discount?.maxDuration || 0,
+      couponId: discount?.couponId || "",
+      couponTestId: discount?.couponTestId || "",
       includedPartnerIds: null,
       excludedPartnerIds: null,
       maxDuration: 0,
