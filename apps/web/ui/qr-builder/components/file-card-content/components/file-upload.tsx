@@ -12,6 +12,7 @@ import {
   FileVideoIcon,
 } from "lucide-react";
 import * as React from "react";
+import Image from "next/image";
 
 const ROOT_NAME = "FileUpload";
 const DROPZONE_NAME = "FileUploadDropzone";
@@ -1092,10 +1093,11 @@ const FileUploadItemPreview = React.forwardRef<
 
       if (itemContext.fileState?.file.type.startsWith("image/")) {
         return (
-          <img
+          <Image
             src={URL.createObjectURL(file)}
             alt={file.name}
-            className="size-full object-cover"
+            fill
+            className="object-cover"
             onLoad={(event) => {
               if (!(event.target instanceof HTMLImageElement)) return;
               URL.revokeObjectURL(event.target.src);

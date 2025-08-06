@@ -1,5 +1,4 @@
 import { SectionTitle } from "@/ui/landing/components/section-title.tsx";
-import { useMediaQuery } from "@dub/ui";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { FC } from "react";
 import { PricingPlanCard } from "./components/PricingPlanCard.tsx";
@@ -12,8 +11,6 @@ interface IPricingSectionProps {
 export const PricingSection: FC<IPricingSectionProps> = ({
   handleScrollButtonClick,
 }) => {
-  const { isMobile } = useMediaQuery();
-
   return (
     <section className="mx-auto mb-[28px] flex max-w-[1172px] flex-col items-center justify-center gap-6 px-3 py-10 lg:mb-[24px] lg:gap-10 lg:py-14">
       <SectionTitle
@@ -21,10 +18,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
         highlightedTitlePart={"You Need"}
         className="lg:!leading-[52px]"
       />
-      <ScrollArea.Root
-        type={isMobile ? "always" : undefined}
-        className="w-full"
-      >
+      <ScrollArea.Root type="auto" className="w-full">
         <ScrollArea.Viewport className="w-full overflow-x-scroll">
           <div className="flex flex-row items-stretch justify-between gap-4 md:gap-6">
             {PRICING_PLANS.map((card, idx) => (
