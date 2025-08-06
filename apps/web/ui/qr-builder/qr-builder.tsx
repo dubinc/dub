@@ -180,9 +180,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         "Frame" | "Style" | "Shape" | "Logo"
       >("Frame");
 
-      // ===== COMPUTED VALUES =====
-      const hideDemoPlaceholderOnMobile = isMobile && isTypeStep;
-
       // ===== EVENT HANDLERS =====
       const onSaveClick = () => {
         const formValues = form.getValues();
@@ -404,10 +401,10 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
 
                 <div
                   className={cn(
-                    "bg-background relative flex h-auto shrink-0 basis-2/5 items-start justify-center rounded-lg px-6 pb-0 pt-3 md:p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
+                    "bg-background relative h-auto shrink-0 basis-2/5 items-start justify-center rounded-lg px-6 pb-0 pt-3 md:flex md:p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
                     {
+                      "hidden md:flex": isTypeStep,
                       "items-start pb-3": isCustomizationStep,
-                      hidden: hideDemoPlaceholderOnMobile,
                     },
                   )}
                 >
