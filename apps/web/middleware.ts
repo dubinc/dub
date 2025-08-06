@@ -1,5 +1,4 @@
 import {
-  AdminMiddleware,
   ApiMiddleware,
   AppMiddleware,
   // AxiomMiddleware,
@@ -7,24 +6,14 @@ import {
   LinkMiddleware,
 } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
-import { getUserCountry } from "@/lib/middleware/utils/get-user-country.ts";
-import { getUserViaToken } from "@/lib/middleware/utils/get-user-via-token.ts";
 import { supportedWellKnownFiles } from "@/lib/well-known.ts";
-import {
-  ADMIN_HOSTNAMES,
-  API_HOSTNAMES,
-  APP_HOSTNAMES,
-  DEFAULT_REDIRECTS,
-  isValidUrl,
-} from "@dub/utils";
-import { PARTNERS_HOSTNAMES } from "@dub/utils/src/constants";
+import { API_HOSTNAMES, APP_HOSTNAMES, isValidUrl } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import {
   ALLOWED_REGIONS,
   PUBLIC_ROUTES,
 } from "./app/[domain]/(public)/constants/types.ts";
 import { userSessionIdInit } from "./core/services/cookie/user-session-id-init.service.ts";
-import PartnersMiddleware from "./lib/middleware/partners";
 
 export const config = {
   matcher: [
@@ -43,9 +32,6 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, key, fullKey, path } = parse(req);
 
-  const country = await getUserCountry(req);
-  const user = await getUserViaToken(req);
-
   // Initialize session ID for all users (both new and existing)
   const sessionInit = userSessionIdInit(req);
 
@@ -54,28 +40,17 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   const isPublicRoute =
     PUBLIC_ROUTES.includes(path) ||
-    path.startsWith("/help") ||
     ALLOWED_REGIONS.includes(path.slice(1).toLowerCase());
 
   // Handle public routes for App
   if (isPublicRoute) {
     if (APP_HOSTNAMES.has(domain)) {
-      if (user) {
-        return AppMiddleware(req, country, user, isPublicRoute);
-      }
+      return AppMiddleware(req, isPublicRoute);
     }
 
     const response = NextResponse.rewrite(
       new URL(`/${domain}${path}`, req.url),
     );
-
-    // Set country cookie
-    if (country) {
-      response.cookies.set("country", country, {
-        secure: true,
-        sameSite: "lax",
-      });
-    }
 
     // Set session cookie if needed
     if (sessionInit.needsUpdate) {
@@ -91,7 +66,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
-    return AppMiddleware(req, country, user);
+    return AppMiddleware(req);
   }
 
   // for API
@@ -109,19 +84,19 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     }
   }
 
-  // default redirects for dub.sh
-  if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
-    return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
-  }
+  // // default redirects for dub.sh
+  // if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
+  //   return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
+  // }
 
-  // for Admin
-  if (ADMIN_HOSTNAMES.has(domain)) {
-    return AdminMiddleware(req);
-  }
-
-  if (PARTNERS_HOSTNAMES.has(domain)) {
-    return PartnersMiddleware(req);
-  }
+  // // for Admin
+  // if (ADMIN_HOSTNAMES.has(domain)) {
+  //   return AdminMiddleware(req);
+  // }
+  //
+  // if (PARTNERS_HOSTNAMES.has(domain)) {
+  //   return PartnersMiddleware(req);
+  // }
 
   if (isValidUrl(fullKey)) {
     return CreateLinkMiddleware(req);

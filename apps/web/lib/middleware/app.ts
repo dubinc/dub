@@ -1,9 +1,8 @@
 import { parse } from "@/lib/middleware/utils";
-import { UserProps } from "@/lib/types.ts";
 import { userSessionIdInit } from "core/services/cookie/user-session-id-init.service.ts";
 import { NextRequest, NextResponse } from "next/server";
 // import EmbedMiddleware from "./embed";
-import NewLinkMiddleware from "./new-link";
+import { getUserViaToken } from "@/lib/middleware/utils/get-user-via-token.ts";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getOnboardingStep } from "./utils/get-onboarding-step";
@@ -12,11 +11,11 @@ import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(
   req: NextRequest,
-  country?: string,
-  user?: UserProps,
   isPublicRoute?: boolean,
 ) {
   const { domain, path, fullPath } = parse(req);
+
+  const user = await getUserViaToken(req);
 
   // if (path.startsWith("/embed")) {
   //   return EmbedMiddleware(req);
@@ -46,14 +45,6 @@ export default async function AppMiddleware(
         req.url,
       ),
     );
-
-    // Set country cookie
-    if (country) {
-      response.cookies.set("country", country, {
-        secure: true,
-        sameSite: "lax",
-      });
-    }
 
     // Set session cookie if needed
     if (sessionInit?.needsUpdate) {
@@ -132,15 +123,9 @@ export default async function AppMiddleware(
   }
 
   // otherwise, rewrite the path to /app
-  const response = NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
-
-  // Set country cookie
-  if (country) {
-    response.cookies.set("country", country, {
-      secure: true,
-      sameSite: "lax",
-    });
-  }
+  const response = NextResponse.rewrite(
+    new URL(`/app.dub.co${fullPath}`, req.url),
+  );
 
   // Set session cookie if needed
   if (sessionInit?.needsUpdate) {
