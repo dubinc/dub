@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { Program, Reward } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
 import { createId } from "../api/create-id";
+import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
 import { PartnerStackApi } from "./api";
@@ -13,7 +14,7 @@ import {
 import { PartnerStackImportPayload, PartnerStackPartner } from "./types";
 
 export async function importPartners(payload: PartnerStackImportPayload) {
-  const { programId, startingAfter } = payload;
+  const { importId, programId, startingAfter } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -62,6 +63,7 @@ export async function importPartners(payload: PartnerStackImportPayload) {
           program,
           partner,
           reward,
+          importId,
         }),
       ),
     );
@@ -83,13 +85,28 @@ async function createPartner({
   program,
   partner,
   reward,
+  importId,
 }: {
   program: Program;
   partner: PartnerStackPartner;
   reward?: Pick<Reward, "id" | "event">;
+  importId: string;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: program.workspaceId,
+    import_id: importId,
+    source: "partnerstack",
+    entity: "partner",
+    entity_id: partner.key,
+  } as const;
+
   if (partner.stats.CUSTOMER_COUNT === 0) {
-    console.log(`No leads found for partner ${partner.email}`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "INACTIVE_PARTNER",
+      message: `No leads found for partner ${partner.email}`,
+    });
+
     return;
   }
 
