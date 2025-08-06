@@ -74,8 +74,8 @@ export default function DomainRenewalReminder({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              If you don't want to renew your domain, turn off auto-renewal in
-              your{" "}
+              If you don't want to renew your domain, you can turn off
+              auto-renewal in your{" "}
               <Link
                 href={`https://app.dub.co/${workspace.slug}/links/domains`}
                 className="font-semibold text-black underline"

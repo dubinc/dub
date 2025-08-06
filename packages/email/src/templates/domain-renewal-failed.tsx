@@ -5,6 +5,7 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Img,
   Link,
@@ -62,7 +63,7 @@ export default function DomainRenewalFailed({
               again in 3 days.
             </Text>
 
-            <Section>
+            <Section className="my-8">
               <Row className="pb-2">
                 <Column align="left" className="text-sm text-neutral-500">
                   Domain
@@ -98,6 +99,8 @@ export default function DomainRenewalFailed({
                 </div>
               ))}
             </Section>
+
+            <Hr className="my-4" />
 
             <Text className="text-sm leading-6 text-neutral-600">
               If you don't want to renew your{" "}

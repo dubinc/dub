@@ -90,8 +90,15 @@ export default function DomainRenewed({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              No further action is needed. Auto-renewal can be turned off from
-              domain settings page.
+              No further action is needed. If you don't want to renew your
+              domains next year, you can turn off auto-renewal in your{" "}
+              <Link
+                href={`https://app.dub.co/${workspace.slug}/settings/domains`}
+                className="font-semibold text-black underline"
+              >
+                domain settings page
+              </Link>
+              .
             </Text>
 
             <Section className="my-10">
