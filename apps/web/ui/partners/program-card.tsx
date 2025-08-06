@@ -1,3 +1,4 @@
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { BlurImage, Link4, MiniAreaChart } from "@dub/ui";
@@ -53,16 +54,17 @@ export function ProgramCard({
           <span className="text-base font-semibold text-neutral-800">
             {program.name}
           </span>
-          {(defaultLink || program.domain) && (
-            <div className="flex items-center gap-1 text-neutral-500">
-              <Link4 className="size-3" />
-              <span className="text-sm font-medium">
-                {defaultLink?.shortLink
-                  ? getPrettyUrl(defaultLink.shortLink)
-                  : program.domain}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-1 text-neutral-500">
+            <Link4 className="size-3" />
+            <span className="text-sm font-medium">
+              {getPrettyUrl(
+                constructPartnerLink({
+                  program,
+                  linkKey: defaultLink?.key,
+                }),
+              )}
+            </span>
+          </div>
         </div>
       </div>
       {status === "approved" ? (

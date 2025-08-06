@@ -1,4 +1,5 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
@@ -103,6 +104,11 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
     }));
   }, [timeseries]);
 
+  const partnerLink = constructPartnerLink({
+    program: programEnrollment?.program,
+    linkKey: link.key,
+  });
+
   return (
     <CardList.Card
       innerClassName="px-0 py-0 hover:cursor-pointer group"
@@ -128,16 +134,16 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
               <div className="flex flex-col">
                 <div className="group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
                   <a
-                    href={link.shortLink}
+                    href={partnerLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
                   >
-                    {getPrettyUrl(link.shortLink)}
+                    {getPrettyUrl(partnerLink)}
                   </a>
                   <span className="flex items-center">
                     <CopyButton
-                      value={link.shortLink}
+                      value={partnerLink}
                       variant="neutral"
                       className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
                     />
