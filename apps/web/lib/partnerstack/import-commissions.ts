@@ -1,11 +1,14 @@
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { CommissionStatus } from "@prisma/client";
+import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
-import { getLeadEvent, recordSaleWithTimestamp } from "../tinybird";
+import { recordSaleWithTimestamp } from "../tinybird";
+import { getLeadEvents } from "../tinybird/get-lead-events";
+import { logImportError } from "../tinybird/log-import-error";
+import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { PartnerStackApi } from "./api";
@@ -24,19 +27,17 @@ const toDubStatus: Record<
 };
 
 export async function importCommissions(payload: PartnerStackImportPayload) {
-  const { programId, startingAfter } = payload;
+  const { importId, programId, startingAfter } = payload;
 
-  const { workspaceId } = await prisma.program.findUniqueOrThrow({
+  const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
-    select: {
-      workspaceId: true,
-    },
   });
 
-  const { publicKey, secretKey } =
-    await partnerStackImporter.getCredentials(workspaceId);
+  const { publicKey, secretKey } = await partnerStackImporter.getCredentials(
+    program.workspaceId,
+  );
 
   const partnerStackApi = new PartnerStackApi({
     publicKey,
@@ -59,13 +60,49 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
       break;
     }
 
+    const customersData = await prisma.customer.findMany({
+      where: {
+        projectId: program.workspaceId,
+        OR: [
+          {
+            email: {
+              in: commissions
+                .map((commission) => commission.customer?.email)
+                .filter((email): email is string => email !== null),
+            },
+          },
+          {
+            externalId: {
+              in: commissions
+                .map((commission) => commission.customer?.external_key)
+                .filter(
+                  (externalKey): externalKey is string => externalKey !== null,
+                ),
+            },
+          },
+        ],
+      },
+      include: {
+        link: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    const customerLeadEvents = await getLeadEvents({
+      customerIds: customersData.map((customer) => customer.id),
+    }).then((res) => res.data);
+
     await Promise.allSettled(
       commissions.map((commission) =>
         createCommission({
-          workspaceId,
-          programId,
+          program,
           commission,
           fxRates,
+          importId,
+          customersData,
+          customerLeadEvents,
         }),
       ),
     );
@@ -77,7 +114,7 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
   }
 
   if (!hasMore) {
-    await partnerStackImporter.deleteCredentials(workspaceId);
+    await partnerStackImporter.deleteCredentials(program.workspaceId);
   }
 
   await partnerStackImporter.queue({
@@ -88,23 +125,45 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
 }
 
 async function createCommission({
-  workspaceId,
-  programId,
+  program,
   commission,
   fxRates,
+  importId,
+  customersData,
+  customerLeadEvents,
 }: {
-  workspaceId: string;
-  programId: string;
+  program: Program;
   commission: PartnerStackCommission;
   fxRates: Record<string, string> | null;
+  importId: string;
+  customersData: (Customer & { link: Link | null })[];
+  customerLeadEvents: LeadEventTB[];
 }) {
+  const commonImportLogInputs = {
+    workspace_id: program.workspaceId,
+    import_id: importId,
+    source: "partnerstack",
+    entity: "commission",
+    entity_id: commission.key,
+  } as const;
+
   if (!commission.transaction) {
-    console.log(`Commission ${commission.key} has no transaction, skipping...`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "TRANSACTION_NOT_FOUND",
+      message: `Commission ${commission.key} has no transaction.`,
+    });
+
     return;
   }
 
   if (!commission.customer) {
-    console.log(`Commission ${commission.key} has no customer, skipping...`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CUSTOMER_NOT_FOUND",
+      message: `Commission ${commission.key} has no customer.`,
+    });
+
     return;
   }
 
@@ -112,7 +171,7 @@ async function createCommission({
     where: {
       invoiceId_programId: {
         invoiceId: commission.key, // This is not the actual invoice ID, but we use this to deduplicate the commissions
-        programId,
+        programId: program.id,
       },
     },
   });
@@ -122,23 +181,19 @@ async function createCommission({
     return;
   }
 
-  const customer = await prisma.customer.findFirst({
-    where: {
-      projectId: workspaceId,
-      OR: [
-        { email: commission.customer.email },
-        { externalId: commission.customer.external_key },
-      ],
-    },
-    include: {
-      link: true,
-    },
-  });
+  const customer = customersData.find(
+    ({ email, externalId }) =>
+      email === commission.customer?.email ||
+      externalId === commission.customer?.external_key,
+  );
 
   if (!customer) {
-    console.log(
-      `No customer found for customer email ${commission.customer.email}, skipping...`,
-    );
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CUSTOMER_NOT_FOUND",
+      message: `No customer found for customer email ${commission.customer.email}.`,
+    });
+
     return;
   }
 
@@ -177,7 +232,7 @@ async function createCommission({
   const chargedAt = new Date(commission.created_at);
   const trackedCommission = await prisma.commission.findFirst({
     where: {
-      programId,
+      programId: program.id,
       createdAt: {
         gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
         lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
@@ -196,32 +251,52 @@ async function createCommission({
   }
 
   if (!customer.linkId) {
-    console.log(`No link found for customer ${customer.id}, skipping...`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `No link found for customer ${customer.id}.`,
+    });
+
     return;
   }
 
   if (!customer.clickId) {
-    console.log(`No click ID found for customer ${customer.id}, skipping...`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CLICK_NOT_FOUND",
+      message: `No click found for customer ${customer.id}.`,
+    });
+
     return;
   }
 
   if (!customer.link?.partnerId) {
-    console.log(`No partner ID found for customer ${customer.id}, skipping...`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "PARTNER_NOT_FOUND",
+      message: `No partner found for customer ${customer.id}.`,
+    });
+
     return;
   }
 
-  const leadEvent = await getLeadEvent({
-    customerId: customer.id,
-  });
+  const leadEvent = customerLeadEvents.find(
+    (event) => event.customer_id === customer.id,
+  );
 
-  if (!leadEvent || leadEvent.data.length === 0) {
-    console.log(`No lead event found for customer ${customer.id}, skipping...`);
+  if (!leadEvent) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LEAD_NOT_FOUND",
+      message: `No lead event found for customer ${customer.id}.`,
+    });
+
     return;
   }
 
   const clickData = clickEventSchemaTB
     .omit({ timestamp: true })
-    .parse(leadEvent.data[0]);
+    .parse(leadEvent);
 
   const eventId = nanoid(16);
 
@@ -231,7 +306,7 @@ async function createCommission({
         id: createId({ prefix: "cm_" }),
         eventId,
         type: "sale",
-        programId,
+        programId: program.id,
         partnerId: customer.link.partnerId,
         linkId: customer.linkId,
         customerId: customer.id,
@@ -300,6 +375,6 @@ async function createCommission({
 
   await syncTotalCommissions({
     partnerId: customer.link.partnerId,
-    programId,
+    programId: program.id,
   });
 }

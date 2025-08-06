@@ -2,13 +2,15 @@ import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { CommissionStatus } from "@prisma/client";
+import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
-import { getLeadEvent } from "../tinybird";
+import { getLeadEvents } from "../tinybird/get-lead-events";
+import { logImportError } from "../tinybird/log-import-error";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
+import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
@@ -24,20 +26,15 @@ const toDubStatus: Record<ToltCommission["status"], CommissionStatus> = {
 };
 
 export async function importCommissions(payload: ToltImportPayload) {
-  let { programId, toltProgramId, userId, startingAfter } = payload;
+  let { importId, programId, toltProgramId, userId, startingAfter } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
-    include: {
-      workspace: true,
-    },
   });
 
-  const { workspace } = program;
-
-  const { token } = await toltImporter.getCredentials(workspace.id);
+  const { token } = await toltImporter.getCredentials(program.workspaceId);
   const toltApi = new ToltApi({ token });
 
   const toltProgram = await toltApi.getProgram({
@@ -60,14 +57,37 @@ export async function importCommissions(payload: ToltImportPayload) {
       break;
     }
 
+    const customersData = await prisma.customer.findMany({
+      where: {
+        projectId: program.workspaceId,
+        email: {
+          in: commissions
+            .map((commission) => commission.customer.email)
+            .filter((email): email is string => email !== null),
+        },
+      },
+      include: {
+        link: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    const customerLeadEvents = await getLeadEvents({
+      customerIds: customersData.map((customer) => customer.id),
+    }).then((res) => res.data);
+
     await Promise.allSettled(
       commissions.map((commission) =>
         createCommission({
-          workspaceId: workspace.id,
-          programId,
+          program,
           commission,
           fxRates,
           programCurrency: toltProgram.currency_code.toLowerCase(),
+          importId,
+          customersData,
+          customerLeadEvents,
         }),
       ),
     );
@@ -88,21 +108,18 @@ export async function importCommissions(payload: ToltImportPayload) {
     return;
   }
 
-  await toltImporter.deleteCredentials(workspace.id);
+  await toltImporter.deleteCredentials(program.workspaceId);
 
   const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
     where: {
       userId_projectId: {
         userId,
-        projectId: workspace.id,
+        projectId: program.workspaceId,
       },
     },
-    select: {
-      user: {
-        select: {
-          email: true,
-        },
-      },
+    include: {
+      project: true,
+      user: true,
     },
   });
 
@@ -112,9 +129,10 @@ export async function importCommissions(payload: ToltImportPayload) {
       subject: "Tolt program imported",
       react: ProgramImported({
         email: workspaceUser.user.email,
-        workspace,
+        workspace: workspaceUser.project,
         program,
         provider: "Tolt",
+        importId,
       }),
     });
   }
@@ -128,24 +146,39 @@ export async function importCommissions(payload: ToltImportPayload) {
 
 // Backfill historical commissions
 async function createCommission({
-  workspaceId,
-  programId,
+  program,
   commission,
   fxRates,
   programCurrency,
+  importId,
+  customersData,
+  customerLeadEvents,
 }: {
-  workspaceId: string;
-  programId: string;
+  program: Program;
   commission: ToltCommission;
   fxRates: Record<string, string> | null;
   programCurrency: string;
+  importId: string;
+  customersData: (Customer & { link: Link | null })[];
+  customerLeadEvents: LeadEventTB[];
 }) {
+  const commonImportLogInputs = {
+    workspace_id: program.workspaceId,
+    import_id: importId,
+    source: "tolt",
+    entity: "commission",
+    entity_id: commission.id,
+  } as const;
+
   const { customer, partner, ...sale } = commission;
 
   if (!sale.transaction_id) {
-    console.log(
-      `Commission ${commission.id} has no transaction ID, skipping...`,
-    );
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "TRANSACTION_NOT_FOUND",
+      message: `No transaction ID provided for commission ${commission.id}`,
+    });
+
     return;
   }
 
@@ -153,7 +186,7 @@ async function createCommission({
     where: {
       invoiceId_programId: {
         invoiceId: sale.transaction_id,
-        programId,
+        programId: program.id,
       },
     },
   });
@@ -163,20 +196,17 @@ async function createCommission({
     return;
   }
 
-  const customerFound = await prisma.customer.findFirst({
-    where: {
-      projectId: workspaceId,
-      email: customer.email,
-    },
-    include: {
-      link: true,
-    },
-  });
+  const customerFound = customersData.find(
+    ({ email }) => email === customer.email,
+  );
 
   if (!customerFound) {
-    console.log(
-      `No customer found for customer email ${customer.email}, skipping...`,
-    );
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CUSTOMER_NOT_FOUND",
+      message: `No customer ${customer.email} found for commission ${commission.id}.`,
+    });
+
     return;
   }
 
@@ -213,7 +243,7 @@ async function createCommission({
   const chargedAt = new Date(sale.created_at);
   const trackedCommission = await prisma.commission.findFirst({
     where: {
-      programId,
+      programId: program.id,
       createdAt: {
         gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
         lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
@@ -231,31 +261,53 @@ async function createCommission({
     return;
   }
 
-  if (
-    !customerFound.linkId ||
-    !customerFound.clickId ||
-    !customerFound.link?.partnerId
-  ) {
-    console.log(
-      `No link or click ID or partner ID found for customer ${customerFound.id}, skipping...`,
-    );
+  if (!customerFound.linkId) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `No link found for customer ${customerFound.id}.`,
+    });
+
     return;
   }
 
-  const leadEvent = await getLeadEvent({
-    customerId: customerFound.id,
-  });
+  if (!customerFound.clickId) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CLICK_NOT_FOUND",
+      message: `No click found for customer ${customerFound.id}.`,
+    });
 
-  if (!leadEvent || leadEvent.data.length === 0) {
-    console.log(
-      `No lead event found for customer ${customerFound.id}, skipping...`,
-    );
+    return;
+  }
+
+  if (!customerFound.link?.partnerId) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "PARTNER_NOT_FOUND",
+      message: `No partner found for customer ${customerFound.id}.`,
+    });
+
+    return;
+  }
+
+  const leadEvent = customerLeadEvents.find(
+    (event) => event.customer_id === customerFound.id,
+  );
+
+  if (!leadEvent) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LEAD_NOT_FOUND",
+      message: `No lead event found for customer ${customerFound.id}.`,
+    });
+
     return;
   }
 
   const clickData = clickEventSchemaTB
     .omit({ timestamp: true })
-    .parse(leadEvent.data[0]);
+    .parse(leadEvent);
 
   const eventId = nanoid(16);
 
@@ -265,7 +317,7 @@ async function createCommission({
         id: createId({ prefix: "cm_" }),
         eventId,
         type: "sale",
-        programId,
+        programId: program.id,
         partnerId: customerFound.link.partnerId,
         linkId: customerFound.linkId,
         customerId: customerFound.id,
@@ -334,6 +386,6 @@ async function createCommission({
 
   await syncTotalCommissions({
     partnerId: customerFound.link.partnerId,
-    programId,
+    programId: program.id,
   });
 }

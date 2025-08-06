@@ -43,6 +43,13 @@ export async function importPartners(payload: RewardfulImportPayload) {
     },
   });
 
+  const commonImportLogInputs = {
+    workspace_id: program.workspaceId,
+    import_id: importId,
+    source: "rewardful",
+    entity: "partner",
+  } as const;
+
   while (hasMore && processedBatches < MAX_BATCHES) {
     const affiliates = await rewardfulApi.listPartners({
       campaignId,
@@ -78,17 +85,10 @@ export async function importPartners(payload: RewardfulImportPayload) {
       );
     }
 
-    const commonImportLogInputs = {
-      workspace_id: program.workspaceId,
-      import_id: importId,
-      source: "rewardful",
-    } as const;
-
     if (notImportedAffiliates.length > 0) {
       await logImportError(
         notImportedAffiliates.map((affiliate) => ({
           ...commonImportLogInputs,
-          entity: "partner",
           entity_id: affiliate.id,
           code: "INACTIVE_PARTNER",
           message: `Partner ${affiliate.email} not imported because it is not active or has no leads.`,

@@ -77,12 +77,6 @@ async function createCustomer({
   campaignId: string;
   importId: string;
 }) {
-  const commonImportLogInputs = {
-    workspace_id: workspace.id,
-    import_id: importId,
-    source: "rewardful",
-  } as const;
-
   const referralId = referral.customer ? referral.customer.email : referral.id;
   if (
     referral.affiliate?.campaign?.id &&
@@ -94,6 +88,14 @@ async function createCustomer({
 
     return;
   }
+
+  const commonImportLogInputs = {
+    workspace_id: workspace.id,
+    import_id: importId,
+    source: "rewardful",
+    entity: "customer",
+    entity_id: referralId,
+  } as const;
 
   const link = await prisma.link.findUnique({
     where: {
@@ -107,8 +109,6 @@ async function createCustomer({
   if (!link) {
     await logImportError({
       ...commonImportLogInputs,
-      entity: "customer",
-      entity_id: referralId,
       code: "LINK_NOT_FOUND",
       message: `Link not found for referral ${referralId} (token: ${referral.link.token}).`,
     });
@@ -122,9 +122,7 @@ async function createCustomer({
   ) {
     await logImportError({
       ...commonImportLogInputs,
-      entity: "customer",
-      entity_id: referralId,
-      code: "STRIPE_CUSTOMER_ID_NOT_FOUND",
+      code: "STRIPE_CUSTOMER_NOT_FOUND",
       message: `No Stripe customer ID provided for referral ${referralId}.`,
     });
 

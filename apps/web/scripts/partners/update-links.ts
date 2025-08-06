@@ -4,17 +4,20 @@ import { linkCache } from "../../lib/api/links/cache";
 import { includeTags } from "../../lib/api/links/include-tags";
 import { recordLink } from "../../lib/tinybird";
 
+const oldDomain = "pinnacle-odds-dropper.link";
+const newDomain = "go.pinnacleoddsdropper.com";
+
 // update links
 async function main() {
   const links = await prisma.link.findMany({
     where: {
-      domain: "aff.testimonial.to",
+      domain: oldDomain,
       key: {
         not: "_root",
       },
     },
     include: includeTags,
-    take: 500,
+    take: 100,
   });
 
   const updatedLinks = await prisma.link.updateMany({
@@ -24,7 +27,7 @@ async function main() {
       },
     },
     data: {
-      domain: "refer.testimonial.to",
+      domain: newDomain,
     },
   });
 
@@ -35,10 +38,23 @@ async function main() {
     recordLink(
       links.map((link) => ({
         ...link,
-        domain: "refer.testimonial.to",
+        domain: newDomain,
       })),
     ),
   ]);
+
+  await Promise.all(
+    links.map(async (link) => {
+      return await prisma.link.update({
+        where: {
+          id: link.id,
+        },
+        data: {
+          shortLink: link.shortLink.replace(oldDomain, newDomain),
+        },
+      });
+    }),
+  );
 
   console.log(res);
 }

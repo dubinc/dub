@@ -5,7 +5,9 @@ import {
 import { getUrlFromStringIfValid } from "@dub/utils/src/functions";
 import { ipAddress } from "@vercel/functions";
 import { NextRequest, userAgent } from "next/server";
+import { isGooglePlayStoreUrl } from "./is-google-play-store-url";
 import { isSingularTrackingUrl } from "./is-singular-tracking-url";
+import { parse } from "./parse";
 
 export const getFinalUrl = (
   url: string,
@@ -34,15 +36,6 @@ export const getFinalUrl = (
     urlObj.searchParams.set("via", via);
   }
 
-  // for Singular tracking links
-  if (isSingularTrackingUrl(url)) {
-    const ua = userAgent(req);
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-    urlObj.searchParams.set("cl", clickId ?? "");
-    urlObj.searchParams.set("ua", ua?.ua ?? "");
-    urlObj.searchParams.set("ip", ip ?? "");
-  }
-
   if (clickId) {
     /*
        custom query param for stripe payment links + Dub Conversions
@@ -60,6 +53,27 @@ export const getFinalUrl = (
     } else if (!searchParams.has("dub-no-track")) {
       urlObj.searchParams.set("dub_id", clickId);
     }
+  }
+
+  // for Singular tracking links
+  if (isSingularTrackingUrl(url)) {
+    const ua = userAgent(req);
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    urlObj.searchParams.set("cl", clickId ?? "");
+    urlObj.searchParams.set("ua", ua?.ua ?? "");
+    urlObj.searchParams.set("ip", ip ?? "");
+  }
+
+  // for Google Play Store links
+  if (isGooglePlayStoreUrl(url)) {
+    const { shortLink } = parse(req);
+    const existingReferrer = urlObj.searchParams.get("referrer");
+
+    const referrerSearchParam = new URLSearchParams(
+      existingReferrer ? decodeURIComponent(existingReferrer) : "",
+    );
+    referrerSearchParam.set("deepLink", shortLink);
+    urlObj.searchParams.set("referrer", referrerSearchParam.toString());
   }
 
   // if there are no query params, then return the target url as is (no need to parse it)

@@ -1,41 +1,43 @@
 model Domain {
-  id                      String            @id @default(cuid())
-  slug                    String            @unique
-  verified                Boolean           @default(false)
+  id                      String   @id @default(cuid())
+  slug                    String   @unique
+  verified                Boolean  @default(false)
   placeholder             String?
-  expiredUrl              String?           @db.LongText // URL to redirect to for expired links
-  notFoundUrl             String?           @db.LongText // URL to redirect to for links that don't exist
-  primary                 Boolean           @default(false)
-  archived                Boolean           @default(false)
-  lastChecked             DateTime          @default(now())
+  expiredUrl              String?  @db.LongText // URL to redirect to for expired links
+  notFoundUrl             String?  @db.LongText // URL to redirect to for links that don't exist
+  primary                 Boolean  @default(false)
+  archived                Boolean  @default(false)
+  lastChecked             DateTime @default(now())
   logo                    String?
   linkRetentionDays       Int? // default is null (links are retained forever)
   appleAppSiteAssociation Json?
   assetLinks              Json?
-  project                 Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId               String?
-  registeredDomain        RegisteredDomain?
-  programs                Program[]
-
   // these attributes will exist on both Link and Domain models
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  project          Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  registeredDomain RegisteredDomain?
+  programs         Program[]
 
   @@index(projectId)
   @@index(lastChecked(sort: Asc))
 }
 
 model RegisteredDomain {
-  id        String   @id @default(cuid())
-  slug      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  expiresAt DateTime
+  id                    String    @id @default(cuid())
+  slug                  String
+  projectId             String
+  domainId              String?   @unique
+  autoRenewalDisabledAt DateTime?
+  renewalFee            Int       @default(1200) // $12
+  expiresAt             DateTime
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  project   Project @relation(fields: [projectId], references: [id])
-  projectId String
-  domain    Domain? @relation(fields: [domainId], references: [id], onDelete: SetNull)
-  domainId  String? @unique
+  project Project @relation(fields: [projectId], references: [id])
+  domain  Domain? @relation(fields: [domainId], references: [id], onDelete: SetNull)
 
   @@index(projectId)
   @@index(expiresAt(sort: Asc))

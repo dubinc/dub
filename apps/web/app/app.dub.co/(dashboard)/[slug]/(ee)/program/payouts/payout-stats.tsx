@@ -142,7 +142,7 @@ export function PayoutStats() {
               <div className="text-sm text-neutral-500">Total paid</div>
             </div>
             <Link
-              href={`/${slug}/settings/billing/invoices?type=payout`}
+              href={`/${slug}/settings/billing/invoices?type=partnerPayout`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-7 items-center rounded-md border px-2 text-sm",
