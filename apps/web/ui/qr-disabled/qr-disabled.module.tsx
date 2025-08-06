@@ -57,7 +57,7 @@ export const QrDisabledModule: FC = () => {
               </Text>
               <Text as="span" size="2" className="text-center text-neutral-800">
                 Please{" "}
-                <Link href="/login" className="text-secondary">
+                <Link href="/?login=true" className="text-secondary">
                   Log in
                 </Link>{" "}
                 to renew your subscription or reactivate your QR code.

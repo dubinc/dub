@@ -2,7 +2,7 @@ import {
   AdminMiddleware,
   ApiMiddleware,
   AppMiddleware,
-  AxiomMiddleware,
+  // AxiomMiddleware,
   CreateLinkMiddleware,
   LinkMiddleware,
 } from "@/lib/middleware";
@@ -45,13 +45,12 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
-  console.log("middleware here0");
 
   // Initialize session ID for all users (both new and existing)
   const sessionInit = userSessionIdInit(req);
 
   // Apply Axiom middleware
-  AxiomMiddleware(req, ev);
+  // AxiomMiddleware(req, ev);
 
   const isPublicRoute =
     PUBLIC_ROUTES.includes(path) ||
@@ -92,13 +91,11 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
-    console.log("middleware here1");
     return AppMiddleware(req, country, user);
   }
 
   // for API
   if (API_HOSTNAMES.has(domain)) {
-    console.log("middleware here2");
     return ApiMiddleware(req);
   }
 
@@ -119,16 +116,12 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
-    console.log("middleware here3");
     return AdminMiddleware(req);
   }
 
   if (PARTNERS_HOSTNAMES.has(domain)) {
-    console.log("middleware here4");
     return PartnersMiddleware(req);
   }
-
-  console.log("middleware here5");
 
   if (isValidUrl(fullKey)) {
     return CreateLinkMiddleware(req);
