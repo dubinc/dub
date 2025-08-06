@@ -3,7 +3,7 @@ import { log } from "@dub/utils";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 
 const responseSchema = z.object({
-  SetDefaultRenewOptionResponse: z.object({
+  SetRenewOptionResponse: z.object({
     ResponseCode: z.number(),
     Status: z.string(),
   }),
@@ -39,7 +39,7 @@ export const setRenewOption = async ({
     }
 
     const {
-      SetDefaultRenewOptionResponse: { Status },
+      SetRenewOptionResponse: { Status },
     } = responseSchema.parse(await response.json());
 
     if (Status !== "success") {

@@ -48,8 +48,7 @@ import useSWRImmutable from "swr/immutable";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
-import { useDisableAutoRenewalModal } from "../modals/disable-auto-renewal-modal";
-import { useEnableAutoRenewalModal } from "../modals/enable-auto-renewal-modal";
+import { useDomainAutoRenewalModal } from "../modals/domain-auto-renewal-modal";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
@@ -113,24 +112,14 @@ export default function DomainCard({ props }: { props: DomainProps }) {
     return registeredDomain.autoRenewalDisabledAt === null;
   }, [registeredDomain]);
 
-  const { setShowEnableAutoRenewalModal, EnableAutoRenewalModal } =
-    useEnableAutoRenewalModal({
-      domain: props,
-    });
-
-  const { setShowDisableAutoRenewalModal, DisableAutoRenewalModal } =
-    useDisableAutoRenewalModal({
+  const { openDomainRenewalModal, DomainAutoRenewalModal } =
+    useDomainAutoRenewalModal({
       domain: props,
     });
 
   return (
     <>
-      {isDubProvisioned && (
-        <>
-          <EnableAutoRenewalModal />
-          <DisableAutoRenewalModal />
-        </>
-      )}
+      {isDubProvisioned && <DomainAutoRenewalModal />}
       <div
         ref={domainRef}
         className="hover:drop-shadow-card-hover group rounded-xl border border-neutral-200 bg-white transition-[filter]"
@@ -158,11 +147,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                         : "text-neutral-400 hover:text-neutral-700",
                   )}
                   onClick={() => {
-                    if (!autoRenew) {
-                      setShowEnableAutoRenewalModal(true);
-                    } else {
-                      setShowDisableAutoRenewalModal(true);
-                    }
+                    openDomainRenewalModal(!autoRenew);
                   }}
                 >
                   {autoRenew ? (
@@ -290,8 +275,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                 refreshProps={{ isValidating, mutate }}
                 groupHover={groupHover}
                 autoRenew={autoRenew}
-                setShowEnableAutoRenewalModal={setShowEnableAutoRenewalModal}
-                setShowDisableAutoRenewalModal={setShowDisableAutoRenewalModal}
+                openDomainRenewalModal={openDomainRenewalModal}
               />
             </div>
           </div>
@@ -335,8 +319,7 @@ function DomainCardMenu({
   refreshProps,
   groupHover,
   autoRenew,
-  setShowEnableAutoRenewalModal,
-  setShowDisableAutoRenewalModal,
+  openDomainRenewalModal,
 }: {
   props: DomainProps;
   linkProps?: LinkProps;
@@ -346,8 +329,7 @@ function DomainCardMenu({
   };
   groupHover: boolean;
   autoRenew: boolean;
-  setShowEnableAutoRenewalModal: (show: boolean) => void;
-  setShowDisableAutoRenewalModal: (show: boolean) => void;
+  openDomainRenewalModal: (enable: boolean) => void;
 }) {
   const { role } = useWorkspace();
   const { isMobile } = useMediaQuery();
@@ -518,11 +500,7 @@ function DomainCardMenu({
                     variant="outline"
                     onClick={() => {
                       setOpenPopover(false);
-                      if (!autoRenew) {
-                        setShowEnableAutoRenewalModal(true);
-                      } else {
-                        setShowDisableAutoRenewalModal(true);
-                      }
+                      openDomainRenewalModal(!autoRenew);
                     }}
                     icon={
                       <Repeat
