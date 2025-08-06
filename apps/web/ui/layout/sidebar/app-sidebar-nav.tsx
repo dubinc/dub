@@ -217,7 +217,7 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { programs } = usePrograms();
+  // const { programs } = usePrograms();
   const { setShowTrialExpiredModal, TrialExpiredModalCallback } =
     useTrialExpiredModal();
   const { isTrialOver } = useTrialStatus();
@@ -244,7 +244,7 @@ export function AppSidebarNav({
           queryString: getQueryString(undefined, {
             include: ["folderId", "tagIds", "domain"],
           }),
-          programs,
+          // programs,
           session: session || undefined,
           showNews: pathname.startsWith(`/${slug}/programs/`) ? false : true,
           setShowTrialExpiredModal,

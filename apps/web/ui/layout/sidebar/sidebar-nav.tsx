@@ -81,7 +81,7 @@ export function SidebarNav<T extends Record<any, any>>({
                 onClick={(e) => {
                   e.preventDefault();
                   router.push("/");
-                  router.refresh();
+                  // router.refresh();
                 }}
                 className={cn(
                   "rounded-md px-1 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50",
@@ -187,16 +187,18 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
 
   const handleClick = (e: React.MouseEvent) => {
     // Track menu item click
-    trackClientEvents({
-      event: EAnalyticEvents.PAGE_CLICKED,
-      params: {
-        page_name: "profile",
-        content_value: name.toLowerCase().replace(/\s+/g, "_"),
-        email: user?.email,
-        event_category: "Authorized",
-      },
-      sessionId: user?.id,
-    });
+    setTimeout(() => {
+      trackClientEvents({
+        event: EAnalyticEvents.PAGE_CLICKED,
+        params: {
+          page_name: "profile",
+          content_value: name.toLowerCase().replace(/\s+/g, "_"),
+          email: user?.email,
+          event_category: "Authorized",
+        },
+        sessionId: user?.id,
+      });
+    }, 0)
 
     // Call original onClick if provided
     if (onClick) {
