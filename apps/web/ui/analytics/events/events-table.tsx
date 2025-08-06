@@ -248,6 +248,32 @@ export default function EventsTable({
           },
         },
         {
+          id: "url",
+          header: "Destination URL",
+          accessorKey: "click.url",
+          minSize: 250,
+          size: 250,
+          meta: {
+            filterParams: ({ getValue }) => ({ url: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <LinkLogo
+                apexDomain={getApexDomain(getValue())}
+                className="size-4 shrink-0 sm:size-4"
+              />
+              <CopyText
+                value={getValue()}
+                successMessage="Copied referrer URL to clipboard!"
+              >
+                <span className="overflow-scroll" title={getValue()}>
+                  {getPrettyUrl(getValue())}
+                </span>
+              </CopyText>
+            </div>
+          ),
+        },
+        {
           id: "referer",
           header: "Referer",
           accessorKey: "click.referer",

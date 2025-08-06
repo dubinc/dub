@@ -15,6 +15,7 @@ type Row = ClickEvent | LeadEvent | SaleEvent;
 
 const columnNames: Record<string, string> = {
   trigger: "Event",
+  url: "Destination URL",
   os: "OS",
   referer: "Referrer",
   refererUrl: "Referrer URL",
@@ -27,6 +28,7 @@ const columnNames: Record<string, string> = {
 const columnAccessors = {
   trigger: (r: Row) => r.click.trigger,
   event: (r: LeadEvent | SaleEvent) => r.eventName,
+  url: (r: ClickEvent) => r.click.url,
   link: (r: Row) => r.domain + (r.key === "_root" ? "" : `/${r.key}`),
   country: (r: Row) =>
     r.country ? COUNTRIES[r.country] ?? r.country : r.country,
