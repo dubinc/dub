@@ -85,15 +85,17 @@ function DomainAutoRenewalModal({
         <p className="text-sm text-neutral-800">
           {enableAutoRenewal ? (
             <>
-              By enabling auto-renewal, Dub will automatically renew your domain
-              on <strong>{formatDate(expiresAt)}</strong> for{" "}
-              {currencyFormatter(renewalFee / 100)}.
+              Your domain is currently set to expire on{" "}
+              <strong>{formatDate(expiresAt)}</strong>. By enabling
+              auto-renewal, Dub will automatically renew your domain for{" "}
+              <strong>{currencyFormatter(renewalFee / 100)}</strong>.
             </>
           ) : (
             <>
-              By disabling auto-renewal, your domain{" "}
-              <strong>{domain.slug}</strong> will expire on{" "}
-              <strong>{formatDate(expiresAt)}</strong>.
+              Dub will automatically renew your domain for{" "}
+              <strong>{currencyFormatter(renewalFee / 100)}</strong>. By
+              disabling auto-renewal, your domain <strong>{domain.slug}</strong>{" "}
+              will expire on <strong>{formatDate(expiresAt)}</strong>.
               <br />
               <br />
               Once your domain expires, there is no guarantee that you'll be
