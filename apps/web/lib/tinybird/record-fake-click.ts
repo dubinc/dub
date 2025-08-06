@@ -12,6 +12,7 @@ export async function recordFakeClick({
   customer?: {
     country?: string | null;
     region?: string | null;
+    continent?: string | null;
   };
   timestamp?: string | number;
 }) {
@@ -21,7 +22,7 @@ export async function recordFakeClick({
       "x-forwarded-for": "127.0.0.1",
       "x-vercel-ip-country": customer?.country || "US",
       "x-vercel-ip-country-region": customer?.region || "CA",
-      "x-vercel-ip-continent": "NA",
+      "x-vercel-ip-continent": customer?.continent || "NA",
     }),
   });
 
