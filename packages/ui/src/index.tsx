@@ -28,6 +28,7 @@ export * from "./modal";
 export * from "./pagination-controls";
 export * from "./popover";
 export * from "./radio-group";
+export * from "./rich-text-area";
 export * from "./sheet";
 export * from "./shimmer-dots";
 export * from "./slider";

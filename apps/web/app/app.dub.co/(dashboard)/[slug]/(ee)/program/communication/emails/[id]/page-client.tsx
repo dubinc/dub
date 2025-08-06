@@ -3,8 +3,9 @@
 import { programEmailSchema } from "@/lib/zod/schemas/program-emails";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { RichTextArea } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 export function ProgramEmailPageClient({ id }: { id: string }) {
@@ -34,7 +35,7 @@ function ProgramEmailForm() {
     },
   });
 
-  const { register, watch, handleSubmit } = form;
+  const { register, control, watch, handleSubmit } = form;
 
   const type = watch("type");
 
@@ -74,6 +75,20 @@ function ProgramEmailForm() {
             <span className={labelClassName}>Delivery</span>
             <div />
           </label>
+        </div>
+
+        <div className="mt-6">
+          <Controller
+            control={control}
+            name="body"
+            render={({ field }) => (
+              <RichTextArea
+                editorClassName="-m-2 min-h-[400px] p-2"
+                initialValue={field.value}
+                onChange={field.onChange}
+              />
+            )}
+          />
         </div>
       </PageWidthWrapper>
     </PageContent>
