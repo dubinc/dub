@@ -59,7 +59,7 @@ export default function DomainRenewalReminder({
             <Text className="text-sm leading-6 text-neutral-600">
               The domain{" "}
               <Link
-                href={domain.slug}
+                href={`https://${domain.slug}`}
                 className="font-semibold text-black underline"
               >
                 {domain.slug}

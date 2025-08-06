@@ -78,7 +78,7 @@ export default function DomainRenewalFailed({
                   <Row>
                     <Column align="left" className="text-sm font-medium">
                       <Link
-                        href={domain.slug}
+                        href={`https://${domain.slug}`}
                         className="font-semibold text-black underline"
                       >
                         {domain.slug}
