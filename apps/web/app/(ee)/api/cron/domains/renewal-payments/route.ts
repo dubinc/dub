@@ -85,29 +85,32 @@ export async function GET(req: Request) {
     for (const workspaceId in groupedByWorkspace) {
       const { workspace, domains } = groupedByWorkspace[workspaceId];
 
-      const totalInvoices = await prisma.invoice.count({
-        where: {
-          workspaceId: workspace.id,
-        },
-      });
+      const invoice = await prisma.$transaction(async (tx) => {
+        // Generate the next invoice number by counting the number of invoices for the workspace
+        const totalInvoices = await tx.invoice.count({
+          where: {
+            workspaceId: workspace.id,
+          },
+        });
+        const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
+        const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
 
-      const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
-      const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
-      const totalAmount = domains.reduce(
-        (acc, domain) => acc + domain.renewalFee,
-        0,
-      );
+        const totalAmount = domains.reduce(
+          (acc, domain) => acc + domain.renewalFee,
+          0,
+        );
 
-      const invoice = await prisma.invoice.create({
-        data: {
-          id: createId({ prefix: "inv_" }),
-          workspaceId: workspace.id,
-          number: invoiceNumber,
-          type: "domainRenewal",
-          amount: totalAmount,
-          total: totalAmount,
-          registeredDomains: domains.map(({ slug }) => slug), // array of domain slugs,
-        },
+        return await tx.invoice.create({
+          data: {
+            id: createId({ prefix: "inv_" }),
+            workspaceId: workspace.id,
+            number: invoiceNumber,
+            type: "domainRenewal",
+            amount: totalAmount,
+            total: totalAmount,
+            registeredDomains: domains.map(({ slug }) => slug), // array of domain slugs,
+          },
+        });
       });
 
       console.log(
