@@ -16,9 +16,12 @@ type Row = ClickEvent | LeadEvent | SaleEvent;
 const columnNames: Record<string, string> = {
   trigger: "Event",
   os: "OS",
+  referer: "Referrer",
+  refererUrl: "Referrer URL",
   timestamp: "Date",
   invoiceId: "Invoice ID",
   saleAmount: "Sale Amount",
+  clickId: "Click ID",
 };
 
 const columnAccessors = {
@@ -27,10 +30,13 @@ const columnAccessors = {
   link: (r: Row) => r.domain + (r.key === "_root" ? "" : `/${r.key}`),
   country: (r: Row) =>
     r.country ? COUNTRIES[r.country] ?? r.country : r.country,
+  referer: (r: ClickEvent) => r.click.referer,
+  refererUrl: (r: ClickEvent) => r.click.refererUrl,
   customer: (r: LeadEvent | SaleEvent) =>
     r.customer.name + (r.customer.email ? ` <${r.customer.email}>` : ""),
   invoiceId: (r: SaleEvent) => r.sale.invoiceId,
   saleAmount: (r: SaleEvent) => "$" + (r.sale.amount / 100).toFixed(2),
+  clickId: (r: ClickEvent) => r.click.id,
 };
 
 // GET /api/events/export – get export data for analytics

@@ -111,6 +111,6 @@ export const GET = async (req: Request) => {
   }
 };
 
-export const HEAD = async (req: Request) => {
+export const HEAD = async () => {
   return new Response("OK");
 };

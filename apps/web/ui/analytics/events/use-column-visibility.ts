@@ -17,6 +17,7 @@ export const eventColumns = {
       "os",
       "referer",
       "refererUrl",
+      "clickId",
       "ip",
     ],
     defaultVisible: ["timestamp", "link", "referer", "country", "device"],
@@ -37,6 +38,7 @@ export const eventColumns = {
       "referer",
       "refererUrl",
       "ip",
+      "clickId",
       "metadata",
     ],
     defaultVisible: ["timestamp", "event", "link", "customer", "referer"],
@@ -59,6 +61,7 @@ export const eventColumns = {
       "referer",
       "refererUrl",
       "ip",
+      "clickId",
       "metadata",
     ],
     defaultVisible: [

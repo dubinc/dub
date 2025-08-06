@@ -264,7 +264,12 @@ export default function EventsTable({
                   className="size-4 shrink-0 sm:size-4"
                 />
               )}
-              <span className="truncate">{getValue()}</span>
+              <CopyText
+                value={getValue()}
+                successMessage="Copied referrer to clipboard!"
+              >
+                <span className="truncate">{getValue()}</span>
+              </CopyText>
             </div>
           ),
         },
@@ -473,23 +478,45 @@ export default function EventsTable({
                     <span className="text-neutral-400">-</span>
                   ),
               },
+              // Click ID
+              {
+                id: "clickId",
+                header: "Click ID",
+                accessorKey: "click.id",
+                maxSize: 200,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <CopyText
+                      value={getValue()}
+                      successMessage="Copied click ID to clipboard!"
+                    >
+                      <span className="truncate font-mono" title={getValue()}>
+                        {getValue()}
+                      </span>
+                    </CopyText>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+              // Metadata
+              {
+                id: "metadata",
+                header: "Metadata",
+                accessorKey: "metadata",
+                minSize: 120,
+                size: 120,
+                maxSize: 120,
+                cell: ({ getValue }) => {
+                  const metadata = getValue();
+                  if (!metadata || Object.keys(metadata).length === 0) {
+                    return <span className="text-neutral-400">-</span>;
+                  }
+                  return (
+                    <MetadataViewer metadata={metadata} previewItems={0} />
+                  );
+                },
+              },
             ]),
-        // Metadata
-        {
-          id: "metadata",
-          header: "Metadata",
-          accessorKey: "metadata",
-          minSize: 120,
-          size: 120,
-          maxSize: 120,
-          cell: ({ getValue }) => {
-            const metadata = getValue();
-            if (!metadata || Object.keys(metadata).length === 0) {
-              return <span className="text-neutral-400">-</span>;
-            }
-            return <MetadataViewer metadata={metadata} previewItems={0} />;
-          },
-        },
         // Menu
         {
           id: "menu",
