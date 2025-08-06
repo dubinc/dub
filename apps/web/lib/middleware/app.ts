@@ -1,8 +1,8 @@
 import { parse } from "@/lib/middleware/utils";
+import { UserProps } from "@/lib/types.ts";
 import { userSessionIdInit } from "core/services/cookie/user-session-id-init.service.ts";
 import { NextRequest, NextResponse } from "next/server";
 // import EmbedMiddleware from "./embed";
-import { getUserViaToken } from "@/lib/middleware/utils/get-user-via-token.ts";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getOnboardingStep } from "./utils/get-onboarding-step";
@@ -11,11 +11,10 @@ import WorkspacesMiddleware from "./workspaces";
 
 export default async function AppMiddleware(
   req: NextRequest,
+  user?: UserProps,
   isPublicRoute?: boolean,
 ) {
   const { domain, path, fullPath } = parse(req);
-
-  const user = await getUserViaToken(req);
 
   // if (path.startsWith("/embed")) {
   //   return EmbedMiddleware(req);

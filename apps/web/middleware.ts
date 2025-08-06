@@ -6,6 +6,7 @@ import {
   LinkMiddleware,
 } from "@/lib/middleware";
 import { parse } from "@/lib/middleware/utils";
+import { getUserViaToken } from "@/lib/middleware/utils/get-user-via-token.ts";
 import { supportedWellKnownFiles } from "@/lib/well-known.ts";
 import { API_HOSTNAMES, APP_HOSTNAMES, isValidUrl } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
@@ -14,7 +15,6 @@ import {
   PUBLIC_ROUTES,
 } from "./app/[domain]/(public)/constants/types.ts";
 import { userSessionIdInit } from "./core/services/cookie/user-session-id-init.service.ts";
-import {DEFAULT_REDIRECTS} from "@dub/utils/src";
 
 export const config = {
   matcher: [
@@ -33,6 +33,8 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, key, fullKey, path } = parse(req);
 
+  const user = await getUserViaToken(req);
+
   // Initialize session ID for all users (both new and existing)
   const sessionInit = userSessionIdInit(req);
 
@@ -41,12 +43,15 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   const isPublicRoute =
     PUBLIC_ROUTES.includes(path) ||
+    path.startsWith("/help") ||
     ALLOWED_REGIONS.includes(path.slice(1).toLowerCase());
 
   // Handle public routes for App
   if (isPublicRoute) {
     if (APP_HOSTNAMES.has(domain)) {
-      return AppMiddleware(req, isPublicRoute);
+      if (user) {
+        return AppMiddleware(req, user, isPublicRoute);
+      }
     }
 
     const response = NextResponse.rewrite(
@@ -67,7 +72,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
-    return AppMiddleware(req);
+    return AppMiddleware(req, user);
   }
 
   // for API
@@ -85,10 +90,10 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     }
   }
 
-  // default redirects for dub.sh
-  if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
-    return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
-  }
+  // // default redirects for dub.sh
+  // if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
+  //   return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
+  // }
 
   // // for Admin
   // if (ADMIN_HOSTNAMES.has(domain)) {
