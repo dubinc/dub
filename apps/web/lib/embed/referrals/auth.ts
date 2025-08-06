@@ -1,4 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DiscountProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { Link, Program, ProgramEnrollment } from "@dub/prisma/client";
@@ -21,6 +22,7 @@ interface WithReferralsEmbedTokenHandler {
     searchParams: Record<string, string>;
     program: Program;
     programEnrollment: ProgramEnrollment;
+    discount: DiscountProps | null;
     links: Link[];
     embedToken: string;
   }): Promise<Response>;
@@ -77,10 +79,13 @@ export const withReferralsEmbedToken = (
           });
         }
 
-        const { program, links, ...programEnrollment } =
+        const { program, links, discount, ...programEnrollment } =
           await prisma.programEnrollment.findUniqueOrThrow({
             where: {
-              partnerId_programId: { partnerId, programId },
+              partnerId_programId: {
+                partnerId,
+                programId,
+              },
             },
             include: {
               links: {
@@ -97,6 +102,7 @@ export const withReferralsEmbedToken = (
                 ],
               },
               program: true,
+              discount: true,
             },
           });
 
@@ -107,6 +113,7 @@ export const withReferralsEmbedToken = (
           program,
           programEnrollment,
           links,
+          discount,
           embedToken,
         });
       } catch (error) {

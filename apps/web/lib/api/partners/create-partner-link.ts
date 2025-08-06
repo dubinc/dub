@@ -15,7 +15,10 @@ import { createLink } from "../links/create-link";
 import { processLink } from "../links/process-link";
 
 type PartnerLinkArgs = {
-  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
+  workspace: Pick<
+    WorkspaceProps,
+    "id" | "plan" | "webhookEnabled" | "stripeConnectId"
+  >;
   program: Pick<ProgramProps, "defaultFolderId" | "domain" | "url" | "id">;
   partner: Pick<
     CreatePartnerProps,

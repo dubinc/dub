@@ -5,7 +5,6 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { createStripePromotionCode } from "@/lib/stripe/create-promotion-code";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
@@ -100,6 +99,7 @@ export const POST = withWorkspace(
         tenantId: true,
         discount: {
           select: {
+            id: true,
             couponId: true,
           },
         },
@@ -137,24 +137,19 @@ export const POST = withWorkspace(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const partnerLink = await createLink({
+      ...link,
+      program,
+      discount: partner.discount,
+      stripeConnectId: workspace.stripeConnectId,
+    });
 
     waitUntil(
-      Promise.allSettled([
-        sendWorkspaceWebhook({
-          trigger: "link.created",
-          workspace,
-          data: linkEventSchema.parse(partnerLink),
-        }),
-
-        program.couponCodeTrackingEnabledAt && partner.discount?.couponId
-          ? createStripePromotionCode({
-              code: partnerLink.key,
-              couponId: partner.discount?.couponId!,
-              stripeConnectId: workspace.stripeConnectId,
-            })
-          : Promise.resolve(),
-      ]),
+      sendWorkspaceWebhook({
+        trigger: "link.created",
+        workspace,
+        data: linkEventSchema.parse(partnerLink),
+      }),
     );
 
     return NextResponse.json(partnerLink, { status: 201 });

@@ -11,9 +11,16 @@ export async function createStripePromotionCode({
   stripeConnectId,
 }: {
   code: string;
-  couponId: string;
+  couponId: string | null;
   stripeConnectId: string | null;
 }) {
+  if (!couponId) {
+    console.error(
+      "couponId not found for the discount. Stripe promotion code creation skipped.",
+    );
+    return;
+  }
+
   if (!stripeConnectId) {
     console.error(
       "stripeConnectId not found for the workspace. Stripe promotion code creation skipped.",

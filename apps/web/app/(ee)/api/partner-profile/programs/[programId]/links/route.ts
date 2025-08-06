@@ -4,11 +4,8 @@ import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-ur
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { createStripePromotionCode } from "@/lib/stripe/create-promotion-code";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
@@ -90,34 +87,11 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const partnerLink = await createLink(link);
-
-    waitUntil(
-      (async () => {
-        if (
-          !discount ||
-          !discount.couponId ||
-          !program.couponCodeTrackingEnabledAt
-        ) {
-          return;
-        }
-
-        const workspace = await prisma.project.findUniqueOrThrow({
-          where: {
-            id: program.workspaceId,
-          },
-          select: {
-            stripeConnectId: true,
-          },
-        });
-
-        await createStripePromotionCode({
-          code: partnerLink.key,
-          couponId: discount.couponId,
-          stripeConnectId: workspace.stripeConnectId,
-        });
-      })(),
-    );
+    const partnerLink = await createLink({
+      ...link,
+      program,
+      discount,
+    });
 
     return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink), {
       status: 201,

@@ -3,11 +3,9 @@ import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { createStripePromotionCode } from "@/lib/stripe/create-promotion-code";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/embed/referrals/links – get links for a partner
@@ -19,7 +17,7 @@ export const GET = withReferralsEmbedToken(async ({ links }) => {
 
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
-  async ({ req, programEnrollment, program, links }) => {
+  async ({ req, programEnrollment, program, links, discount }) => {
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
@@ -86,43 +84,11 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    const partnerLink = await createLink(link);
-
-    waitUntil(
-      (async () => {
-        if (!programEnrollment.discountId) {
-          return;
-        }
-
-        const discount = await prisma.discount.findUniqueOrThrow({
-          where: {
-            id: programEnrollment.discountId,
-          },
-          select: {
-            couponId: true,
-            program: {
-              select: {
-                workspace: {
-                  select: {
-                    stripeConnectId: true,
-                  },
-                },
-              },
-            },
-          },
-        });
-
-        if (!program.couponCodeTrackingEnabledAt || !discount.couponId) {
-          return;
-        }
-
-        await createStripePromotionCode({
-          code: partnerLink.key,
-          couponId: discount.couponId,
-          stripeConnectId: discount.program.workspace.stripeConnectId,
-        });
-      })(),
-    );
+    const partnerLink = await createLink({
+      ...link,
+      program,
+      discount,
+    });
 
     return NextResponse.json(ReferralsEmbedLinkSchema.parse(partnerLink), {
       status: 201,

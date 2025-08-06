@@ -1,8 +1,9 @@
 import { qstash } from "@/lib/cron";
 import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
 import { isNotHostedImage, storage } from "@/lib/storage";
+import { createStripePromotionCode } from "@/lib/stripe/create-promotion-code";
 import { recordLink } from "@/lib/tinybird";
-import { ProcessedLinkProps } from "@/lib/types";
+import { DiscountProps, ProcessedLinkProps, ProgramProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -23,7 +24,13 @@ import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
 
-export async function createLink(link: ProcessedLinkProps) {
+type CreateLinkProps = ProcessedLinkProps & {
+  program?: Pick<ProgramProps, "id" | "couponCodeTrackingEnabledAt">;
+  discount?: Pick<DiscountProps, "id" | "couponId"> | null;
+  stripeConnectId?: string | null;
+};
+
+export async function createLink(link: CreateLinkProps) {
   let {
     key,
     url,
@@ -37,6 +44,7 @@ export async function createLink(link: ProcessedLinkProps) {
     testVariants,
     testStartedAt,
     testCompletedAt,
+    stripeConnectId,
   } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -44,12 +52,17 @@ export async function createLink(link: ProcessedLinkProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  const { tagId, tagIds, tagNames, webhookIds, ...rest } = link;
+  let { tagId, tagIds, tagNames, webhookIds, program, discount, ...rest } =
+    link;
 
   key = encodeKeyIfCaseSensitive({
     domain: link.domain,
     key,
   });
+
+  let shouldCreateCouponCode = Boolean(
+    program?.couponCodeTrackingEnabledAt && discount?.couponId,
+  );
 
   const response = await prisma.link.create({
     data: {
@@ -130,10 +143,55 @@ export async function createLink(link: ProcessedLinkProps) {
     include: {
       ...includeTags,
       webhooks: webhookIds ? true : false,
+      project: shouldCreateCouponCode && stripeConnectId === undefined,
     },
   });
 
+
+  // TODO:
+  // Move to waitUntil
+  if (response.programId && response.partnerId && !program && !discount) {
+    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        partnerId_programId: {
+          partnerId: response.partnerId,
+          programId: response.programId,
+        },
+      },
+      select: {
+        discount: {
+          select: {
+            id: true,
+            couponId: true,
+          },
+        },
+        program: {
+          select: {
+            id: true,
+            couponCodeTrackingEnabledAt: true,
+            workspace: {
+              select: {
+                stripeConnectId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const workspace = programEnrollment.program.workspace;
+
+    program = programEnrollment.program;
+    discount = programEnrollment.discount;
+    stripeConnectId = workspace.stripeConnectId;
+
+    shouldCreateCouponCode = Boolean(
+      program.couponCodeTrackingEnabledAt && discount?.couponId,
+    );
+  }
+
   const uploadedImageUrl = `${R2_URL}/images/${response.id}`;
+  stripeConnectId = stripeConnectId || response.project?.stripeConnectId;
 
   waitUntil(
     Promise.allSettled([
@@ -192,8 +250,19 @@ export async function createLink(link: ProcessedLinkProps) {
         }),
 
       testVariants && testCompletedAt && scheduleABTestCompletion(response),
+
+      shouldCreateCouponCode &&
+        stripeConnectId &&
+        createStripePromotionCode({
+          code: response.key,
+          couponId: discount?.couponId!,
+          stripeConnectId,
+        }),
     ]),
   );
+
+  // @ts-expect-error
+  delete response?.project;
 
   return {
     ...transformLink(response),
