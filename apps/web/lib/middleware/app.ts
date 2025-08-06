@@ -2,7 +2,7 @@ import { parse } from "@/lib/middleware/utils";
 import { UserProps } from "@/lib/types.ts";
 import { userSessionIdInit } from "core/services/cookie/user-session-id-init.service.ts";
 import { NextRequest, NextResponse } from "next/server";
-import EmbedMiddleware from "./embed";
+// import EmbedMiddleware from "./embed";
 import NewLinkMiddleware from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
@@ -17,12 +17,10 @@ export default async function AppMiddleware(
   isPublicRoute?: boolean,
 ) {
   const { domain, path, fullPath } = parse(req);
-  console.log("here1");
-  console.log(path, fullPath);
 
-  if (path.startsWith("/embed")) {
-    return EmbedMiddleware(req);
-  }
+  // if (path.startsWith("/embed")) {
+  //   return EmbedMiddleware(req);
+  // }
   const isWorkspaceInvite =
     req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
@@ -34,17 +32,17 @@ export default async function AppMiddleware(
 
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (
-    !user &&
-    path !== "/login" &&
-    path !== "/forgot-password" &&
-    path !== "/register" &&
-    path !== "/auth/saml" &&
-    !path.startsWith("/auth/reset-password/") &&
-    !path.startsWith("/share/")
+    !user
+    // path !== "/login" &&
+    // path !== "/forgot-password" &&
+    // path !== "/register" &&
+    // path !== "/auth/saml" &&
+    // !path.startsWith("/auth/reset-password/") &&
+    // !path.startsWith("/share/")
   ) {
     const response = NextResponse.rewrite(
       new URL(
-        `/login${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
+        `/${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
         req.url,
       ),
     );
@@ -71,17 +69,18 @@ export default async function AppMiddleware(
     // if there's a user
   } else if (user) {
     // /new is a special path that creates a new link (or workspace if the user doesn't have one yet)
-    if (path === "/new") {
-      return NewLinkMiddleware(req, user);
+    // if (path === "/new") {
+    //   return NewLinkMiddleware(req, user);
 
-      /* Onboarding redirects
+    //   /* Onboarding redirects
 
-        - User was created less than a day ago
-        - User is not invited to a workspace (redirect straight to the workspace)
-        - The path does not start with /onboarding
-        - The user has not completed the onboarding step
-      */
-    } else if (
+    //     - User was created less than a day ago
+    //     - User is not invited to a workspace (redirect straight to the workspace)
+    //     - The path does not start with /onboarding
+    //     - The user has not completed the onboarding step
+    //   */
+    // } else if (
+    if (
       new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
       !isWorkspaceInvite &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&

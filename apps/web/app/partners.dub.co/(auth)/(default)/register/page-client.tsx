@@ -33,7 +33,7 @@ function SignUp() {
       <p className="mt-4 text-center text-sm text-neutral-500">
         Already have an account?&nbsp;
         <Link
-          href="/login"
+          href="/?login=true"
           className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
         >
           Sign in
@@ -65,7 +65,7 @@ function Verify() {
       <p className="mt-4 text-center text-sm text-neutral-500">
         Already have an account?&nbsp;
         <Link
-          href="/login"
+          href="/?login=true"
           className="hover:text-neutral font-semibold text-neutral-500 underline underline-offset-2 transition-colors"
         >
           Sign in
