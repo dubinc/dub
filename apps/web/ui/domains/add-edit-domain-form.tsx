@@ -3,12 +3,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
-import {
-  AlertCircleFill,
-  CheckCircleFill,
-  Lock,
-  Repeat,
-} from "@/ui/shared/icons";
+import { AlertCircleFill, CheckCircleFill, Lock } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   AndroidLogo,
@@ -62,9 +57,7 @@ const formatJson = (string: string) => {
   }
 };
 
-type FormData = z.infer<typeof createDomainBodySchema> & {
-  autoRenew?: boolean;
-};
+type FormData = z.infer<typeof createDomainBodySchema>;
 
 type DomainStatus = "checking" | "conflict" | "has site" | "available" | "idle";
 
@@ -127,16 +120,6 @@ export function AddEditDomainForm({
     Record<string, boolean>
   >({});
 
-  const isDubProvisioned = !!props?.registeredDomain;
-
-  const isAutoRenewDisabled = useMemo(() => {
-    if (!props?.registeredDomain) {
-      return false;
-    }
-
-    return props.registeredDomain.autoRenewalDisabledAt !== null;
-  }, [props?.registeredDomain]);
-
   const {
     register,
     control,
@@ -151,9 +134,6 @@ export function AddEditDomainForm({
       expiredUrl: props?.expiredUrl,
       notFoundUrl: props?.notFoundUrl,
       placeholder: props?.placeholder,
-      ...(isDubProvisioned && {
-        autoRenew: !isAutoRenewDisabled,
-      }),
       appleAppSiteAssociation: props?.appleAppSiteAssociation
         ? formatJson(props.appleAppSiteAssociation)
         : undefined,
@@ -222,6 +202,8 @@ export function AddEditDomainForm({
   }, [props, workspaceId]);
 
   const { isMobile } = useMediaQuery();
+
+  const isDubProvisioned = !!props?.registeredDomain;
 
   const onSubmit = async (formData: FormData) => {
     try {
@@ -377,118 +359,105 @@ export function AddEditDomainForm({
         <>
           <div className="h-0.5 w-full bg-neutral-200" />
           <div className="flex flex-col gap-y-6">
-            {DOMAIN_OPTIONS.filter(
-              ({ id }) => id !== "autoRenew" || isDubProvisioned,
-            ).map(({ id, title, description, icon: Icon, proFeature }) => {
-              const showOption =
-                id === "autoRenew"
-                  ? isDubProvisioned
-                  : showOptionStates[id] || !!watch(id as keyof FormData);
+            {DOMAIN_OPTIONS.map(
+              ({ id, title, description, icon: Icon, proFeature }) => {
+                const showOption = showOptionStates[id] || !!watch(id);
 
-              return (
-                <div key={id}>
-                  <label className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
-                        <Icon className="size-5 text-neutral-500" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-sm font-medium text-neutral-900">
-                            {title}
-                          </h2>
-                          {proFeature && plan === "free" && (
-                            <Badge className="flex items-center space-x-1 bg-white">
-                              <Crown size={12} />
-                              <p className="uppercase">Pro</p>
-                            </Badge>
-                          )}
+                return (
+                  <div key={id}>
+                    <label className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="hidden rounded-lg border border-neutral-200 bg-white p-2 sm:block">
+                          <Icon className="size-5 text-neutral-500" />
                         </div>
-                        <p className="text-sm text-neutral-500">
-                          {description}
-                        </p>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h2 className="text-sm font-medium text-neutral-900">
+                              {title}
+                            </h2>
+                            {proFeature && plan === "free" && (
+                              <Badge className="flex items-center space-x-1 bg-white">
+                                <Crown size={12} />
+                                <p className="uppercase">Pro</p>
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-neutral-500">
+                            {description}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <Switch
-                      checked={
-                        id === "autoRenew" ? watch("autoRenew") : showOption
-                      }
-                      fn={(checked) => {
-                        if (id === "autoRenew") {
-                          setValue("autoRenew", checked, {
-                            shouldDirty: true,
-                          });
-                        } else {
+                      <Switch
+                        checked={showOption}
+                        fn={(checked) => {
                           setShowOptionStates((prev) => ({
                             ...prev,
                             [id]: checked,
                           }));
                           if (!checked) {
-                            setValue(id as keyof FormData, "", {
+                            setValue(id, "", {
                               shouldDirty: true,
                             });
                           }
-                        }
-                      }}
-                      disabled={isSubmitting}
-                    />
-                  </label>
-                  <motion.div
-                    animate={{ height: showOption ? "auto" : 0 }}
-                    transition={{ duration: 0.1 }}
-                    initial={false}
-                    className={cn(
-                      id !== "autoRenew" && "-m-1 overflow-hidden p-1",
-                    )}
-                    {...{ inert: showOption ? undefined : "" }}
-                  >
-                    <div className="relative mt-2 rounded-md shadow-sm">
-                      {id === "logo" ? (
-                        <div className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-neutral-300">
-                          {!isMobile && (
-                            <ShimmerDots className="pointer-events-none z-10 opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
-                          )}
-                          <Controller
-                            control={control}
-                            name="logo"
-                            render={({ field }) => (
-                              <FileUpload
-                                accept="images"
-                                className="h-24 rounded-md"
-                                iconClassName="size-5 text-neutral-700"
-                                variant="plain"
-                                imageSrc={field.value}
-                                readFile
-                                onChange={({ src }) => field.onChange(src)}
-                                maxFileSizeMB={2}
-                                targetResolution={{
-                                  width: 160,
-                                  height: 160,
-                                }}
-                                customPreview={
-                                  <QRCode
-                                    url="https://dub.co"
-                                    fgColor="#000"
-                                    logo={field.value || ""}
-                                    scale={0.6}
-                                  />
-                                }
-                              />
+                        }}
+                        disabled={isSubmitting}
+                      />
+                    </label>
+                    <motion.div
+                      animate={{ height: showOption ? "auto" : 0 }}
+                      transition={{ duration: 0.1 }}
+                      initial={false}
+                      className="-m-1 overflow-hidden p-1"
+                      {...{ inert: showOption ? undefined : "" }}
+                    >
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        {id === "logo" ? (
+                          <div className="flex h-24 items-center justify-center overflow-hidden rounded-md border border-neutral-300">
+                            {!isMobile && (
+                              <ShimmerDots className="pointer-events-none z-10 opacity-30 [mask-image:radial-gradient(40%_80%,transparent_50%,black)]" />
                             )}
+                            <Controller
+                              control={control}
+                              name="logo"
+                              render={({ field }) => (
+                                <FileUpload
+                                  accept="images"
+                                  className="h-24 rounded-md"
+                                  iconClassName="size-5 text-neutral-700"
+                                  variant="plain"
+                                  imageSrc={field.value}
+                                  readFile
+                                  onChange={({ src }) => field.onChange(src)}
+                                  maxFileSizeMB={2}
+                                  targetResolution={{
+                                    width: 160,
+                                    height: 160,
+                                  }}
+                                  customPreview={
+                                    <QRCode
+                                      url="https://dub.co"
+                                      fgColor="#000"
+                                      logo={field.value || ""}
+                                      scale={0.6}
+                                    />
+                                  }
+                                />
+                              )}
+                            />
+                          </div>
+                        ) : (
+                          <input
+                            {...register(id)}
+                            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                            placeholder="https://yourwebsite.com"
                           />
-                        </div>
-                      ) : id !== "autoRenew" ? (
-                        <input
-                          {...register(id as keyof FormData)}
-                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                          placeholder="https://yourwebsite.com"
-                        />
-                      ) : null}
-                    </div>
-                  </motion.div>
-                </div>
-              );
-            })}
+                        )}
+                      </div>
+                    </motion.div>
+                  </div>
+                );
+              },
+            )}
           </div>
 
           <div className="flex flex-col">
@@ -610,18 +579,12 @@ export function AddEditDomainForm({
 }
 
 const DOMAIN_OPTIONS: {
-  id: keyof FormData | "autoRenew";
+  id: keyof FormData;
   title: string;
   description: string;
   icon: any;
   proFeature?: boolean;
 }[] = [
-  {
-    id: "autoRenew",
-    title: "Domain auto-renew",
-    description: "Automatically renew your domain registration",
-    icon: Repeat,
-  },
   {
     id: "logo",
     title: "Custom QR code logo",
