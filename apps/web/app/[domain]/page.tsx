@@ -1,3 +1,4 @@
+import { initRedis } from "@/lib/actions/init-redis.ts";
 import { LandingSectionsClient } from "@/ui/landing/landing-sections-client.tsx";
 import { LandingSectionsServer } from "@/ui/landing/landing-sections-server.tsx";
 import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker";
@@ -6,6 +7,8 @@ import { NextPage } from "next";
 
 const MainPage: NextPage = async () => {
   const { sessionId } = await getUserCookieService();
+
+  initRedis();
 
   return (
     <main className="relative mx-auto min-h-screen w-full pb-6 md:pb-12">
