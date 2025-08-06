@@ -2,28 +2,14 @@
 
 import { useTrialStatus } from "@/lib/contexts/trial-status-context";
 import { useTrialExpiredModal } from "@/lib/hooks/use-trial-expired-modal";
-import usePrograms from "@/lib/swr/use-programs";
 import { useRouterStuff } from "@dub/ui";
-import {
-  Books2,
-  CircleInfo,
-  ConnectedDots,
-  CubeSettings,
-  Gear2,
-  Globe,
-  Key,
-  Receipt2,
-  ShieldCheck,
-  Users6,
-  Webhook,
-} from "@dub/ui/icons";
+import { Gear2 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Icon, Icon as IconifyIcon } from "@iconify/react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { MouseEvent, ReactNode, useMemo } from "react";
-import { LinesY } from "./icons/lines-y";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
@@ -76,92 +62,92 @@ const NAV_AREAS: SidebarNavAreas<{
     ],
   }),
 
-  // Workspace settings
-  workspaceSettings: ({ slug }) => ({
-    title: "Settings",
-    backHref: `/${slug}`,
-    content: [
-      {
-        name: "Workspace",
-        items: [
-          {
-            name: "General",
-            icon: Gear2,
-            href: `/${slug}/settings`,
-            exact: true,
-          },
-          {
-            name: "Billing",
-            icon: Receipt2,
-            href: `/${slug}/settings/billing`,
-          },
-          {
-            name: "Domains",
-            icon: Globe,
-            href: `/${slug}/settings/domains`,
-          },
-          {
-            name: "Library",
-            icon: Books2,
-            href: `/${slug}/settings/library`,
-          },
-          {
-            name: "People",
-            icon: Users6,
-            href: `/${slug}/settings/people`,
-          },
-          {
-            name: "Integrations",
-            icon: ConnectedDots,
-            href: `/${slug}/settings/integrations`,
-          },
-          {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/settings/analytics`,
-          },
-          {
-            name: "Security",
-            icon: ShieldCheck,
-            href: `/${slug}/settings/security`,
-          },
-        ],
-      },
-      {
-        name: "Developer",
-        items: [
-          {
-            name: "API Keys",
-            icon: Key,
-            href: `/${slug}/settings/tokens`,
-          },
-          {
-            name: "OAuth Apps",
-            icon: CubeSettings,
-            href: `/${slug}/settings/oauth-apps`,
-          },
-          {
-            name: "Webhooks",
-            icon: Webhook,
-            href: `/${slug}/settings/webhooks`,
-          },
-        ],
-      },
-      {
-        name: "Account",
-        items: [
-          {
-            name: "Notifications",
-            icon: CircleInfo,
-            href: `/${slug}/settings/notifications`,
-          },
-        ],
-      },
-    ],
-  }),
+  // // Workspace settings
+  // workspaceSettings: ({ slug }) => ({
+  //   title: "Settings",
+  //   backHref: `/${slug}`,
+  //   content: [
+  //     {
+  //       name: "Workspace",
+  //       items: [
+  //         {
+  //           name: "General",
+  //           icon: Gear2,
+  //           href: `/${slug}/settings`,
+  //           exact: true,
+  //         },
+  //         {
+  //           name: "Billing",
+  //           icon: Receipt2,
+  //           href: `/${slug}/settings/billing`,
+  //         },
+  //         {
+  //           name: "Domains",
+  //           icon: Globe,
+  //           href: `/${slug}/settings/domains`,
+  //         },
+  //         {
+  //           name: "Library",
+  //           icon: Books2,
+  //           href: `/${slug}/settings/library`,
+  //         },
+  //         {
+  //           name: "People",
+  //           icon: Users6,
+  //           href: `/${slug}/settings/people`,
+  //         },
+  //         {
+  //           name: "Integrations",
+  //           icon: ConnectedDots,
+  //           href: `/${slug}/settings/integrations`,
+  //         },
+  //         {
+  //           name: "Analytics",
+  //           icon: LinesY,
+  //           href: `/${slug}/settings/analytics`,
+  //         },
+  //         {
+  //           name: "Security",
+  //           icon: ShieldCheck,
+  //           href: `/${slug}/settings/security`,
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       name: "Developer",
+  //       items: [
+  //         {
+  //           name: "API Keys",
+  //           icon: Key,
+  //           href: `/${slug}/settings/tokens`,
+  //         },
+  //         {
+  //           name: "OAuth Apps",
+  //           icon: CubeSettings,
+  //           href: `/${slug}/settings/oauth-apps`,
+  //         },
+  //         {
+  //           name: "Webhooks",
+  //           icon: Webhook,
+  //           href: `/${slug}/settings/webhooks`,
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       name: "Account",
+  //       items: [
+  //         {
+  //           name: "Notifications",
+  //           icon: CircleInfo,
+  //           href: `/${slug}/settings/notifications`,
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // }),
 
   // User settings
-  userSettings: ({ session, slug }) => ({
+  userSettings: ({ slug }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -227,9 +213,7 @@ export function AppSidebarNav({
       pathname.startsWith(p),
     )
       ? "userSettings"
-      : pathname.startsWith(`/${slug}/settings`)
-        ? "workspaceSettings"
-        : "default";
+      : "default";
   }, [slug, pathname]);
 
   return (
