@@ -9,7 +9,7 @@ import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { cookies } from "next/headers";
 import { ReactNode } from "react";
 
-export const dynamic = "force-static";
+// export const dynamic = "force-static";
 export const metadata = constructMetadata();
 
 export default async function Layout({ children }: { children: ReactNode }) {
