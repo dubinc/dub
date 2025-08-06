@@ -6,7 +6,6 @@ import { AnimatedSizeContainer, ClientOnly, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { trackClientEvents } from "core/integration/analytic/services/analytic.service.ts";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -18,6 +17,9 @@ import {
   useState,
 } from "react";
 import UserDropdown from "./user-dropdown";
+
+// Import framer-motion normally - dynamic import causes type issues
+import { AnimatePresence, motion } from "framer-motion";
 
 export type NavItemCommon = {
   name: string;
@@ -78,6 +80,7 @@ export function SidebarNav<T extends Record<any, any>>({
               <Link
                 key={area}
                 href={backHref ?? "/"}
+                prefetch={true}
                 onClick={(e) => {
                   e.preventDefault();
                   router.push("/");
@@ -210,6 +213,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
     <div>
       <Link
         href={href}
+        prefetch={true}
         data-active={isActive}
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}

@@ -18,6 +18,10 @@ module.exports = withAxiom({
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Performance optimizations
+  swcMinify: true,
+  optimizeFonts: true,
+  compress: true,
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
       config.plugins.push(
@@ -30,6 +34,39 @@ module.exports = withAxiom({
 
       config.plugins = [...config.plugins, new PrismaPlugin()];
     }
+
+    // Optimize bundle splitting
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: -10,
+            chunks: 'all',
+          },
+          analytics: {
+            test: /[\\/]node_modules[\\/](posthog-js|mixpanel-browser|@dub\/analytics)[\\/]/,
+            name: 'analytics',
+            priority: 10,
+            chunks: 'all',
+          },
+          motion: {
+            test: /[\\/]node_modules[\\/]framer-motion[\\/]/,
+            name: 'framer-motion',
+            priority: 10,
+            chunks: 'all',
+          },
+        },
+      },
+    };
 
     config.module = {
       ...config.module,
