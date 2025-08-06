@@ -5,7 +5,6 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker";
 import { Viewport } from "next";
 import { Suspense } from "react";
-import AnalyticsClient from "./client";
 
 export const viewport: Viewport = {
   themeColor: "#f6f6f7",
@@ -17,9 +16,7 @@ const WorkspaceAnalyticsPage = async () => {
   return (
     <Suspense fallback={<LayoutLoader />}>
       <PageContent title="Analytics">
-        <AnalyticsClient>
-          <Analytics />
-        </AnalyticsClient>
+        <Analytics />
       </PageContent>
       <PageViewedTrackerComponent
         sessionId={authUser.id!}
