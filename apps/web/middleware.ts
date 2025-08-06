@@ -84,10 +84,10 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     }
   }
 
-  // // default redirects for dub.sh
-  // if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
-  //   return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
-  // }
+  // default redirects for dub.sh
+  if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
+    return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
+  }
 
   // // for Admin
   // if (ADMIN_HOSTNAMES.has(domain)) {
