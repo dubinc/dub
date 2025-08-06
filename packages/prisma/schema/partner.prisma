@@ -50,11 +50,12 @@ model Partner {
   tiktokVerifiedAt             DateTime?
   invoiceSettings              Json?
 
-  programs    ProgramEnrollment[]
-  users       PartnerUser[]
-  invites     PartnerInvite[]
-  payouts     Payout[]
-  commissions Commission[]
+  programs          ProgramEnrollment[]
+  users             PartnerUser[]
+  invites           PartnerInvite[]
+  payouts           Payout[]
+  commissions       Commission[]
+  bountySubmissions BountySubmission[]
 }
 
 model PartnerInvite {

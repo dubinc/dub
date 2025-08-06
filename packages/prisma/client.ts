@@ -1,6 +1,7 @@
 export * from "@prisma/client";
 
 export {
+  BountyStatus,
   CommissionStatus,
   CommissionType,
   EventType,
