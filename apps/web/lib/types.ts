@@ -235,6 +235,7 @@ export interface RegisteredDomainProps {
   autoRenewalDisabledAt: Date | null;
   createdAt: Date;
   expiresAt: Date;
+  renewalFee: number;
 }
 
 export interface BitlyGroupProps {

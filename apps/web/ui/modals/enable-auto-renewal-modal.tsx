@@ -3,6 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { Button, Modal } from "@dub/ui";
 import { Globe } from "@dub/ui/icons";
+import { currencyFormatter, formatDate } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -68,7 +69,9 @@ function EnableAutoRenewalModal({
 
       <div className="bg-neutral-50 p-4 sm:p-6">
         <p className="text-sm text-neutral-800">
-          This domain will renew each year for $12.
+          By enabling auto-renewal, Dub will automatically renew your domain on{" "}
+          <strong>{formatDate(domain.registeredDomain?.expiresAt!)}</strong> for{" "}
+          {currencyFormatter(domain.registeredDomain?.renewalFee! / 100)}.
         </p>
 
         <div className="scrollbar-hide mt-4 flex max-h-[190px] flex-col gap-2 overflow-y-auto">
@@ -78,13 +81,7 @@ function EnableAutoRenewalModal({
                 <Globe className="size-5" />
               </div>
             </div>
-            <div className="overflow-hidden">
-              <div className="flex items-center gap-1.5 sm:gap-2.5">
-                <span className="truncate text-sm font-medium">
-                  {domain.slug}
-                </span>
-              </div>
-            </div>
+            <span className="truncate text-sm font-medium">{domain.slug}</span>
           </div>
         </div>
       </div>
@@ -100,7 +97,7 @@ function EnableAutoRenewalModal({
           onClick={enableAutoRenewal}
           autoFocus
           loading={isSubmitting}
-          text="Confirm"
+          text="Enable auto-renewal"
           className="h-8 w-fit px-3"
         />
       </div>

@@ -22,6 +22,7 @@ import {
   Wordmark,
 } from "@dub/ui";
 import {
+  CircleHalfDottedClock,
   CursorRays,
   Flag2,
   Gear,
@@ -104,8 +105,32 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const expiresAt = props.registeredDomain?.expiresAt;
   const isExpired = expiresAt && isPast(new Date(expiresAt));
 
+  const autoRenew = useMemo(() => {
+    if (!registeredDomain) {
+      return false;
+    }
+
+    return registeredDomain.autoRenewalDisabledAt === null;
+  }, [registeredDomain]);
+
+  const { setShowEnableAutoRenewalModal, EnableAutoRenewalModal } =
+    useEnableAutoRenewalModal({
+      domain: props,
+    });
+
+  const { setShowDisableAutoRenewalModal, DisableAutoRenewalModal } =
+    useDisableAutoRenewalModal({
+      domain: props,
+    });
+
   return (
     <>
+      {isDubProvisioned && (
+        <>
+          <EnableAutoRenewalModal />
+          <DisableAutoRenewalModal />
+        </>
+      )}
       <div
         ref={domainRef}
         className="hover:drop-shadow-card-hover group rounded-xl border border-neutral-200 bg-white transition-[filter]"
@@ -123,19 +148,34 @@ export default function DomainCard({ props }: { props: DomainProps }) {
               </div>
 
               {expiresAt && (
-                <div
+                <button
                   className={cn(
-                    "flex items-center gap-1",
-                    isExpired ? "text-red-600" : "text-neutral-700",
+                    "flex items-center gap-1 decoration-dotted underline-offset-2 hover:underline",
+                    isExpired
+                      ? "text-red-600"
+                      : autoRenew
+                        ? "text-neutral-700"
+                        : "text-neutral-400 hover:text-neutral-700",
                   )}
+                  onClick={() => {
+                    if (!autoRenew) {
+                      setShowEnableAutoRenewalModal(true);
+                    } else {
+                      setShowDisableAutoRenewalModal(true);
+                    }
+                  }}
                 >
-                  <Repeat className="size-3.5" />
+                  {autoRenew ? (
+                    <Repeat className="size-3.5" />
+                  ) : (
+                    <CircleHalfDottedClock className="size-3.5" />
+                  )}
                   <span className="text-xs font-medium">
-                    {isExpired
-                      ? `Expired on ${formatDate(expiresAt)}`
-                      : `Renews on ${formatDate(expiresAt)}`}
+                    {autoRenew
+                      ? `Renews on ${formatDate(expiresAt)}`
+                      : `Expire${isExpired ? "d" : "s"} on ${formatDate(expiresAt)}`}
                   </span>
-                </div>
+                </button>
               )}
             </div>
 
@@ -244,11 +284,14 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   data-state={showDetails ? "open" : "closed"}
                 />
               )}
-              <Menu
+              <DomainCardMenu
                 props={props}
                 linkProps={props.link}
                 refreshProps={{ isValidating, mutate }}
                 groupHover={groupHover}
+                autoRenew={autoRenew}
+                setShowEnableAutoRenewalModal={setShowEnableAutoRenewalModal}
+                setShowDisableAutoRenewalModal={setShowDisableAutoRenewalModal}
               />
             </div>
           </div>
@@ -286,11 +329,14 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   );
 }
 
-function Menu({
+function DomainCardMenu({
   props,
   linkProps,
   refreshProps,
   groupHover,
+  autoRenew,
+  setShowEnableAutoRenewalModal,
+  setShowDisableAutoRenewalModal,
 }: {
   props: DomainProps;
   linkProps?: LinkProps;
@@ -299,6 +345,9 @@ function Menu({
     mutate: () => void;
   };
   groupHover: boolean;
+  autoRenew: boolean;
+  setShowEnableAutoRenewalModal: (show: boolean) => void;
+  setShowDisableAutoRenewalModal: (show: boolean) => void;
 }) {
   const { role } = useWorkspace();
   const { isMobile } = useMediaQuery();
@@ -308,14 +357,6 @@ function Menu({
 
   const { primary, archived, slug: domain, registeredDomain } = props;
   const isDubProvisioned = !!registeredDomain;
-
-  const autoRenew = useMemo(() => {
-    if (!registeredDomain) {
-      return false;
-    }
-
-    return registeredDomain.autoRenewalDisabledAt === null;
-  }, [registeredDomain]);
 
   const permissionsError = clientAccessCheck({
     action: "domains.write",
@@ -354,16 +395,6 @@ function Menu({
     props: linkProps || DEFAULT_LINK_PROPS,
   });
 
-  const { setShowEnableAutoRenewalModal, EnableAutoRenewalModal } =
-    useEnableAutoRenewalModal({
-      domain: props,
-    });
-
-  const { setShowDisableAutoRenewalModal, DisableAutoRenewalModal } =
-    useDisableAutoRenewalModal({
-      domain: props,
-    });
-
   const copyLinkId = () => {
     if (!linkProps) {
       toast.error("Link ID not found");
@@ -385,14 +416,6 @@ function Menu({
       <ArchiveDomainModal />
       <DeleteDomainModal />
       <TransferDomainModal />
-
-      {isDubProvisioned && (
-        <>
-          <EnableAutoRenewalModal />
-          <DisableAutoRenewalModal />
-        </>
-      )}
-
       <motion.div
         animate={{
           width: groupHover && !isMobile ? "auto" : isMobile ? 79 : 39,

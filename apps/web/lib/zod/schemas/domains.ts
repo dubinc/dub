@@ -15,6 +15,7 @@ export const RegisteredDomainSchema = z.object({
     .describe("The date the domain auto-renew is disabled."),
   createdAt: z.date().describe("The date the domain was created."),
   expiresAt: z.date().describe("The date the domain expires."),
+  renewalFee: z.number().describe("The fee to renew the domain."),
 });
 
 export const DomainSchema = z.object({

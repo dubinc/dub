@@ -75,7 +75,7 @@ function DisableAutoRenewalModal({
           <br />
           <br />
           Once your domain expires, there is no guarantee that you’ll be able to
-          get it back. To avoid that, turn auto-renewal back on.
+          get it back. Please proceed with caution.
         </p>
 
         <div className="scrollbar-hide mt-4 flex max-h-[190px] flex-col gap-2 overflow-y-auto">
@@ -85,13 +85,7 @@ function DisableAutoRenewalModal({
                 <Globe className="size-5" />
               </div>
             </div>
-            <div className="overflow-hidden">
-              <div className="flex items-center gap-1.5 sm:gap-2.5">
-                <span className="truncate text-sm font-medium">
-                  {domain.slug}
-                </span>
-              </div>
-            </div>
+            <span className="truncate text-sm font-medium">{domain.slug}</span>
           </div>
         </div>
       </div>
@@ -107,7 +101,7 @@ function DisableAutoRenewalModal({
           onClick={disableAutoRenewal}
           autoFocus
           loading={isSubmitting}
-          text="Confirm"
+          text="Disable auto-renewal"
           className="h-8 w-fit px-3"
         />
       </div>
