@@ -223,11 +223,11 @@ export interface DomainProps {
   expiredUrl?: string;
   notFoundUrl?: string;
   projectId: string;
-  link?: LinkProps;
-  registeredDomain?: RegisteredDomainProps;
   logo?: string;
   appleAppSiteAssociation?: string;
   assetLinks?: string;
+  link?: LinkProps;
+  registeredDomain?: RegisteredDomainProps;
 }
 
 export interface RegisteredDomainProps {

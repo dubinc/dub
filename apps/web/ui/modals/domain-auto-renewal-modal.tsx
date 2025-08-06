@@ -63,9 +63,12 @@ function DomainAutoRenewalModal({
     setShowDomainAutoRenewalModal,
   ]);
 
-  const isEnabling = enableAutoRenewal;
-  const expiresAt = domain.registeredDomain?.expiresAt;
-  const renewalFee = domain.registeredDomain?.renewalFee;
+  if (!domain.registeredDomain) {
+    return null;
+  }
+
+  const expiresAt = domain.registeredDomain.expiresAt;
+  const renewalFee = domain.registeredDomain.renewalFee;
 
   return (
     <Modal
@@ -74,23 +77,23 @@ function DomainAutoRenewalModal({
     >
       <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
         <h3 className="text-lg font-medium leading-none">
-          {isEnabling ? "Enable" : "Disable"} auto-renewal
+          {enableAutoRenewal ? "Enable" : "Disable"} auto-renewal
         </h3>
       </div>
 
       <div className="bg-neutral-50 p-4 sm:p-6">
         <p className="text-sm text-neutral-800">
-          {isEnabling ? (
+          {enableAutoRenewal ? (
             <>
               By enabling auto-renewal, Dub will automatically renew your domain
-              on <strong>{formatDate(expiresAt!)}</strong> for{" "}
-              {currencyFormatter(renewalFee! / 100)}.
+              on <strong>{formatDate(expiresAt)}</strong> for{" "}
+              {currencyFormatter(renewalFee / 100)}.
             </>
           ) : (
             <>
               By disabling auto-renewal, your domain{" "}
               <strong>{domain.slug}</strong> will expire on{" "}
-              <strong>{formatDate(expiresAt!)}</strong>.
+              <strong>{formatDate(expiresAt)}</strong>.
               <br />
               <br />
               Once your domain expires, there is no guarantee that you'll be
@@ -122,7 +125,7 @@ function DomainAutoRenewalModal({
           onClick={updateAutoRenewal}
           autoFocus
           loading={isSubmitting}
-          text={`${isEnabling ? "Enable" : "Disable"} auto-renewal`}
+          text={`${enableAutoRenewal ? "Enable" : "Disable"} auto-renewal`}
           className="h-8 w-fit px-3"
         />
       </div>
