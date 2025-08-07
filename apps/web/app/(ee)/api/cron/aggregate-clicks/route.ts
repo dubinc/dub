@@ -7,10 +7,6 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-/**
- * TODO: Use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
- */
-
 // This route is used aggregate clicks events on daily basis for Program links and add to the Commission table
 // Runs every day at 00:00 (0 0 * * *)
 // GET /api/cron/aggregate-clicks
@@ -74,13 +70,15 @@ export async function GET(req: Request) {
       });
 
       if (!links.length) {
-        console.log("No links found for program", { programId });
+        console.log(`No links found for program ${programId}`);
         continue;
       }
 
       for (const { id: linkId, programId, partnerId } of links) {
         if (!linkId || !programId || !partnerId) {
-          console.log("Invalid link", { linkId, programId, partnerId });
+          console.log(
+            `Invalid link ${linkId} for program ${programId} and partner ${partnerId}`,
+          );
           continue;
         }
 
@@ -93,11 +91,7 @@ export async function GET(req: Request) {
         });
 
         if (!quantity || quantity === 0) {
-          console.log("No clicks found for link", {
-            linkId,
-            programId,
-            partnerId,
-          });
+          console.log(`No clicks found for link ${linkId}`);
           continue;
         }
 
