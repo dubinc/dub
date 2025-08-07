@@ -68,7 +68,7 @@ export function FraudEventTable({ isValidating }: { isValidating: boolean }) {
         id: "flagged",
         header: "Flagged",
         accessorFn: (d: FraudEvent) =>
-          formatDate(d.createdAt, { month: "short" }),
+          d.createdAt ? formatDate(d.createdAt, { month: "short" }) : "-",
       },
       {
         id: "customer",
@@ -88,12 +88,11 @@ export function FraudEventTable({ isValidating }: { isValidating: boolean }) {
         id: "partner",
         header: "Partner",
         cell: ({ row }) => {
-          return (
-            <PartnerRowItem
-              partner={row.original.partner}
-              showPayoutsEnabled={false}
-            />
-          );
+          if (!row.original.partner) {
+            return "-";
+          }
+
+          return <PartnerRowItem partner={row.original.partner} />;
         },
         meta: {
           filterParams: ({ row }) => ({
@@ -153,6 +152,10 @@ export function FraudEventTable({ isValidating }: { isValidating: boolean }) {
       },
     ],
     onRowClick: (row) => {
+      if (!row.original.id) {
+        return;
+      }
+
       queryParams({
         set: {
           fraudEventId: row.original.id,
@@ -279,12 +282,14 @@ function RowMenuButton({ fraudEvent }: { fraudEvent: FraudEvent }) {
                 icon={Eye}
                 onSelect={() => {
                   setIsOpen(false);
-                  queryParams({
-                    set: {
-                      fraudEventId: fraudEvent.id,
-                    },
-                    scroll: false,
-                  });
+                  if (fraudEvent.id) {
+                    queryParams({
+                      set: {
+                        fraudEventId: fraudEvent.id,
+                      },
+                      scroll: false,
+                    });
+                  }
                 }}
               >
                 View risk
@@ -295,6 +300,10 @@ function RowMenuButton({ fraudEvent }: { fraudEvent: FraudEvent }) {
                 icon={Mail}
                 onSelect={() => {
                   setIsOpen(false);
+                  if (!fraudEvent.partner) {
+                    return;
+                  }
+
                   window.open(
                     `mailto:${fraudEvent.partner.email}?subject=Question about fraud event`,
                     "_blank",
