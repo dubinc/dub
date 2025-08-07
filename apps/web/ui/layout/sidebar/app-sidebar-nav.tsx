@@ -230,7 +230,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Analytics",
             icon: LinesYStatic,
             href: `/${slug}/program/analytics`,
-            badge: "New",
           },
           {
             name: "Commissions",

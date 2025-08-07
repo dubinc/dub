@@ -1,9 +1,11 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { programEmailSchema } from "@/lib/zod/schemas/program-emails";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { RichTextArea } from "@dub/ui";
+import { ChevronRight, PaperPlane, RichTextArea } from "@dub/ui";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -23,6 +25,7 @@ const inputClassName =
   "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted";
 
 function ProgramEmailForm() {
+  const { slug: workspaceSlug } = useWorkspace();
   const searchParams = useSearchParams();
 
   const form = useForm<ProgramEmailFormData>({
@@ -41,10 +44,21 @@ function ProgramEmailForm() {
 
   return (
     <PageContent
-      title={`New ${type === "campaign" ? "email" : type}`}
+      title={
+        <div className="flex items-center gap-1.5">
+          <Link
+            href={`/${workspaceSlug}/program/emails`}
+            className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
+          >
+            <PaperPlane className="text-content-default size-4" />
+          </Link>
+          <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+          <span>{`New ${type === "campaign" ? "email" : type}`}</span>
+        </div>
+      }
       controls={<></>}
     >
-      <PageWidthWrapper className="mb-8 max-w-screen-md">
+      <PageWidthWrapper className="mb-8 max-w-[600px]">
         <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
           <label className="contents">
             <span className={labelClassName}>Name</span>
@@ -83,12 +97,16 @@ function ProgramEmailForm() {
             name="body"
             render={({ field }) => (
               <RichTextArea
-                editorClassName="-m-2 min-h-[400px] p-2"
+                editorClassName="-m-2 min-h-[200px] p-2"
                 initialValue={field.value}
                 onChange={field.onChange}
               />
             )}
           />
+        </div>
+
+        <div className="border-border-subtle mt-4 w-full border-t pt-4 text-center text-xs font-medium text-neutral-300">
+          End of email
         </div>
       </PageWidthWrapper>
     </PageContent>
