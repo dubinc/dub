@@ -1,12 +1,14 @@
 import { cn } from "@dub/utils";
 import FileHandler from "@tiptap/extension-file-handler";
 import Image from "@tiptap/extension-image";
+import Mention from "@tiptap/extension-mention";
 import { Placeholder } from "@tiptap/extensions";
 import { Editor, EditorContent, EditorContext, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useMemo, useState } from "react";
 import { LoadingSpinner } from "../icons";
 import { RichTextToolbar } from "./rich-text-toolbar";
+import { suggestions } from "./variables";
 
 export function RichTextArea({
   initialValue,
@@ -15,6 +17,7 @@ export function RichTextArea({
   className,
   editorClassName,
   uploadImage,
+  variables,
 }: {
   initialValue?: string;
   onChange?: (value: string) => void;
@@ -22,6 +25,7 @@ export function RichTextArea({
   className?: string;
   editorClassName?: string;
   uploadImage?: (file: File) => Promise<string | null>;
+  variables?: string[];
 }) {
   const [isUploading, setIsUploading] = useState(false);
 
@@ -91,6 +95,17 @@ export function RichTextArea({
                   ),
                 );
               },
+            }),
+          ]
+        : []),
+      ...(variables
+        ? [
+            Mention.configure({
+              HTMLAttributes: {
+                class:
+                  "px-1 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold",
+              },
+              suggestion: suggestions(variables),
             }),
           ]
         : []),

@@ -107,6 +107,7 @@ function ProgramEmailForm() {
                 editorClassName="-m-2 min-h-[200px] p-2"
                 initialValue={field.value}
                 onChange={field.onChange}
+                variables={["PartnerName", "PartnerEmail"]}
                 uploadImage={async (file) => {
                   try {
                     const result = await executeImageUpload({
