@@ -24,15 +24,17 @@ const INVOICE_TYPES = [
 ];
 
 export default function WorkspaceInvoicesClient() {
-  const { slug, defaultProgramId } = useWorkspace();
+  const { slug } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
 
   const selectedInvoiceType = useMemo(() => {
     let type = searchParams.get("type");
+
     if (type === "payout") {
       type = "partnerPayout";
     }
-    return INVOICE_TYPES.find((t) => t.id === type)!;
+
+    return INVOICE_TYPES.find((t) => t.id === type) || INVOICE_TYPES[0];
   }, [searchParams]);
 
   const { data: invoices } = useSWR<InvoiceProps[]>(
