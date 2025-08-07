@@ -18,16 +18,14 @@ const MAX_BATCHES = 5;
 
 // POST /api/cron/links/create-promotion-codes
 export async function POST(req: Request) {
-  let discountId: string | undefined;
+  let parsedBody: z.infer<typeof schema> | undefined;
 
   try {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const parsedBody = schema.parse(JSON.parse(rawBody));
-
-    const { page } = parsedBody;
-    discountId = parsedBody.discountId;
+    parsedBody = schema.parse(JSON.parse(rawBody));
+    const { discountId, page } = parsedBody;
 
     const {
       couponId,
@@ -159,8 +157,10 @@ export async function POST(req: Request) {
 
     return new Response("OK");
   } catch (error) {
+    console.error(parsedBody);
+
     await log({
-      message: `Error creating Stripe promotion codes for discount ${discountId}: ${error.message}`,
+      message: `Error creating Stripe promotion codes: ${error.message} - ${JSON.stringify(parsedBody)}`,
       type: "errors",
     });
 
