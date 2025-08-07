@@ -16,7 +16,6 @@ const schema = z.object({
 const PAGE_LIMIT = 20;
 const MAX_BATCHES = 5;
 
-// This route is used to create promotion codes for each link for link-based coupon codes tracking.
 // POST /api/cron/links/create-promotion-codes
 export async function POST(req: Request) {
   let discountId: string | undefined;
