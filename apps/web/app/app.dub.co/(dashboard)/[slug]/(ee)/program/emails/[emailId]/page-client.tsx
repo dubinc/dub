@@ -8,8 +8,8 @@ import { useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-export function ProgramEmailPageClient({ id }: { id: string }) {
-  if (id !== "new") return <div>WIP</div>;
+export function ProgramEmailPageClient({ emailId }: { emailId: string }) {
+  if (emailId !== "new") return <div>WIP</div>;
 
   // TODO: Load existing email data
 

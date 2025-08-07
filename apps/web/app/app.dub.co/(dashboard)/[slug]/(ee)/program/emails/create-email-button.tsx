@@ -79,7 +79,7 @@ function CreateEmailModal({
               ({ type, icon: Icon, name, description, colorClassName }) => (
                 <Link
                   key={type}
-                  href={`/${workspaceSlug}/program/communication/emails/new?type=${type}`}
+                  href={`/${workspaceSlug}/program/emails/new?type=${type}`}
                   className="border-border-subtle flex flex-col items-center gap-5 rounded-xl border px-2 py-6 transition-[background-color,transform] hover:bg-neutral-50 active:scale-[0.98]"
                 >
                   <div

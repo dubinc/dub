@@ -250,7 +250,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Email Campaigns",
             icon: PaperPlane,
-            href: `/${slug}/program/communication/emails`,
+            href: `/${slug}/program/emails`,
             badge: "New",
           },
           {

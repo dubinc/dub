@@ -3,9 +3,9 @@ import { ProgramEmailPageClient } from "./page-client";
 export default function ProgramEmailPage({
   params,
 }: {
-  params: { id: string };
+  params: { emailId: string };
 }) {
-  const { id } = params;
+  const { emailId } = params;
 
-  return <ProgramEmailPageClient id={id} />;
+  return <ProgramEmailPageClient emailId={emailId} />;
 }
