@@ -55,7 +55,10 @@ export const deleteProgramInviteAction = authActionClient
         where: { id: { in: linksToDelete.map((link) => link.id) } },
       }),
 
-      bulkDeleteLinks(linksToDelete),
+      bulkDeleteLinks({
+        links: linksToDelete,
+        workspace,
+      }),
 
       recordAuditLog({
         workspaceId: workspace.id,

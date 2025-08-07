@@ -9,13 +9,14 @@ export async function disableStripePromotionCode({
   code,
   stripeConnectId,
 }: {
-  code: string;
+  code: string | null;
   stripeConnectId: string | null;
 }) {
+  if (!code) {
+    return;
+  }
+
   if (!stripeConnectId) {
-    console.error(
-      "stripeConnectId not found for the workspace. Stripe promotion code update skipped.",
-    );
     return;
   }
 
@@ -25,9 +26,6 @@ export async function disableStripePromotionCode({
   });
 
   if (promotionCodes.data.length === 0) {
-    console.error(
-      `Promotion code ${code} not found in the connected account ${stripeConnectId}. Stripe promotion code update skipped.`,
-    );
     return;
   }
 

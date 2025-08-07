@@ -1,16 +1,24 @@
 import { storage } from "@/lib/storage";
+import { disableStripePromotionCode } from "@/lib/stripe/disable-promotion-code";
 import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
+import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils";
 
-export async function bulkDeleteLinks(links: ExpandedLink[]) {
+export async function bulkDeleteLinks({
+  links,
+  workspace,
+}: {
+  links: ExpandedLink[];
+  workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
+}) {
   if (links.length === 0) {
     return;
   }
 
-  return await Promise.all([
+  return await Promise.allSettled([
     // Delete the links from Redis
     linkCache.deleteMany(links),
 
@@ -30,11 +38,20 @@ export async function bulkDeleteLinks(links: ExpandedLink[]) {
     // Update totalLinks for the workspace
     prisma.project.update({
       where: {
-        id: links[0].projectId!,
+        id: workspace.id,
       },
       data: {
         totalLinks: { decrement: links.length },
       },
     }),
+
+    links
+      .filter((link) => link.couponCode)
+      .map((link) =>
+        disableStripePromotionCode({
+          code: link.couponCode,
+          stripeConnectId: workspace.stripeConnectId,
+        }),
+      ),
   ]);
 }
