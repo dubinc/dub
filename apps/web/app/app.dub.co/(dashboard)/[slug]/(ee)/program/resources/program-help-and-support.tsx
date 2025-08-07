@@ -14,7 +14,7 @@ import { SettingsRow } from "../program-settings-row";
 
 type FormData = Pick<ProgramProps, "supportEmail" | "helpUrl" | "termsUrl">;
 
-export function ProgramCommunication() {
+export function ProgramHelpAndSupport() {
   const { program } = useProgram();
   const { id: workspaceId } = useWorkspace();
 

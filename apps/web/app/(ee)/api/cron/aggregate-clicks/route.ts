@@ -74,9 +74,8 @@ export async function GET(req: Request) {
       });
 
       if (!links.length) {
-        return NextResponse.json({
-          message: "No links found. Skipping...",
-        });
+        console.log("No links found for program", { programId });
+        continue;
       }
 
       for (const { id: linkId, programId, partnerId } of links) {
