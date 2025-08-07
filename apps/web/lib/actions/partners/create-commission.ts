@@ -34,6 +34,7 @@ export const createCommissionAction = authActionClient
       saleEventDate,
       leadEventDate,
       leadEventName,
+      description,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -63,6 +64,7 @@ export const createCommissionAction = authActionClient
         quantity: 1,
         createdAt: date ?? new Date(),
         user,
+        description,
       });
 
       return;
