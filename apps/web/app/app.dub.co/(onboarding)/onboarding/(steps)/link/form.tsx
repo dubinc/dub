@@ -9,7 +9,7 @@ import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button } from "@dub/ui";
 import { LoadingCircle, Photo } from "@dub/ui/icons";
 import { getUrlWithoutUTMParams } from "@dub/utils";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -132,7 +132,7 @@ export function Form() {
 
           await mutatePrefix("/api/links");
           const result = await res.json();
-          posthog.capture("link_created", result);
+          // posthog.capture("link_created", result);
 
           await continueTo("domain");
         })}

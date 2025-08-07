@@ -6,7 +6,7 @@ import { Button } from "@dub/ui";
 import { APP_DOMAIN, capitalize, SELF_SERVE_PAID_PLANS } from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import { useState } from "react";
 
 export function UpgradePlanButton({
@@ -63,10 +63,10 @@ export function UpgradePlanButton({
         })
           .then(async (res) => {
             plausible("Opened Checkout");
-            posthog.capture("checkout_opened", {
-              currentPlan: capitalize(plan),
-              newPlan: selectedPlan.name,
-            });
+            // posthog.capture("checkout_opened", {
+            //   currentPlan: capitalize(plan),
+            //   newPlan: selectedPlan.name,
+            // });
             if (currentPlan === "free") {
               const data = await res.json();
               const { id: sessionId } = data;

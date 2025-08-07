@@ -33,7 +33,7 @@ import {
 } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import {
   createContext,
   Dispatch,
@@ -251,10 +251,10 @@ function LinkBuilderInner({
           ...(key === "_root" ? ["/api/domains"] : []),
         ]);
         const data = await res.json();
-        posthog.capture(
-          props ? "link_updated" : "link_created",
-          data,
-        );
+        // posthog.capture(
+        //   props ? "link_updated" : "link_created",
+        //   data,
+        // );
 
         // copy shortlink to clipboard when adding a new link
         if (!props) {

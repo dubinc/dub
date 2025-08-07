@@ -6,7 +6,7 @@ import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { useSession } from "next-auth/react";
 import { usePlausible } from "next-plausible";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -56,11 +56,11 @@ export function CreateWorkspaceForm({
             const { id: workspaceId } = await res.json();
             plausible("Created Workspace");
             // track workspace creation event
-            posthog.capture("workspace_created", {
-              workspace_id: workspaceId,
-              workspace_name: data.name,
-              workspace_slug: data.slug,
-            });
+            // posthog.capture("workspace_created", {
+            //   workspace_id: workspaceId,
+            //   workspace_name: data.name,
+            //   workspace_slug: data.slug,
+            // });
             await Promise.all([mutate("/api/workspaces"), update()]);
             onSuccess?.(data);
           } else {
