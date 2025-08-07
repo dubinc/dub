@@ -32,6 +32,8 @@ export const config = {
 };
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
+  const start = performance.now();
+  console.log("middleware start", start);
   const { domain, key, fullKey, path } = parse(req);
 
   const country = await getUserCountry(req);
@@ -74,6 +76,9 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
         sameSite: "lax",
       });
     }
+
+    const end = performance.now();
+    console.log("landing performance", end);
 
     return response;
   }
