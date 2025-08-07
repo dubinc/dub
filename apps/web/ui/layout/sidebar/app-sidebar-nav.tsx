@@ -279,11 +279,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/branding`,
           },
           {
-            name: "Resources",
-            icon: LifeRing,
-            href: `/${slug}/program/resources`,
-          },
-          {
             name: "Link Settings",
             icon: Sliders,
             href: `/${slug}/program/link-settings`,
