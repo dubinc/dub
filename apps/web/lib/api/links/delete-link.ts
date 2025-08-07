@@ -1,5 +1,5 @@
 import { storage } from "@/lib/storage";
-import { disableStripePromotionCode } from "@/lib/stripe/disable-promotion-code";
+import { disableStripePromotionCode } from "@/lib/stripe/disable-stripe-promotion-code";
 import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";

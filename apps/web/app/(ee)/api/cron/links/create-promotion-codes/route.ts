@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { createStripePromotionCode } from "@/lib/stripe/create-promotion-code";
+import { createStripePromotionCode } from "@/lib/stripe/create-stripe-promotion-code";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import { z } from "zod";

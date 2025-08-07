@@ -1,7 +1,7 @@
 import { qstash } from "@/lib/cron";
 import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
 import { isNotHostedImage, storage } from "@/lib/storage";
-import { createStripePromotionCode } from "@/lib/stripe/create-promotion-code";
+import { createStripePromotionCode } from "@/lib/stripe/create-stripe-promotion-code";
 import { recordLink } from "@/lib/tinybird";
 import { DiscountProps, ProcessedLinkProps, ProgramProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
