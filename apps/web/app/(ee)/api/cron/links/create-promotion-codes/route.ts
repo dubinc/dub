@@ -105,6 +105,7 @@ export async function POST(req: Request) {
           },
         },
         select: {
+          id: true,
           key: true,
         },
       });
@@ -119,9 +120,9 @@ export async function POST(req: Request) {
 
       for (const linksChunk of linksChunks) {
         const results = await Promise.allSettled(
-          linksChunk.map(({ key }) =>
+          linksChunk.map((link) =>
             createStripePromotionCode({
-              code: key,
+              link,
               couponId,
               stripeConnectId,
             }),

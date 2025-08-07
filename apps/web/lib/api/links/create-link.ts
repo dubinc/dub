@@ -147,7 +147,6 @@ export async function createLink(link: CreateLinkProps) {
     },
   });
 
-
   // TODO:
   // Move to waitUntil
   if (response.programId && response.partnerId && !program && !discount) {
@@ -254,7 +253,7 @@ export async function createLink(link: CreateLinkProps) {
       shouldCreateCouponCode &&
         stripeConnectId &&
         createStripePromotionCode({
-          code: response.key,
+          link: response,
           couponId: discount?.couponId!,
           stripeConnectId,
         }),
