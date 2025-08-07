@@ -1,11 +1,18 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { prisma } from "@dub/prisma";
+import { CommissionType } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+
+interface ClickStats {
+  link_id: string;
+  clicks: number;
+}
 
 // This route is used aggregate clicks events on daily basis for Program links and add to the Commission table
 // Runs every day at 00:00 (0 0 * * *)
@@ -41,6 +48,7 @@ export async function GET(req: Request) {
       });
     }
 
+    // Process each click reward
     for (const { programId, clickEnrollments, ...reward } of clickRewards) {
       const partnerIds = clickEnrollments.map(({ partnerId }) => partnerId);
 
@@ -74,45 +82,57 @@ export async function GET(req: Request) {
         continue;
       }
 
-      for (const { id: linkId, programId, partnerId } of links) {
-        if (!linkId || !programId || !partnerId) {
-          console.log(
-            `Invalid link ${linkId} for program ${programId} and partner ${partnerId}`,
-          );
-          continue;
-        }
+      const linkIds = links.map(({ id }) => id);
 
-        const { clicks: quantity } = await getAnalytics({
-          linkId,
-          start,
-          end,
-          groupBy: "count",
-          event: "clicks",
-        });
+      // TODO:
+      // TB pipes need fix
+      const clickStats: ClickStats[] = await getAnalytics({
+        linkIds,
+        start,
+        end,
+        groupBy: "count",
+        event: "clicks",
+      });
 
-        if (!quantity || quantity === 0) {
-          console.log(`No clicks found for link ${linkId}`);
-          continue;
-        }
-
-        console.log("Creating commission", {
-          reward,
-          event: "click",
-          programId,
-          partnerId,
-          linkId,
-          quantity,
-        });
-
-        await createPartnerCommission({
-          reward,
-          event: "click",
-          programId,
-          partnerId,
-          linkId,
-          quantity,
-        });
+      if (clickStats.length === 0) {
+        console.log(`No click stats found for links ${linkIds}`);
+        continue;
       }
+
+      // Preprocess links into a Map for faster lookup
+      const linkToPartnerMap = new Map(
+        links.map(({ id, partnerId }) => [id, partnerId]),
+      );
+
+      const commissions = clickStats.map(
+        ({ link_id: linkId, clicks: quantity }) => ({
+          id: createId({ prefix: "cm_" }),
+          programId,
+          partnerId: linkToPartnerMap.get(linkId)!,
+          linkId,
+          quantity,
+          type: CommissionType.click,
+          amount: 0,
+          earnings: reward.amount * quantity,
+        }),
+      );
+
+      console.log(commissions);
+
+      // Create commissions
+      await prisma.commission.createMany({
+        data: commissions,
+      });
+
+      // Sync total commissions for each partner
+      await Promise.allSettled(
+        partnerIds.map((partnerId) =>
+          syncTotalCommissions({
+            partnerId,
+            programId,
+          }),
+        ),
+      );
     }
 
     return NextResponse.json("OK");
