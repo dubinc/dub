@@ -15,6 +15,7 @@ import {
   PUBLIC_ROUTES,
 } from "./app/[domain]/(public)/constants/types.ts";
 import { userSessionIdInit } from "./core/services/cookie/user-session-id-init.service.ts";
+import { getUserCountry } from './lib/middleware/utils/get-user-country.ts';
 
 export const config = {
   matcher: [
@@ -33,6 +34,7 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, key, fullKey, path } = parse(req);
 
+  const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
 
   // Initialize session ID for all users (both new and existing)
@@ -48,10 +50,8 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // Handle public routes for App
   if (isPublicRoute) {
-    if (APP_HOSTNAMES.has(domain)) {
-      if (user) {
-        return AppMiddleware(req, user, isPublicRoute);
-      }
+    if (APP_HOSTNAMES.has(domain) && user) {
+      return AppMiddleware(req, user, isPublicRoute, country);
     }
 
     const response = NextResponse.rewrite(
@@ -67,12 +67,20 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
       });
     }
 
+    // Set country cookie
+    if (country) {
+      response.cookies.set("country", country, {
+        secure: true,
+        sameSite: "lax",
+      });
+    }
+
     return response;
   }
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
-    return AppMiddleware(req, user);
+    return AppMiddleware(req, user, false, country);
   }
 
   // for API

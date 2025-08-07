@@ -11,14 +11,15 @@ export default async function AppMiddleware(
   req: NextRequest,
   user?: UserProps,
   isPublicRoute?: boolean,
+  country?: string,
 ) {
   const { domain, path, fullPath } = parse(req);
 
   // if (path.startsWith("/embed")) {
   //   return EmbedMiddleware(req);
   // }
-  const isWorkspaceInvite =
-    req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
+  // const isWorkspaceInvite =
+  //   req.nextUrl.searchParams.get("invite") || path.startsWith("/invites/");
 
   // Initialize session ID for authenticated users
   let sessionInit: ReturnType<typeof userSessionIdInit> | null = null;
@@ -47,6 +48,14 @@ export default async function AppMiddleware(
     if (sessionInit?.needsUpdate) {
       response.cookies.set(sessionInit.cookieName, sessionInit.sessionId, {
         httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+      });
+    }
+
+    // Set country cookie
+    if (country) {
+      response.cookies.set("country", country, {
         secure: true,
         sameSite: "lax",
       });
@@ -130,6 +139,14 @@ export default async function AppMiddleware(
     response.cookies.set(sessionInit.cookieName, sessionInit.sessionId, {
       path: "/",
       httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+    });
+  }
+
+  // Set country cookie
+  if (country) {
+    response.cookies.set("country", country, {
       secure: true,
       sameSite: "lax",
     });
