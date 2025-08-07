@@ -25,6 +25,7 @@ export const GET = withWorkspace(
       start,
       end,
       timezone,
+      query,
     } = partnerAnalyticsQuerySchema.parse(searchParams);
 
     if (!partnerId && !tenantId) {
@@ -76,6 +77,7 @@ export const GET = withWorkspace(
       start,
       end,
       timezone,
+      query,
       event: "composite",
     });
 
