@@ -58,18 +58,18 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
       new URL(`/${domain}${path}`, req.url),
     );
 
-    // Set session cookie if needed
-    if (sessionInit.needsUpdate) {
-      response.cookies.set(sessionInit.cookieName, sessionInit.sessionId, {
-        httpOnly: true,
+    // Set country cookie
+    if (country) {
+      response.cookies.set("country", country, {
         secure: true,
         sameSite: "lax",
       });
     }
 
-    // Set country cookie
-    if (country) {
-      response.cookies.set("country", country, {
+    // Set session cookie if needed
+    if (sessionInit.needsUpdate) {
+      response.cookies.set(sessionInit.cookieName, sessionInit.sessionId, {
+        httpOnly: true,
         secure: true,
         sameSite: "lax",
       });
