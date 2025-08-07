@@ -93,7 +93,7 @@ export const GET = withWorkspace(
             return false;
           }
 
-          (folderIds || []).push(link.folderId);
+          folderIds?.push(link.folderId);
 
           return true;
         });
