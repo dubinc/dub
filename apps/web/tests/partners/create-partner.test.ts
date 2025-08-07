@@ -24,15 +24,13 @@ describe.sequential("POST /partners", async () => {
 
     const { data, status } = await http.post<Link>({
       path: "/partners",
-      body: {
-        programId: E2E_PROGRAM.id,
-        ...partner,
-      },
+      body: partner,
     });
 
     expect(status).toEqual(201);
     const parsed = EnrolledPartnerSchema.parse(data);
-    expect(parsed.programId).toBe(E2E_PROGRAM.id);
+    expect(parsed.name).toBe(partner.name);
+    expect(parsed.email).toBe(partner.email);
   });
 
   test("with all fields", async () => {
@@ -47,7 +45,6 @@ describe.sequential("POST /partners", async () => {
     const { data, status } = await http.post<Link>({
       path: "/partners",
       body: {
-        programId: E2E_PROGRAM.id,
         ...partner,
         image: `https://api.dicebear.com/9.x/micah/png?seed=${partner.tenantId}`,
       },
@@ -55,7 +52,11 @@ describe.sequential("POST /partners", async () => {
 
     expect(status).toEqual(201);
     const parsed = EnrolledPartnerSchema.parse(data);
-    expect(parsed.programId).toBe(E2E_PROGRAM.id);
+    expect(parsed.name).toBe(partner.name);
+    expect(parsed.email).toBe(partner.email);
+    expect(parsed.tenantId).toBe(partner.tenantId);
+    expect(parsed.description).toBe(partner.description);
+    expect(parsed.country).toBe(partner.country);
 
     // wait 2.5s, and then request the partners/[partnerId] endpoint
     await new Promise((resolve) => setTimeout(resolve, 2500));
@@ -80,7 +81,6 @@ describe.sequential("POST /partners", async () => {
     const { data, status } = await http.post<Link>({
       path: "/partners",
       body: {
-        programId: E2E_PROGRAM.id,
         username,
         ...partner,
       },
@@ -88,7 +88,8 @@ describe.sequential("POST /partners", async () => {
 
     expect(status).toEqual(201);
     const parsed = EnrolledPartnerSchema.parse(data);
-    expect(parsed.programId).toBe(E2E_PROGRAM.id);
+    expect(parsed.name).toBe(partner.name);
+    expect(parsed.email).toBe(partner.email);
     expect(parsed.links).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
