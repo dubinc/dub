@@ -1,21 +1,57 @@
 import { cn } from "@dub/utils";
+import FileHandler from "@tiptap/extension-file-handler";
+import Image from "@tiptap/extension-image";
 import { Placeholder } from "@tiptap/extensions";
-import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
+import { Editor, EditorContent, EditorContext, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { LoadingSpinner } from "../icons";
 import { RichTextToolbar } from "./rich-text-toolbar";
 
 export function RichTextArea({
   initialValue,
   onChange,
+  placeholder = "Start typing...",
   className,
   editorClassName,
+  uploadImage,
 }: {
   initialValue?: string;
   onChange?: (value: string) => void;
+  placeholder?: string;
   className?: string;
   editorClassName?: string;
+  uploadImage?: (file: File) => Promise<string | null>;
 }) {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (
+    file: File,
+    currentEditor: Editor,
+    pos: number,
+  ) => {
+    setIsUploading(true);
+
+    const src = await uploadImage?.(file);
+    if (!src) {
+      setIsUploading(false);
+      return;
+    }
+
+    currentEditor
+      .chain()
+      .insertContentAt(pos, {
+        type: "image",
+        attrs: {
+          src,
+        },
+      })
+      .focus()
+      .run();
+
+    setIsUploading(false);
+  };
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -24,10 +60,40 @@ export function RichTextArea({
         },
       }),
       Placeholder.configure({
-        placeholder: "Start typing...",
+        placeholder,
         emptyEditorClass:
           "before:content-[attr(data-placeholder)] before:float-left before:text-content-muted before:h-0 before:pointer-events-none",
       }),
+
+      // Images
+      ...(uploadImage
+        ? [
+            Image,
+            FileHandler.configure({
+              allowedMimeTypes: [
+                "image/png",
+                "image/jpeg",
+                "image/gif",
+                "image/webp",
+              ],
+              onDrop: (currentEditor, files, pos) => {
+                files.forEach((file) =>
+                  handleImageUpload(file, currentEditor, pos),
+                );
+              },
+              onPaste: (currentEditor, files, htmlContent) => {
+                if (htmlContent) return false;
+                files.forEach((file) =>
+                  handleImageUpload(
+                    file,
+                    currentEditor,
+                    currentEditor.state.selection.anchor,
+                  ),
+                );
+              },
+            }),
+          ]
+        : []),
     ],
     editorProps: {
       attributes: {
@@ -48,9 +114,28 @@ export function RichTextArea({
 
   return (
     <EditorContext.Provider value={providerValue}>
-      <div className={cn("flex flex-col gap-4", className)}>
-        <RichTextToolbar />
+      <div
+        className={cn(
+          "relative flex flex-col gap-4",
+          isUploading && "pointer-events-none opacity-50",
+          className,
+        )}
+      >
+        <RichTextToolbar
+          onImageUpload={
+            uploadImage && editor
+              ? (file) =>
+                  handleImageUpload(file, editor, editor.state.selection.anchor)
+              : undefined
+          }
+        />
         <EditorContent editor={editor} />
+
+        {isUploading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <LoadingSpinner className="size-4" />
+          </div>
+        )}
       </div>
     </EditorContext.Provider>
   );

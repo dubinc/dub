@@ -1,13 +1,16 @@
 "use client";
 
+import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { programEmailSchema } from "@/lib/zod/schemas/program-emails";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ChevronRight, PaperPlane, RichTextArea } from "@dub/ui";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 export function ProgramEmailPageClient({ emailId }: { emailId: string }) {
@@ -25,8 +28,12 @@ const inputClassName =
   "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted";
 
 function ProgramEmailForm() {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const searchParams = useSearchParams();
+
+  const { executeAsync: executeImageUpload } = useAction(
+    uploadEmailImageAction,
+  );
 
   const form = useForm<ProgramEmailFormData>({
     defaultValues: {
@@ -100,6 +107,37 @@ function ProgramEmailForm() {
                 editorClassName="-m-2 min-h-[200px] p-2"
                 initialValue={field.value}
                 onChange={field.onChange}
+                uploadImage={async (file) => {
+                  try {
+                    const result = await executeImageUpload({
+                      workspaceId: workspaceId!,
+                    });
+
+                    if (!result?.data)
+                      throw new Error("Failed to get signed upload URL");
+
+                    const { signedUrl, destinationUrl } = result.data;
+
+                    const uploadResponse = await fetch(signedUrl, {
+                      method: "PUT",
+                      body: file,
+                      headers: {
+                        "Content-Type": file.type,
+                        "Content-Length": file.size.toString(),
+                      },
+                    });
+
+                    if (!uploadResponse.ok)
+                      throw new Error("Failed to upload to signed URL");
+
+                    return destinationUrl;
+                  } catch (e) {
+                    console.error("Failed to upload image", e);
+                    toast.error("Failed to upload image");
+                  }
+
+                  return null;
+                }}
               />
             )}
           />
