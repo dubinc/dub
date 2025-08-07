@@ -6,7 +6,7 @@ import { ProgramHelpAndSupport } from "./program-help-and-support";
 export default function ProgramResourcesPage() {
   return (
     <PageContent title="Resources">
-      <PageWidthWrapper className="mb-8">
+      <PageWidthWrapper className="mb-8 grid gap-8">
         <ProgramHelpAndSupport />
         <ProgramBrandAssets />
       </PageWidthWrapper>
