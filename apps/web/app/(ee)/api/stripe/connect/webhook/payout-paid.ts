@@ -53,7 +53,10 @@ export async function payoutPaid(event: Stripe.Event) {
           amount: stripePayout.amount,
           currency: stripePayout.currency,
           arrivalDate: stripePayout.arrival_date,
-          traceId: stripePayout.trace_id as string | null,
+          traceId:
+            typeof stripePayout.trace_id === "string"
+              ? stripePayout.trace_id
+              : null,
         },
       }),
     });

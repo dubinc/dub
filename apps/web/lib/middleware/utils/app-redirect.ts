@@ -8,6 +8,14 @@ const APP_REDIRECTS = {
   "/welcome": "/onboarding/welcome",
 };
 
+const PROGRAM_REDIRECTS = {
+  "/program/settings": "/program",
+  "/program/settings/links": "/program/link-settings",
+  "/program/sales": "/program/commissions",
+  "/program/communication": "/program/resources",
+  "/program/branding/resources": "/program/resources",
+};
+
 export const appRedirect = (path: string) => {
   if (APP_REDIRECTS[path]) {
     return APP_REDIRECTS[path];
@@ -31,38 +39,26 @@ export const appRedirect = (path: string) => {
     return path.replace(libraryRegex, "/$1/links/$2");
 
   // Redirect "/[slug]/programs/prog_[id]/:path*" to "/[slug]/program/:path*"
-  const programPagesRegex = /^\/([^\/]+)\/programs\/prog_[^\/]+\/(.*)$/;
-  if (programPagesRegex.test(path))
-    return path.replace(programPagesRegex, "/$1/program/$2");
+  const oldProgramPagesRegex = /^\/([^\/]+)\/programs\/prog_[^\/]+\/(.*)$/;
+  if (oldProgramPagesRegex.test(path))
+    return path.replace(oldProgramPagesRegex, "/$1/program/$2");
 
   // Redirect "/[slug]/programs/:path*" to "/[slug]/program/:path*" (including root path)
-  const programRootRegex = /^\/([^\/]+)\/programs(?:\/(.*))?$/;
-  if (programRootRegex.test(path))
+  const programsPluralRegex = /^\/([^\/]+)\/programs(?:\/(.*))?$/;
+  if (programsPluralRegex.test(path))
     return path.replace(
-      programRootRegex,
+      programsPluralRegex,
       (_match, slug, subPath) =>
         `/${slug}/program${subPath ? `/${subPath}` : ""}`,
     );
 
-  // Redirect "/[slug]/program/settings" to "/[slug]/program"
-  const programSettingsRootRegex = /\/program\/settings$/;
-  if (programSettingsRootRegex.test(path))
-    return path.replace(programSettingsRootRegex, "/program");
-
-  // Redirect "/[slug]/program/settings/links" to "/[slug]/program/link-settings"
-  const programSettingsLinksRegex = /\/program\/settings\/links$/;
-  if (programSettingsLinksRegex.test(path))
-    return path.replace(programSettingsLinksRegex, "/program/link-settings");
-
-  // Redirect "/[slug]/program/settings/:path" to "/[slug]/program/:path"
-  const programSettingsPathRegex = /^\/([^\/]+)\/program\/settings\/(.*)$/;
-  if (programSettingsPathRegex.test(path))
-    return path.replace(programSettingsPathRegex, "/$1/program/$2");
-
-  // Redirect "/[slug]/program/sales" to "/[slug]/program/commissions"
-  const programSalesRegex = /^\/([^\/]+)\/program\/sales$/;
-  if (programSalesRegex.test(path))
-    return path.replace(programSalesRegex, "/$1/program/commissions");
+  // Handle additional simpler program redirects
+  const programRedirect = Object.keys(PROGRAM_REDIRECTS).find((redirect) =>
+    path.endsWith(redirect),
+  );
+  if (programRedirect) {
+    return path.replace(programRedirect, PROGRAM_REDIRECTS[programRedirect]);
+  }
 
   return null;
 };
