@@ -3,16 +3,13 @@ import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { prisma } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
-
-interface ClickStats {
-  link_id: string;
-  clicks: number;
-}
 
 // This route is used aggregate clicks events on daily basis for Program links and add to the Commission table
 // Runs every day at 00:00 (0 0 * * *)
@@ -84,18 +81,16 @@ export async function GET(req: Request) {
 
       const linkIds = links.map(({ id }) => id);
 
-      // TODO:
-      // TB pipes need fix
-      const clickStats: ClickStats[] = await getAnalytics({
-        linkIds,
-        start,
-        end,
-        groupBy: "count",
-        event: "clicks",
-      });
+      const clickStats: z.infer<(typeof analyticsResponse)["top_links"]>[] =
+        await getAnalytics({
+          linkIds,
+          start,
+          end,
+          groupBy: "top_links",
+          event: "clicks",
+        });
 
       if (clickStats.length === 0) {
-        console.log(`No click stats found for links ${linkIds}`);
         continue;
       }
 
@@ -105,7 +100,7 @@ export async function GET(req: Request) {
       );
 
       const commissions = clickStats.map(
-        ({ link_id: linkId, clicks: quantity }) => ({
+        ({ id: linkId, clicks: quantity }) => ({
           id: createId({ prefix: "cm_" }),
           programId,
           partnerId: linkToPartnerMap.get(linkId)!,

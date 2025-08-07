@@ -4,9 +4,14 @@ import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { checkIfLinksHaveFolders } from "@/lib/api/links/utils/check-if-links-have-folders";
 import { withWorkspace } from "@/lib/auth";
-import { verifyFolderAccess } from "@/lib/folder/permissions";
+import {
+  checkFolderPermissions,
+  verifyFolderAccess,
+} from "@/lib/folder/permissions";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { prisma } from "@dub/prisma";
 import { Folder, Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
@@ -27,13 +32,16 @@ export const GET = withWorkspace(
       domain,
       key,
       folderId,
+      linkIds,
     } = parsedParams;
-
-    let link: Link | null = null;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
     }
+
+    let link: Link | null = null;
+    let links: Link[] = [];
+    let folderIds: string[] | undefined = undefined;
 
     if (linkId || externalId || (domain && key)) {
       link = await getLinkOrThrow({
@@ -45,9 +53,56 @@ export const GET = withWorkspace(
       });
     }
 
-    const folderIdToVerify = link?.folderId || folderId;
+    // if linkIds are provided
+    // 1. Check if the links are valid
+    // 2. Check if the user has access to the folders the links are in
+    if (linkIds && linkIds.length) {
+      links = await prisma.link.findMany({
+        where: {
+          id: {
+            in: linkIds,
+          },
+          programId: workspace.id,
+        },
+      });
 
+      if (checkIfLinksHaveFolders(links)) {
+        const linkFolderIds = Array.from(
+          new Set(
+            links.map((link) => link.folderId).filter(Boolean) as string[],
+          ),
+        );
+
+        const folderPermissions = await checkFolderPermissions({
+          workspaceId: workspace.id,
+          userId: session.user.id,
+          folderIds: linkFolderIds,
+          requiredPermission: "folders.read",
+        });
+
+        links = links.filter((link) => {
+          if (!link.folderId) {
+            return true;
+          }
+
+          const validFolder = folderPermissions.find(
+            (folder) => folder.folderId === link.folderId,
+          );
+
+          if (!validFolder?.hasPermission) {
+            return false;
+          }
+
+          (folderIds || []).push(link.folderId);
+
+          return true;
+        });
+      }
+    }
+
+    const folderIdToVerify = link?.folderId || folderId;
     let selectedFolder: Pick<Folder, "id" | "type"> | null = null;
+
     if (folderIdToVerify) {
       selectedFolder = await verifyFolderAccess({
         workspace,
@@ -66,12 +121,14 @@ export const GET = withWorkspace(
       throwError: true,
     });
 
-    const folderIds = folderIdToVerify
-      ? undefined
-      : await getFolderIdsToFilter({
-          workspace,
-          userId: session.user.id,
-        });
+    if (!folderIds) {
+      folderIds = folderIdToVerify
+        ? undefined
+        : await getFolderIdsToFilter({
+            workspace,
+            userId: session.user.id,
+          });
+    }
 
     const response = await getEvents({
       ...parsedParams,

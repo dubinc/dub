@@ -42,7 +42,6 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   isDeprecatedClicksEndpoint?: boolean;
   folderIds?: string[];
   isMegaFolder?: boolean;
-  linkIds?: string[];
 };
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
