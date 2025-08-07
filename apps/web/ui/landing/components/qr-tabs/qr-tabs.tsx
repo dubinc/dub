@@ -18,6 +18,7 @@ interface IQRTabsProps {
 export const QRTabs: FC<
   Readonly<IQRTabsProps> & { ref?: Ref<HTMLDivElement> }
 > = forwardRef(({ sessionId }, ref) => {
+  console.log("qr tabs");
   const { AuthModal, showModal } = useAuthModal({ sessionId });
 
   const { executeAsync: saveQrDataToRedis } = useAction(
