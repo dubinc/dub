@@ -5,7 +5,7 @@ import useProgramResources from "@/lib/swr/use-program-resources";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramResourceType } from "@/lib/zod/schemas/program-resources";
 import { ResourceCard } from "@/ui/partners/resources/resource-card";
-import { AnimatedSizeContainer, FileContent, LoadingSpinner } from "@dub/ui";
+import { AnimatedSizeContainer, Button, FileContent } from "@dub/ui";
 import { capitalize, formatFileSize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
@@ -70,16 +70,12 @@ export function ProgramBrandAssets() {
           >
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-end">
-                <div className="flex items-center gap-2">
-                  {isLoading && <LoadingSpinner className="h-4 w-4" />}
-                  <button
-                    type="button"
-                    onClick={() => setShowAddLogoModal(true)}
-                    className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2"
-                  >
-                    Add Logo
-                  </button>
-                </div>
+                <Button
+                  text="Add Logo"
+                  className="h-8 w-fit px-3"
+                  onClick={() => setShowAddLogoModal(true)}
+                  loading={isLoading}
+                />
               </div>
 
               <AnimatedSizeContainer
@@ -119,16 +115,12 @@ export function ProgramBrandAssets() {
           >
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-end">
-                <div className="flex items-center gap-2">
-                  {isLoading && <LoadingSpinner className="h-4 w-4" />}
-                  <button
-                    type="button"
-                    onClick={() => setShowAddColorModal(true)}
-                    className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2"
-                  >
-                    Add Color
-                  </button>
-                </div>
+                <Button
+                  text="Add Color"
+                  className="h-8 w-fit px-3"
+                  onClick={() => setShowAddColorModal(true)}
+                  loading={isLoading}
+                />
               </div>
               <AnimatedSizeContainer
                 height
@@ -164,16 +156,12 @@ export function ProgramBrandAssets() {
           >
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-end">
-                <div className="flex items-center gap-2">
-                  {isLoading && <LoadingSpinner className="h-4 w-4" />}
-                  <button
-                    type="button"
-                    onClick={() => setShowAddFileModal(true)}
-                    className="rounded-md bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2"
-                  >
-                    Add File
-                  </button>
-                </div>
+                <Button
+                  text="Add File"
+                  className="h-8 w-fit px-3"
+                  onClick={() => setShowAddFileModal(true)}
+                  loading={isLoading}
+                />
               </div>
               <AnimatedSizeContainer
                 height
