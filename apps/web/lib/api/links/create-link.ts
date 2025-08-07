@@ -253,9 +253,9 @@ export async function createLink(link: CreateLinkProps) {
       shouldCreateCouponCode &&
         stripeConnectId &&
         createStripePromotionCode({
+          workspace: { stripeConnectId },
           link: response,
           couponId: discount?.couponId!,
-          stripeConnectId,
         }),
     ]),
   );

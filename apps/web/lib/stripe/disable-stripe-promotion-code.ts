@@ -1,27 +1,23 @@
 import { stripeAppClient } from ".";
+import { LinkProps, WorkspaceProps } from "../types";
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
 });
 
-// Disable a promotion code on Stripe for connected accounts
 export async function disableStripePromotionCode({
-  code,
-  stripeConnectId,
+  workspace,
+  link,
 }: {
-  code: string | null;
-  stripeConnectId: string | null;
+  workspace: Pick<WorkspaceProps, "stripeConnectId">;
+  link: Pick<LinkProps, "couponCode">;
 }) {
-  if (!code) {
-    return;
-  }
-
-  if (!stripeConnectId) {
+  if (!link.couponCode || !workspace.stripeConnectId) {
     return;
   }
 
   const promotionCodes = await stripe.promotionCodes.list({
-    code,
+    code: link.couponCode,
     limit: 1,
   });
 
@@ -38,12 +34,12 @@ export async function disableStripePromotionCode({
         active: false,
       },
       {
-        stripeAccount: stripeConnectId,
+        stripeAccount: workspace.stripeConnectId,
       },
     );
   } catch (error) {
     console.error(
-      `Failed to disable Stripe promotion code ${code} for ${stripeConnectId}: ${error}`,
+      `Failed to disable Stripe promotion code ${link.couponCode} for ${workspace.stripeConnectId}: ${error}`,
     );
 
     throw new Error(error instanceof Error ? error.message : "Unknown error");

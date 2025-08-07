@@ -58,7 +58,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { stripeConnectId } = await prisma.project.findUniqueOrThrow({
+    const workspace = await prisma.project.findUniqueOrThrow({
       where: {
         defaultProgramId: programId,
       },
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
       },
     });
 
-    if (!stripeConnectId) {
+    if (!workspace.stripeConnectId) {
       return new Response("stripeConnectId doesn't exist for the workspace.");
     }
 
@@ -122,9 +122,9 @@ export async function POST(req: Request) {
         const results = await Promise.allSettled(
           linksChunk.map((link) =>
             createStripePromotionCode({
+              workspace,
               link,
               couponId,
-              stripeConnectId,
             }),
           ),
         );

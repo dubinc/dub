@@ -1,5 +1,7 @@
 import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
 import { isNotHostedImage, storage } from "@/lib/storage";
+import { createStripePromotionCode } from "@/lib/stripe/create-stripe-promotion-code";
+import { disableStripePromotionCode } from "@/lib/stripe/disable-stripe-promotion-code";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
@@ -30,6 +32,7 @@ export async function updateLink({
     key: string;
     image?: string | null;
     testCompletedAt?: Date | null;
+    couponCode: string | null;
   };
   updatedLink: ProcessedLinkProps &
     Pick<LinkProps, "id" | "clicks" | "lastClicked" | "updatedAt">;
@@ -208,8 +211,71 @@ export async function updateLink({
         testVariants &&
         testCompletedAt &&
         scheduleABTestCompletion(response),
+
+      changedKey &&
+        updateStripePromotionCode({
+          oldLink,
+          updatedLink: response,
+        }),
     ]),
   );
 
   return transformLink(response);
+}
+
+export async function updateStripePromotionCode({
+  oldLink,
+  updatedLink,
+}: {
+  oldLink: Pick<LinkProps, "couponCode">;
+  updatedLink: Pick<LinkProps, "id" | "key" | "partnerId" | "programId">;
+}) {
+  if (!updatedLink.partnerId || !updatedLink.programId) {
+    return;
+  }
+
+  const { program, discount } =
+    await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        partnerId_programId: {
+          partnerId: updatedLink.partnerId,
+          programId: updatedLink.programId,
+        },
+      },
+      select: {
+        program: {
+          select: {
+            couponCodeTrackingEnabledAt: true,
+            workspace: {
+              select: {
+                stripeConnectId: true,
+              },
+            },
+          },
+        },
+        discount: {
+          select: {
+            couponId: true,
+          },
+        },
+      },
+    });
+
+  const { couponCodeTrackingEnabledAt, workspace } = program;
+
+  await Promise.allSettled([
+    oldLink.couponCode &&
+      disableStripePromotionCode({
+        workspace,
+        link: oldLink,
+      }),
+
+    couponCodeTrackingEnabledAt &&
+      discount?.couponId &&
+      createStripePromotionCode({
+        workspace,
+        link: updatedLink,
+        couponId: discount.couponId,
+      }),
+  ]);
 }

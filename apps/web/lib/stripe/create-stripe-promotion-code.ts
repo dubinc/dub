@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { stripeAppClient } from ".";
-import { LinkProps } from "../types";
+import { LinkProps, WorkspaceProps } from "../types";
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
@@ -10,13 +10,13 @@ const MAX_RETRIES = 2;
 
 // Create a promotion code on Stripe for connected accounts
 export async function createStripePromotionCode({
+  workspace,
   link,
   couponId,
-  stripeConnectId,
 }: {
+  workspace: Pick<WorkspaceProps, "stripeConnectId">;
   link: Pick<LinkProps, "id" | "key">;
   couponId: string | null;
-  stripeConnectId: string | null;
 }) {
   if (!couponId) {
     console.error(
@@ -25,7 +25,7 @@ export async function createStripePromotionCode({
     return;
   }
 
-  if (!stripeConnectId) {
+  if (!workspace.stripeConnectId) {
     console.error(
       "stripeConnectId not found for the workspace. Stripe promotion code creation skipped.",
     );
@@ -46,7 +46,7 @@ export async function createStripePromotionCode({
           code: couponCode.toUpperCase(),
         },
         {
-          stripeAccount: stripeConnectId,
+          stripeAccount: workspace.stripeConnectId,
         },
       );
 
