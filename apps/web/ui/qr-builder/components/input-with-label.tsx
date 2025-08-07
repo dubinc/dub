@@ -1,4 +1,6 @@
+import { CountrySelectAutocompleteComponent } from "@/ui/qr-builder/components/country-select-autocomplete.tsx";
 import { FileCardContent } from "@/ui/qr-builder/components/file-card-content";
+import { PhoneNumberInputComponent } from "@/ui/qr-builder/components/phone-number-input.tsx";
 import { TooltipComponent } from "@/ui/qr-builder/components/tooltip.tsx";
 import {
   EAcceptedFileType,
@@ -8,7 +10,6 @@ import { Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
 import Cookies from "js-cookie";
-import dynamic from "next/dynamic";
 import {
   Dispatch,
   FC,
@@ -18,48 +19,9 @@ import {
   useState,
 } from "react";
 import { Controller, useFormContext } from "react-hook-form";
+import PhoneInput from "react-phone-number-input";
 import { Country } from "react-phone-number-input/input";
 import "react-phone-number-input/style.css";
-
-const PhoneInputSkeleton = () => (
-  <div className="bg-border-500 h-11 w-full animate-pulse rounded-md" />
-);
-
-const LazyPhoneInputWrapper = ({ children }: { children: ReactNode }) => {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return <PhoneInputSkeleton />;
-  }
-
-  return <>{children}</>;
-};
-
-const PhoneInput = dynamic(() => import("react-phone-number-input"), {
-  loading: () => <PhoneInputSkeleton />,
-  ssr: false,
-});
-
-const LazyCountrySelectAutocompleteComponent = dynamic(
-  () =>
-    import("./country-select-autocomplete").then((mod) => ({
-      default: mod.CountrySelectAutocompleteComponent,
-    })),
-  { ssr: false },
-);
-
-const LazyPhoneNumberInputComponent = dynamic(
-  () =>
-    import("./phone-number-input").then((mod) => ({
-      default: mod.PhoneNumberInputComponent,
-    })),
-  { ssr: false },
-);
 
 interface IInputWithLabelProps {
   id: string;
@@ -200,24 +162,22 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
 
     case "tel":
       inputField = (
-        <LazyPhoneInputWrapper>
-          <Controller
-            name={id}
-            control={control}
-            render={({ field }) => (
-              <PhoneInput
-                {...field}
-                international
-                defaultCountry={defaultCountry}
-                countrySelectComponent={LazyCountrySelectAutocompleteComponent}
-                inputComponent={LazyPhoneNumberInputComponent}
-                className={cn("w-full [&>div]:w-full", {
-                  "[&_input]:!border-red-500": !!error,
-                })}
-              />
-            )}
-          />
-        </LazyPhoneInputWrapper>
+        <Controller
+          name={id}
+          control={control}
+          render={({ field }) => (
+            <PhoneInput
+              {...field}
+              international
+              defaultCountry={defaultCountry}
+              countrySelectComponent={CountrySelectAutocompleteComponent}
+              inputComponent={PhoneNumberInputComponent}
+              className={cn("w-full [&>div]:w-full", {
+                "[&_input]:!border-red-500": !!error,
+              })}
+            />
+          )}
+        />
       );
       break;
 
