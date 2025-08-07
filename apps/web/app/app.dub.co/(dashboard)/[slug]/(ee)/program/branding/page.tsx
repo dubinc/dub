@@ -1,10 +1,8 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { PropsWithChildren } from "react";
+import { BrandingForm } from "@/ui/partners/design/branding-form";
 
-export default function ProgramBrandingLandingPage({
-  children,
-}: PropsWithChildren) {
+export default function ProgramBrandingPage() {
   return (
     <PageContent
       title="Branding"
@@ -15,7 +13,9 @@ export default function ProgramBrandingLandingPage({
       }}
     >
       <PageWidthWrapper>
-        <div className="mb-4 grid gap-10">{children}</div>
+        <div className="mb-4 grid gap-10">
+          <BrandingForm />
+        </div>
       </PageWidthWrapper>
     </PageContent>
   );
