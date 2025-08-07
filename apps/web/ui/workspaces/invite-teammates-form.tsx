@@ -5,7 +5,7 @@ import { Button, useMediaQuery } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -74,12 +74,12 @@ export function InviteTeammatesForm({
           } else {
             toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
 
-            teammates.forEach(({ email }) =>
-              posthog.capture("teammate_invited", {
-                workspace: slug,
-                invitee_email: email,
-              }),
-            );
+            // teammates.forEach(({ email }) =>
+            //   posthog.capture("teammate_invited", {
+            //     workspace: slug,
+            //     invitee_email: email,
+            //   }),
+            // );
           }
           onSuccess?.();
         } else {

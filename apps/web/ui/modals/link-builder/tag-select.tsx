@@ -16,7 +16,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useCompletion } from "ai/react";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
@@ -240,10 +240,10 @@ export function TagSelect() {
                   setSuggestedTags((tags) =>
                     tags.filter(({ id }) => id !== tag.id),
                   );
-                  posthog.capture("ai_suggested_tag_selected", {
-                    tag: tag.name,
-                    url: url,
-                  });
+                  // posthog.capture("ai_suggested_tag_selected", {
+                  //   tag: tag.name,
+                  //   url: url,
+                  // });
                 }}
                 className="group flex items-center transition-all active:scale-95"
               >
