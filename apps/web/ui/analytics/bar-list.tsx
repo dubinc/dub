@@ -159,7 +159,7 @@ export function LineItem({
         </div>
       </div>
     );
-  }, [icon, tab, title]);
+  }, [icon, tab, title, linkData]);
 
   const { saleUnit } = useContext(AnalyticsContext);
 

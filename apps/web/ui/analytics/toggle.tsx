@@ -469,8 +469,6 @@ export default function Toggle({
       searchParamsObj.domain,
     ],
   );
-  console.log("filters", filters);
-  console.log("activeFilters", activeFilters);
 
   const { isMobile } = useMediaQuery();
 
@@ -501,6 +499,13 @@ export default function Toggle({
           }
           setStreaming(false);
         } else {
+          let del: string | string[] = "page";
+          if (key === "qrType") {
+            del = ["domain", "key", "page"];
+          }
+          if (key === "link") {
+            del = ["qrType", "page"];
+          }
           queryParams({
             set:
               key === "link"
@@ -512,7 +517,7 @@ export default function Toggle({
                 : {
                     [key]: value,
                   },
-            del: "page",
+            del,
             scroll: false,
           });
         }
