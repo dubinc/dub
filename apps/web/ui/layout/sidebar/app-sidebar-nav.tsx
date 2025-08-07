@@ -21,7 +21,6 @@ import {
   LifeRing,
   LinesY as LinesYStatic,
   MoneyBills2,
-  PaperPlane,
   Receipt2,
   ShieldCheck,
   ShieldKeyhole,
@@ -278,6 +277,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Branding",
             icon: Brush,
             href: `/${slug}/program/branding`,
+          },
+          {
+            name: "Resources",
+            icon: LifeRing,
+            href: `/${slug}/program/resources`,
           },
           {
             name: "Link Settings",

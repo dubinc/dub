@@ -248,6 +248,32 @@ export default function EventsTable({
           },
         },
         {
+          id: "url",
+          header: "Destination URL",
+          accessorKey: "click.url",
+          minSize: 250,
+          size: 250,
+          meta: {
+            filterParams: ({ getValue }) => ({ url: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <LinkLogo
+                apexDomain={getApexDomain(getValue())}
+                className="size-4 shrink-0 sm:size-4"
+              />
+              <CopyText
+                value={getValue()}
+                successMessage="Copied referrer URL to clipboard!"
+              >
+                <span className="overflow-scroll" title={getValue()}>
+                  {getPrettyUrl(getValue())}
+                </span>
+              </CopyText>
+            </div>
+          ),
+        },
+        {
           id: "referer",
           header: "Referer",
           accessorKey: "click.referer",
@@ -264,7 +290,12 @@ export default function EventsTable({
                   className="size-4 shrink-0 sm:size-4"
                 />
               )}
-              <span className="truncate">{getValue()}</span>
+              <CopyText
+                value={getValue()}
+                successMessage="Copied referrer to clipboard!"
+              >
+                <span className="truncate">{getValue()}</span>
+              </CopyText>
             </div>
           ),
         },
@@ -473,23 +504,45 @@ export default function EventsTable({
                     <span className="text-neutral-400">-</span>
                   ),
               },
+              // Click ID
+              {
+                id: "clickId",
+                header: "Click ID",
+                accessorKey: "click.id",
+                maxSize: 200,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <CopyText
+                      value={getValue()}
+                      successMessage="Copied click ID to clipboard!"
+                    >
+                      <span className="truncate font-mono" title={getValue()}>
+                        {getValue()}
+                      </span>
+                    </CopyText>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+              // Metadata
+              {
+                id: "metadata",
+                header: "Metadata",
+                accessorKey: "metadata",
+                minSize: 120,
+                size: 120,
+                maxSize: 120,
+                cell: ({ getValue }) => {
+                  const metadata = getValue();
+                  if (!metadata || Object.keys(metadata).length === 0) {
+                    return <span className="text-neutral-400">-</span>;
+                  }
+                  return (
+                    <MetadataViewer metadata={metadata} previewItems={0} />
+                  );
+                },
+              },
             ]),
-        // Metadata
-        {
-          id: "metadata",
-          header: "Metadata",
-          accessorKey: "metadata",
-          minSize: 120,
-          size: 120,
-          maxSize: 120,
-          cell: ({ getValue }) => {
-            const metadata = getValue();
-            if (!metadata || Object.keys(metadata).length === 0) {
-              return <span className="text-neutral-400">-</span>;
-            }
-            return <MetadataViewer metadata={metadata} previewItems={0} />;
-          },
-        },
         // Menu
         {
           id: "menu",
