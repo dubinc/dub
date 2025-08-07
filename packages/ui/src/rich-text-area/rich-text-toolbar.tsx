@@ -1,13 +1,13 @@
 import { cn } from "@dub/utils";
 import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import { useRef } from "react";
+import { forwardRef, useRef } from "react";
 import {
   AtSign,
   Heading1,
   Heading2,
+  Hyperlink,
   Icon,
   ImageIcon,
-  Link4,
   TextBold,
   TextItalic,
 } from "../icons";
@@ -26,6 +26,7 @@ export function RichTextToolbar({
       isItalic: Boolean(editor?.isActive("italic")),
       isHeading1: Boolean(editor?.isActive("heading", { level: 1 })),
       isHeading2: Boolean(editor?.isActive("heading", { level: 2 })),
+      isSelection: editor?.state.selection.from !== editor?.state.selection.to,
     }),
   });
 
@@ -62,12 +63,7 @@ export function RichTextToolbar({
         }
       />
 
-      <ToolbarButton
-        icon={Link4}
-        label="Link"
-        isActive={false}
-        onClick={() => alert("WIP")}
-      />
+      <LinkButton />
       <ToolbarButton
         icon={AtSign}
         label="Variable"
@@ -101,31 +97,73 @@ export function RichTextToolbar({
   );
 }
 
-function ToolbarButton({
-  icon: Icon,
-  label,
-  isActive,
-  onClick,
-}: {
+function LinkButton() {
+  const { editor } = useCurrentEditor();
+
+  const editorState = useEditorState({
+    editor,
+    selector: ({ editor }) => ({
+      isSelection: editor?.state.selection.from !== editor?.state.selection.to,
+    }),
+  });
+
+  return (
+    <ToolbarButton
+      icon={Hyperlink}
+      label="Link"
+      onClick={() => {
+        if (!editor) return;
+        const previousUrl = editor.getAttributes("link").href;
+
+        const url = window.prompt("Link URL", previousUrl);
+
+        if (!url?.trim()) {
+          editor.chain().focus().extendMarkRange("link").unsetLink().run();
+          return;
+        }
+
+        editor
+          .chain()
+          .focus()
+          .extendMarkRange("link")
+          .setLink({ href: url })
+          .run();
+      }}
+      disabled={!editorState?.isSelection}
+    />
+  );
+}
+
+type ToolbarButtonProps = {
   icon: Icon;
   label?: string;
   isActive?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex size-8 items-center justify-center rounded-md transition-colors duration-150",
-        isActive
-          ? "bg-neutral-200"
-          : "hover:bg-neutral-50 active:bg-neutral-100",
-      )}
-      title={label}
-    >
-      <Icon className="size-4 shrink-0 text-neutral-700" />
-      {label && <span className="sr-only">{label}</span>}
-    </button>
-  );
-}
+  onClick?: () => void;
+  disabled?: boolean;
+};
+
+const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
+  (
+    { icon: Icon, label, isActive, onClick, disabled }: ToolbarButtonProps,
+    ref,
+  ) => {
+    return (
+      <button
+        ref={ref}
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className={cn(
+          "flex size-8 items-center justify-center rounded-md transition-colors duration-150 disabled:opacity-50",
+          isActive
+            ? "bg-neutral-200"
+            : "hover:bg-neutral-50 active:bg-neutral-100",
+        )}
+        title={label}
+      >
+        <Icon className="size-4 shrink-0 text-neutral-700" />
+        {label && <span className="sr-only">{label}</span>}
+      </button>
+    );
+  },
+);
