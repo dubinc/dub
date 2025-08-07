@@ -12,7 +12,7 @@ import {
   priceConfig,
   TPaymentPlan,
 } from "core/integration/payment/config";
-import { PaymentService } from "core/integration/payment/server";
+import { IGetSystemUserDataRes, PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import {
   getUserCookieService,
@@ -114,13 +114,13 @@ export const POST = withSession(
     console.log("body", body);
 
     const subData = await paymentService.getClientSubscriptionDataByEmail({ email: user?.email || authUser?.email });
-
-    console.log("sub data", subData.subscriptions[0]);
+    const subscription = subData.subscriptions.at(-1) as IGetSystemUserDataRes["subscriptions"][0];
+    console.log("sub data", subscription);
 
     // TODO: better to use plan_name from attributes but attributes doesn't change after subscription update
     // so need to remove getPlanNameByChargePeriodDays method if attributes will be reliable
     // const prevPlan = subData.subscriptions[0].attributes.plan_name;
-    const prevPlan = getPlanNameByChargePeriodDays(subData.subscriptions[0].plan.chargePeriodDays);
+    const prevPlan = getPlanNameByChargePeriodDays(subscription.plan.chargePeriodDays);
 
     try {
       await paymentService.updateClientSubscription(
@@ -166,9 +166,9 @@ export const POST = withSession(
       );
 
       const subDataAfterUpdate = await paymentService.getClientSubscriptionDataByEmail({ email: email });
-      const newSubData = subDataAfterUpdate.subscriptions[0];
+      const newSubData = subDataAfterUpdate.subscriptions.at(-1) as IGetSystemUserDataRes["subscriptions"][0];
 
-      console.log("sub data after update", subDataAfterUpdate.subscriptions[0]);
+      console.log("sub data after update", newSubData);
 
       await Promise.all([
         prisma.user.update({
