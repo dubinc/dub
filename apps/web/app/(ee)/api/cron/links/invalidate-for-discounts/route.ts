@@ -92,16 +92,12 @@ const handleDiscountDeleted = async ({
   discountId,
   isDefault,
 }: Payload) => {
-  let page = 0;
-  let total = 0;
-  const take = 1;
-
   while (true) {
     let partnerIds: string[] = [];
 
     if (!isDefault) {
       partnerIds =
-        (await redis.lpop<string[]>(`discount-partners:${discountId}`, take)) ||
+        (await redis.lpop<string[]>(`discount-partners:${discountId}`, 100)) ||
         [];
 
       // There won't be any entries in Redis for the default discount
@@ -128,12 +124,10 @@ const handleDiscountDeleted = async ({
         domain: true,
         key: true,
       },
-      take,
-      skip: page * take,
     });
 
     if (links.length === 0) {
-      break;
+      continue;
     }
 
     await Promise.allSettled([
@@ -150,10 +144,7 @@ const handleDiscountDeleted = async ({
         },
       }),
     ]);
-
-    page += 1;
-    total += links.length;
   }
 
-  return new Response(`Invalidated ${total} links for discount ${discountId}.`);
+  return new Response(`Invalidated links for discount ${discountId}.`);
 };
