@@ -50,8 +50,8 @@ export function ProgramRewardModifiersTooltip({
             </strong>
             {(
               reward.modifiers as z.infer<typeof rewardConditionsArraySchema>
-            ).map(({ amount, operator, conditions }) => (
-              <Fragment key={amount}>
+            ).map(({ amount, operator, conditions }, idx) => (
+              <Fragment key={idx}>
                 <div className="mt-1 flex items-start gap-1.5">
                   <ArrowTurnRight2 className="mt-0.5 size-3 shrink-0" />
                   <div className="min-w-0">
