@@ -43,7 +43,7 @@ export async function deleteDiscount({
 
       await redis.lpush(
         `discount-partners:${discount.id}`,
-        partners.map((partner) => partner.partnerId),
+        ...partners.map((partner) => partner.partnerId),
       );
 
       offset += 1000;
