@@ -47,7 +47,7 @@ export const createPartnerCommission = async ({
   amount?: number;
   quantity: number;
   currency?: string;
-  description?: string;
+  description?: string | null;
   createdAt?: Date;
   user?: Session["user"]; // user who created the manual commission
   context?: RewardContext;

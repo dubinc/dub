@@ -1,25 +1,16 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import EmptyState from "@/ui/shared/empty-state";
 import WebhookCard from "@/ui/webhooks/webhook-card";
 import WebhookPlaceholder from "@/ui/webhooks/webhook-placeholder";
-import { Button, InfoTooltip, TooltipContent } from "@dub/ui";
 import { Webhook } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 export default function WebhooksPageClient() {
-  const router = useRouter();
-  const { slug, plan, role } = useWorkspace();
+  const { slug, plan } = useWorkspace();
 
   const { webhooks, isLoading } = useWebhooks();
-
-  const { error: permissionsError } = clientAccessCheck({
-    action: "webhooks.write",
-    role: role,
-  });
 
   const needsHigherPlan = plan === "free" || plan === "pro";
 
@@ -40,32 +31,6 @@ export default function WebhooksPageClient() {
 
   return (
     <div className="grid gap-5">
-      <div className="flex flex-wrap justify-between gap-6">
-        <div className="flex items-center gap-x-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-black">
-            Webhooks
-          </h1>
-          <InfoTooltip
-            content={
-              <TooltipContent
-                title="Webhooks allow you to receive HTTP requests whenever a specific event (eg: someone clicked your link) occurs in Dub."
-                href="https://d.to/webhooks"
-                target="_blank"
-                cta="Learn more"
-              />
-            }
-          />
-        </div>
-        <div className="flex w-full items-center gap-3 sm:w-auto">
-          <Button
-            className="flex h-10 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm"
-            text="Create Webhook"
-            onClick={() => router.push(`/${slug}/settings/webhooks/new`)}
-            disabledTooltip={permissionsError}
-          />
-        </div>
-      </div>
-
       <div className="animate-fade-in">
         {!isLoading ? (
           webhooks && webhooks.length > 0 ? (

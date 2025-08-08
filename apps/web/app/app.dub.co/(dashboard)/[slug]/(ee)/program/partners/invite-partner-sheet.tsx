@@ -17,6 +17,7 @@ import {
   EyeSlash,
   InfoTooltip,
   Sheet,
+  SimpleTooltipContent,
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
@@ -120,8 +121,17 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
-          <Sheet.Title className="text-lg font-semibold">
-            Invite partner
+          <Sheet.Title className="flex items-center gap-1 text-lg font-semibold">
+            Invite partner{" "}
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title="Invite influencers, affiliates, and users to your program, or enroll them automatically."
+                  cta="Learn more."
+                  href="https://dub.co/help/article/inviting-partners"
+                />
+              }
+            />
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button

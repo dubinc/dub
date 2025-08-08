@@ -27,12 +27,17 @@ export function PartnerRowItem({
   const { rewards } = useRewards();
 
   const displayedSaleReward = useMemo(() => {
+    // don't show sale reward if:
+    // - there's only one sale reward
+    // - the partner has no sale reward
     if (
       !rewards ||
-      rewards.length === 1 ||
-      rewards.filter((r) => r.event === "sale").length === 1
-    )
+      rewards.filter((r) => r.event === "sale").length === 1 ||
+      !partner.saleRewardId
+    ) {
       return null;
+    }
+
     return rewards.find(
       (r) => r.event === "sale" && r.id === partner.saleRewardId,
     );

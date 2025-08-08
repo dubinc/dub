@@ -22,7 +22,6 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     const { data, status } = await http.put<Link>({
       path: "/partners/links/upsert",
       body: {
-        programId: E2E_PROGRAM.id,
         partnerId: E2E_PARTNER.id,
         url: randomUrl,
       },
@@ -43,7 +42,6 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     const { data: updatedLink, status } = await http.put<Link>({
       path: "/partners/links/upsert",
       body: {
-        programId: E2E_PROGRAM.id,
         partnerId: E2E_PARTNER.id,
         url: randomUrl,
         key,

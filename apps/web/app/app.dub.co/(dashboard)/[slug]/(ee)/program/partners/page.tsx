@@ -10,8 +10,8 @@ export default function ProgramPartners() {
       title="Partners"
       titleInfo={{
         title:
-          "Invite influencers, affiliates, and users to your program, or enroll them automatically.",
-        href: "https://dub.co/help/article/inviting-partners",
+          "Understand how all your partners are performing and contributing to the success of your partner program.",
+        href: "https://dub.co/help/article/managing-program-partners",
       }}
       controls={
         <>
