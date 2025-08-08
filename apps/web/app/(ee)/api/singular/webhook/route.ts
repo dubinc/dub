@@ -1,4 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { trackSingularLeadEvent } from "@/lib/integrations/singular/track-lead";
 import { trackSingularSaleEvent } from "@/lib/integrations/singular/track-sale";
 import { prisma } from "@dub/prisma";
@@ -25,7 +26,10 @@ const authSchema = z.object({
   dub_workspace_id: z
     .string()
     .min(1, "dub_workspace_id is required")
-    .describe(" Unique to identify the advertiser."),
+    .describe(
+      "The Singular advertiser's workspace ID on Dub (see https://d.to/id).",
+    )
+    .transform((v) => normalizeWorkspaceId(v)),
 });
 
 const singularWebhookToken = process.env.SINGULAR_WEBHOOK_TOKEN;
