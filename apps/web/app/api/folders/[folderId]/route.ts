@@ -141,6 +141,7 @@ export const DELETE = withWorkspace(
             projectId: "",
           },
         }),
+
         queueFolderDeletion({
           folderId,
         }),
@@ -148,16 +149,27 @@ export const DELETE = withWorkspace(
     }
 
     waitUntil(
-      prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          foldersUsage: {
-            decrement: 1,
+      Promise.allSettled([
+        prisma.project.update({
+          where: {
+            id: workspace.id,
           },
-        },
-      }),
+          data: {
+            foldersUsage: {
+              decrement: 1,
+            },
+          },
+        }),
+
+        prisma.projectUsers.updateMany({
+          where: {
+            defaultFolderId: folderId,
+          },
+          data: {
+            defaultFolderId: null,
+          },
+        }),
+      ]),
     );
 
     return NextResponse.json({ id: folderId });
