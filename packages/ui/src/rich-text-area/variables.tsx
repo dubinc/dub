@@ -1,7 +1,7 @@
 import { cn } from "@dub/utils";
 import { computePosition, flip, shift } from "@floating-ui/dom";
 import { Editor, posToDOMRect, ReactRenderer } from "@tiptap/react";
-import { Command } from "cmdk";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 
 const updatePosition = (editor: Editor, element: HTMLElement) => {
   const virtualElement = {
@@ -80,33 +80,82 @@ export const suggestions = (variables: string[]) => ({
   },
 });
 
-function Menu({
-  items,
-  command,
-}: {
-  items: string[];
-  command: (props: any) => void;
-}) {
-  return (
-    <Command tabIndex={0} loop className="focus:outline-none">
-      <Command.List className="border-border-subtle flex flex-col rounded-lg border bg-white p-1 shadow-sm">
+const menuItemClassName = cn(
+  "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-2 py-1 font-mono text-sm text-neutral-950",
+  "data-[selected=true]:bg-neutral-100",
+);
+
+const Menu = forwardRef(
+  (
+    {
+      items,
+      command,
+    }: {
+      items: string[];
+      command: (props: any) => void;
+    },
+    ref,
+  ) => {
+    const [selectedIndex, setSelectedIndex] = useState(0);
+
+    const upHandler = () => {
+      setSelectedIndex((selectedIndex + items.length - 1) % items.length);
+    };
+
+    const downHandler = () => {
+      setSelectedIndex((selectedIndex + 1) % items.length);
+    };
+
+    const enterHandler = () => {
+      command({ id: items[selectedIndex] });
+    };
+
+    useEffect(() => setSelectedIndex(0), [items]);
+
+    useImperativeHandle(ref, () => ({
+      onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+        if (event.key === "ArrowUp") {
+          upHandler();
+          return true;
+        }
+
+        if (event.key === "ArrowDown") {
+          downHandler();
+          return true;
+        }
+
+        if (event.key === "Enter") {
+          enterHandler();
+          return true;
+        }
+
+        return false;
+      },
+    }));
+
+    return (
+      <div className="border-border-subtle flex flex-col rounded-lg border bg-white p-1 shadow-sm">
         {items.length ? (
           items.map((item, index) => (
-            <Command.Item
+            <button
               key={index}
-              onSelect={() => command({ id: item })}
-              className={cn(
-                "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md px-2 py-1 font-mono text-sm text-neutral-950",
-                "data-[selected=true]:bg-neutral-100",
-              )}
+              type="button"
+              onClick={() => command({ id: item })}
+              data-selected={selectedIndex === index}
+              onPointerEnter={() => setSelectedIndex(index)}
+              className={menuItemClassName}
             >
               {item}
-            </Command.Item>
+            </button>
           ))
         ) : (
-          <div className="item">No result</div>
+          <div
+            className={cn(menuItemClassName, "text-content-subtle font-sans")}
+          >
+            No results
+          </div>
         )}
-      </Command.List>
-    </Command>
-  );
-}
+      </div>
+    );
+  },
+);
