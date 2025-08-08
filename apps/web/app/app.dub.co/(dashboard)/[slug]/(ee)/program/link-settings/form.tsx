@@ -7,7 +7,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { ProgramLinkConfiguration } from "@/ui/partners/program-link-configuration";
 import { Badge, Button, NumberStepper, Tooltip } from "@dub/ui";
-import { CircleCheckFill, CircleQuestion, LoadingSpinner } from "@dub/ui/icons";
+import { CircleCheckFill, CircleQuestion } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
@@ -34,23 +34,17 @@ const URL_VALIDATION_MODES = [
   },
 ];
 
-export function LinksSettings() {
+export function LinksSettingsForm() {
   const { program } = useProgram();
 
-  return (
-    <div className="flex flex-col gap-10">
-      {program ? (
-        <LinksSettingsForm program={program} />
-      ) : (
-        <div className="flex h-32 items-center justify-center">
-          <LoadingSpinner />
-        </div>
-      )}
-    </div>
-  );
+  if (!program) {
+    return null;
+  }
+
+  return <LinksSettingsFormInner program={program} />;
 }
 
-function LinksSettingsForm({ program }: { program: ProgramProps }) {
+function LinksSettingsFormInner({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
 
   const {
@@ -97,7 +91,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
       })}
     >
       <div className="divide-y divide-neutral-200 px-6">
-        <SettingsRow heading="Default Referral Link">
+        <SettingsRow heading="Default partner link">
           <div className="grid grid-cols-2 gap-6">
             <div className="col-span-2">
               <ProgramLinkConfiguration
@@ -115,7 +109,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
           </div>
         </SettingsRow>
 
-        <SettingsRow heading="Link type">
+        <SettingsRow heading="Link structure">
           <div className="grid grid-cols-1 gap-3">
             {getLinkStructureOptions({
               domain: program.domain,
@@ -165,7 +159,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
           </div>
         </SettingsRow>
 
-        <SettingsRow heading="Partner links">
+        <SettingsRow heading="Advanced settings">
           <div className="space-y-6">
             <div className="flex flex-col">
               <div className="mb-2 flex items-center gap-2">
