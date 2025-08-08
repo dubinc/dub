@@ -33,6 +33,15 @@ export const CONDITION_OPERATORS = [
   "not_in",
 ] as const;
 
+export const CONDITION_OPERATOR_LABELS = {
+  equals_to: "is",
+  not_equals: "is not",
+  starts_with: "starts with",
+  ends_with: "ends with",
+  in: "is one of",
+  not_in: "is not one of",
+} as const;
+
 export const rewardConditionSchema = z.object({
   entity: z.enum(CONDITION_ENTITIES),
   attribute: z.enum(CONDITION_ATTRIBUTES),

@@ -84,6 +84,7 @@ export async function bulkApprovePartners({
           reward:
             sortRewardsByEventOrder(rewards.filter((r) => r.default))[0] ||
             rewards[0],
+          showModifiersTooltip: false,
         }),
       }),
     }));

@@ -7,6 +7,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CONDITION_ATTRIBUTES,
   CONDITION_CUSTOMER_ATTRIBUTES,
+  CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
   CONDITION_SALE_ATTRIBUTES,
 } from "@/lib/zod/schemas/rewards";
@@ -203,15 +204,6 @@ const ATTRIBUTE_LABELS = {
   productId: "Product ID",
 };
 
-const OPERATOR_LABELS = {
-  equals_to: "is",
-  not_equals: "is not",
-  starts_with: "starts with",
-  ends_with: "ends with",
-  in: "is one of",
-  not_in: "is not one of",
-} as const;
-
 const formatValue = (
   value: string | number | string[] | number[] | undefined,
 ) => {
@@ -325,7 +317,7 @@ function ConditionLogic({
             <InlineBadgePopover
               text={
                 condition.operator
-                  ? OPERATOR_LABELS[condition.operator]
+                  ? CONDITION_OPERATOR_LABELS[condition.operator]
                   : "Condition"
               }
               invalid={!condition.operator}
@@ -353,7 +345,7 @@ function ConditionLogic({
                   )
                 }
                 items={CONDITION_OPERATORS.map((operator) => ({
-                  text: OPERATOR_LABELS[operator],
+                  text: CONDITION_OPERATOR_LABELS[operator],
                   value: operator,
                 }))}
               />

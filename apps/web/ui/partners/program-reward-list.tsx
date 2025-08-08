@@ -4,15 +4,18 @@ import { Gift, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren } from "react";
 import { REWARD_EVENTS } from "./constants";
+import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
 
 export function ProgramRewardList({
   rewards,
   discount,
   className,
+  showModifiersTooltip = true,
 }: {
   rewards: RewardProps[];
   discount?: DiscountProps | null;
   className?: string;
+  showModifiersTooltip?: boolean;
 }) {
   const sortedFilteredRewards = rewards.filter((r) => r.amount >= 0);
 
@@ -28,7 +31,14 @@ export function ProgramRewardList({
           {reward.description || (
             <>
               {constructRewardAmount({
-                amount: reward.amount,
+                ...(reward.modifiers
+                  ? {
+                      amounts: [
+                        reward.amount,
+                        ...reward.modifiers.map(({ amount }) => amount),
+                      ],
+                    }
+                  : { amount: reward.amount }),
                 type: reward.type,
               })}{" "}
               {reward.event === "sale" && reward.maxDuration === 0 ? (
@@ -55,6 +65,12 @@ export function ProgramRewardList({
                   </strong>
                 </>
               ) : null}
+              {showModifiersTooltip && !!reward.modifiers?.length && (
+                <>
+                  {" "}
+                  <ProgramRewardModifiersTooltip reward={reward} />
+                </>
+              )}
             </>
           )}
         </Item>
