@@ -139,7 +139,14 @@ export async function GET(req: NextRequest) {
                   style={{ fontFamily: "Inter Semibold" }}
                 >
                   {constructRewardAmount({
-                    amount: rewards[0].amount,
+                    ...(rewards[0].modifiers
+                      ? {
+                          amounts: [
+                            rewards[0].amount,
+                            ...rewards[0].modifiers.map(({ amount }) => amount),
+                          ],
+                        }
+                      : { amount: rewards[0].amount }),
                     type: rewards[0].type,
                   })}{" "}
                   per {rewards[0].event}

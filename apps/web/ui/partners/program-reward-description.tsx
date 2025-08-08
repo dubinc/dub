@@ -10,7 +10,7 @@ export function ProgramRewardDescription({
 }: {
   reward?: Pick<
     RewardProps,
-    "amount" | "type" | "event" | "maxDuration" | "description"
+    "amount" | "type" | "event" | "maxDuration" | "description" | "modifiers"
   > | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
@@ -24,7 +24,14 @@ export function ProgramRewardDescription({
               Earn{" "}
               <strong className={cn("font-semibold", amountClassName)}>
                 {constructRewardAmount({
-                  amount: reward.amount,
+                  ...(reward.modifiers
+                    ? {
+                        amounts: [
+                          reward.amount,
+                          ...reward.modifiers.map(({ amount }) => amount),
+                        ],
+                      }
+                    : { amount: reward.amount }),
                   type: reward.type,
                 })}{" "}
               </strong>

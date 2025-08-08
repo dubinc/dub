@@ -28,7 +28,14 @@ export function ProgramRewardList({
           {reward.description || (
             <>
               {constructRewardAmount({
-                amount: reward.amount,
+                ...(reward.modifiers
+                  ? {
+                      amounts: [
+                        reward.amount,
+                        ...reward.modifiers.map(({ amount }) => amount),
+                      ],
+                    }
+                  : { amount: reward.amount }),
                 type: reward.type,
               })}{" "}
               {reward.event === "sale" && reward.maxDuration === 0 ? (
