@@ -29,7 +29,10 @@ export async function bulkApprovePartners({
   discount,
   user,
 }: {
-  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
+  workspace: Pick<
+    WorkspaceProps,
+    "id" | "plan" | "webhookEnabled" | "stripeConnectId"
+  >;
   program: ProgramWithLanderDataProps;
   programEnrollments: (ProgramEnrollment & {
     partner: Partner & { users: { user: { email: string | null } }[] };
