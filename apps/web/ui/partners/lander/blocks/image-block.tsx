@@ -1,4 +1,5 @@
 import { programLanderImageBlockSchema } from "@/lib/zod/schemas/program-lander";
+import { ZoomImage } from "@/ui/shared/zoom-image";
 import { z } from "zod";
 
 export function ImageBlock({
@@ -7,14 +8,11 @@ export function ImageBlock({
   block: z.infer<typeof programLanderImageBlockSchema>;
 }) {
   return (
-    <div className="py-4">
-      <img
-        src={block.data.url}
-        alt={block.data.alt}
-        width={block.data.width}
-        height={block.data.height}
-        className="block rounded-lg"
-      />
-    </div>
+    <ZoomImage
+      src={block.data.url}
+      alt={block.data.alt}
+      width={block.data.width}
+      height={block.data.height}
+    />
   );
 }

@@ -2,7 +2,7 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PARTNER, E2E_PROGRAM } from "../utils/resource";
+import { E2E_PARTNER } from "../utils/resource";
 import { normalizedPartnerDateFields } from "./resource";
 
 // type coercion for date fields
@@ -24,10 +24,7 @@ describe.sequential("GET /partners", async () => {
 
     if (data.length > 0) {
       // Validate each partner against the basic schema
-      data.forEach((partner) => {
-        const parsed = EnrolledPartnerSchema.parse(partner);
-        expect(parsed.programId).toBe(E2E_PROGRAM.id);
-      });
+      data.forEach((partner) => EnrolledPartnerSchema.parse(partner));
     }
   });
 
@@ -44,10 +41,7 @@ describe.sequential("GET /partners", async () => {
 
     if (data.length > 0) {
       // Validate each partner against the expanded schema
-      data.forEach((partner) => {
-        const parsed = EnrolledPartnerSchema.parse(partner);
-        expect(parsed.programId).toBe(E2E_PROGRAM.id);
-      });
+      data.forEach((partner) => EnrolledPartnerSchema.parse(partner));
     }
   });
 

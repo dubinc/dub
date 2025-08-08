@@ -10,7 +10,11 @@ import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
 import { createLinkBodySchema } from "./links";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import {
+  booleanQuerySchema,
+  getPaginationQuerySchema,
+  uploadedImageSchema,
+} from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseUrlSchema } from "./utils";
 
@@ -407,10 +411,14 @@ export const onboardPartnerSchema = createPartnerSchema
   })
   .merge(
     z.object({
-      name: z.string(),
-      image: z.string(),
+      name: z.string().min(1, "Name is required"),
+      image: uploadedImageSchema
+        .transform((v) => v || "")
+        .refine((v) => v !== "", {
+          message: "Image is required",
+        }),
       country: z.enum(COUNTRY_CODES),
-      profileType: z.enum(["individual", "company"]).default("individual"),
+      profileType: z.nativeEnum(PartnerProfileType).default("individual"),
       companyName: z.string().nullish(),
     }),
   )
@@ -483,6 +491,7 @@ export const partnerAnalyticsQuerySchema = analyticsQuerySchema
     start: true,
     end: true,
     timezone: true,
+    query: true,
   })
   .merge(
     z.object({

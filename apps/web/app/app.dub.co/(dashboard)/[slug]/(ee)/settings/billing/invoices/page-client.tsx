@@ -14,16 +14,31 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, currencyFormatter, fetcher } from "@dub/utils";
+import { useMemo } from "react";
 import useSWR from "swr";
 
+const INVOICE_TYPES = [
+  { id: "subscription", label: "Subscription" },
+  { id: "partnerPayout", label: "Partner payouts" },
+  { id: "domainRenewal", label: "Domain renewals" },
+];
+
 export default function WorkspaceInvoicesClient() {
-  const { slug, defaultProgramId } = useWorkspace();
+  const { slug } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
 
-  const invoiceType = searchParams.get("type") || "subscription";
+  const selectedInvoiceType = useMemo(() => {
+    let type = searchParams.get("type");
+
+    if (type === "payout") {
+      type = "partnerPayout";
+    }
+
+    return INVOICE_TYPES.find((t) => t.id === type) || INVOICE_TYPES[0];
+  }, [searchParams]);
 
   const { data: invoices } = useSWR<InvoiceProps[]>(
-    `/api/workspaces/${slug}/billing/invoices?type=${invoiceType}`,
+    `/api/workspaces/${slug}/billing/invoices?type=${selectedInvoiceType.id}`,
     fetcher,
   );
 
@@ -37,23 +52,18 @@ export default function WorkspaceInvoicesClient() {
           </p>
         </div>
       </div>
-      {defaultProgramId && (
-        <TabSelect
-          className="px-4 md:px-5"
-          options={[
-            { id: "subscription", label: "Subscription" },
-            { id: "payout", label: "Partner Payouts" },
-          ]}
-          selected={invoiceType}
-          onSelect={(id) => {
-            queryParams({
-              set: {
-                type: id,
-              },
-            });
-          }}
-        />
-      )}
+      <TabSelect
+        className="px-4 md:px-5"
+        options={INVOICE_TYPES}
+        selected={selectedInvoiceType.id}
+        onSelect={(id) => {
+          queryParams({
+            set: {
+              type: id,
+            },
+          });
+        }}
+      />
       <div className="grid divide-y divide-neutral-200 border-t border-neutral-200">
         {invoices ? (
           invoices.length > 0 ? (
@@ -62,8 +72,8 @@ export default function WorkspaceInvoicesClient() {
             ))
           ) : (
             <AnimatedEmptyState
-              title="No invoices found"
-              description="You don't have any invoices yet"
+              title={`No ${selectedInvoiceType.label.toLowerCase()} invoices found`}
+              description={`You don't have any ${selectedInvoiceType.label.toLowerCase()} invoices yet`}
               cardContent={() => (
                 <>
                   <Receipt2 className="size-4 text-neutral-700" />

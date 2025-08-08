@@ -33,34 +33,38 @@ export default function RegisterPageClient({
 
 function SignUp({ program }: { program?: PartialProgram }) {
   return (
-    <AuthLayout showTerms>
-      <div className="w-full max-w-sm">
-        {program && <PartnerBanner program={program} />}
-        <h1 className="text-center text-xl font-semibold">
-          Create your Dub Partner account
-        </h1>
-        <div className="mt-8">
-          <SignUpForm methods={["email", "google"]} />
-        </div>
-        <p className="mt-6 text-center text-sm font-medium text-neutral-500">
-          Already have an account?&nbsp;
-          <Link
-            href={`${program ? `/${program.slug}` : ""}/login`}
-            className="font-semibold text-neutral-700 transition-colors hover:text-neutral-900"
-          >
-            Sign in
-          </Link>
-        </p>
+    <div className="relative">
+      {program && <PartnerBanner program={program} />}
+      <AuthLayout showTerms>
+        <div className="w-full max-w-sm">
+          <h1 className="text-center text-xl font-semibold">
+            Create your Dub Partner account
+          </h1>
+          <div className="mt-8">
+            <SignUpForm methods={["email", "google"]} />
+          </div>
+          <p className="mt-6 text-center text-sm font-medium text-neutral-500">
+            Already have an account?&nbsp;
+            <Link
+              href={`${program ? `/${program.slug}` : ""}/login`}
+              className="font-semibold text-neutral-700 transition-colors hover:text-neutral-900"
+            >
+              Sign in
+            </Link>
+          </p>
 
-        <div className="mt-12 w-full">
-          <AuthAlternativeBanner
-            text="Looking for your Dub workspace account?"
-            cta="Sign up at app.dub.co"
-            href="https://app.dub.co/register"
-          />
+          {!program && (
+            <div className="mt-12 w-full">
+              <AuthAlternativeBanner
+                text="Looking for your Dub workspace account?"
+                cta="Sign up at app.dub.co"
+                href="https://app.dub.co/register"
+              />
+            </div>
+          )}
         </div>
-      </div>
-    </AuthLayout>
+      </AuthLayout>
+    </div>
   );
 }
 

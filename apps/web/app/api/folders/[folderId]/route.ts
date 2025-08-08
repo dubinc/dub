@@ -141,11 +141,22 @@ export const DELETE = withWorkspace(
             projectId: "",
           },
         }),
+
         queueFolderDeletion({
           folderId,
         }),
       ]);
     }
+
+    // Remove the default folder assignment for all users whose defaultFolderId matches the given folderId
+    await prisma.projectUsers.updateMany({
+      where: {
+        defaultFolderId: folderId,
+      },
+      data: {
+        defaultFolderId: null,
+      },
+    });
 
     waitUntil(
       prisma.project.update({
