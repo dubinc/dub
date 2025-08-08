@@ -170,7 +170,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
             <div className="flex flex-col">
               <div className="mb-2 flex items-center gap-2">
                 <span className="text-sm font-medium text-neutral-800">
-                  Max links
+                  Max partner links
                 </span>
                 <Tooltip content="Maximum number of referral links a partner can create.">
                   <div className="text-neutral-400">
