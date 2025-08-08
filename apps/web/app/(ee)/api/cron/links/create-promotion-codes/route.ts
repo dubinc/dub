@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const {
       couponId,
       programId,
-      program: { couponCodeTrackingEnabledAt },
+      program: { couponCodeTrackingEnabledAt, workspace },
     } = await prisma.discount.findUniqueOrThrow({
       where: {
         id: discountId,
@@ -41,6 +41,11 @@ export async function POST(req: Request) {
         program: {
           select: {
             couponCodeTrackingEnabledAt: true,
+            workspace: {
+              select: {
+                stripeConnectId: true,
+              },
+            },
           },
         },
       },
@@ -56,19 +61,6 @@ export async function POST(req: Request) {
       return new Response(
         "couponId doesn't set for the discount. Skipping promotion code creation.",
       );
-    }
-
-    const workspace = await prisma.project.findUniqueOrThrow({
-      where: {
-        defaultProgramId: programId,
-      },
-      select: {
-        stripeConnectId: true,
-      },
-    });
-
-    if (!workspace.stripeConnectId) {
-      return new Response("stripeConnectId doesn't exist for the workspace.");
     }
 
     let hasMore = true;
