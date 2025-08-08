@@ -1,4 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
@@ -9,15 +10,13 @@ import {
   recordLead,
   recordSale,
 } from "@/lib/tinybird";
+import { ClickEventTB, LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   transformLeadEventData,
   transformSaleEventData,
 } from "@/lib/webhook/transform";
-import z from "@/lib/zod";
-import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
-import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { Customer } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
@@ -25,6 +24,7 @@ import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import {
   getConnectedCustomer,
+  getSubscriptionProductId,
   updateCustomerWithStripeCustomerId,
 } from "./utils";
 
@@ -41,8 +41,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   let customer: Customer | null = null;
   let existingCustomer: Customer | null = null;
-  let clickEvent: z.infer<typeof clickEventSchemaTB> | null = null;
-  let leadEvent: z.infer<typeof leadEventSchemaTB>;
+  let clickEvent: ClickEventTB | null = null;
+  let leadEvent: LeadEventTB;
   let linkId: string;
 
   /*
@@ -287,6 +287,14 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
               increment: 1,
             },
           }),
+          ...(isFirstConversion({
+            customer,
+            linkId,
+          }) && {
+            conversions: {
+              increment: 1,
+            },
+          }),
           sales: {
             increment: 1,
           },
@@ -327,6 +335,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   // for program links
   if (link && link.programId && link.partnerId) {
+    const productId = await getSubscriptionProductId({
+      stripeSubscriptionId: charge.subscription as string,
+      stripeAccountId,
+      livemode: event.livemode,
+    });
+
     const commission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
@@ -338,6 +352,14 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       quantity: 1,
       invoiceId,
       currency: saleData.currency,
+      context: {
+        customer: {
+          country: customer.country,
+        },
+        sale: {
+          productId,
+        },
+      },
     });
 
     if (commission) {

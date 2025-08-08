@@ -1,6 +1,6 @@
 import { plans, roles } from "@/lib/types";
 import z from "@/lib/zod";
-import { R2_URL } from "@dub/utils";
+import { GOOGLE_FAVICON_URL, R2_URL } from "@dub/utils";
 import { fileTypeFromBuffer } from "file-type";
 
 export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24, 36];
@@ -100,7 +100,7 @@ export const base64ImageAllowSVGSchema = z
   })
   .transform((v) => v || null);
 
-export const uploadedImageUrlSchema = z
+export const storedR2ImageUrlSchema = z
   .string()
   .url()
   .trim()
@@ -108,18 +108,31 @@ export const uploadedImageUrlSchema = z
     message: `URL must start with ${R2_URL}`,
   });
 
-// Base64 encoded image or R2_URL
+// Uploaded image could be any of the following:
+// - Base64 encoded image
+// - R2_URL
+// - Special case for GOOGLE_FAVICON_URL
 // This schema contains an async refinement check for base64 image validation,
 // which requires using parseAsync() instead of parse() when validating
 export const uploadedImageSchema = z
-  .union([base64ImageSchema, uploadedImageUrlSchema])
+  .union([
+    base64ImageSchema,
+    storedR2ImageUrlSchema,
+    z
+      .string()
+      .url()
+      .trim()
+      .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
+        message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
+      }),
+  ])
   .transform((v) => v || null);
 
 // Base64 encoded image/SVG or R2_URL
 // This schema contains an async refinement check for base64 image validation,
 // which requires using parseAsync() instead of parse() when validating
 export const uploadedImageAllowSVGSchema = z
-  .union([base64ImageAllowSVGSchema, uploadedImageUrlSchema])
+  .union([base64ImageAllowSVGSchema, storedR2ImageUrlSchema])
   .transform((v) => v || null);
 
 export const publicHostedImageSchema = z

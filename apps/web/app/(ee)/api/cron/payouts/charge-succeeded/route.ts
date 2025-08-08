@@ -2,11 +2,15 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
+import { z } from "zod";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
 import { sendStripePayouts } from "./send-stripe-payouts";
-import { payloadSchema, Payouts } from "./utils";
 
 export const dynamic = "force-dynamic";
+
+const payloadSchema = z.object({
+  invoiceId: z.string(),
+});
 
 // POST /api/cron/payouts/charge-succeeded
 // This route is used to process the charge-succeeded event from Stripe
@@ -17,8 +21,7 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const body = payloadSchema.parse(JSON.parse(rawBody));
-    const { invoiceId } = body;
+    const { invoiceId } = payloadSchema.parse(JSON.parse(rawBody));
 
     const invoice = await prisma.invoice.findUnique({
       where: {
@@ -51,44 +54,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const payouts = await prisma.payout.findMany({
-      where: {
-        invoiceId,
-        status: {
-          not: "completed",
-        },
-        partner: {
-          payoutsEnabledAt: {
-            not: null,
-          },
-        },
-      },
-      include: {
-        partner: true,
-        program: true,
-      },
-    });
-
-    let stripePayouts: Payouts[] = [];
-    let paypalPayouts: Payouts[] = [];
-
-    payouts.forEach((payout) => {
-      if (payout.partner.stripeConnectId) {
-        stripePayouts.push(payout);
-      } else if (payout.partner.paypalEmail) {
-        paypalPayouts.push(payout);
-      }
-    });
-
     await Promise.allSettled([
       sendStripePayouts({
-        payload: body,
-        payouts: stripePayouts,
+        invoiceId,
       }),
 
       sendPaypalPayouts({
-        payload: body,
-        payouts: paypalPayouts,
+        invoiceId,
       }),
     ]);
 

@@ -1,13 +1,14 @@
 import { BlurImage } from "@dub/ui";
 import { Program } from "@prisma/client";
+import Link from "next/link";
 
-export async function PartnerBanner({
+export function PartnerBanner({
   program,
 }: {
   program: Pick<Program, "name" | "logo" | "slug">;
 }) {
   return (
-    <div className="mb-6 flex items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+    <div className="absolute left-1/2 top-0 z-10 flex h-[60px] w-screen -translate-x-1/2 items-center justify-center gap-2 border-b border-neutral-200 bg-neutral-50/80 p-3 backdrop-blur-sm">
       {program.logo && (
         <div className="relative size-6 shrink-0 overflow-hidden rounded-full">
           <BlurImage
@@ -19,13 +20,12 @@ export async function PartnerBanner({
         </div>
       )}
       <p className="text-left text-sm text-neutral-800">
-        <a
-          href={`https://partners.dub.co/${program.slug}`}
-          target="_blank"
+        <Link
+          href={`/${program.slug}`}
           className="font-semibold underline-offset-2 transition-colors hover:underline"
         >
           {program.name}
-        </a>{" "}
+        </Link>{" "}
         uses{" "}
         <a
           href="https://dub.co/partners"

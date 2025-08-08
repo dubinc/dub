@@ -23,10 +23,10 @@ model Link {
   utm_term     String? // UTM term for the link (e.g. dub)
   utm_content  String? // UTM content for the link (e.g. description)
 
-  // Link cloaking/masking via rewrite
   rewrite Boolean @default(false) // whether to rewrite the link or not
 
-  doIndex Boolean @default(false) // we don't index short links by default
+  linkRetentionCleanupDisabledAt DateTime? // When link retention cleanup (see domain.linkRetentionDays) was explicitly disabled
+  doIndex                        Boolean   @default(false) // we don't index short links by default
 
   // Custom device targeting
   ios     String? @db.Text // custom link for iOS devices
@@ -46,9 +46,6 @@ model Link {
   project   Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   projectId String?
 
-  // Program that the link belongs to
-  programId String?
-
   folderId String?
   folder   Folder? @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: SetNull)
 
@@ -56,12 +53,14 @@ model Link {
   externalId String?
   tenantId   String?
 
-  publicStats Boolean   @default(false) // whether to show public stats or not
-  clicks      Int       @default(0) // number of clicks
+  publicStats Boolean @default(false) // whether to show public stats or not
+  clicks      Int     @default(0) // number of clicks
+  leads       Int     @default(0) // number of leads
+  conversions Int     @default(0) // number of leads that converted to sales
+  sales       Int     @default(0) // number of sales (includes recurring sales)
+  saleAmount  Int     @default(0) // total revenue from sales (in cents)
+
   lastClicked DateTime? // when the link was last clicked
-  leads       Int       @default(0)
-  sales       Int       @default(0) // number of sales
-  saleAmount  Int       @default(0) // total dollar value of sales (in cents)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -74,11 +73,13 @@ model Link {
   // Comments on the particular shortlink
   comments String? @db.Text
 
-  dashboard         Dashboard?
+  dashboard Dashboard?
+
+  programId         String?
+  program           Program?           @relation(fields: [programId], references: [id])
   partnerId         String?
   programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
 
-  program     Program?     @relation(fields: [programId], references: [id])
   customers   Customer[]
   commissions Commission[]
 
@@ -88,7 +89,7 @@ model Link {
   @@index([projectId, url(length: 500)]) // for upserting a link by URL
   @@index([projectId, folderId, archived, createdAt(sort: Desc)]) // most getLinksForWorkspace queries
   @@index([programId, partnerId]) // for getting a referral link (programId + partnerId)
-  @@index([domain, createdAt]) // for bulk link deletion workflows (by domain)
+  @@index([domain, createdAt]) // for bulk link deletion workflows (by domain) + deleting old short-lived links
   @@index(folderId) // used in /api/folders
-  @@index(userId) // for relation to User table, used in /api/cron/cleanup too
+  @@index(userId) // for relation to User table, used in /api/cron/cleanup/e2e-tests too
 }

@@ -18,15 +18,15 @@ export const GET = withWorkspace(
       leadRewardId,
       saleRewardId,
       search,
-      ids,
+      partnerIds,
     } = partnersCountQuerySchema.parse(searchParams);
 
     const commonWhere: Prisma.PartnerWhereInput = {
       ...(search && {
         OR: [{ name: { contains: search } }, { email: { contains: search } }],
       }),
-      ...(ids && {
-        id: { in: ids },
+      ...(partnerIds && {
+        id: { in: partnerIds },
       }),
     };
 

@@ -4,7 +4,9 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useRouterStuff } from "@dub/ui";
 import {
+  Bell,
   CircleDollar,
+  CircleInfo,
   CircleUser,
   ColorPalette2,
   Gauge6,
@@ -104,7 +106,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: isUnapproved ? "Application" : "Overview",
-            icon: Gauge6,
+            icon: isUnapproved ? UserCheck : Gauge6,
             href: `/programs/${programSlug}`,
             exact: true,
           },
@@ -187,6 +189,25 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
 
+  // Partner settings
+  partnerSettings: () => ({
+    title: "Settings",
+    direction: "left",
+    content: [
+      {
+        name: "Account",
+        items: [
+          {
+            name: "Notifications",
+            icon: CircleInfo,
+            href: "/settings/notifications",
+            exact: true,
+          },
+        ],
+      },
+    ],
+  }),
+
   // User settings
   userSettings: () => ({
     title: "Settings",
@@ -205,6 +226,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Security",
             icon: ShieldCheck,
             href: "/account/settings/security",
+          },
+          {
+            name: "Notifications",
+            icon: Bell,
+            href: "/account/settings/notifications",
           },
         ],
       },
@@ -233,13 +259,15 @@ export function PartnersSidebarNav({
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
-      : pathname.startsWith("/profile")
-        ? "profile"
-        : pathname.startsWith("/payouts")
-          ? null
-          : isEnrolledProgramPage
-            ? "program"
-            : "programs";
+      : pathname.startsWith("/settings")
+        ? "partnerSettings"
+        : pathname.startsWith("/profile")
+          ? "profile"
+          : pathname.startsWith("/payouts")
+            ? null
+            : isEnrolledProgramPage
+              ? "program"
+              : "programs";
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
   const { count: invitationsCount } = useProgramEnrollmentsCount({

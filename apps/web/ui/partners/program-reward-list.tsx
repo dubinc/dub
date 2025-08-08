@@ -75,7 +75,7 @@ export function ProgramRewardList({
               ) : discount.maxDuration && discount.maxDuration > 1 ? (
                 <>for {discount.maxDuration} months</>
               ) : (
-                <>for their first purchase</>
+                <>for their first month</>
               )}
             </>
           )}

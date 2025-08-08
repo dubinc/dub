@@ -83,6 +83,7 @@ export function PartnerTable() {
     `/api/partners${getQueryString(
       {
         workspaceId,
+        includeExpandedFields: true,
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -363,9 +364,8 @@ function RowMenuButton({
     {
       onSuccess: async () => {
         await mutatePrefix("/api/partners");
-
-        toast.success("Deleted the partner invite.");
         setIsOpen(false);
+        toast.success("Deleted the partner invite.");
       },
       onError: ({ error }) => {
         toast.error(error.serverError);

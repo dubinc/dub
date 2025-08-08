@@ -1,44 +1,16 @@
 import { generateRandomName } from "@/lib/names";
+import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
 import { Link, Partner } from "@dub/prisma/client";
 import { R2_URL } from "@dub/utils";
 import { describe, expect, test } from "vitest";
 import { randomEmail, randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PROGRAM } from "../utils/resource";
+import { normalizedPartnerDateFields } from "./resource";
 
-const expectedPartner = {
-  programId: E2E_PROGRAM.id,
-  id: expect.stringMatching(/^pn_/),
-  name: expect.any(String),
-  email: expect.any(String),
-  image: null,
-  description: null,
-  country: null,
-  paypalEmail: null,
-  stripeConnectId: null,
-  payoutsEnabledAt: null,
-  createdAt: expect.any(String),
-  status: "approved",
-  tenantId: null,
-  clicks: 0,
-  leads: 0,
-  sales: 0,
-  saleAmount: 0,
-  earnings: 0,
-  totalCommissions: 0,
-  netRevenue: 0,
-  website: null,
-  youtube: null,
-  twitter: null,
-  linkedin: null,
-  instagram: null,
-  tiktok: null,
-  links: expect.arrayContaining([
-    expect.objectContaining({
-      id: expect.stringMatching(/^link_/),
-    }),
-  ]),
-};
+const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.merge(
+  normalizedPartnerDateFields,
+);
 
 describe.sequential("POST /partners", async () => {
   const h = new IntegrationHarness();
@@ -52,17 +24,13 @@ describe.sequential("POST /partners", async () => {
 
     const { data, status } = await http.post<Link>({
       path: "/partners",
-      body: {
-        programId: E2E_PROGRAM.id,
-        ...partner,
-      },
+      body: partner,
     });
 
     expect(status).toEqual(201);
-    expect(data).toStrictEqual({
-      ...expectedPartner,
-      ...partner,
-    });
+    const parsed = EnrolledPartnerSchema.parse(data);
+    expect(parsed.name).toBe(partner.name);
+    expect(parsed.email).toBe(partner.email);
   });
 
   test("with all fields", async () => {
@@ -77,17 +45,18 @@ describe.sequential("POST /partners", async () => {
     const { data, status } = await http.post<Link>({
       path: "/partners",
       body: {
-        programId: E2E_PROGRAM.id,
         ...partner,
         image: `https://api.dicebear.com/9.x/micah/png?seed=${partner.tenantId}`,
       },
     });
 
     expect(status).toEqual(201);
-    expect(data).toStrictEqual({
-      ...expectedPartner,
-      ...partner,
-    });
+    const parsed = EnrolledPartnerSchema.parse(data);
+    expect(parsed.name).toBe(partner.name);
+    expect(parsed.email).toBe(partner.email);
+    expect(parsed.tenantId).toBe(partner.tenantId);
+    expect(parsed.description).toBe(partner.description);
+    expect(parsed.country).toBe(partner.country);
 
     // wait 2.5s, and then request the partners/[partnerId] endpoint
     await new Promise((resolve) => setTimeout(resolve, 2500));
@@ -112,17 +81,17 @@ describe.sequential("POST /partners", async () => {
     const { data, status } = await http.post<Link>({
       path: "/partners",
       body: {
-        programId: E2E_PROGRAM.id,
         username,
         ...partner,
       },
     });
 
     expect(status).toEqual(201);
-    expect(data).toStrictEqual({
-      ...expectedPartner,
-      ...partner,
-      links: expect.arrayContaining([
+    const parsed = EnrolledPartnerSchema.parse(data);
+    expect(parsed.name).toBe(partner.name);
+    expect(parsed.email).toBe(partner.email);
+    expect(parsed.links).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           id: expect.any(String),
           domain: E2E_PROGRAM.domain,
@@ -135,6 +104,6 @@ describe.sequential("POST /partners", async () => {
           saleAmount: 0,
         }),
       ]),
-    });
+    );
   });
 });

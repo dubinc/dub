@@ -232,21 +232,31 @@ export const withWorkspace = (
           }
 
           waitUntil(
-            // update last used time for the token
+            // update last used time for the token (only once every minute)
             (async () => {
-              const prismaArgs = {
-                where: {
-                  hashedKey,
-                },
-                data: {
-                  lastUsed: new Date(),
-                },
-              };
+              try {
+                const { success } = await ratelimit(1, "1 m").limit(
+                  `last-used-${hashedKey}`,
+                );
 
-              if (isRestrictedToken) {
-                await prisma.restrictedToken.update(prismaArgs);
-              } else {
-                await prisma.token.update(prismaArgs);
+                if (success) {
+                  const prismaArgs = {
+                    where: {
+                      hashedKey,
+                    },
+                    data: {
+                      lastUsed: new Date(),
+                    },
+                  };
+
+                  if (isRestrictedToken) {
+                    await prisma.restrictedToken.update(prismaArgs);
+                  } else {
+                    await prisma.token.update(prismaArgs);
+                  }
+                }
+              } catch (error) {
+                console.error(error);
               }
             })(),
           );

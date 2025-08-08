@@ -17,51 +17,58 @@ enum PartnerBannedReason {
   brand_abuse
 }
 
-enum LinkStructure {
+enum PartnerLinkStructure {
   short
   query
   path
 }
 
+enum PartnerUrlValidationMode {
+  domain // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
+  exact // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
+}
+
 model Program {
-  id                           String        @id @default(cuid())
-  workspaceId                  String
-  defaultFolderId              String?
-  name                         String
-  slug                         String        @unique
-  logo                         String?
-  wordmark                     String?
-  brandColor                   String?
-  domain                       String?
-  url                          String?
-  cookieLength                 Int           @default(90)
-  holdingPeriodDays            Int           @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount              Int           @default(10000) // Default minimum payout amount of $100
-  
-  embedData                    Json?         @db.Json
-  landerData                   Json?         @db.Json
+  id                String                   @id @default(cuid())
+  workspaceId       String
+  defaultFolderId   String?
+  name              String
+  slug              String                   @unique
+  logo              String?
+  wordmark          String?
+  brandColor        String?
+  domain            String?
+  url               String?
+  urlValidationMode PartnerUrlValidationMode @default(domain)
+  linkStructure     PartnerLinkStructure     @default(short)
+  linkParameter     String? // null for SHORT, "via" for QUERY, "refer" for PATH
+  maxPartnerLinks   Int                      @default(10) // maximum number of links partners can create
+
+  cookieLength                 Int       @default(90)
+  holdingPeriodDays            Int       @default(0) // number of days to wait before earnings are added to a payout
+  minPayoutAmount              Int       @default(0) // Default minimum payout amount of $0
+  embedData                    Json?     @db.Json
+  landerData                   Json?     @db.Json
   landerPublishedAt            DateTime?
-  resources                    Json?         @db.Json
-  termsUrl                     String?       @db.Text
-  helpUrl                      String?       @db.Text
+  resources                    Json?     @db.Json
+  termsUrl                     String?   @db.Text
+  helpUrl                      String?   @db.Text
   supportEmail                 String?
   ageVerification              Int?
-  linkStructure                LinkStructure @default(short)
-  linkParameter                String? // null for SHORT, "via" for QUERY, "refer" for PATH
   autoApprovePartnersEnabledAt DateTime?
-  createdAt                    DateTime      @default(now())
-  updatedAt                    DateTime      @updatedAt
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
 
-  workspace       Project              @relation(fields: [workspaceId], references: [id])
-  primaryDomain   Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
-  partners        ProgramEnrollment[]
-  payouts         Payout[]
-  invoices        Invoice[]
-  applications    ProgramApplication[]
-  links           Link[]
-  commissions     Commission[]
-  rewards         Reward[]
-  discounts       Discount[]           @relation("ProgramDiscounts")
+  workspace     Project              @relation(fields: [workspaceId], references: [id])
+  primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  partners      ProgramEnrollment[]
+  payouts       Payout[]
+  invoices      Invoice[]
+  applications  ProgramApplication[]
+  links         Link[]
+  commissions   Commission[]
+  rewards       Reward[]
+  discounts     Discount[]           @relation("ProgramDiscounts")
 
   @@index(workspaceId)
   @@index(domain)

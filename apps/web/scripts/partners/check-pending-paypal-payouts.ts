@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { getPendingPaypalPayouts } from "@/lib/paypal/get-pending-payouts";
 import {
   COUNTRIES,
   PAYPAL_SUPPORTED_COUNTRIES,
@@ -14,43 +14,20 @@ async function main() {
     PAYPAL_SUPPORTED_COUNTRIES.map((country) => COUNTRIES[country]),
   );
 
-  const payouts = await prisma.payout.findMany({
-    where: {
-      status: {
-        in: ["pending", "processing"],
-      },
-      amount: {
-        gte: 10000,
-      },
-      partner: {
-        // payoutsEnabledAt: {
-        //   not: null,
-        // },
-        country: {
-          in: PAYPAL_SUPPORTED_COUNTRIES,
-        },
-      },
-    },
-    include: {
-      partner: true,
-      program: true,
-    },
-  });
+  const payouts = await getPendingPaypalPayouts();
 
-  const eligiblePayouts = payouts
-    .filter((payout) => payout.amount >= payout.program.minPayoutAmount)
-    .map((payout) => ({
-      program: payout.program.name,
-      partner: payout.partner.email,
-      status: payout.status,
-      country: payout.partner.country,
-      amount: payout.amount / 100,
-    }));
+  const finalPayouts = payouts.map((payout) => ({
+    program: payout.program.name,
+    partner: payout.partner.email,
+    status: payout.status,
+    country: payout.partner.country,
+    amount: payout.amount / 100,
+  }));
 
-  console.table(eligiblePayouts);
-  console.log(`Total eligible payouts: ${eligiblePayouts.length}`);
+  console.table(finalPayouts);
+  console.log(`Total eligible payouts: ${finalPayouts.length}`);
   console.log(
-    `Total eligble payout amount: ${currencyFormatter(eligiblePayouts.reduce((acc, payout) => acc + payout.amount, 0))}`,
+    `Total eligble payout amount: ${currencyFormatter(finalPayouts.reduce((acc, payout) => acc + payout.amount, 0))}`,
   );
 }
 

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import {
-  CommissionSchema,
+  CommissionEnrichedSchema,
   getCommissionsQuerySchema,
 } from "../../zod/schemas/commissions";
 import { openApiErrorResponses } from "../responses";
@@ -19,7 +19,7 @@ export const listCommissions: ZodOpenApiOperationObject = {
       description: "The list of commissions.",
       content: {
         "application/json": {
-          schema: z.array(CommissionSchema),
+          schema: z.array(CommissionEnrichedSchema),
         },
       },
     },

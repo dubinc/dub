@@ -17,6 +17,7 @@ import {
   EyeSlash,
   InfoTooltip,
   Sheet,
+  SimpleTooltipContent,
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
@@ -24,7 +25,7 @@ import { cn } from "@dub/utils/src";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, memo, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -119,9 +120,18 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
-        <div className="flex items-center justify-between px-6 py-4 h-16">
-          <Sheet.Title className="text-lg font-semibold">
-            Invite partner
+        <div className="flex h-16 items-center justify-between px-6 py-4">
+          <Sheet.Title className="flex items-center gap-1 text-lg font-semibold">
+            Invite partner{" "}
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title="Invite influencers, affiliates, and users to your program, or enroll them automatically."
+                  cta="Learn more."
+                  href="https://dub.co/help/article/inviting-partners"
+                />
+              }
+            />
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -274,8 +284,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                           <option value="">Select a reward</option>
                           {rewards?.map((reward) => (
                             <option value={reward.id} key={reward.id}>
-                              {reward.name ||
-                                formatRewardDescription({ reward })}{" "}
+                              {formatRewardDescription({ reward })}{" "}
                               {reward.default && "(Default)"}
                             </option>
                           ))}
@@ -378,7 +387,7 @@ function EmailPreview() {
       >
         <div className="mt-2 overflow-hidden rounded-md border border-neutral-200 bg-white">
           <div className="grid grid-cols-1 gap-4 p-6 pb-10">
-            <MemoBlurImage
+            <BlurImage
               src={program?.logo || "https://assets.dub.co/logo.png"}
               alt={program?.name || "Dub"}
               className="my-2 size-8 rounded-full"
@@ -412,8 +421,6 @@ function EmailPreview() {
     </div>
   );
 }
-
-const MemoBlurImage = memo(BlurImage);
 
 export function InvitePartnerSheet({
   isOpen,

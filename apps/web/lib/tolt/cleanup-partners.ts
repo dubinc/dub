@@ -3,7 +3,7 @@ import { toltImporter } from "./importer";
 
 const PARTNER_IDS_PER_BATCH = 100;
 
-// Remove partners that have no leads from the program
+// Remove partners with no leads and clean up orphaned partners
 export async function cleanupPartners({ programId }: { programId: string }) {
   let hasMore = true;
   let start = 0;
@@ -57,15 +57,65 @@ export async function cleanupPartners({ programId }: { programId: string }) {
             },
           },
         });
-
-        await tx.partner.deleteMany({
-          where: {
-            id: {
-              in: partnerIdsToRemove,
-            },
-          },
-        });
       });
+
+      // Remove partners that are not enrolled in any other program
+      const otherProgramEnrollments = await prisma.programEnrollment.findMany({
+        where: {
+          partnerId: {
+            in: partnerIdsToRemove,
+          },
+          programId: {
+            not: programId,
+          },
+        },
+        select: {
+          partnerId: true,
+        },
+      });
+
+      const enrolledPartnerIds = otherProgramEnrollments.map(
+        ({ partnerId }) => partnerId,
+      );
+
+      const removablePartnerIds = partnerIdsToRemove.filter(
+        (partnerId) => !enrolledPartnerIds.includes(partnerId),
+      );
+
+      if (removablePartnerIds.length > 0) {
+        await prisma.$transaction(async (tx) => {
+          // Find partners that have no user account
+          const partnersWithoutUserAccount = await tx.partner.findMany({
+            where: {
+              id: {
+                in: removablePartnerIds,
+              },
+              users: {
+                none: {},
+              },
+            },
+            select: {
+              id: true,
+              email: true,
+            },
+          });
+
+          if (partnersWithoutUserAccount.length > 0) {
+            await tx.partner.deleteMany({
+              where: {
+                id: {
+                  in: partnersWithoutUserAccount.map(({ id }) => id),
+                },
+              },
+            });
+
+            console.log(
+              "Removed the following partners",
+              partnersWithoutUserAccount,
+            );
+          }
+        });
+      }
     }
 
     start += PARTNER_IDS_PER_BATCH;

@@ -44,6 +44,11 @@ export function ProfileSettingsPageClient() {
     <FormWrapper partner={partner}>
       <PageContent
         title="Profile info"
+        titleInfo={{
+          title:
+            "Build a stronger partner profile and increase trust by adding and verifying your website and social accounts.",
+          href: "https://dub.co/help/article/partner-profile",
+        }}
         controls={<Controls formRef={formRef} />}
       >
         <PageWidthWrapper className="mb-20 flex flex-col gap-8">
@@ -193,13 +198,21 @@ function ProfileForm({
   });
 
   const completedPayoutsCount =
-    payoutsCount?.find((payout) => payout.status === "completed")?.count ?? 0;
+    payoutsCount
+      ?.filter((payout) => ["sent", "completed"].includes(payout.status))
+      .reduce((acc, payout) => acc + payout.count, 0) ?? 0;
 
   const { handleKeyDown } = useEnterSubmit();
 
   const { executeAsync } = useAction(updatePartnerProfileAction, {
-    onSuccess: async () => {
-      toast.success("Profile updated successfully.");
+    onSuccess: async ({ data }) => {
+      if (data?.needsEmailVerification) {
+        toast.success(
+          "Please check your email to verify your new email address.",
+        );
+      } else {
+        toast.success("Your profile has been updated.");
+      }
     },
     onError({ error }) {
       setError("root.serverError", {

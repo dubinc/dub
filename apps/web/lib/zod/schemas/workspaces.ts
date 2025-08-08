@@ -160,6 +160,11 @@ export const notificationTypes = z.enum([
 ]);
 
 export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
+  domains: z.array(
+    WorkspaceSchema.shape.domains.element.extend({
+      linkRetentionDays: z.number().nullish(),
+    }),
+  ),
   defaultProgramId: z.string().nullable(),
   users: z.array(
     WorkspaceSchema.shape.users.element.extend({

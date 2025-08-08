@@ -1,7 +1,11 @@
-export interface RewardfulConfig {
+import { z } from "zod";
+import { rewardfulImportPayloadSchema } from "./schemas";
+
+// TODO:
+// Use the zod schema to define the API response
+
+export interface RewardfulCredentials {
   token: string;
-  userId: string;
-  campaignId: string;
 }
 
 export interface RewardfulCampaign {
@@ -94,3 +98,7 @@ export interface RewardfulCommission {
   campaign: RewardfulCampaign;
   sale: RewardfulCommissionSale;
 }
+
+export type RewardfulImportPayload = z.infer<
+  typeof rewardfulImportPayloadSchema
+>;

@@ -164,7 +164,7 @@ function AddEditTagModal({
             <p className="block text-sm font-medium text-neutral-700">
               Tag Color
             </p>
-            <InfoTooltip content={`A color to make your tag stand out.`} />
+            <InfoTooltip content="A color to make your tag stand out." />
           </label>
           <RadioGroup
             defaultValue={color}

@@ -43,7 +43,6 @@ export const getCustomersQuerySchema = z
       .describe(
         "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
       ),
-
     sortBy: z
       .enum(["createdAt", "saleAmount"])
       .optional()
@@ -103,6 +102,7 @@ export const createCustomerBodySchema = z.object({
 
 export const updateCustomerBodySchema = createCustomerBodySchema.partial();
 
+// used in webhook responses + regular /customers endpoints (without expanded fields)
 export const CustomerSchema = z.object({
   id: z
     .string()

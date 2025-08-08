@@ -12,7 +12,6 @@ enum RewardStructure {
 model Reward {
   id          String          @id @default(cuid())
   programId   String
-  name        String?
   description String?
   event       EventType
   type        RewardStructure @default(percentage)
@@ -20,6 +19,7 @@ model Reward {
   maxDuration Int? // in months (0 -> not recurring, null -> infinite)
   maxAmount   Int? // how much a partner can receive payouts (in cents)
   default     Boolean         @default(false)
+  modifiers   Json?           @db.Json
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 

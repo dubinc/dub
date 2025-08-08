@@ -14,10 +14,11 @@ import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 
-export const PartnerEarningsSchema = CommissionSchema.merge(
+export const PartnerEarningsSchema = CommissionSchema.omit({
+  userId: true,
+  invoiceId: true,
+}).merge(
   z.object({
-    type: z.string(),
-    quantity: z.number().nullable(),
     customer: z
       .object({
         id: z.string(),
@@ -125,3 +126,8 @@ export const partnerProfileProgramsQuerySchema = z.object({
 
 export const partnerProfileProgramsCountQuerySchema =
   partnerProfileProgramsQuerySchema.pick({ status: true });
+
+export const partnerNotificationTypes = z.enum([
+  "commissionCreated",
+  "applicationApproved",
+]);

@@ -133,21 +133,26 @@ export function SimpleTooltipContent({
   href,
 }: {
   title: string;
-  cta: string;
-  href: string;
+  cta?: string;
+  href?: string;
 }) {
   return (
     <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
-      {title}{" "}
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={(e) => e.stopPropagation()}
-        className="inline-flex text-neutral-500 underline underline-offset-4 hover:text-neutral-800"
-      >
-        {cta}
-      </a>
+      {title}
+      {cta && href && (
+        <>
+          {" "}
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex text-neutral-500 underline underline-offset-4 hover:text-neutral-800"
+          >
+            {cta}
+          </a>
+        </>
+      )}
     </div>
   );
 }

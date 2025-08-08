@@ -2,7 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
 import { registerDomain } from "@/lib/dynadot/register-domain";
 import { WorkspaceWithUsers } from "@/lib/types";
-import { sendEmail } from "@dub/email";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { prisma } from "@dub/prisma";
 import { DEFAULT_LINK_PROPS } from "@dub/utils";
@@ -151,7 +152,7 @@ export async function claimDotLinkDomain({
   return response;
 }
 
-const sendDomainClaimedEmails = async ({
+export const sendDomainClaimedEmails = async ({
   workspace,
   domain,
 }: {
@@ -174,17 +175,22 @@ const sendDomainClaimedEmails = async ({
     },
   });
 
-  workspaceWithOwner.users.map(({ user }) => {
-    if (user.email) {
-      sendEmail({
-        email: user.email,
-        subject: "Successfully claimed your .link domain!",
-        react: DomainClaimed({
-          email: user.email,
-          domain,
-          workspaceSlug: workspace.slug,
-        }),
-      });
-    }
-  });
+  const emails = workspaceWithOwner.users
+    .filter(({ user }) => user.email)
+    .map(({ user }) => ({
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: user.email!,
+      subject: "Successfully claimed your .link domain!",
+      react: DomainClaimed({
+        email: user.email!,
+        domain,
+        workspaceSlug: workspace.slug,
+      }),
+    }));
+
+  if (emails.length > 0) {
+    return await resend?.batch.send(emails);
+  }
+
+  return null;
 };

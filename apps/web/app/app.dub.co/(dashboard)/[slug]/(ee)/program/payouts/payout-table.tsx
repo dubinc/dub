@@ -1,6 +1,5 @@
 "use client";
 
-import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -315,8 +314,7 @@ function AmountRowItem({
     maximumFractionDigits: 2,
   });
 
-  const minPayoutAmount =
-    program?.minPayoutAmount || DUB_MIN_PAYOUT_AMOUNT_CENTS;
+  const minPayoutAmount = program?.minPayoutAmount || 0;
 
   if (status === PayoutStatus.pending) {
     if (amount < minPayoutAmount) {

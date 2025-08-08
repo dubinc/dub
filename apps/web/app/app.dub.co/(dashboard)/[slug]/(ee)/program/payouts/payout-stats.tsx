@@ -10,7 +10,7 @@ import { cn, currencyFormatter } from "@dub/utils";
 import Link from "next/link";
 
 export function PayoutStats() {
-  const { slug, role } = useWorkspace();
+  const { slug } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const { payoutsCount, loading } = usePayoutsCount<PayoutsCount[]>({
@@ -40,16 +40,16 @@ export function PayoutStats() {
 
   const confirmButtonDisabled = eligiblePendingPayouts?.amount === 0;
 
-  const completedPayouts = payoutsCount?.find(
-    (p) => p.status === PayoutStatus.completed,
-  );
+  const completedPayoutsAmount =
+    payoutsCount
+      ?.filter((p) => ["processed", "sent", "completed"].includes(p.status))
+      .reduce((acc, payout) => acc + payout.amount, 0) ?? 0;
 
-  const processingPayouts = payoutsCount?.find(
-    (p) => p.status === PayoutStatus.processing,
-  );
+  const processingPayoutsAmount =
+    payoutsCount?.find((p) => p.status === PayoutStatus.processing)?.amount ??
+    0;
 
-  const totalPaid =
-    (completedPayouts?.amount || 0) + (processingPayouts?.amount || 0);
+  const totalPaid = completedPayoutsAmount + processingPayoutsAmount;
 
   return (
     <>
@@ -142,7 +142,7 @@ export function PayoutStats() {
               <div className="text-sm text-neutral-500">Total paid</div>
             </div>
             <Link
-              href={`/${slug}/settings/billing/invoices?type=payout`}
+              href={`/${slug}/settings/billing/invoices?type=partnerPayout`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-7 items-center rounded-md border px-2 text-sm",
@@ -165,11 +165,11 @@ export function PayoutStats() {
                       {[
                         {
                           display: "Completed payouts",
-                          amount: completedPayouts?.amount || 0,
+                          amount: completedPayoutsAmount,
                         },
                         {
                           display: "Processing payouts",
-                          amount: processingPayouts?.amount || 0,
+                          amount: processingPayoutsAmount,
                         },
                       ].map(({ display, amount }, index) => (
                         <div className="flex justify-between" key={index}>

@@ -2,14 +2,18 @@ import { ProgramProps } from "../types";
 
 export function constructPartnerLink({
   program,
-  linkKey,
+  linkKey = "",
 }: {
-  program: Pick<
+  program?: Pick<
     ProgramProps,
     "domain" | "url" | "linkStructure" | "linkParameter"
   >;
-  linkKey: string;
+  linkKey?: string;
 }) {
+  if (!program) {
+    return "";
+  }
+
   const { domain, url, linkStructure, linkParameter } = program;
 
   if (linkStructure === "query") {

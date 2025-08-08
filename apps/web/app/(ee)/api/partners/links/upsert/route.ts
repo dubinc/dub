@@ -6,6 +6,7 @@ import {
   updateLink,
 } from "@/lib/api/links";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -15,7 +16,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { upsertPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { deepEqual, getApexDomain } from "@dub/utils";
+import { deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -40,12 +41,7 @@ export const PUT = withWorkspace(
       });
     }
 
-    if (getApexDomain(url) !== getApexDomain(program.url)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-      });
-    }
+    validatePartnerLinkUrl({ program, url });
 
     if (!partnerId && !tenantId) {
       throw new DubApiError({
@@ -97,6 +93,7 @@ export const PUT = withWorkspace(
           link.testStartedAt instanceof Date
             ? link.testStartedAt.toISOString()
             : link.testStartedAt,
+
         // merge in new props
         ...linkProps,
         // set default fields

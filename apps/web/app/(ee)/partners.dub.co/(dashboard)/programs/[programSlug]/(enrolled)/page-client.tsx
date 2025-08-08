@@ -279,7 +279,7 @@ function EarningsChart() {
             href={`/programs/${programSlug}/earnings${getQueryString()}`}
           />
           <SimpleDateRangePicker
-            className="h-7 w-full px-2.5 text-xs font-medium md:w-fit"
+            className="h-7 min-w-0 flex-1 px-2.5 text-xs font-medium md:w-fit md:flex-none"
             align="end"
           />
         </div>

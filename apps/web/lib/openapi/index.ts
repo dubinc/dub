@@ -25,7 +25,7 @@ export const document = createDocument({
   info: {
     title: "Dub API",
     description:
-      "Dub is link management infrastructure for companies to create marketing campaigns, link sharing features, and referral programs.",
+      "Dub is the modern link attribution platform for short links, conversion tracking, and affiliate programs.",
     version: "0.0.1",
     contact: {
       name: "Dub Support",

@@ -1,10 +1,25 @@
-import { REDIRECTION_QUERY_PARAM } from "@dub/utils/src/constants";
+import {
+  LOCALHOST_IP,
+  REDIRECTION_QUERY_PARAM,
+} from "@dub/utils/src/constants";
 import { getUrlFromStringIfValid } from "@dub/utils/src/functions";
-import { NextRequest } from "next/server";
+import { ipAddress } from "@vercel/functions";
+import { NextRequest, userAgent } from "next/server";
+import { isGooglePlayStoreUrl } from "./is-google-play-store-url";
+import { isSingularTrackingUrl } from "./is-singular-tracking-url";
+import { parse } from "./parse";
 
 export const getFinalUrl = (
   url: string,
-  { req, clickId, via }: { req: NextRequest; clickId?: string; via?: string },
+  {
+    req,
+    clickId,
+    via,
+  }: {
+    req: NextRequest;
+    clickId?: string;
+    via?: string;
+  },
 ) => {
   // query is the query string (e.g. d.to/github?utm_source=twitter -> ?utm_source=twitter)
   const searchParams = req.nextUrl.searchParams;
@@ -38,6 +53,27 @@ export const getFinalUrl = (
     } else if (!searchParams.has("dub-no-track")) {
       urlObj.searchParams.set("dub_id", clickId);
     }
+  }
+
+  // for Singular tracking links
+  if (isSingularTrackingUrl(url)) {
+    const ua = userAgent(req);
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    urlObj.searchParams.set("cl", clickId ?? "");
+    urlObj.searchParams.set("ua", ua?.ua ?? "");
+    urlObj.searchParams.set("ip", ip ?? "");
+  }
+
+  // for Google Play Store links
+  if (isGooglePlayStoreUrl(url)) {
+    const { shortLink } = parse(req);
+    const existingReferrer = urlObj.searchParams.get("referrer");
+
+    const referrerSearchParam = new URLSearchParams(
+      existingReferrer ? decodeURIComponent(existingReferrer) : "",
+    );
+    referrerSearchParam.set("deepLink", shortLink);
+    urlObj.searchParams.set("referrer", referrerSearchParam.toString());
   }
 
   // if there are no query params, then return the target url as is (no need to parse it)

@@ -75,20 +75,13 @@ function DiscountSheetContent({
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      ...(discount && {
-        amount: discount.amount
-          ? discount.type === "flat"
-            ? discount.amount / 100
-            : discount.amount
-          : 0,
-        type: discount.type || "flat",
-        maxDuration:
-          discount?.maxDuration === null
-            ? Infinity
-            : discount?.maxDuration || 0,
-        couponId: discount.couponId || "",
-        couponTestId: discount.couponTestId || "",
-      }),
+      amount:
+        discount?.type === "flat" ? discount.amount / 100 : discount?.amount,
+      type: discount?.type || "percentage",
+      maxDuration:
+        discount?.maxDuration === null ? Infinity : discount?.maxDuration || 0,
+      couponId: discount?.couponId || "",
+      couponTestId: discount?.couponTestId || "",
       includedPartnerIds: null,
       excludedPartnerIds: null,
     },
@@ -288,7 +281,8 @@ function DiscountSheetContent({
                                           setValue(
                                             "maxDuration",
                                             recurring
-                                              ? discount?.maxDuration || 3
+                                              ? discount?.maxDuration ||
+                                                  Infinity
                                               : 0,
                                           );
                                         }

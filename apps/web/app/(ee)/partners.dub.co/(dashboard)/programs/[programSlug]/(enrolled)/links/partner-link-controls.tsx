@@ -25,7 +25,6 @@ export function PartnerLinkControls({
       domain: link.domain,
       key: link.key,
     },
-    programId: programId,
   });
 
   const [openPopover, setOpenPopover] = useState(false);

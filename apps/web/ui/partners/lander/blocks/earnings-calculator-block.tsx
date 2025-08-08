@@ -1,6 +1,8 @@
 "use client";
 
-import { ProgramProps } from "@/lib/types";
+import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
+import { ProgramWithLanderDataProps } from "@/lib/types";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { InvoiceDollar } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
@@ -16,19 +18,21 @@ export function EarningsCalculatorBlock({
   showTitleAndDescription = true,
 }: {
   block: z.infer<typeof programLanderEarningsCalculatorBlockSchema>;
-  program: ProgramProps;
+  program: ProgramWithLanderDataProps;
   showTitleAndDescription?: boolean;
 }) {
   const id = useId();
   const [value, setValue] = useState(10);
 
-  // Find the default sale reward
-  const reward = program?.rewards?.find((r) => r.default && r.event === "sale");
+  const { rewards } = getProgramApplicationRewardsAndDiscount({
+    rewards: program.rewards ?? [],
+    discounts: program.discounts ?? [],
+    landerData: program.landerData ?? {},
+  });
 
-  if (!reward) {
-    return null;
-  }
+  if (!rewards.length) return null;
 
+  const reward = sortRewardsByEventOrder(rewards, ["sale", "lead", "click"])[0];
   const rewardAmount = reward.amount ?? 0;
   const revenue = value * ((block.data.productPrice || 30_00) / 100);
 
@@ -49,7 +53,7 @@ export function EarningsCalculatorBlock({
             htmlFor={`${id}-slider`}
             className="text-base font-semibold text-neutral-700"
           >
-            Customer sales
+            Customer referrals
           </label>
           <div className="mt-1.5">
             <NumberFlow

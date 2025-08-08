@@ -4,15 +4,11 @@ import { generatePartnerLink } from "../api/partners/create-partner-link";
 import { ProgramProps, WorkspaceProps } from "../types";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
-import { ToltLink } from "./types";
+import { ToltImportPayload, ToltLink } from "./types";
 
-export async function importLinks({
-  programId,
-  startingAfter,
-}: {
-  programId: string;
-  startingAfter?: string;
-}) {
+export async function importLinks(payload: ToltImportPayload) {
+  let { programId, toltProgramId, userId, startingAfter } = payload;
+
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -24,9 +20,7 @@ export async function importLinks({
 
   const { workspace } = program;
 
-  const { token, toltProgramId, userId } = await toltImporter.getCredentials(
-    workspace.id,
-  );
+  const { token } = await toltImporter.getCredentials(workspace.id);
 
   const toltApi = new ToltApi({ token });
 
@@ -88,9 +82,9 @@ export async function importLinks({
   }
 
   await toltImporter.queue({
-    programId,
-    action: hasMore ? "import-links" : "import-referrals",
-    ...(hasMore && { startingAfter }),
+    ...payload,
+    startingAfter: hasMore ? startingAfter : undefined,
+    action: hasMore ? "import-links" : "import-customers",
   });
 }
 
@@ -107,10 +101,12 @@ async function createPartnerLink({
   partnerId: string;
   userId: string;
 }) {
-  const linkFound = await prisma.link.findFirst({
+  const linkFound = await prisma.link.findUnique({
     where: {
-      domain: program.domain!,
-      key: link.value,
+      domain_key: {
+        domain: program.domain!,
+        key: link.value,
+      },
     },
     select: {
       partnerId: true,

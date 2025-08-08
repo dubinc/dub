@@ -5,8 +5,10 @@ import { VisibilityState } from "@tanstack/react-table";
 export const eventColumns = {
   clicks: {
     all: [
+      "timestamp",
       "trigger",
       "link",
+      "url",
       "country",
       "city",
       "region",
@@ -16,15 +18,17 @@ export const eventColumns = {
       "os",
       "referer",
       "refererUrl",
+      "clickId",
       "ip",
-      "timestamp",
     ],
     defaultVisible: ["timestamp", "link", "referer", "country", "device"],
   },
   leads: {
     all: [
+      "timestamp",
       "event",
       "link",
+      "url",
       "customer",
       "country",
       "city",
@@ -36,15 +40,19 @@ export const eventColumns = {
       "referer",
       "refererUrl",
       "ip",
-      "timestamp",
+      "clickId",
+      "metadata",
     ],
     defaultVisible: ["timestamp", "event", "link", "customer", "referer"],
   },
   sales: {
     all: [
+      "timestamp",
+      "saleAmount",
       "event",
       "customer",
       "link",
+      "url",
       "invoiceId",
       "country",
       "city",
@@ -56,8 +64,8 @@ export const eventColumns = {
       "referer",
       "refererUrl",
       "ip",
-      "timestamp",
-      "saleAmount",
+      "clickId",
+      "metadata",
     ],
     defaultVisible: [
       "timestamp",

@@ -5,8 +5,8 @@ import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
+  Bell,
   Brush,
-  CircleInfo,
   ConnectedDots,
   CubeSettings,
   DiamondTurnRight,
@@ -18,9 +18,9 @@ import {
   Globe,
   InvoiceDollar,
   Key,
+  LifeRing,
   LinesY as LinesYStatic,
   MoneyBills2,
-  PaperPlane,
   Receipt2,
   ShieldCheck,
   ShieldKeyhole,
@@ -43,6 +43,7 @@ import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
+import { SidebarUsage } from "./sidebar-usage";
 import { useProgramApplicationsCount } from "./use-program-applications-count";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
@@ -261,14 +262,14 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/branding`,
           },
           {
+            name: "Resources",
+            icon: LifeRing,
+            href: `/${slug}/program/resources`,
+          },
+          {
             name: "Link Settings",
             icon: Sliders,
             href: `/${slug}/program/link-settings`,
-          },
-          {
-            name: "Communication",
-            icon: PaperPlane,
-            href: `/${slug}/program/communication`,
           },
         ],
       },
@@ -346,7 +347,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "Notifications",
-            icon: CircleInfo,
+            icon: Bell,
             href: `/${slug}/settings/notifications`,
           },
         ],
@@ -406,7 +407,10 @@ export function AppSidebarNav({
         ? "workspaceSettings"
         : // hacky fix for guides because slug is undefined at render time
           // TODO: remove when we migrate to Next.js 15 + PPR
-          pathname.endsWith("/guides") || pathname.includes("/guides/")
+          pathname.endsWith("/guides") ||
+            pathname.includes("/guides/") ||
+            // this one is for the payout success page
+            pathname.endsWith("/program/payouts/success")
           ? null
           : pathname.startsWith(`/${slug}/program`)
             ? "program"
@@ -439,7 +443,7 @@ export function AppSidebarNav({
         showConversionGuides: canTrackConversions && customersCount === 0,
       }}
       toolContent={toolContent}
-      newsContent={newsContent}
+      newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}
       switcher={<WorkspaceDropdown />}
     />
   );

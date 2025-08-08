@@ -75,6 +75,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
     saleEventDate,
     saleAmount,
     leadEventDate,
+    description,
   ] = watch([
     "partnerId",
     "date",
@@ -84,6 +85,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
     "saleEventDate",
     "saleAmount",
     "leadEventDate",
+    "description",
   ]);
 
   useEffect(() => {
@@ -176,7 +178,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
-        <div className="flex items-center justify-between px-6 py-4 h-16">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
             Create commission
           </Sheet.Title>
@@ -363,6 +365,41 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
                         <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
                           USD
                         </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <label
+                          htmlFor="description"
+                          className="text-sm font-medium text-neutral-800"
+                        >
+                          Description
+                          <span className="font-normal text-neutral-500">
+                            {" "}
+                            (optional)
+                          </span>
+                        </label>
+                        <span className="text-xs text-neutral-400">
+                          {description?.length || 0}/190
+                        </span>
+                      </div>
+                      <div className="mt-2">
+                        <textarea
+                          id="description"
+                          rows={3}
+                          maxLength={190}
+                          className={cn(
+                            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            errors.description &&
+                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                          )}
+                          placeholder="Add a description for this commission"
+                          {...register("description", {
+                            setValueAs: (value) =>
+                              value === "" ? null : value,
+                          })}
+                        />
                       </div>
                     </div>
                   </div>

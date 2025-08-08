@@ -107,6 +107,11 @@ export async function createNewCustomer(event: Stripe.Event) {
       eventId: leadData.event_id,
       customerId: customer.id,
       quantity: 1,
+      context: {
+        customer: {
+          country: customer.country,
+        },
+      },
     });
   }
 
@@ -184,6 +189,31 @@ export async function updateCustomerWithStripeCustomerId({
   } catch (error) {
     // Skip if customer not found (not an error, just a case where the customer doesn't exist on Dub yet)
     console.log("Failed to update customer with StripeCustomerId:", error);
+    return null;
+  }
+}
+
+export async function getSubscriptionProductId({
+  stripeSubscriptionId,
+  stripeAccountId,
+  livemode = true,
+}: {
+  stripeSubscriptionId?: string | null;
+  stripeAccountId?: string | null;
+  livemode?: boolean;
+}) {
+  if (!stripeAccountId || !stripeSubscriptionId) {
+    return null;
+  }
+  try {
+    const subscription = await stripeAppClient({
+      livemode,
+    }).subscriptions.retrieve(stripeSubscriptionId, {
+      stripeAccount: stripeAccountId,
+    });
+    return subscription.items.data[0].price.product as string;
+  } catch (error) {
+    console.log("Failed to get subscription price ID:", error);
     return null;
   }
 }

@@ -78,7 +78,7 @@ export function ProgramRewardDescription({
                 for {discount.maxDuration} months
               </strong>
             ) : (
-              " for their first purchase"
+              " for their first month"
             )}
           </strong>
         </>

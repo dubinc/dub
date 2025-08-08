@@ -4,6 +4,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
 import { webhookCache } from "@/lib/webhook/cache";
+import { PARTNERS_WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
@@ -125,10 +126,16 @@ export const PATCH = withWorkspace(
     }
 
     if (triggers) {
-      if (triggers.includes("partner.enrolled") && !workspace.partnersEnabled) {
+      const hasPartnersTriggers = PARTNERS_WEBHOOK_TRIGGERS.some((trigger) =>
+        triggers.includes(trigger),
+      );
+
+      if (hasPartnersTriggers && !workspace.partnersEnabled) {
         throw new DubApiError({
           code: "bad_request",
-          message: `Partners are not enabled on this workspace to use "partner.enrolled" trigger.`,
+          message:
+            "Dub Partners is not enabled on this workspace, which is required to use the following webhook triggers: " +
+            PARTNERS_WEBHOOK_TRIGGERS.join(", "),
         });
       }
     }

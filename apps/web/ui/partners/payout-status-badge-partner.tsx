@@ -1,7 +1,10 @@
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Payout, Program } from "@dub/prisma/client";
-import { DynamicTooltipWrapper, StatusBadge } from "@dub/ui";
+import { StatusBadge, Tooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
+import { useMemo } from "react";
 import { PayoutStatusBadges } from "./payout-status-badges";
+import { PAYOUT_STATUS_DESCRIPTIONS } from "./payout-status-descriptions";
 
 export const PayoutStatusBadgePartner = ({
   payout,
@@ -12,28 +15,37 @@ export const PayoutStatusBadgePartner = ({
   };
   program: Pick<Program, "minPayoutAmount">;
 }) => {
+  const { partner } = usePartnerProfile();
+
   const badge = PayoutStatusBadges[payout.status];
-  const tooltip = (() => {
+
+  const tooltipContent: string | undefined = useMemo(() => {
+    if (!partner) {
+      return undefined;
+    }
     if (payout.status === "failed" && payout.failureReason) {
       return payout.failureReason;
     }
-    if (payout.status === "pending") {
-      return payout.amount >= program.minPayoutAmount
-        ? "This payout will be processed depends on your program's payment schedule, which is usually at the beginning or the end of the month."
-        : `This program's minimum payout amount is ${currencyFormatter(
-            program.minPayoutAmount / 100,
-          )}. This payout will be accrued and processed during the next payout period.`;
+    if (
+      payout.status === "pending" &&
+      payout.amount < program.minPayoutAmount
+    ) {
+      return `This program's minimum payout amount is ${currencyFormatter(
+        program.minPayoutAmount / 100,
+      )}. This payout will be accrued and processed during the next payout period.`;
     }
-    return undefined;
-  })();
+    return (
+      PAYOUT_STATUS_DESCRIPTIONS?.[
+        partner?.paypalEmail ? "paypal" : "stripe"
+      ]?.[payout.status] || PAYOUT_STATUS_DESCRIPTIONS?.paypal?.[payout.status]
+    );
+  }, [payout, program, partner]);
 
   return badge ? (
     <StatusBadge icon={badge.icon} variant={badge.variant}>
-      <DynamicTooltipWrapper
-        tooltipProps={tooltip ? { content: tooltip } : undefined}
-      >
-        {badge.label}
-      </DynamicTooltipWrapper>
+      <Tooltip content={tooltipContent}>
+        <div>{badge.label}</div>
+      </Tooltip>
     </StatusBadge>
   ) : (
     "-"

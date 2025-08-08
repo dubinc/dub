@@ -1,5 +1,7 @@
 "use client";
 
+import useDiscounts from "@/lib/swr/use-discounts";
+import useRewards from "@/lib/swr/use-rewards";
 import { ProgramLanderData, ProgramWithLanderDataProps } from "@/lib/types";
 import { useEditHeroModal } from "@/ui/partners/design/modals/edit-hero-modal";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
@@ -7,7 +9,9 @@ import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import {
   Button,
+  CircleInfo,
   Grid,
+  LoadingSpinner,
   Pen2,
   Plus2,
   Tooltip,
@@ -27,7 +31,10 @@ import {
   useState,
 } from "react";
 import { useWatch } from "react-hook-form";
+import { useBrandingContext } from "../branding-context-provider";
 import { useBrandingFormContext } from "../branding-form";
+import { LanderAIBanner } from "../lander-ai-banner";
+import { LanderPreviewControls } from "../lander-preview-controls";
 import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
 import { useEditRewardsModal } from "../modals/edit-rewards-modal";
 import { RewardsDiscountsPreview } from "../rewards-discounts-preview";
@@ -41,6 +48,11 @@ export function LanderPreview({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
+
+  const { isGeneratingLander } = useBrandingContext();
+
+  const { rewards } = useRewards();
+  const { discounts } = useDiscounts();
 
   const { setValue, getValues } = useBrandingFormContext();
   const { landerData, brandColor, logo, wordmark } = {
@@ -115,9 +127,54 @@ export function LanderPreview({
           }
         }}
       />
+      <LanderAIBanner />
       <PreviewWindow
         url={`${PARTNERS_DOMAIN}/${program?.slug}`}
         scrollRef={scrollRef}
+        controls={<LanderPreviewControls />}
+        overlay={
+          <div
+            className={cn(
+              "absolute inset-0 flex items-center justify-center bg-white/10",
+              "pointer-events-none opacity-0 transition-[backdrop-filter,opacity] duration-500",
+              isGeneratingLander &&
+                "pointer-events-auto opacity-100 backdrop-blur-md",
+            )}
+            {...{ inert: isGeneratingLander ? undefined : "" }}
+          >
+            <div
+              className={cn(
+                "flex flex-col items-center gap-6 px-4 text-center text-sm transition-transform duration-500 sm:gap-2",
+                !isGeneratingLander && "translate-y-1",
+              )}
+            >
+              <div className="text-content-default flex items-center">
+                <LoadingSpinner className="mr-2 size-3.5 shrink-0" />
+                <span className="text-sm font-medium">Generating content</span>
+                <span className="ml-px shrink-0">
+                  {[...Array(3)].map((_, i) => (
+                    <span
+                      key={i}
+                      className="animate-ellipsis-wave inline-block"
+                      style={{
+                        animationDelay: `${3 - i * -0.15}s`,
+                      }}
+                    >
+                      .
+                    </span>
+                  ))}
+                </span>
+              </div>
+
+              <div className="text-content-subtle flex flex-col items-center gap-1 sm:flex-row">
+                <CircleInfo className="size-3 shrink-0" />
+                <span className="text-xs font-medium">
+                  Review all generated content for accuracy and style
+                </span>
+              </div>
+            </div>
+          </div>
+        }
       >
         <div className="relative z-0 mx-auto min-h-screen w-full bg-white">
           <div
@@ -279,7 +336,15 @@ export function LanderPreview({
                       {...{ inert: "" }}
                     >
                       <div className="px-6">
-                        <Component block={block} program={program} />
+                        <Component
+                          block={block}
+                          program={{
+                            ...program,
+                            rewards,
+                            discounts,
+                            landerData,
+                          }}
+                        />
                       </div>
                     </div>
                   </div>

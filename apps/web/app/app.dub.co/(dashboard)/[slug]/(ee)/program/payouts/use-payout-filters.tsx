@@ -142,7 +142,9 @@ function usePartnerFilterOptions(search: string) {
 
   const { partners: selectedPartners } = usePartners({
     query: {
-      ids: searchParamsObj.partnerId ? [searchParamsObj.partnerId] : undefined,
+      partnerIds: searchParamsObj.partnerId
+        ? [searchParamsObj.partnerId]
+        : undefined,
     },
     enabled: partnersAsync,
   });

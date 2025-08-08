@@ -103,6 +103,57 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("singular tracking url", async () => {
+    const response = await fetch(`${h.baseUrl}/singular`, fetchOptions);
+
+    // location to include  cl, ua, ip query params
+    expect(response.headers.get("location")).toMatch(/cl=[a-zA-Z0-9]+/);
+    expect(response.headers.get("location")).toMatch(/ua=[a-zA-Z0-9]+/);
+    expect(response.headers.get("location")).toMatch(/ip=[a-zA-Z0-9]+/);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("google play store url", async () => {
+    const response = await fetch(`${h.baseUrl}/gps`, fetchOptions);
+    const location = response.headers.get("location");
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(location).toBeTruthy();
+
+    const url = new URL(location!);
+    const referrerEncoded = url.searchParams.get("referrer");
+    expect(referrerEncoded).toBeTruthy();
+
+    const referrer = decodeURIComponent(referrerEncoded!);
+    const params = new URLSearchParams(referrer);
+
+    expect(params.get("deepLink")).toBe("https://dub.sh/gps");
+  });
+
+  test("google play store url with existing referrer", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/gps-with-referrer`,
+      fetchOptions,
+    );
+    const location = response.headers.get("location");
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(location).toBeTruthy();
+
+    const url = new URL(location!);
+    const referrerEncoded = url.searchParams.get("referrer");
+    expect(referrerEncoded).toBeTruthy();
+
+    const referrer = decodeURIComponent(referrerEncoded!);
+    const params = new URLSearchParams(referrer);
+
+    expect(params.get("utm_source")).toBe("google");
+    expect(params.get("deepLink")).toBe("https://dub.sh/gps-with-referrer");
+  });
+
   test("query params with no value", async () => {
     const response = await fetch(
       `${h.baseUrl}/query-params-no-value`,

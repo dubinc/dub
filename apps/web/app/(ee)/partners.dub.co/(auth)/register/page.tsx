@@ -1,7 +1,7 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@dub/prisma";
 import { cookies } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import RegisterPageClient from "./page-client";
 
 export default async function RegisterPage({
@@ -18,7 +18,7 @@ export default async function RegisterPage({
     : undefined;
 
   if (programSlug && !program) {
-    notFound();
+    redirect("/register");
   }
 
   let email: string | undefined = undefined;

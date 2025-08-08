@@ -1,0 +1,15 @@
+
+SCHEMA >
+    `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),
+    `workspace_id` String `json:$.workspace_id`,
+    `import_id` String `json:$.import_id`,
+    `source` String `json:$.source`,
+    `entity` String `json:$.entity`,
+    `entity_id` String `json:$.entity_id`,
+    `code` String `json:$.code`,
+    `message` String `json:$.message`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "timestamp, workspace_id, import_id"
+ENGINE_TTL "toDateTime(timestamp) + toIntervalDay(180)"

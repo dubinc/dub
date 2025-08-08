@@ -1,8 +1,5 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
-import {
-  TRIGGER_DISPLAY,
-  VALID_ANALYTICS_FILTERS,
-} from "@/lib/analytics/constants";
+import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCustomer from "@/lib/swr/use-customer";
 import useCustomers from "@/lib/swr/use-customers";
@@ -30,6 +27,7 @@ import {
   UTM_PARAMETERS,
 } from "@dub/ui";
 import {
+  Calendar6,
   Cube,
   CursorRays,
   FlagWavy,
@@ -43,9 +41,11 @@ import {
   MobilePhone,
   OfficeBuilding,
   QRCode,
+  Receipt2,
   ReferredVia,
   Tag,
   User,
+  UserPlus,
   Users,
   Window,
 } from "@dub/ui/icons";
@@ -83,6 +83,7 @@ import {
 import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
 import RefererIcon from "./referer-icon";
+import { TRIGGER_DISPLAY } from "./trigger-display";
 import { useAnalyticsFilterOption } from "./utils";
 
 export function useAnalyticsFilters({
@@ -410,7 +411,7 @@ export function useAnalyticsFilters({
     key: "customerId",
     icon: User,
     label: "Customer",
-    hideInFilterDropdown: partnerPage,
+    hideInFilterDropdown: true,
     shouldFilter: !customersAsync,
     getOptionIcon: () => {
       return selectedCustomer ? (
@@ -447,6 +448,25 @@ export function useAnalyticsFilters({
       }) ?? null,
   };
 
+  const SaleTypeFilterItem = {
+    key: "saleType",
+    icon: Receipt2,
+    label: "Sale type",
+    separatorAfter: true,
+    options: [
+      {
+        value: "new",
+        label: "New",
+        icon: UserPlus,
+      },
+      {
+        value: "recurring",
+        label: "Recurring",
+        icon: Calendar6,
+      },
+    ],
+  };
+
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
     () => [
       {
@@ -469,7 +489,6 @@ export function useAnalyticsFilters({
                 key: "partnerId",
                 icon: Users,
                 label: "Partner",
-                separatorAfter: true,
                 options:
                   partners?.map(({ partner, ...rest }) => {
                     return {
@@ -488,9 +507,10 @@ export function useAnalyticsFilters({
                     };
                   }) ?? null,
               },
+              SaleTypeFilterItem,
             ]
           : partnerPage
-            ? [LinkFilterItem, CustomerFilterItem]
+            ? [LinkFilterItem, CustomerFilterItem, SaleTypeFilterItem]
             : [
                 ...(canManageCustomers ? [CustomerFilterItem] : []),
                 {
@@ -603,7 +623,6 @@ export function useAnalyticsFilters({
                   key: "root",
                   icon: Sliders,
                   label: "Link type",
-                  separatorAfter: true,
                   options: [
                     {
                       value: true,
@@ -617,6 +636,7 @@ export function useAnalyticsFilters({
                     },
                   ],
                 },
+                SaleTypeFilterItem,
               ]),
       {
         key: "country",
@@ -742,12 +762,15 @@ export function useAnalyticsFilters({
               icon: CursorRays,
               label: "Trigger",
               options:
-                triggers?.map(({ trigger, ...rest }) => ({
-                  value: trigger,
-                  label: TRIGGER_DISPLAY[trigger],
-                  icon: trigger === "qr" ? QRCode : CursorRays,
-                  right: getFilterOptionTotal(rest),
-                })) ?? null,
+                triggers?.map(({ trigger, ...rest }) => {
+                  const { title, icon } = TRIGGER_DISPLAY[trigger];
+                  return {
+                    value: trigger,
+                    label: title,
+                    icon,
+                    right: getFilterOptionTotal(rest),
+                  };
+                }) ?? null,
               separatorAfter: true,
             },
           ]),

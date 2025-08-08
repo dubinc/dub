@@ -63,7 +63,7 @@ function PartnerProfileSheetContent({
   return (
     <>
       <div className="flex grow flex-col">
-        <div className="flex items-center justify-between px-6 py-4 h-16">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
             Partner profile
           </Sheet.Title>
@@ -98,7 +98,7 @@ function PartnerProfileSheetContent({
               <h4 className="font-semibold text-neutral-900">
                 Online presence
               </h4>
-              <OnlinePresenceSummary partner={partner} className="mt-2" />
+              <OnlinePresenceSummary partner={partner} className="mt-3" />
             </div>
           </div>
         </div>

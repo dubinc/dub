@@ -13,7 +13,7 @@ export async function generateCsvMapping(
 
   (async () => {
     const { partialObjectStream } = streamObject({
-      model: anthropic("claude-3-5-sonnet-latest"),
+      model: anthropic("claude-sonnet-4-20250514"),
       schema: z.object({
         link: z
           .string()

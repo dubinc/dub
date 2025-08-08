@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
 import { prisma } from "@dub/prisma";
 import {
   currencyFormatter,
@@ -60,17 +61,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
-  if (!["completed", "processing"].includes(payout.status)) {
+  if (!INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status)) {
     throw new DubApiError({
       code: "unauthorized",
       message:
         "This payout is not completed yet, hence no invoice is generated.",
     });
   }
-
-  const EU_PARTNER =
-    partner.country && EU_COUNTRY_CODES.includes(partner.country);
-  const AU_PARTNER = partner.country && partner.country === "AU";
 
   const invoiceMetadata = [
     {
@@ -189,6 +186,9 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
             </Text>
             <Text style={tw("text-sm text-neutral-500 leading-6")}>
               San Francisco, CA 94114
+            </Text>
+            <Text style={tw("text-sm text-neutral-500 leading-6")}>
+              Tax ID: US EIN {process.env.DUB_EIN}
             </Text>
             <Text style={tw("text-sm text-neutral-800 leading-6")}>
               Invoice Number: <Text style={tw("font-bold")}>{payout.id}</Text>

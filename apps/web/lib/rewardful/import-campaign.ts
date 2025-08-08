@@ -1,11 +1,13 @@
 import { prisma } from "@dub/prisma";
 import { EventType, RewardStructure } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
-import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "../partners/constants";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
+import { RewardfulImportPayload } from "./types";
 
-export async function importCampaign({ programId }: { programId: string }) {
+export async function importCampaign(payload: RewardfulImportPayload) {
+  const { programId, campaignId } = payload;
+
   const { workspaceId, rewards: defaultSaleReward } =
     await prisma.program.findUniqueOrThrow({
       where: {
@@ -21,8 +23,7 @@ export async function importCampaign({ programId }: { programId: string }) {
       },
     });
 
-  const { token, campaignId } =
-    await rewardfulImporter.getCredentials(workspaceId);
+  const { token } = await rewardfulImporter.getCredentials(workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
@@ -71,11 +72,7 @@ export async function importCampaign({ programId }: { programId: string }) {
           id: programId,
         },
         data: {
-          // minimum payout amount is the max of the Rewardful campaign minimum payout and Dub's minimum payout ($100)
-          minPayoutAmount: Math.max(
-            minimum_payout_cents,
-            DUB_MIN_PAYOUT_AMOUNT_CENTS,
-          ),
+          minPayoutAmount: minimum_payout_cents,
           holdingPeriodDays: days_until_commissions_are_due,
         },
       });
@@ -87,8 +84,8 @@ export async function importCampaign({ programId }: { programId: string }) {
   }
 
   return await rewardfulImporter.queue({
-    programId,
+    ...payload,
     ...(rewardId && { rewardId }),
-    action: "import-affiliates",
+    action: "import-partners",
   });
 }

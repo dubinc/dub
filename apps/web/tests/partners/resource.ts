@@ -1,4 +1,5 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
+import z from "@/lib/zod";
 import { expect } from "vitest";
 import {
   E2E_PARTNER,
@@ -22,3 +23,14 @@ export const partnerLink = {
   folderId: expect.any(String),
   qrCode: expect.any(String),
 };
+
+export const normalizedPartnerDateFields = z.object({
+  createdAt: z.string(),
+  payoutsEnabledAt: z.string().nullish(),
+  websiteVerifiedAt: z.string().nullish(),
+  youtubeVerifiedAt: z.string().nullish(),
+  twitterVerifiedAt: z.string().nullish(),
+  linkedinVerifiedAt: z.string().nullish(),
+  instagramVerifiedAt: z.string().nullish(),
+  tiktokVerifiedAt: z.string().nullish(),
+});

@@ -115,9 +115,20 @@ export default function PartnerApplicationApproved({
               in real-time.
             </Text>
 
+            <Text className="ml-1 text-sm leading-5 text-black">
+              4. Learn how to{" "}
+              <Link
+                href="https://dub.co/help/article/navigating-partner-program"
+                className="font-semibold text-black underline"
+              >
+                navigate the program dashboard
+              </Link>{" "}
+              and get the most out of your program.
+            </Text>
+
             {!partner.payoutsEnabled && (
               <Text className="ml-1 text-sm leading-5 text-black">
-                4. Connect your Stripe account to{" "}
+                5. Connect your Stripe account to{" "}
                 <Link
                   href="https://dub.co/help/article/receiving-payouts"
                   className="font-semibold text-black underline"
@@ -158,7 +169,10 @@ export default function PartnerApplicationApproved({
               success!
             </Text>
 
-            <Footer email={partner.email} />
+            <Footer
+              email={partner.email}
+              notificationSettingsUrl="https://partners.dub.co/settings/notifications"
+            />
           </Container>
         </Body>
       </Tailwind>

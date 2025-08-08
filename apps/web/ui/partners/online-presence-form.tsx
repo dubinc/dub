@@ -11,6 +11,7 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import {
+  AnimatedSizeContainer,
   Button,
   CircleCheckFill,
   Globe,
@@ -21,15 +22,21 @@ import {
   Twitter,
   YouTube,
 } from "@dub/ui";
-import { getPrettyUrl } from "@dub/utils";
+import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { forwardRef, ReactNode, useCallback, useState } from "react";
-import { FormProvider, useForm, useFormContext } from "react-hook-form";
+import { forwardRef, ReactNode, useCallback, useMemo, useState } from "react";
+import {
+  FormProvider,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { OnlinePresenceCard } from "./online-presence-card";
 
 const onlinePresenceSchema = z.object({
   website: parseUrlSchemaAllowEmpty().optional(),
@@ -46,12 +53,12 @@ interface OnlinePresenceFormProps {
   variant?: "onboarding" | "settings";
   partner?: {
     email: string | null;
-    website: string | null;
-    youtube: string | null;
-    twitter: string | null;
-    linkedin: string | null;
-    instagram: string | null;
-    tiktok: string | null;
+    website?: string | null;
+    youtube?: string | null;
+    twitter?: string | null;
+    linkedin?: string | null;
+    instagram?: string | null;
+    tiktok?: string | null;
   } | null;
   onSubmitSuccessful?: () => void;
 }
@@ -173,8 +180,37 @@ export const OnlinePresenceForm = forwardRef<
           >
             <div className={cn("flex w-full flex-col gap-6 text-left")}>
               <FormRow
-                variant={variant}
                 label="Website"
+                property="website"
+                verifiedAtField="websiteVerifiedAt"
+                icon={Globe}
+                onVerifyClick={async () => {
+                  try {
+                    const result =
+                      await updateOnlinePresenceAction(getValues());
+
+                    if (
+                      !result?.data?.website ||
+                      !result?.data?.websiteTxtRecord
+                    ) {
+                      throw new Error(
+                        "Missing website or TXT record in update result",
+                      );
+                    }
+
+                    setDomainVerificationData({
+                      domain: new URL(result.data.website).hostname,
+                      txtRecord: result.data.websiteTxtRecord,
+                    });
+
+                    mutate("/api/partner-profile");
+                  } catch (e) {
+                    toast.error("Failed to start website verification");
+                    console.error("Failed to start website verification", e);
+                  }
+
+                  return false;
+                }}
                 input={
                   <input
                     type="text"
@@ -189,48 +225,17 @@ export const OnlinePresenceForm = forwardRef<
                     {...register("website")}
                   />
                 }
-                button={
-                  <VerifyButton
-                    property="website"
-                    verifiedAtField="websiteVerifiedAt"
-                    icon={Globe}
-                    onClick={async () => {
-                      try {
-                        const result =
-                          await updateOnlinePresenceAction(getValues());
-
-                        if (
-                          !result?.data?.website ||
-                          !result?.data?.websiteTxtRecord
-                        ) {
-                          throw new Error(
-                            "Missing website or TXT record in update result",
-                          );
-                        }
-
-                        setDomainVerificationData({
-                          domain: new URL(result.data.website).hostname,
-                          txtRecord: result.data.websiteTxtRecord,
-                        });
-
-                        mutate("/api/partner-profile");
-                      } catch (e) {
-                        toast.error("Failed to start website verification");
-                        console.error(
-                          "Failed to start website verification",
-                          e,
-                        );
-                      }
-
-                      return false;
-                    }}
-                  />
-                }
               />
 
               <FormRow
-                variant={variant}
                 label="YouTube"
+                property="youtube"
+                prefix="@"
+                verifiedAtField="youtubeVerifiedAt"
+                icon={YouTube}
+                onVerifyClick={() =>
+                  startVerification("youtube", getValues("youtube"))
+                }
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -253,21 +258,17 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
-                button={
-                  <VerifyButton
-                    property="youtube"
-                    verifiedAtField="youtubeVerifiedAt"
-                    icon={YouTube}
-                    onClick={() =>
-                      startVerification("youtube", getValues("youtube"))
-                    }
-                  />
-                }
               />
 
               <FormRow
-                variant={variant}
                 label="X/Twitter"
+                property="twitter"
+                prefix="@"
+                verifiedAtField="twitterVerifiedAt"
+                icon={Twitter}
+                onVerifyClick={() =>
+                  startVerification("twitter", getValues("twitter"))
+                }
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -287,21 +288,18 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
-                button={
-                  <VerifyButton
-                    property="twitter"
-                    verifiedAtField="twitterVerifiedAt"
-                    icon={Twitter}
-                    onClick={() =>
-                      startVerification("twitter", getValues("twitter"))
-                    }
-                  />
-                }
               />
 
               <FormRow
-                variant={variant}
                 label="LinkedIn"
+                property="linkedin"
+                prefix="in/"
+                verifiedAtField="linkedinVerifiedAt"
+                icon={LinkedIn}
+                onVerifyClick={() =>
+                  startVerification("linkedin", getValues("linkedin"))
+                }
+                verifyDisabledTooltip="LinkedIn verification is coming soon."
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -321,22 +319,18 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
-                button={
-                  <VerifyButton
-                    property="linkedin"
-                    verifiedAtField="linkedinVerifiedAt"
-                    icon={LinkedIn}
-                    onClick={() =>
-                      startVerification("linkedin", getValues("linkedin"))
-                    }
-                    disabledTooltip="LinkedIn verification is coming soon."
-                  />
-                }
               />
 
               <FormRow
-                variant={variant}
                 label="Instagram"
+                property="instagram"
+                prefix="@"
+                verifiedAtField="instagramVerifiedAt"
+                icon={Instagram}
+                onVerifyClick={() =>
+                  startVerification("instagram", getValues("instagram"))
+                }
+                verifyDisabledTooltip="Instagram verification is coming soon."
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -356,22 +350,17 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
-                button={
-                  <VerifyButton
-                    property="instagram"
-                    verifiedAtField="instagramVerifiedAt"
-                    icon={Instagram}
-                    onClick={() =>
-                      startVerification("instagram", getValues("instagram"))
-                    }
-                    disabledTooltip="Instagram verification is coming soon."
-                  />
-                }
               />
 
               <FormRow
-                variant={variant}
                 label="TikTok"
+                property="tiktok"
+                prefix="@"
+                verifiedAtField="tiktokVerifiedAt"
+                icon={TikTok}
+                onVerifyClick={() =>
+                  startVerification("tiktok", getValues("tiktok"))
+                }
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -393,16 +382,6 @@ export const OnlinePresenceForm = forwardRef<
                       {...register("tiktok")}
                     />
                   </div>
-                }
-                button={
-                  <VerifyButton
-                    property="tiktok"
-                    verifiedAtField="tiktokVerifiedAt"
-                    icon={TikTok}
-                    onClick={() =>
-                      startVerification("tiktok", getValues("tiktok"))
-                    }
-                  />
                 }
               />
             </div>
@@ -454,18 +433,12 @@ function useOAuthVerification(source: "onboarding" | "settings") {
   );
 }
 
-function VerifyButton({
+function useVerifiedState({
   property,
   verifiedAtField,
-  icon: Icon,
-  onClick,
-  disabledTooltip,
 }: {
   property: keyof OnlinePresenceFormData;
   verifiedAtField: string;
-  icon: Icon;
-  onClick: () => Promise<boolean>;
-  disabledTooltip?: string;
 }) {
   const { partner: partnerProfile } = usePartnerProfile();
 
@@ -482,6 +455,33 @@ function VerifyButton({
       : partnerProfile?.[property] === value;
 
   const isVerified = noChange && Boolean(partnerProfile?.[verifiedAtField]);
+
+  return {
+    isVerified,
+    loading,
+  };
+}
+
+function VerifyButton({
+  property,
+  verifiedAtField,
+  icon: Icon,
+  onClick,
+  disabledTooltip,
+}: {
+  property: keyof OnlinePresenceFormData;
+  verifiedAtField: string;
+  icon: Icon;
+  onClick: () => Promise<boolean>;
+  disabledTooltip?: string;
+}) {
+  const { control, getFieldState } = useFormContext<OnlinePresenceFormData>();
+  const value = useWatch({ control, name: property });
+
+  const { isVerified, loading } = useVerifiedState({
+    property,
+    verifiedAtField,
+  });
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -516,35 +516,86 @@ function VerifyButton({
 }
 
 function FormRow({
-  variant,
   label,
   input,
-  button,
+  property,
+  prefix,
+  verifiedAtField,
+  icon: Icon,
+  onVerifyClick,
+  verifyDisabledTooltip,
 }: {
-  variant: "onboarding" | "settings";
   label: string;
   input: ReactNode;
-  button: ReactNode;
+
+  property: keyof OnlinePresenceFormData;
+  prefix?: string;
+  verifiedAtField: string;
+  icon: Icon;
+  onVerifyClick: () => Promise<boolean>;
+  verifyDisabledTooltip?: string;
 }) {
+  const { partner } = usePartnerProfile();
+  const { control, setValue } = useFormContext<OnlinePresenceFormData>();
+  const value = useWatch({ control, name: property });
+
+  const { isVerified } = useVerifiedState({ property, verifiedAtField });
+
+  const info = useMemo(() => {
+    if (partner && property === "youtube" && isVerified) {
+      return [
+        partner.youtubeSubscriberCount && partner.youtubeSubscriberCount > 0
+          ? `${nFormatter(partner.youtubeSubscriberCount)} subscribers`
+          : null,
+        partner.youtubeViewCount && partner.youtubeViewCount > 0
+          ? `${nFormatter(partner.youtubeViewCount)} views`
+          : null,
+      ].filter(Boolean) as string[];
+    }
+    return null;
+  }, [partner, property, isVerified]);
+
   return (
-    <div>
-      <label className={cn("flex flex-col gap-1.5")}>
-        <span className="text-content-emphasis text-sm font-medium">
-          {label}
-        </span>
-        <div className={cn("relative")}>
-          {input}
-          {button}
+    <div className="-m-0.5">
+      <AnimatedSizeContainer
+        height
+        initial={false}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
+      >
+        <div className="p-0.5">
+          {isVerified ? (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-content-emphasis text-sm font-medium">
+                {label}
+              </span>
+              <OnlinePresenceCard
+                icon={Icon}
+                prefix={prefix}
+                value={value ?? ""}
+                verified
+                info={info ?? undefined}
+                onRemove={() => setValue(property, "", { shouldDirty: true })}
+              />
+            </div>
+          ) : (
+            <label className={cn("flex flex-col gap-1.5")}>
+              <span className="text-content-emphasis text-sm font-medium">
+                {label}
+              </span>
+              <div className={cn("relative")}>
+                {input}
+                <VerifyButton
+                  property={property}
+                  verifiedAtField={verifiedAtField}
+                  icon={Icon}
+                  onClick={onVerifyClick}
+                  disabledTooltip={verifyDisabledTooltip}
+                />
+              </div>
+            </label>
+          )}
         </div>
-      </label>
+      </AnimatedSizeContainer>
     </div>
   );
 }
-
-const onPasteSocial = (e: React.ClipboardEvent<HTMLInputElement>) => {
-  e.preventDefault();
-
-  // Extract the final portion of any URL
-  const text = e.clipboardData.getData("text/plain");
-  e.currentTarget.value = (text.split("/").at(-1) ?? text).replace(/^@/, "");
-};
