@@ -1,8 +1,10 @@
 import { cn } from "@dub/utils";
 import ReactMarkdown from "react-markdown";
+import "react-medium-image-zoom/dist/styles.css";
 import remarkGfm from "remark-gfm";
+import { ZoomImage } from "../shared/zoom-image";
 
-export function Markdown({
+export function GuidesMarkdown({
   children,
   className,
   components,
@@ -42,6 +44,7 @@ export function Markdown({
         a: ({ node, ...props }) => (
           <a {...props} target="_blank" rel="noopener noreferrer" />
         ),
+        img: ({ node, ...props }) => <ZoomImage {...props} />,
         ...components,
       }}
       remarkPlugins={[remarkGfm] as any}
