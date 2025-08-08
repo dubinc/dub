@@ -148,28 +148,27 @@ export const DELETE = withWorkspace(
       ]);
     }
 
-    waitUntil(
-      Promise.allSettled([
-        prisma.project.update({
-          where: {
-            id: workspace.id,
-          },
-          data: {
-            foldersUsage: {
-              decrement: 1,
-            },
-          },
-        }),
+    // Remove the default folder assignment for all users whose defaultFolderId matches the given folderId
+    await prisma.projectUsers.updateMany({
+      where: {
+        defaultFolderId: folderId,
+      },
+      data: {
+        defaultFolderId: null,
+      },
+    });
 
-        prisma.projectUsers.updateMany({
-          where: {
-            defaultFolderId: folderId,
+    waitUntil(
+      prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          foldersUsage: {
+            decrement: 1,
           },
-          data: {
-            defaultFolderId: null,
-          },
-        }),
-      ]),
+        },
+      }),
     );
 
     return NextResponse.json({ id: folderId });
