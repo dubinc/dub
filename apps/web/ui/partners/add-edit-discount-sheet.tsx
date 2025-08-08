@@ -104,7 +104,6 @@ function DiscountSheetContent({
       couponTestId: discount?.couponTestId || "",
       includedPartnerIds: null,
       excludedPartnerIds: null,
-      maxDuration: 0,
     },
   });
 

@@ -12,10 +12,18 @@ async function main() {
     },
     include: {
       links: true,
+      program: {
+        select: {
+          workspace: true,
+        },
+      },
     },
   });
 
-  await bulkDeleteLinks(programEnrollment.links);
+  await bulkDeleteLinks({
+    links: programEnrollment.links,
+    workspace: programEnrollment.program.workspace,
+  });
 
   const deleteLinkPrisma = await prisma.link.deleteMany({
     where: {
