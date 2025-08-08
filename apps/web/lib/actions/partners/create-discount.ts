@@ -112,6 +112,9 @@ export const createDiscountAction = authActionClient
         couponTestId,
         default: isDefault,
       },
+      include: {
+        program: true,
+      },
     });
 
     await prisma.programEnrollment.updateMany({
@@ -139,15 +142,6 @@ export const createDiscountAction = authActionClient
 
     waitUntil(
       (async () => {
-        const program = await prisma.program.findUniqueOrThrow({
-          where: {
-            id: programId,
-          },
-          select: {
-            couponCodeTrackingEnabledAt: true,
-          },
-        });
-
         await Promise.allSettled([
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
@@ -172,7 +166,7 @@ export const createDiscountAction = authActionClient
             ],
           }),
 
-          program.couponCodeTrackingEnabledAt &&
+          discount.program.couponCodeTrackingEnabledAt &&
             qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
               body: {

@@ -3,6 +3,8 @@ import { nanoid } from "@dub/utils";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { recordClick } from "./record-click";
 
+// TODO:
+// Use this in other places where we need to record a fake click event (Eg: import-customers)
 export async function recordFakeClick({
   link,
   customer,
