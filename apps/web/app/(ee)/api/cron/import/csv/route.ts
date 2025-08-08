@@ -346,6 +346,7 @@ const processMappedLinks = async ({
           key: "_root",
           url: "",
           tags: undefined,
+          skipCouponCreation: true,
         }),
       ),
     ]);

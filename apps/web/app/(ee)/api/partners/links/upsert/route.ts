@@ -205,9 +205,9 @@ export const PUT = withWorkspace(
 
       const partnerLink = await createLink({
         ...link,
+        workspace,
         program,
         discount: partner.discount,
-        stripeConnectId: workspace.stripeConnectId,
       });
 
       waitUntil(

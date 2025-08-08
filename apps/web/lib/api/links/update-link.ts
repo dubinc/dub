@@ -273,9 +273,9 @@ export async function updateStripePromotionCode({
     couponCodeTrackingEnabledAt &&
       discount?.couponId &&
       createStripePromotionCode({
-        workspace,
         link: updatedLink,
         couponId: discount.couponId,
+        stripeConnectId: workspace.stripeConnectId,
       }),
   ]);
 }

@@ -117,9 +117,9 @@ export async function POST(req: Request) {
         const results = await Promise.allSettled(
           linksChunk.map((link) =>
             createStripePromotionCode({
-              workspace,
               link,
               couponId,
+              stripeConnectId: workspace.stripeConnectId,
             }),
           ),
         );

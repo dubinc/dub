@@ -3,7 +3,12 @@ import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { createStripePromotionCode } from "@/lib/stripe/create-stripe-promotion-code";
 import { recordLink } from "@/lib/tinybird";
-import { DiscountProps, ProcessedLinkProps, ProgramProps } from "@/lib/types";
+import {
+  DiscountProps,
+  ProcessedLinkProps,
+  ProgramProps,
+  WorkspaceProps,
+} from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -25,9 +30,10 @@ import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
 
 type CreateLinkProps = ProcessedLinkProps & {
+  workspace?: Pick<WorkspaceProps, "id" | "stripeConnectId">;
   program?: Pick<ProgramProps, "id" | "couponCodeTrackingEnabledAt">;
   discount?: Pick<DiscountProps, "id" | "couponId"> | null;
-  stripeConnectId?: string | null;
+  skipCouponCreation?: boolean; // Skip Stripe promotion code creation for the link
 };
 
 export async function createLink(link: CreateLinkProps) {
@@ -44,7 +50,7 @@ export async function createLink(link: CreateLinkProps) {
     testVariants,
     testStartedAt,
     testCompletedAt,
-    stripeConnectId,
+    skipCouponCreation,
   } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -52,17 +58,21 @@ export async function createLink(link: CreateLinkProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  let { tagId, tagIds, tagNames, webhookIds, program, discount, ...rest } =
-    link;
+  let {
+    tagId,
+    tagIds,
+    tagNames,
+    webhookIds,
+    workspace,
+    program,
+    discount,
+    ...rest
+  } = link;
 
   key = encodeKeyIfCaseSensitive({
     domain: link.domain,
     key,
   });
-
-  let shouldCreateCouponCode = Boolean(
-    program?.couponCodeTrackingEnabledAt && discount?.couponId,
-  );
 
   const response = await prisma.link.create({
     data: {
@@ -143,125 +153,152 @@ export async function createLink(link: CreateLinkProps) {
     include: {
       ...includeTags,
       webhooks: webhookIds ? true : false,
-      project: shouldCreateCouponCode && stripeConnectId === undefined,
     },
   });
 
-  // TODO:
-  // Move to waitUntil
-  if (response.programId && response.partnerId && !program && !discount) {
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
-      where: {
-        partnerId_programId: {
-          partnerId: response.partnerId,
-          programId: response.programId,
-        },
-      },
-      select: {
-        discount: {
-          select: {
-            id: true,
-            couponId: true,
-          },
-        },
-        program: {
-          select: {
-            id: true,
-            couponCodeTrackingEnabledAt: true,
-            workspace: {
-              select: {
-                stripeConnectId: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const workspace = programEnrollment.program.workspace;
-
-    program = programEnrollment.program;
-    discount = programEnrollment.discount;
-    stripeConnectId = workspace.stripeConnectId;
-
-    shouldCreateCouponCode = Boolean(
-      program.couponCodeTrackingEnabledAt && discount?.couponId,
-    );
-  }
-
   const uploadedImageUrl = `${R2_URL}/images/${response.id}`;
-  stripeConnectId = stripeConnectId || response.project?.stripeConnectId;
 
   waitUntil(
-    Promise.allSettled([
-      // cache link in Redis
-      linkCache.set({
-        ...response,
-        ...(response.programId &&
-          (await getPartnerAndDiscount({
-            programId: response.programId,
-            partnerId: response.partnerId,
-          }))),
-      }),
-
-      // record link in Tinybird
-      recordLink(response),
-      // Upload image to R2 and update the link with the uploaded image URL when
-      // proxy is enabled and image is set and is not a hosted image URL
-      ...(proxy && image && isNotHostedImage(image)
-        ? [
-            // upload image to R2
-            storage.upload(`images/${response.id}`, image, {
-              width: 1200,
-              height: 630,
-            }),
-            // update the null image we set earlier to the uploaded image URL
-            prisma.link.update({
-              where: {
-                id: response.id,
-              },
-              data: {
-                image: uploadedImageUrl,
-              },
-            }),
-          ]
-        : []),
-      // delete public links after 30 mins
-      !response.userId &&
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
-          // delete after 30 mins
-          delay: 30 * 60,
-          body: {
-            linkId: response.id,
+    (async () => {
+      // Fetch the workspace if:
+      // 1. Coupon creation isn’t skipped
+      // 2. Coupon code tracking is enabled
+      // 3. projectId exists
+      // 4. couponId exists
+      // 5. workspace is not provided
+      if (
+        !workspace &&
+        link.projectId &&
+        discount?.couponId &&
+        !skipCouponCreation &&
+        program?.couponCodeTrackingEnabledAt
+      ) {
+        workspace = await prisma.project.findUniqueOrThrow({
+          where: {
+            id: link.projectId,
           },
-        }),
-      // update links usage for workspace
-      link.projectId &&
-        updateLinksUsage({
-          workspaceId: link.projectId,
-          increment: 1,
+          select: {
+            id: true,
+            stripeConnectId: true,
+          },
+        });
+      }
+
+      // Fetch programEnrollment if:
+      // 1. link.partnerId exists
+      // 2. link.programId exists
+      // 3. program not provided
+      // 4. discount not provided
+      // 5. skipCouponCreation is false
+      if (
+        link.programId &&
+        link.partnerId &&
+        !program &&
+        !discount &&
+        !skipCouponCreation
+      ) {
+        const programEnrollment =
+          await prisma.programEnrollment.findUniqueOrThrow({
+            where: {
+              partnerId_programId: {
+                partnerId: link.partnerId,
+                programId: link.programId,
+              },
+            },
+            include: {
+              program: {
+                select: {
+                  id: true,
+                  couponCodeTrackingEnabledAt: true,
+                },
+              },
+              discount: {
+                select: {
+                  id: true,
+                  couponId: true,
+                },
+              },
+            },
+          });
+
+        program = programEnrollment.program;
+        discount = programEnrollment.discount;
+      }
+
+      const shouldCreateCouponCode = Boolean(
+        !skipCouponCreation &&
+          link.projectId &&
+          program?.couponCodeTrackingEnabledAt &&
+          discount?.couponId &&
+          workspace?.stripeConnectId,
+      );
+
+      Promise.allSettled([
+        // cache link in Redis
+        linkCache.set({
+          ...response,
+          ...(response.programId &&
+            (await getPartnerAndDiscount({
+              programId: response.programId,
+              partnerId: response.partnerId,
+            }))),
         }),
 
-      webhookIds &&
-        propagateWebhookTriggerChanges({
-          webhookIds,
-        }),
+        // record link in Tinybird
+        recordLink(response),
+        // Upload image to R2 and update the link with the uploaded image URL when
+        // proxy is enabled and image is set and is not a hosted image URL
+        ...(proxy && image && isNotHostedImage(image)
+          ? [
+              // upload image to R2
+              storage.upload(`images/${response.id}`, image, {
+                width: 1200,
+                height: 630,
+              }),
+              // update the null image we set earlier to the uploaded image URL
+              prisma.link.update({
+                where: {
+                  id: response.id,
+                },
+                data: {
+                  image: uploadedImageUrl,
+                },
+              }),
+            ]
+          : []),
+        // delete public links after 30 mins
+        !response.userId &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
+            // delete after 30 mins
+            delay: 30 * 60,
+            body: {
+              linkId: response.id,
+            },
+          }),
+        // update links usage for workspace
+        link.projectId &&
+          updateLinksUsage({
+            workspaceId: link.projectId,
+            increment: 1,
+          }),
 
-      testVariants && testCompletedAt && scheduleABTestCompletion(response),
+        webhookIds &&
+          propagateWebhookTriggerChanges({
+            webhookIds,
+          }),
 
-      shouldCreateCouponCode &&
-        stripeConnectId &&
-        createStripePromotionCode({
-          workspace: { stripeConnectId },
-          link: response,
-          couponId: discount?.couponId!,
-        }),
-    ]),
+        testVariants && testCompletedAt && scheduleABTestCompletion(response),
+
+        shouldCreateCouponCode &&
+          createStripePromotionCode({
+            link: response,
+            couponId: discount?.couponId!,
+            stripeConnectId: workspace?.stripeConnectId!,
+          }),
+      ]);
+    })(),
   );
-
-  // @ts-expect-error
-  delete response?.project;
 
   return {
     ...transformLink(response),

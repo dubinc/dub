@@ -197,6 +197,7 @@ export const POST = withWorkspace(
       tags: undefined,
       userId: session.user.id,
       projectId: workspace.id,
+      skipCouponCreation: true,
     });
 
     return NextResponse.json(

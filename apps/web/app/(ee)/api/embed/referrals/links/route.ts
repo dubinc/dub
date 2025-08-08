@@ -54,6 +54,9 @@ export const POST = withReferralsEmbedToken(
       orderBy: {
         createdAt: "desc",
       },
+      include: {
+        project: true,
+      },
     });
 
     const { link, error, code } = await processLink({
@@ -86,6 +89,7 @@ export const POST = withReferralsEmbedToken(
 
     const partnerLink = await createLink({
       ...link,
+      workspace: workspaceOwner?.project,
       program,
       discount,
     });
