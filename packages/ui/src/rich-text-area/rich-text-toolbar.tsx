@@ -68,7 +68,13 @@ export function RichTextToolbar({
         icon={AtSign}
         label="Variable"
         isActive={false}
-        onClick={() => alert("WIP")}
+        onClick={() => {
+          if (editor?.state.selection.$from.nodeBefore?.text?.endsWith("@")) {
+            editor?.commands.focus();
+            return;
+          }
+          editor?.chain().focus().insertContent("@").run();
+        }}
       />
 
       {onImageUpload && (
