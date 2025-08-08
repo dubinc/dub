@@ -2,7 +2,6 @@
 
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
-import useFolders from "@/lib/swr/use-folders";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
@@ -16,7 +15,24 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { SettingsRow } from "../program-settings-row";
 
-type FormData = Pick<ProgramProps, "domain" | "url" | "linkStructure">;
+type FormData = Pick<
+  ProgramProps,
+  "domain" | "url" | "linkStructure" | "urlValidationMode"
+>;
+
+const URL_VALIDATION_MODES = [
+  {
+    value: "domain",
+    label: "Domain",
+    description: "Partners can create any referral links on your domain",
+  },
+  {
+    value: "exact",
+    label: "Exact",
+    description:
+      "Partners can only create referral links from your destination URL",
+  },
+];
 
 export function LinksSettings() {
   const { program } = useProgram();
@@ -36,7 +52,6 @@ export function LinksSettings() {
 
 function LinksSettingsForm({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
-  const { folders, loading: loadingFolders } = useFolders();
 
   const {
     register,
@@ -51,6 +66,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
       domain: program.domain,
       url: program.url,
       linkStructure: program.linkStructure,
+      urlValidationMode: program.urlValidationMode,
     },
   });
 
@@ -142,6 +158,46 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
                       )}
                     />
                   )}
+                </label>
+              );
+            })}
+          </div>
+        </SettingsRow>
+
+        <SettingsRow heading="Partner links">
+          <div className="grid grid-cols-1 gap-3">
+            {URL_VALIDATION_MODES.map((mode) => {
+              const isSelected = mode.value === watch("urlValidationMode");
+
+              return (
+                <label
+                  key={mode.value}
+                  className={cn(
+                    "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600",
+                    "hover:bg-neutral-50",
+                    "transition-all duration-150",
+                    isSelected &&
+                      "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    value={mode.value}
+                    className="hidden"
+                    {...register("urlValidationMode")}
+                  />
+
+                  <div className="flex grow flex-col text-sm">
+                    <span className="font-medium">{mode.label}</span>
+                    <span className="text-neutral-600">{mode.description}</span>
+                  </div>
+
+                  <CircleCheckFill
+                    className={cn(
+                      "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                      isSelected && "scale-100 opacity-100",
+                    )}
+                  />
                 </label>
               );
             })}

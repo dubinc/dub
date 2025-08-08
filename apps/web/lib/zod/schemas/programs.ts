@@ -69,6 +69,7 @@ export const updateProgramSchema = z.object({
       message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
     }),
   linkStructure: z.nativeEnum(PartnerLinkStructure),
+  urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),
