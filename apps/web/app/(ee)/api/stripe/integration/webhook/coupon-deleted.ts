@@ -30,10 +30,12 @@ export async function couponDeleted(event: Stripe.Event) {
     return `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs.`;
   }
 
-  const discount = await prisma.discount.findFirst({
+  const discount = await prisma.discount.findUnique({
     where: {
-      programId: workspace.defaultProgramId,
-      couponId: coupon.id,
+      programId_couponId: {
+        programId: workspace.defaultProgramId,
+        couponId: coupon.id,
+      },
     },
   });
 
