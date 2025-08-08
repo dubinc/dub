@@ -1,12 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  buttonVariants,
-  Megaphone,
-  useKeyboardShortcut,
-  Workflow,
-} from "@dub/ui";
+import { buttonVariants, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -41,20 +36,3 @@ export function CreateEmailButton() {
     </>
   );
 }
-
-const emailTypes = [
-  {
-    type: "campaign",
-    icon: Megaphone,
-    name: "Campaign",
-    description: "Sent once manually",
-    colorClassName: "text-blue-700 bg-blue-100",
-  },
-  {
-    type: "automation",
-    icon: Workflow,
-    name: "Automation",
-    description: "Triggered by an event",
-    colorClassName: "text-green-700 bg-green-100",
-  },
-];
