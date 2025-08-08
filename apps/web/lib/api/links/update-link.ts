@@ -234,33 +234,37 @@ export async function updateStripePromotionCode({
     return;
   }
 
-  const { program, discount } =
-    await prisma.programEnrollment.findUniqueOrThrow({
-      where: {
-        partnerId_programId: {
-          partnerId: updatedLink.partnerId,
-          programId: updatedLink.programId,
-        },
+  const programEnrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
+        partnerId: updatedLink.partnerId,
+        programId: updatedLink.programId,
       },
-      select: {
-        program: {
-          select: {
-            couponCodeTrackingEnabledAt: true,
-            workspace: {
-              select: {
-                stripeConnectId: true,
-              },
+    },
+    select: {
+      program: {
+        select: {
+          couponCodeTrackingEnabledAt: true,
+          workspace: {
+            select: {
+              stripeConnectId: true,
             },
           },
         },
-        discount: {
-          select: {
-            couponId: true,
-          },
+      },
+      discount: {
+        select: {
+          couponId: true,
         },
       },
-    });
+    },
+  });
 
+  if (!programEnrollment) {
+    return;
+  }
+
+  const { program, discount } = programEnrollment;
   const { couponCodeTrackingEnabledAt, workspace } = program;
 
   await Promise.allSettled([
