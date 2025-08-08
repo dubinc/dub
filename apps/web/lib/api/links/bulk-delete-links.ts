@@ -45,13 +45,15 @@ export async function bulkDeleteLinks({
       },
     }),
 
-    ...links
-      .filter((link) => link.couponCode)
-      .map((link) =>
-        disableStripePromotionCode({
-          couponCode: link.couponCode,
-          stripeConnectId: workspace.stripeConnectId,
-        }),
-      ),
+    workspace.stripeConnectId
+      ? links
+          .filter((link) => link.couponCode)
+          .map((link) =>
+            disableStripePromotionCode({
+              couponCode: link.couponCode,
+              stripeConnectId: workspace.stripeConnectId,
+            }),
+          )
+      : [],
   ]);
 }
