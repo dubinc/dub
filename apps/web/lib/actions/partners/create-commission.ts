@@ -5,10 +5,11 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent } from "@/lib/tinybird";
-import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
+import { recordClick } from "@/lib/tinybird/record-click";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
 import { ClickEventTB, LeadEventTB } from "@/lib/types";
+import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
@@ -126,20 +127,46 @@ export const createCommissionAction = authActionClient
     } else {
       // else, if there's no existing lead event and there is also no custom leadEventName/Date
       // we need to create a dummy click + lead event (using the customer's country if available)
-
-      const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
-
-      clickEvent = await recordFakeClick({
-        link,
-        timestamp: new Date(finalLeadEventDate).getTime() - 5 * 60 * 1000,
-        ...(customer.country && {
-          country: customer.country,
-          continent: COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()],
+      const dummyRequest = new Request(link.url, {
+        headers: new Headers({
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+          "x-forwarded-for": "127.0.0.1",
+          ...(customer.country
+            ? {
+                "x-vercel-ip-country": customer.country.toUpperCase(),
+                "x-vercel-ip-continent":
+                  COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()],
+              }
+            : {
+                "x-vercel-ip-country": "US",
+                "x-vercel-ip-country-region": "CA",
+                "x-vercel-ip-continent": "NA",
+              }),
         }),
       });
 
-      const leadEventId = nanoid(16);
+      const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
 
+      const clickData = await recordClick({
+        req: dummyRequest,
+        linkId,
+        clickId: nanoid(16),
+        url: link.url,
+        domain: link.domain,
+        key: link.key,
+        workspaceId: workspace.id,
+        skipRatelimit: true,
+        timestamp: new Date(
+          new Date(finalLeadEventDate).getTime() - 5 * 60 * 1000,
+        ).toISOString(),
+      });
+
+      clickEvent = clickEventSchemaTB.parse({
+        ...clickData,
+        bot: 0,
+        qr: 0,
+      });
+      const leadEventId = nanoid(16);
       leadEvent = leadEventSchemaTB.parse({
         ...clickEvent,
         event_id: leadEventId,
@@ -147,7 +174,7 @@ export const createCommissionAction = authActionClient
         customer_id: customerId,
       });
 
-      shouldUpdateCustomer = !customer.linkId && clickEvent ? true : false;
+      shouldUpdateCustomer = !customer.linkId && clickData ? true : false;
 
       await Promise.allSettled([
         recordLeadWithTimestamp({
