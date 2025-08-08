@@ -199,6 +199,7 @@ export const DIMENSIONAL_ANALYTICS_FILTERS = [
   "referer",
   "refererUrl",
   "url",
+  "saleType",
   "qr", // deprecated, but keeping for now for backwards compatibility
   "utm_source",
   "utm_medium",

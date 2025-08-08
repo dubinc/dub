@@ -1,32 +1,48 @@
-Configure Google Tag Manager to track lead events when a new user signs up.
+Configure Google Tag Manager server-side tracking
 
 To track lead conversion events with Google Tag Manager, you'll need to set up a server container and configure a custom client to handle Dub conversion events.
 
-## Step 1: Set up Server Container
+## Step 1: Set up GTM Server Container
 
-In Google Tag Manager, you'll need to use an existing server container or create a new one. Server containers are the foundation for server-side tracking and allow you to process events before they reach their final destinations.
+In Google Tag Manager, you'll need to use an existing server container or [create a new one](https://youtu.be/waqBSk3vkko). Server containers are the foundation for server-side tracking and allow you to process events before they reach their final destinations.
 
 - If you already have a server container set up, you can use that
-- If not, create a new server container in your GTM workspace
+- If not, [create a new server container in your GTM workspace](https://developers.google.com/tag-platform/learn/sst-fundamentals/4-sst-setup-container)
 
 ## Step 2: Import Dub GTM Server Client Template
 
-Add a new Client Template using the import option:
+Inside your GTM server container, navigate to the **Templates** tab. Under **Client Templates**, click the **New** button.
 
-1. In your server container, go to **Client Templates** → **New**
-2. Click **Import** and upload the [Dub GTM Server Client template](https://github.com/dubinc/gtm-server-client-template)
+![GTM New Client Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-new-client-template.png)
+
+This will open up the **Template Editor**. In the top right corner, click on the **⋮** button and select **Import**.
+
+![GTM Import Client Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-import-client-template.png)
+
+Download the [gtm-server-client-template/template.tpl](https://raw.githubusercontent.com/dubinc/gtm-server-client-template/main/template.tpl) file and upload it to the Template Editor. You'll see a preview of the template:
 
 ![GTM Server Client Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-server-client-template.png)
 
+Click the **Save** button in the top right to save the template.
+
 ## Step 3: Create Dub Server Client
 
-Next, create a new Client using the imported template:
+Next, you'd want to create a new GTM Server Client using the imported template.
 
-1. In your server container, go to **Clients** → **New**
-2. Select the **Dub GTM Server Client** template from **Custom**
-3. Name the client "Dub Server Client" (or any descriptive name)
-4. Set the **Request Path** to `/dub/track`
-5. Optionally enable debug logging for troubleshooting
+In your GTM server container, navigate to the **Clients** tab and click **New**.
+
+![GTM New Server Client](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-new-server-client.png)
+
+This will open up the client configuration page, where you can choose a client type to begin setup. Under **Custom**, select the **Dub GTM Server Client** template that you created in step 2.
+
+![GTM Choose Client Type](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-choose-client-type.png)
+
+Make sure your client configuration is set to the following:
+
+- Client Name: **Dub GTM Server Client**
+- Priority: **0**
+- Request Path: `/dub/track`
+- Debug Logging: (optional)
 
 ![GTM Server Client](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-server-client.png)
 
@@ -34,37 +50,50 @@ Next, create a new Client using the imported template:
 
 ## Step 4: Import Dub GTM Server Tag Template
 
-Next, import the Dub GTM Server Tag template to handle lead tracking:
+Next, you'll want to import the Dub GTM Server Tag template to handle lead tracking.
 
-1. In your server container, go to **Tags** → **New**
-2. Click **Import** and upload the [Dub GTM Server Tag template](https://github.com/dubinc/gtm-server-tag-template)
-3. This template is specifically designed to send conversion events directly to Dub
+In your GTM server container, navigate to the **Templates** tab once again. Under **Tag Templates**, click the **New** button.
+
+![GTM New Tag Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-new-tag-template.png)
+
+This will open up the **Template Editor**. In the top right corner, click on the **⋮** button and select **Import**.
+
+![GTM Import Client Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-import-client-template.png)
+
+Download the [gtm-server-tag-template/template.tpl](https://raw.githubusercontent.com/dubinc/gtm-server-tag-template/main/template.tpl) file and upload it to the Template Editor. You'll see a preview of the template:
 
 ![Dub GTM Server Tag Template](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-server-tag-template.png)
 
+Click the **Save** button in the top right to save the template.
+
 ## Step 5: Add Lead Tracking Tag
 
-Next, create a new tag for lead tracking with proper mapping:
+Last but not least, you'll want to create a new GTM Server Tag using the imported template.
 
-1. In your server container, go to **Tags** → **New**
-2. Select the **Dub Conversion Tag** template from **Custom**
-3. Name the tag "Dub Lead Tracking" (or any descriptive name)
-4. Configure the tag settings:
+In your GTM server container, navigate to the **Tags** tab and click **New**.
 
-- **Dub API Key**: Enter your [Dub API key](https://dub.co/docs/api-reference/tokens) (starts with `dub_`)
-- **Event**: Select "Track lead"
-- **Click ID**: Map to the `clickId` from the Dub Server Client event data
-- **Customer External ID**: Map to the `customerExternalId` from the event data
-- **Event Name**: Map to the `eventName` from the event data (e.g., "Sign Up")
-- **Customer Name**: Map to the `customerName` from the event data
+![GTM New Tag](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-new-tag.png)
+
+This will open up the tag configuration page. Under **Tag Configuration**, select the **Dub Conversion Tag** server tag template that you created in step 4.
+
+![GTM Choose Tag Type](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-choose-tag-type.png)
+
+Make sure your tag configuration is set to the following:
+
+- **Dub API Key**: Your [Dub API key](https://dub.co/docs/api-reference/tokens) (starts with `dub_`)
+- **Event**: Select "Track lead" from the dropdown
+- **Click ID**: `clickId` from the Dub Server Client event data
+- **Customer External ID**: `customerExternalId` from the event data
+- **Event Name**: `eventName` from the event data (e.g., "Sign Up")
+- **Customer Name**: `customerName` from the event data
 - **Customer Email**: Map to the `customerEmail` from the event data
 - **Customer Avatar**: Map to the `customerAvatar` from the event data (optional)
 - **Event Quantity**: Map to the `eventQuantity` from the event data (default: 1)
-- **Mode**: Set to "async" for non-blocking requests
 
-5. **Triggering**: Configure when the tag should fire:
+![GTM Lead Tracking Tag](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/conversions/google-tag-manager/gtm-track-lead-tag.png)
 
-- Click **Triggering** in the tag configuration
+Under the **Triggering** section, configure when the tag should fire:
+
 - Click **+** to add a new trigger
 - Select **Custom Event** as the trigger type
 - Set the **Event Name** to match the event name from the Dub Server Client. Default is `dub_conversion`
@@ -73,3 +102,19 @@ Next, create a new tag for lead tracking with proper mapping:
   - **Operator**: Equals
   - **Value**: "Sign Up"
 - Name the trigger "Dub Lead Event Trigger" and save it
+
+## Testing your setup
+
+You can test your GTM server setup by sending a curl request to your server URL with the appropriate query parameters:
+
+```bash
+curl "https://server-side-tagging-xxx-uc.a.run.app/dub/track/lead?\
+dub_id=pAzVZ3jzwZXcLMDT&\
+eventName=Sign%20Up&\
+customerExternalId=user_1K0RN3SDNAC0C1WCW4BGRS3EW&\
+customerName=John%20Doe&\
+customerEmail=john@example.com&\
+customerAvatar=https://example.com/avatar.jpg&\
+eventQuantity=1&\
+mode=async"
+```
