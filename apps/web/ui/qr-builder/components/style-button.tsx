@@ -4,7 +4,6 @@ import { FC } from "react";
 import StyleIcon from "./style-icon.tsx";
 
 interface IStyleButtonProps {
-  key: string;
   icon: StaticImageData;
   selected: boolean;
   onClick: () => void;
@@ -13,7 +12,6 @@ interface IStyleButtonProps {
 }
 
 export const StyleButton: FC<IStyleButtonProps> = ({
-  key,
   icon,
   selected,
   onClick,
@@ -22,7 +20,6 @@ export const StyleButton: FC<IStyleButtonProps> = ({
 }) => {
   return (
     <button
-      key={key}
       className={cn(
         "rounded-md border p-4 transition",
         selected

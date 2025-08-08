@@ -3,7 +3,7 @@ import { Command, useCommandState } from "cmdk";
 import Fuse from "fuse.js";
 import { ExternalLink, MessageSquareText } from "lucide-react";
 import { useSession } from "next-auth/react";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import { Dispatch, SetStateAction, useContext, useMemo, useRef } from "react";
 import Highlighter from "react-highlight-words";
 import { useDebouncedCallback } from "use-debounce";
@@ -16,11 +16,11 @@ export function HelpArticles({
 }) {
   const { data: session } = useSession();
   const commandListRef = useRef<HTMLDivElement>(null);
-  const debouncedTrackSearch = useDebouncedCallback((query: string) => {
-    posthog.capture("help_articles_searched", {
-      query,
-    });
-  }, 1000);
+  // const debouncedTrackSearch = useDebouncedCallback((query: string) => {
+  //   posthog.capture("help_articles_searched", {
+  //     query,
+  //   });
+  // }, 1000);
   const { isMobile } = useMediaQuery();
 
   return (
@@ -39,7 +39,7 @@ export function HelpArticles({
               setTimeout(() => {
                 commandListRef.current?.scrollTo(0, 0);
               }, 0);
-              debouncedTrackSearch(e.currentTarget.value);
+              // debouncedTrackSearch(e.currentTarget.value);
             }}
             placeholder="Search articles, guides, and more..."
             className="w-full border-none p-2 text-sm placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-base"
@@ -120,10 +120,10 @@ const CommandResults = () => {
       key={slug}
       value={title}
       onSelect={() => {
-        posthog.capture("help_article_selected", {
-          query: search,
-          slug,
-        });
+        // posthog.capture("help_article_selected", {
+        //   query: search,
+        //   slug,
+        // });
         window.open(`https://dub.co/help/article/${slug}`);
       }}
       className="group flex cursor-pointer items-center justify-between space-x-2 rounded-md px-4 py-2 hover:bg-neutral-100 active:bg-neutral-200 aria-selected:bg-neutral-100"

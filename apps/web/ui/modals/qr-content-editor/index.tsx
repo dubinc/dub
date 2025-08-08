@@ -1,7 +1,6 @@
 "use client";
 
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { setFiles } from "@/ui/qr-builder/helpers";
 import { convertQrStorageDataToBuilderWithPartialUpdate } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { qrTypeDataHandlers } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
@@ -70,6 +69,9 @@ export function QRContentEditorModal({
   setIsProcessing,
 }: QRContentEditorModalProps) {
   const selectedQRType = (qrCode?.qrType as EQRType) || EQRType.WEBSITE;
+  const [isFileUploading, setIsFileUploading] = useState<boolean>(false);
+  const [isFileProcessing, setIsFileProcessing] = useState<boolean>(false);
+  const isLoading = isProcessing || isFileUploading || isFileProcessing;
 
   const { parsedInputValues } = useQrCustomization(qrCode);
   const { updateQrWithOriginal } = useQrOperations();
@@ -127,19 +129,10 @@ export function QRContentEditorModal({
         return;
       }
 
-      const files = [
-        ...(formData.filesImage ? (formData.filesImage as File[]) : []),
-        ...(formData.filesPDF ? (formData.filesPDF as File[]) : []),
-        ...(formData.filesVideo ? (formData.filesVideo as File[]) : []),
-      ];
-
-      // We need to update global files
-      setFiles(files);
-
       const partialUpdate: QRPartialUpdateData = {
         title: formData.qrName as string,
         data: qrDataString,
-        files: files.length > 0 ? files : undefined,
+        fileId: formData.fileId as string,
       };
 
       const qrBuilderData = convertQrStorageDataToBuilderWithPartialUpdate(
@@ -192,6 +185,18 @@ export function QRContentEditorModal({
     setIsHiddenNetwork(checked);
   };
 
+  const getSaveButtonText = () => {
+    if (isFileUploading) {
+      return "Uploading...";
+    }
+
+    if (isFileProcessing) {
+      return "Processing...";
+    }
+
+    return "Save Changes";
+  };
+
   return (
     <Modal
       showModal={showQRContentEditorModal}
@@ -220,7 +225,7 @@ export function QRContentEditorModal({
               disabled={isProcessing}
               type="button"
               onClick={handleClose}
-              className="group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:right-0 md:block"
+              className="active:bg-border-500 group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none md:right-0 md:block"
             >
               <X className="h-5 w-5" />
             </button>
@@ -230,7 +235,6 @@ export function QRContentEditorModal({
           <div className="px-6 pb-6">
             <FormProvider {...methods}>
               {/* QR Content Builder */}
-
               <QRCodeContentBuilder
                 qrType={selectedQRType}
                 isHiddenNetwork={isHiddenNetwork}
@@ -238,6 +242,11 @@ export function QRContentEditorModal({
                 validateFields={validateFields}
                 homePageDemo
                 hideNameField
+                isEdit
+                isFileUploading={isFileUploading}
+                setIsFileUploading={setIsFileUploading}
+                isFileProcessing={isFileProcessing}
+                setIsFileProcessing={setIsFileProcessing}
               />
 
               {/* Actions */}
@@ -246,14 +255,14 @@ export function QRContentEditorModal({
                   type="button"
                   variant="outline"
                   onClick={handleClose}
-                  disabled={isProcessing}
+                  disabled={isLoading}
                   text="Cancel"
                 />
                 <Button
                   type="button"
                   onClick={() => validateFields()}
-                  loading={isProcessing}
-                  text="Save Changes"
+                  loading={isLoading}
+                  text={getSaveButtonText()}
                 />
               </div>
             </FormProvider>

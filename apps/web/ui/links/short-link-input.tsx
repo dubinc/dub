@@ -28,7 +28,7 @@ import {
 } from "@dub/utils";
 import { useCompletion } from "ai/react";
 import { TriangleAlert } from "lucide-react";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import {
   forwardRef,
   HTMLProps,
@@ -165,10 +165,10 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       onFinish: (_, completion) => {
         setGeneratedKeys((prev) => [...prev, completion]);
         mutateWorkspace();
-        posthog.capture("ai_key_generated", {
-          key: completion,
-          url: data.url,
-        });
+        // posthog.capture("ai_key_generated", {
+        //   key: completion,
+        //   url: data.url,
+        // });
       },
     });
 

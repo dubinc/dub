@@ -22,10 +22,10 @@ export default function LinkPreviewTooltip({ data }: { data: LinkProps }) {
               href={linkConstructor({ domain, key })}
               target="_blank"
               rel="noopener noreferrer"
-              title={linkConstructor({ domain, key, pretty: true })}
+              title={data.qr?.title}
               className="truncate text-sm font-semibold leading-6 text-neutral-800 transition-colors hover:text-black"
             >
-              {linkConstructor({ domain, key, pretty: true })}
+              {data.qr?.title}
             </a>
             <CopyButton
               value={linkConstructor({

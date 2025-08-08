@@ -1,4 +1,4 @@
-import RatingStars from "@/ui/landing/assets/svg/stars.svg";
+import RatingStars from "@/ui/landing/assets/webp/stars.webp";
 import { cn } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { Text } from "@radix-ui/themes";

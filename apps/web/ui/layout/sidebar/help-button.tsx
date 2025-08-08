@@ -5,7 +5,7 @@ import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import { useState } from "react";
 import { HelpArticle, HelpContext } from "../help";
 import { HelpSection } from "../help/help-section";
@@ -30,9 +30,9 @@ export function HelpButton({
         <button
           type="button"
           onClick={() => {
-            if (!isOpen) {
-              posthog.capture("help_portal_opened");
-            }
+            // if (!isOpen) {
+            //   posthog.capture("help_portal_opened");
+            // }
             setIsOpen((o) => !o);
           }}
           className={cn(

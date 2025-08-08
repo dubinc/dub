@@ -2,7 +2,12 @@ export const CUSTOMER_IO_TEMPLATES = {
   SIGNUP_CODE: "sign_up_code",
   MAGIC_LINK: "magic_link",
   WELCOME_EMAIL: "welcome_email",
+  GOOGLE_WELCOME_EMAIL: "google_welcome_email",
   SUBSCRIPTION_ACTIVE: "subscription_active",
   REFUND: "refund",
   SUBSCRIPTION_CANCELLATION: "subscription_cancellation",
+  DOWNGRADE_TO_MONTHLY: "downgrade_to_monthly",
+  DOWNGRADE_TO_3_MONTH: "downgrade_to_3_month",
+  UPGRADE_FROM_MONTHLY: "upgrade_from_monthly",
+  UPGRADE_FROM_3_MONTH: "upgrade_from_3_month",
 };

@@ -28,7 +28,7 @@ import {
 import { Download, TableIcon } from "@dub/ui/icons";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import {
   Dispatch,
   ReactNode,
@@ -40,14 +40,14 @@ import {
 export default function WorkspaceLinksClient() {
   const { data: session } = useSession();
 
-  useEffect(() => {
-    if (session?.user) {
-      posthog.identify(session.user["id"], {
-        email: session.user.email,
-        name: session.user.name,
-      });
-    }
-  }, [session?.user]);
+  // useEffect(() => {
+  //   if (session?.user) {
+  //     posthog.identify(session.user["id"], {
+  //       email: session.user.email,
+  //       name: session.user.name,
+  //     });
+  //   }
+  // }, [session?.user]);
 
   return (
     <LinksDisplayProvider>

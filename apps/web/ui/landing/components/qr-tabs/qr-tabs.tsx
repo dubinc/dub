@@ -1,11 +1,13 @@
 "use client";
 
+import { saveQrDataToRedisAction } from "@/lib/actions/save-qr-data-to-redis.ts";
 import { useAuthModal } from "@/ui/modals/auth-modal.tsx";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder.tsx";
 import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { Rating } from "@/ui/qr-rating/rating.tsx";
 import { useLocalStorage, useMediaQuery } from "@dub/ui";
+import { useAction } from "next-safe-action/hooks";
 import { FC, forwardRef, Ref, useEffect } from "react";
 import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
 
@@ -16,12 +18,15 @@ interface IQRTabsProps {
 export const QRTabs: FC<
   Readonly<IQRTabsProps> & { ref?: Ref<HTMLDivElement> }
 > = forwardRef(({ sessionId }, ref) => {
+  console.log("qr tabs");
   const { AuthModal, showModal } = useAuthModal({ sessionId });
 
-  const [, setQrDataToCreate] = useLocalStorage<QRBuilderData | null>(
-    `qr-data-to-create`,
-    null,
+  const { executeAsync: saveQrDataToRedis } = useAction(
+    saveQrDataToRedisAction,
   );
+
+  const [qrDataToCreate, setQrDataToCreate] =
+    useLocalStorage<QRBuilderData | null>(`qr-data-to-create`, null);
 
   const { isMobile } = useMediaQuery();
 
@@ -52,7 +57,14 @@ export const QRTabs: FC<
   }, [isMobile]);
 
   const handleSaveQR = async (data: QRBuilderData) => {
-    setQrDataToCreate(data);
+    const newDataJSON = JSON.stringify(data);
+    const qrDataToCreateJSON = JSON.stringify(qrDataToCreate) ?? "{}";
+
+    if (newDataJSON !== qrDataToCreateJSON) {
+      setQrDataToCreate(data);
+      saveQrDataToRedis({ sessionId, qrData: data });
+    }
+
     showModal("signup");
   };
 

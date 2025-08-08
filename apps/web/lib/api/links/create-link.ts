@@ -20,8 +20,9 @@ import { linkCache } from "./cache";
 import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
+import { EQRType } from '@/ui/qr-builder/constants/get-qr-config';
 
-export async function createLink(link: ProcessedLinkProps) {
+export async function createLink(link: ProcessedLinkProps, qrData?: { id?: string; qrType?: EQRType }) {
   let {
     key,
     url,
@@ -135,7 +136,7 @@ export async function createLink(link: ProcessedLinkProps) {
       // cache link in Redis
       linkCache.set(response),
       // record link in Tinybird
-      recordLink(response),
+      recordLink(response, qrData),
       // Upload image to R2 and update the link with the uploaded image URL when
       // proxy is enabled and image is set and not stored in R2
       ...(proxy && image && !isStored(image)

@@ -1,5 +1,7 @@
 import { withSession } from "@/lib/auth";
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
 import { prisma } from "@dub/prisma";
+import { format } from "date-fns";
 import {
   IUpdateSubscriptionBody,
   IUpdateSubscriptionRes,
@@ -7,9 +9,10 @@ import {
 import {
   getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
+  priceConfig,
   TPaymentPlan,
 } from "core/integration/payment/config";
-import { PaymentService } from "core/integration/payment/server";
+import { IGetSystemUserDataRes, PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import {
   getUserCookieService,
@@ -26,6 +29,37 @@ const allowedPaymentPlans: Partial<TPaymentPlan>[] = [
   "PRICE_QUARTER_PLAN",
   "PRICE_YEAR_PLAN",
 ];
+
+const titlesByPlans = {
+  PRICE_MONTH_PLAN: "Monthly Plan",
+  PRICE_QUARTER_PLAN: "3-Month Plan",
+  PRICE_YEAR_PLAN: "12-Month Plan",
+};
+
+const getPlanNameByChargePeriodDays = (chargePeriodDays: number) => {
+  if (chargePeriodDays === priceConfig.YEARLY_PLAN_CHARGE_PERIOD_DAYS) {
+    return "PRICE_YEAR_PLAN";
+  }
+  if (chargePeriodDays === priceConfig.QUARTERLY_PLAN_CHARGE_PERIOD_DAYS) {
+    return "PRICE_QUARTER_PLAN";
+  }
+  return "PRICE_MONTH_PLAN";
+};
+
+const getEmailTemplate = (prevPlan: string, newPlan: string) => {
+  if (newPlan === "PRICE_MONTH_PLAN") {
+    return CUSTOMER_IO_TEMPLATES.DOWNGRADE_TO_MONTHLY;
+  }
+  if (prevPlan === "PRICE_YEAR_PLAN" && newPlan === "PRICE_QUARTER_PLAN") {
+    return CUSTOMER_IO_TEMPLATES.DOWNGRADE_TO_3_MONTH;
+  }
+  if (prevPlan === "PRICE_MONTH_PLAN") {
+    return CUSTOMER_IO_TEMPLATES.UPGRADE_FROM_MONTHLY;
+  }
+  if (prevPlan === "PRICE_QUARTER_PLAN" && newPlan === "PRICE_YEAR_PLAN") {
+    return CUSTOMER_IO_TEMPLATES.UPGRADE_FROM_3_MONTH;
+  }
+};
 
 // update user subscription
 export const POST = withSession(
@@ -74,6 +108,20 @@ export const POST = withSession(
       user: user!,
     });
 
+    const email = user?.email || authUser?.email;
+
+    console.log("Update subscription");
+    console.log("body", body);
+
+    const subData = await paymentService.getClientSubscriptionDataByEmail({ email: user?.email || authUser?.email });
+    const subscription = subData.subscriptions.at(-1) as IGetSystemUserDataRes["subscriptions"][0];
+    console.log("sub data", subscription);
+
+    // TODO: better to use plan_name from attributes but attributes doesn't change after subscription update
+    // so need to remove getPlanNameByChargePeriodDays method if attributes will be reliable
+    // const prevPlan = subData.subscriptions[0].attributes.plan_name;
+    const prevPlan = getPlanNameByChargePeriodDays(subscription.plan.chargePeriodDays);
+
     try {
       await paymentService.updateClientSubscription(
         paymentData?.paymentInfo?.subscriptionId || "",
@@ -94,7 +142,7 @@ export const POST = withSession(
             ...(paymentData?.sessions && { ...paymentData.sessions }),
 
             //**** for analytics ****//
-            email: user?.email || null,
+            email: email,
             flow_type: "internal",
             locale: "en",
             mixpanel_user_id:
@@ -117,6 +165,11 @@ export const POST = withSession(
         },
       );
 
+      const subDataAfterUpdate = await paymentService.getClientSubscriptionDataByEmail({ email: email });
+      const newSubData = subDataAfterUpdate.subscriptions.at(-1) as IGetSystemUserDataRes["subscriptions"][0];
+
+      console.log("sub data after update", newSubData);
+
       await Promise.all([
         prisma.user.update({
           where: {
@@ -137,6 +190,20 @@ export const POST = withSession(
             ...user?.paymentInfo,
             subscriptionPlanCode: body.paymentPlan,
           },
+        }),
+        sendEmail({
+          email,
+          subject: "Sub upgrade",
+          template: getEmailTemplate(prevPlan, body.paymentPlan),
+          messageData: {
+            amount: (newSubData.plan.price / 100).toFixed(2) + ' ' + newSubData.plan.currencyCode,
+            next_billing_date: format(
+              new Date(newSubData.nextBillingDate),
+              "yyyy-MM-dd",
+            ),
+            plan: titlesByPlans[body.paymentPlan],
+          },
+          customerId: user?.id,
         }),
       ]);
 

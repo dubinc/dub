@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Logo, Modal } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -52,15 +52,15 @@ function AcceptInviteModal({
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                 }).then(async () => {
-                  if (session?.user) {
-                    posthog.identify(session.user["id"], {
-                      email: session.user.email,
-                      name: session.user.name,
-                    });
-                  }
-                  posthog.capture("accepted_workspace_invite", {
-                    workspace: slug,
-                  });
+                  // if (session?.user) {
+                  //   posthog.identify(session.user["id"], {
+                  //     email: session.user.email,
+                  //     name: session.user.name,
+                  //   });
+                  // }
+                  // posthog.capture("accepted_workspace_invite", {
+                  //   workspace: slug,
+                  // });
                   await mutatePrefix("/api/workspaces");
                   router.replace(`/${slug}`);
                   setShowAcceptInviteModal(false);

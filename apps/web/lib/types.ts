@@ -69,7 +69,7 @@ import {
   WebhookSchema,
 } from "./zod/schemas/webhooks";
 
-export type LinkProps = Link;
+export type LinkProps = Link & { qr?: { id: string, qrType: string, title: string } };
 
 // used on client side (e.g. Link builder)
 // TODO: standardize this with ExpandedLink

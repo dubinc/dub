@@ -1,5 +1,6 @@
 import { cn } from "@dub/utils";
 import { sha256 } from "js-sha256";
+import { CircleUserRound } from "lucide-react";
 import { useState } from "react";
 
 type User = {
@@ -41,7 +42,16 @@ export function Avatar({
     );
   }
 
-  const [url, setUrl] = useState(getUserAvatarUrl(user));
+  const [url, setUrl] = useState(user.image || "");
+
+  if (!url) {
+    return (
+      <CircleUserRound
+        strokeWidth={1.5}
+        className={cn("text-neutral-500", className)}
+      />
+    );
+  }
 
   return (
     <img

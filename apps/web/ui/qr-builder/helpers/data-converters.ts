@@ -27,35 +27,13 @@ export const convertQRBuilderDataToServer = async (
 
   const data = qrBuilderData.styles.data || "";
 
-  let fileId: string | undefined;
-
-  if (qrBuilderData.files && qrBuilderData.files.length > 0) {
-    const firstFile = qrBuilderData.files[0];
-
-    const formData = new FormData();
-    formData.append("file", firstFile);
-
-    const response = await fetch(process.env.NEXT_PUBLIC_FILES_HANDLER_URL!, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to upload file");
-    }
-
-    const respData = await response.json();
-
-    fileId = respData.file.id;
-  }
-
   return {
     data,
     qrType: qrBuilderData.qrType,
     title: qrBuilderData.title,
     styles: qrBuilderData.styles,
     frameOptions: qrBuilderData.frameOptions,
-    fileId,
+    fileId: qrBuilderData.fileId,
     link: {
       url: data,
       domain,
@@ -78,7 +56,6 @@ export const convertQrStorageDataToBuilder = (
       text: FRAME_TEXT,
     },
     qrType: qrStorageData.qrType as EQRType,
-    files: [], // Files are not transferred when updating via rename
   };
 };
 
@@ -102,7 +79,7 @@ export const convertQrStorageDataToBuilderWithPartialUpdate = (
       text: FRAME_TEXT,
     },
     qrType: qrStorageData.qrType as EQRType,
-    files: partialUpdate.files || [],
+    fileId: partialUpdate.fileId,
   };
 };
 
@@ -145,7 +122,8 @@ export const convertQRForUpdate = async (
   const stylesChanged =
     JSON.stringify(originalStyles) !== JSON.stringify(newStyles);
 
-  const hasNewFiles = newQRData.files && newQRData.files.length > 0;
+  const hasNewFiles = !!newQRData.fileId;
+
   const hasExistingFiles = originalQR.fileId;
 
   const hasChanges =
@@ -156,28 +134,6 @@ export const convertQRForUpdate = async (
     stylesChanged ||
     hasNewFiles;
 
-  let fileId: string | undefined;
-
-  if (hasNewFiles) {
-    const firstFile = newQRData.files[0];
-
-    const formData = new FormData();
-    formData.append("file", firstFile);
-
-    const response = await fetch(process.env.NEXT_PUBLIC_FILES_HANDLER_URL!, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to upload file");
-    }
-
-    const respData = await response.json();
-
-    fileId = respData.file.id;
-  }
-
   const linkUrl =
     hasNewFiles || (hasExistingFiles && newQrDataHasFileQrType) ? "" : newData;
 
@@ -187,7 +143,7 @@ export const convertQRForUpdate = async (
     title: newQRData.title,
     styles: newQRData.styles,
     frameOptions: newQRData.frameOptions,
-    fileId,
+    fileId: newQRData.fileId,
     link: {
       url: linkUrl,
       domain,

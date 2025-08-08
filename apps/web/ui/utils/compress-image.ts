@@ -54,6 +54,8 @@ export type TCompressedImageFile = File & {
   fileId: string;
   originalFileName: string;
   originalFileSize: number;
+  uploadStatus: "success";
+  uploadProgress: number;
 };
 
 export function createCompressedImageFile(
@@ -71,5 +73,7 @@ export function createCompressedImageFile(
     fileId: fileId,
     originalFileName: fileName,
     originalFileSize: originalFileSize,
+    uploadStatus: "success",
+    uploadProgress: 100,
   }) as TCompressedImageFile;
 }

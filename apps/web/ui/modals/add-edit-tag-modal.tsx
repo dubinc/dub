@@ -14,7 +14,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { capitalize, cn, pluralize } from "@dub/utils";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import {
   Dispatch,
   FormEvent,
@@ -117,11 +117,11 @@ function AddEditTagModal({
             }),
           }).then(async (res) => {
             if (res.status === 200 || res.status === 201) {
-              posthog.capture(props ? "tag_edited" : "tag_created", {
-                tag_id: data.id,
-                tag_name: data.name,
-                tag_color: data.color,
-              });
+              // posthog.capture(props ? "tag_edited" : "tag_created", {
+              //   tag_id: data.id,
+              //   tag_name: data.name,
+              //   tag_color: data.color,
+              // });
               await mutatePrefix(["/api/tags", "/api/links"]);
               toast.success(endpoint.successMessage);
               setShowAddEditTagModal(false);

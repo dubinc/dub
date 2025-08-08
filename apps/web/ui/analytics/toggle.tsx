@@ -1,21 +1,11 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
 import {
   INTERVAL_DISPLAYS,
-  TRIGGER_DISPLAY,
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import useDomains from "@/lib/swr/use-domains";
-import useDomainsCount from "@/lib/swr/use-domains-count";
-import useFolders from "@/lib/swr/use-folders";
-import useFoldersCount from "@/lib/swr/use-folders-count";
-import useTags from "@/lib/swr/use-tags";
-import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
-import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
-import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
-import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
   BlurImage,
   Button,
@@ -32,10 +22,7 @@ import {
 } from "@dub/ui";
 import {
   Cube,
-  CursorRays,
   FlagWavy,
-  // Folder,
-  Globe2,
   Hyperlink,
   LinkBroken,
   LocationPin,
@@ -43,7 +30,6 @@ import {
   MapPosition,
   MobilePhone,
   OfficeBuilding,
-  QRCode,
   ReferredVia,
   // Tag,
   Window,
@@ -62,8 +48,8 @@ import {
   nFormatter,
   REGIONS,
 } from "@dub/utils";
+import { Icon } from "@iconify/react";
 import { readStreamableValue } from "ai/rsc";
-import posthog from "posthog-js";
 import {
   ComponentProps,
   useCallback,
@@ -71,10 +57,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useDebounce } from "use-debounce";
-// import { FolderIcon } from "../folders/folder-icon";
 import { LinkIcon } from "../links/link-icon";
-// import TagBadge from "../links/tag-badge";
+import { ANALYTICS_QR_TYPES_DATA } from "../qr-builder/constants/get-qr-config";
 import { AnalyticsContext } from "./analytics-provider";
 import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
@@ -107,42 +91,8 @@ export default function Toggle({
 
   const scrolled = useScroll(120);
 
-  // Determine whether tags and domains should be fetched async
-  const { data: tagsCount } = useTagsCount();
-  const { data: domainsCount } = useDomainsCount({ ignoreParams: true });
-  const { data: foldersCount } = useFoldersCount();
-  const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
-  const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
-  const foldersAsync = foldersCount && foldersCount > FOLDERS_MAX_PAGE_SIZE;
-
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [debouncedSearch] = useDebounce(search, 500);
-
-  const { tags, loading: loadingTags } = useTags();
-  const { folders, loading: loadingFolders } = useFolders();
-
-  const {
-    allDomains: domains,
-    primaryDomain,
-    loading: loadingDomains,
-  } = useDomains({
-    ignoreParams: true,
-    opts: {
-      search:
-        domainsAsync && selectedFilter === "domain" ? debouncedSearch : "",
-    },
-  });
-
-  const selectedTagIds = useMemo(
-    () => searchParamsObj.tagIds?.split(",")?.filter(Boolean) ?? [],
-    [searchParamsObj.tagIds],
-  );
-
-  const { tags: selectedTags } = useTags({
-    query: { ids: selectedTagIds },
-    enabled: tagsAsync,
-  });
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
@@ -160,10 +110,6 @@ export default function Toggle({
               value: linkConstructor({ domain, key, pretty: true }),
             },
           ]
-        : []),
-      // Handle tagIds special case
-      ...(selectedTagIds.length > 0
-        ? [{ key: "tagIds", value: selectedTagIds }]
         : []),
       // Handle root special case - convert string to boolean
       ...(root ? [{ key: "root", value: root === "true" }] : []),
@@ -185,7 +131,7 @@ export default function Toggle({
     });
 
     return filters;
-  }, [searchParamsObj, selectedTagIds]);
+  }, [searchParamsObj]);
 
   const isRequested = useCallback(
     (key: string) =>
@@ -217,9 +163,6 @@ export default function Toggle({
   });
   const { data: os } = useAnalyticsFilterOption("os", {
     cacheOnly: !isRequested("os"),
-  });
-  const { data: triggers } = useAnalyticsFilterOption("triggers", {
-    cacheOnly: !isRequested("trigger"),
   });
   const { data: referers } = useAnalyticsFilterOption("referers", {
     cacheOnly: !isRequested("referer"),
@@ -253,152 +196,17 @@ export default function Toggle({
     utm_content: utmContents,
   };
 
-  // Some suggestions will only appear if previously requested (see isRequested above)
-  const aiFilterSuggestions = useMemo(
-    () => [
-      ...(dashboardProps
-        ? []
-        : [
-            {
-              value: `Clicks on ${primaryDomain} domain this year`,
-              icon: Globe2,
-            },
-          ]),
-      {
-        value: "Mobile users, US only",
-        icon: MobilePhone,
-      },
-      {
-        value: "Tokyo, Chrome users",
-        icon: OfficeBuilding,
-      },
-      {
-        value: "Safari, Singapore, last month",
-        icon: FlagWavy,
-      },
-      {
-        value: "QR scans last quarter",
-        icon: QRCode,
-      },
-    ],
-    [primaryDomain, dashboardProps],
-  );
-
   const [streaming, setStreaming] = useState<boolean>(false);
 
   const filters: ComponentProps<typeof Filter.Select>["filters"] = useMemo(
     () => [
-      // {
-      //   key: "ai",
-      //   icon: Magic,
-      //   label: "Ask AI",
-      //   separatorAfter: true,
-      //   options:
-      //     aiFilterSuggestions?.map(({ icon, value }) => ({
-      //       value,
-      //       label: value,
-      //       icon,
-      //     })) ?? null,
-      // },
       ...(dashboardProps
         ? []
         : [
-            // ...(flags?.linkFolders
-            //   ? [
-            //       {
-            //         key: "folderId",
-            //         icon: Folder,
-            //         label: "Folder",
-            //         shouldFilter: !foldersAsync,
-            //         getOptionIcon: (value, props) => {
-            //           const folderName = props.option?.label;
-            //           const folder = folders?.find(
-            //             ({ name }) => name === folderName,
-            //           );
-            //
-            //           return folder ? (
-            //             <FolderIcon
-            //               folder={folder}
-            //               shape="square"
-            //               iconClassName="size-3"
-            //             />
-            //           ) : null;
-            //         },
-            //         options:
-            //           folders?.map((folder) => ({
-            //             value: folder.id,
-            //             icon: (
-            //               <FolderIcon
-            //                 folder={folder}
-            //                 shape="square"
-            //                 iconClassName="size-3"
-            //               />
-            //             ),
-            //             label: folder.name,
-            //           })) ?? null,
-            //       },
-            //     ]
-            //   : []),
-            // {
-            //   key: "tagIds",
-            //   icon: Tag,
-            //   label: "Tag",
-            //   multiple: true,
-            //   shouldFilter: !tagsAsync,
-            //   getOptionIcon: (value, props) => {
-            //     const tagColor =
-            //       props.option?.data?.color ??
-            //       tags?.find(({ id }) => id === value)?.color;
-            //     return tagColor ? (
-            //       <TagBadge color={tagColor} withIcon className="sm:p-1" />
-            //     ) : null;
-            //   },
-            //   options:
-            //     tags?.map(({ id, name, color }) => ({
-            //       value: id,
-            //       icon: <TagBadge color={color} withIcon className="sm:p-1" />,
-            //       label: name,
-            //       data: { color },
-            //     })) ?? null,
-            // },
-            {
-              key: "domain",
-              icon: Globe2,
-              label: "Domain",
-              shouldFilter: !domainsAsync,
-              getOptionIcon: (value) => (
-                <BlurImage
-                  src={`${GOOGLE_FAVICON_URL}${value}`}
-                  alt={value}
-                  className="h-4 w-4 rounded-full"
-                  width={16}
-                  height={16}
-                />
-              ),
-              options: loadingDomains
-                ? null
-                : [
-                    ...domains.map((domain) => ({
-                      value: domain.slug,
-                      label: domain.slug,
-                    })),
-                    // Add currently filtered domain if not already in the list
-                    ...(!searchParamsObj.domain ||
-                    domains.some((d) => d.slug === searchParamsObj.domain)
-                      ? []
-                      : [
-                          {
-                            value: searchParamsObj.domain,
-                            label: searchParamsObj.domain,
-                            hideDuringSearch: true,
-                          },
-                        ]),
-                  ],
-            },
             {
               key: "link",
               icon: Hyperlink,
-              label: "Link",
+              label: "QR name",
               getOptionIcon: (value, props) => {
                 const url = props.option?.data?.url;
                 const [domain, key] = value.split("/");
@@ -412,45 +220,61 @@ export default function Toggle({
                     key,
                     url,
                     count,
-                  }: LinkProps & { count?: number }) => ({
+                    qr,
+                  }: LinkProps & {
+                    count?: number;
+                    qr?: { title: string };
+                  }) => ({
                     value: linkConstructor({ domain, key, pretty: true }),
-                    label: linkConstructor({ domain, key, pretty: true }),
+                    label: qr?.title,
                     right: nFormatter(count, { full: true }),
                     data: { url },
                   }),
                 ) ?? null,
             },
             {
-              key: "root",
+              key: "qrType",
               icon: Sliders,
-              label: "Link type",
-              options: [
-                {
-                  value: true,
-                  icon: Globe2,
-                  label: "Root domain link",
-                },
-                {
-                  value: false,
-                  icon: Hyperlink,
-                  label: "Regular short link",
-                },
-              ],
+              label: "QR type",
+              options: ANALYTICS_QR_TYPES_DATA.map((type) => ({
+                value: type.id,
+                icon: () => <Icon icon={type.icon} className={cn("h-4 w-4")} />,
+                label: type.label,
+              })),
+              separatorAfter: !dashboardProps,
             },
+            // {
+            //   key: "root",
+            //   icon: Sliders,
+            //   label: "Link type",
+            //   options: [
+            //     {
+            //       value: true,
+            //       icon: Globe2,
+            //       label: "Root domain link",
+            //     },
+            //     {
+            //       value: false,
+            //       icon: Hyperlink,
+            //       label: "Regular short link",
+            //     },
+            //   ],
+            //   separatorAfter: !dashboardProps,
+            // },
           ]),
-      {
-        key: "trigger",
-        icon: CursorRays,
-        label: "Trigger",
-        options:
-          triggers?.map(({ trigger, count }) => ({
-            value: trigger,
-            label: TRIGGER_DISPLAY[trigger],
-            icon: trigger === "qr" ? QRCode : CursorRays,
-            right: nFormatter(count, { full: true }),
-          })) ?? null,
-        separatorAfter: !dashboardProps,
-      },
+      // {
+      //   key: "trigger",
+      //   icon: CursorRays,
+      //   label: "Trigger",
+      //   options:
+      //     triggers?.map(({ trigger, count }) => ({
+      //       value: trigger,
+      //       label: TRIGGER_DISPLAY[trigger],
+      //       icon: trigger === "qr" ? QRCode : CursorRays,
+      //       right: nFormatter(count, { full: true }),
+      //     })) ?? null,
+      //   separatorAfter: !dashboardProps,
+      // },
       {
         key: "country",
         icon: FlagWavy,
@@ -631,11 +455,7 @@ export default function Toggle({
     ],
     [
       dashboardProps,
-      domains,
       links,
-      tags,
-      folders,
-      selectedTags,
       countries,
       cities,
       devices,
@@ -645,12 +465,6 @@ export default function Toggle({
       refererUrls,
       urls,
       utmData,
-      tagsAsync,
-      domainsAsync,
-      foldersAsync,
-      loadingTags,
-      loadingDomains,
-      loadingFolders,
       searchParamsObj.tagIds,
       searchParamsObj.domain,
     ],
@@ -683,12 +497,15 @@ export default function Toggle({
               });
             }
           }
-          posthog.capture("ai_filters_generated", {
-            prompt,
-            filters: activeFilters,
-          });
           setStreaming(false);
         } else {
+          let del: string | string[] = "page";
+          if (key === "qrType") {
+            del = ["domain", "key", "page"];
+          }
+          if (key === "link") {
+            del = ["qrType", "page"];
+          }
           queryParams({
             set:
               key === "link"
@@ -697,33 +514,19 @@ export default function Toggle({
                     key:
                       new URL(`https://${value}`).pathname.slice(1) || "_root",
                   }
-                : key === "tagIds"
-                  ? {
-                      tagIds: selectedTagIds.concat(value).join(","),
-                    }
-                  : {
-                      [key]: value,
-                    },
-            del: "page",
+                : {
+                    [key]: value,
+                  },
+            del,
             scroll: false,
           });
         }
       }}
       onRemove={(key, value) =>
-        queryParams(
-          key === "tagIds" &&
-            !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
-            ? {
-                set: {
-                  tagIds: selectedTagIds.filter((id) => id !== value).join(","),
-                },
-                scroll: false,
-              }
-            : {
-                del: key === "link" ? ["domain", "key"] : key,
-                scroll: false,
-              },
-        )
+        queryParams({
+          del: key === "link" ? ["domain", "key"] : key,
+          scroll: false,
+        })
       }
       onOpenFilter={(key) =>
         setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
@@ -934,22 +737,10 @@ export default function Toggle({
               : []),
           ]}
           onRemove={(key, value) =>
-            queryParams(
-              key === "tagIds" &&
-                !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
-                ? {
-                    set: {
-                      tagIds: selectedTagIds
-                        .filter((id) => id !== value)
-                        .join(","),
-                    },
-                    scroll: false,
-                  }
-                : {
-                    del: key === "link" ? ["domain", "key", "url"] : key,
-                    scroll: false,
-                  },
-            )
+            queryParams({
+              del: key === "link" ? ["domain", "key", "url"] : key,
+              scroll: false,
+            })
           }
           onRemoveAll={() =>
             queryParams({

@@ -2,7 +2,6 @@
 
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import useWorkspaces from "@/lib/swr/use-workspaces";
 import { SimpleLinkProps } from "@/lib/types";
 import { useAcceptInviteModal } from "@/ui/modals/accept-invite-modal";
 import { useAddEditDomainModal } from "@/ui/modals/add-edit-domain-modal";
@@ -13,7 +12,6 @@ import { useImportCsvModal } from "@/ui/modals/import-csv-modal";
 import { useImportShortModal } from "@/ui/modals/import-short-modal";
 import { useCookies } from "@dub/ui";
 import { DEFAULT_LINK_PROPS, getUrlFromString } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -30,7 +28,7 @@ import { AuthType } from "./auth-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useImportRewardfulModal } from "./import-rewardful-modal";
 import { useLinkBuilder } from "./link-builder";
-import { useWelcomeModal } from "./welcome-modal";
+// import { useWelcomeModal } from "./welcome-modal";
 
 export const ModalContext = createContext<{
   setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
@@ -115,18 +113,10 @@ function ModalProviderClient({
   const { setShowImportRebrandlyModal, ImportRebrandlyModal } =
     useImportRebrandlyModal();
   const { setShowImportCsvModal, ImportCsvModal } = useImportCsvModal();
-  const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
+  // const { setShowWelcomeModal, WelcomeModal } = useWelcomeModal();
   const { setShowImportRewardfulModal, ImportRewardfulModal } =
     useImportRewardfulModal();
   const { AuthModal, showModal: showAuthModal } = useAuthModal({ sessionId });
-
-  useEffect(
-    () =>
-      setShowWelcomeModal(
-        searchParams.has("onboarded") || searchParams.has("upgraded"),
-      ),
-    [searchParams],
-  );
 
   const [hashes, setHashes] = useCookies<SimpleLinkProps[]>("hashes__dub", [], {
     domain: !!process.env.NEXT_PUBLIC_VERCEL_URL ? ".dub.co" : undefined,
@@ -175,29 +165,6 @@ function ModalProviderClient({
     }
   }, []);
 
-  const { data: session, update } = useSession();
-  const { workspaces } = useWorkspaces();
-
-  // if user has workspaces but no defaultWorkspace, refresh to get defaultWorkspace
-  useEffect(() => {
-    if (
-      workspaces &&
-      workspaces.length > 0 &&
-      session?.user &&
-      !session.user["defaultWorkspace"]
-    ) {
-      fetch("/api/user", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          defaultWorkspace: workspaces[0].slug,
-        }),
-      }).then(() => update());
-    }
-  }, [session]);
-
   useEffect(() => {
     const authType = searchParams.get("auth");
     if (authType === "login" || authType === "signup") {
@@ -230,7 +197,7 @@ function ModalProviderClient({
       <ImportRebrandlyModal />
       <ImportCsvModal />
       <ImportRewardfulModal />
-      <WelcomeModal />
+      {/*<WelcomeModal />*/}
       <AuthModal />
       {children}
     </ModalContext.Provider>

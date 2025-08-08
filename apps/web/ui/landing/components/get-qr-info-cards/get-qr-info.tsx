@@ -1,9 +1,9 @@
 import { SectionTitle } from "@/ui/landing/components/section-title.tsx";
 import Image from "next/image";
 import { FC } from "react";
-import GetQEInfoCardOne from "../../assets/svg/get-qr-info-card-1.svg";
-import GetQEInfoCardTwo from "../../assets/svg/get-qr-info-card-2.svg";
-import GetQEInfoCardThree from "../../assets/svg/get-qr-info-card-3.svg";
+import GetQEInfoCardOne from "../../assets/webp/get-qr-info-card-1.webp";
+import GetQEInfoCardTwo from "../../assets/webp/get-qr-info-card-2.webp";
+import GetQEInfoCardThree from "../../assets/webp/get-qr-info-card-3.webp";
 import { InfoCard } from "./components/InfoCard.tsx";
 import { GET_QR_CARDS } from "./config.ts";
 

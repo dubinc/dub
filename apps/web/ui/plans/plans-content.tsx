@@ -27,6 +27,7 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
   user,
   mostScannedQR,
 }) => {
+  console.log("user", user);
   const { isTrialOver } = useTrialStatus();
   const paymentSectionRef = useRef<HTMLDivElement>(null);
 

@@ -80,13 +80,12 @@ export default function PdfViewer({ file, url }: PdfViewerSVGProps) {
   return (
     <>
       {imageDataUrl ? (
-        <img
+        <Image
           src={imageDataUrl}
           alt="PDF Preview"
+          fill
+          className="object-contain"
           style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
             display: "block",
           }}
         />

@@ -26,7 +26,7 @@ import {
   QrCode,
   TextCursorInput,
 } from "lucide-react";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -169,7 +169,7 @@ export function AddEditDomainForm({
           mutatePrefix("/api/links"),
         ]);
         const data = await res.json();
-        posthog.capture(props ? "domain_updated" : "domain_created", data);
+        // posthog.capture(props ? "domain_updated" : "domain_created", data);
         toast.success(endpoint.successMessage);
         onSuccess?.(data);
       } else {

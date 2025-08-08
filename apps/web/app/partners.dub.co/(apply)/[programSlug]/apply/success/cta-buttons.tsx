@@ -23,7 +23,7 @@ export function CTAButtons() {
         />
       </Link>
       {status === "unauthenticated" && (
-        <Link href="/login">
+        <Link href="/?login=true">
           <Button
             type="button"
             variant="secondary"

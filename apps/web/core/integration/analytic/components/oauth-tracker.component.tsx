@@ -16,7 +16,7 @@ export const OauthTrackerComponent: FC<Readonly<IOauthTrackerProps>> = ({
   oauthData,
 }) => {
   useEffect(() => {
-    const { flow, provider, email, userId } = oauthData ?? {};
+    const { flow, provider, email, userId, signupOrigin } = oauthData ?? {};
 
     trackClientEvents({
       event:
@@ -28,6 +28,7 @@ export const OauthTrackerComponent: FC<Readonly<IOauthTrackerProps>> = ({
         method: provider,
         email,
         event_category: "Authorized",
+        ...(flow === "signup" ? { signup_origin: signupOrigin ?? "none" } : {}),
       },
       sessionId: userId,
     });

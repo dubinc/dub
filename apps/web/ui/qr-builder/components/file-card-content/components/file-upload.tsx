@@ -12,6 +12,7 @@ import {
   FileVideoIcon,
 } from "lucide-react";
 import * as React from "react";
+import Image from "next/image";
 
 const ROOT_NAME = "FileUpload";
 const DROPZONE_NAME = "FileUploadDropzone";
@@ -134,10 +135,20 @@ function createStore(
         for (const file of action.files) {
           const existingState = files.get(file);
           if (!existingState) {
+            const customFile = file as File & {
+              uploadStatus: "success";
+              uploadProgress: number;
+              fileId: string;
+            };
+            const isAlreadyUploaded =
+              customFile.uploadStatus === "success" ||
+              customFile.uploadProgress === 100 ||
+              customFile.fileId;
+
             files.set(file, {
               file,
-              progress: 0,
-              status: "idle",
+              progress: isAlreadyUploaded ? 100 : 0,
+              status: isAlreadyUploaded ? "success" : "idle",
             });
           }
         }
@@ -254,13 +265,14 @@ function useStore<T>(selector: (state: StoreState) => T): T {
 
   const getSnapshot = React.useCallback(() => {
     const state = store.getState();
+    const nextValue = selector(state);
     const prevValue = lastValueRef.current;
 
-    if (prevValue && prevValue.state === state) {
+    // Fix progress bar updates: detect changes in selected values, not state object
+    if (prevValue && prevValue.value === nextValue) {
       return prevValue.value;
     }
 
-    const nextValue = selector(state);
     lastValueRef.current = { value: nextValue, state };
     return nextValue;
   }, [store, selector, lastValueRef]);
@@ -1081,10 +1093,11 @@ const FileUploadItemPreview = React.forwardRef<
 
       if (itemContext.fileState?.file.type.startsWith("image/")) {
         return (
-          <img
+          <Image
             src={URL.createObjectURL(file)}
             alt={file.name}
-            className="size-full object-cover"
+            fill
+            className="object-cover"
             onLoad={(event) => {
               if (!(event.target instanceof HTMLImageElement)) return;
               URL.revokeObjectURL(event.target.src);
