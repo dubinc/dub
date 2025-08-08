@@ -64,6 +64,8 @@ export async function createStripePromotionCode({
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
 
+      console.error(lastError);
+
       const isDuplicateError =
         error instanceof Error &&
         error.message.includes("An active promotion code with `code:") &&
