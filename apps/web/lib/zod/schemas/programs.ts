@@ -70,6 +70,7 @@ export const updateProgramSchema = z.object({
     }),
   linkStructure: z.nativeEnum(PartnerLinkStructure),
   urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
+  maxPartnerLinks: z.number().min(1).max(999),
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),

@@ -38,6 +38,7 @@ export * from "./table";
 export * from "./toggle-group";
 export * from "./tooltip";
 export * from "./utm-builder";
+export * from "./number-stepper";
 
 // hooks
 export * from "./hooks";
