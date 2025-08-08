@@ -10,12 +10,12 @@ export function ProgramRewardList({
   rewards,
   discount,
   className,
-  showModifiers = true,
+  showModifiersTooltip = true,
 }: {
   rewards: RewardProps[];
   discount?: DiscountProps | null;
   className?: string;
-  showModifiers?: boolean;
+  showModifiersTooltip?: boolean;
 }) {
   const sortedFilteredRewards = rewards.filter((r) => r.amount >= 0);
 
@@ -65,7 +65,7 @@ export function ProgramRewardList({
                   </strong>
                 </>
               ) : null}
-              {showModifiers && !!reward.modifiers?.length && (
+              {showModifiersTooltip && !!reward.modifiers?.length && (
                 <>
                   {" "}
                   <ProgramRewardModifiersTooltip reward={reward} />

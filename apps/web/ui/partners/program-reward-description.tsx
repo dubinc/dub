@@ -8,7 +8,7 @@ export function ProgramRewardDescription({
   discount,
   amountClassName,
   periodClassName,
-  showModifiers = true,
+  showModifiersTooltip = true,
 }: {
   reward?: Pick<
     RewardProps,
@@ -17,7 +17,7 @@ export function ProgramRewardDescription({
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
-  showModifiers?: boolean;
+  showModifiersTooltip?: boolean; // used in server-side reward description construction
 }) {
   return (
     <>
@@ -27,7 +27,7 @@ export function ProgramRewardDescription({
               Earn{" "}
               <strong className={cn("font-semibold", amountClassName)}>
                 {constructRewardAmount({
-                  ...(reward.modifiers
+                  ...(reward.modifiers?.length
                     ? {
                         amounts: [
                           reward.amount,
@@ -63,7 +63,7 @@ export function ProgramRewardDescription({
                 </>
               ) : null}
               {/* Modifiers */}
-              {showModifiers && !!reward.modifiers?.length && (
+              {showModifiersTooltip && !!reward.modifiers?.length && (
                 <>
                   {" "}
                   <ProgramRewardModifiersTooltip reward={reward} />

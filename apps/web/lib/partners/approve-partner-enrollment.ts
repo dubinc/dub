@@ -184,7 +184,7 @@ export async function approvePartnerEnrollment({
                     },
                     rewardDescription: ProgramRewardDescription({
                       reward: rewards.find((r) => r.event === "sale"),
-                      showModifiers: false,
+                      showModifiersTooltip: false,
                     }),
                   }),
                 })),

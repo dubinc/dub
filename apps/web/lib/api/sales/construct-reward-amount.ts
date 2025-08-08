@@ -16,7 +16,7 @@ export const constructRewardAmount = ({
     const min = Math.min(...amounts);
     const max = Math.max(...amounts);
     return type === "percentage"
-      ? `${min} - ${max}%`
+      ? `${min}% - ${max}%`
       : `${formatCurrency(min)} - ${formatCurrency(max)}`;
   }
 
