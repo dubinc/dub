@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { InstallStripeIntegrationButton } from "./install-stripe-integration-button";
 import { guides, IntegrationType } from "./integrations";
-import { Markdown } from "./markdown";
+import { GuidesMarkdown } from "./markdown";
 
 const integrationTypeToTitle: Record<IntegrationType, string> = {
   "client-sdk": "Install client-side script",
@@ -64,7 +64,7 @@ export function Guide({ markdown }: { markdown: string }) {
             selectedGuide.key.startsWith("stripe") && (
               <InstallStripeIntegrationButton />
             )}
-          <Markdown>{markdown}</Markdown>
+          <GuidesMarkdown>{markdown}</GuidesMarkdown>
 
           <Link
             href={backHref}
