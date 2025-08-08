@@ -115,6 +115,8 @@ export async function deleteDiscount({
             ],
           }),
 
+        // Question:
+        // Would this be a problem if the coupon is used in their application?
         discount.couponId &&
           deleteStripeCoupon({
             couponId: discount.couponId,

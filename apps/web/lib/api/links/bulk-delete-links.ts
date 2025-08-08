@@ -49,8 +49,8 @@ export async function bulkDeleteLinks({
       .filter((link) => link.couponCode)
       .map((link) =>
         disableStripePromotionCode({
-          link,
-          workspace,
+          couponCode: link.couponCode,
+          stripeConnectId: workspace.stripeConnectId,
         }),
       ),
   ]);

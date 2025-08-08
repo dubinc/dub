@@ -266,8 +266,8 @@ export async function updateStripePromotionCode({
   await Promise.allSettled([
     oldLink.couponCode &&
       disableStripePromotionCode({
-        workspace,
-        link: oldLink,
+        couponCode: oldLink.couponCode,
+        stripeConnectId: workspace.stripeConnectId,
       }),
 
     couponCodeTrackingEnabledAt &&
