@@ -87,11 +87,6 @@ export const analyticsQuerySchema = z
       .describe(
         "The unique ID of the short link on Dub to retrieve analytics for.",
       ),
-    linkIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .optional()
-      .describe("The link IDs to retrieve analytics for."),
     externalId: z
       .string()
       .optional()

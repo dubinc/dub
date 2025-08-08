@@ -1,15 +1,15 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { prisma } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * TODO: Use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
+ */
 
 // This route is used aggregate clicks events on daily basis for Program links and add to the Commission table
 // Runs every day at 00:00 (0 0 * * *)
@@ -45,7 +45,6 @@ export async function GET(req: Request) {
       });
     }
 
-    // Process each click reward
     for (const { programId, clickEnrollments, ...reward } of clickRewards) {
       const partnerIds = clickEnrollments.map(({ partnerId }) => partnerId);
 
@@ -75,59 +74,51 @@ export async function GET(req: Request) {
       });
 
       if (!links.length) {
-        console.log(`No links found for program ${programId}`);
+        console.log("No links found for program", { programId });
         continue;
       }
 
-      const linkIds = links.map(({ id }) => id);
+      for (const { id: linkId, programId, partnerId } of links) {
+        if (!linkId || !programId || !partnerId) {
+          console.log("Invalid link", { linkId, programId, partnerId });
+          continue;
+        }
 
-      const clickStats: z.infer<(typeof analyticsResponse)["top_links"]>[] =
-        await getAnalytics({
-          linkIds,
+        const { clicks: quantity } = await getAnalytics({
+          linkId,
           start,
           end,
-          groupBy: "top_links",
+          groupBy: "count",
           event: "clicks",
         });
 
-      if (clickStats.length === 0) {
-        continue;
-      }
+        if (!quantity || quantity === 0) {
+          console.log("No clicks found for link", {
+            linkId,
+            programId,
+            partnerId,
+          });
+          continue;
+        }
 
-      // Preprocess links into a Map for faster lookup
-      const linkToPartnerMap = new Map(
-        links.map(({ id, partnerId }) => [id, partnerId]),
-      );
-
-      const commissions = clickStats.map(
-        ({ id: linkId, clicks: quantity }) => ({
-          id: createId({ prefix: "cm_" }),
+        console.log("Creating commission", {
+          reward,
+          event: "click",
           programId,
-          partnerId: linkToPartnerMap.get(linkId)!,
+          partnerId,
           linkId,
           quantity,
-          type: CommissionType.click,
-          amount: 0,
-          earnings: reward.amount * quantity,
-        }),
-      );
+        });
 
-      console.log(commissions);
-
-      // Create commissions
-      await prisma.commission.createMany({
-        data: commissions,
-      });
-
-      // Sync total commissions for each partner
-      await Promise.allSettled(
-        partnerIds.map((partnerId) =>
-          syncTotalCommissions({
-            partnerId,
-            programId,
-          }),
-        ),
-      );
+        await createPartnerCommission({
+          reward,
+          event: "click",
+          programId,
+          partnerId,
+          linkId,
+          quantity,
+        });
+      }
     }
 
     return NextResponse.json("OK");
