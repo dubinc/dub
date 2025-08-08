@@ -1,3 +1,4 @@
+import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import { ErrorCode } from "@/lib/api/errors";
 import z from "@/lib/zod";
 import {
@@ -184,6 +185,15 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
       ])
       .optional()
       .describe("The field to group the links by."),
+  }),
+);
+
+export const getLinksCountQuerySchemaExtended = getLinksCountQuerySchema.merge(
+  z.object({
+    start: parseDateSchema.optional(),
+    end: parseDateSchema.optional(),
+    interval: z.enum(DATE_RANGE_INTERVAL_PRESETS).optional(),
+    timezone: z.string().optional(),
   }),
 );
 
@@ -780,6 +790,20 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
       .enum(["fuzzy", "exact"])
       .default("fuzzy")
       .describe("Search mode to filter by."),
+    startingAfter: z
+      .string()
+      .trim()
+      .optional()
+      .describe(
+        "A cursor to use in pagination. Returns items after the given link ID.",
+      ),
+    endingBefore: z
+      .string()
+      .trim()
+      .optional()
+      .describe(
+        "A cursor to use in pagination. Returns items before the given link ID.",
+      ),
   }),
 );
 
