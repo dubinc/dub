@@ -1,5 +1,5 @@
 import { qstash } from "@/lib/cron";
-import { deleteStripeCoupon } from "@/lib/stripe/delete-coupon";
+import { deleteStripeCoupon } from "@/lib/stripe/delete-stripe-coupon";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
