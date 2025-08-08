@@ -4,7 +4,7 @@ import { Form } from "./form";
 export default function Usage() {
   return (
     <StepPage
-      title="Monthly usage"
+      title="Estimate your usage"
       description="Give us a few details about your usage and we'll help recommend the best plan"
     >
       <Form />
