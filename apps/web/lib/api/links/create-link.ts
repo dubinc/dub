@@ -50,7 +50,6 @@ export async function createLink(link: CreateLinkProps) {
     testVariants,
     testStartedAt,
     testCompletedAt,
-    skipCouponCreation,
   } = link;
 
   const combinedTagIds = combineTagIds(link);
@@ -66,6 +65,7 @@ export async function createLink(link: CreateLinkProps) {
     workspace,
     program,
     discount,
+    skipCouponCreation,
     ...rest
   } = link;
 
