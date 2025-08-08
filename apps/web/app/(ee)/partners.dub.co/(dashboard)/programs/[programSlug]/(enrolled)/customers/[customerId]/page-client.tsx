@@ -70,6 +70,7 @@ export function ProgramCustomerPageClient() {
                       <ProgramRewardList
                         rewards={programEnrollment?.rewards}
                         className="gap-2 border-none p-3"
+                        showModifiers={false}
                       />
                     </div>
                   }

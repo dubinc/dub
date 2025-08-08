@@ -1,12 +1,14 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { cn } from "@dub/utils";
+import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
 
 export function ProgramRewardDescription({
   reward,
   discount,
   amountClassName,
   periodClassName,
+  showModifiers = true,
 }: {
   reward?: Pick<
     RewardProps,
@@ -15,6 +17,7 @@ export function ProgramRewardDescription({
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
+  showModifiers?: boolean;
 }) {
   return (
     <>
@@ -59,6 +62,13 @@ export function ProgramRewardDescription({
                   </strong>
                 </>
               ) : null}
+              {/* Modifiers */}
+              {showModifiers && !!reward.modifiers?.length && (
+                <>
+                  {" "}
+                  <ProgramRewardModifiersTooltip reward={reward} />
+                </>
+              )}
             </>
           )
         : null}
