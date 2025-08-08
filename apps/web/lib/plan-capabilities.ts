@@ -8,6 +8,7 @@ export const getPlanCapabilities = (
     canAddFolder: !!plan && !["free"].includes(plan),
     canManageFolderPermissions: !!plan && !["free", "pro"].includes(plan), // default access level is write
     canManageCustomers: !!plan && !["free", "pro"].includes(plan),
+    canCreateWebhooks: !!plan && !["free", "pro"].includes(plan),
     canManageProgram: !!plan && !["free", "pro"].includes(plan),
     canTrackConversions: !!plan && !["free", "pro"].includes(plan),
     canExportAuditLogs: !!plan && ["enterprise"].includes(plan),
