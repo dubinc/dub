@@ -45,7 +45,7 @@ export async function bulkDeleteLinks({
       },
     }),
 
-    links
+    ...links
       .filter((link) => link.couponCode)
       .map((link) =>
         disableStripePromotionCode({

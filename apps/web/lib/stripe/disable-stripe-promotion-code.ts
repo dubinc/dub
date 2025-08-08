@@ -15,10 +15,15 @@ export async function disableStripePromotionCode({
     return;
   }
 
-  const promotionCodes = await stripe.promotionCodes.list({
-    code: couponCode,
-    limit: 1,
-  });
+  const promotionCodes = await stripe.promotionCodes.list(
+    {
+      code: couponCode,
+      limit: 1,
+    },
+    {
+      stripeAccount: stripeConnectId,
+    },
+  );
 
   if (promotionCodes.data.length === 0) {
     return;

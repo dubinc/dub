@@ -17,7 +17,7 @@ const schema = z.object({
     .boolean()
     .optional()
     .describe("Must be passed for discount-deleted action"),
-  action: z.enum(["discount-created", "discount-updated", "discount-deleted"]),
+  action: z.enum(["discount-created", "discount-deleted"]),
 });
 
 // This route is used to invalidate the partnerlink cache when a discount is created/updated/deleted.
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const body = schema.parse(JSON.parse(rawBody));
     const { programId, discountId, isDefault, action } = body;
 
-    if (action === "discount-created" || action === "discount-updated") {
+    if (action === "discount-created") {
       const discount = await prisma.discount.findUnique({
         where: {
           id: discountId,
@@ -69,9 +69,7 @@ export async function POST(req: Request) {
       }
 
       return new Response(`Invalidated ${total} links.`);
-    }
-
-    if (action === "discount-deleted") {
+    } else if (action === "discount-deleted") {
       let page = 0;
       let total = 0;
       const take = 1000;

@@ -73,7 +73,7 @@ export async function couponDeleted(event: Stripe.Event) {
         if (workspaceUsers) {
           const { user } = workspaceUsers;
 
-          sendEmail({
+          await sendEmail({
             subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Discount has been deleted`,
             email: user.email!,
             react: DiscountDeleted({

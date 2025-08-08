@@ -95,6 +95,7 @@ export async function POST(req: Request) {
           partnerId: {
             in: enrollments.map(({ partnerId }) => partnerId),
           },
+          couponCode: null,
         },
         select: {
           id: true,
@@ -104,6 +105,8 @@ export async function POST(req: Request) {
 
       if (links.length === 0) {
         console.log("No more links found.");
+        currentPage++;
+        processedBatches++;
         continue;
       }
 
