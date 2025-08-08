@@ -94,7 +94,7 @@ const handleDiscountDeleted = async ({
 }: Payload) => {
   let page = 0;
   let total = 0;
-  const take = 1000;
+  const take = 1;
 
   while (true) {
     let partnerIds: string[] = [];
@@ -111,9 +111,6 @@ const handleDiscountDeleted = async ({
       }
     }
 
-    // TODO:
-    // Unset couponCode for the links
-
     const links = await prisma.link.findMany({
       where: {
         programId,
@@ -127,6 +124,7 @@ const handleDiscountDeleted = async ({
         },
       },
       select: {
+        id: true,
         domain: true,
         key: true,
       },
@@ -138,7 +136,20 @@ const handleDiscountDeleted = async ({
       break;
     }
 
-    await linkCache.expireMany(links);
+    await Promise.allSettled([
+      linkCache.expireMany(links),
+
+      prisma.link.updateMany({
+        where: {
+          id: {
+            in: links.map((link) => link.id),
+          },
+        },
+        data: {
+          couponCode: null,
+        },
+      }),
+    ]);
 
     page += 1;
     total += links.length;
