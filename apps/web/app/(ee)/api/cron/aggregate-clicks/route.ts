@@ -6,6 +6,7 @@ import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { prisma } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
+import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -58,24 +59,16 @@ export async function GET(req: Request) {
       });
     }
 
-    // getting a list of click reward program enrollments (to update total commissions later)
-    const clickEnrollments = clickRewardsWithEnrollments.flatMap(
-      ({ clickEnrollments }) => clickEnrollments,
-    );
-
-    // creating a map of link id to reward (for easy lookup later)
-    const linkRewardMap = new Map(
-      clickRewardsWithEnrollments.flatMap(({ clickEnrollments, ...reward }) =>
-        clickEnrollments.flatMap(({ links }) =>
-          links.map(({ id }) => [id, reward]),
-        ),
-      ),
-    );
-
     // getting a list of links with clicks
     const linkWithClicks = clickRewardsWithEnrollments.flatMap(
       ({ clickEnrollments }) => clickEnrollments.flatMap(({ links }) => links),
     );
+
+    if (linkWithClicks.length === 0) {
+      return NextResponse.json({
+        message: "No links with clicks found. Skipping...",
+      });
+    }
 
     // getting the actual click count for the links for the previous day
     const linkClickStats: z.infer<(typeof analyticsResponse)["top_links"]>[] =
@@ -87,20 +80,34 @@ export async function GET(req: Request) {
         end,
       });
 
+    // This should never happen, but just in case
     if (linkClickStats.length === 0) {
-      return NextResponse.json({
-        message: "No clicks found. Skipping...",
+      await log({
+        message:
+          "Failed to get link click stats from Tinybird. Needs investigation.",
+        type: "errors",
+        mention: true,
       });
+      throw new Error("Failed to get link click stats from Tinybird.");
     }
+
+    // creating a map of link id to reward (for easy lookup)
+    const linkRewardMap = new Map(
+      clickRewardsWithEnrollments.flatMap(({ clickEnrollments, ...reward }) =>
+        clickEnrollments.flatMap(({ links }) =>
+          links.map(({ id }) => [id, reward]),
+        ),
+      ),
+    );
+    const linkClicksMap = new Map(
+      linkClickStats.map(({ id, clicks }) => [id, clicks]),
+    );
 
     // creating a list of commissions to create
     const commissionsToCreate = linkWithClicks
       .map(({ id, programId, partnerId }) => {
-        const linkClicks =
-          linkClickStats.find(({ id: linkId }) => linkId === id)?.clicks ?? 0;
-
+        const linkClicks = linkClicksMap.get(id) ?? 0;
         const reward = linkRewardMap.get(id);
-
         if (!programId || !partnerId || linkClicks === 0 || !reward) {
           return null;
         }
@@ -125,9 +132,14 @@ export async function GET(req: Request) {
       data: commissionsToCreate,
     });
 
-    // // Sync total commissions for each partner
+    // getting a list of click reward program enrollments
+    const clickEnrollments = clickRewardsWithEnrollments.flatMap(
+      ({ clickEnrollments }) => clickEnrollments,
+    );
+
     console.time("syncTotalCommissions");
     for (const { partnerId, programId } of clickEnrollments) {
+      // Sync total commissions for each partner
       await syncTotalCommissions({
         partnerId,
         programId,
