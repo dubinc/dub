@@ -71,6 +71,7 @@ model Program {
   discounts         Discount[]           @relation("ProgramDiscounts")
   bounties          Bounty[]
   bountySubmissions BountySubmission[]
+  workflows         Workflow[]
 
   @@index(workspaceId)
   @@index(domain)

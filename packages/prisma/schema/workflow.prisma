@@ -1,0 +1,21 @@
+enum WorkflowTrigger {
+  clicks
+  leads
+  sales
+}
+
+model Workflow {
+  id                String          @id @default(cuid())
+  programId         String
+  name              String
+  trigger           WorkflowTrigger
+  triggerConditions Json?
+  actions           Json?
+  disabledAt        DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index(programId)
+}
