@@ -21,8 +21,8 @@ model Bounty {
   name                   String?
   description            String?    @db.Text
   type                   BountyType
-  startAt                DateTime
-  endAt                  DateTime?
+  startsAt               DateTime
+  endsAt                 DateTime?
   rewardAmount           Int        @default(0)
   submissionRequirements Json?
   createdAt              DateTime   @default(now())
