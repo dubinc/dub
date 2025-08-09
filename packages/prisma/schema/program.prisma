@@ -69,6 +69,7 @@ model Program {
   commissions   Commission[]
   rewards       Reward[]
   discounts     Discount[]           @relation("ProgramDiscounts")
+  emails        ProgramEmail[]
 
   @@index(workspaceId)
   @@index(domain)
