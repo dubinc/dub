@@ -27,6 +27,7 @@ import {
   Sliders,
   Tag,
   UserCheck,
+  Users,
   Users2,
   Users6,
   Webhook,
@@ -219,6 +220,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 ? "99+"
                 : applicationsCount
               : undefined,
+          },
+          {
+            name: "Groups",
+            icon: Users,
+            href: `/${slug}/program/partners/groups`,
+            exact: true,
           },
         ],
       },

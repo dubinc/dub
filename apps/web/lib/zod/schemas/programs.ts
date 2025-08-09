@@ -38,6 +38,7 @@ export const ProgramSchema = z.object({
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string().nullable(),
+  defaultGroupId: z.string().nullable(),
   wordmark: z.string().nullable(),
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
