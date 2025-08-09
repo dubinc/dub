@@ -1,6 +1,6 @@
-enum BountyStatus {
-  draft
-  published
+enum BountyType {
+  performance
+  submission
 }
 
 enum BountySubmissionStatus {
@@ -10,52 +10,56 @@ enum BountySubmissionStatus {
   paid
 }
 
-enum BountySubmissionEvidenceType {
-  image
-  video
-  document
-  url
-}
+// TODO:
+// Enum for rejectionReason
+// Submission files
 
 model Bounty {
-  id              String       @id @default(cuid())
-  programId       String
-  title           String
-  description     String       @db.Text
-  rewardAmount    Int          @default(0)
-  status          BountyStatus @default(draft)
-  isActive        Boolean      @default(true)
-  submissionDueAt DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id                     String     @id @default(cuid())
+  programId              String
+  workflowId             String?
+  name                   String?
+  description            String?    @db.Text
+  type                   BountyType
+  startAt                DateTime
+  endAt                  DateTime?
+  rewardAmount           Int        @default(0)
+  submissionRequirements Json?
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
 
   program     Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
   submissions BountySubmission[]
 
-  @@index(status)
   @@index(programId)
+  @@index(workflowId)
 }
 
 model BountySubmission {
-  id           String                       @id @default(cuid())
-  programId    String
-  partnerId    String
-  bountyId     String
-  commissionId String                       @unique
-  evidenceUrl  String
-  description  String?                      @db.Text
-  evidenceType BountySubmissionEvidenceType
-  status       BountySubmissionStatus       @default(pending)
-  createdAt    DateTime                     @default(now())
-  updatedAt    DateTime                     @updatedAt
+  id              String                 @id @default(cuid())
+  programId       String
+  partnerId       String
+  bountyId        String
+  commissionId    String?                @unique
+  userId          String?
+  evidenceUrl     String
+  description     String?                @db.Text
+  status          BountySubmissionStatus @default(pending)
+  rejectionReason String?
+  rejectionNotes  String?                @db.Text
+  reviewedAt      DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
 
-  bounty     Bounty     @relation(fields: [bountyId], references: [id], onDelete: Cascade)
-  partner    Partner    @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  commission Commission @relation(fields: [commissionId], references: [id], onDelete: Cascade)
-  program    Program    @relation(fields: [programId], references: [id], onDelete: Cascade)
+  bounty     Bounty      @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  partner    Partner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  commission Commission? @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+  program    Program     @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user       User?       @relation(fields: [userId], references: [id])
 
   @@unique([bountyId, partnerId])
   @@index(programId)
   @@index(partnerId)
+  @@index(userId)
   @@index(status)
 }
