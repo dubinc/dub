@@ -39,8 +39,6 @@ export const GET = withWorkspace(
       take: pageSize,
     });
 
-    console.log(groups);
-
     return NextResponse.json(z.array(GroupSchema).parse(groups));
   },
   {
