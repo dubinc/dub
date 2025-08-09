@@ -7,4 +7,6 @@ export const createBountySchema = z.object({
   startsAt: parseDateSchema,
   endsAt: parseDateSchema.nullish(),
   rewardAmount: z.number().min(0),
+  name: z.string().trim().max(190).nullish(),
+  description: z.string().trim().max(5000).nullish(),
 });
