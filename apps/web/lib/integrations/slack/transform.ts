@@ -1,4 +1,5 @@
-import { APP_DOMAIN, currencyFormatter } from "@dub/utils";
+import { APP_DOMAIN, currencyFormatter, formatDateTime } from "@dub/utils";
+import { prisma } from "@dub/prisma";
 import { LinkWebhookEvent } from "dub/models/components";
 import { z } from "zod";
 import { WebhookTrigger } from "../../types";
@@ -11,7 +12,7 @@ import {
   SaleEventWebhookPayload,
 } from "../../webhook/types";
 
-const createLinkTemplate = ({
+const createLinkTemplate = async ({
   data,
   event,
 }: {
@@ -24,30 +25,75 @@ const createLinkTemplate = ({
     "link.deleted": "*Short link deleted* :link:",
   };
 
-  return {
-    blocks: [
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: eventMessages[event],
-        },
+  // Fetch user and workspace information if provided
+  let userInfo: { name: string; email: string } | null = null;
+  let workspaceSlug: string | null = null;
+
+  try {
+    // Fetch user information if userId is provided
+    if (data.userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: data.userId },
+        select: { name: true, email: true },
+      });
+      userInfo = user;
+    }
+
+    // Fetch workspace information for the "View on Dub" link
+    const workspace = await prisma.project.findUnique({
+      where: { id: data.workspaceId },
+      select: { slug: true },
+    });
+    workspaceSlug = workspace?.slug || null;
+  } catch (error) {
+    console.warn(`Failed to fetch user/workspace info`, error);
+  }
+
+  // Format the creation time
+  const formattedTime = formatDateTime(data.createdAt);
+  
+  // Generate user display name with fallback
+  const userDisplayName = userInfo?.name || userInfo?.email || 'Anonymous User';
+
+  const blocks = [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: eventMessages[event],
       },
+    },
+    {
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*Short link*\n<${data.shortLink}|${data.shortLink}>\n`,
+        },
+        {
+          type: "mrkdwn",
+          text: `*Destination URL*\n<${data.url}|${data.url}>\n`,
+        },
+      ],
+    },
+  ];
+
+  // Add context section with user and time information
+  const viewOnDubLink = workspaceSlug 
+    ? `<${APP_DOMAIN}/${workspaceSlug}|View on Dub>`
+    : `<${APP_DOMAIN}|View on Dub>`;
+    
+  blocks.push({
+    type: "context",
+    elements: [
       {
-        type: "section",
-        fields: [
-          {
-            type: "mrkdwn",
-            text: `*Short link*\n<${data.shortLink}|${data.shortLink}>\n`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Destination URL*\n<${data.url}|${data.url}>\n`,
-          },
-        ],
+        type: "mrkdwn",
+        text: `*Created by* ${userDisplayName} | ${formattedTime} | ${viewOnDubLink}`,
       },
     ],
-  };
+  });
+
+  return { blocks };
 };
 
 const clickLinkTemplate = ({ data }: { data: ClickEventWebhookPayload }) => {
@@ -298,7 +344,7 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "commission.created": commissionCreatedTemplate,
 };
 
-export const formatEventForSlack = (
+export const formatEventForSlack = async (
   payload: z.infer<typeof webhookPayloadSchema>,
 ) => {
   const { event, data } = payload;
@@ -312,7 +358,7 @@ export const formatEventForSlack = (
     event,
   );
 
-  return template({
+  return await template({
     data,
     ...(isLinkEvent && { event }),
   });
