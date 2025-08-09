@@ -262,8 +262,6 @@ function RewardSheetContent({
     });
   };
 
-  const canDeleteReward = reward && !reward.default;
-
   const { rewardsUpgradeModal, setShowRewardsUpgradeModal } =
     useRewardsUpgradeModal();
 
@@ -404,12 +402,7 @@ function RewardSheetContent({
                 text="Remove reward"
                 onClick={onDelete}
                 loading={isDeleting}
-                disabled={!canDeleteReward || isCreating || isUpdating}
-                disabledTooltip={
-                  canDeleteReward
-                    ? undefined
-                    : "This is a default reward and cannot be deleted."
-                }
+                disabled={isCreating || isUpdating}
               />
             )}
           </div>
