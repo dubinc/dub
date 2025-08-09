@@ -29,35 +29,35 @@ enum PartnerUrlValidationMode {
 }
 
 model Program {
-  id                String                   @id @default(cuid())
-  workspaceId       String
-  defaultFolderId   String?
-  name              String
-  slug              String                   @unique
-  logo              String?
-  wordmark          String?
-  brandColor        String?
-  domain            String?
-  url               String?
-  urlValidationMode PartnerUrlValidationMode @default(domain)
-  linkStructure     PartnerLinkStructure     @default(short)
-  linkParameter     String? // null for SHORT, "via" for QUERY, "refer" for PATH
-  maxPartnerLinks   Int                      @default(10) // maximum number of links partners can create
-
-  cookieLength                 Int       @default(90)
-  holdingPeriodDays            Int       @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount              Int       @default(0) // Default minimum payout amount of $0
-  embedData                    Json?     @db.Json
-  landerData                   Json?     @db.Json
+  id                           String                   @id @default(cuid())
+  workspaceId                  String
+  defaultFolderId              String?
+  defaultGroupId               String?
+  name                         String
+  slug                         String                   @unique
+  logo                         String?
+  wordmark                     String?
+  brandColor                   String?
+  domain                       String?
+  url                          String?
+  urlValidationMode            PartnerUrlValidationMode @default(domain)
+  linkStructure                PartnerLinkStructure     @default(short)
+  linkParameter                String? // null for SHORT, "via" for QUERY, "refer" for PATH
+  maxPartnerLinks              Int                      @default(10) // maximum number of links partners can create
+  cookieLength                 Int                      @default(90)
+  holdingPeriodDays            Int                      @default(0) // number of days to wait before earnings are added to a payout
+  minPayoutAmount              Int                      @default(0) // Default minimum payout amount of $0
+  embedData                    Json?                    @db.Json
+  landerData                   Json?                    @db.Json
   landerPublishedAt            DateTime?
-  resources                    Json?     @db.Json
-  termsUrl                     String?   @db.Text
-  helpUrl                      String?   @db.Text
+  resources                    Json?                    @db.Json
+  termsUrl                     String?                  @db.Text
+  helpUrl                      String?                  @db.Text
   supportEmail                 String?
   ageVerification              Int?
   autoApprovePartnersEnabledAt DateTime?
-  createdAt                    DateTime  @default(now())
-  updatedAt                    DateTime  @updatedAt
+  createdAt                    DateTime                 @default(now())
+  updatedAt                    DateTime                 @updatedAt
 
   workspace     Project              @relation(fields: [workspaceId], references: [id])
   primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
@@ -69,6 +69,7 @@ model Program {
   commissions   Commission[]
   rewards       Reward[]
   discounts     Discount[]           @relation("ProgramDiscounts")
+  groups        PartnerGroup[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -84,6 +85,7 @@ model ProgramEnrollment {
   leadRewardId     String?
   saleRewardId     String?
   applicationId    String?                 @unique
+  partnerGroupId   String?
   status           ProgramEnrollmentStatus @default(pending)
   totalCommissions Int                     @default(0) // total commissions earned by the partner (in cents)
   createdAt        DateTime                @default(now())
@@ -99,6 +101,7 @@ model ProgramEnrollment {
   clickReward Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
   leadReward  Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
   saleReward  Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  group       PartnerGroup?       @relation(fields: [partnerGroupId], references: [id])
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
@@ -107,6 +110,7 @@ model ProgramEnrollment {
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
+  @@index(partnerGroupId)
 }
 
 model ProgramApplication {
@@ -124,4 +128,24 @@ model ProgramApplication {
   enrollment ProgramEnrollment?
 
   @@index(programId)
+}
+
+model PartnerGroup {
+  id            String   @id @default(cuid())
+  programId     String
+  name          String
+  slug          String
+  icon          String
+  color         String
+  clickRewardId String?
+  leadRewardId  String?
+  saleRewardId  String?
+  discountId    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  program            Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programEnrollments ProgramEnrollment[]
+
+  @@unique([programId, slug])
 }
