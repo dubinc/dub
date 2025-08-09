@@ -28,6 +28,8 @@ const prefixes = [
   "dub_embed_",
   "audit_",
   "import_",
+  "bounty_",
+  "wf_",
 ] as const;
 
 // ULID uses base32 encoding
