@@ -144,8 +144,8 @@ model PartnerGroup {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  program            Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
   programEnrollments ProgramEnrollment[]
+  program            Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
 
   @@unique([programId, slug])
 }
