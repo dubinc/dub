@@ -102,6 +102,7 @@ export const PATCH = withPartnerProfile(
         domain: link.domain,
         key: link.key,
         image: link.image,
+        couponCode: link.couponCode,
       },
       updatedLink: processedLink,
     });

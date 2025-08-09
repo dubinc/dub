@@ -54,6 +54,9 @@ export const PUT = withWorkspace(
       where: partnerId
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
+      include: {
+        discount: true,
+      },
     });
 
     if (!partner) {
@@ -152,6 +155,7 @@ export const PUT = withWorkspace(
             domain: link.domain,
             key: link.key,
             image: link.image,
+            couponCode: link.couponCode,
           },
           updatedLink: processedLink,
         });
@@ -199,7 +203,12 @@ export const PUT = withWorkspace(
         });
       }
 
-      const partnerLink = await createLink(link);
+      const partnerLink = await createLink({
+        ...link,
+        workspace,
+        program,
+        discount: partner.discount,
+      });
 
       waitUntil(
         sendWorkspaceWebhook({

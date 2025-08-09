@@ -41,7 +41,20 @@ async function main() {
 
   console.log("finalPartnersToDelete", finalPartnersToDelete.length);
 
-  await bulkDeleteLinks(finalPartnersToDelete.flatMap((p) => p.links));
+  const workspace = await prisma.project.findUniqueOrThrow({
+    where: {
+      defaultProgramId: programId,
+    },
+    select: {
+      id: true,
+      stripeConnectId: true,
+    },
+  });
+
+  await bulkDeleteLinks({
+    links: finalPartnersToDelete.flatMap((p) => p.links),
+    workspace,
+  });
 
   const deleteLinkPrisma = await prisma.link.deleteMany({
     where: {

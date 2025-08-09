@@ -13,6 +13,13 @@ async function main() {
         select: {
           links: true,
         },
+        include: {
+          program: {
+            select: {
+              workspace: true,
+            },
+          },
+        },
       },
     },
   });
@@ -25,8 +32,16 @@ async function main() {
     }
 
     const links = programEnrollment.links;
+    const program = programEnrollment.program;
 
-    const deleteLinkCaches = await bulkDeleteLinks(links);
+    const deleteLinkCaches = await bulkDeleteLinks({
+      links,
+      workspace: {
+        id: program.workspace.id,
+        stripeConnectId: program.workspace.stripeConnectId,
+      },
+    });
+
     console.log("Deleted link caches", deleteLinkCaches);
 
     const deleteCustomers = await prisma.customer.deleteMany({

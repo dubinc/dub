@@ -55,7 +55,10 @@ export async function POST(req: Request) {
           },
         }),
 
-        bulkDeleteLinks(links),
+        bulkDeleteLinks({
+          links,
+          workspace,
+        }),
       ]);
 
       console.log(res);

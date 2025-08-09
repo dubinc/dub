@@ -1,3 +1,4 @@
+import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
@@ -5,8 +6,10 @@ import { bulkDeleteLinks } from "../links/bulk-delete-links";
 // currently only used for the cron/cleanup/e2e-tests job
 export async function bulkDeletePartners({
   partnerIds,
+  workspace,
 }: {
   partnerIds: string[];
+  workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
 }) {
   const partners = await prisma.partner.findMany({
     where: {
@@ -38,7 +41,10 @@ export async function bulkDeletePartners({
       },
     });
 
-    await bulkDeleteLinks(linksToDelete);
+    await bulkDeleteLinks({
+      links: linksToDelete,
+      workspace,
+    });
 
     await prisma.link.deleteMany({
       where: {
