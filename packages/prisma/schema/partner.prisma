@@ -96,3 +96,23 @@ model PartnerNotificationPreferences {
 
   partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
 }
+
+model PartnerGroup {
+  id            String   @id @default(cuid())
+  programId     String
+  name          String
+  slug          String
+  icon          String
+  color         String
+  clickRewardId String?
+  leadRewardId  String?
+  saleRewardId  String?
+  discountId    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  partners ProgramEnrollment[]
+  program  Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, slug])
+}
