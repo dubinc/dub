@@ -1,11 +1,10 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { prisma } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
+import { CommissionType, Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -30,107 +29,112 @@ export async function GET(req: Request) {
     end.setDate(end.getDate() - 1);
     end.setHours(23, 59, 59, 999);
 
-    const clickRewards = await prisma.reward.findMany({
+    const clickRewardsWithEnrollments = await prisma.reward.findMany({
       where: {
         event: "click",
       },
       include: {
-        clickEnrollments: true,
+        clickEnrollments: {
+          include: {
+            links: {
+              where: {
+                clicks: {
+                  gt: 0,
+                },
+                lastClicked: {
+                  gte: start, // links that were clicked on after the start date
+                },
+              },
+            },
+          },
+        },
       },
     });
 
-    if (!clickRewards.length) {
+    if (!clickRewardsWithEnrollments.length) {
       return NextResponse.json({
         message: "No programs with click rewards found. Skipping...",
       });
     }
 
-    // Process each click reward
-    for (const { programId, clickEnrollments, ...reward } of clickRewards) {
-      const partnerIds = clickEnrollments.map(({ partnerId }) => partnerId);
+    // getting a list of click reward program enrollments (to update total commissions later)
+    const clickEnrollments = clickRewardsWithEnrollments.flatMap(
+      ({ clickEnrollments }) => clickEnrollments,
+    );
 
-      if (!partnerIds || partnerIds.length === 0) {
-        console.log("No partnerIds found for program", { programId });
-        continue;
-      }
-
-      const links = await prisma.link.findMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIds,
-          },
-          clicks: {
-            gt: 0,
-          },
-          lastClicked: {
-            gte: start, // links that were clicked on after the start date
-          },
-        },
-        select: {
-          id: true,
-          programId: true,
-          partnerId: true,
-        },
-      });
-
-      if (!links.length) {
-        console.log(`No links found for program ${programId}`);
-        continue;
-      }
-
-      const linkIds = links.map(({ id }) => id);
-
-      const clickStats: z.infer<(typeof analyticsResponse)["top_links"]>[] =
-        await getAnalytics({
-          linkIds,
-          start,
-          end,
-          groupBy: "top_links",
-          event: "clicks",
-        });
-
-      if (clickStats.length === 0) {
-        continue;
-      }
-
-      // Preprocess links into a Map for faster lookup
-      const linkToPartnerMap = new Map(
-        links.map(({ id, partnerId }) => [id, partnerId]),
-      );
-
-      const commissions = clickStats.map(
-        ({ id: linkId, clicks: quantity }) => ({
-          id: createId({ prefix: "cm_" }),
-          programId,
-          partnerId: linkToPartnerMap.get(linkId)!,
-          linkId,
-          quantity,
-          type: CommissionType.click,
-          amount: 0,
-          earnings: reward.amount * quantity,
-        }),
-      );
-
-      console.log(commissions);
-
-      // Create commissions
-      await prisma.commission.createMany({
-        data: commissions,
-      });
-
-      // Sync total commissions for each partner
-      await Promise.allSettled(
-        partnerIds.map((partnerId) =>
-          syncTotalCommissions({
-            partnerId,
-            programId,
-          }),
+    // creating a map of link id to reward (for easy lookup later)
+    const linkRewardMap = new Map(
+      clickRewardsWithEnrollments.flatMap(({ clickEnrollments, ...reward }) =>
+        clickEnrollments.flatMap(({ links }) =>
+          links.map(({ id }) => [id, reward]),
         ),
-      );
+      ),
+    );
+
+    // getting a list of links with clicks
+    const linkWithClicks = clickRewardsWithEnrollments.flatMap(
+      ({ clickEnrollments }) => clickEnrollments.flatMap(({ links }) => links),
+    );
+
+    // getting the actual click count for the links for the previous day
+    const linkClickStats: z.infer<(typeof analyticsResponse)["top_links"]>[] =
+      await getAnalytics({
+        event: "clicks",
+        groupBy: "top_links",
+        linkIds: linkWithClicks.map(({ id }) => id),
+        start,
+        end,
+      });
+
+    if (linkClickStats.length === 0) {
+      return NextResponse.json({
+        message: "No clicks found. Skipping...",
+      });
     }
 
-    return NextResponse.json("OK");
+    // creating a list of commissions to create
+    const commissionsToCreate = linkWithClicks
+      .map(({ id, programId, partnerId }) => {
+        const linkClicks =
+          linkClickStats.find(({ id: linkId }) => linkId === id)?.clicks ?? 0;
+
+        const reward = linkRewardMap.get(id);
+
+        if (!programId || !partnerId || linkClicks === 0 || !reward) {
+          return null;
+        }
+
+        return {
+          id: createId({ prefix: "cm_" }),
+          programId,
+          partnerId,
+          linkId: id,
+          quantity: linkClicks,
+          type: CommissionType.click,
+          amount: reward.amount,
+          earnings: reward.amount * linkClicks,
+        };
+      })
+      .filter(Boolean) as Prisma.CommissionCreateManyInput[];
+
+    console.table(commissionsToCreate);
+
+    // // Create commissions
+    // await prisma.commission.createMany({
+    //   data: commissionsToCreate,
+    // });
+
+    // // Sync total commissions for each partner
+    // await Promise.allSettled(
+    //   clickEnrollments.map(({ partnerId, programId }) =>
+    //     syncTotalCommissions({
+    //       partnerId,
+    //       programId,
+    //     }),
+    //   ),
+    // );
+
+    return NextResponse.json(commissionsToCreate);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

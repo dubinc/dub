@@ -292,6 +292,7 @@ export const analyticsFilterTB = z
       device: true,
       domain: true,
       linkId: true,
+      linkIds: true,
       os: true,
       referer: true,
       refererUrl: true,
