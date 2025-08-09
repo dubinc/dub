@@ -94,6 +94,11 @@ export const withPublishableKey = (
 
           const searchParams = getSearchParams(req.url);
           return await handler({ req, params, searchParams, workspace });
+        } else {
+          throw new DubApiError({
+            code: "unauthorized",
+            message: "Unauthorized: No publishable key provided.",
+          });
         }
       } catch (error) {
         req.log.error(error);
