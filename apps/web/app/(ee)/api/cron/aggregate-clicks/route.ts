@@ -1,10 +1,11 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { prisma } from "@dub/prisma";
-import { CommissionType, Prisma } from "@dub/prisma/client";
+import { CommissionType } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -115,26 +116,29 @@ export async function GET(req: Request) {
           earnings: reward.amount * linkClicks,
         };
       })
-      .filter(Boolean) as Prisma.CommissionCreateManyInput[];
+      .filter((c) => c !== null);
 
     console.table(commissionsToCreate);
 
     // // Create commissions
-    // await prisma.commission.createMany({
-    //   data: commissionsToCreate,
-    // });
+    await prisma.commission.createMany({
+      data: commissionsToCreate,
+    });
 
     // // Sync total commissions for each partner
-    // await Promise.allSettled(
-    //   clickEnrollments.map(({ partnerId, programId }) =>
-    //     syncTotalCommissions({
-    //       partnerId,
-    //       programId,
-    //     }),
-    //   ),
-    // );
+    console.time("syncTotalCommissions");
+    for (const { partnerId, programId } of clickEnrollments) {
+      await syncTotalCommissions({
+        partnerId,
+        programId,
+      });
+    }
+    console.timeEnd("syncTotalCommissions");
+    console.log(
+      `Updated total commissions count for ${clickEnrollments.length} partners`,
+    );
 
-    return NextResponse.json(commissionsToCreate);
+    return NextResponse.json("OK");
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
