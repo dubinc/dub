@@ -1,3 +1,5 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -8,6 +10,7 @@ import {
   GroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -48,7 +51,7 @@ export const GET = withWorkspace(
 
 // POST /api/groups - create a group for a program
 export const POST = withWorkspace(
-  async ({ workspace, req }) => {
+  async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const {
@@ -139,20 +142,61 @@ export const POST = withWorkspace(
 
     // TODO:
     // icon and color needs validation
+    // create slug
 
-    const group = await prisma.partnerGroup.create({
-      data: {
-        programId,
-        name,
-        slug,
-        icon: icon || "",
-        color: color || "",
-        clickRewardId,
-        leadRewardId,
-        saleRewardId,
-        discountId,
-      },
+    const group = await prisma.$transaction(async (tx) => {
+      const newGroup = await tx.partnerGroup.create({
+        data: {
+          id: createId({ prefix: "grp_" }),
+          programId,
+          name,
+          slug,
+          icon: icon || "",
+          color: color || "",
+          clickRewardId,
+          leadRewardId,
+          saleRewardId,
+          discountId,
+        },
+      });
+
+      if (partnerIds && partnerIds.length > 0) {
+        await tx.programEnrollment.updateMany({
+          where: {
+            partnerId: {
+              in: partnerIds,
+            },
+            programId,
+          },
+          data: {
+            partnerGroupId: newGroup.id,
+            clickRewardId: newGroup.clickRewardId,
+            leadRewardId: newGroup.leadRewardId,
+            saleRewardId: newGroup.saleRewardId,
+            discountId: newGroup.discountId,
+          },
+        });
+      }
+
+      return newGroup;
     });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "group.created",
+        description: `Group ${group.name} (${group.id}) created`,
+        actor: session.user,
+        targets: [
+          {
+            type: "group",
+            id: group.id,
+            metadata: group,
+          },
+        ],
+      }),
+    );
 
     return NextResponse.json(GroupSchema.parse(group), {
       status: 201,

@@ -1,9 +1,11 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getGroupOrThrow } from "@/lib/api/programs/get-group-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { GroupSchema } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // TODO:
@@ -48,6 +50,23 @@ export const PATCH = withWorkspace(
     // TODO:
     // Add PATCH logic
 
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "group.updated",
+        description: `Group ${group.name} (${group.id}) updated`,
+        actor: session.user,
+        targets: [
+          {
+            type: "group",
+            id: group.id,
+            metadata: group,
+          },
+        ],
+      }),
+    );
+
     return NextResponse.json(GroupSchema.parse(group));
   },
   {
@@ -64,7 +83,7 @@ export const PATCH = withWorkspace(
 
 // DELETE /api/groups/[groupId] – delete a group for a workspace
 export const DELETE = withWorkspace(
-  async ({ params, workspace }) => {
+  async ({ params, workspace, session }) => {
     const { groupId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -95,12 +114,6 @@ export const DELETE = withWorkspace(
     });
 
     await prisma.$transaction(async (tx) => {
-      await tx.partnerGroup.delete({
-        where: {
-          id: groupId,
-        },
-      });
-
       await tx.programEnrollment.updateMany({
         where: {
           partnerGroupId: groupId,
@@ -114,9 +127,34 @@ export const DELETE = withWorkspace(
           discountId: defaultGroup.discountId,
         },
       });
+
+      const deletedGroup = await tx.partnerGroup.delete({
+        where: {
+          id: groupId,
+        },
+      });
+
+      return deletedGroup.id;
     });
 
-    return NextResponse.json({ id: groupId });
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "group.deleted",
+        description: `Group ${group.name} (${group.id}) deleted`,
+        actor: session.user,
+        targets: [
+          {
+            type: "group",
+            id: group.id,
+            metadata: group,
+          },
+        ],
+      }),
+    );
+
+    return NextResponse.json({ id: group.id });
   },
   {
     requiredPlan: [

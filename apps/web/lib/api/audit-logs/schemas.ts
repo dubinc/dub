@@ -1,5 +1,6 @@
 import { CommissionSchema } from "@/lib/zod/schemas/commissions";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
+import { GroupSchema } from "@/lib/zod/schemas/groups";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { PayoutSchema } from "@/lib/zod/schemas/payouts";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
@@ -67,6 +68,11 @@ const actionSchema = z.enum([
   // Payouts
   "payout.confirmed",
   "payout.marked_paid",
+
+  // Groups
+  "group.created",
+  "group.updated",
+  "group.deleted",
 ]);
 
 export const auditLogTarget = z.union([
@@ -133,6 +139,21 @@ export const auditLogTarget = z.union([
     id: z.string(),
     metadata: PayoutSchema.pick({
       status: true,
+    }),
+  }),
+
+  z.object({
+    type: z.literal("group"),
+    id: z.string(),
+    metadata: GroupSchema.pick({
+      name: true,
+      slug: true,
+      icon: true,
+      color: true,
+      clickRewardId: true,
+      leadRewardId: true,
+      saleRewardId: true,
+      discountId: true,
     }),
   }),
 ]);
