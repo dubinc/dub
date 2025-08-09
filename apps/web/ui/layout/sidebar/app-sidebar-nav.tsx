@@ -31,6 +31,7 @@ import {
   Users6,
   Webhook,
 } from "@dub/ui/icons";
+import { Trophy } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
@@ -240,6 +241,17 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Fraud & Risk",
             icon: ShieldKeyhole,
             href: `/${slug}/program/fraud`,
+          },
+        ],
+      },
+      {
+        name: "Engagement",
+        items: [
+          {
+            name: "Bounties",
+            icon: Trophy,
+            href: `/${slug}/program/bounties`,
+            badge: "New",
           },
         ],
       },
