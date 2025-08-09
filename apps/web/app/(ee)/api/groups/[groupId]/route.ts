@@ -1,0 +1,131 @@
+import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getGroupOrThrow } from "@/lib/api/programs/get-group-or-throw";
+import { withWorkspace } from "@/lib/auth";
+import { GroupSchema } from "@/lib/zod/schemas/groups";
+import { prisma } from "@dub/prisma";
+import { NextResponse } from "next/server";
+
+// TODO:
+// Should we use slug instead of id?
+
+// GET /api/groups/[groupId] - get information about a group
+export const GET = withWorkspace(
+  async ({ params, workspace }) => {
+    const { groupId } = params;
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const group = await getGroupOrThrow({
+      programId,
+      groupId,
+    });
+
+    return NextResponse.json(GroupSchema.parse(group));
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business extra",
+      "business max",
+      "business plus",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);
+
+// PATCH /api/groups/[groupId] – update a group for a workspace
+export const PATCH = withWorkspace(
+  async ({ req, params, workspace, session }) => {
+    const { groupId } = params;
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const group = await getGroupOrThrow({
+      programId,
+      groupId,
+    });
+
+    // TODO:
+    // Add PATCH logic
+
+    return NextResponse.json(GroupSchema.parse(group));
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business extra",
+      "business max",
+      "business plus",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);
+
+// DELETE /api/groups/[groupId] – delete a group for a workspace
+export const DELETE = withWorkspace(
+  async ({ params, workspace }) => {
+    const { groupId } = params;
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const group = await getGroupOrThrow({
+      programId,
+      groupId,
+    });
+
+    const program = await prisma.program.findUniqueOrThrow({
+      where: {
+        id: programId,
+      },
+      select: {
+        defaultGroupId: true,
+      },
+    });
+
+    if (group.id === program.defaultGroupId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You cannot delete the default group of your program.",
+      });
+    }
+
+    const defaultGroup = await getGroupOrThrow({
+      programId,
+      groupId: program.defaultGroupId!,
+    });
+
+    await prisma.$transaction(async (tx) => {
+      await tx.partnerGroup.delete({
+        where: {
+          id: groupId,
+        },
+      });
+
+      await tx.programEnrollment.updateMany({
+        where: {
+          partnerGroupId: groupId,
+          programId,
+        },
+        data: {
+          partnerGroupId: defaultGroup.id,
+          clickRewardId: defaultGroup.clickRewardId,
+          leadRewardId: defaultGroup.leadRewardId,
+          saleRewardId: defaultGroup.saleRewardId,
+          discountId: defaultGroup.discountId,
+        },
+      });
+    });
+
+    return NextResponse.json({ id: groupId });
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business extra",
+      "business max",
+      "business plus",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);

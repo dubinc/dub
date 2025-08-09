@@ -110,7 +110,7 @@ model ProgramEnrollment {
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
-  @@index(partnerGroupId)
+  @@index([partnerGroupId, programId])
 }
 
 model ProgramApplication {

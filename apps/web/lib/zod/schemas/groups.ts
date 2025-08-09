@@ -12,11 +12,15 @@ export const getGroupsQuerySchema = z
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const GroupSchema = z.object({
-  id: z.string().describe("The unique ID of the group."),
-  name: z.string().describe("The name of the group."),
-  slug: z.string().describe("The slug of the group."),
-  icon: z.string().describe("The icon of the group."),
-  color: z.string().describe("The color of the group."),
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  icon: z.string(),
+  color: z.string(),
+  clickRewardId: z.string().nullable(),
+  leadRewardId: z.string().nullable(),
+  saleRewardId: z.string().nullable(),
+  discountId: z.string().nullable(),
 });
 
 export const createGroupSchema = z.object({
