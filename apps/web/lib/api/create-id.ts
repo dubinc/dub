@@ -27,6 +27,7 @@ const prefixes = [
   "disc_",
   "dub_embed_",
   "audit_",
+  "fraud_",
   "import_",
 ] as const;
 

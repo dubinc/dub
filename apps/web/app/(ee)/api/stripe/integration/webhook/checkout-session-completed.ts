@@ -1,4 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { detectAndRecordFraud } from "@/lib/analytics/fraud/detect-and-record-fraud";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -362,14 +363,36 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       },
     });
 
-    if (commission) {
-      waitUntil(
-        notifyPartnerSale({
-          link,
-          commission,
+    waitUntil(
+      Promise.allSettled([
+        commission &&
+          notifyPartnerSale({
+            link,
+            commission,
+          }),
+
+        detectAndRecordFraud({
+          partner: {
+            id: link.partnerId,
+            linkId: link.id,
+            programId: link.programId,
+          },
+          customer: {
+            id: customer.id,
+            name: customer.name || "",
+            email: customer.email,
+          },
+          click: {
+            url: saleData.url,
+            ip: saleData.ip,
+            referer: saleData.referer,
+          },
+          commission: {
+            id: commission?.id,
+          },
         }),
-      );
-    }
+      ]),
+    );
   }
 
   waitUntil(

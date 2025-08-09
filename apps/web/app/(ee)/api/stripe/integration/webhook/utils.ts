@@ -1,3 +1,4 @@
+import { detectAndRecordFraud } from "@/lib/analytics/fraud/detect-and-record-fraud";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
@@ -99,7 +100,7 @@ export async function createNewCustomer(event: Stripe.Event) {
   ]);
 
   if (link.programId && link.partnerId) {
-    await createPartnerCommission({
+    const commission = await createPartnerCommission({
       event: "lead",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -113,6 +114,29 @@ export async function createNewCustomer(event: Stripe.Event) {
         },
       },
     });
+
+    waitUntil(
+      detectAndRecordFraud({
+        partner: {
+          id: link.partnerId,
+          linkId: link.id,
+          programId: link.programId,
+        },
+        customer: {
+          id: customer.id,
+          name: customer.name || "",
+          email: customer.email,
+        },
+        click: {
+          url: leadData.url,
+          ip: leadData.ip,
+          referer: leadData.referer,
+        },
+        commission: {
+          id: commission?.id,
+        },
+      }),
+    );
   }
 
   waitUntil(

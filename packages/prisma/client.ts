@@ -6,6 +6,7 @@ export {
   EventType,
   FolderType,
   FolderUserRole,
+  FraudEventStatus,
   InvoiceStatus,
   PartnerBannedReason,
   PartnerLinkStructure,
