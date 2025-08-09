@@ -23,10 +23,14 @@ export const GET = withWorkspace(
     const groups = await prisma.partnerGroup.findMany({
       where: {
         programId,
-        OR: [
-          { name: { startsWith: search } },
-          { slug: { startsWith: search } },
-        ],
+        ...(search
+          ? {
+              OR: [
+                { name: { startsWith: search } },
+                { slug: { startsWith: search } },
+              ],
+            }
+          : {}),
       },
       orderBy: {
         createdAt: "desc",
@@ -34,6 +38,8 @@ export const GET = withWorkspace(
       skip: (page - 1) * pageSize,
       take: pageSize,
     });
+
+    console.log(groups);
 
     return NextResponse.json(z.array(GroupSchema).parse(groups));
   },
