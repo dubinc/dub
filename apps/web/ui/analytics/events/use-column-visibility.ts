@@ -86,7 +86,7 @@ const getDefaultColumnVisibility = (tab: EventType) => {
 };
 
 export function useColumnVisibility() {
-  const [columnVisibility, setColumnVisibility] = useLocalStorage<
+  const [columnVisibility, setColumnVisibilityState] = useLocalStorage<
     Record<EventType, VisibilityState>
   >("events-table-columns", {
     clicks: getDefaultColumnVisibility("clicks"),
@@ -96,7 +96,22 @@ export function useColumnVisibility() {
 
   return {
     columnVisibility,
-    setColumnVisibility: (tab, visibility) =>
-      setColumnVisibility({ ...columnVisibility, [tab]: visibility }),
+    setColumnVisibility: (tab, visibility) => {
+      // Ensure all columns for this tab are present in the new state
+      const allColumns = eventColumns[tab].all;
+      const currentTabState = columnVisibility[tab] || {};
+
+      // Create a new state that preserves all columns, defaulting to false for missing ones
+      const newTabState = Object.fromEntries(
+        allColumns.map((columnId) => [
+          columnId,
+          visibility.hasOwnProperty(columnId)
+            ? visibility[columnId]
+            : currentTabState[columnId] ?? false,
+        ]),
+      );
+
+      setColumnVisibilityState({ ...columnVisibility, [tab]: newTabState });
+    },
   };
 }
