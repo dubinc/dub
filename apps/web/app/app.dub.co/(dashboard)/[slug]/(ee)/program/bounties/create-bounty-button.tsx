@@ -4,7 +4,7 @@ import { Button, useKeyboardShortcut } from "@dub/ui";
 import { useBountySheet } from "./add-edit-bounty-sheet";
 
 export function CreateBountyButton() {
-  const { BountySheet, setIsOpen: setShowCreateBountySheet } = useBountySheet({
+  const { BountySheet, setShowCreateBountySheet } = useBountySheet({
     nested: false,
     partnerId: "",
   });

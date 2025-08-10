@@ -4,6 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { BountySubmissionSchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // TODO:
 // Add filter, pagination
@@ -29,5 +30,5 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     },
   });
 
-  return NextResponse.json(BountySubmissionSchema.parse(submissions));
+  return NextResponse.json(z.array(BountySubmissionSchema).parse(submissions));
 });

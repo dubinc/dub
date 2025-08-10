@@ -3,7 +3,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ChevronRight } from "@dub/ui";
 import { Trophy } from "lucide-react";
 import { BountyDetails } from "./bounty-details";
-import { BountySubmissions } from "./bounty-submissions";
+import { BountySubmissionsTable } from "./bounty-submissions-table";
 
 export default function Page() {
   return (
@@ -25,7 +25,7 @@ export default function Page() {
       <PageWidthWrapper>
         <div>
           <BountyDetails />
-          <BountySubmissions />
+          <BountySubmissionsTable />
         </div>
       </PageWidthWrapper>
     </PageContent>

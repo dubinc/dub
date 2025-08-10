@@ -9,7 +9,6 @@ export function BountyDetails() {
   const { bountyId } = useParams<{ bountyId: string }>();
   const { bounty } = useBounty({ bountyId });
 
-  const total = 100;
   const completed = 50;
 
   return (
@@ -39,7 +38,10 @@ export function BountyDetails() {
             <Users className="size-4" />
             <div className="text-sm text-neutral-500">
               <span className="font-medium text-neutral-700">{completed}</span>{" "}
-              of <span className="font-medium text-neutral-700">{total}</span>{" "}
+              of{" "}
+              <span className="font-medium text-neutral-700">
+                {bounty.submissionsCount}
+              </span>{" "}
               partners completed
             </div>
           </div>

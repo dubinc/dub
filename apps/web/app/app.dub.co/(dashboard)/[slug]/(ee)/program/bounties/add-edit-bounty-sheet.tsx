@@ -28,7 +28,6 @@ import { z } from "zod";
 
 type BountySheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  partnerId?: string;
 };
 
 type FormData = z.infer<typeof createBountySchema>;
@@ -456,6 +455,6 @@ export function useBountySheet(
     BountySheet: (
       <BountySheet setIsOpen={setIsOpen} isOpen={isOpen} {...props} />
     ),
-    setIsOpen,
+    setShowCreateBountySheet: setIsOpen,
   };
 }

@@ -12,6 +12,13 @@ export const getBountyOrThrow = async ({
     where: {
       id: bountyId,
     },
+    include: {
+      _count: {
+        select: {
+          submissions: true,
+        },
+      },
+    },
   });
 
   if (!bounty) {
@@ -28,5 +35,8 @@ export const getBountyOrThrow = async ({
     });
   }
 
-  return bounty;
+  return {
+    ...bounty,
+    submissionsCount: bounty._count.submissions,
+  };
 };

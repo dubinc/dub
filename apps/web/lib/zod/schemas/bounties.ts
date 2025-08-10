@@ -44,6 +44,7 @@ export const BountySchema = z.object({
 export const BountySubmissionSchema = z.object({
   id: z.string(),
   description: z.string().nullable(),
+  evidenceUrl: z.string(),
   status: z.nativeEnum(BountySubmissionStatus),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -66,7 +67,6 @@ export const BountySubmissionSchema = z.object({
   user: UserSchema.pick({
     id: true,
     name: true,
-    email: true,
     image: true,
   }).nullable(),
 });
