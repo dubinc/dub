@@ -5,7 +5,7 @@ import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions"
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { prisma } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
+import { CommissionType, Prisma } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -129,7 +129,7 @@ export async function GET(req: Request) {
 
     // // Create commissions
     await prisma.commission.createMany({
-      data: commissionsToCreate,
+      data: commissionsToCreate as Prisma.CommissionCreateManyInput[],
     });
 
     // getting a list of click reward program enrollments
