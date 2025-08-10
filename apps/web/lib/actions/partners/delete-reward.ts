@@ -27,10 +27,6 @@ export const deleteRewardAction = authActionClient
       programId,
     });
 
-    if (reward.default) {
-      throw new Error(`Default ${reward.event} reward cannot be deleted.`);
-    }
-
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
     await prisma.$transaction(async (tx) => {

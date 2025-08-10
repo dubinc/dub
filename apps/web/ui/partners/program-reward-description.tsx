@@ -1,20 +1,23 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { cn } from "@dub/utils";
+import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
 
 export function ProgramRewardDescription({
   reward,
   discount,
   amountClassName,
   periodClassName,
+  showModifiersTooltip = true,
 }: {
   reward?: Pick<
     RewardProps,
-    "amount" | "type" | "event" | "maxDuration" | "description"
+    "amount" | "type" | "event" | "maxDuration" | "description" | "modifiers"
   > | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
+  showModifiersTooltip?: boolean; // used in server-side reward description construction
 }) {
   return (
     <>
@@ -24,7 +27,14 @@ export function ProgramRewardDescription({
               Earn{" "}
               <strong className={cn("font-semibold", amountClassName)}>
                 {constructRewardAmount({
-                  amount: reward.amount,
+                  ...(reward.modifiers?.length
+                    ? {
+                        amounts: [
+                          reward.amount,
+                          ...reward.modifiers.map(({ amount }) => amount),
+                        ],
+                      }
+                    : { amount: reward.amount }),
                   type: reward.type,
                 })}{" "}
               </strong>
@@ -52,6 +62,13 @@ export function ProgramRewardDescription({
                   </strong>
                 </>
               ) : null}
+              {/* Modifiers */}
+              {showModifiersTooltip && !!reward.modifiers?.length && (
+                <>
+                  {" "}
+                  <ProgramRewardModifiersTooltip reward={reward} />
+                </>
+              )}
             </>
           )
         : null}

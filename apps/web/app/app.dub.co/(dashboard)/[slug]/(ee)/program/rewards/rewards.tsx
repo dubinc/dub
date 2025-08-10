@@ -323,6 +323,7 @@ const RewardItem = ({
     <>
       <As
         href={reward ? `/${slug}/program/rewards?rewardId=${reward.id}` : ""}
+        scroll={false}
         className="flex cursor-pointer items-center gap-4 rounded-lg border border-neutral-200 p-4 transition-all hover:border-neutral-300"
       >
         <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
