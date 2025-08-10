@@ -1,4 +1,3 @@
-import { handleMoneyKeyDown } from "@/lib/form-utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createBountySchema } from "@/lib/zod/schemas/bounties";
 import {
@@ -7,6 +6,7 @@ import {
   ProgramSheetAccordionItem,
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
+import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -17,13 +17,12 @@ import {
   SmartDateTimePicker,
   Switch,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-interface CreateBountySheetProps {
+interface BountySheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   partnerId?: string;
 }
@@ -43,14 +42,12 @@ const BOUNTY_TYPES: CardSelectorOption[] = [
   },
 ];
 
-function CreateBountySheetContent({ setIsOpen }: CreateBountySheetProps) {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+const ACCORDION_ITEMS = ["bounty-type", "bounty-details"];
 
+function BountySheetContent({ setIsOpen }: BountySheetProps) {
   const [hasEndDate, setHasEndDate] = useState(false);
-  const [openAccordions, setOpenAccordions] = useState([
-    "partner-and-type",
-    "bounty-details",
-  ]);
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
 
   const {
     handleSubmit,
@@ -112,7 +109,7 @@ function CreateBountySheetContent({ setIsOpen }: CreateBountySheetProps) {
             onValueChange={setOpenAccordions}
             className="space-y-6"
           >
-            <ProgramSheetAccordionItem value="partner-and-type">
+            <ProgramSheetAccordionItem value="bounty-type">
               <ProgramSheetAccordionTrigger>
                 Bounty type
               </ProgramSheetAccordionTrigger>
@@ -200,10 +197,7 @@ function CreateBountySheetContent({ setIsOpen }: CreateBountySheetProps) {
                     >
                       Reward
                     </label>
-                    <div className="relative mt-2 rounded-md shadow-sm">
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                        $
-                      </span>
+                    <div className="mt-2">
                       <Controller
                         name="rewardAmount"
                         control={control}
@@ -212,14 +206,12 @@ function CreateBountySheetContent({ setIsOpen }: CreateBountySheetProps) {
                           min: 0,
                         }}
                         render={({ field }) => (
-                          <input
+                          <AmountInput
                             {...field}
-                            type="number"
-                            className={cn(
-                              "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                              errors.rewardAmount &&
-                                "border-red-600 focus:border-red-500 focus:ring-red-600",
-                            )}
+                            id="rewardAmount"
+                            amountType="flat"
+                            placeholder="200"
+                            error={errors.rewardAmount?.message}
                             value={
                               field.value == null || isNaN(field.value)
                                 ? ""
@@ -227,18 +219,14 @@ function CreateBountySheetContent({ setIsOpen }: CreateBountySheetProps) {
                             }
                             onChange={(e) => {
                               const val = e.target.value;
+
                               field.onChange(
                                 val === "" ? null : parseFloat(val),
                               );
                             }}
-                            onKeyDown={handleMoneyKeyDown}
-                            placeholder="200"
                           />
                         )}
                       />
-                      <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">
-                        USD
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -273,29 +261,29 @@ function CreateBountySheetContent({ setIsOpen }: CreateBountySheetProps) {
   );
 }
 
-export function CreateBountySheet({
+export function BountySheet({
   isOpen,
   nested,
   ...rest
-}: CreateBountySheetProps & {
+}: BountySheetProps & {
   isOpen: boolean;
   nested?: boolean;
 }) {
   return (
     <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
-      <CreateBountySheetContent {...rest} />
+      <BountySheetContent {...rest} />
     </Sheet>
   );
 }
 
-export function useCreateBountySheet(
-  props: { nested?: boolean } & Omit<CreateBountySheetProps, "setIsOpen">,
+export function useBountySheet(
+  props: { nested?: boolean } & Omit<BountySheetProps, "setIsOpen">,
 ) {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
-    createBountySheet: (
-      <CreateBountySheet setIsOpen={setIsOpen} isOpen={isOpen} {...props} />
+    BountySheet: (
+      <BountySheet setIsOpen={setIsOpen} isOpen={isOpen} {...props} />
     ),
     setIsOpen,
   };

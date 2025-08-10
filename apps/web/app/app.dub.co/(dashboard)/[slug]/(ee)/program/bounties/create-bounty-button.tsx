@@ -1,20 +1,19 @@
 "use client";
 
 import { Button, useKeyboardShortcut } from "@dub/ui";
-import { useCreateBountySheet } from "./create-bounty-sheet";
+import { useBountySheet } from "./add-edit-bounty-sheet";
 
 export function CreateBountyButton() {
-  const { createBountySheet, setIsOpen: setShowCreateBountySheet } =
-    useCreateBountySheet({
-      nested: false,
-      partnerId: "",
-    });
+  const { BountySheet, setIsOpen: setShowCreateBountySheet } = useBountySheet({
+    nested: false,
+    partnerId: "",
+  });
 
   useKeyboardShortcut("c", () => setShowCreateBountySheet(true));
 
   return (
     <>
-      {createBountySheet}
+      {BountySheet}
       <Button
         type="button"
         onClick={() => setShowCreateBountySheet(true)}
