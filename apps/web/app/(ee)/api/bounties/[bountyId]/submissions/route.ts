@@ -28,6 +28,9 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       partner: true,
       commission: true,
     },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   return NextResponse.json(z.array(BountySubmissionSchema).parse(submissions));
