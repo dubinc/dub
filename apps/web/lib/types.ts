@@ -87,6 +87,7 @@ import {
   WebhookSchema,
 } from "./zod/schemas/webhooks";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
+import { BountySchema } from "./zod/schemas/bounties";
 
 export type LinkProps = Link;
 
@@ -513,3 +514,5 @@ export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
 export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
+
+export type BountyProps = z.infer<typeof BountySchema>;

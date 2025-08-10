@@ -2,7 +2,7 @@
 
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { CommissionTable } from "../commissions/commission-table";
+import { BountyList } from "./bounty-list";
 import { CreateBountyButton } from "./create-bounty-button";
 
 export default function ProgramCommissions() {
@@ -17,7 +17,7 @@ export default function ProgramCommissions() {
       controls={<CreateBountyButton />}
     >
       <PageWidthWrapper>
-        <CommissionTable />
+        <BountyList />
       </PageWidthWrapper>
     </PageContent>
   );
