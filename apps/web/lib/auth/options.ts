@@ -7,6 +7,7 @@ import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
 import { User, type NextAuthOptions } from "next-auth";
@@ -16,9 +17,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
+import { getIP, getUserAgent } from "../api/utils";
 import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
@@ -360,6 +360,7 @@ export const authOptions: NextAuthOptions = {
             );
             newAvatar = url;
           }
+
           await prisma.user.update({
             where: { email: user.email },
             data: {
@@ -540,26 +541,35 @@ export const authOptions: NextAuthOptions = {
         );
       }
 
-      // lazily backup user avatar to R2
-      const currentImage = message.user.image;
-      if (currentImage && !isStored(currentImage)) {
-        waitUntil(
-          (async () => {
+      waitUntil(
+        (async () => {
+          const currentImage = message.user.image;
+          let imageUrl: string | null = null;
+
+          if (currentImage && !isStored(currentImage)) {
             const { url } = await storage.upload(
               `avatars/${message.user.id}`,
               currentImage,
             );
-            await prisma.user.update({
-              where: {
-                id: message.user.id,
-              },
-              data: {
-                image: url,
-              },
-            });
-          })(),
-        );
-      }
+
+            imageUrl = url;
+          }
+
+          const ipAddress = getIP();
+          const userAgent = getUserAgent();
+
+          await prisma.user.update({
+            where: {
+              id: message.user.id,
+            },
+            data: {
+              ...(imageUrl && { image: imageUrl }),
+              ...(ipAddress && { ipAddress: Buffer.from(ipAddress) }),
+              ...(userAgent && { userAgent: userAgent.ua }),
+            },
+          });
+        })(),
+      );
 
       // Complete any outstanding program applications
       waitUntil(completeProgramApplications(message.user.id));

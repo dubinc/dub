@@ -7,6 +7,7 @@ import {
   ShieldAlert,
 } from "@dub/ui/icons";
 import { currencyFormatter } from "@dub/utils";
+import { LockKeyhole } from "lucide-react";
 
 interface CommissionTooltipDataProps {
   holdingPeriodDays: number;
@@ -56,6 +57,18 @@ export const CommissionStatusBadges = {
     tooltip: (data: CommissionTooltipDataProps) => (
       <LinkifyTooltipContent>
         This commission was flagged as fraudulent. Reach out to{" "}
+        {data.supportEmail} if you believe this is incorrect.
+      </LinkifyTooltipContent>
+    ),
+  },
+  held: {
+    label: "Held",
+    variant: "neutral",
+    className: "text-gray-600 bg-gray-100",
+    icon: LockKeyhole,
+    tooltip: (data: CommissionTooltipDataProps) => (
+      <LinkifyTooltipContent>
+        This commission was held due to suspicious activity. Reach out to{" "}
         {data.supportEmail} if you believe this is incorrect.
       </LinkifyTooltipContent>
     ),

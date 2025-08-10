@@ -1,3 +1,4 @@
+import { detectAndRecordFraud } from "@/lib/analytics/fraud/detect-and-record-fraud";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -247,7 +248,7 @@ export const trackLead = async ({
         ]);
 
         if (link.programId && link.partnerId && customer) {
-          await createPartnerCommission({
+          const commission = await createPartnerCommission({
             event: "lead",
             programId: link.programId,
             partnerId: link.partnerId,
@@ -261,6 +262,29 @@ export const trackLead = async ({
               },
             },
           });
+
+          waitUntil(
+            detectAndRecordFraud({
+              partner: {
+                id: link.partnerId,
+                linkId: link.id,
+                programId: link.programId,
+              },
+              customer: {
+                id: customer.id,
+                name: customer.name || "",
+                email: customer.email,
+              },
+              click: {
+                url: clickData.url,
+                ip: clickData.ip,
+                referer: clickData.referer,
+              },
+              commission: {
+                id: commission?.id,
+              },
+            }),
+          );
         }
 
         if (

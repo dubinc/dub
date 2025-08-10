@@ -18,6 +18,7 @@ export const CommissionSchema = z.object({
   invoiceId: z.string().nullable(),
   description: z.string().nullable(),
   quantity: z.number(),
+  fraudEventId: z.string().nullable(),
   userId: z
     .string()
     .nullish()

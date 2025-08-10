@@ -23,7 +23,7 @@ function ArchivePartnerModal({
   setShowArchivePartnerModal: Dispatch<SetStateAction<boolean>>;
   partner: EnrolledPartnerProps;
 }) {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const actionText = partner.status === "archived" ? "unarchive" : "archive";
   const actionDescription =
