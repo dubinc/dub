@@ -65,6 +65,7 @@ const partnersColumns = {
     "location",
     "clicks",
     "leads",
+    "conversions",
     "sales",
     "saleAmount",
     "totalCommissions",
@@ -76,7 +77,7 @@ const partnersColumns = {
     "location",
     "clicks",
     "leads",
-    "sales",
+    "conversions",
     "saleAmount",
     "totalCommissions",
   ],
@@ -205,6 +206,11 @@ export function PartnerTable() {
         id: "leads",
         header: "Leads",
         accessorFn: (d) => nFormatter(d.leads),
+      },
+      {
+        id: "conversions",
+        header: "Conversions",
+        accessorFn: (d) => nFormatter(d.conversions),
       },
       {
         id: "sales",
