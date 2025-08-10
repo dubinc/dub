@@ -11,6 +11,7 @@ import {
 } from "@/ui/partners/program-sheet-accordion";
 import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
+import { useApiRequest } from "@/ui/shared/use-api-mutation";
 import {
   AnimatedSizeContainer,
   Button,
@@ -59,6 +60,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
   const [requireImage, setRequireImage] = useState(false);
   const [requireUrl, setRequireUrl] = useState(false);
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
+  const { makeRequest, loading } = useApiRequest();
 
   const {
     handleSubmit,
@@ -81,14 +83,14 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
     "description",
   ]);
 
-  // make sure endsAt is null if hasEndDate is false
+  // Make sure endsAt is null if hasEndDate is false
   useEffect(() => {
     if (!hasEndDate) {
       setValue("endsAt", null);
     }
   }, [hasEndDate, setValue]);
 
-  // set submission requirements
+  // Set submission requirements
   useEffect(() => {
     const requirements: SubmissionRequirement[] = [];
 
@@ -107,7 +109,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
     }
   }, [requireImage, requireUrl, setValue]);
 
-  // decide if the submit button should be disabled
+  // Decide if the submit button should be disabled
   const shouldDisableSubmit = useMemo(() => {
     if (!startsAt || !rewardAmount) {
       return true;
@@ -120,12 +122,20 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
     return false;
   }, [startsAt, rewardAmount, type, name]);
 
+  // Handle form submission
   const onSubmit = async (data: FormData) => {
     if (!workspaceId) {
       return;
     }
 
-    console.log(data);
+    await makeRequest("/api/bounties", {
+      method: "POST",
+      body: data,
+      successMessage: "Bounty created successfully!",
+      onSuccess: () => {
+        setIsOpen(false);
+      },
+    });
   };
 
   return (
@@ -400,7 +410,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            // disabled={isPending}
+            disabled={loading}
           />
 
           <Button
@@ -408,8 +418,13 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
             variant="primary"
             text="Create bounty"
             className="w-fit"
-            // loading={isPending}
+            loading={loading}
             disabled={shouldDisableSubmit}
+            disabledTooltip={
+              shouldDisableSubmit
+                ? "Please fill all required fields."
+                : undefined
+            }
           />
         </div>
       </div>
