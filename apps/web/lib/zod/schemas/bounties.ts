@@ -37,6 +37,7 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   rewardAmount: z.number(),
+  totalSubmissions: z.number(),
 });
 
 export const BountySubmissionSchema = z.object({
@@ -48,7 +49,6 @@ export const BountySubmissionSchema = z.object({
   reviewedAt: z.date().nullable(),
   rejectionReason: z.string().nullable(),
   rejectionNote: z.string().nullable(),
-
   partner: PartnerSchema.pick({
     id: true,
     name: true,
@@ -61,11 +61,11 @@ export const BountySubmissionSchema = z.object({
     amount: true,
     earnings: true,
     status: true,
-  }),
+  }).nullable(),
   user: UserSchema.pick({
     id: true,
     name: true,
     email: true,
     image: true,
-  }),
+  }).nullable(),
 });
