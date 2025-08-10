@@ -3,12 +3,20 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
+import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { UserRowItem } from "@/ui/users/user-row-item";
-import { StatusBadge, Table, usePagination, useTable } from "@dub/ui";
+import {
+  StatusBadge,
+  Table,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import { User } from "@dub/ui/icons";
 import { fetcher, formatDate } from "@dub/utils";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 
 export const BOUNTY_SUBMISSION_STATUS_BADGES = {
@@ -30,6 +38,7 @@ export function BountySubmissionsTable() {
   const { id: workspaceId } = useWorkspace();
   const { bountyId } = useParams<{ bountyId: string }>();
   const { pagination, setPagination } = usePagination();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const {
     error,
@@ -47,6 +56,29 @@ export function BountySubmissionsTable() {
       dedupingInterval: 30000,
     },
   );
+
+  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
+  const [detailsSheetState, setDetailsSheetState] = useState<
+    | { open: false; submission: BountySubmissionProps | null }
+    | { open: true; submission: BountySubmissionProps }
+  >({ open: false, submission: null });
+
+  // Open the details sheet if submissionId is set in params
+  useEffect(() => {
+    const submissionId = searchParams.get("submissionId");
+
+    if (!submissionId) {
+      setDetailsSheetState({ open: false, submission: null });
+    }
+
+    const submission = submissions?.find((s) => s.id === submissionId);
+
+    if (submission) {
+      setDetailsSheetState({ open: true, submission });
+    }
+  }, [searchParams]);
 
   const { table, ...tableProps } = useTable({
     data: submissions || [],
@@ -104,6 +136,26 @@ export function BountySubmissionsTable() {
         },
       },
     ],
+    onRowClick: (row) => {
+      queryParams({
+        set: {
+          submissionId: row.original.id,
+        },
+        scroll: false,
+      });
+    },
+    sortableColumns: ["createdAt"],
+    sortBy,
+    sortOrder,
+    onSortChange: ({ sortBy, sortOrder }) =>
+      queryParams({
+        set: {
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
+        },
+        del: "page",
+        scroll: false,
+      }),
     pagination,
     onPaginationChange: setPagination,
     thClassName: "border-l-0",
@@ -116,6 +168,16 @@ export function BountySubmissionsTable() {
 
   return (
     <>
+      {detailsSheetState.submission && (
+        <BountySubmissionDetailsSheet
+          isOpen={detailsSheetState.open}
+          setIsOpen={(open) =>
+            setDetailsSheetState((s) => ({ ...s, open }) as any)
+          }
+          submission={detailsSheetState.submission}
+        />
+      )}
+
       <div className="flex flex-col gap-6">
         {submissions && submissions.length > 0 ? (
           <Table {...tableProps} table={table} />

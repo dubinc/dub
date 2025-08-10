@@ -5,7 +5,7 @@ import { formatDate } from "@dub/utils";
 import { CalendarDays, Trophy, Users } from "lucide-react";
 import { useParams } from "next/navigation";
 
-export function BountyDetails() {
+export function BountyInfo() {
   const { bountyId } = useParams<{ bountyId: string }>();
   const { bounty } = useBounty({ bountyId });
 

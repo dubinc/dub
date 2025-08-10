@@ -2,7 +2,7 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ChevronRight } from "@dub/ui";
 import { Trophy } from "lucide-react";
-import { BountyDetails } from "./bounty-details";
+import { BountyInfo } from "./bounty-info";
 import { BountySubmissionsTable } from "./bounty-submissions-table";
 
 export default function Page() {
@@ -24,7 +24,7 @@ export default function Page() {
     >
       <PageWidthWrapper>
         <div className="flex flex-col gap-4">
-          <BountyDetails />
+          <BountyInfo />
           <BountySubmissionsTable />
         </div>
       </PageWidthWrapper>

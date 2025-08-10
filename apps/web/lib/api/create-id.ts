@@ -28,7 +28,8 @@ const prefixes = [
   "dub_embed_",
   "audit_",
   "import_",
-  "bounty_",
+  "bounty_", // TODO: Finalize this
+  "bounty_submission_", // TODO: Finalize this
   "wf_",
 ] as const;
 
