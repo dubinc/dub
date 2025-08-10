@@ -10,6 +10,16 @@ type SingleTableConfig = {
 // Multi-tab table configuration
 type MultiTableConfig<T extends string> = Record<T, SingleTableConfig>;
 
+// Type guard for SingleTableConfig
+function isSingleTableConfig(config: any): config is SingleTableConfig {
+  return (
+    config &&
+    typeof config === "object" &&
+    Array.isArray(config.all) &&
+    Array.isArray(config.defaultVisible)
+  );
+}
+
 // Generic hook for single table
 export function useColumnVisibility<T extends SingleTableConfig>(
   storageKey: string,
@@ -32,9 +42,17 @@ export function useColumnVisibility<T extends string>(
 export function useColumnVisibility<T extends string>(
   storageKey: string,
   config: SingleTableConfig | MultiTableConfig<T>,
-): any {
+):
+  | {
+      columnVisibility: VisibilityState;
+      setColumnVisibility: (visibility: VisibilityState) => void;
+    }
+  | {
+      columnVisibility: Record<T, VisibilityState>;
+      setColumnVisibility: (tab: T, visibility: VisibilityState) => void;
+    } {
   // Check if this is a multi-tab configuration
-  const isMultiTab = !Array.isArray((config as any).all);
+  const isMultiTab = !isSingleTableConfig(config);
 
   if (isMultiTab) {
     // Multi-tab implementation
@@ -69,7 +87,7 @@ export function useColumnVisibility<T extends string>(
         const newTabState = Object.fromEntries(
           allColumns.map((columnId) => [
             columnId,
-            visibility.hasOwnProperty(columnId)
+            columnId in visibility
               ? visibility[columnId]
               : currentTabState[columnId] ?? false,
           ]),
@@ -103,7 +121,7 @@ export function useColumnVisibility<T extends string>(
         const newState = Object.fromEntries(
           allColumns.map((columnId) => [
             columnId,
-            visibility.hasOwnProperty(columnId)
+            columnId in visibility
               ? visibility[columnId]
               : currentState[columnId] ?? false,
           ]),
