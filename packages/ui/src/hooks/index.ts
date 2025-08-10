@@ -1,3 +1,4 @@
+export * from "./use-column-visibility";
 export * from "./use-cookies";
 export * from "./use-copy-to-clipboard";
 export * from "./use-current-anchor";
