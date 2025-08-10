@@ -1,5 +1,8 @@
-import { BountyType } from "@dub/prisma/client";
+import { BountySubmissionStatus, BountyType } from "@dub/prisma/client";
 import { z } from "zod";
+import { CommissionSchema } from "./commissions";
+import { PartnerSchema } from "./partners";
+import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 
 export const SUBMISSION_REQUIREMENTS = ["image", "url"] as const;
@@ -34,4 +37,35 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   rewardAmount: z.number(),
+});
+
+export const BountySubmissionSchema = z.object({
+  id: z.string(),
+  description: z.string().nullable(),
+  status: z.nativeEnum(BountySubmissionStatus),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  reviewedAt: z.date().nullable(),
+  rejectionReason: z.string().nullable(),
+  rejectionNote: z.string().nullable(),
+
+  partner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+    payoutsEnabledAt: true,
+  }),
+  commission: CommissionSchema.pick({
+    id: true,
+    amount: true,
+    earnings: true,
+    status: true,
+  }),
+  user: UserSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+  }),
 });

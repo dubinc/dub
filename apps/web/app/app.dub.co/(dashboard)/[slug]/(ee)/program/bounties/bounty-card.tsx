@@ -13,9 +13,9 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
   return (
     <ProgramOverviewCard className="cursor-pointer p-5 transition-shadow hover:shadow-lg">
       <div className="flex flex-col gap-5">
-        <div className="flex items-center justify-center rounded-lg bg-neutral-50 px-32 py-4">
+        <div className="flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 px-32 py-4">
           <div className="relative">
-            <Trophy className="size-14" />
+            <Trophy className="size-20" />
           </div>
         </div>
 

@@ -46,7 +46,7 @@ model BountySubmission {
   description     String?                @db.Text
   status          BountySubmissionStatus @default(pending)
   rejectionReason String?
-  rejectionNotes  String?                @db.Text
+  rejectionNote   String?                @db.Text
   reviewedAt      DateTime?
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
