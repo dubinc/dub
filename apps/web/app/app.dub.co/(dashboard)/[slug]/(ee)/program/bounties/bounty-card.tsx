@@ -37,7 +37,7 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
             <div className="text-sm text-neutral-500">
               <span className="font-medium text-neutral-700">{100}</span> of{" "}
               <span className="font-medium text-neutral-700">
-                {bounty.totalSubmissions}
+                {bounty.submissionsCount}
               </span>{" "}
               partners completed
             </div>

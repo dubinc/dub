@@ -30,7 +30,7 @@ export const GET = withWorkspace(async ({ workspace }) => {
 
   bounties = bounties.map((bounty) => ({
     ...bounty,
-    totalSubmissions: bounty._count.submissions,
+    submissionsCount: bounty._count.submissions,
   }));
 
   return NextResponse.json(z.array(BountySchema).parse(bounties));
