@@ -87,6 +87,14 @@ export const analyticsQuerySchema = z
       .describe(
         "The unique ID of the short link on Dub to retrieve analytics for.",
       ),
+    // TODO: Add this to the public API when we can properly verify linkIds ownership in /api/analytics
+    // linkIds: z
+    //   .union([z.string(), z.array(z.string())])
+    //   .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    //   .optional()
+    //   .describe(
+    //     "A list of link IDs to retrieve analytics for. Takes precidence over ",
+    //   ),
     externalId: z
       .string()
       .optional()
@@ -266,6 +274,12 @@ export const analyticsFilterTB = z
       .string()
       .optional()
       .describe("The UTM tag to group by. Defaults to `utm_source`."),
+    // TODO: remove this once it's been added to the public API
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("The link IDs to retrieve analytics for."),
     folderIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
