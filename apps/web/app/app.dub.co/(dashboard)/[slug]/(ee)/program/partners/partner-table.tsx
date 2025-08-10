@@ -178,6 +178,11 @@ export function PartnerTable() {
         accessorFn: (d) => nFormatter(d.leads),
       },
       {
+        id: "conversions",
+        header: "Conversions",
+        accessorFn: (d) => nFormatter(d.conversions),
+      },
+      {
         id: "sales",
         header: "Sales",
         accessorFn: (d) => nFormatter(d.sales),
