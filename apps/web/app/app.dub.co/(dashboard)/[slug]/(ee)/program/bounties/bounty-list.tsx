@@ -2,14 +2,14 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
+import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { fetcher } from "@dub/utils";
+import { Trophy } from "lucide-react";
 import useSWR from "swr";
-import { BountyCard } from "./bounty-card";
+import { BountyCard, BountyCardSkeleton } from "./bounty-card";
 
 // TODO:
-// Fix loading state
 // Fix error state
-// Fix no bounties state
 
 export function BountyList() {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
@@ -28,23 +28,30 @@ export function BountyList() {
     },
   );
 
-  if (isLoading) {
-    return <></>;
-  }
-
   if (error) {
     return <></>;
   }
 
-  if (!bounties || bounties.length === 0) {
-    return <></>;
-  }
-
-  return (
+  return bounties?.length !== 0 || isLoading ? (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-      {bounties.map((bounty) => (
-        <BountyCard key={bounty.id} bounty={bounty} />
-      ))}
+      {isLoading
+        ? Array.from({ length: 3 }, (_, index) => (
+            <BountyCardSkeleton key={index} />
+          ))
+        : bounties?.map((bounty) => (
+            <BountyCard key={bounty.id} bounty={bounty} />
+          ))}
     </div>
+  ) : (
+    <AnimatedEmptyState
+      title="No bounties found"
+      description="No bounties have been created for this program yet."
+      cardContent={() => (
+        <>
+          <Trophy className="size-4 text-neutral-700" />
+          <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+        </>
+      )}
+    />
   );
 }
