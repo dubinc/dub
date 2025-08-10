@@ -136,7 +136,7 @@ export function PartnerTable() {
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "partners-table-columns",
+    "partners-table-columns", // TODO: update to v2 once we add partner groups
     partnersColumns,
   );
 
