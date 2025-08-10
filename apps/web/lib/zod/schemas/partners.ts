@@ -95,7 +95,7 @@ export const getPartnersQuerySchema = z
     includeExpandedFields: booleanQuerySchema
       .optional()
       .describe(
-        "Whether to include stats fields on the partner (`clicks`, `leads`, `sales`, `saleAmount`, `commissions`, `netRevenue`). If false, those fields will be returned as 0.",
+        "Whether to include stats fields on the partner (`clicks`, `leads`, `conversions`, `sales`, `saleAmount`, `commissions`, `netRevenue`). If false, those fields will be returned as 0.",
       )
       .openapi({ example: "true" }),
     search: z
