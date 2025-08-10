@@ -23,7 +23,7 @@ export default function Page() {
       }
     >
       <PageWidthWrapper>
-        <div>
+        <div className="flex flex-col gap-4">
           <BountyDetails />
           <BountySubmissionsTable />
         </div>
