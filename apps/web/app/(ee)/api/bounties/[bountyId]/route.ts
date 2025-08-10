@@ -4,6 +4,19 @@ import { withWorkspace } from "@/lib/auth";
 import { BountySchema } from "@/lib/zod/schemas/bounties";
 import { NextResponse } from "next/server";
 
+// GET /api/bounties/[bountyId] - get a bounty
+export const GET = withWorkspace(async ({ workspace, params }) => {
+  const { bountyId } = params;
+  const programId = getDefaultProgramIdOrThrow(workspace);
+
+  const bounty = await getBountyOrThrow({
+    bountyId,
+    programId,
+  });
+
+  return NextResponse.json(BountySchema.parse(bounty));
+});
+
 // PATCH /api/bounties/[bountyId] - update a bounty
 export const PATCH = withWorkspace(async ({ workspace, params }) => {
   const { bountyId } = params;

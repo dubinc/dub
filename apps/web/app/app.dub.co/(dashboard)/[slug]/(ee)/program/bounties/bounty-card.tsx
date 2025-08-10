@@ -24,9 +24,9 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
             {name}
           </h3>
 
-          <div className="flex items-center space-x-2 text-sm text-neutral-500">
+          <div className="flex items-center space-x-2">
             <CalendarDays className="size-4" />
-            <span>
+            <span className="text-sm text-neutral-500">
               {formatDate(startsAt, { month: "short" })}
               {endsAt && (
                 <>
@@ -37,11 +37,12 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
             </span>
           </div>
 
-          <div className="flex items-center space-x-2 text-sm text-neutral-700">
+          <div className="flex items-center space-x-2">
             <Users className="size-4" />
-            <div>
-              <span className="font-medium">{completed}</span> of{" "}
-              <span className="font-medium">{total}</span> partners completed
+            <div className="text-sm text-neutral-500">
+              <span className="font-medium text-neutral-700">{completed}</span>{" "}
+              of <span className="font-medium text-neutral-700">{total}</span>{" "}
+              partners completed
             </div>
           </div>
         </div>
