@@ -14,10 +14,6 @@ export const onboardProgramAction = authActionClient
   .action(async ({ ctx, parsedInput: data }) => {
     const { workspace, user } = ctx;
 
-    if (workspace.defaultProgramId || !workspace.partnersEnabled) {
-      throw new Error("You are not allowed to create a new program.");
-    }
-
     if (data.step === "create-program") {
       await createProgram({
         workspace,

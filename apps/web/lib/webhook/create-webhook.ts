@@ -1,10 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { linkCache } from "@/lib/api/links/cache";
 import { webhookCache } from "@/lib/webhook/cache";
-import {
-  PARTNERS_WEBHOOK_TRIGGERS,
-  WEBHOOK_ID_PREFIX,
-} from "@/lib/webhook/constants";
+import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { prisma } from "@dub/prisma";
 import { Project, WebhookReceiver } from "@dub/prisma/client";
@@ -23,23 +20,13 @@ export async function createWebhook({
   receiver,
   installationId,
 }: z.infer<typeof createWebhookSchema> & {
-  workspace: Pick<Project, "id" | "plan" | "partnersEnabled">;
+  workspace: Pick<Project, "id" | "plan">;
   receiver: WebhookReceiver;
   installationId?: string;
 }) {
   // Webhooks are only supported on Business plans and above
   if (["free", "pro"].includes(workspace.plan)) {
     return;
-  }
-
-  if (triggers) {
-    const hasPartnersTriggers = PARTNERS_WEBHOOK_TRIGGERS.some((trigger) =>
-      triggers.includes(trigger),
-    );
-
-    if (hasPartnersTriggers && !workspace.partnersEnabled) {
-      return;
-    }
   }
 
   const webhook = await prisma.webhook.create({
