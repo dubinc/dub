@@ -7,6 +7,7 @@ const sortColumnsMap = {
   createdAt: "pe.createdAt",
   clicks: "totalClicks",
   leads: "totalLeads",
+  conversions: "totalConversions",
   sales: "totalSales",
   saleAmount: "totalSaleAmount",
   commissions: "totalCommissions",
@@ -17,7 +18,8 @@ const sortColumnsMap = {
 const sortColumnExtraMap = {
   createdAt: "totalClicks",
   clicks: "totalLeads",
-  leads: "totalSaleAmount",
+  leads: "totalConversions",
+  conversions: "totalSaleAmount",
   sales: "totalClicks",
   saleAmount: "totalClicks",
   commissions: "totalSaleAmount",
