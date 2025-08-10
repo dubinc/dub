@@ -17,6 +17,7 @@ import {
   SmartDateTimePicker,
   Switch,
 } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -42,7 +43,11 @@ const BOUNTY_TYPES: CardSelectorOption[] = [
   },
 ];
 
-const ACCORDION_ITEMS = ["bounty-type", "bounty-details"];
+const ACCORDION_ITEMS = [
+  "bounty-type",
+  "bounty-details",
+  "submission-requirements",
+];
 
 function BountySheetContent({ setIsOpen }: BountySheetProps) {
   const [hasEndDate, setHasEndDate] = useState(false);
@@ -54,6 +59,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
     watch,
     setValue,
     control,
+    register,
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
@@ -61,17 +67,21 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
     },
   });
 
-  const [startsAt, endsAt, rewardAmount] = watch([
-    "startsAt",
-    "endsAt",
-    "rewardAmount",
-  ]);
-
   useEffect(() => {
     if (!hasEndDate) {
       setValue("endsAt", null);
     }
   }, [hasEndDate, setValue]);
+
+  const [startsAt, rewardAmount] = watch(["startsAt", "rewardAmount"]);
+
+  const shouldDisableSubmit = useMemo(() => {
+    if (!startsAt || !rewardAmount) {
+      return true;
+    }
+
+    return false;
+  }, [startsAt, rewardAmount]);
 
   const onSubmit = async (data: FormData) => {
     if (!workspaceId || !defaultProgramId) {
@@ -79,10 +89,6 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
       return;
     }
   };
-
-  const shouldDisableSubmit = useMemo(() => {
-    //
-  }, []);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -142,7 +148,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
 
                   <div>
                     <SmartDateTimePicker
-                      value={startsAt}
+                      value={watch("startsAt")}
                       onChange={(date) => {
                         setValue("startsAt", date as Date, {
                           shouldDirty: true,
@@ -177,7 +183,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
                     {hasEndDate && (
                       <div className="mt-6 p-px">
                         <SmartDateTimePicker
-                          value={endsAt}
+                          value={watch("endsAt")}
                           onChange={(date) => {
                             setValue("endsAt", date, {
                               shouldDirty: true,
@@ -229,6 +235,39 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
                       />
                     </div>
                   </div>
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label
+                        htmlFor="description"
+                        className="text-sm font-medium text-neutral-800"
+                      >
+                        Details
+                        <span className="ml-1 font-normal text-neutral-500">
+                          (optional)
+                        </span>
+                      </label>
+                      <span className="text-xs text-neutral-400">
+                        {watch("description")?.length || 0}/5000
+                      </span>
+                    </div>
+                    <div className="mt-2">
+                      <textarea
+                        id="description"
+                        rows={3}
+                        maxLength={5000}
+                        className={cn(
+                          "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                          errors.description &&
+                            "border-red-600 focus:border-red-500 focus:ring-red-600",
+                        )}
+                        placeholder="Add details for this bounty"
+                        {...register("description", {
+                          setValueAs: (value) => (value === "" ? null : value),
+                        })}
+                      />
+                    </div>
+                  </div>
                 </div>
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
@@ -253,7 +292,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
             text="Create bounty"
             className="w-fit"
             // loading={isPending}
-            // disabled={shouldDisableSubmit}
+            disabled={shouldDisableSubmit}
           />
         </div>
       </div>
