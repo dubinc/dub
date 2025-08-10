@@ -1,5 +1,8 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { createBountySchema } from "@/lib/zod/schemas/bounties";
+import {
+  createBountySchema,
+  SUBMISSION_REQUIREMENTS,
+} from "@/lib/zod/schemas/bounties";
 import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
@@ -20,15 +23,16 @@ import {
 import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 
-interface BountySheetProps {
+type BountySheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   partnerId?: string;
-}
+};
 
 type FormData = z.infer<typeof createBountySchema>;
+
+type SubmissionRequirement = (typeof SUBMISSION_REQUIREMENTS)[number];
 
 const BOUNTY_TYPES: CardSelectorOption[] = [
   {
@@ -50,8 +54,10 @@ const ACCORDION_ITEMS = [
 ];
 
 function BountySheetContent({ setIsOpen }: BountySheetProps) {
+  const { id: workspaceId } = useWorkspace();
   const [hasEndDate, setHasEndDate] = useState(false);
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const [requireImage, setRequireImage] = useState(false);
+  const [requireUrl, setRequireUrl] = useState(false);
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
 
   const {
@@ -67,27 +73,59 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
     },
   });
 
+  const [startsAt, rewardAmount, type, name, description] = watch([
+    "startsAt",
+    "rewardAmount",
+    "type",
+    "name",
+    "description",
+  ]);
+
+  // make sure endsAt is null if hasEndDate is false
   useEffect(() => {
     if (!hasEndDate) {
       setValue("endsAt", null);
     }
   }, [hasEndDate, setValue]);
 
-  const [startsAt, rewardAmount] = watch(["startsAt", "rewardAmount"]);
+  // set submission requirements
+  useEffect(() => {
+    const requirements: SubmissionRequirement[] = [];
 
+    if (requireImage) {
+      requirements.push("image");
+    }
+
+    if (requireUrl) {
+      requirements.push("url");
+    }
+
+    if (requirements.length > 0) {
+      setValue("submissionRequirements", requirements);
+    } else {
+      setValue("submissionRequirements", null);
+    }
+  }, [requireImage, requireUrl, setValue]);
+
+  // decide if the submit button should be disabled
   const shouldDisableSubmit = useMemo(() => {
     if (!startsAt || !rewardAmount) {
       return true;
     }
 
+    if (type === "submission" && !name?.trim()) {
+      return true;
+    }
+
     return false;
-  }, [startsAt, rewardAmount]);
+  }, [startsAt, rewardAmount, type, name]);
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !defaultProgramId) {
-      toast.error("Please fill all required fields.");
+    if (!workspaceId) {
       return;
     }
+
+    console.log(data);
   };
 
   return (
@@ -236,21 +274,49 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
                     </div>
                   </div>
 
-                  <div>
-                    <div className="flex items-center justify-between">
+                  {type === "submission" && (
+                    <div>
                       <label
-                        htmlFor="description"
+                        htmlFor="name"
                         className="text-sm font-medium text-neutral-800"
                       >
-                        Details
-                        <span className="ml-1 font-normal text-neutral-500">
-                          (optional)
-                        </span>
+                        Name
                       </label>
-                      <span className="text-xs text-neutral-400">
-                        {watch("description")?.length || 0}/5000
-                      </span>
+                      <div className="mt-2">
+                        <input
+                          id="name"
+                          type="text"
+                          maxLength={100}
+                          className={cn(
+                            "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                            errors.name &&
+                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                          )}
+                          placeholder="Create a YouTube video about ..."
+                          {...register("name", {
+                            setValueAs: (value) =>
+                              value === "" ? null : value,
+                          })}
+                        />
+                        <div className="mt-1 text-left">
+                          <span className="text-xs text-neutral-400">
+                            {name?.length || 0}/100
+                          </span>
+                        </div>
+                      </div>
                     </div>
+                  )}
+
+                  <div>
+                    <label
+                      htmlFor="description"
+                      className="text-sm font-medium text-neutral-800"
+                    >
+                      Details
+                      <span className="ml-1 font-normal text-neutral-500">
+                        (optional)
+                      </span>
+                    </label>
                     <div className="mt-2">
                       <textarea
                         id="description"
@@ -266,6 +332,57 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
                           setValueAs: (value) => (value === "" ? null : value),
                         })}
                       />
+                      <div className="mt-1 text-left">
+                        <span className="text-xs text-neutral-400">
+                          {description?.length || 0}/5000
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ProgramSheetAccordionContent>
+            </ProgramSheetAccordionItem>
+
+            <ProgramSheetAccordionItem value="submission-requirements">
+              <ProgramSheetAccordionTrigger>
+                Submission requirements
+              </ProgramSheetAccordionTrigger>
+              <ProgramSheetAccordionContent>
+                <div className="space-y-6">
+                  <p className="text-sm text-neutral-600">
+                    Set how partners should submit proof of their work. By
+                    default an open text field is provided.
+                  </p>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <Switch
+                        fn={setRequireImage}
+                        checked={requireImage}
+                        trackDimensions="w-8 h-4"
+                        thumbDimensions="w-3 h-3"
+                        thumbTranslate="translate-x-4"
+                      />
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-sm font-medium text-neutral-700">
+                          Require at least one image
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <Switch
+                        fn={setRequireUrl}
+                        checked={requireUrl}
+                        trackDimensions="w-8 h-4"
+                        thumbDimensions="w-3 h-3"
+                        thumbTranslate="translate-x-4"
+                      />
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-sm font-medium text-neutral-700">
+                          Require at least one URL
+                        </h3>
+                      </div>
                     </div>
                   </div>
                 </div>
