@@ -7,6 +7,7 @@ const sortColumnsMap = {
   createdAt: "pe.createdAt",
   clicks: "totalClicks",
   leads: "totalLeads",
+  conversions: "totalConversions",
   sales: "totalSales",
   saleAmount: "totalSaleAmount",
   commissions: "totalCommissions",
@@ -17,7 +18,8 @@ const sortColumnsMap = {
 const sortColumnExtraMap = {
   createdAt: "totalClicks",
   clicks: "totalLeads",
-  leads: "totalSaleAmount",
+  leads: "totalConversions",
+  conversions: "totalSaleAmount",
   sales: "totalClicks",
   saleAmount: "totalClicks",
   commissions: "totalSaleAmount",
@@ -68,6 +70,7 @@ export async function getPartners(filters: PartnerFilters) {
           ? Prisma.sql`
       COALESCE(metrics.totalClicks, 0) as totalClicks,
       COALESCE(metrics.totalLeads, 0) as totalLeads,
+      COALESCE(metrics.totalConversions, 0) as totalConversions,
       COALESCE(metrics.totalSales, 0) as totalSales,
       COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
       COALESCE(pe.totalCommissions, 0) as totalCommissions,
@@ -76,6 +79,7 @@ export async function getPartners(filters: PartnerFilters) {
           : Prisma.sql`
       0 as totalClicks,
       0 as totalLeads,
+      0 as totalConversions,
       0 as totalSales,
       0 as totalSaleAmount,
       0 as totalCommissions,
@@ -93,6 +97,7 @@ export async function getPartners(filters: PartnerFilters) {
               'url', l.url,
               'clicks', CAST(l.clicks AS SIGNED),
               'leads', CAST(l.leads AS SIGNED),
+              'conversions', CAST(l.conversions AS SIGNED),
               'sales', CAST(l.sales AS SIGNED),
               'saleAmount', CAST(l.saleAmount AS SIGNED)
             ),
@@ -115,6 +120,7 @@ export async function getPartners(filters: PartnerFilters) {
         partnerId,
         SUM(clicks) as totalClicks,
         SUM(leads) as totalLeads,
+        SUM(conversions) as totalConversions,
         SUM(sales) as totalSales,
         SUM(saleAmount) as totalSaleAmount
       FROM Link
@@ -150,21 +156,20 @@ export async function getPartners(filters: PartnerFilters) {
       }
       ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
     GROUP BY 
-      p.id, pe.id${includeExpandedFields ? Prisma.sql`, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions` : Prisma.sql``}
+      p.id, pe.id${includeExpandedFields ? Prisma.sql`, metrics.totalClicks, metrics.totalLeads, metrics.totalConversions, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions` : Prisma.sql``}
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)} ${Prisma.raw(`, ${sortColumnExtraMap[sortBy]} ${sortOrder}`)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
-  return partners.map((partner) => {
-    return {
-      ...partner,
-      createdAt: new Date(partner.enrollmentCreatedAt),
-      clicks: Number(partner.totalClicks),
-      leads: Number(partner.totalLeads),
-      sales: Number(partner.totalSales),
-      saleAmount: Number(partner.totalSaleAmount),
-      totalCommissions: Number(partner.totalCommissions),
-      netRevenue: Number(partner.netRevenue),
-      links: partner.links.filter((link: any) => link !== null),
-    };
-  });
+  return partners.map((partner) => ({
+    ...partner,
+    createdAt: new Date(partner.enrollmentCreatedAt),
+    clicks: Number(partner.totalClicks),
+    leads: Number(partner.totalLeads),
+    conversions: Number(partner.totalConversions),
+    sales: Number(partner.totalSales),
+    saleAmount: Number(partner.totalSaleAmount),
+    totalCommissions: Number(partner.totalCommissions),
+    netRevenue: Number(partner.netRevenue),
+    links: partner.links.filter((link: any) => link !== null),
+  }));
 }
