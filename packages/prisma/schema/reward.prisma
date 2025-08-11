@@ -12,6 +12,7 @@ enum RewardStructure {
 model Reward {
   id          String          @id @default(cuid())
   programId   String
+  groupId     String?
   description String?
   event       EventType
   type        RewardStructure @default(percentage)
@@ -27,7 +28,11 @@ model Reward {
   clickEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
   leadEnrollments  ProgramEnrollment[] @relation("LeadRewardEnrollments")
   saleEnrollments  ProgramEnrollment[] @relation("SaleRewardEnrollments")
+  clickGroup       PartnerGroup?       @relation("ClickReward")
+  leadGroup        PartnerGroup?       @relation("LeadReward")
+  saleGroup        PartnerGroup?       @relation("SaleReward")
 
+  @@unique([groupId, event])
   @@index([programId, event])
   @@index(event) // used in aggregate-clicks cron job
 }

@@ -102,17 +102,20 @@ model PartnerGroup {
   programId     String
   name          String
   slug          String
-  icon          String
   color         String
-  clickRewardId String?
-  leadRewardId  String?
-  saleRewardId  String?
-  discountId    String?
+  clickRewardId String?  @unique
+  leadRewardId  String?  @unique
+  saleRewardId  String?  @unique
+  discountId    String?  @unique
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  partners ProgramEnrollment[]
-  program  Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partners    ProgramEnrollment[]
+  program     Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  clickReward Reward?             @relation("ClickReward", fields: [clickRewardId], references: [id])
+  leadReward  Reward?             @relation("LeadReward", fields: [leadRewardId], references: [id])
+  saleReward  Reward?             @relation("SaleReward", fields: [saleRewardId], references: [id])
+  discount    Discount?
 
   @@unique([programId, slug])
 }
