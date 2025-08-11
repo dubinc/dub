@@ -37,8 +37,6 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   rewardAmount: z.number(),
-  submissionsCount: z.number(),
-  // partnersCount: z.number(),
 });
 
 export const BountySubmissionSchema = z.object({

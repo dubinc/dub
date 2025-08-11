@@ -12,26 +12,14 @@ import { z } from "zod";
 export const GET = withWorkspace(async ({ workspace }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  let bounties = await prisma.bounty.findMany({
+  const bounties = await prisma.bounty.findMany({
     where: {
       programId,
     },
     orderBy: {
       createdAt: "desc",
     },
-    include: {
-      _count: {
-        select: {
-          submissions: true,
-        },
-      },
-    },
   });
-
-  bounties = bounties.map((bounty) => ({
-    ...bounty,
-    submissionsCount: bounty._count.submissions,
-  }));
 
   return NextResponse.json(z.array(BountySchema).parse(bounties));
 });

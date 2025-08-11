@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { BountyProps } from "@/lib/types";
 import {
   createBountySchema,
   SUBMISSION_REQUIREMENTS,
@@ -11,7 +12,7 @@ import {
 } from "@/ui/partners/program-sheet-accordion";
 import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
-import { useApiRequest } from "@/ui/shared/use-api-mutation";
+import { useApiMutation } from "@/ui/shared/use-api-mutation";
 import {
   AnimatedSizeContainer,
   Button,
@@ -24,6 +25,7 @@ import {
 import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 type BountySheetProps = {
@@ -51,6 +53,7 @@ const ACCORDION_ITEMS = [
   "bounty-type",
   "bounty-details",
   "submission-requirements",
+  "groups",
 ];
 
 function BountySheetContent({ setIsOpen }: BountySheetProps) {
@@ -59,7 +62,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
   const [requireImage, setRequireImage] = useState(false);
   const [requireUrl, setRequireUrl] = useState(false);
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
-  const { makeRequest, loading } = useApiRequest();
+  const { makeRequest, isSubmitting } = useApiMutation<BountyProps>();
 
   const {
     handleSubmit,
@@ -130,9 +133,12 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
     await makeRequest("/api/bounties", {
       method: "POST",
       body: data,
-      successMessage: "Bounty created successfully!",
       onSuccess: () => {
         setIsOpen(false);
+        toast.success("Bounty created successfully!");
+      },
+      onError: (message) => {
+        toast.error(message);
       },
     });
   };
@@ -336,7 +342,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
                           errors.description &&
                             "border-red-600 focus:border-red-500 focus:ring-red-600",
                         )}
-                        placeholder="Add details for this bounty"
+                        placeholder="Provide any bounty requirements to the partner"
                         {...register("description", {
                           setValueAs: (value) => (value === "" ? null : value),
                         })}
@@ -397,6 +403,21 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
                 </div>
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
+
+            <ProgramSheetAccordionItem value="groups">
+              <ProgramSheetAccordionTrigger>
+                Groups
+              </ProgramSheetAccordionTrigger>
+              <ProgramSheetAccordionContent>
+                <div className="space-y-6">
+                  <p className="text-sm text-neutral-600">
+                    Configure group settings for this bounty.
+                  </p>
+                  
+                  {/* Add your groups-related content here */}
+                </div>
+              </ProgramSheetAccordionContent>
+            </ProgramSheetAccordionItem>
           </ProgramSheetAccordion>
         </div>
       </div>
@@ -409,7 +430,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={loading}
+            disabled={isSubmitting}
           />
 
           <Button
@@ -417,7 +438,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
             variant="primary"
             text="Create bounty"
             className="w-fit"
-            loading={loading}
+            loading={isSubmitting}
             disabled={shouldDisableSubmit}
             disabledTooltip={
               shouldDisableSubmit

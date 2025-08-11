@@ -29,9 +29,22 @@ model Bounty {
 
   program     Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
   submissions BountySubmission[]
+  groups      BountyGroup[]
 
   @@index(programId)
   @@index(workflowId)
+}
+
+model BountyGroup {
+  id       String @id @default(cuid())
+  bountyId String
+  groupId  String
+
+  bounty       Bounty       @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  partnerGroup PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([bountyId, groupId])
+  @@index([groupId])
 }
 
 model BountySubmission {

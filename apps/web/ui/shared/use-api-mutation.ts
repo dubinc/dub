@@ -1,25 +1,12 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useCallback, useState } from "react";
-import { toast } from "sonner";
 
-interface ApiRequestOptions<TBody> {
+interface ApiRequestOptions<TBody, TResponse = any> {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: TBody;
   headers?: Record<string, string>;
-  showToast?: boolean;
-  successMessage?: string;
-  onSuccess?: () => void;
-  onError?: () => void;
-}
-
-interface ApiResponse<T> {
-  data: T | null;
-  error: string | null;
-  loading: boolean;
-  makeRequest: (
-    endpoint: string,
-    options?: ApiRequestOptions<any>,
-  ) => Promise<void>;
+  onSuccess?: (data: TResponse) => void;
+  onError?: (message: string) => void;
 }
 
 interface ApiError {
@@ -34,40 +21,35 @@ const debug = (...args: any[]) => {
   }
 };
 
-export function useApiRequest<
-  TResponse = any,
-  TBody = any,
->(): ApiResponse<TResponse> {
+export function useApiMutation<TResponse = any, TBody = any>() {
   const { id: workspaceId } = useWorkspace();
-  const [data, setData] = useState<TResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const makeRequest = useCallback(
-    async (endpoint: string, options: ApiRequestOptions<TBody> = {}) => {
-      const {
+    async (
+      endpoint: string,
+      {
         method = "GET",
         body,
         headers,
-        successMessage,
-        showToast = true,
         onSuccess,
         onError,
-      } = options;
-
-      setLoading(true);
-      setError(null);
-      setData(null);
+      }: ApiRequestOptions<TBody, TResponse> = {},
+    ) => {
+      setIsSubmitting(true);
 
       try {
-        debug("Starting request", {
-          endpoint,
-          method,
-          body,
-          headers,
-        });
+        const url = new URL(endpoint, window.location.origin);
 
-        const response = await fetch(`${endpoint}?workspaceId=${workspaceId}`, {
+        if (workspaceId) {
+          url.searchParams.set("workspaceId", workspaceId);
+        }
+
+        if (body) {
+          debug("Request body", body);
+        }
+
+        const response = await fetch(url.toString(), {
           method,
           headers: {
             "Content-Type": "application/json",
@@ -76,50 +58,37 @@ export function useApiRequest<
           body: body ? JSON.stringify(body) : undefined,
         });
 
-        // Handle error
         if (!response.ok) {
           const { error } = (await response.json()) as ApiError;
+
           throw new Error(
-            error.message || `Request failed with status ${response.status}`,
+            error?.message || `Request failed with status ${response.status}`,
           );
         }
 
-        // Handle success
-        const data = (await response.json()) as TResponse;
-        setData(data);
-        onSuccess?.();
+        const responseData = (await response.json()) as TResponse;
 
-        if (showToast) {
-          toast.success(successMessage || "Request completed successfully.");
-        }
+        debug("Response data", responseData);
 
-        debug("Response received", data);
-      } catch (error) {
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Something went wrong. Please try again.",
-        );
+        onSuccess?.(responseData);
+      } catch (err) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Something went wrong. Please try again.";
 
-        onError?.();
+        debug("Request error", err);
 
-        if (showToast) {
-          toast.error(error.message);
-        }
-
-        debug("Error occurred", error);
+        onError?.(message);
       } finally {
-        setLoading(false);
-        debug("Request finished");
+        setIsSubmitting(false);
       }
     },
-    [],
+    [workspaceId],
   );
 
   return {
-    data,
-    error,
-    loading,
+    isSubmitting,
     makeRequest,
   };
 }
