@@ -30,7 +30,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
 
   const { executeAsync, isPending } = useAction(checkAccountExistsAction, {
     onError: ({ error }) => {
-      toast.error(error.serverError);
+      toast.error(error.serverError || error.validationErrors?.email?.[0]);
     },
   });
 
