@@ -38,6 +38,8 @@ import {
   Trash,
   UserDelete,
   Users,
+  Users6,
+  UserXmark,
 } from "@dub/ui/icons";
 import {
   cn,
@@ -290,6 +292,55 @@ export function PartnersTable() {
         del: "page",
         scroll: false,
       }),
+
+    getRowId: (row) => row.id,
+    selectionControls: (table) => (
+      <>
+        <Button
+          variant="primary"
+          text="Add to group"
+          icon={<Users6 className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5"
+          loading={false}
+          onClick={() => {
+            const partnerIds = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original.id);
+
+            toast.info("WIP");
+          }}
+        />
+        <Button
+          variant="secondary"
+          text="Archive"
+          icon={<BoxArchive className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5"
+          loading={false}
+          onClick={() => {
+            const partnerIds = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original.id);
+
+            toast.info("WIP");
+          }}
+        />
+        <Button
+          variant="secondary"
+          text="Ban"
+          icon={<UserXmark className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5 text-red-700"
+          loading={false}
+          onClick={() => {
+            const partnerIds = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original.id);
+
+            toast.info("WIP");
+          }}
+        />
+      </>
+    ),
+
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
