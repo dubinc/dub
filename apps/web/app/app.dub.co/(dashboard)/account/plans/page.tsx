@@ -12,11 +12,10 @@ export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 const PlansPage: NextPage = async () => {
-  const start = performance.now();
-  console.log("start", start);
   const { user: cookieUser } = await getUserCookieService();
   const { user: authUser } = await getSession();
 
+  const start = performance.now();
   const qrs = await getQrs({
     userId: cookieUser?.id || authUser.id,
     sort: "clicks",
@@ -27,6 +26,8 @@ const PlansPage: NextPage = async () => {
     page: 1,
     pageSize: 1,
   });
+  const end = performance.now();
+  console.log("performance", end - start);
 
   const mostScannedQR = (
     qrs && qrs.length > 0 ? qrs[0] : null
@@ -35,9 +36,6 @@ const PlansPage: NextPage = async () => {
   const user = authUser.paymentData
     ? convertSessionUserToCustomerBody(authUser)
     : cookieUser;
-
-  const end = performance.now();
-  console.log("start", end - start);
 
   return (
     <>
