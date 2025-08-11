@@ -6,14 +6,14 @@ import { changeGroupSchema } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// POST /api/groups/[groupId]/partners - change group of partners
+// POST /api/groups/[groupIdOrSlug]/partners - change group of partners
 export const POST = withWorkspace(
   async ({ req, params, workspace }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const group = await getGroupOrThrow({
       programId,
-      groupId: params.groupId,
+      groupId: params.groupIdOrSlug,
     });
 
     const { partnerIds } = changeGroupSchema.parse(await parseRequestBody(req));

@@ -13,14 +13,14 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// GET /api/groups/[groupId] - get information about a group
+// GET /api/groups/[groupIdOrSlug] - get information about a group
 export const GET = withWorkspace(
   async ({ params, workspace }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const group = await getGroupOrThrow({
       programId,
-      groupId: params.groupId,
+      groupId: params.groupIdOrSlug,
       includeRewardsAndDiscount: true,
     });
 
@@ -38,14 +38,14 @@ export const GET = withWorkspace(
   },
 );
 
-// PATCH /api/groups/[groupId] – update a group for a workspace
+// PATCH /api/groups/[groupIdOrSlug] – update a group for a workspace
 export const PATCH = withWorkspace(
   async ({ req, params, workspace, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const group = await getGroupOrThrow({
       programId,
-      groupId: params.groupId,
+      groupId: params.groupIdOrSlug,
       includeRewardsAndDiscount: true,
     });
 
@@ -127,14 +127,14 @@ export const PATCH = withWorkspace(
   },
 );
 
-// DELETE /api/groups/[groupId] – delete a group for a workspace
+// DELETE /api/groups/[groupIdOrSlug] – delete a group for a workspace
 export const DELETE = withWorkspace(
   async ({ params, workspace, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const group = await getGroupOrThrow({
       programId,
-      groupId: params.groupId,
+      groupId: params.groupIdOrSlug,
     });
 
     if (group.slug === DEFAULT_PARTNER_GROUP.slug) {

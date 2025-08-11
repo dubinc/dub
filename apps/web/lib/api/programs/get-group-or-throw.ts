@@ -12,7 +12,7 @@ export const getGroupOrThrow = async ({
 }) => {
   const group = await prisma.partnerGroup.findUnique({
     where: {
-      ...(groupId.startsWith("gr_")
+      ...(groupId.startsWith("grp_")
         ? {
             id: groupId,
           }
