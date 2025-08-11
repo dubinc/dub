@@ -4,7 +4,7 @@ import useGroups from "@/lib/swr/use-groups";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { GroupProps } from "@/lib/types";
+import { GroupExtendedProps, GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -19,7 +19,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { Dots, LoadingSpinner, Trash, Users } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
@@ -30,12 +30,14 @@ export function GroupsTable() {
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "netRevenue";
+  const sortBy = searchParams.get("sortBy") || "partners";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { program } = useProgram();
 
-  const { groups, loading, error } = useGroups({});
+  const { groups, loading, error } = useGroups<GroupExtendedProps>({
+    query: { includeExpandedFields: true },
+  });
   const {
     groupsCount,
     loading: countLoading,
@@ -72,6 +74,53 @@ export function GroupsTable() {
         },
       },
       {
+        id: "partners",
+        header: "Partners",
+        accessorFn: (d) => nFormatter(d.partners),
+      },
+      {
+        id: "clicks",
+        header: "Clicks",
+        accessorFn: (d) => nFormatter(d.clicks),
+      },
+      {
+        id: "leads",
+        header: "Leads",
+        accessorFn: (d) => nFormatter(d.leads),
+      },
+      {
+        id: "conversions",
+        header: "Conversions",
+        accessorFn: (d) => nFormatter(d.conversions),
+      },
+      {
+        id: "saleAmount",
+        header: "Revenue",
+        accessorFn: (d) =>
+          currencyFormatter(d.saleAmount / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+      },
+      {
+        id: "commissions",
+        header: "Commissions",
+        accessorFn: (d) =>
+          currencyFormatter(d.commissions / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+      },
+      {
+        id: "netRevenue",
+        header: "Net Revenue",
+        accessorFn: (d) =>
+          currencyFormatter(d.netRevenue / 100, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+      },
+      {
         id: "menu",
         enableHiding: false,
         minSize: 43,
@@ -90,7 +139,15 @@ export function GroupsTable() {
     pagination,
     onPaginationChange: setPagination,
 
-    sortableColumns: ["netRevenue"],
+    sortableColumns: [
+      "partners",
+      "clicks",
+      "leads",
+      "conversions",
+      "saleAmount",
+      "commissions",
+      "netRevenue",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>

@@ -8,7 +8,7 @@ import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getGroupsQuerySchema.partial();
 
-export default function useGroups({
+export default function useGroups<T extends GroupProps>({
   query,
   enabled = true,
 }: {
@@ -20,7 +20,7 @@ export default function useGroups({
 
   const queryEnabled = enabled && defaultProgramId;
 
-  const { data, isLoading, error } = useSWR<GroupProps[]>(
+  const { data, isLoading, error } = useSWR<T[]>(
     queryEnabled
       ? `/api/groups${getQueryString({ workspaceId, ...query })}`
       : null,

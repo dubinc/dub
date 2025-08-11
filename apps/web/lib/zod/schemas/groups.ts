@@ -22,6 +22,7 @@ export const GroupSchema = z.object({
 });
 
 export const GroupSchemaExtended = GroupSchema.extend({
+  partners: z.number().default(0),
   clicks: z.number().default(0),
   leads: z.number().default(0),
   sales: z.number().default(0),
@@ -57,6 +58,7 @@ export const getGroupsQuerySchema = z
     sortBy: z
       .enum([
         "createdAt",
+        "partners",
         "clicks",
         "leads",
         "sales",
@@ -65,7 +67,7 @@ export const getGroupsQuerySchema = z
         "commissions",
         "netRevenue",
       ])
-      .default("createdAt"),
+      .default("partners"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     includeExpandedFields: booleanQuerySchema.optional(),
   })

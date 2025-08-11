@@ -9,6 +9,7 @@ type GroupFilters = z.infer<typeof getGroupsQuerySchema> & {
 
 const sortColumnsMap = {
   createdAt: "pg.createdAt",
+  partners: "partners",
   clicks: "totalClicks",
   leads: "totalLeads",
   conversions: "totalConversions",
@@ -39,6 +40,7 @@ export async function getGroups(filters: GroupFilters) {
       ${
         includeExpandedFields
           ? Prisma.sql`
+        COUNT(DISTINCT pe.partnerId) as partners,
         COALESCE(SUM(metrics.totalClicks), 0) as totalClicks,
         COALESCE(SUM(metrics.totalLeads), 0) as totalLeads,
         COALESCE(SUM(metrics.totalSales), 0) as totalSales,
@@ -48,6 +50,7 @@ export async function getGroups(filters: GroupFilters) {
         COALESCE(SUM(metrics.totalSaleAmount), 0) - COALESCE(SUM(pe.totalCommissions), 0) as netRevenue
         `
           : Prisma.sql`
+        0 as partners,
         0 as totalClicks,
         0 as totalLeads,
         0 as totalSales,
@@ -88,6 +91,7 @@ export async function getGroups(filters: GroupFilters) {
 
   return groups.map((group) => ({
     ...group,
+    partners: Number(group.partners),
     clicks: Number(group.totalClicks),
     leads: Number(group.totalLeads),
     sales: Number(group.totalSales),
