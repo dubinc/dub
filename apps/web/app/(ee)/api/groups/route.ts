@@ -1,6 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
-import { DubApiError } from "@/lib/api/errors";
+import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { getGroups } from "@/lib/api/groups/get-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -63,6 +63,23 @@ export const POST = withWorkspace(
       throw new DubApiError({
         code: "bad_request",
         message: `Group with slug ${slug} already exists in your program.`,
+      });
+    }
+
+    const groupsCount = await prisma.partnerGroup.count({
+      where: {
+        programId,
+      },
+    });
+
+    if (groupsCount >= workspace.groupsLimit) {
+      throw new DubApiError({
+        code: "exceeded_limit",
+        message: exceededLimitError({
+          plan: workspace.plan,
+          limit: workspace.groupsLimit,
+          type: "groups",
+        }),
       });
     }
 
