@@ -47,6 +47,7 @@ export async function getPartners(filters: PartnerFilters) {
     sortOrder,
     programId,
     includeExpandedFields,
+    groupId,
   } = filters;
 
   const partners = (await prisma.$queryRaw`
@@ -155,6 +156,7 @@ export async function getPartners(filters: PartnerFilters) {
           : Prisma.sql``
       }
       ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
+      ${groupId ? Prisma.sql`AND pe.partnerGroupId = ${groupId}` : Prisma.sql``}
     GROUP BY 
       p.id, pe.id${includeExpandedFields ? Prisma.sql`, metrics.totalClicks, metrics.totalLeads, metrics.totalConversions, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions` : Prisma.sql``}
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)} ${Prisma.raw(`, ${sortColumnExtraMap[sortBy]} ${sortOrder}`)}

@@ -120,6 +120,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.merge(
     clickRewardId: z.string().optional(),
     leadRewardId: z.string().optional(),
     saleRewardId: z.string().optional(),
+    groupId: z.string().optional(),
   }),
 );
 
