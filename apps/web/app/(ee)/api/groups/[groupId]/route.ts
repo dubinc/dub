@@ -21,6 +21,7 @@ export const GET = withWorkspace(
     const group = await getGroupOrThrow({
       programId,
       groupId: params.groupId,
+      includeRewardsAndDiscount: true,
     });
 
     return NextResponse.json(GroupSchema.parse(group));
@@ -45,6 +46,7 @@ export const PATCH = withWorkspace(
     const group = await getGroupOrThrow({
       programId,
       groupId: params.groupId,
+      includeRewardsAndDiscount: true,
     });
 
     const { name, slug, color } = updateGroupSchema.parse(
@@ -169,18 +171,14 @@ export const DELETE = withWorkspace(
       });
 
       // 2. Delete the group's rewards
-      if (
-        group.clickReward?.id ||
-        group.leadReward?.id ||
-        group.saleReward?.id
-      ) {
+      if (group.clickRewardId || group.leadRewardId || group.saleRewardId) {
         await tx.reward.deleteMany({
           where: {
             id: {
               in: [
-                group.clickReward?.id,
-                group.leadReward?.id,
-                group.saleReward?.id,
+                group.clickRewardId,
+                group.leadRewardId,
+                group.saleRewardId,
               ].filter(Boolean) as string[],
             },
           },
@@ -188,10 +186,10 @@ export const DELETE = withWorkspace(
       }
 
       // 3. Delete the group's discount
-      if (group.discount?.id) {
+      if (group.discountId) {
         await tx.discount.delete({
           where: {
-            id: group.discount.id,
+            id: group.discountId,
           },
         });
       }

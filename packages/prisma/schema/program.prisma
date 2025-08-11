@@ -116,6 +116,7 @@ model ProgramEnrollment {
 model ProgramApplication {
   id        String   @id @default(cuid())
   programId String
+  groupId   String?
   name      String
   email     String
   proposal  String?  @db.Text
@@ -124,8 +125,10 @@ model ProgramApplication {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  program    Program            @relation(fields: [programId], references: [id])
-  enrollment ProgramEnrollment?
+  program      Program            @relation(fields: [programId], references: [id])
+  partnerGroup PartnerGroup?      @relation(fields: [groupId], references: [id])
+  enrollment   ProgramEnrollment?
 
   @@index(programId)
+  @@index(groupId)
 }

@@ -14,7 +14,11 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
-import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import {
+  PartnerGroup,
+  Prisma,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
@@ -33,6 +37,7 @@ export const createAndEnrollPartner = async ({
   status = "approved",
   skipEnrollmentCheck = false,
   enrolledAt,
+  group,
 }: {
   program: Pick<ProgramProps, "id" | "defaultFolderId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
@@ -47,6 +52,10 @@ export const createAndEnrollPartner = async ({
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
   enrolledAt?: Date;
+  group?: Pick<
+    PartnerGroup,
+    "id" | "clickRewardId" | "leadRewardId" | "saleRewardId" | "discountId"
+  >;
 }) => {
   if (!skipEnrollmentCheck && partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
@@ -133,6 +142,13 @@ export const createAndEnrollPartner = async ({
         discountId: finalAssignedDiscount,
         ...(enrolledAt && {
           createdAt: enrolledAt,
+        }),
+        ...(group && {
+          partnerGroupId: group.id,
+          clickRewardId: group.clickRewardId,
+          leadRewardId: group.leadRewardId,
+          saleRewardId: group.saleRewardId,
+          discountId: group.discountId,
         }),
       },
     },

@@ -70,6 +70,7 @@ export async function POST(req: Request) {
       programId,
       partnerId,
       linkId: null,
+      groupId: program.defaultGroupId!,
       userId: program.workspace.users[0].userId,
     });
 
