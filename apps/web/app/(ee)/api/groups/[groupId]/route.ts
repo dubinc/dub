@@ -16,12 +16,11 @@ import { NextResponse } from "next/server";
 // GET /api/groups/[groupId] - get information about a group
 export const GET = withWorkspace(
   async ({ params, workspace }) => {
-    const { groupId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const group = await getGroupOrThrow({
       programId,
-      groupId,
+      groupId: params.groupId,
       includeRewardsAndDiscount: true,
     });
 
@@ -42,12 +41,11 @@ export const GET = withWorkspace(
 // PATCH /api/groups/[groupId] – update a group for a workspace
 export const PATCH = withWorkspace(
   async ({ req, params, workspace, session }) => {
-    const { groupId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const group = await getGroupOrThrow({
       programId,
-      groupId,
+      groupId: params.groupId,
     });
 
     const { name, slug, color } = updateGroupSchema.parse(
@@ -82,7 +80,7 @@ export const PATCH = withWorkspace(
 
     const updatedGroup = await prisma.partnerGroup.update({
       where: {
-        id: groupId,
+        id: group.id,
       },
       data: {
         name,
@@ -125,12 +123,11 @@ export const PATCH = withWorkspace(
 // DELETE /api/groups/[groupId] – delete a group for a workspace
 export const DELETE = withWorkspace(
   async ({ params, workspace, session }) => {
-    const { groupId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const group = await getGroupOrThrow({
       programId,
-      groupId,
+      groupId: params.groupId,
     });
 
     if (group.slug === DEFAULT_PARTNER_GROUP.slug) {

@@ -32,6 +32,10 @@ export const createGroupSchema = z.object({
 
 export const updateGroupSchema = createGroupSchema.partial();
 
+export const changeGroupSchema = z.object({
+  partnerIds: z.array(z.string()).min(1),
+});
+
 export const getGroupsQuerySchema = z
   .object({
     search: z
