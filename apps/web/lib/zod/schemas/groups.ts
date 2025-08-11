@@ -15,18 +15,10 @@ export const GroupSchema = z.object({
 export const createGroupSchema = z.object({
   name: z.string().trim().min(1).max(190),
   slug: z.string().trim().min(1).max(100),
-  color: z
-    .string()
-    .trim()
-    .regex(
-      /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
-      "Color must be a valid hex color code.",
-    ),
-  clickRewardId: z.string().nullish(),
-  leadRewardId: z.string().nullish(),
-  saleRewardId: z.string().nullish(),
-  discountId: z.string().nullish(),
+  color: z.string().trim(),
 });
+
+export const updateGroupSchema = createGroupSchema.partial();
 
 export const getGroupsQuerySchema = z
   .object({
