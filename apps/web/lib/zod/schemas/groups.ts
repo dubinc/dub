@@ -70,3 +70,7 @@ export const getGroupsQuerySchema = z
     includeExpandedFields: booleanQuerySchema.optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
+
+export const getGroupsCountQuerySchema = z.object({
+  search: z.string().optional(),
+});
