@@ -1,5 +1,5 @@
-import { GroupTable } from "./group-table";
+import { GroupsTable } from "./groups-table";
 
 export function ProgramPartnersGroupsPageClient() {
-  return <GroupTable />;
+  return <GroupsTable />;
 }
