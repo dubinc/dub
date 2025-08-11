@@ -12,7 +12,16 @@ export const getGroupOrThrow = async ({
 }) => {
   const group = await prisma.partnerGroup.findUnique({
     where: {
-      id: groupId,
+      ...(groupId.startsWith("gr_")
+        ? {
+            id: groupId,
+          }
+        : {
+            programId_slug: {
+              programId,
+              slug: groupId,
+            },
+          }),
     },
     include: {
       ...(includeRewardsAndDiscount && {

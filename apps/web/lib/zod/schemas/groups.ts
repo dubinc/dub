@@ -23,7 +23,14 @@ export const GroupSchema = z.object({
 
 export const createGroupSchema = z.object({
   name: z.string().trim().min(1).max(190),
-  slug: z.string().trim().min(1).max(100),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .refine((val) => !/^grp_/i.test(val.trim()), {
+      message: "Slug cannot start with 'grp_'.",
+    }),
   color: z.string().trim(),
 });
 
