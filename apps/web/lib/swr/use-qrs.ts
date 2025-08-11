@@ -44,9 +44,6 @@ export default function useQrs(
       ? `/api/qrs${getQueryString(
           {
             workspaceId,
-            includeUser: "true",
-            includeWebhooks: "true",
-            includeDashboard: "true",
             userId: session?.user?.id,
             ...queryParams,
           },

@@ -24,7 +24,9 @@ export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
     const params = getLinksQuerySchemaBase.parse(searchParams);
 
-    const response = await getQrs(params);
+    const response = await getQrs(params, {
+      includeFile: true,
+    });
 
     return NextResponse.json(response, {
       headers,
