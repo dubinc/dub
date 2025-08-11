@@ -365,6 +365,7 @@ function PartnerRowMenuButton({
         workspaceId: workspaceId!,
         partnerId: row.original.id,
         linkId: null,
+        groupId: row.original.group!.id, // TODO: Update approvePartner action to allow omitting groupId and use default group
       });
     },
   });
