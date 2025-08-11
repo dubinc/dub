@@ -35,7 +35,7 @@ function SignUp({ program }: { program?: PartialProgram }) {
   return (
     <div className="relative">
       {program && <PartnerBanner program={program} />}
-      <AuthLayout showTerms>
+      <AuthLayout showTerms="partners">
         <div className="w-full max-w-sm">
           <h1 className="text-center text-xl font-semibold">
             Create your Dub Partner account

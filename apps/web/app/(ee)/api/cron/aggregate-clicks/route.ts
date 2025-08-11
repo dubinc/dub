@@ -119,7 +119,7 @@ export async function GET(req: Request) {
           linkId: id,
           quantity: linkClicks,
           type: CommissionType.click,
-          amount: reward.amount,
+          amount: 0,
           earnings: reward.amount * linkClicks,
         };
       })

@@ -20,6 +20,7 @@ import {
   MenuItem,
   Popover,
   Table,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
@@ -38,7 +39,27 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { useColumnVisibility } from "./use-column-visibility";
+const applicationsColumns = {
+  all: [
+    "partner",
+    "createdAt",
+    "location",
+    "website",
+    "youtube",
+    "twitter",
+    "linkedin",
+    "instagram",
+    "tiktok",
+  ],
+  defaultVisible: [
+    "partner",
+    "createdAt",
+    "location",
+    "website",
+    "youtube",
+    "linkedin",
+  ],
+};
 
 export function ProgramPartnersApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
@@ -152,7 +173,10 @@ export function ProgramPartnersApplicationsPageClient() {
       },
     });
 
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "applications-table-columns",
+    applicationsColumns,
+  );
   const { pagination, setPagination } = usePagination();
 
   const columns = useMemo(

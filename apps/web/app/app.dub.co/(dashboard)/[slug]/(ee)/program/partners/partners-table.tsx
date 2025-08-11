@@ -25,6 +25,7 @@ import {
   Popover,
   StatusBadge,
   Table,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
@@ -54,10 +55,35 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { partnersColumns, useColumnVisibility } from "./use-column-visibility";
 import { usePartnerFilters } from "./use-partner-filters";
 
-export function PartnerTable() {
+const partnersColumns = {
+  all: [
+    "partner",
+    "createdAt",
+    "status",
+    "location",
+    "clicks",
+    "leads",
+    "conversions",
+    "sales",
+    "saleAmount",
+    "totalCommissions",
+    "netRevenue",
+  ],
+  defaultVisible: [
+    "partner",
+    "createdAt",
+    "location",
+    "clicks",
+    "leads",
+    "conversions",
+    "saleAmount",
+    "totalCommissions",
+  ],
+};
+
+export function PartnersTable() {
   const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
@@ -109,7 +135,11 @@ export function PartnerTable() {
       partnerId: detailsSheetState.partnerId,
     });
 
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "partners-table-columns", // TODO: update to v2 once we add partner groups
+    partnersColumns,
+  );
+
   const { pagination, setPagination } = usePagination();
 
   const { table, ...tableProps } = useTable({
@@ -178,6 +208,11 @@ export function PartnerTable() {
         accessorFn: (d) => nFormatter(d.leads),
       },
       {
+        id: "conversions",
+        header: "Conversions",
+        accessorFn: (d) => nFormatter(d.conversions),
+      },
+      {
         id: "sales",
         header: "Sales",
         accessorFn: (d) => nFormatter(d.sales),
@@ -238,6 +273,7 @@ export function PartnerTable() {
       "createdAt",
       "clicks",
       "leads",
+      "conversions",
       "sales",
       "saleAmount",
       "commissions",
