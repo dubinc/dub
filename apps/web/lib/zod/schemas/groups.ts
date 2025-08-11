@@ -29,6 +29,7 @@ export const GroupSchemaExtended = GroupSchema.extend({
   conversions: z.number().default(0),
   commissions: z.number().default(0),
   netRevenue: z.number().default(0),
+  partnersCount: z.number().default(0),
 });
 
 export const createGroupSchema = z.object({

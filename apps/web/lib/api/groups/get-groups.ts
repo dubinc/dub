@@ -31,17 +31,21 @@ export async function getGroups(filters: GroupFilters) {
 
   const groups = (await prisma.$queryRaw`
     SELECT
-      pg.*,
+      pg.id,
+      pg.programId,
+      pg.name,
+      pg.slug,
+      pg.color,
       ${
         includeExpandedFields
           ? Prisma.sql`
-        COALESCE(metrics.totalClicks, 0) as totalClicks,
-        COALESCE(metrics.totalLeads, 0) as totalLeads,
-        COALESCE(metrics.totalSales, 0) as totalSales,
-        COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
-        COALESCE(metrics.totalConversions, 0) as totalConversions,
-        COALESCE(pe.totalCommissions, 0) as totalCommissions,
-        COALESCE(metrics.totalSaleAmount, 0) - COALESCE(pe.totalCommissions, 0) as netRevenue
+        COALESCE(SUM(metrics.totalClicks), 0) as totalClicks,
+        COALESCE(SUM(metrics.totalLeads), 0) as totalLeads,
+        COALESCE(SUM(metrics.totalSales), 0) as totalSales,
+        COALESCE(SUM(metrics.totalSaleAmount), 0) as totalSaleAmount,
+        COALESCE(SUM(metrics.totalConversions), 0) as totalConversions,
+        COALESCE(SUM(pe.totalCommissions), 0) as totalCommissions,
+        COALESCE(SUM(metrics.totalSaleAmount), 0) - COALESCE(SUM(pe.totalCommissions), 0) as netRevenue
         `
           : Prisma.sql`
         0 as totalClicks,
@@ -54,7 +58,7 @@ export async function getGroups(filters: GroupFilters) {
         `
       }
     FROM PartnerGroup pg
-    JOIN ProgramEnrollment pe ON pe.groupId = pg.id
+    LEFT JOIN ProgramEnrollment pe ON pe.groupId = pg.id
     ${
       includeExpandedFields
         ? Prisma.sql`
@@ -77,9 +81,10 @@ export async function getGroups(filters: GroupFilters) {
     }
     WHERE pg.programId = ${programId}
     ${search ? Prisma.sql`AND (pg.name LIKE ${`%${search}%`} OR pg.slug LIKE ${`%${search}%`})` : Prisma.sql``}
+    GROUP BY pg.id
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
-    `) satisfies Array<any>;
+  `) satisfies Array<any>;
 
   return groups.map((group) => ({
     ...group,
