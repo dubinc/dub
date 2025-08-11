@@ -83,7 +83,7 @@ const partnersColumns = {
   ],
 };
 
-export function PartnerTable() {
+export function PartnersTable() {
   const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
@@ -273,6 +273,7 @@ export function PartnerTable() {
       "createdAt",
       "clicks",
       "leads",
+      "conversions",
       "sales",
       "saleAmount",
       "commissions",

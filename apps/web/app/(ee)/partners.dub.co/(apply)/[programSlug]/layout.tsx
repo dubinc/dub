@@ -74,7 +74,7 @@ export default async function ApplyLayout({
           </Link>
           <span className="flex items-center gap-2">
             <a
-              href="https://dub.co/legal/terms"
+              href="https://dub.co/legal/partners"
               target="_blank"
               className="transition-colors duration-75 hover:text-neutral-600"
             >
