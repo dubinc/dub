@@ -10,12 +10,14 @@ import { ApplyButton } from "./apply-button";
 import { Header } from "./header";
 
 export default async function ApplyPage({
-  params: { programSlug },
+  params,
 }: {
-  params: { programSlug: string };
+  params: { programSlug: string; groupSlug?: string[] };
 }) {
+  const groupSlug = params.groupSlug ? params.groupSlug.join("/") : "default";
+
   const program = await getProgram({
-    slug: programSlug,
+    slug: params.programSlug,
     include: ["allRewards", "allDiscounts"],
   });
 
@@ -47,7 +49,7 @@ export default async function ApplyPage({
 
         {/* Buttons */}
         <div className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]">
-          <ApplyButton programSlug={programSlug} />
+          <ApplyButton programSlug={params.programSlug} />
           {/* <Button type="button" variant="secondary" text="Learn more" /> */}
         </div>
 

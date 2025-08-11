@@ -10,12 +10,14 @@ import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 
 export async function generateMetadata({
-  params: { programSlug },
+  params,
 }: {
-  params: { programSlug: string };
+  params: { programSlug: string; groupSlug?: string[] };
 }) {
+  const groupSlug = params.groupSlug ? params.groupSlug.join("/") : "default";
+
   const program = await getProgram({
-    slug: programSlug,
+    slug: params.programSlug,
     include: ["allRewards", "allDiscounts"],
   });
 
@@ -33,6 +35,8 @@ export async function generateMetadata({
         : "earn commissions"
     } by referring ${program.name} to your friends and followers.`,
     image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}`,
+    // TODO: support the pathname too maybe?
+    canonicalUrl: `/${params.programSlug}`,
   });
 }
 
@@ -50,9 +54,13 @@ export async function generateStaticParams() {
 
 export default async function ApplyLayout({
   children,
-  params: { programSlug },
-}: PropsWithChildren<{ params: { programSlug: string } }>) {
-  const program = await getProgram({ slug: programSlug });
+  params,
+}: PropsWithChildren<{
+  params: { programSlug: string; groupSlug?: string[] };
+}>) {
+  const groupSlug = params.groupSlug ? params.groupSlug.join("/") : "default";
+
+  const program = await getProgram({ slug: params.programSlug });
 
   if (!program) {
     notFound();

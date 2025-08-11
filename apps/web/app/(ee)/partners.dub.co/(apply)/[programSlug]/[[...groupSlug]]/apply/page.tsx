@@ -7,12 +7,14 @@ import { CSSProperties } from "react";
 import { Header } from "../header";
 
 export default async function ApplicationPage({
-  params: { programSlug },
+  params,
 }: {
-  params: { programSlug: string };
+  params: { programSlug: string; groupSlug?: string[] };
 }) {
+  const groupSlug = params.groupSlug ? params.groupSlug.join("/") : "default";
+
   const program = await getProgram({
-    slug: programSlug,
+    slug: params.programSlug,
     include: ["allRewards", "allDiscounts"],
   });
 

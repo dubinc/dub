@@ -40,13 +40,15 @@ const FEATURES = [
 ];
 
 export default async function SuccessPage({
-  params: { programSlug },
+  params,
   searchParams: { applicationId, enrollmentId },
 }: {
-  params: { programSlug: string };
+  params: { programSlug: string; groupSlug?: string[] };
   searchParams: { applicationId?: string; enrollmentId?: string };
 }) {
-  const program = await getProgram({ slug: programSlug });
+  const groupSlug = params.groupSlug ? params.groupSlug.join("/") : "default";
+
+  const program = await getProgram({ slug: params.programSlug });
 
   if (!program) {
     notFound();
@@ -130,7 +132,7 @@ export default async function SuccessPage({
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
             <div className="absolute -inset-[50%] rounded-full bg-white blur-lg" />
 
-            {programSlug !== "dub" && (
+            {params.programSlug !== "dub" && (
               <div className="relative flex items-center gap-2 rounded-full border border-neutral-100 bg-gradient-to-b from-white to-neutral-50 p-2 shadow-[0_8px_28px_0_#00000017]">
                 <img
                   className="size-10 shrink-0 rounded-full"
