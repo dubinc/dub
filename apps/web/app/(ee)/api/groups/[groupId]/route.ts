@@ -2,14 +2,12 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getGroupOrThrow } from "@/lib/api/programs/get-group-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { GroupSchema } from "@/lib/zod/schemas/groups";
+import { GroupSchema, updateGroupSchema } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-
-// TODO:
-// Should we use slug instead of id?
 
 // GET /api/groups/[groupId] - get information about a group
 export const GET = withWorkspace(
@@ -47,27 +45,58 @@ export const PATCH = withWorkspace(
       groupId,
     });
 
-    // TODO:
-    // Add PATCH logic
+    const { name, slug, color } = updateGroupSchema.parse(
+      await parseRequestBody(req),
+    );
+
+    // Only check slug uniqueness if slug is being updated
+    if (slug && slug.toLowerCase() !== group.slug.toLowerCase()) {
+      const existingGroup = await prisma.partnerGroup.findUnique({
+        where: {
+          programId_slug: {
+            programId,
+            slug,
+          },
+        },
+      });
+
+      if (existingGroup) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Group with slug ${slug} already exists in your program.`,
+        });
+      }
+    }
+
+    const updatedGroup = await prisma.partnerGroup.update({
+      where: {
+        id: groupId,
+      },
+      data: {
+        name,
+        slug,
+        color,
+      },
+    });
 
     waitUntil(
       recordAuditLog({
         workspaceId: workspace.id,
         programId,
         action: "group.updated",
-        description: `Group ${group.name} (${group.id}) updated`,
+        description: `Group ${updatedGroup.name} (${group.id}) updated`,
         actor: session.user,
         targets: [
           {
             type: "group",
             id: group.id,
-            metadata: group,
+            metadata: updatedGroup,
           },
         ],
       }),
     );
 
-    return NextResponse.json(GroupSchema.parse(group));
+    return NextResponse.json(GroupSchema.parse(updatedGroup));
   },
   {
     requiredPlan: [
