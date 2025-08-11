@@ -18,6 +18,7 @@ export const GET = withWorkspace(
     const group = await getGroupOrThrow({
       programId,
       groupId,
+      includeRewardsAndDiscount: true,
     });
 
     return NextResponse.json(GroupSchema.parse(group));
@@ -51,6 +52,13 @@ export const PATCH = withWorkspace(
 
     // Only check slug uniqueness if slug is being updated
     if (slug && slug.toLowerCase() !== group.slug.toLowerCase()) {
+      if (group.slug === "default") {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "You cannot change the slug of the default group.",
+        });
+      }
+
       const existingGroup = await prisma.partnerGroup.findUnique({
         where: {
           programId_slug: {
@@ -121,49 +129,65 @@ export const DELETE = withWorkspace(
       groupId,
     });
 
-    const program = await prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
-      },
-      select: {
-        defaultGroupId: true,
-      },
-    });
-
-    if (group.id === program.defaultGroupId) {
+    if (group.slug === "default") {
       throw new DubApiError({
         code: "forbidden",
         message: "You cannot delete the default group of your program.",
       });
     }
 
-    const defaultGroup = await getGroupOrThrow({
-      programId,
-      groupId: program.defaultGroupId!,
+    const defaultGroup = await prisma.partnerGroup.findUnique({
+      where: {
+        programId_slug: {
+          programId,
+          slug: "default",
+        },
+      },
     });
 
     await prisma.$transaction(async (tx) => {
       await tx.programEnrollment.updateMany({
         where: {
-          partnerGroupId: groupId,
-          programId,
+          partnerGroupId: group.id,
         },
         data: {
-          partnerGroupId: defaultGroup.id,
-          clickRewardId: defaultGroup.clickRewardId,
-          leadRewardId: defaultGroup.leadRewardId,
-          saleRewardId: defaultGroup.saleRewardId,
-          discountId: defaultGroup.discountId,
+          ...(defaultGroup && {
+            partnerGroupId: defaultGroup.id,
+            clickRewardId: defaultGroup.clickRewardId,
+            leadRewardId: defaultGroup.leadRewardId,
+            saleRewardId: defaultGroup.saleRewardId,
+            discountId: defaultGroup.discountId,
+          }),
         },
       });
 
-      const deletedGroup = await tx.partnerGroup.delete({
+      if (group.clickRewardId || group.leadRewardId || group.saleRewardId) {
+        await tx.reward.deleteMany({
+          where: {
+            id: {
+              in: [
+                group.clickRewardId,
+                group.leadRewardId,
+                group.saleRewardId,
+              ].filter(Boolean) as string[],
+            },
+          },
+        });
+      }
+
+      if (group.discountId) {
+        await tx.discount.delete({
+          where: {
+            id: group.discountId,
+          },
+        });
+      }
+
+      await tx.partnerGroup.delete({
         where: {
-          id: groupId,
+          id: group.id,
         },
       });
-
-      return deletedGroup.id;
     });
 
     waitUntil(

@@ -5,14 +5,24 @@ import { DubApiError } from "../errors";
 export const getGroupOrThrow = async ({
   programId,
   groupId,
+  includeRewardsAndDiscount = false,
 }: {
   programId: string;
   groupId: string;
+  includeRewardsAndDiscount?: boolean;
 }) => {
   const group = await prisma.partnerGroup.findUnique({
     where: {
       id: groupId,
     },
+    ...(includeRewardsAndDiscount && {
+      include: {
+        clickReward: true,
+        leadReward: true,
+        saleReward: true,
+        discount: true,
+      },
+    }),
   });
 
   if (!group) {

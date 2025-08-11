@@ -77,17 +77,39 @@ export const createProgram = async ({
     },
   });
 
+  const programId = createId({ prefix: "prog_" });
+
+  const defaultGroup = await prisma.partnerGroup.upsert({
+    where: {
+      programId_slug: {
+        programId,
+        slug: "default",
+      },
+    },
+    create: {
+      id: createId({ prefix: "grp_" }),
+      programId,
+      slug: "default",
+      name: "Default",
+      color: "#000000",
+    },
+    update: {
+      //
+    },
+  });
+
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
     const programData = await tx.program.create({
       data: {
-        id: createId({ prefix: "prog_" }),
+        id: programId,
         workspaceId: workspace.id,
         name,
         slug: workspace.slug,
         domain,
         url,
         defaultFolderId: programFolder.id,
+        defaultGroupId: defaultGroup.id,
         linkStructure,
         supportEmail,
         helpUrl,

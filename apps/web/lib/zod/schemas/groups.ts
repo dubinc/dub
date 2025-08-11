@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { DiscountSchema } from "./discount";
 import { getPaginationQuerySchema } from "./misc";
+import { RewardSchema } from "./rewards";
 
 export const GroupSchema = z.object({
   id: z.string(),
@@ -10,6 +12,10 @@ export const GroupSchema = z.object({
   leadRewardId: z.string().nullable(),
   saleRewardId: z.string().nullable(),
   discountId: z.string().nullable(),
+  clickReward: RewardSchema.nullish(),
+  leadReward: RewardSchema.nullish(),
+  saleReward: RewardSchema.nullish(),
+  discount: DiscountSchema.nullish(),
 });
 
 export const createGroupSchema = z.object({
