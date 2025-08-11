@@ -123,13 +123,13 @@ export async function GET(req: Request) {
           earnings: reward.amount * linkClicks,
         };
       })
-      .filter((c) => c !== null);
+      .filter((c) => c !== null) as Prisma.CommissionCreateManyInput[];
 
     console.table(commissionsToCreate);
 
     // // Create commissions
     await prisma.commission.createMany({
-      data: commissionsToCreate as Prisma.CommissionCreateManyInput[],
+      data: commissionsToCreate,
     });
 
     // getting a list of click reward program enrollments
