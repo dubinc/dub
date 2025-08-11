@@ -10,10 +10,12 @@ import { ApplyButton } from "./apply-button";
 import { Header } from "./header";
 
 export default async function ApplyPage({
-  params: { programSlug },
+  params: { programSlug, groupSlug },
 }: {
-  params: { programSlug: string };
+  params: { programSlug: string; groupSlug?: string };
 }) {
+  const partnerGroupSlug = groupSlug ?? "default";
+
   const program = await getProgram({
     slug: programSlug,
     include: ["allRewards", "allDiscounts"],

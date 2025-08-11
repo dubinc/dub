@@ -10,10 +10,12 @@ import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 
 export async function generateMetadata({
-  params: { programSlug },
+  params: { programSlug, groupSlug },
 }: {
-  params: { programSlug: string };
+  params: { programSlug: string; groupSlug?: string };
 }) {
+  const partnerGroupSlug = groupSlug ?? "default";
+
   const program = await getProgram({
     slug: programSlug,
     include: ["allRewards", "allDiscounts"],
@@ -50,8 +52,11 @@ export async function generateStaticParams() {
 
 export default async function ApplyLayout({
   children,
-  params: { programSlug },
-}: PropsWithChildren<{ params: { programSlug: string } }>) {
+  params: { programSlug, groupSlug },
+}: PropsWithChildren<{ params: { programSlug: string; groupSlug?: string } }>) {
+  const partnerGroupSlug = groupSlug ?? "default";
+  console.log("partnerGroupSlug", partnerGroupSlug);
+
   const program = await getProgram({ slug: programSlug });
 
   if (!program) {
