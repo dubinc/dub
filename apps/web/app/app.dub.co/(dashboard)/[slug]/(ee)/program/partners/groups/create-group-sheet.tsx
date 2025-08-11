@@ -36,7 +36,7 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
       body: {
         ...data,
         slug: data.name.toLowerCase(),
-        color: "##0000",
+        color: "#000000",
       },
       onSuccess: () => {
         toast.success("Group created successfully!");

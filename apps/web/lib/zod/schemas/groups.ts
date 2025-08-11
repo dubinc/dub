@@ -6,7 +6,7 @@ import { RewardSchema } from "./rewards";
 export const DEFAULT_PARTNER_GROUP = {
   name: "Default",
   slug: "default",
-  color: "#000000",
+  color: null,
 } as const;
 
 // This is the standard response we send for all /api/groups/** endpoints
@@ -14,7 +14,7 @@ export const GroupSchema = z.object({
   id: z.string(),
   name: z.string(),
   slug: z.string(),
-  color: z.string(),
+  color: z.string().nullable(),
   clickReward: RewardSchema.nullish(),
   leadReward: RewardSchema.nullish(),
   saleReward: RewardSchema.nullish(),
@@ -42,7 +42,7 @@ export const createGroupSchema = z.object({
     .refine((val) => !/^grp_/i.test(val.trim()), {
       message: "Slug cannot start with 'grp_'.",
     }),
-  color: z.string().trim(),
+  color: z.string().trim().nullable(),
 });
 
 export const updateGroupSchema = createGroupSchema.partial();

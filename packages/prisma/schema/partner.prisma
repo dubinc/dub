@@ -102,7 +102,7 @@ model PartnerGroup {
   programId     String
   name          String
   slug          String
-  color         String
+  color         String?
   clickRewardId String?  @unique
   leadRewardId  String?  @unique
   saleRewardId  String?  @unique
