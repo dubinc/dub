@@ -66,6 +66,10 @@ export async function getPartners(filters: PartnerFilters) {
       pe.leadRewardId,
       pe.saleRewardId,
       pe.discountId,
+      pg.id as groupId,
+      pg.name as groupName,
+      pg.slug as groupSlug,
+      pg.color as groupColor,
       ${
         includeExpandedFields
           ? Prisma.sql`
@@ -111,6 +115,8 @@ export async function getPartners(filters: PartnerFilters) {
       ProgramEnrollment pe 
     INNER JOIN 
       Partner p ON p.id = pe.partnerId 
+    LEFT JOIN 
+      PartnerGroup pg ON pg.id = pe.partnerGroupId
     LEFT JOIN Link l ON l.programId = pe.programId 
       AND l.partnerId = pe.partnerId
     ${
@@ -173,5 +179,13 @@ export async function getPartners(filters: PartnerFilters) {
     totalCommissions: Number(partner.totalCommissions),
     netRevenue: Number(partner.netRevenue),
     links: partner.links.filter((link: any) => link !== null),
+    group: partner.groupId
+      ? {
+          id: partner.groupId,
+          name: partner.groupName,
+          slug: partner.groupSlug,
+          color: partner.groupColor,
+        }
+      : null,
   }));
 }
