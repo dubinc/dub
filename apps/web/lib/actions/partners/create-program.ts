@@ -94,9 +94,7 @@ export const createProgram = async ({
       name: DEFAULT_PARTNER_GROUP.name,
       color: DEFAULT_PARTNER_GROUP.color,
     },
-    update: {
-      //
-    },
+    update: {}, // noop
   });
 
   // create a new program

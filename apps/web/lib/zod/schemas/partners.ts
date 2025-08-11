@@ -9,7 +9,6 @@ import { COUNTRY_CODES, currencyFormatter } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
-import { GroupSchema } from "./groups";
 import { createLinkBodySchema } from "./links";
 import {
   booleanQuerySchema,
@@ -281,14 +280,6 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
     }),
   )
   .extend({
-    group: GroupSchema.pick({
-      id: true,
-      name: true,
-      slug: true,
-      color: true,
-    })
-      .nullish() // Can remove this after the migration is done
-      .describe("The partner's group."),
     clicks: z
       .number()
       .default(0)

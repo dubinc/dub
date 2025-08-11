@@ -90,6 +90,8 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
 });
 
 export const ProgramEnrollmentSchema = z.object({
+  programId: z.string().describe("The program's unique ID on Dub."),
+  groupId: z.string().describe("The partner's group ID on Dub."),
   partnerId: z.string().describe("The partner's unique ID on Dub."),
   tenantId: z
     .string()
@@ -97,7 +99,6 @@ export const ProgramEnrollmentSchema = z.object({
     .describe(
       "The partner's unique ID within your database. Can be useful for associating the partner with a user in your database and retrieving/update their data in the future.",
     ),
-  programId: z.string().describe("The program's unique ID on Dub."),
   program: ProgramSchema,
   createdAt: z.date(),
   status: z
