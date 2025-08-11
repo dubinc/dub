@@ -1,3 +1,4 @@
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createGroupSchema } from "@/lib/zod/schemas/groups";
 import { X } from "@/ui/shared/icons";
@@ -16,7 +17,7 @@ type FormData = z.input<typeof createGroupSchema>;
 
 function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
   const { id: workspaceId } = useWorkspace();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { makeRequest, isSubmitting } = useApiMutation();
 
   const {
     register,
@@ -25,20 +26,23 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
     formState: { errors },
   } = useForm<FormData>();
 
-  const [name] = watch(["name"]);
-
   const onSubmit = async (data: FormData) => {
     if (!workspaceId) {
       return;
     }
 
-    setIsSubmitting(true);
-
-    console.log(data);
-
-    toast.success("Group created successfully!");
-    setIsOpen(false);
-    setIsSubmitting(false);
+    await makeRequest("/api/groups", {
+      method: "POST",
+      body: {
+        ...data,
+        slug: data.name.toLowerCase(),
+        color: "##0000"
+      },
+      onSuccess: () => {
+        toast.success("Group created successfully!");
+        setIsOpen(false);
+      },
+    });
   };
 
   return (
@@ -65,7 +69,7 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
               htmlFor="name"
               className="text-sm font-medium text-neutral-800"
             >
-              Group name
+              Name
             </label>
             <div className="mt-2">
               <input
@@ -77,9 +81,9 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
                     "border-red-600 focus:border-red-500 focus:ring-red-600",
                 )}
                 {...register("name", {
-                  required: "Group name is required",
+                  required: "Nme is required",
                 })}
-                placeholder="Enter group name"
+                placeholder="Group name"
               />
               {errors.name && (
                 <p className="mt-1 text-sm text-red-600">

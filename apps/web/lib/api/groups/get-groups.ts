@@ -8,7 +8,7 @@ type GroupFilters = z.infer<typeof getGroupsQuerySchema> & {
 };
 
 const sortColumnsMap = {
-  createdAt: "createdAt",
+  createdAt: "pg.createdAt",
   clicks: "totalClicks",
   leads: "totalLeads",
   conversions: "totalConversions",
