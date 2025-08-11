@@ -21,7 +21,6 @@ export const GET = withWorkspace(
 
     const partners = await getPartners({
       ...parsedParams,
-      workspaceId: workspace.id,
       programId,
     });
 

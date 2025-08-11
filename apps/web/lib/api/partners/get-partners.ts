@@ -27,7 +27,6 @@ const sortColumnExtraMap = {
 };
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
-  workspaceId: string;
   programId: string;
 };
 
@@ -47,6 +46,7 @@ export async function getPartners(filters: PartnerFilters) {
     sortOrder,
     programId,
     includeExpandedFields,
+    groupId,
   } = filters;
 
   const partners = (await prisma.$queryRaw`
@@ -65,6 +65,10 @@ export async function getPartners(filters: PartnerFilters) {
       pe.leadRewardId,
       pe.saleRewardId,
       pe.discountId,
+      pg.id as groupId,
+      pg.name as groupName,
+      pg.slug as groupSlug,
+      pg.color as groupColor,
       ${
         includeExpandedFields
           ? Prisma.sql`
@@ -110,6 +114,8 @@ export async function getPartners(filters: PartnerFilters) {
       ProgramEnrollment pe 
     INNER JOIN 
       Partner p ON p.id = pe.partnerId 
+    LEFT JOIN 
+      PartnerGroup pg ON pg.id = pe.groupId
     LEFT JOIN Link l ON l.programId = pe.programId 
       AND l.partnerId = pe.partnerId
     ${
@@ -155,6 +161,7 @@ export async function getPartners(filters: PartnerFilters) {
           : Prisma.sql``
       }
       ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
+      ${groupId ? Prisma.sql`AND pe.groupId = ${groupId}` : Prisma.sql``}
     GROUP BY 
       p.id, pe.id${includeExpandedFields ? Prisma.sql`, metrics.totalClicks, metrics.totalLeads, metrics.totalConversions, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions` : Prisma.sql``}
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)} ${Prisma.raw(`, ${sortColumnExtraMap[sortBy]} ${sortOrder}`)}
@@ -171,5 +178,13 @@ export async function getPartners(filters: PartnerFilters) {
     totalCommissions: Number(partner.totalCommissions),
     netRevenue: Number(partner.netRevenue),
     links: partner.links.filter((link: any) => link !== null),
+    group: partner.groupId
+      ? {
+          id: partner.groupId,
+          name: partner.groupName,
+          slug: partner.groupSlug,
+          color: partner.groupColor,
+        }
+      : null,
   }));
 }

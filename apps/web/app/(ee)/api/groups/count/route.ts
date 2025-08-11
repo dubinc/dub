@@ -1,16 +1,36 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { getGroupsCountQuerySchema } from "@/lib/zod/schemas/groups";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/groups/count - get the count of groups for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+    const { search } = getGroupsCountQuerySchema.parse(searchParams);
 
-    // TODO:
-    // Decide the filters we want to fetch the count by
+    const count = await prisma.partnerGroup.count({
+      where: {
+        programId,
+        ...(search && {
+          OR: [
+            {
+              name: {
+                contains: search,
+              },
+            },
+            {
+              slug: {
+                contains: search,
+              },
+            },
+          ],
+        }),
+      },
+    });
 
-    return NextResponse.json(1);
+    return NextResponse.json(count);
   },
   {
     requiredPlan: [

@@ -5,26 +5,27 @@ import PartnerApplicationApproved from "@dub/email/templates/partner-application
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
+import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { createPartnerLink } from "../api/partners/create-partner-link";
 import { recordLink } from "../tinybird/record-link";
-import { ProgramPartnerLinkProps, WorkspaceProps } from "../types";
+import { ProgramPartnerLinkProps, RewardProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
-import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
-import { getProgramApplicationRewardsAndDiscount } from "./get-program-application-rewards";
 
 export async function approvePartnerEnrollment({
   programId,
   partnerId,
   linkId,
+  groupId,
   userId,
 }: {
   programId: string;
   partnerId: string;
   linkId: string | null;
+  groupId: string;
   userId: string;
 }) {
-  const [program, link] = await Promise.all([
+  const [program, link, group] = await Promise.all([
     prisma.program.findUniqueOrThrow({
       where: {
         id: programId,
@@ -35,6 +36,7 @@ export async function approvePartnerEnrollment({
         workspace: true,
       },
     }),
+
     linkId
       ? prisma.link.findUniqueOrThrow({
           where: {
@@ -42,12 +44,13 @@ export async function approvePartnerEnrollment({
           },
         })
       : Promise.resolve(null),
+
+    getGroupOrThrow({
+      programId,
+      groupId,
+      includeRewardsAndDiscount: true,
+    }),
   ]);
-
-  const { rewards, discount } =
-    getProgramApplicationRewardsAndDiscount(program);
-
-  const workspace = program.workspace as WorkspaceProps;
 
   if (link) {
     if (link.projectId !== program.workspaceId) {
@@ -70,14 +73,10 @@ export async function approvePartnerEnrollment({
       data: {
         status: "approved",
         createdAt: new Date(),
-        ...(rewards.length > 0 && {
-          ...Object.fromEntries(
-            rewards.map((r) => [REWARD_EVENT_COLUMN_MAPPING[r.event], r.id]),
-          ),
-        }),
-        ...(discount && {
-          discountId: discount.id,
-        }),
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        discountId: group.discountId,
       },
       include: {
         partner: {
@@ -121,6 +120,7 @@ export async function approvePartnerEnrollment({
 
   let partnerLink: ProgramPartnerLinkProps;
   const { partner, ...enrollment } = programEnrollment;
+  const workspace = program.workspace as WorkspaceProps;
 
   if (updatedLink) {
     partnerLink = updatedLink;
@@ -137,12 +137,12 @@ export async function approvePartnerEnrollment({
     });
   }
 
-  const partnerEmailsToNotify = partner.users
-    .map(({ user }) => user.email)
-    .filter(Boolean) as string[];
-
   waitUntil(
     (async () => {
+      const partnerEmailsToNotify = partner.users
+        .map(({ user }) => user.email)
+        .filter(Boolean) as string[];
+
       const user = await prisma.user.findUniqueOrThrow({
         where: {
           id: userId,
@@ -159,6 +159,12 @@ export async function approvePartnerEnrollment({
         id: partner.id,
         links: [partnerLink],
       });
+
+      const rewards = [
+        group.clickReward,
+        group.leadReward,
+        group.saleReward,
+      ].filter(Boolean) as RewardProps[];
 
       await Promise.allSettled([
         updatedLink ? recordLink(updatedLink) : Promise.resolve(null),

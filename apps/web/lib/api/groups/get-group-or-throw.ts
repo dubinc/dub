@@ -1,17 +1,35 @@
-import { GroupSchema } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
 export const getGroupOrThrow = async ({
   programId,
   groupId,
+  includeRewardsAndDiscount = false,
 }: {
   programId: string;
   groupId: string;
+  includeRewardsAndDiscount?: boolean;
 }) => {
   const group = await prisma.partnerGroup.findUnique({
     where: {
-      id: groupId,
+      ...(groupId.startsWith("grp_")
+        ? {
+            id: groupId,
+          }
+        : {
+            programId_slug: {
+              programId,
+              slug: groupId,
+            },
+          }),
+    },
+    include: {
+      ...(includeRewardsAndDiscount && {
+        clickReward: true,
+        leadReward: true,
+        saleReward: true,
+        discount: true,
+      }),
     },
   });
 
@@ -29,5 +47,5 @@ export const getGroupOrThrow = async ({
     });
   }
 
-  return GroupSchema.parse(group);
+  return group;
 };

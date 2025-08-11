@@ -12,12 +12,13 @@ export const approvePartnerAction = authActionClient
     const { workspace, user } = ctx;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId, linkId } = parsedInput;
+    const { partnerId, linkId, groupId } = parsedInput;
 
     await approvePartnerEnrollment({
       programId,
       partnerId,
       linkId,
+      groupId,
       userId: user.id,
     });
   });

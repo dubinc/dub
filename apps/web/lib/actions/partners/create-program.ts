@@ -8,6 +8,7 @@ import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { isStored, storage } from "@/lib/storage";
 import { toltImporter } from "@/lib/tolt/importer";
 import { WorkspaceProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { sendEmail } from "@dub/email";
 import PartnerInvite from "@dub/email/templates/partner-invite";
@@ -77,17 +78,39 @@ export const createProgram = async ({
     },
   });
 
+  const programId = createId({ prefix: "prog_" });
+
+  const defaultGroup = await prisma.partnerGroup.upsert({
+    where: {
+      programId_slug: {
+        programId,
+        slug: DEFAULT_PARTNER_GROUP.slug,
+      },
+    },
+    create: {
+      id: createId({ prefix: "grp_" }),
+      programId,
+      slug: DEFAULT_PARTNER_GROUP.slug,
+      name: DEFAULT_PARTNER_GROUP.name,
+      color: DEFAULT_PARTNER_GROUP.color,
+    },
+    update: {
+      //
+    },
+  });
+
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
     const programData = await tx.program.create({
       data: {
-        id: createId({ prefix: "prog_" }),
+        id: programId,
         workspaceId: workspace.id,
         name,
         slug: workspace.slug,
         domain,
         url,
         defaultFolderId: programFolder.id,
+        defaultGroupId: defaultGroup.id,
         linkStructure,
         supportEmail,
         helpUrl,

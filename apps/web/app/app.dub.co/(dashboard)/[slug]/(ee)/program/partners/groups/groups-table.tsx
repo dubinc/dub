@@ -2,15 +2,15 @@
 
 import useGroups from "@/lib/swr/use-groups";
 import useGroupsCount from "@/lib/swr/use-groups-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
-  AnimatedSizeContainer,
   Button,
   EditColumnsButton,
-  Filter,
   Icon,
   Popover,
   Table,
@@ -24,24 +24,16 @@ import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { usePartnerFilters } from "../use-partner-filters";
 
-export function GroupTable() {
+export function GroupsTable() {
   const { id: workspaceId } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortBy = searchParams.get("sortBy") || "netRevenue";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-  } = usePartnerFilters({ sortBy, sortOrder });
+  const { program } = useProgram();
 
   const { groups, loading, error } = useGroups({});
   const {
@@ -49,6 +41,8 @@ export function GroupTable() {
     loading: countLoading,
     error: countError,
   } = useGroupsCount();
+
+  const isFiltered = !!searchParams.get("search");
 
   const { table, ...tableProps } = useTable({
     data: groups || [],
@@ -58,7 +52,24 @@ export function GroupTable() {
         header: "Group",
         enableHiding: false,
         minSize: 250,
-        accessorFn: (d: GroupProps) => d.name,
+        cell: ({ row }) => {
+          const color = row.original.color || program?.brandColor;
+          return (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <div
+                  className="size-3 shrink-0 rounded-full"
+                  style={{
+                    background:
+                      color ||
+                      "conic-gradient(in hsl, #ee535d 0deg, #e9d988 90deg, #9fe0b8 180deg, #bf87e4 270deg, #ee535d 360deg)",
+                  }}
+                />
+                <span>{row.original.name}</span>
+              </div>
+            </div>
+          );
+        },
       },
       {
         id: "menu",
@@ -73,18 +84,28 @@ export function GroupTable() {
       },
     ],
     onRowClick: (row) => {
-      queryParams({
-        set: {
-          partnerId: row.original.id,
-        },
-        scroll: false,
-      });
+      // TODO: Navigate to group page
     },
+
     pagination,
     onPaginationChange: setPagination,
+
+    sortableColumns: ["netRevenue"],
+    sortBy,
+    sortOrder,
+    onSortChange: ({ sortBy, sortOrder }) =>
+      queryParams({
+        set: {
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
+        },
+        del: "page",
+        scroll: false,
+      }),
+
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (p) => `partner${p ? "s" : ""}`,
+    resourceName: (p) => `group${p ? "s" : ""}`,
     rowCount: groupsCount || 0,
     loading: loading || countLoading,
     error: error || countError ? "Failed to load groups" : undefined,
@@ -92,34 +113,11 @@ export function GroupTable() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-          />
-          <SearchBoxPersisted
-            placeholder="Search by name, email, or link"
-            inputClassName="md:w-72"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <SearchBoxPersisted
+          placeholder="Search by name"
+          inputClassName="md:w-72"
+        />
       </div>
 
       {groups?.length !== 0 ? (
@@ -156,9 +154,6 @@ function RowMenuButton({
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // TODO:
-  // Hide delete button for default group
-
   return (
     <>
       <Popover
@@ -167,17 +162,19 @@ function RowMenuButton({
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-              <MenuItem
-                icon={isDeleting ? LoadingSpinner : Trash}
-                label="Delete group"
-                variant="danger"
-                onSelect={async () => {
-                  // await deleteInvite({
-                  //   workspaceId,
-                  //   partnerId: row.original.id,
-                  // });
-                }}
-              />
+              {row.original.slug !== DEFAULT_PARTNER_GROUP.slug && (
+                <MenuItem
+                  icon={isDeleting ? LoadingSpinner : Trash}
+                  label="Delete group"
+                  variant="danger"
+                  onSelect={async () => {
+                    // await deleteInvite({
+                    //   workspaceId,
+                    //   partnerId: row.original.id,
+                    // });
+                  }}
+                />
+              )}
             </Command.List>
           </Command>
         }

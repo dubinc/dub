@@ -9,6 +9,7 @@ import { COUNTRY_CODES, currencyFormatter } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
+import { GroupSchema } from "./groups";
 import { createLinkBodySchema } from "./links";
 import {
   booleanQuerySchema,
@@ -120,6 +121,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.merge(
     clickRewardId: z.string().optional(),
     leadRewardId: z.string().optional(),
     saleRewardId: z.string().optional(),
+    groupId: z.string().optional(),
   }),
 );
 
@@ -279,6 +281,14 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
     }),
   )
   .extend({
+    group: GroupSchema.pick({
+      id: true,
+      name: true,
+      slug: true,
+      color: true,
+    })
+      .nullish() // Can remove this after the migration is done
+      .describe("The partner's group."),
     clicks: z
       .number()
       .default(0)
@@ -541,14 +551,14 @@ export const invitePartnerSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   linkId: z.string().optional(),
-  rewardId: z.string().optional(),
-  discountId: z.string().optional(),
+  groupId: z.string(),
 });
 
 export const approvePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   linkId: z.string().nullable(),
+  groupId: z.string(),
 });
 
 export const bulkApprovePartnersSchema = z.object({

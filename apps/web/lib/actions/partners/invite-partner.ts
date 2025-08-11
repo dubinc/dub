@@ -1,9 +1,9 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
-import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
@@ -18,11 +18,11 @@ export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { name, email, linkId, rewardId, discountId } = parsedInput;
+    const { name, email, linkId, groupId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    let [program, link, reward] = await Promise.all([
+    let [program, link, group] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -35,10 +35,10 @@ export const invitePartnerAction = authActionClient
           })
         : null,
 
-      rewardId
-        ? getRewardOrThrow({
+      groupId
+        ? getGroupOrThrow({
             programId,
-            rewardId,
+            groupId,
           })
         : null,
     ]);
@@ -95,8 +95,7 @@ export const invitePartnerAction = authActionClient
       },
       skipEnrollmentCheck: true,
       status: "invited",
-      ...(reward && { reward }),
-      ...(discountId && { discountId }),
+      ...(group && { group }),
     });
 
     waitUntil(

@@ -13,6 +13,7 @@ model Discount {
 
   programEnrollments ProgramEnrollment[]
   program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  partnerGroup       PartnerGroup?
 
   @@index(programId)
 }

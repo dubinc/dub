@@ -92,6 +92,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           aiLimit: plan.limits.ai!,
           tagsLimit: plan.limits.tags!,
           foldersLimit: plan.limits.folders!,
+          groupsLimit: plan.limits.groups!,
           usersLimit: plan.limits.users!,
           paymentFailedAt: null,
           ...(shouldDeleteFolders && { foldersUsage: 0 }),
