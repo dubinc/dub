@@ -15,6 +15,7 @@ import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
+import { GroupSelector } from "./groups/group-selector";
 import { OnlinePresenceSummary } from "./online-presence-summary";
 import { PartnerInfoSection } from "./partner-info-section";
 import { PartnerLinkSelector } from "./partner-link-selector";
@@ -180,6 +181,11 @@ function PartnerApproval({
   const { program } = useProgram();
 
   const [isApproving, setIsApproving] = useState(false);
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
+    partner.group?.id ?? undefined,
+  );
+
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [linkError, setLinkError] = useState(false);
 
@@ -249,6 +255,7 @@ function PartnerApproval({
       workspaceId: workspaceId!,
       partnerId: partner.id,
       linkId: selectedLinkId,
+      groupId: selectedGroupId!,
     });
   };
 
@@ -257,29 +264,87 @@ function PartnerApproval({
     setSelectedLinkId(null);
   };
 
-  if (isMobile) {
-    return (
-      <div className="flex flex-col gap-3">
-        {/* First row - Approve button */}
-        <div className="flex">
-          <div className="flex grow">
-            <Button
-              type="button"
-              variant="primary"
-              text="Approve"
-              loading={isPending}
-              className="w-full"
-              onClick={handleApproveClick}
-            />
+  return (
+    <div className="flex flex-col gap-3">
+      <GroupSelector
+        selectedGroupId={selectedGroupId ?? null}
+        setSelectedGroupId={setSelectedGroupId}
+      />
+      {isMobile ? (
+        <div className="flex flex-col gap-3">
+          {/* First row - Approve button */}
+          <div className="flex">
+            <div className="flex grow">
+              <Button
+                type="button"
+                variant="primary"
+                text="Approve"
+                loading={isPending}
+                className="w-full"
+                disabled={!selectedGroupId}
+                onClick={handleApproveClick}
+              />
+            </div>
+          </div>
+
+          {/* Second row - Reject button and link selector */}
+          <div className="flex">
+            <div
+              className={cn(
+                "transition-[width] duration-300",
+                isApproving ? "w-10" : "w-full",
+              )}
+            >
+              {isApproving ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  icon={<ChevronLeft className="size-4 shrink-0" />}
+                  onClick={handleBackClick}
+                />
+              ) : (
+                <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
+              )}
+            </div>
+
+            <div
+              className={cn(
+                "overflow-hidden transition-[width] duration-300",
+                isApproving ? "w-full pl-2" : "w-0",
+              )}
+            >
+              <div
+                className={cn(
+                  "w-0 transition-[width] duration-300",
+                  isApproving && "w-full",
+                )}
+              >
+                <PartnerLinkSelector
+                  selectedLinkId={selectedLinkId}
+                  setSelectedLinkId={setSelectedLinkId}
+                  showDestinationUrl={false}
+                  onCreate={async (search) => {
+                    try {
+                      await createLink(search);
+                      return true;
+                    } catch (error) {
+                      toast.error(error?.message ?? "Failed to create link");
+                    }
+                    return false;
+                  }}
+                  error={linkError}
+                  optional
+                />
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Second row - Reject button and link selector */}
+      ) : (
         <div className="flex">
           <div
             className={cn(
               "transition-[width] duration-300",
-              isApproving ? "w-10" : "w-full",
+              isApproving ? "w-[52px]" : "w-[83px]",
             )}
           >
             {isApproving ? (
@@ -294,98 +359,46 @@ function PartnerApproval({
             )}
           </div>
 
-          <div
-            className={cn(
-              "overflow-hidden transition-[width] duration-300",
-              isApproving ? "w-full pl-2" : "w-0",
-            )}
-          >
+          <div className="flex grow pl-2">
             <div
               className={cn(
                 "w-0 transition-[width] duration-300",
                 isApproving && "w-full",
               )}
             >
-              <PartnerLinkSelector
-                selectedLinkId={selectedLinkId}
-                setSelectedLinkId={setSelectedLinkId}
-                showDestinationUrl={false}
-                onCreate={async (search) => {
-                  try {
-                    await createLink(search);
-                    return true;
-                  } catch (error) {
-                    toast.error(error?.message ?? "Failed to create link");
-                  }
-                  return false;
-                }}
-                error={linkError}
-                optional
+              <div className="w-[calc(100%-8px)]">
+                <PartnerLinkSelector
+                  selectedLinkId={selectedLinkId}
+                  setSelectedLinkId={setSelectedLinkId}
+                  showDestinationUrl={false}
+                  onCreate={async (search) => {
+                    try {
+                      await createLink(search);
+                      return true;
+                    } catch (error) {
+                      toast.error(error?.message ?? "Failed to create link");
+                    }
+                    return false;
+                  }}
+                  error={linkError}
+                  optional
+                />
+              </div>
+            </div>
+
+            <div className="grow">
+              <Button
+                type="button"
+                variant="primary"
+                text="Approve"
+                loading={isPending}
+                disabled={!selectedGroupId}
+                onClick={handleApproveClick}
               />
             </div>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex">
-      <div
-        className={cn(
-          "transition-[width] duration-300",
-          isApproving ? "w-[52px]" : "w-[83px]",
-        )}
-      >
-        {isApproving ? (
-          <Button
-            type="button"
-            variant="secondary"
-            icon={<ChevronLeft className="size-4 shrink-0" />}
-            onClick={handleBackClick}
-          />
-        ) : (
-          <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
-        )}
-      </div>
-
-      <div className="flex grow pl-2">
-        <div
-          className={cn(
-            "w-0 transition-[width] duration-300",
-            isApproving && "w-full",
-          )}
-        >
-          <div className="w-[calc(100%-8px)]">
-            <PartnerLinkSelector
-              selectedLinkId={selectedLinkId}
-              setSelectedLinkId={setSelectedLinkId}
-              showDestinationUrl={false}
-              onCreate={async (search) => {
-                try {
-                  await createLink(search);
-                  return true;
-                } catch (error) {
-                  toast.error(error?.message ?? "Failed to create link");
-                }
-                return false;
-              }}
-              error={linkError}
-              optional
-            />
-          </div>
-        </div>
-
-        <div className="grow">
-          <Button
-            type="button"
-            variant="primary"
-            text="Approve"
-            loading={isPending}
-            onClick={handleApproveClick}
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

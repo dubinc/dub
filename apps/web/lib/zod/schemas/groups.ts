@@ -52,9 +52,15 @@ export const changeGroupSchema = z.object({
   partnerIds: z.array(z.string()).min(1),
 });
 
+export const GROUPS_MAX_PAGE_SIZE = 100;
+
 export const getGroupsQuerySchema = z
   .object({
     search: z.string().optional(),
+    groupIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional(),
     sortBy: z
       .enum([
         "createdAt",
@@ -71,7 +77,7 @@ export const getGroupsQuerySchema = z
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     includeExpandedFields: booleanQuerySchema.optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .merge(getPaginationQuerySchema({ pageSize: GROUPS_MAX_PAGE_SIZE }));
 
 export const getGroupsCountQuerySchema = z.object({
   search: z.string().optional(),

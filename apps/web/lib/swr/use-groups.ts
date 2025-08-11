@@ -22,7 +22,7 @@ export default function useGroups<T extends GroupProps>({
 
   const { data, isLoading, error } = useSWR<T[]>(
     queryEnabled
-      ? `/api/groups${getQueryString({ workspaceId, ...query })}`
+      ? `/api/groups${getQueryString({ workspaceId, ...query }, { exclude: ["partnerId"] })}`
       : null,
     fetcher,
     {

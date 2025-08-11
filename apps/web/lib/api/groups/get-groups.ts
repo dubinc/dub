@@ -22,6 +22,7 @@ const sortColumnsMap = {
 export async function getGroups(filters: GroupFilters) {
   const {
     search,
+    groupIds,
     page,
     pageSize,
     sortBy,
@@ -84,6 +85,7 @@ export async function getGroups(filters: GroupFilters) {
     }
     WHERE pg.programId = ${programId}
     ${search ? Prisma.sql`AND (pg.name LIKE ${`%${search}%`} OR pg.slug LIKE ${`%${search}%`})` : Prisma.sql``}
+    ${groupIds && groupIds.length > 0 ? Prisma.sql`AND pg.id IN (${Prisma.join(groupIds)})` : Prisma.sql``}
     GROUP BY pg.id
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
