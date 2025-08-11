@@ -2,15 +2,19 @@ import { getProgram } from "@/lib/fetchers/get-program";
 import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
+import { capitalize } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { Header } from "../header";
 
 export default async function ApplicationPage({
-  params: { programSlug },
+  params: { programSlug, groupSlug },
 }: {
-  params: { programSlug: string };
+  params: { programSlug: string; groupSlug?: string };
 }) {
+  const partnerGroupSlug = groupSlug ?? "default";
+  console.log("partnerGroupSlug", partnerGroupSlug);
+
   const program = await getProgram({
     slug: programSlug,
     include: ["allRewards", "allDiscounts"],
@@ -40,7 +44,9 @@ export default async function ApplicationPage({
           <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
             {program.name} Affiliate Program
           </p>
-          <h1 className="text-4xl font-semibold">Apply to {program.name}</h1>
+          <h1 className="text-4xl font-semibold">
+            Apply to {program.name} {capitalize(partnerGroupSlug)}
+          </h1>
           <p className="text-base text-neutral-700">
             Submit your application to join the {program.name} affiliate program
             and start earning commissions for your referrals.
