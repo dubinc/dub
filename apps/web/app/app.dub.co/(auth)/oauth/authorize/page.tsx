@@ -12,8 +12,6 @@ import { Suspense } from "react";
 import { AuthorizeForm } from "./authorize-form";
 import { ScopesRequested } from "./scopes-requested";
 
-export const runtime = "nodejs";
-
 export const metadata = constructMetadata({
   title: "Authorize API access | Dub",
   noIndex: true,
