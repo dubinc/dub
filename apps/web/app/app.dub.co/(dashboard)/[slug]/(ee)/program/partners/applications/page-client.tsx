@@ -9,6 +9,7 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
@@ -196,6 +197,21 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "createdAt",
         header: "Applied",
         accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+      },
+      {
+        id: "group",
+        header: "Group",
+        enableHiding: false,
+        minSize: 150,
+        cell: ({ row }) =>
+          row.original.group ? (
+            <div className="flex items-center gap-2">
+              <GroupColorCircle group={row.original.group} />
+              <span>{row.original.group?.name}</span>
+            </div>
+          ) : (
+            "-"
+          ),
       },
       {
         id: "location",

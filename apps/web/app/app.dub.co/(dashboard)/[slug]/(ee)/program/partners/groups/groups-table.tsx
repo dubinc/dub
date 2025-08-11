@@ -6,6 +6,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupExtendedProps, GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -54,24 +55,12 @@ export function GroupsTable() {
         header: "Group",
         enableHiding: false,
         minSize: 250,
-        cell: ({ row }) => {
-          const color = row.original.color || program?.brandColor;
-          return (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2">
-                <div
-                  className="size-3 shrink-0 rounded-full"
-                  style={{
-                    background:
-                      color ||
-                      "conic-gradient(in hsl, #ee535d 0deg, #e9d988 90deg, #9fe0b8 180deg, #bf87e4 270deg, #ee535d 360deg)",
-                  }}
-                />
-                <span>{row.original.name}</span>
-              </div>
-            </div>
-          );
-        },
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <GroupColorCircle group={row.original} />
+            <span>{row.original.name}</span>
+          </div>
+        ),
       },
       {
         id: "partners",
