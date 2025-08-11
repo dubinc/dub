@@ -4,7 +4,7 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PlansContent } from "@/ui/plans/plans-content.tsx";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { MaxWidthWrapper } from "@dub/ui";
-import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker";
+import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker/page-viewed-tracker.component";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { NextPage } from "next";
 
@@ -12,6 +12,8 @@ export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 const PlansPage: NextPage = async () => {
+  const start = performance.now();
+  console.log("start", start);
   const { user: cookieUser } = await getUserCookieService();
   const { user: authUser } = await getSession();
 
@@ -23,7 +25,7 @@ const PlansPage: NextPage = async () => {
     showArchived: false,
     withTags: false,
     page: 1,
-    pageSize: 100,
+    pageSize: 1,
   });
 
   const mostScannedQR = (
@@ -33,6 +35,9 @@ const PlansPage: NextPage = async () => {
   const user = authUser.paymentData
     ? convertSessionUserToCustomerBody(authUser)
     : cookieUser;
+
+  const end = performance.now();
+  console.log("start", end - start);
 
   return (
     <>

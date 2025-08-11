@@ -152,8 +152,5 @@ export default async function AppMiddleware(
     });
   }
 
-  const end = performance.now();
-  console.log("app performance", end);
-
   return response;
 }
