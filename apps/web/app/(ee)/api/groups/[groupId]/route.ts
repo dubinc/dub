@@ -4,7 +4,11 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getGroupOrThrow } from "@/lib/api/programs/get-group-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { GroupSchema, updateGroupSchema } from "@/lib/zod/schemas/groups";
+import {
+  DEFAULT_PARTNER_GROUP,
+  GroupSchema,
+  updateGroupSchema,
+} from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -52,7 +56,7 @@ export const PATCH = withWorkspace(
 
     // Only check slug uniqueness if slug is being updated
     if (slug && slug.toLowerCase() !== group.slug.toLowerCase()) {
-      if (group.slug === "default") {
+      if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
         throw new DubApiError({
           code: "bad_request",
           message: "You cannot change the slug of the default group.",
@@ -129,7 +133,7 @@ export const DELETE = withWorkspace(
       groupId,
     });
 
-    if (group.slug === "default") {
+    if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
       throw new DubApiError({
         code: "forbidden",
         message: "You cannot delete the default group of your program.",
@@ -140,7 +144,7 @@ export const DELETE = withWorkspace(
       where: {
         programId_slug: {
           programId,
-          slug: "default",
+          slug: DEFAULT_PARTNER_GROUP.slug,
         },
       },
     });

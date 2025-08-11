@@ -3,6 +3,12 @@ import { DiscountSchema } from "./discount";
 import { getPaginationQuerySchema } from "./misc";
 import { RewardSchema } from "./rewards";
 
+export const DEFAULT_PARTNER_GROUP = {
+  name: "Default",
+  slug: "default",
+  color: "#000000",
+} as const;
+
 export const GroupSchema = z.object({
   id: z.string(),
   name: z.string(),

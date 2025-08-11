@@ -8,6 +8,7 @@ import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { isStored, storage } from "@/lib/storage";
 import { toltImporter } from "@/lib/tolt/importer";
 import { WorkspaceProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { sendEmail } from "@dub/email";
 import PartnerInvite from "@dub/email/templates/partner-invite";
@@ -83,15 +84,15 @@ export const createProgram = async ({
     where: {
       programId_slug: {
         programId,
-        slug: "default",
+        slug: DEFAULT_PARTNER_GROUP.slug,
       },
     },
     create: {
       id: createId({ prefix: "grp_" }),
       programId,
-      slug: "default",
-      name: "Default",
-      color: "#000000",
+      slug: DEFAULT_PARTNER_GROUP.slug,
+      name: DEFAULT_PARTNER_GROUP.name,
+      color: DEFAULT_PARTNER_GROUP.color,
     },
     update: {
       //
