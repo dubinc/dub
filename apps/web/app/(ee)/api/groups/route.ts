@@ -58,121 +58,35 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const {
-      name,
-      slug,
-      color,
-      clickRewardId,
-      leadRewardId,
-      saleRewardId,
-      discountId,
-    } = createGroupSchema.parse(await parseRequestBody(req));
-
-    const rewardIds = Array.from(
-      new Set(
-        [clickRewardId, leadRewardId, saleRewardId].filter(
-          (id): id is string => typeof id === "string",
-        ),
-      ),
+    const { name, slug, color } = createGroupSchema.parse(
+      await parseRequestBody(req),
     );
 
-    // TODO:
-    // Check if the given reward or discount is already assigned to a group
-
-    // Check rewards
-    if (clickRewardId || leadRewardId || saleRewardId) {
-      const rewards = await prisma.reward.findMany({
-        where: {
+    const existingGroup = await prisma.partnerGroup.findUnique({
+      where: {
+        programId_slug: {
           programId,
-          id: {
-            in: rewardIds,
-          },
+          slug,
         },
-        select: {
-          id: true,
-          event: true,
-        },
+      },
+    });
+
+    if (existingGroup) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Group with slug ${slug} already exists in your program.`,
       });
-
-      const expectedTypes: Record<string, string> = {};
-
-      if (clickRewardId) expectedTypes[clickRewardId] = "click";
-      if (leadRewardId) expectedTypes[leadRewardId] = "lead";
-      if (saleRewardId) expectedTypes[saleRewardId] = "sale";
-
-      for (const rewardId of rewardIds) {
-        const reward = rewards.find((reward) => reward.id === rewardId);
-
-        if (!reward) {
-          throw new DubApiError({
-            code: "not_found",
-            message: `Reward with ID ${rewardId} not found in your program.`,
-          });
-        }
-
-        if (reward.event !== expectedTypes[rewardId]) {
-          throw new DubApiError({
-            code: "bad_request",
-            message: `Reward with ID ${rewardId} is not a ${expectedTypes[rewardId]} reward.`,
-          });
-        }
-      }
     }
 
-    // Check discount
-    if (discountId) {
-      const discount = await prisma.discount.findUnique({
-        where: {
-          id: discountId,
-        },
-      });
-
-      if (!discount) {
-        throw new DubApiError({
-          code: "not_found",
-          message: `Discount with ID ${discountId} not found in your program.`,
-        });
-      }
-    }
-
-    const group = await prisma.$transaction(
-      async (tx) => {
-        const existingGroup = await tx.partnerGroup.findUnique({
-          where: {
-            programId_slug: {
-              programId,
-              slug,
-            },
-          },
-        });
-
-        if (existingGroup) {
-          throw new DubApiError({
-            code: "bad_request",
-            message: `Group with slug ${slug} already exists in your program.`,
-          });
-        }
-
-        const newGroup = await tx.partnerGroup.create({
-          data: {
-            id: createId({ prefix: "grp_" }),
-            programId,
-            name,
-            slug,
-            color,
-            clickRewardId,
-            leadRewardId,
-            saleRewardId,
-            discountId,
-          },
-        });
-
-        return newGroup;
+    const group = await prisma.partnerGroup.create({
+      data: {
+        id: createId({ prefix: "grp_" }),
+        programId,
+        name,
+        slug,
+        color,
       },
-      {
-        isolationLevel: "RepeatableRead",
-      },
-    );
+    });
 
     waitUntil(
       recordAuditLog({
