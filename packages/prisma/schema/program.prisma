@@ -93,15 +93,15 @@ model ProgramEnrollment {
   bannedAt         DateTime?
   bannedReason     PartnerBannedReason?
 
-  partner     Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  links       Link[]
-  discount    Discount?           @relation(fields: [discountId], references: [id])
-  application ProgramApplication? @relation(fields: [applicationId], references: [id])
-  clickReward Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
-  leadReward  Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
-  saleReward  Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
-  group       PartnerGroup?       @relation(fields: [partnerGroupId], references: [id])
+  partner      Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program      Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  links        Link[]
+  discount     Discount?           @relation(fields: [discountId], references: [id])
+  application  ProgramApplication? @relation(fields: [applicationId], references: [id])
+  clickReward  Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward   Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward   Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  partnerGroup PartnerGroup?       @relation(fields: [partnerGroupId], references: [id])
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
@@ -110,7 +110,7 @@ model ProgramEnrollment {
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
-  @@index([partnerGroupId, programId])
+  @@index(partnerGroupId)
 }
 
 model ProgramApplication {

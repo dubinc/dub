@@ -148,7 +148,6 @@ export const auditLogTarget = z.union([
     metadata: GroupSchema.pick({
       name: true,
       slug: true,
-      icon: true,
       color: true,
       clickRewardId: true,
       leadRewardId: true,

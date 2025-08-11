@@ -115,7 +115,7 @@ model PartnerGroup {
   clickReward Reward?             @relation("ClickReward", fields: [clickRewardId], references: [id])
   leadReward  Reward?             @relation("LeadReward", fields: [leadRewardId], references: [id])
   saleReward  Reward?             @relation("SaleReward", fields: [saleRewardId], references: [id])
-  discount    Discount?
+  discount    Discount?           @relation(fields: [discountId], references: [id])
 
   @@unique([programId, slug])
 }

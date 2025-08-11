@@ -61,21 +61,26 @@ export const POST = withWorkspace(
     const {
       name,
       slug,
-      icon,
       color,
       clickRewardId,
       leadRewardId,
       saleRewardId,
       discountId,
-      partnerIds,
     } = createGroupSchema.parse(await parseRequestBody(req));
+
+    const rewardIds = Array.from(
+      new Set(
+        [clickRewardId, leadRewardId, saleRewardId].filter(
+          (id): id is string => typeof id === "string",
+        ),
+      ),
+    );
+
+    // TODO:
+    // Check if the given reward or discount is already assigned to a group
 
     // Check rewards
     if (clickRewardId || leadRewardId || saleRewardId) {
-      const rewardIds = [clickRewardId, leadRewardId, saleRewardId].filter(
-        (id): id is string => typeof id === "string",
-      );
-
       const rewards = await prisma.reward.findMany({
         where: {
           programId,
@@ -85,7 +90,7 @@ export const POST = withWorkspace(
         },
         select: {
           id: true,
-          type: true,
+          event: true,
         },
       });
 
@@ -105,85 +110,69 @@ export const POST = withWorkspace(
           });
         }
 
-        if (reward.type !== expectedTypes[rewardId]) {
+        if (reward.event !== expectedTypes[rewardId]) {
           throw new DubApiError({
-            code: "not_found",
+            code: "bad_request",
             message: `Reward with ID ${rewardId} is not a ${expectedTypes[rewardId]} reward.`,
           });
         }
       }
     }
 
-    // Check partners
-    if (partnerIds && partnerIds.length > 0) {
-      const uniquePartnerIds = [...new Set(partnerIds)];
-
-      const partners = await prisma.programEnrollment.findMany({
+    // Check discount
+    if (discountId) {
+      const discount = await prisma.discount.findUnique({
         where: {
-          programId,
-          id: {
-            in: uniquePartnerIds,
-          },
-        },
-        select: {
-          id: true,
+          id: discountId,
         },
       });
 
-      const partnersMap = new Map(
-        partners.map((partner) => [partner.id, partner]),
-      );
-
-      for (const partnerId of uniquePartnerIds) {
-        if (!partnersMap.has(partnerId)) {
-          throw new DubApiError({
-            code: "not_found",
-            message: `Partner with ID ${partnerId} not found in your program.`,
-          });
-        }
+      if (!discount) {
+        throw new DubApiError({
+          code: "not_found",
+          message: `Discount with ID ${discountId} not found in your program.`,
+        });
       }
     }
 
-    // TODO:
-    // icon and color needs validation
-    // create slug
-
-    const group = await prisma.$transaction(async (tx) => {
-      const newGroup = await tx.partnerGroup.create({
-        data: {
-          id: createId({ prefix: "grp_" }),
-          programId,
-          name,
-          slug,
-          icon: icon || "",
-          color: color || "",
-          clickRewardId,
-          leadRewardId,
-          saleRewardId,
-          discountId,
-        },
-      });
-
-      if (partnerIds && partnerIds.length > 0) {
-        await tx.programEnrollment.updateMany({
+    const group = await prisma.$transaction(
+      async (tx) => {
+        const existingGroup = await tx.partnerGroup.findUnique({
           where: {
-            partnerId: {
-              in: partnerIds,
+            programId_slug: {
+              programId,
+              slug,
             },
-            programId,
-          },
-          data: {
-            partnerGroupId: newGroup.id,
-            clickRewardId: newGroup.clickRewardId,
-            leadRewardId: newGroup.leadRewardId,
-            saleRewardId: newGroup.saleRewardId,
-            discountId: newGroup.discountId,
           },
         });
-      }
 
-      return newGroup;
-    });
+        if (existingGroup) {
+          throw new DubApiError({
+            code: "bad_request",
+            message: `Group with slug ${slug} already exists in your program.`,
+          });
+        }
+
+        const newGroup = await tx.partnerGroup.create({
+          data: {
+            id: createId({ prefix: "grp_" }),
+            programId,
+            name,
+            slug,
+            color,
+            clickRewardId,
+            leadRewardId,
+            saleRewardId,
+            discountId,
+          },
+        });
+
+        return newGroup;
+      },
+      {
+        isolationLevel: "RepeatableRead",
+      },
+    );
 
     waitUntil(
       recordAuditLog({
