@@ -1,18 +1,16 @@
 import { prisma } from "@dub/prisma";
-import { LEGAL_USER_ID, LEGAL_WORKSPACE_ID } from "@dub/utils";
+import { LEGAL_WORKSPACE_ID } from "@dub/utils";
 import "dotenv-flow/config";
 import { linkCache } from "../lib/api/links/cache";
 
 async function main() {
   const links = await prisma.link.findMany({
     where: {
-      domain: "dub.sh",
+      projectId: LEGAL_WORKSPACE_ID,
       url: {
-        contains: "kurtdavisjr.com",
+        contains: "xxxxxxx",
       },
-      projectId: {
-        not: LEGAL_WORKSPACE_ID,
-      },
+      domain: "dub.sh",
     },
     select: {
       id: true,
@@ -31,8 +29,8 @@ async function main() {
       },
     },
     data: {
-      projectId: LEGAL_WORKSPACE_ID,
-      userId: LEGAL_USER_ID,
+      projectId: "xxx",
+      userId: "xxx",
     },
   });
 
