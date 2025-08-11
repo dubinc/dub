@@ -24,7 +24,6 @@ export const GET = withWorkspace(
       ...filters,
       page: 1,
       pageSize: 5000,
-      workspaceId: workspace.id,
       programId,
     });
 

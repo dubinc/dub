@@ -1,6 +1,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
+import { getGroups } from "@/lib/api/groups/get-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -8,6 +9,7 @@ import {
   createGroupSchema,
   getGroupsQuerySchema,
   GroupSchema,
+  GroupSchemaExtended,
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -18,34 +20,14 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { page, pageSize, search } = getGroupsQuerySchema.parse(searchParams);
+    const parsedInput = getGroupsQuerySchema.parse(searchParams);
 
-    const groups = await prisma.partnerGroup.findMany({
-      where: {
-        programId,
-        ...(search
-          ? {
-              OR: [
-                { name: { startsWith: search } },
-                { slug: { startsWith: search } },
-              ],
-            }
-          : {}),
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      include: {
-        clickReward: true,
-        leadReward: true,
-        saleReward: true,
-        discount: true,
-      },
+    const groups = await getGroups({
+      ...parsedInput,
+      programId,
     });
 
-    return NextResponse.json(z.array(GroupSchema).parse(groups));
+    return NextResponse.json(z.array(GroupSchemaExtended).parse(groups));
   },
   {
     requiredPlan: [

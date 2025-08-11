@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
-import { getPaginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { RewardSchema } from "./rewards";
 
 export const DEFAULT_PARTNER_GROUP = {
@@ -15,10 +15,20 @@ export const GroupSchema = z.object({
   name: z.string(),
   slug: z.string(),
   color: z.string(),
-  clickReward: RewardSchema.nullable(),
-  leadReward: RewardSchema.nullable(),
-  saleReward: RewardSchema.nullable(),
-  discount: DiscountSchema.nullable(),
+  clickReward: RewardSchema.nullish(),
+  leadReward: RewardSchema.nullish(),
+  saleReward: RewardSchema.nullish(),
+  discount: DiscountSchema.nullish(),
+});
+
+export const GroupSchemaExtended = GroupSchema.extend({
+  clicks: z.number().default(0),
+  leads: z.number().default(0),
+  sales: z.number().default(0),
+  saleAmount: z.number().default(0),
+  conversions: z.number().default(0),
+  commissions: z.number().default(0),
+  netRevenue: z.number().default(0),
 });
 
 export const createGroupSchema = z.object({
@@ -42,10 +52,20 @@ export const changeGroupSchema = z.object({
 
 export const getGroupsQuerySchema = z
   .object({
-    search: z
-      .string()
-      .optional()
-      .describe("A search query to filter groups by name, slug.")
-      .openapi({ example: "john" }),
+    search: z.string().optional(),
+    sortBy: z
+      .enum([
+        "createdAt",
+        "clicks",
+        "leads",
+        "sales",
+        "saleAmount",
+        "conversions",
+        "commissions",
+        "netRevenue",
+      ])
+      .default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    includeExpandedFields: booleanQuerySchema.optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));

@@ -85,7 +85,7 @@ model ProgramEnrollment {
   leadRewardId     String?
   saleRewardId     String?
   applicationId    String?                 @unique
-  partnerGroupId   String?
+  groupId          String?
   status           ProgramEnrollmentStatus @default(pending)
   totalCommissions Int                     @default(0) // total commissions earned by the partner (in cents)
   createdAt        DateTime                @default(now())
@@ -101,7 +101,7 @@ model ProgramEnrollment {
   clickReward  Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
   leadReward   Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
   saleReward   Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
-  partnerGroup PartnerGroup?       @relation(fields: [partnerGroupId], references: [id])
+  partnerGroup PartnerGroup?       @relation(fields: [groupId], references: [id])
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
@@ -110,7 +110,7 @@ model ProgramEnrollment {
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
-  @@index(partnerGroupId)
+  @@index(groupId)
 }
 
 model ProgramApplication {

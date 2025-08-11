@@ -27,7 +27,6 @@ const sortColumnExtraMap = {
 };
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
-  workspaceId: string;
   programId: string;
 };
 
@@ -116,7 +115,7 @@ export async function getPartners(filters: PartnerFilters) {
     INNER JOIN 
       Partner p ON p.id = pe.partnerId 
     LEFT JOIN 
-      PartnerGroup pg ON pg.id = pe.partnerGroupId
+      PartnerGroup pg ON pg.id = pe.groupId
     LEFT JOIN Link l ON l.programId = pe.programId 
       AND l.partnerId = pe.partnerId
     ${
@@ -162,7 +161,7 @@ export async function getPartners(filters: PartnerFilters) {
           : Prisma.sql``
       }
       ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
-      ${groupId ? Prisma.sql`AND pe.partnerGroupId = ${groupId}` : Prisma.sql``}
+      ${groupId ? Prisma.sql`AND pe.groupId = ${groupId}` : Prisma.sql``}
     GROUP BY 
       p.id, pe.id${includeExpandedFields ? Prisma.sql`, metrics.totalClicks, metrics.totalLeads, metrics.totalConversions, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions` : Prisma.sql``}
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)} ${Prisma.raw(`, ${sortColumnExtraMap[sortBy]} ${sortOrder}`)}

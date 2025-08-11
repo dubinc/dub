@@ -6,7 +6,7 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { createPartnerLink } from "../api/partners/create-partner-link";
-import { getGroupOrThrow } from "../api/programs/get-group-or-throw";
+import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { recordLink } from "../tinybird/record-link";
 import { ProgramPartnerLinkProps, RewardProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";

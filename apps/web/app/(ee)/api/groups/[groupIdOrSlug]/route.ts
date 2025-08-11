@@ -1,7 +1,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getGroupOrThrow } from "@/lib/api/programs/get-group-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -46,7 +46,6 @@ export const PATCH = withWorkspace(
     const group = await getGroupOrThrow({
       programId,
       groupId: params.groupIdOrSlug,
-      includeRewardsAndDiscount: true,
     });
 
     const { name, slug, color } = updateGroupSchema.parse(
@@ -157,11 +156,11 @@ export const DELETE = withWorkspace(
       // 1. Update all partners in the group to the default group
       await tx.programEnrollment.updateMany({
         where: {
-          partnerGroupId: group.id,
+          groupId: group.id,
         },
         data: {
           ...(defaultGroup && {
-            partnerGroupId: defaultGroup.id,
+            groupId: defaultGroup.id,
             clickRewardId: defaultGroup.clickRewardId,
             leadRewardId: defaultGroup.leadRewardId,
             saleRewardId: defaultGroup.saleRewardId,
