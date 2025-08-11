@@ -9,19 +9,16 @@ export const DEFAULT_PARTNER_GROUP = {
   color: "#000000",
 } as const;
 
+// This is the standard response we send for all /api/groups/** endpoints
 export const GroupSchema = z.object({
   id: z.string(),
   name: z.string(),
   slug: z.string(),
   color: z.string(),
-  clickRewardId: z.string().nullable(),
-  leadRewardId: z.string().nullable(),
-  saleRewardId: z.string().nullable(),
-  discountId: z.string().nullable(),
-  clickReward: RewardSchema.nullish(),
-  leadReward: RewardSchema.nullish(),
-  saleReward: RewardSchema.nullish(),
-  discount: DiscountSchema.nullish(),
+  clickReward: RewardSchema.nullable(),
+  leadReward: RewardSchema.nullable(),
+  saleReward: RewardSchema.nullable(),
+  discount: DiscountSchema.nullable(),
 });
 
 export const createGroupSchema = z.object({

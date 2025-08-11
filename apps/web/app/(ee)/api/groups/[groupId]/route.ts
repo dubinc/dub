@@ -21,7 +21,6 @@ export const GET = withWorkspace(
     const group = await getGroupOrThrow({
       programId,
       groupId: params.groupId,
-      includeRewardsAndDiscount: true,
     });
 
     return NextResponse.json(GroupSchema.parse(group));
@@ -87,6 +86,12 @@ export const PATCH = withWorkspace(
         slug,
         color,
       },
+      include: {
+        clickReward: true,
+        leadReward: true,
+        saleReward: true,
+        discount: true,
+      },
     });
 
     waitUntil(
@@ -147,6 +152,7 @@ export const DELETE = withWorkspace(
     });
 
     await prisma.$transaction(async (tx) => {
+      // 1. Update all partners in the group to the default group
       await tx.programEnrollment.updateMany({
         where: {
           partnerGroupId: group.id,
@@ -162,28 +168,35 @@ export const DELETE = withWorkspace(
         },
       });
 
-      if (group.clickRewardId || group.leadRewardId || group.saleRewardId) {
+      // 2. Delete the group's rewards
+      if (
+        group.clickReward?.id ||
+        group.leadReward?.id ||
+        group.saleReward?.id
+      ) {
         await tx.reward.deleteMany({
           where: {
             id: {
               in: [
-                group.clickRewardId,
-                group.leadRewardId,
-                group.saleRewardId,
+                group.clickReward?.id,
+                group.leadReward?.id,
+                group.saleReward?.id,
               ].filter(Boolean) as string[],
             },
           },
         });
       }
 
-      if (group.discountId) {
+      // 3. Delete the group's discount
+      if (group.discount?.id) {
         await tx.discount.delete({
           where: {
-            id: group.discountId,
+            id: group.discount.id,
           },
         });
       }
 
+      // 4. Delete the group
       await tx.partnerGroup.delete({
         where: {
           id: group.id,

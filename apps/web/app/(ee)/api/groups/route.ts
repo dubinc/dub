@@ -37,6 +37,12 @@ export const GET = withWorkspace(
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
+      include: {
+        clickReward: true,
+        leadReward: true,
+        saleReward: true,
+        discount: true,
+      },
     });
 
     return NextResponse.json(z.array(GroupSchema).parse(groups));
@@ -85,6 +91,12 @@ export const POST = withWorkspace(
         name,
         slug,
         color,
+      },
+      include: {
+        clickReward: true,
+        leadReward: true,
+        saleReward: true,
+        discount: true,
       },
     });
 
