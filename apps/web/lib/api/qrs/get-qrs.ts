@@ -98,15 +98,6 @@ export async function getQrs(
         },
       },
     },
-    orderBy: needsLinkJoin
-      ? {
-          link: {
-            [actualSortBy]: sortOrder,
-          },
-        }
-      : {
-          [actualSortBy || "createdAt"]: sortOrder,
-        },
     take: pageSize,
     skip: (page - 1) * pageSize,
   });
