@@ -3,8 +3,9 @@
 import useGroups from "@/lib/swr/use-groups";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { GroupExtendedProps, GroupProps } from "@/lib/types";
+import { GroupExtendedProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { useDeleteGroupModal } from "@/ui/modals/delete-group-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -18,7 +19,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, LoadingSpinner, Trash, Users } from "@dub/ui/icons";
+import { Dots, MoneyBill2, PenWriting, Trash, Users } from "@dub/ui/icons";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -34,8 +35,11 @@ export function GroupsTable() {
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { groups, loading, error } = useGroups<GroupExtendedProps>({
-    query: { includeExpandedFields: true },
+    query: {
+      includeExpandedFields: true,
+    },
   });
+
   const {
     groupsCount,
     loading: countLoading,
@@ -121,10 +125,8 @@ export function GroupsTable() {
     onRowClick: (row) => {
       // TODO: Navigate to group page
     },
-
     pagination,
     onPaginationChange: setPagination,
-
     sortableColumns: [
       "partners",
       "clicks",
@@ -145,7 +147,6 @@ export function GroupsTable() {
         del: "page",
         scroll: false,
       }),
-
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `group${p ? "s" : ""}`,
@@ -189,32 +190,59 @@ function RowMenuButton({
   row,
   workspaceId,
 }: {
-  row: Row<GroupProps>;
+  row: Row<GroupExtendedProps>;
   workspaceId: string;
 }) {
   const router = useRouter();
   const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+
+  const { DeleteGroupModal, setShowDeleteGroupModal } = useDeleteGroupModal(
+    row.original,
+  );
 
   return (
     <>
+      <DeleteGroupModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+              <MenuItem
+                icon={PenWriting}
+                label="Edit group"
+                variant="default"
+                onSelect={async () => {
+                  router.push(
+                    `/${slug}/program/partners/groups/${row.original.slug}/settings`,
+                  );
+                  setIsOpen(false);
+                }}
+              />
+
+              <MenuItem
+                icon={MoneyBill2}
+                label="View commissions"
+                variant="default"
+                onSelect={async () => {
+                  router.push(
+                    `/${slug}/program/commissions?groupId=${row.original.id}`,
+                  );
+                  setIsOpen(false);
+                }}
+              />
+
               {row.original.slug !== DEFAULT_PARTNER_GROUP.slug && (
                 <MenuItem
-                  icon={isDeleting ? LoadingSpinner : Trash}
+                  // icon={isDeleting ? LoadingSpinner : Trash}
+                  icon={Trash}
                   label="Delete group"
                   variant="danger"
                   onSelect={async () => {
-                    // await deleteInvite({
-                    //   workspaceId,
-                    //   partnerId: row.original.id,
-                    // });
+                    setShowDeleteGroupModal(true);
+                    // setIsOpen(false);
                   }}
                 />
               )}

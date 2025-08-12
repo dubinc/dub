@@ -1,3 +1,4 @@
+import { RESOURCE_COLORS } from "@/lib/colors";
 import { validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
@@ -56,13 +57,7 @@ export const createGroupSchema = z.object({
       },
     )
     .transform((val) => slugify(val)),
-  color: z
-    .string()
-    .trim()
-    .transform((val) => val.toLowerCase())
-    .refine((val) => /^#[0-9a-f]{6}$/i.test(val), {
-      message: "Color must be a valid 6-digit hex code (e.g. #ef4444).",
-    }),
+  color: z.enum(RESOURCE_COLORS),
 });
 
 export const updateGroupSchema = createGroupSchema.partial();

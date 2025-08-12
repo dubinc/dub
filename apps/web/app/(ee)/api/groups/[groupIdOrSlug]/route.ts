@@ -152,6 +152,14 @@ export const DELETE = withWorkspace(
       },
     });
 
+    // This should never happen, but just in case
+    if (!defaultGroup) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Default group not found for this program.",
+      });
+    }
+
     await prisma.$transaction(async (tx) => {
       // 1. Update all partners in the group to the default group
       await tx.programEnrollment.updateMany({

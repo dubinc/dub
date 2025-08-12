@@ -52,10 +52,6 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId) {
-      return;
-    }
-
     await createGroup("/api/groups", {
       method: "POST",
       body: data,

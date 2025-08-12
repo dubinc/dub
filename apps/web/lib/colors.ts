@@ -31,7 +31,7 @@ export const RESOURCE_COLORS_DATA = [
     tagVariants: "bg-brown-100 text-brown-600",
     groupVariants: "bg-brown-600",
   },
-];
+] as const;
 
 export const RESOURCE_COLORS = RESOURCE_COLORS_DATA.map(
   (color) => color.color,
