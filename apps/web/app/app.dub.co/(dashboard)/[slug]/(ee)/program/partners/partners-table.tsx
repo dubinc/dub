@@ -11,6 +11,7 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
+import { useChangeGroupModal } from "@/ui/partners/change-group-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -42,7 +43,6 @@ import {
   UserDelete,
   Users,
   Users6,
-  UserXmark,
 } from "@dub/ui/icons";
 import {
   cn,
@@ -142,6 +142,14 @@ export function PartnersTable() {
     });
 
   const { groups } = useGroups();
+
+  const [pendingChangeGroupPartners, setPendingChangeGroupPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
+  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
+    partners: pendingChangeGroupPartners,
+  });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "partners-table-columns", // TODO: update to v2 once we add partner groups
@@ -328,14 +336,15 @@ export function PartnersTable() {
           className="h-7 w-fit rounded-lg px-2.5"
           loading={false}
           onClick={() => {
-            const partnerIds = table
+            const partners = table
               .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
+              .rows.map((row) => row.original);
 
-            toast.info("WIP");
+            setPendingChangeGroupPartners(partners);
+            setShowChangeGroupModal(true);
           }}
         />
-        <Button
+        {/* <Button
           variant="secondary"
           text="Archive"
           icon={<BoxArchive className="size-3.5 shrink-0" />}
@@ -362,7 +371,7 @@ export function PartnersTable() {
 
             toast.info("WIP");
           }}
-        />
+        /> */}
       </>
     ),
     thClassName: "border-l-0",
@@ -375,6 +384,7 @@ export function PartnersTable() {
 
   return (
     <div className="flex flex-col gap-6">
+      <ChangeGroupModal />
       {detailsSheetState.partnerId && currentPartner && (
         <PartnerDetailsSheet
           isOpen={detailsSheetState.open}
