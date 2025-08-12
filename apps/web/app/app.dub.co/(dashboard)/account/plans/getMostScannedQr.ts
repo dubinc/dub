@@ -9,31 +9,26 @@ export async function getMostScannedQr(userId: string) {
   const link = await prisma.link.findFirst({
     where: { userId },
     orderBy: { clicks: "desc" },
-    select: { id: true, url: true, clicks: true },
+    select: {
+      id: true,
+      url: true,
+      clicks: true,
+      qrs: {
+        select: {
+          id: true,
+          data: true,
+          qrType: true,
+          title: true,
+          styles: true,
+        },
+        take: 1,
+      },
+    },
   });
   const endLink = performance.now();
   console.log("performance 1", endLink - start);
 
-  if (!link) {
-    return null;
-  }
-
-  // 2) pick the most recent QR for that link (and user)
-  const qr = await prisma.qr.findFirst({
-    where: { linkId: link.id },
-    select: {
-      id: true,
-      data: true,
-      qrType: true,
-      title: true,
-      styles: true,
-    },
-  });
-
-  const end = performance.now();
-  console.log("performance 2", end - start);
-
-  return qr
-    ? { ...qr, link: { url: link.url, clicks: link.clicks } }
+  return link?.qrs[0]
+    ? { ...link.qrs[0], link: { url: link.url, clicks: link.clicks } }
     : null;
 }
