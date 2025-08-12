@@ -4,7 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { GroupSelector } from "@/ui/partners/groups/group-selector";
 import { AnimatedSizeContainer, Button, Modal } from "@dub/ui";
-import { OG_AVATAR_URL, pluralize } from "@dub/utils";
+import { cn, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -67,20 +67,26 @@ function BulkApprovePartnersModal({
         </h3>
 
         <p className="text-content-subtle text-base font-medium">
-          Are you sure you want to approve these applications?
+          Are you sure you want to approve{" "}
+          {pluralize("this application", partners.length, {
+            plural: "these applications",
+          })}
+          ?
         </p>
       </div>
 
       <div className="space-y-6 bg-neutral-50 p-4 sm:p-6">
-        <div className="flex items-center space-x-3 rounded-lg border border-neutral-200 bg-neutral-100 p-3">
-          <div className="flex -space-x-1">
+        <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-100 p-3">
+          <div className="flex items-center">
             {partners.slice(0, 3).map((partner, index) => (
               <img
                 key={partner.id}
                 src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
                 alt={partner.name}
-                className="inline-block size-6 rounded-full outline -outline-offset-1 outline-white ring-2 ring-white ring-offset-0"
-                style={{ zIndex: 3 - index }}
+                className={cn(
+                  "inline-block size-7 rounded-full border-2 border-neutral-100",
+                  index > 0 && "-ml-2.5",
+                )}
               />
             ))}
           </div>
