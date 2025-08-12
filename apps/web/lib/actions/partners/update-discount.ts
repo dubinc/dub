@@ -24,7 +24,7 @@ export const updateDiscountAction = authActionClient
       discountId,
     });
 
-    const updatedDiscount = await prisma.discount.update({
+    const { partnerGroup, ...updatedDiscount } = await prisma.discount.update({
       where: {
         id: discountId,
       },
@@ -34,6 +34,9 @@ export const updateDiscountAction = authActionClient
         maxDuration,
         couponId,
         couponTestId,
+      },
+      include: {
+        partnerGroup: true,
       },
     });
 
@@ -57,10 +60,7 @@ export const updateDiscountAction = authActionClient
             ? qstash.publishJSON({
                 url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
                 body: {
-                  programId,
-                  discountId,
-                  isDefault: updatedDiscount.default,
-                  action: "discount-updated",
+                  groupId: partnerGroup?.id,
                 },
               })
             : Promise.resolve(),

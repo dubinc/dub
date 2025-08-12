@@ -28,8 +28,8 @@ export const deleteDiscountAction = authActionClient
       discountId,
     });
 
-    await prisma.$transaction(async (tx) => {
-      await tx.partnerGroup.update({
+    const group = await prisma.$transaction(async (tx) => {
+      const group = await tx.partnerGroup.update({
         where: {
           discountId: discount.id,
         },
@@ -52,6 +52,8 @@ export const deleteDiscountAction = authActionClient
           id: discount.id,
         },
       });
+
+      return group;
     });
 
     waitUntil(
@@ -59,10 +61,7 @@ export const deleteDiscountAction = authActionClient
         qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
           body: {
-            programId,
-            discountId,
-            isDefault: discount.default,
-            action: "discount-deleted",
+            groupId: group.id,
           },
         }),
 
