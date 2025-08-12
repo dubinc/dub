@@ -1,6 +1,5 @@
 "use client";
 
-import { useTrialStatus } from "@/lib/contexts/trial-status-context";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
@@ -18,25 +17,25 @@ import { useEffect, useRef } from "react";
 
 interface WorkspaceQRsClientProps {
   initialQrs: QrStorageData[];
+  featuresAccess: boolean;
 }
 
 export default function WorkspaceQRsClient({
   initialQrs,
+  featuresAccess,
 }: WorkspaceQRsClientProps) {
   return (
     <QrCodesDisplayProvider>
-      <WorkspaceQRs initialQrs={initialQrs} />
+      <WorkspaceQRs initialQrs={initialQrs} featuresAccess={featuresAccess} />
 
       <QRPreviewModalWrapper initialQrs={initialQrs} />
     </QrCodesDisplayProvider>
   );
 }
 
-function WorkspaceQRs({ initialQrs }: { initialQrs: QrStorageData[] }) {
+function WorkspaceQRs({ initialQrs, featuresAccess }: { initialQrs: QrStorageData[], featuresAccess: boolean }) {
   const router = useRouter();
   const { isValidating } = useQrs({}, {}, true); // listenOnly mode
-
-  const { isTrialOver } = useTrialStatus();
 
   const { CreateQRButton, QRBuilderModal } = useQRBuilder();
 
@@ -46,7 +45,7 @@ function WorkspaceQRs({ initialQrs }: { initialQrs: QrStorageData[] }) {
 
       <div className="flex w-full items-center pt-2">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
-          {isTrialOver && (
+          {!featuresAccess && (
             <div className="w-full rounded-lg border border-red-200 bg-red-100">
               <div className="px-3 py-3 md:px-4">
                 <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -88,7 +87,7 @@ function WorkspaceQRs({ initialQrs }: { initialQrs: QrStorageData[] }) {
               </div>
             </div>
           )}
-          {!isTrialOver && (
+          {featuresAccess && (
             <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
               <div className="flex w-full grow gap-2 md:w-auto">
                 <div className="grow basis-0 md:grow-0">
@@ -114,8 +113,8 @@ function WorkspaceQRs({ initialQrs }: { initialQrs: QrStorageData[] }) {
 
       <div className="mt-3">
         <QrCodesContainer
-          CreateQrCodeButton={!isTrialOver ? CreateQRButton : () => <></>}
-          isTrialOver={isTrialOver}
+          CreateQrCodeButton={featuresAccess ? CreateQRButton : () => <></>}
+          featuresAccess={featuresAccess}
           initialQrs={initialQrs}
         />
       </div>
