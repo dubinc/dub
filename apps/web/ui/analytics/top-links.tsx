@@ -22,7 +22,7 @@ export default function TopLinks() {
   return (
     <AnalyticsCard
       tabs={[
-        { id: "links", label: "Short Links", icon: Hyperlink },
+        { id: "links", label: "QR Name", icon: Hyperlink },
         { id: "urls", label: "Destination URLs", icon: Globe },
       ]}
       expandLimit={8}
