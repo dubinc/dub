@@ -19,7 +19,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const {
     slug: workspaceSlug,
     defaultProgramId,
-    partnersEnabled,
     loading: workspaceLoading,
     error: workspaceError,
   } = useWorkspace();
@@ -28,10 +27,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     notFound();
   } else if (workspaceLoading) {
     return <LayoutLoader />;
-  }
-
-  if (!partnersEnabled) {
-    router.push(`/${workspaceSlug}`);
   }
 
   if (defaultProgramId) {

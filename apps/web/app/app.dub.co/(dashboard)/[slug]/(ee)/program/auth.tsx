@@ -9,10 +9,8 @@ import { PartnersUpgradeCTA } from "./partners-ugrade-cta";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
   const {
-    slug,
     plan,
     defaultProgramId,
-    partnersEnabled,
     loading,
     mutate: mutateWorkspace,
   } = useWorkspace();
@@ -30,11 +28,7 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
     return <LayoutLoader />;
   }
 
-  if (
-    !partnersEnabled ||
-    !getPlanCapabilities(plan).canManageProgram ||
-    !defaultProgramId
-  ) {
+  if (!getPlanCapabilities(plan).canManageProgram || !defaultProgramId) {
     return (
       <PageContent>
         <PartnersUpgradeCTA />

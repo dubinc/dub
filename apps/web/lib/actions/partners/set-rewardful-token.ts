@@ -16,10 +16,6 @@ export const setRewardfulTokenAction = authActionClient
     const { workspace } = ctx;
     const { token } = parsedInput;
 
-    if (!workspace.partnersEnabled) {
-      throw new Error("You are not allowed to perform this action.");
-    }
-
     const rewardfulApi = new RewardfulApi({ token });
 
     try {
