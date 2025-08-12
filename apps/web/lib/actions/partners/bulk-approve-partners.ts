@@ -2,7 +2,6 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { bulkApprovePartners } from "@/lib/partners/bulk-approve-partners";
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
 import { ProgramWithLanderDataSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
@@ -14,9 +13,9 @@ export const bulkApprovePartnersAction = authActionClient
   .schema(bulkApprovePartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const programId = getDefaultProgramIdOrThrow(workspace);
+    const { partnerIds, groupId } = parsedInput;
 
-    let { partnerIds } = parsedInput;
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await prisma.program.findUniqueOrThrow({
       where: {
@@ -54,15 +53,15 @@ export const bulkApprovePartnersAction = authActionClient
 
     const programWithLanderData = ProgramWithLanderDataSchema.parse(program);
 
-    const { rewards, discount } =
-      getProgramApplicationRewardsAndDiscount(program);
+    if (!groupId && !program.defaultGroupId) {
+      throw new Error("No group ID provided and no default group ID found.");
+    }
 
     await bulkApprovePartners({
       workspace,
       program: programWithLanderData,
       programEnrollments: program.partners,
-      rewards,
-      discount,
       user,
+      groupId: groupId || program.defaultGroupId!,
     });
   });

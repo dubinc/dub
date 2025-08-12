@@ -52,7 +52,7 @@ export async function approvePartnerEnrollment({
 
   const group = await getGroupOrThrow({
     programId,
-    groupId: groupId ?? program.defaultGroupId!,
+    groupId: groupId || program.defaultGroupId!,
     includeRewardsAndDiscount: true,
   });
 
@@ -77,11 +77,11 @@ export async function approvePartnerEnrollment({
       data: {
         status: "approved",
         createdAt: new Date(),
-        groupId: group?.id,
-        clickRewardId: group?.clickRewardId,
-        leadRewardId: group?.leadRewardId,
-        saleRewardId: group?.saleRewardId,
-        discountId: group?.discountId,
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        discountId: group.discountId,
       },
       include: {
         partner: {

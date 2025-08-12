@@ -554,6 +554,7 @@ export const approvePartnerSchema = z.object({
 
 export const bulkApprovePartnersSchema = z.object({
   workspaceId: z.string(),
+  groupId: z.string().nullish(),
   partnerIds: z
     .array(z.string())
     .max(100)

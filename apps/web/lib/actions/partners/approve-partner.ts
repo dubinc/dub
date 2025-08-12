@@ -10,9 +10,9 @@ export const approvePartnerAction = authActionClient
   .schema(approvePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
     const { partnerId, linkId, groupId } = parsedInput;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     await approvePartnerEnrollment({
       programId,

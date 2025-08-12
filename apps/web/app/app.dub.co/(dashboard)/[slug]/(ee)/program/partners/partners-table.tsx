@@ -365,7 +365,6 @@ export function PartnersTable() {
         />
       </>
     ),
-
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,

@@ -22,7 +22,7 @@ export const invitePartnerAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    let [program, link, group] = await Promise.all([
+    let [program, link] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -32,13 +32,6 @@ export const invitePartnerAction = authActionClient
         ? getLinkOrThrow({
             workspaceId: workspace.id,
             linkId,
-          })
-        : null,
-
-      groupId
-        ? getGroupOrThrow({
-            programId,
-            groupId,
           })
         : null,
     ]);
@@ -85,6 +78,15 @@ export const invitePartnerAction = authActionClient
       });
     }
 
+    if (!groupId && !program.defaultGroupId) {
+      throw new Error("No group ID provided and no default group ID found.");
+    }
+
+    const group = await getGroupOrThrow({
+      programId,
+      groupId: groupId || program.defaultGroupId!,
+    });
+
     const enrolledPartner = await createAndEnrollPartner({
       program,
       link,
@@ -95,7 +97,7 @@ export const invitePartnerAction = authActionClient
       },
       skipEnrollmentCheck: true,
       status: "invited",
-      ...(group && { group }),
+      group,
     });
 
     waitUntil(

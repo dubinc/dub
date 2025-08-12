@@ -7,37 +7,35 @@ import { chunk, isFulfilled } from "@dub/utils";
 import { Partner, ProgramEnrollment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
+import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { bulkCreateLinks } from "../api/links";
 import { generatePartnerLink } from "../api/partners/create-partner-link";
 import { Session } from "../auth/utils";
-import {
-  DiscountProps,
-  ProgramWithLanderDataProps,
-  RewardProps,
-  WorkspaceProps,
-} from "../types";
+import { ProgramWithLanderDataProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
-import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
-import { sortRewardsByEventOrder } from "./sort-rewards-by-event-order";
 
 export async function bulkApprovePartners({
   workspace,
   program,
   programEnrollments,
-  rewards,
-  discount,
   user,
+  groupId,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: ProgramWithLanderDataProps;
   programEnrollments: (ProgramEnrollment & {
     partner: Partner & { users: { user: { email: string | null } }[] };
   })[];
-  rewards: RewardProps[];
-  discount: DiscountProps | null;
   user: Session["user"];
+  groupId: string;
 }) {
+  const group = await getGroupOrThrow({
+    programId: program.id,
+    groupId,
+    includeRewardsAndDiscount: true,
+  });
+
   await prisma.programEnrollment.updateMany({
     where: {
       id: {
@@ -47,13 +45,12 @@ export async function bulkApprovePartners({
     data: {
       status: "approved",
       createdAt: new Date(),
-      ...(rewards.length > 0 && {
-        ...Object.fromEntries(
-          rewards.map((r) => [REWARD_EVENT_COLUMN_MAPPING[r.event], r.id]),
-        ),
-      }),
-      ...(discount && {
-        discountId: discount.id,
+      ...(group && {
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        discountId: group.discountId,
       }),
     },
   });
@@ -81,9 +78,7 @@ export async function bulkApprovePartners({
           payoutsEnabled: Boolean(partner.payoutsEnabledAt),
         },
         rewardDescription: ProgramRewardDescription({
-          reward:
-            sortRewardsByEventOrder(rewards.filter((r) => r.default))[0] ||
-            rewards[0],
+          reward: group.saleReward || group.leadReward || group.clickReward,
           showModifiersTooltip: false,
         }),
       }),

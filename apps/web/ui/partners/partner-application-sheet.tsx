@@ -183,7 +183,7 @@ function PartnerApproval({
   const [isApproving, setIsApproving] = useState(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
-    partner.group?.id ?? undefined,
+    partner.groupId ?? undefined,
   );
 
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
