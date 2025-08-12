@@ -58,6 +58,6 @@ export const bulkApprovePartnersAction = authActionClient
       program: programWithLanderData,
       programEnrollments: program.partners,
       user,
-      groupId
+      groupId,
     });
   });
