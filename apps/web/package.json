@@ -7,7 +7,7 @@
     "build": "pnpm prisma:generate && next build",
     "lint": "next lint",
     "start": "next start",
-    "script": "tsx ./scripts/run.ts",
+    "script": "tsx ./scripts/run.ts tests/redirects/index.test.ts",
     "test": "pnpm prisma:generate && vitest -no-file-parallelism --bail=1",
     "generate-openapi": "tsx ./scripts/generate-openapi.ts",
     "prisma:generate": "dotenv-flow -e .env -- pnpm --filter=@dub/prisma generate",
