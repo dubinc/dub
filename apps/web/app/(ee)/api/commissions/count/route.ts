@@ -16,6 +16,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     partnerId,
     payoutId,
     customerId,
+    groupId,
     start,
     end,
     interval,

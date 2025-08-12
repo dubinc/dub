@@ -1,6 +1,7 @@
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useCustomers from "@/lib/swr/use-customers";
 import useCustomersCount from "@/lib/swr/use-customers-count";
+import useGroups from "@/lib/swr/use-groups";
 import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
@@ -8,8 +9,9 @@ import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { Sliders, User, Users } from "@dub/ui/icons";
+import { Sliders, User, Users, Users6 } from "@dub/ui/icons";
 import { capitalize, cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
@@ -30,6 +32,8 @@ export function useCommissionFilters() {
   const { customers, customersAsync } = useCustomerFilterOptions(
     selectedFilter === "customerId" ? debouncedSearch : "",
   );
+
+  const { groups } = useGroups();
 
   const filters = useMemo(
     () => [
@@ -108,12 +112,26 @@ export function useCommissionFilters() {
           },
         ),
       },
+      {
+        key: "groupId",
+        icon: Users6,
+        label: "Group",
+        options:
+          groups?.map((group) => {
+            return {
+              value: group.id,
+              label: group.name,
+              icon: <GroupColorCircle group={group} />,
+            };
+          }) ?? null,
+      },
     ],
-    [commissionsCount, partners, customers],
+    [commissionsCount, partners, customers, groups],
   );
 
   const activeFilters = useMemo(() => {
-    const { customerId, partnerId, status, type, payoutId } = searchParamsObj;
+    const { customerId, partnerId, status, type, payoutId, groupId } =
+      searchParamsObj;
 
     return [
       ...(customerId ? [{ key: "customerId", value: customerId }] : []),
@@ -121,6 +139,7 @@ export function useCommissionFilters() {
       ...(status ? [{ key: "status", value: status }] : []),
       ...(type ? [{ key: "type", value: type }] : []),
       ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
+      ...(groupId ? [{ key: "groupId", value: groupId }] : []),
     ];
   }, [
     searchParamsObj.customerId,
@@ -128,6 +147,7 @@ export function useCommissionFilters() {
     searchParamsObj.status,
     searchParamsObj.type,
     searchParamsObj.payoutId,
+    searchParamsObj.groupId,
   ]);
 
   const onSelect = useCallback(
@@ -152,7 +172,7 @@ export function useCommissionFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["status", "partnerId", "customerId", "payoutId"],
+        del: ["status", "partnerId", "customerId", "payoutId", "groupId"],
       }),
     [queryParams],
   );
