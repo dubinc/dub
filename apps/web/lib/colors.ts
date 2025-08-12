@@ -1,3 +1,5 @@
+import { ResourceColorsEnum } from "./types";
+
 export const RESOURCE_COLORS_DATA = [
   {
     color: "red",
@@ -28,6 +30,10 @@ export const RESOURCE_COLORS_DATA = [
 export const RESOURCE_COLORS = RESOURCE_COLORS_DATA.map(
   (color) => color.color,
 ) as [string, ...string[]];
+
+export const getResourceColorData = (color: ResourceColorsEnum) => {
+  return RESOURCE_COLORS_DATA.find((c) => c.color === color);
+};
 
 export const RAINBOW_CONIC_GRADIENT =
   "conic-gradient(in hsl, #ee535d 0deg, #e9d988 90deg, #9fe0b8 180deg, #bf87e4 270deg, #ee535d 360deg)";

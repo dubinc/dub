@@ -3,12 +3,15 @@
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -62,6 +65,7 @@ import { usePartnerFilters } from "./use-partner-filters";
 const partnersColumns = {
   all: [
     "partner",
+    "group",
     "createdAt",
     "status",
     "location",
@@ -75,7 +79,7 @@ const partnersColumns = {
   ],
   defaultVisible: [
     "partner",
-    "createdAt",
+    "group",
     "location",
     "clicks",
     "leads",
@@ -137,6 +141,8 @@ export function PartnersTable() {
       partnerId: detailsSheetState.partnerId,
     });
 
+  const { groups } = useGroups();
+
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "partners-table-columns", // TODO: update to v2 once we add partner groups
     partnersColumns,
@@ -155,6 +161,25 @@ export function PartnersTable() {
         cell: ({ row }) => {
           return (
             <PartnerRowItem partner={row.original} showPermalink={false} />
+          );
+        },
+      },
+      {
+        id: "group",
+        header: "Group",
+        cell: ({ row }) => {
+          if (!groups) return "-";
+          const partnerGroup =
+            groups.find((g) => g.id === row.original.groupId) ??
+            DEFAULT_PARTNER_GROUP;
+
+          return (
+            <div className="flex items-center gap-2">
+              <GroupColorCircle group={partnerGroup} />
+              <span className="truncate text-sm font-medium">
+                {partnerGroup.name}
+              </span>
+            </div>
           );
         },
       },

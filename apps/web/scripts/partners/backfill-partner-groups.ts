@@ -32,23 +32,95 @@ async function main() {
 
   console.log(`Found total of ${groups.length} groups`);
 
-  const defaultRewards = await prisma.reward.findMany({
+  const rewards = await prisma.reward.findMany({
     where: {
       programId: {
         in: groups.map((group) => group.programId),
       },
-      default: true,
     },
   });
 
+  const discounts = await prisma.discount.findMany({
+    where: {
+      programId: {
+        in: groups.map((group) => group.programId),
+      },
+    },
+  });
+
+  const duplicateRewardsToCreate: Prisma.RewardCreateManyInput[] = [];
+  const duplicateDiscountsToCreate: Prisma.DiscountCreateManyInput[] = [];
+
+  const rewardIdCounts = {};
+  const discountIdCounts = {};
   const programIdCounts = {};
 
   const partnerGroupsToCreate = groups.map((group) => {
-    const hasDefaultReward = defaultRewards.some(
+    for (const rewardType of [
+      "saleRewardId",
+      "leadRewardId",
+      "clickRewardId",
+    ]) {
+      if (group[rewardType]) {
+        if (rewardIdCounts[group[rewardType]] === undefined) {
+          rewardIdCounts[group[rewardType]] = 0;
+        }
+        rewardIdCounts[group[rewardType]]++;
+
+        // if the rewardId was already seen before, we need to duplicate it to prevent unique constraint errors
+        if (rewardIdCounts[group[rewardType]] > 1) {
+          const { id, createdAt, updatedAt, ...rewardFieldsToDuplicate } =
+            rewards.find((r) => r.id === group[rewardType])!;
+
+          // create a new reward id to duplicate the reward
+          const newRewardId = createId({ prefix: "rw_" });
+
+          // reassign the new reward id to the group
+          group[rewardType] = newRewardId;
+
+          // add the duplicated reward to the list of duplicate rewards to create
+          duplicateRewardsToCreate.push({
+            ...rewardFieldsToDuplicate,
+            id: newRewardId,
+            modifiers: rewardFieldsToDuplicate.modifiers
+              ? JSON.parse(JSON.stringify(rewardFieldsToDuplicate.modifiers))
+              : null,
+          });
+        }
+      }
+    }
+
+    if (group.discountId) {
+      if (discountIdCounts[group.discountId] === undefined) {
+        discountIdCounts[group.discountId] = 0;
+      }
+      discountIdCounts[group.discountId]++;
+
+      // if the discountId was already seen before, we need to duplicate it to prevent unique constraint errors
+      if (discountIdCounts[group.discountId] > 1) {
+        const { id, createdAt, updatedAt, ...discountFieldsToDuplicate } =
+          discounts.find((d) => d.id === group.discountId)!;
+
+        // create a new discount id to duplicate the discount
+        const newDiscountId = createId({ prefix: "disc_" });
+
+        // reassign the new discount id to the group
+        group.discountId = newDiscountId;
+
+        // add the duplicated discount to the list of duplicate discounts to create
+        duplicateDiscountsToCreate.push({
+          ...discountFieldsToDuplicate,
+          id: newDiscountId,
+        });
+      }
+    }
+
+    const hasDefaultReward = rewards.some(
       (reward) =>
-        reward.id === group.saleRewardId ||
-        reward.id === group.leadRewardId ||
-        reward.id === group.clickRewardId,
+        reward.default &&
+        (reward.id === group.saleRewardId ||
+          reward.id === group.leadRewardId ||
+          reward.id === group.clickRewardId),
     );
 
     if (programIdCounts[group.programId] === undefined) {
@@ -78,7 +150,16 @@ async function main() {
     };
   }) satisfies Prisma.PartnerGroupCreateManyInput[];
 
+  console.log(`Partner groups to create: ${partnerGroupsToCreate.length}`);
   console.table(partnerGroupsToCreate);
+  console.log(
+    `Duplicate rewards to create: ${duplicateRewardsToCreate.length}`,
+  );
+  console.table(duplicateRewardsToCreate);
+  console.log(
+    `Duplicate discounts to create: ${duplicateDiscountsToCreate.length}`,
+  );
+  console.table(duplicateDiscountsToCreate);
 
   // const res = await prisma.partnerGroup.createMany({
   //   data: partnerGroupsToCreate,
