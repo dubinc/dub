@@ -1,3 +1,4 @@
+import { checkFeaturesAccessAuthLess } from '@/lib/actions/check-features-access-auth-less';
 import { convertSessionUserToCustomerBody, getSession } from "@/lib/auth";
 import { PageContent } from "@/ui/layout/page-content";
 import { PlansContent } from "@/ui/plans/plans-content.tsx";
@@ -17,11 +18,13 @@ const PlansPage: NextPage = async () => {
     ? convertSessionUserToCustomerBody(authUser)
     : cookieUser;
 
+  const featuresAccess = await checkFeaturesAccessAuthLess(authUser.id);
+
   return (
     <>
       <PageContent>
         <MaxWidthWrapper>
-          <PlansContent user={user!} />
+          <PlansContent user={user!} featuresAccess={featuresAccess} />
         </MaxWidthWrapper>
       </PageContent>
       <PageViewedTrackerComponent

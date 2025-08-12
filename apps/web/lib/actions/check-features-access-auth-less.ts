@@ -3,6 +3,13 @@
 import { conn } from "@/lib/planetscale/connection";
 import { checkSubscriptionStatusAuthLess } from "./check-subscription-status-auth-less";
 
+export type FeaturesAccess = {
+  featuresAccess: boolean;
+  isTrialOver: boolean;
+  isSubscribed: boolean;
+  subscriptionNotPaid: boolean;
+};
+
 export const checkFeaturesAccessAuthLess = async (
   userId: string,
   beforeRecord?: boolean,
@@ -50,5 +57,5 @@ export const checkFeaturesAccessAuthLess = async (
     isTrialOver,
     isSubscribed,
     subscriptionNotPaid: !!subscriptionId && !isSubscribed,
-  };
+  } as FeaturesAccess;
 };

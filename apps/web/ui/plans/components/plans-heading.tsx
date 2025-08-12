@@ -1,22 +1,21 @@
+import { FeaturesAccess } from '@/lib/actions/check-features-access-auth-less';
 import { Flex, Heading, Text } from "@radix-ui/themes";
 import { FC, useMemo } from "react";
 
 interface IPlansHeading {
-  isTrialOver: boolean;
-  hasSubscription: boolean;
+  featuresAccess: FeaturesAccess;
 }
 
 export const PlansHeading: FC<IPlansHeading> = ({
-  isTrialOver,
-  hasSubscription,
+  featuresAccess,
 }) => {
   const subHeaderText = useMemo(() => {
     switch (true) {
-      case !isTrialOver && !hasSubscription:
+      case !featuresAccess.isTrialOver && !featuresAccess.isSubscribed:
         return "Your free trial is active - upgrade anytime to keep your QR codes working.";
-      case isTrialOver && !hasSubscription:
+      case featuresAccess.isTrialOver && !featuresAccess.isSubscribed:
         return "Your QR codes are currently disabled. Upgrade to restore access and keep using them";
-      case hasSubscription:
+      case featuresAccess.isSubscribed:
         return "You’re currently on a paid plan. Adjust your preferences anytime — no commitment";
       default:
         return null;

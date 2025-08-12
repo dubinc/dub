@@ -13,17 +13,16 @@ import { QRCodeDemoMap } from '@/ui/qr-builder/components/qr-code-demos/qr-code-
 import { parseQRData } from '@/ui/utils/qr-data-parser';
 import { Options } from "qr-code-styling/lib/types";
 import { LoaderCircle } from 'lucide-react';
+import { FeaturesAccess } from '@/lib/actions/check-features-access-auth-less';
 
 interface IPopularQrInfo {
-  isTrialOver: boolean;
-  hasSubscription: boolean;
+  featuresAccess: FeaturesAccess;
   handleScroll: () => void;
   user: ICustomerBody;
 }
 
 export const PopularQrInfo: FC<IPopularQrInfo> = ({
-  isTrialOver,
-  hasSubscription,
+  featuresAccess,
   handleScroll,
   user,
 }) => {
@@ -72,7 +71,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
             size={{ initial: "2", lg: "4" }}
             className="text-neutral"
           >
-            {isTrialOver
+            {!featuresAccess.featuresAccess
               ? "Your most popular QR code is now deactivated"
               : "Your top performing QR"}
           </Heading>
@@ -162,16 +161,16 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
                   className={cn(
                     "bg-primary-100 border-primary inline-flex w-fit min-w-[64px] items-center justify-center rounded-md border p-0.5 px-1",
                     {
-                      "border-red-600 bg-red-100": isTrialOver,
+                      "border-red-600 bg-red-100": !featuresAccess.featuresAccess,
                     },
                   )}
                 >
                   <span
                     className={cn("text-primary text-xs font-medium lg:text-sm", {
-                      "text-red-600": isTrialOver,
+                      "text-red-600": !featuresAccess.featuresAccess,
                     })}
                   >
-                    {isTrialOver ? "Deactivated" : "Active"}
+                    {!featuresAccess.featuresAccess ? "Deactivated" : "Active"}
                   </span>
                 </div>
               </Flex>
@@ -182,11 +181,11 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
             <PlansFeatures />
           </div>
 
-          {!hasSubscription && (
+          {!featuresAccess.isSubscribed && (
             <Button
               className="block lg:hidden"
               text={
-                !isTrialOver && !hasSubscription
+                !featuresAccess.isTrialOver
                   ? "Upgrade Plan"
                   : "Restore QR Code"
               }
