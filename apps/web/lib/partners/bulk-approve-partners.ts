@@ -87,8 +87,6 @@ export async function bulkApprovePartners({
   // Create all emails first, then chunk them into batches of 100
   const allEmails = updatedEnrollments.flatMap(
     ({ partner, clickReward, leadReward, saleReward }) => {
-      const rewards = [saleReward, leadReward, clickReward].filter(Boolean);
-
       const partnerEmailsToNotify = partner.users
         .map(({ user }) => user.email)
         .filter(Boolean) as string[];
@@ -110,7 +108,7 @@ export async function bulkApprovePartners({
             payoutsEnabled: Boolean(partner.payoutsEnabledAt),
           },
           rewardDescription: ProgramRewardDescription({
-            reward: rewards[0]!,
+            reward: saleReward ?? leadReward ?? clickReward,
             showModifiersTooltip: false,
           }),
         }),
