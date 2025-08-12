@@ -52,6 +52,7 @@ export const POST = withWorkspace(
           defaultFolderId: true,
           domain: true,
           url: true,
+          defaultGroupId: true,
         },
       });
 
