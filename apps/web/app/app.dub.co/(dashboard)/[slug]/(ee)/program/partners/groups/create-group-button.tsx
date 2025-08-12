@@ -1,19 +1,17 @@
 "use client";
 
 import { Button, useKeyboardShortcut } from "@dub/ui";
-import { useCreateGroupSheet } from "./create-group-sheet";
+import { useCreateGroupModal } from "./create-group-modal";
 
 export function CreateGroupButton() {
-  const { createGroupSheet, setIsOpen: setShowCreateGroupSheet } =
-    useCreateGroupSheet({
-      nested: false,
-    });
+  const { createGroupModal, setIsOpen: setShowCreateGroupSheet } =
+    useCreateGroupModal({});
 
   useKeyboardShortcut("c", () => setShowCreateGroupSheet(true));
 
   return (
     <>
-      {createGroupSheet}
+      {createGroupModal}
       <Button
         type="button"
         onClick={() => setShowCreateGroupSheet(true)}

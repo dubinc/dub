@@ -57,7 +57,7 @@ export const createGroupSchema = z.object({
       },
     )
     .transform((val) => slugify(val)),
-  color: z.enum(RESOURCE_COLORS),
+  color: z.enum(RESOURCE_COLORS).nullable(),
 });
 
 export const updateGroupSchema = createGroupSchema.partial();

@@ -2,39 +2,23 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
 import { createGroupSchema } from "@/lib/zod/schemas/groups";
-import { X } from "@/ui/shared/icons";
-import { Button, Sheet } from "@dub/ui";
+import { RESOURCE_COLORS } from "@/ui/colors";
+import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
+import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { Dispatch, SetStateAction, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-const generateRandomColor = () => {
-  const colors = [
-    "#3B82F6",
-    "#EF4444",
-    "#10B981",
-    "#F59E0B",
-    "#8B5CF6",
-    "#EC4899",
-    "#06B6D4",
-    "#84CC16",
-    "#F97316",
-    "#6366F1",
-  ];
-
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-
-interface CreateGroupSheetProps {
+interface CreateGroupModalProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 type FormData = z.input<typeof createGroupSchema>;
 
-function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
+function CreateGroupModalContent({ setIsOpen }: CreateGroupModalProps) {
   const { program } = useProgram();
   const { makeRequest: createGroup, isSubmitting } = useApiMutation();
 
@@ -42,11 +26,12 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      color: generateRandomColor(),
+      color:
+        RESOURCE_COLORS[Math.floor(Math.random() * RESOURCE_COLORS.length)],
     },
   });
 
@@ -66,16 +51,7 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
-          <Sheet.Title className="text-lg font-semibold">
-            Create group
-          </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
+          <h2 className="text-lg font-semibold">Create group</h2>
         </div>
       </div>
 
@@ -88,7 +64,7 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
             >
               Name
             </label>
-            <div className="mt-2">
+            <div className="mt-1.5">
               <div className="relative">
                 <input
                   type="text"
@@ -110,26 +86,16 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
                   placeholder="Group name"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
-                  <div className="relative">
-                    <div
-                      className="h-6 w-6 cursor-pointer rounded-full border-none"
-                      style={{
-                        backgroundColor: watch("color") || "",
-                      }}
-                      onClick={() =>
-                        document.getElementById("color-picker")?.click()
-                      }
-                    />
-                    <input
-                      id="color-picker"
-                      type="color"
-                      {...register("color", {
-                        required: true,
-                      })}
-                      className="absolute inset-0 cursor-pointer opacity-0"
-                      title="Choose group color"
-                    />
-                  </div>
+                  <Controller
+                    control={control}
+                    name="color"
+                    render={({ field }) => (
+                      <GroupColorPicker
+                        color={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
                 </div>
               </div>
 
@@ -146,7 +112,7 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
             >
               Landing page slug
             </label>
-            <div className="mt-2">
+            <div className="mt-1.5">
               <div className="flex">
                 <div className="flex items-center rounded-l-md border-y border-l border-neutral-300 px-3 py-2 text-sm text-neutral-800">
                   partners.dub.co/{program?.slug}
@@ -198,29 +164,27 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
   );
 }
 
-export function CreateGroupSheet({
+export function CreateGroupModal({
   isOpen,
-  nested,
-  ...rest
-}: CreateGroupSheetProps & {
+  setIsOpen,
+}: CreateGroupModalProps & {
   isOpen: boolean;
-  nested?: boolean;
 }) {
   return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
-      <CreateGroupSheetContent {...rest} />
-    </Sheet>
+    <Modal showModal={isOpen} setShowModal={setIsOpen}>
+      <CreateGroupModalContent setIsOpen={setIsOpen} />
+    </Modal>
   );
 }
 
-export function useCreateGroupSheet(
-  props: { nested?: boolean } & Omit<CreateGroupSheetProps, "setIsOpen">,
+export function useCreateGroupModal(
+  props: Omit<CreateGroupModalProps, "setIsOpen">,
 ) {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
-    createGroupSheet: (
-      <CreateGroupSheet setIsOpen={setIsOpen} isOpen={isOpen} {...props} />
+    createGroupModal: (
+      <CreateGroupModal setIsOpen={setIsOpen} isOpen={isOpen} {...props} />
     ),
     setIsOpen,
   };
