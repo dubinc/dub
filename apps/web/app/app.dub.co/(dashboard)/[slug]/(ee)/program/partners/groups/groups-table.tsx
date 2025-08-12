@@ -2,7 +2,6 @@
 
 import useGroups from "@/lib/swr/use-groups";
 import useGroupsCount from "@/lib/swr/use-groups-count";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupExtendedProps, GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
@@ -29,12 +28,10 @@ import { useState } from "react";
 export function GroupsTable() {
   const { id: workspaceId } = useWorkspace();
   const { pagination, setPagination } = usePagination();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "partners";
+  const sortBy = searchParams.get("sortBy") || "saleAmount";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
-
-  const { program } = useProgram();
 
   const { groups, loading, error } = useGroups<GroupExtendedProps>({
     query: { includeExpandedFields: true },

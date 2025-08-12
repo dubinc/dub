@@ -13,7 +13,7 @@ export function MultiTagsIcon({ tags }: { tags: Pick<TagProps, "color">[] }) {
         "size-4 shrink-0",
         tags.length > 0 &&
           RESOURCE_COLORS_DATA.find(({ color }) => color === tags[0].color)
-            ?.css,
+            ?.tagVariants,
         "bg-transparent",
         tags.length <= 1 && "-translate-y-px",
       )}
@@ -46,7 +46,7 @@ export function MultiTagsIcon({ tags }: { tags: Pick<TagProps, "color">[] }) {
             strokeWidth="1.5"
             className={cn(
               RESOURCE_COLORS_DATA.find(({ color }) => color === tags[1].color)
-                ?.css,
+                ?.tagVariants,
               "bg-transparent",
             )}
           />

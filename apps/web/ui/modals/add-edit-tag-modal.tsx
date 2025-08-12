@@ -174,7 +174,7 @@ function AddEditTagModal({
             }}
             className="mt-2 flex flex-wrap gap-3"
           >
-            {RESOURCE_COLORS_DATA.map(({ color: colorOption, css }) => (
+            {RESOURCE_COLORS_DATA.map(({ color: colorOption, tagVariants }) => (
               <div key={colorOption} className="flex items-center">
                 <RadioGroupItem
                   value={colorOption}
@@ -185,7 +185,7 @@ function AddEditTagModal({
                   htmlFor={colorOption}
                   className={cn(
                     "cursor-pointer whitespace-nowrap rounded-md px-2 py-0.5 text-sm capitalize ring-current peer-focus-visible:ring-offset-2",
-                    css,
+                    tagVariants,
                     color === colorOption && "ring-2",
                   )}
                 >

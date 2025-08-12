@@ -3,27 +3,33 @@ import { ResourceColorsEnum } from "./types";
 export const RESOURCE_COLORS_DATA = [
   {
     color: "red",
-    css: "bg-red-100 text-red-600",
+    tagVariants: "bg-red-100 text-red-600",
+    groupVariants: "bg-red-600",
   },
   {
     color: "yellow",
-    css: "bg-yellow-100 text-yellow-600",
+    tagVariants: "bg-yellow-100 text-yellow-600",
+    groupVariants: "bg-yellow-600",
   },
   {
     color: "green",
-    css: "bg-green-100 text-green-600",
+    tagVariants: "bg-green-100 text-green-600",
+    groupVariants: "bg-green-600",
   },
   {
     color: "blue",
-    css: "bg-blue-100 text-blue-600",
+    tagVariants: "bg-blue-100 text-blue-600",
+    groupVariants: "bg-blue-600",
   },
   {
     color: "purple",
-    css: "bg-purple-100 text-purple-600",
+    tagVariants: "bg-purple-100 text-purple-600",
+    groupVariants: "bg-purple-600",
   },
   {
     color: "brown",
-    css: "bg-brown-100 text-brown-600",
+    tagVariants: "bg-brown-100 text-brown-600",
+    groupVariants: "bg-brown-600",
   },
 ];
 
