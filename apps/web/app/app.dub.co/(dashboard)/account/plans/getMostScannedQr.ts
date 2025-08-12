@@ -21,13 +21,6 @@ export async function getMostScannedQr(userId: string) {
         },
       },
     },
-    orderBy: [
-      {
-        link: {
-          clicks: 'desc',
-        },
-      },
-    ],
   });
 
   return qr;
