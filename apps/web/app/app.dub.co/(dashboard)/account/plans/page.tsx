@@ -16,13 +16,11 @@ const PlansPage: NextPage = async () => {
   const { user: authUser } = await getSession();
 
   const start = performance.now();
-  const qrs = await getMostScannedQr(cookieUser?.id || authUser.id);
+  const mostScannedQR = (await getMostScannedQr(
+    cookieUser?.id || authUser.id,
+  )) as QrStorageData | null;
   const end = performance.now();
   console.log("performance", end - start);
-
-  const mostScannedQR = (
-    qrs && qrs.length > 0 ? qrs[0] : null
-  ) as QrStorageData | null;
 
   const user = authUser.paymentData
     ? convertSessionUserToCustomerBody(authUser)

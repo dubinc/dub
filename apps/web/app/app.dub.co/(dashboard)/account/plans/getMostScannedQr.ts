@@ -1,13 +1,12 @@
 "use server";
 
-import z from "@/lib/zod";
-import { getLinksQuerySchemaBase } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 
 export async function getMostScannedQr(userId: string) {
-  const qrs = await prisma.qr.findMany({
+  const qr = await prisma.qr.findFirst({
     where: {
       userId,
+      archived: false,
     },
     select: {
       id: true,
@@ -15,22 +14,21 @@ export async function getMostScannedQr(userId: string) {
       qrType: true,
       title: true,
       styles: true,
-      frameOptions: true,
       link: {
         select: {
-          id: true,
           url: true,
           clicks: true,
         },
       },
     },
-    orderBy: {
-      link: {
-        clicks: 'desc',
+    orderBy: [
+      {
+        link: {
+          clicks: 'desc',
+        },
       },
-    },
-    take: 1,
+    ],
   });
 
-  return qrs;
+  return qr;
 }
