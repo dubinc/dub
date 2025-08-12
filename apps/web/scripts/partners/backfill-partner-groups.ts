@@ -211,7 +211,12 @@ async function main() {
   console.log(
     `Program enrollments to update: ${programEnrollmentsToUpdate.length}`,
   );
-  console.table(programEnrollmentsToUpdate);
+  console.table(
+    programEnrollmentsToUpdate.map((pe) => ({
+      ...pe,
+      data: JSON.stringify(pe.data, null, 2),
+    })),
+  );
 
   const rewardsRes = await prisma.reward.createMany({
     data: duplicateRewardsToCreate,
