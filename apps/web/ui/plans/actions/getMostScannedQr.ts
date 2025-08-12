@@ -5,30 +5,25 @@ import { prisma } from "@dub/prisma";
 export async function getMostScannedQr(userId: string) {
   const start = performance.now();
 
-  // 1) pick the top link by clicks for this user
-  const link = await prisma.link.findFirst({
+  const qr = await prisma.qr.findFirst({
     where: { userId },
-    orderBy: { clicks: "desc" },
     select: {
       id: true,
-      url: true,
-      clicks: true,
-      qrs: {
+      data: true,
+      qrType: true,
+      title: true,
+      styles: true,
+      link: {
         select: {
-          id: true,
-          data: true,
-          qrType: true,
-          title: true,
-          styles: true,
+          url: true,
+          clicks: true,
         },
-        take: 1,
       },
     },
+    orderBy: { link: { clicks: "desc" } },
   });
   const endLink = performance.now();
   console.log("performance 1", endLink - start);
 
-  return link?.qrs[0]
-    ? { ...link.qrs[0], link: { url: link.url, clicks: link.clicks } }
-    : null;
+  return qr;
 }
