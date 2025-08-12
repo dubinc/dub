@@ -23,17 +23,7 @@ export async function bulkApprovePartners({
   groupId,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: Pick<
-    Program,
-    | "id"
-    | "name"
-    | "logo"
-    | "slug"
-    | "supportEmail"
-    | "domain"
-    | "defaultFolderId"
-    | "url"
-  >;
+  program: Program;
   programEnrollments: Pick<ProgramEnrollment, "id" | "partnerId">[];
   user: Session["user"];
   groupId: string | null;
@@ -44,7 +34,6 @@ export async function bulkApprovePartners({
     group = await getGroupOrThrow({
       programId: program.id,
       groupId,
-      includeRewardsAndDiscount: true,
     });
   }
 
@@ -75,6 +64,9 @@ export async function bulkApprovePartners({
       },
     },
     include: {
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
       partner: {
         include: {
           users: {
@@ -89,9 +81,6 @@ export async function bulkApprovePartners({
           },
         },
       },
-      clickReward: true,
-      leadReward: true,
-      saleReward: true,
     },
   });
 
