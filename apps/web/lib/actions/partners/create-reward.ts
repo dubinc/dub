@@ -35,7 +35,7 @@ export const createRewardAction = authActionClient
       programId,
     });
 
-    await prisma.$transaction(async (tx) => {
+    const reward = await prisma.$transaction(async (tx) => {
       const reward = await tx.reward.create({
         data: {
           id: createId({ prefix: "rw_" }),
@@ -67,6 +67,8 @@ export const createRewardAction = authActionClient
           [rewardIdColumn]: reward.id,
         },
       });
+
+      return reward;
     });
 
     waitUntil(
