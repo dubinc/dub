@@ -1,16 +1,23 @@
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
-import { DubApiError } from "@/lib/api/errors";
 import { getLinksCount } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
+import { getLinksCountTB } from "@/lib/tinybird/get-links-count";
+import { WorkspaceProps } from "@/lib/types";
+import { getLinksCountQuerySchemaExtended } from "@/lib/zod/schemas/links";
 import { NextResponse } from "next/server";
+
+// A mega workspace is a workspace with more than 1M links
+function isMegaWorkspace(workspace: Pick<WorkspaceProps, "totalLinks">) {
+  return workspace.totalLinks > 1_000_000;
+}
 
 // GET /api/links/count – get the number of links for a workspace
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
-    const params = getLinksCountQuerySchema.parse(searchParams);
+    const params = getLinksCountQuerySchemaExtended.parse(searchParams);
     const {
       groupBy,
       domain,
@@ -20,6 +27,10 @@ export const GET = withWorkspace(
       tagIds,
       tagNames,
       tenantId,
+      start,
+      end,
+      interval,
+      timezone,
     } = params;
 
     if (domain) {
@@ -27,19 +38,40 @@ export const GET = withWorkspace(
     }
 
     if (folderId) {
-      const selectedFolder = await verifyFolderAccess({
+      await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId,
         requiredPermission: "folders.read",
       });
+    }
 
-      if (selectedFolder.type === "mega") {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Cannot get links count for mega folders.",
+    // For mega workspaces, we fetch the count via Tinybird instead of MySQL
+    if (isMegaWorkspace(workspace)) {
+      // We don't support groupBy for mega workspaces
+      if (groupBy) {
+        return NextResponse.json([], {
+          headers,
         });
       }
+
+      const { startDate, endDate } = getStartEndDates({
+        start,
+        end,
+        interval,
+      });
+
+      const { data } = await getLinksCountTB({
+        workspaceId: workspace.id,
+        folderId,
+        timezone,
+        start: startDate.toISOString().replace("T", " ").replace("Z", ""),
+        end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+      });
+
+      return NextResponse.json(data[0].count, {
+        headers,
+      });
     }
 
     /* we only need to get the folder ids if we are:

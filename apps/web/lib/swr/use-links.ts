@@ -5,7 +5,7 @@ import useSWR, { SWRConfiguration } from "swr";
 import { z } from "zod";
 import { ExpandedLinkProps, UserProps } from "../types";
 import { getLinksQuerySchemaExtended } from "../zod/schemas/links";
-import { useIsMegaFolder } from "./use-is-mega-folder";
+import { useIsMegaWorkspace } from "./use-is-mega-workspace";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getLinksQuerySchemaExtended.partial();
@@ -16,9 +16,9 @@ export default function useLinks(
 ) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
-  const { isMegaFolder } = useIsMegaFolder();
-
+  const { isMegaWorkspace } = useIsMegaWorkspace();
   const [admin, setAdmin] = useState(false);
+
   useEffect(() => {
     if (window.location.host.startsWith("admin.")) {
       setAdmin(true);
@@ -26,7 +26,7 @@ export default function useLinks(
   }, []);
 
   const {
-    data: links,
+    data: response,
     isValidating,
     error,
   } = useSWR<
@@ -41,8 +41,8 @@ export default function useLinks(
             includeUser: "true",
             includeDashboard: "true",
             ...opts,
-            // don't show archived on mega folders
-            ...(isMegaFolder
+            // don't show archived on mega workspaces
+            ...(isMegaWorkspace
               ? {
                   showArchived: "false",
                 }
@@ -59,6 +59,8 @@ export default function useLinks(
               "sortBy",
               "sortOrder",
               "showArchived",
+              "startingAfter",
+              "endingBefore",
             ],
           },
         )}`
@@ -75,7 +77,7 @@ export default function useLinks(
   );
 
   return {
-    links,
+    links: response,
     isValidating,
     error,
   };

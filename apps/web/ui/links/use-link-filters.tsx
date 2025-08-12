@@ -14,10 +14,10 @@ import TagBadge from "./tag-badge";
 
 export function useLinkFilters() {
   const { defaultFolderId } = useWorkspace();
+  const { searchParams } = useRouterStuff();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const { searchParams } = useRouterStuff();
 
   // Decide on the folderId to use
   let folderId = searchParams.get("folderId");
