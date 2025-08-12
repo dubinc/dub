@@ -21,6 +21,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     payoutId,
     partnerId,
     invoiceId,
+    groupId,
     page,
     pageSize,
     sortBy,
@@ -56,6 +57,15 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
             gte: startDate.toISOString(),
             lte: endDate.toISOString(),
           },
+          ...(groupId && {
+            partner: {
+              programs: {
+                every: {
+                  groupId,
+                },
+              },
+            },
+          }),
         },
     include: {
       customer: true,
