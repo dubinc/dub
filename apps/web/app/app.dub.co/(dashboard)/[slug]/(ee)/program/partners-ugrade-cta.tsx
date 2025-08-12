@@ -2,7 +2,7 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Badge, buttonVariants } from "@dub/ui";
+import { buttonVariants } from "@dub/ui";
 import { capitalize, cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -14,30 +14,23 @@ export function PartnersUpgradeCTA({
   title?: string;
   description?: string;
 }) {
-  const { slug, plan, partnersEnabled, store } = useWorkspace();
+  const { slug, plan, store } = useWorkspace();
 
   const { canManageProgram } = getPlanCapabilities(plan);
 
   const { cta, href } = useMemo(() => {
-    if (partnersEnabled) {
-      if (!canManageProgram) {
-        return {
-          cta: "Upgrade plan",
-          href: `/${slug}/upgrade`,
-        };
-      } else {
-        return {
-          cta: store?.programOnboarding ? "Finish creating" : "Create program",
-          href: `/${slug}/program/new`,
-        };
-      }
+    if (!canManageProgram) {
+      return {
+        cta: "Upgrade plan",
+        href: `/${slug}/upgrade`,
+      };
     } else {
       return {
-        cta: "Join the waitlist",
-        href: "https://dub.co/partners",
+        cta: store?.programOnboarding ? "Finish creating" : "Create program",
+        href: `/${slug}/program/new`,
       };
     }
-  }, [canManageProgram, partnersEnabled, slug]);
+  }, [canManageProgram, slug]);
 
   return (
     <div className="flex min-h-[calc(100vh-60px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
@@ -46,7 +39,6 @@ export function PartnersUpgradeCTA({
           <ExamplePartnerCell key={idx} partner={partner} />
         ))}
       </div>
-      <Badge variant="blueGradient">Coming soon</Badge>
       <div className="max-w-sm text-pretty text-center">
         <span className="text-base font-medium text-neutral-900">
           {title || "Dub Partners"}

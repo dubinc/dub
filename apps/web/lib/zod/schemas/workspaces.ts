@@ -81,10 +81,6 @@ export const WorkspaceSchema = z
       .describe(
         "Whether the workspace has claimed a free .link domain. (dub.link/free)",
       ),
-    partnersEnabled: z
-      .boolean()
-      .describe("Whether the workspace has Dub Partners enabled."),
-
     createdAt: z
       .date()
       .describe("The date and time when the workspace was created."),

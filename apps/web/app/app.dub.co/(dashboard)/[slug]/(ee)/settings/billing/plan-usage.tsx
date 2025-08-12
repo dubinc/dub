@@ -51,7 +51,6 @@ export default function PlanUsage() {
     foldersLimit,
     tagsLimit,
     usersLimit,
-    partnersEnabled,
     billingCycleStart,
   } = useWorkspace();
 
@@ -169,7 +168,6 @@ export default function PlanUsage() {
           className={cn(
             "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
             "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
-            !partnersEnabled && "rounded-b-lg",
           )}
         >
           <UsageCategory
@@ -201,7 +199,7 @@ export default function PlanUsage() {
             href={`/${slug}/settings/people`}
           />
         </div>
-        {partnersEnabled && defaultProgramId && (
+        {defaultProgramId && (
           <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3">
             <UsageCategory
               title="Partners"

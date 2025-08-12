@@ -16,10 +16,6 @@ export const setPartnerStackTokenAction = authActionClient
     const { workspace } = ctx;
     const { publicKey, secretKey } = parsedInput;
 
-    if (!workspace.partnersEnabled) {
-      throw new Error("You are not allowed to perform this action.");
-    }
-
     const partnerStackApi = new PartnerStackApi({
       publicKey,
       secretKey,

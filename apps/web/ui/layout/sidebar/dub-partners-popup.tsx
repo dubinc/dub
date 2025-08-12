@@ -28,7 +28,6 @@ export function DubPartnersPopup({
   const {
     plan,
     defaultProgramId,
-    partnersEnabled,
     loading: loadingWorkspace,
   } = useWorkspace({
     swrOpts: { keepPreviousData: true },
@@ -43,8 +42,6 @@ export function DubPartnersPopup({
     // Loading
     loadingWorkspace ||
     loadingDismissed ||
-    // hide if partners is not enabled
-    !partnersEnabled ||
     // hide if workspace can't create a program
     !canManageProgram ||
     // hide if there's already a default program
