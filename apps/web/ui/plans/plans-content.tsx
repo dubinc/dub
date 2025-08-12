@@ -7,16 +7,8 @@ import { PaymentComponent } from "@/ui/plans/components/payment-component.tsx";
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
 import { PlansHeading } from "@/ui/plans/components/plans-heading.tsx";
 import { PopularQrInfo } from "@/ui/plans/components/popular-qr-info.tsx";
-import { QRCodeDemoMap } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-map.ts";
-import {
-  EQRType,
-  FILE_QR_TYPES,
-} from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
-import { parseQRData } from "@/ui/utils/qr-data-parser.ts";
 import { ICustomerBody } from "core/integration/payment/config";
-import { Options } from "qr-code-styling/lib/types";
-import { FC, useMemo, useRef } from "react";
+import { FC, useRef } from "react";
 
 interface IPlansContentProps {
   user: ICustomerBody;
