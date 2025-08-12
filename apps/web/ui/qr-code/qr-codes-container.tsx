@@ -22,11 +22,11 @@ import { QrCodeCard } from "./qr-code-card.tsx";
 
 export default function QrCodesContainer({
   CreateQrCodeButton,
-  isTrialOver = false,
+  featuresAccess,
   initialQrs,
 }: {
   CreateQrCodeButton: () => ReactNode;
-  isTrialOver?: boolean;
+  featuresAccess: boolean;
   initialQrs: QrStorageData[];
 }) {
   const {
@@ -67,7 +67,7 @@ export default function QrCodesContainer({
         qrCodes={qrsWithPreviews}
         loading={isValidating || (qrs && !qrsWithPreviews)}
         compact={viewMode === "rows"}
-        isTrialOver={isTrialOver}
+        featuresAccess={featuresAccess}
       />
     </MaxWidthWrapper>
   );
@@ -76,11 +76,11 @@ export default function QrCodesContainer({
 export const QrCodesListContext = createContext<{
   openMenuQrCodeId: string | null;
   setOpenMenuQrCodeId: Dispatch<SetStateAction<string | null>>;
-  isTrialOver?: boolean;
+  featuresAccess: boolean;
 }>({
   openMenuQrCodeId: null,
   setOpenMenuQrCodeId: () => {},
-  isTrialOver: false,
+  featuresAccess: true,
 });
 
 function QrCodesList({
@@ -89,14 +89,14 @@ function QrCodesList({
   // count,
   loading,
   compact,
-  isTrialOver = false,
+  featuresAccess,
 }: {
   CreateQrCodeButton: () => ReactNode;
   qrCodes?: QrStorageData[];
   count?: number;
   loading?: boolean;
   compact: boolean;
-  isTrialOver?: boolean;
+  featuresAccess: boolean;
 }) {
   const searchParams = useSearchParams();
 
@@ -115,7 +115,7 @@ function QrCodesList({
     <>
       {!qrCodes || qrCodes.length ? (
         <QrCodesListContext.Provider
-          value={{ openMenuQrCodeId, setOpenMenuQrCodeId, isTrialOver }}
+          value={{ openMenuQrCodeId, setOpenMenuQrCodeId, featuresAccess }}
         >
           {/* Cards */}
           <CardList variant={compact ? "compact" : "loose"} loading={loading}>

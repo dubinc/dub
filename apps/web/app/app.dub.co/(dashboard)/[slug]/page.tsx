@@ -5,6 +5,7 @@ import { PageViewedTrackerComponent } from "core/integration/analytic/components
 import { Viewport } from "next";
 import WorkspaceQRsClient from "./custom-page-client";
 import { LinksTitle } from "./links-title";
+import { checkFeaturesAccessAuthLess } from '@/lib/actions/check-features-access-auth-less';
 
 export const viewport: Viewport = {
   themeColor: "#f6f6f7",
@@ -24,10 +25,12 @@ const WorkspaceQRsPage = async () => {
     pageSize: 100,
   });
 
+  const featuresAccess = await checkFeaturesAccessAuthLess(authUser.id);
+
   return (
     <>
       <PageContent title={<LinksTitle />}>
-        <WorkspaceQRsClient initialQrs={qrs as any} />
+        <WorkspaceQRsClient initialQrs={qrs as any} featuresAccess={featuresAccess.featuresAccess} />
       </PageContent>
 
       <PageViewedTrackerComponent
