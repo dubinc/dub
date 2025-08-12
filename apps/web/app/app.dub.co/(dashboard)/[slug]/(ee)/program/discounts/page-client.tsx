@@ -23,7 +23,6 @@ const DefaultDiscount = () => {
 
   const { DiscountSheet, setIsOpen } = useDiscountSheet({
     ...(defaultDiscount && { discount: defaultDiscount }),
-    isDefault: true,
   });
 
   return (
@@ -77,9 +76,7 @@ const AdditionalDiscounts = () => {
 
   const additionalDiscounts = discounts?.filter((d) => !d.default);
 
-  const { DiscountSheet, setIsOpen } = useDiscountSheet({
-    isDefault: false,
-  });
+  const { DiscountSheet, setIsOpen } = useDiscountSheet({});
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
@@ -147,7 +144,6 @@ const Discount = ({
 }) => {
   const { DiscountSheet, setIsOpen } = useDiscountSheet({
     ...(discount && { discount }),
-    isDefault,
   });
 
   return (

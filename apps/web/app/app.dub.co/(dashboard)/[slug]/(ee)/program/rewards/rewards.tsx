@@ -85,7 +85,6 @@ const RewardSheetWrapper = ({
       setIsOpen={setIsOpen}
       event={event || reward?.event || "sale"}
       reward={reward}
-      isDefault={reward?.default || false}
     />
   );
 };
@@ -296,7 +295,6 @@ const RewardItem = ({
   const { RewardSheet, setIsOpen } = useRewardSheet({
     event,
     reward,
-    isDefault,
   });
 
   const { partnersCount: rewardPartnersCount, loading: partnersCountLoading } =
