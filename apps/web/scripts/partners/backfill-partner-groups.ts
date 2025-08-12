@@ -198,8 +198,6 @@ async function main() {
     };
   }) satisfies Prisma.PartnerGroupCreateManyInput[];
 
-  console.log(`Partner groups to create: ${partnerGroupsToCreate.length}`);
-  console.table(partnerGroupsToCreate);
   console.log(
     `Duplicate rewards to create: ${duplicateRewardsToCreate.length}`,
   );
@@ -208,6 +206,12 @@ async function main() {
     `Duplicate discounts to create: ${duplicateDiscountsToCreate.length}`,
   );
   console.table(duplicateDiscountsToCreate);
+  console.log(`Partner groups to create: ${partnerGroupsToCreate.length}`);
+  console.table(partnerGroupsToCreate);
+  console.log(
+    `Program enrollments to update: ${programEnrollmentsToUpdate.length}`,
+  );
+  console.table(programEnrollmentsToUpdate);
 
   const rewardsRes = await prisma.reward.createMany({
     data: duplicateRewardsToCreate,
