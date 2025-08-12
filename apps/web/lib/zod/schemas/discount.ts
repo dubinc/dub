@@ -29,20 +29,16 @@ export const createDiscountSchema = z.object({
   maxDuration: maxDurationSchema,
   couponId: z.string(),
   couponTestId: z.string().nullish(),
-  isDefault: z.boolean(),
-  includedPartnerIds: z
-    .array(z.string())
-    .nullish()
-    .describe("Only applicable for non-default discounts"),
-  excludedPartnerIds: z
-    .array(z.string())
-    .nullish()
-    .describe("Only applicable for default discounts"),
+  groupId: z.string(),
 });
 
-export const updateDiscountSchema = createDiscountSchema.extend({
-  discountId: z.string(),
-});
+export const updateDiscountSchema = createDiscountSchema
+  .omit({
+    groupId: true,
+  })
+  .extend({
+    discountId: z.string(),
+  });
 
 export const discountPartnersQuerySchema = z
   .object({
