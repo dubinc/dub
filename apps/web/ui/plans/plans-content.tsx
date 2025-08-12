@@ -1,5 +1,6 @@
 "use client";
 
+import { FeaturesAccess } from '@/lib/actions/check-features-access-auth-less';
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import { FAQ_ITEMS_PAYWALL } from "@/ui/landing/components/faq-section/config.tsx";
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
@@ -12,12 +13,13 @@ import { FC, useRef } from "react";
 
 interface IPlansContentProps {
   user: ICustomerBody;
+  featuresAccess: FeaturesAccess;
 }
 
 export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
   user,
+  featuresAccess,
 }) => {
-  const { isTrialOver } = useTrialStatus();
   const paymentSectionRef = useRef<HTMLDivElement>(null);
 
   const hasSubscription = !!user?.paymentInfo?.subscriptionId;
@@ -34,22 +36,20 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
   return (
     <div className="flex w-full flex-col items-center justify-center gap-4 lg:gap-8">
       <PlansHeading
-        isTrialOver={isTrialOver}
-        hasSubscription={hasSubscription}
+        featuresAccess={featuresAccess}
       />
 
       <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
         <PopularQrInfo
           user={user}
-          isTrialOver={isTrialOver}
-          hasSubscription={hasSubscription}
+          featuresAccess={featuresAccess}
           handleScroll={handleScrollToPayment}
         />
 
         <div ref={paymentSectionRef}>
           <PaymentComponent
             user={user}
-            isTrialOver={isTrialOver}
+            featuresAccess={featuresAccess}
             onScrollToPayment={handleScrollToPayment}
           />
         </div>

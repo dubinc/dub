@@ -15,21 +15,21 @@ import {
 import { FC, useState } from "react";
 import { CreateSubscriptionFlow } from "./create-subscription-flow.tsx";
 import { UpdateSubscriptionFlow } from "./update-subscription-flow.tsx";
+import { FeaturesAccess } from '@/lib/actions/check-features-access-auth-less.ts';
 
 interface IPaymentComponentProps {
   user: ICustomerBody;
-  isTrialOver: boolean;
+  featuresAccess: FeaturesAccess;
   onScrollToPayment?: () => void;
 }
 
 export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
   user,
-  isTrialOver,
+  featuresAccess,
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { trigger: triggerUpdateUserSession } = useUpdateUserSessionMutation();
 
-  const hasSubscription = !!user?.paymentInfo?.subscriptionId;
   const currentSubscriptionPlan = user?.paymentInfo?.subscriptionPlanCode;
 
   const [isUpdatingToken, setIsUpdatingToken] = useState(false);
@@ -77,7 +77,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
 
       setSelectedPlan(plan);
 
-      if (!hasSubscription) {
+      if (!featuresAccess.isSubscribed) {
         updateClientToken(plan);
       }
     }
@@ -94,7 +94,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
         size="4"
         className="text-neutral"
       >
-        {isTrialOver ? "Choose your plan" : "Update your plan"}
+        {!featuresAccess.featuresAccess ? "Choose your plan" : "Update your plan"}
       </Heading>
 
       <div className="border-border-500 hidden h-px w-full border-t lg:block" />
@@ -122,7 +122,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
         </Text>
 
         <div>
-          {hasSubscription ? (
+          {featuresAccess.isSubscribed ? (
             <UpdateSubscriptionFlow
               user={user}
               currentSubscriptionPlan={currentSubscriptionPlan}
