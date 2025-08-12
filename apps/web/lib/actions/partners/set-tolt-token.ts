@@ -18,10 +18,6 @@ export const setToltTokenAction = authActionClient
     const { workspace } = ctx;
     const { token, toltProgramId } = parsedInput;
 
-    if (!workspace.partnersEnabled) {
-      throw new Error("You are not allowed to perform this action.");
-    }
-
     const toltApi = new ToltApi({ token });
     let program: ToltProgram | undefined;
 
