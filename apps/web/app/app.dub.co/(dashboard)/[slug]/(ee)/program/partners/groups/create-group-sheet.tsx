@@ -1,6 +1,6 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { createGroupSchema } from "@/lib/zod/schemas/groups";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
@@ -36,7 +36,6 @@ type FormData = z.input<typeof createGroupSchema>;
 
 function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
   const { program } = useProgram();
-  const { id: workspaceId } = useWorkspace();
   const { makeRequest: createGroup, isSubmitting } = useApiMutation();
 
   const {
@@ -55,9 +54,10 @@ function CreateGroupSheetContent({ setIsOpen }: CreateGroupSheetProps) {
     await createGroup("/api/groups", {
       method: "POST",
       body: data,
-      onSuccess: () => {
-        toast.success("Group created successfully!");
+      onSuccess: async () => {
+        toast.success(`Group ${data.name} created successfully`);
         setIsOpen(false);
+        await mutatePrefix("/api/groups");
       },
     });
   };
