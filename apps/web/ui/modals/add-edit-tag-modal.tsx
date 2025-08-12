@@ -1,8 +1,8 @@
-import { RESOURCE_COLORS_DATA } from "@/lib/colors";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ResourceColorsEnum, TagProps } from "@/lib/types";
+import { RESOURCE_COLORS_DATA } from "@/ui/colors";
 import {
   Button,
   InfoTooltip,

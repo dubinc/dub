@@ -1,6 +1,6 @@
 "use client";
 
-import { RAINBOW_CONIC_GRADIENT } from "@/lib/colors";
+import { RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
 import { Popover, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { CSSProperties, useState } from "react";

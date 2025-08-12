@@ -1,5 +1,5 @@
-import { getResourceColorData, RAINBOW_CONIC_GRADIENT } from "@/lib/colors";
 import { GroupProps } from "@/lib/types";
+import { getResourceColorData, RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
 import { cn } from "@dub/utils";
 
 export function GroupColorCircle({
@@ -7,13 +7,14 @@ export function GroupColorCircle({
 }: {
   group: Pick<GroupProps, "color">;
 }) {
+  const colorClassName = group.color
+    ? getResourceColorData(group.color)?.groupVariants
+    : undefined;
+
   return (
     <div
-      className={cn(
-        "size-3 shrink-0 rounded-full",
-        group.color && getResourceColorData(group.color)?.groupVariants,
-      )}
-      {...(!group.color && {
+      className={cn("size-3 shrink-0 rounded-full", colorClassName)}
+      {...(!colorClassName && {
         style: {
           background: RAINBOW_CONIC_GRADIENT,
         },

@@ -1,5 +1,5 @@
-import { RESOURCE_COLORS_DATA } from "@/lib/colors";
 import { TagProps } from "@/lib/types";
+import { RESOURCE_COLORS_DATA } from "@/ui/colors";
 import { cn } from "@dub/utils";
 
 export function MultiTagsIcon({ tags }: { tags: Pick<TagProps, "color">[] }) {

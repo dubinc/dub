@@ -1,4 +1,4 @@
-import { ResourceColorsEnum } from "./types";
+import { ResourceColorsEnum } from "../lib/types";
 
 export const RESOURCE_COLORS_DATA = [
   {

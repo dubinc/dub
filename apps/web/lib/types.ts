@@ -17,7 +17,7 @@ import {
   UtmTemplate,
   Webhook,
 } from "@dub/prisma/client";
-import { RESOURCE_COLORS } from "./colors";
+import { RESOURCE_COLORS } from "../ui/colors";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,

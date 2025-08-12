@@ -1,4 +1,4 @@
-import { RESOURCE_COLORS } from "@/lib/colors";
+import { RESOURCE_COLORS } from "@/ui/colors";
 import { validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";

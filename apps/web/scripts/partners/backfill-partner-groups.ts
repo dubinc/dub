@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
-import { RESOURCE_COLORS } from "@/lib/colors";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID, randomValue } from "@dub/utils";
