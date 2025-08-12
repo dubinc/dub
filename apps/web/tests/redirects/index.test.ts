@@ -114,6 +114,27 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("singular polyfill wpcn & wpcl params", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/singular-polyfill`,
+      fetchOptions,
+    );
+
+    const location = response.headers.get("location");
+    expect(location).toBeTruthy();
+
+    const url = new URL(location!);
+
+    // wpcn should be replaced from {via} template to actual via value
+    expect(url.searchParams.get("wpcn")).toBe("singular-polyfill");
+
+    // wpcl should be replaced from {dub_id} template to actual dub_id value
+    expect(url.searchParams.get("wpcl")).toMatch(/^[a-zA-Z0-9]+$/);
+
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("google play store url", async () => {
     const response = await fetch(`${h.baseUrl}/gps`, fetchOptions);
     const location = response.headers.get("location");
