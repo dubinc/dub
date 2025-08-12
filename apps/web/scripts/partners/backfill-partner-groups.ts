@@ -16,7 +16,6 @@ async function main() {
       "discountId",
     ],
     where: {
-      groupId: null,
       programId: ACME_PROGRAM_ID,
       status: "approved",
     },
@@ -48,8 +47,28 @@ async function main() {
     },
   });
 
+  const programEnrollments = await prisma.programEnrollment.findMany({
+    where: {
+      programId: {
+        in: groups.map((group) => group.programId),
+      },
+    },
+    select: {
+      id: true,
+      programId: true,
+      clickRewardId: true,
+      leadRewardId: true,
+      saleRewardId: true,
+      discountId: true,
+    },
+  });
+
   const duplicateRewardsToCreate: Prisma.RewardCreateManyInput[] = [];
   const duplicateDiscountsToCreate: Prisma.DiscountCreateManyInput[] = [];
+  const programEnrollmentsToUpdate: {
+    ids: string[];
+    data: Prisma.ProgramEnrollmentUpdateManyArgs["data"];
+  }[] = [];
 
   const rewardIdCounts = {};
   const discountIdCounts = {};
@@ -76,7 +95,7 @@ async function main() {
           const newRewardId = createId({ prefix: "rw_" });
 
           // reassign the new reward id to the group
-          group[rewardType] = newRewardId;
+          group[`updated_${rewardType}`] = newRewardId;
 
           // add the duplicated reward to the list of duplicate rewards to create
           duplicateRewardsToCreate.push({
@@ -105,7 +124,7 @@ async function main() {
         const newDiscountId = createId({ prefix: "disc_" });
 
         // reassign the new discount id to the group
-        group.discountId = newDiscountId;
+        group["updated_discountId"] = newDiscountId;
 
         // add the duplicated discount to the list of duplicate discounts to create
         duplicateDiscountsToCreate.push({
@@ -131,8 +150,37 @@ async function main() {
     const isDefaultGroup =
       hasDefaultReward && programIdCounts[group.programId] === 1;
 
+    const finalGroupId = createId({ prefix: "grp_" });
+    const finalClickRewardId =
+      group["updated_clickRewardId"] ?? group.clickRewardId;
+    const finalLeadRewardId =
+      group["updated_leadRewardId"] ?? group.leadRewardId;
+    const finalSaleRewardId =
+      group["updated_saleRewardId"] ?? group.saleRewardId;
+    const finalDiscountId = group["updated_discountId"] ?? group.discountId;
+
+    programEnrollmentsToUpdate.push({
+      ids: programEnrollments
+        .filter(
+          (enrollment) =>
+            enrollment.programId === group.programId &&
+            enrollment.clickRewardId === group.clickRewardId &&
+            enrollment.leadRewardId === group.leadRewardId &&
+            enrollment.saleRewardId === group.saleRewardId &&
+            enrollment.discountId === group.discountId,
+        )
+        .map((enrollment) => enrollment.id),
+      data: {
+        groupId: finalGroupId,
+        clickRewardId: finalClickRewardId,
+        leadRewardId: finalLeadRewardId,
+        saleRewardId: finalSaleRewardId,
+        discountId: finalDiscountId,
+      },
+    });
+
     return {
-      id: createId({ prefix: "grp_" }),
+      id: finalGroupId,
       programId: group.programId,
       name: isDefaultGroup
         ? DEFAULT_PARTNER_GROUP.name
@@ -143,10 +191,10 @@ async function main() {
       color: isDefaultGroup
         ? DEFAULT_PARTNER_GROUP.color
         : randomValue(RESOURCE_COLORS),
-      clickRewardId: group.clickRewardId,
-      leadRewardId: group.leadRewardId,
-      saleRewardId: group.saleRewardId,
-      discountId: group.discountId,
+      clickRewardId: finalClickRewardId,
+      leadRewardId: finalLeadRewardId,
+      saleRewardId: finalSaleRewardId,
+      discountId: finalDiscountId,
     };
   }) satisfies Prisma.PartnerGroupCreateManyInput[];
 
@@ -161,26 +209,36 @@ async function main() {
   );
   console.table(duplicateDiscountsToCreate);
 
-  // const res = await prisma.partnerGroup.createMany({
-  //   data: partnerGroupsToCreate,
-  // });
+  const rewardsRes = await prisma.reward.createMany({
+    data: duplicateRewardsToCreate,
+    skipDuplicates: true,
+  });
+  console.log(`Created ${rewardsRes.count} duplicate rewards`);
 
-  // console.log(`Created ${res.count} partner groups`);
+  const discountsRes = await prisma.discount.createMany({
+    data: duplicateDiscountsToCreate,
+    skipDuplicates: true,
+  });
+  console.log(`Created ${discountsRes.count} duplicate discounts`);
 
-  // for (const group of partnerGroupsToCreate) {
-  //   const r = await prisma.programEnrollment.updateMany({
-  //     where: {
-  //       groupId: null,
-  //       programId: group.programId,
-  //       clickRewardId: group.clickRewardId,
-  //       leadRewardId: group.leadRewardId,
-  //       saleRewardId: group.saleRewardId,
-  //       discountId: group.discountId,
-  //     },
-  //     data: { groupId: group.id },
-  //   });
-  //   console.log(`Updated ${r.count} enrollments for group ${group.id}`);
-  // }
+  const groupsRes = await prisma.partnerGroup.createMany({
+    data: partnerGroupsToCreate,
+    skipDuplicates: true,
+  });
+
+  console.log(`Created ${groupsRes.count} partner groups`);
+
+  for (const pe of programEnrollmentsToUpdate) {
+    const r = await prisma.programEnrollment.updateMany({
+      where: {
+        id: {
+          in: pe.ids,
+        },
+      },
+      data: pe.data,
+    });
+    console.log(`Updated ${r.count} enrollments for group ${pe.data.groupId}`);
+  }
 }
 
 main();
