@@ -3,7 +3,6 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { bulkApprovePartners } from "@/lib/partners/bulk-approve-partners";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
-import { ProgramWithLanderDataSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 
@@ -17,46 +16,27 @@ export const bulkApprovePartnersAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
-      },
-      include: {
-        rewards: true,
-        discounts: true,
-        partners: {
-          where: {
-            status: "pending",
-            partnerId: {
-              in: partnerIds,
-            },
-          },
-          include: {
-            partner: {
-              include: {
-                users: {
-                  where: {
-                    notificationPreferences: {
-                      applicationApproved: true,
-                    },
-                  },
-                  include: {
-                    user: true,
-                  },
-                },
+    const { partners: programEnrollments, ...program } =
+      await prisma.program.findUniqueOrThrow({
+        where: {
+          id: programId,
+        },
+        include: {
+          partners: {
+            where: {
+              status: "pending",
+              partnerId: {
+                in: partnerIds,
               },
             },
           },
         },
-      },
-    });
-
-    const programWithLanderData = ProgramWithLanderDataSchema.parse(program);
+      });
 
     await bulkApprovePartners({
       workspace,
-      program: programWithLanderData,
-      programEnrollments: program.partners,
+      program,
+      programEnrollments,
       user,
       groupId,
     });
