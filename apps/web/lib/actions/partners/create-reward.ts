@@ -2,6 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -17,110 +18,57 @@ export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let {
-      event,
-      amount,
-      type,
-      maxDuration,
-      isDefault,
-      includedPartnerIds,
-      excludedPartnerIds,
-      modifiers,
-    } = parsedInput;
-
-    includedPartnerIds = includedPartnerIds || [];
-    excludedPartnerIds = excludedPartnerIds || [];
+    const { event, amount, type, maxDuration, modifiers, groupId } =
+      parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
+    const { canUseAdvancedRewardLogic } = getPlanCapabilities(workspace.plan);
 
-    // Only one default reward is allowed for each event
-    if (isDefault) {
-      const defaultReward = await prisma.reward.findFirst({
-        where: {
-          programId,
-          event,
-          default: true,
-        },
-      });
-
-      if (defaultReward) {
-        throw new Error(
-          `There is an existing default ${event} reward already. A program can only have one ${event} default reward.`,
-        );
-      }
-    }
-
-    if (
-      modifiers &&
-      !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
-    )
+    if (modifiers && !canUseAdvancedRewardLogic) {
       throw new Error(
         "Advanced reward structures are only available on the Advanced plan and above.",
       );
+    }
 
-    const finalPartnerIds = [...includedPartnerIds, ...excludedPartnerIds];
+    await getGroupOrThrow({
+      groupId,
+      programId,
+    });
 
-    if (finalPartnerIds && finalPartnerIds.length > 0) {
-      const programEnrollments = await prisma.programEnrollment.findMany({
-        where: {
+    const reward = await prisma.$transaction(async (tx) => {
+      const reward = await tx.reward.create({
+        data: {
+          id: createId({ prefix: "rw_" }),
           programId,
-          partnerId: {
-            in: finalPartnerIds,
-          },
-        },
-        select: {
-          partnerId: true,
+          event,
+          type,
+          amount,
+          maxDuration,
+          modifiers: modifiers || Prisma.JsonNull,
         },
       });
 
-      const invalidPartnerIds = finalPartnerIds.filter(
-        (id) =>
-          !programEnrollments.some((enrollment) => enrollment.partnerId === id),
-      );
+      const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-      if (invalidPartnerIds.length > 0) {
-        throw new Error(
-          `Invalid partner IDs provided (partners must be enrolled in the program): ${invalidPartnerIds.join(", ")}`,
-        );
-      }
-    }
+      await tx.partnerGroup.update({
+        where: {
+          id: groupId,
+        },
+        data: {
+          [rewardIdColumn]: reward.id,
+        },
+      });
 
-    const reward = await prisma.reward.create({
-      data: {
-        id: createId({ prefix: "rw_" }),
-        programId,
-        event,
-        type,
-        amount,
-        maxDuration,
-        default: isDefault,
-        modifiers: modifiers || Prisma.JsonNull,
-      },
-    });
+      await tx.programEnrollment.updateMany({
+        where: {
+          groupId,
+        },
+        data: {
+          [rewardIdColumn]: reward.id,
+        },
+      });
 
-    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
-
-    await prisma.programEnrollment.updateMany({
-      where: {
-        programId,
-        ...(reward.default
-          ? {
-              [rewardIdColumn]: null,
-              ...(excludedPartnerIds.length > 0 && {
-                partnerId: {
-                  notIn: excludedPartnerIds,
-                },
-              }),
-            }
-          : {
-              partnerId: {
-                in: includedPartnerIds,
-              },
-            }),
-      },
-      data: {
-        [rewardIdColumn]: reward.id,
-      },
+      return reward;
     });
 
     waitUntil(

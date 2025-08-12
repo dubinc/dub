@@ -82,16 +82,8 @@ export const createOrUpdateRewardSchema = z.object({
   type: z.nativeEnum(RewardStructure).default(RewardStructure.flat),
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
-  isDefault: z.boolean(),
-  includedPartnerIds: z
-    .array(z.string())
-    .nullish()
-    .describe("Only applicable for non-default rewards"),
-  excludedPartnerIds: z
-    .array(z.string())
-    .nullish()
-    .describe("Only applicable for default rewards"),
   modifiers: rewardConditionsArraySchema.nullish(),
+  groupId: z.string(),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
@@ -106,7 +98,7 @@ export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({
     event: true,
-    isDefault: true,
+    groupId: true,
   })
   .merge(
     z.object({
