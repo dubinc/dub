@@ -34,7 +34,7 @@ export function GroupColorPicker({
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
       content={
-        <div className="flex items-center gap-2 p-2">
+        <div className="flex items-center gap-3 p-2 sm:gap-2">
           <div className="sr-only" tabIndex={0}>
             Select a color
           </div>
@@ -88,7 +88,7 @@ function Swatch({
           type="button"
           onClick={onSelect}
           className={cn(
-            "relative block size-5 overflow-hidden rounded-full ring-transparent ring-offset-2 transition-all duration-75",
+            "relative block size-7 overflow-hidden rounded-full ring-transparent ring-offset-2 transition-all duration-75 sm:size-5",
             "hover:ring-1 hover:ring-[var(--ring-color)]",
             "outline-none focus-visible:ring-1 focus-visible:ring-[var(--ring-color)]",
             colorClassName,

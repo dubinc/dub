@@ -3,6 +3,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupExtendedProps } from "@/lib/types";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { pluralize } from "@dub/utils";
 import { Users } from "lucide-react";
 import { FormEvent, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -42,7 +43,7 @@ const DeleteGroupModal = ({
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
       <div className="border-b border-neutral-200 px-4 py-4 sm:px-6">
-        <h3 className="text-lg font-medium">Delete {group.name}</h3>
+        <h3 className="truncate text-lg font-medium">Delete group</h3>
       </div>
 
       <div className="bg-neutral-50">
@@ -51,7 +52,7 @@ const DeleteGroupModal = ({
             <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-6 py-4">
               <div className="flex items-center gap-2">
                 <GroupColorCircle group={group} />
-                <h4 className="text-lg font-semibold text-neutral-900">
+                <h4 className="truncate text-lg font-semibold text-neutral-900">
                   {group.name}
                 </h4>
               </div>
@@ -59,7 +60,7 @@ const DeleteGroupModal = ({
               <div className="flex items-center gap-2">
                 <Users className="size-4" />
                 <span className="text-content-default text-sm font-medium">
-                  {group.partners} partners
+                  {group.partners} {pluralize("partner", group.partners)}
                 </span>
               </div>
             </div>
@@ -67,9 +68,8 @@ const DeleteGroupModal = ({
             <div className="text-sm font-normal text-neutral-800">
               <h4>Deleting this group will do the following:</h4>
 
-              <ul className="list-disc space-y-1.5">
+              <ul className="mt-0.5 list-outside list-disc space-y-px pl-4">
                 <li>Rewards created for this group are deleted.</li>
-                <li>Discounts created for this group are deleted.</li>
 
                 {group.partners && group.partners > 0 ? (
                   <>
