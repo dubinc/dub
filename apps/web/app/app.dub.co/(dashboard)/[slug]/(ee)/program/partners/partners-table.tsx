@@ -456,6 +456,10 @@ function RowMenuButton({
   const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
+  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
+    partners: [row.original],
+  });
+
   const { ArchivePartnerModal, setShowArchivePartnerModal } =
     useArchivePartnerModal({
       partner: row.original,
@@ -496,6 +500,7 @@ function RowMenuButton({
 
   return (
     <>
+      <ChangeGroupModal />
       <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
@@ -507,6 +512,15 @@ function RowMenuButton({
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
               {row.original.status === "invited" ? (
                 <>
+                  <MenuItem
+                    icon={Users6}
+                    label="Change group"
+                    onSelect={() => {
+                      setShowChangeGroupModal(true);
+                      setIsOpen(false);
+                    }}
+                  />
+
                   <MenuItem
                     icon={
                       isResendingInvite ? LoadingSpinner : EnvelopeArrowRight
@@ -556,6 +570,15 @@ function RowMenuButton({
                       router.push(
                         `/${slug}/program/commissions?partnerId=${row.original.id}&interval=all`,
                       );
+                      setIsOpen(false);
+                    }}
+                  />
+
+                  <MenuItem
+                    icon={Users6}
+                    label="Change group"
+                    onSelect={() => {
+                      setShowChangeGroupModal(true);
                       setIsOpen(false);
                     }}
                   />
