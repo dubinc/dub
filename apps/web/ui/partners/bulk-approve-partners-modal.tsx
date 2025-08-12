@@ -106,25 +106,29 @@ function BulkApprovePartnersModal({
             </motion.div>
           </button>
 
-          <AnimatedSizeContainer height>
-            {showAdvancedOptions && (
-              <div className="grid grid-cols-1 gap-6 pt-6">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-900">
-                    Assign all to group{" "}
-                    <span className="text-neutral-500">(optional)</span>
-                  </label>
+          <div className="-m-1">
+            <AnimatedSizeContainer height>
+              <div className="p-1">
+                {showAdvancedOptions && (
+                  <div className="grid grid-cols-1 gap-6 pt-6">
+                    <div>
+                      <label className="block text-sm font-medium text-neutral-900">
+                        Assign all to group{" "}
+                        <span className="text-neutral-500">(optional)</span>
+                      </label>
 
-                  <div className="relative mt-2 rounded-md shadow-sm">
-                    <GroupSelector
-                      selectedGroupId={selectedGroupId}
-                      setSelectedGroupId={setSelectedGroupId}
-                    />
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        <GroupSelector
+                          selectedGroupId={selectedGroupId}
+                          setSelectedGroupId={setSelectedGroupId}
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
-            )}
-          </AnimatedSizeContainer>
+            </AnimatedSizeContainer>
+          </div>
         </div>
       </div>
 
