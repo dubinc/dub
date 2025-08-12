@@ -18,11 +18,18 @@ export default function useGroups<T extends GroupProps>({
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
-  const queryEnabled = enabled && defaultProgramId;
-
   const { data, isLoading, error } = useSWR<T[]>(
-    queryEnabled
-      ? `/api/groups${getQueryString({ workspaceId, sortBy: "saleAmount", ...query }, { exclude: ["partnerId"] })}`
+    enabled && defaultProgramId
+      ? `/api/groups${getQueryString(
+          {
+            workspaceId,
+            sortBy: "saleAmount",
+            ...query,
+          },
+          {
+            exclude: ["partnerId"],
+          },
+        )}`
       : null,
     fetcher,
     {
