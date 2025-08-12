@@ -1,7 +1,6 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -82,11 +81,6 @@ export const invitePartnerAction = authActionClient
       throw new Error("No group ID provided and no default group ID found.");
     }
 
-    const group = await getGroupOrThrow({
-      programId,
-      groupId: groupId || program.defaultGroupId!,
-    });
-
     const enrolledPartner = await createAndEnrollPartner({
       program,
       link,
@@ -97,7 +91,7 @@ export const invitePartnerAction = authActionClient
       },
       skipEnrollmentCheck: true,
       status: "invited",
-      group,
+      groupId,
     });
 
     waitUntil(

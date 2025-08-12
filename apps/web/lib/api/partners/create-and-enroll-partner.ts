@@ -14,11 +14,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
-import {
-  PartnerGroup,
-  Prisma,
-  ProgramEnrollmentStatus,
-} from "@dub/prisma/client";
+import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
@@ -37,9 +33,9 @@ export const createAndEnrollPartner = async ({
   status = "approved",
   skipEnrollmentCheck = false,
   enrolledAt,
-  group,
+  groupId,
 }: {
-  program: Pick<ProgramProps, "id" | "defaultFolderId">;
+  program: Pick<ProgramProps, "id" | "defaultFolderId" | "defaultGroupId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
@@ -52,10 +48,7 @@ export const createAndEnrollPartner = async ({
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
   enrolledAt?: Date;
-  group?: Pick<
-    PartnerGroup,
-    "id" | "clickRewardId" | "leadRewardId" | "saleRewardId" | "discountId"
-  >;
+  groupId?: string | null;
 }) => {
   if (!skipEnrollmentCheck && partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
@@ -94,7 +87,7 @@ export const createAndEnrollPartner = async ({
     }
   }
 
-  const [defaultRewards, allDiscounts] = await prisma.$transaction([
+  const [defaultRewards, allDiscounts, group] = await prisma.$transaction([
     prisma.reward.findMany({
       where: {
         programId: program.id,
@@ -107,9 +100,16 @@ export const createAndEnrollPartner = async ({
         default: true,
       },
     }),
+
     prisma.discount.findMany({
       where: {
         programId: program.id,
+      },
+    }),
+
+    prisma.partnerGroup.findUnique({
+      where: {
+        id: groupId || program.defaultGroupId!,
       },
     }),
   ]);

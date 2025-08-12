@@ -47,6 +47,7 @@ export const createReferralsEmbedTokenSchema = z
     partnerId: z.string().optional(),
     tenantId: z.string().optional(),
     partner: createPartnerSchema.optional(),
+    groupId: z.string().optional()
   })
   .superRefine((data, ctx) => {
     if (!data.partnerId && !data.tenantId && !data.partner) {
