@@ -56,6 +56,12 @@ export const getCommissionsQuerySchema = z
       .string()
       .optional()
       .describe("Filter the list of commissions by the associated partner."),
+    groupId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of commissions by the associated partner group.",
+      ),
     invoiceId: z
       .string()
       .optional()
