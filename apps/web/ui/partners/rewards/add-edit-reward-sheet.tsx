@@ -43,6 +43,7 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
@@ -50,7 +51,6 @@ import {
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
 import { RewardsLogic } from "./rewards-logic";
-import { useRewardsUpgradeModal } from "./rewards-upgrade-modal";
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -225,12 +225,16 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     });
   };
 
-  const { rewardsUpgradeModal, setShowRewardsUpgradeModal } =
-    useRewardsUpgradeModal();
+  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
+    usePartnersUpgradeModal({
+      plan: "Advanced",
+      description:
+        "When you upgrade to Advanced, you'll get access to higher payout limits, advanced reward structures, white-labeling support, and more.",
+    });
 
   return (
     <FormProvider {...form}>
-      {rewardsUpgradeModal}
+      {partnersUpgradeModal}
       <form
         ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
@@ -386,7 +390,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
                   <TooltipContent
                     title="Advanced reward structures are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    onClick={() => setShowRewardsUpgradeModal(true)}
+                    onClick={() => setShowPartnersUpgradeModal(true)}
                   />
                 ) : undefined
               }
