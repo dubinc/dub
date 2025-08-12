@@ -64,6 +64,18 @@ export const getFinalUrl = (
     urlObj.searchParams.set("ip", ip ?? "");
   }
 
+  // Polyfill wpcn & wpcl params for Singular integration
+  const wpcn = urlObj.searchParams.get("wpcn");
+  const wpcl = urlObj.searchParams.get("wpcl");
+
+  if (wpcn && wpcn === "{via}") {
+    urlObj.searchParams.set("wpcn", via ?? "");
+  }
+
+  if (wpcl && wpcl === "{dub_id}") {
+    urlObj.searchParams.set("wpcl", clickId ?? "");
+  }
+
   // for Google Play Store links
   if (isGooglePlayStoreUrl(url)) {
     const { shortLink } = parse(req);
