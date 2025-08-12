@@ -28,13 +28,15 @@ export async function bulkApprovePartners({
     partner: Partner & { users: { user: { email: string | null } }[] };
   })[];
   user: Session["user"];
-  groupId: string;
+  groupId: string | null;
 }) {
-  const group = await getGroupOrThrow({
-    programId: program.id,
-    groupId,
-    includeRewardsAndDiscount: true,
-  });
+  const group = groupId
+    ? await getGroupOrThrow({
+        programId: program.id,
+        groupId,
+        includeRewardsAndDiscount: true,
+      })
+    : null;
 
   await prisma.programEnrollment.updateMany({
     where: {
@@ -78,7 +80,7 @@ export async function bulkApprovePartners({
           payoutsEnabled: Boolean(partner.payoutsEnabledAt),
         },
         rewardDescription: ProgramRewardDescription({
-          reward: group.saleReward || group.leadReward || group.clickReward,
+          reward: [],
           showModifiersTooltip: false,
         }),
       }),

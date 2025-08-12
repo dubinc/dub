@@ -53,15 +53,11 @@ export const bulkApprovePartnersAction = authActionClient
 
     const programWithLanderData = ProgramWithLanderDataSchema.parse(program);
 
-    if (!groupId && !program.defaultGroupId) {
-      throw new Error("No group ID provided and no default group ID found.");
-    }
-
     await bulkApprovePartners({
       workspace,
       program: programWithLanderData,
       programEnrollments: program.partners,
       user,
-      groupId: groupId || program.defaultGroupId!,
+      groupId
     });
   });
