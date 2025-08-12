@@ -91,7 +91,7 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
 
 export const ProgramEnrollmentSchema = z.object({
   programId: z.string().describe("The program's unique ID on Dub."),
-  groupId: z.string().describe("The partner's group ID on Dub."),
+  groupId: z.string().nullish().describe("The partner's group ID on Dub."), // TODO update to required after migration complete
   partnerId: z.string().describe("The partner's unique ID on Dub."),
   tenantId: z
     .string()

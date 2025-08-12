@@ -1,4 +1,4 @@
-import { tagColors } from "@/lib/types";
+import { RESOURCE_COLORS } from "@/lib/colors";
 import z from "@/lib/zod";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 
@@ -42,10 +42,10 @@ export const getTagsCountQuerySchema = getTagsQuerySchema.omit({
 });
 
 export const tagColorSchema = z
-  .enum(tagColors, {
+  .enum(RESOURCE_COLORS, {
     errorMap: () => {
       return {
-        message: `Invalid color. Must be one of: ${tagColors.join(", ")}`,
+        message: `Invalid color. Must be one of: ${RESOURCE_COLORS.join(", ")}`,
       };
     },
   })
@@ -60,7 +60,7 @@ export const createTagBodySchema = z
       .max(50)
       .describe("The name of the tag to create."),
     color: tagColorSchema.describe(
-      `The color of the tag. If not provided, a random color will be used from the list: ${tagColors.join(", ")}.`,
+      `The color of the tag. If not provided, a random color will be used from the list: ${RESOURCE_COLORS.join(", ")}.`,
     ),
     tag: z
       .string()

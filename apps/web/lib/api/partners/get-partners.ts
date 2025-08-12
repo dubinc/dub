@@ -57,6 +57,7 @@ export async function getPartners(filters: PartnerFilters) {
       pe.programId, 
       pe.partnerId, 
       pe.tenantId,
+      pe.groupId,
       pe.applicationId,
       pe.createdAt as enrollmentCreatedAt,
       pe.bannedAt,

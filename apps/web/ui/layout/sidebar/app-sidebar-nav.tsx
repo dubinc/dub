@@ -28,7 +28,6 @@ import {
   Tag,
   UserCheck,
   Users,
-  Users2,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
@@ -207,7 +206,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "All Partners",
-            icon: Users2,
+            icon: Users,
             href: `/${slug}/program/partners`,
             exact: true,
           },
@@ -223,9 +222,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Groups",
-            icon: Users,
+            icon: Users6,
             href: `/${slug}/program/partners/groups`,
-            exact: true,
+            badge: "New",
           },
         ],
       },
@@ -236,7 +235,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Analytics",
             icon: LinesYStatic,
             href: `/${slug}/program/analytics`,
-            badge: "New",
           },
           {
             name: "Commissions",

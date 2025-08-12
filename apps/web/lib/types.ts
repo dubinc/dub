@@ -17,6 +17,7 @@ import {
   UtmTemplate,
   Webhook,
 } from "@dub/prisma/client";
+import { RESOURCE_COLORS } from "./colors";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
@@ -138,13 +139,13 @@ export interface RedisLinkProps {
   testCompletedAt?: Date;
 }
 
+export type ResourceColorsEnum = (typeof RESOURCE_COLORS)[number];
+
 export interface TagProps {
   id: string;
   name: string;
-  color: TagColorProps;
+  color: ResourceColorsEnum;
 }
-
-export type TagColorProps = (typeof tagColors)[number];
 
 export type UtmTemplateProps = UtmTemplate;
 export type UtmTemplateWithUserProps = UtmTemplateProps & {
@@ -286,16 +287,6 @@ export const plans = [
 export const roles = ["owner", "member"] as const;
 
 export type Role = (typeof roles)[number];
-
-export const tagColors = [
-  "red",
-  "yellow",
-  "green",
-  "blue",
-  "purple",
-  "pink",
-  "brown",
-] as const;
 
 export type DashboardProps = z.infer<typeof dashboardSchema>;
 
