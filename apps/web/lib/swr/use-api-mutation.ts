@@ -107,7 +107,7 @@ export function useApiMutation<
         debug("Request finished");
       }
     },
-    [],
+    [workspaceId],
   );
 
   return {

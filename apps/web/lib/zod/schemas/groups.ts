@@ -1,3 +1,5 @@
+import { validSlugRegex } from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
@@ -34,16 +36,33 @@ export const GroupSchemaExtended = GroupSchema.extend({
 });
 
 export const createGroupSchema = z.object({
-  name: z.string().trim().min(1).max(190),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required")
+    .max(190, "Name is too long. Max 190 characters"),
   slug: z
     .string()
     .trim()
     .min(1)
     .max(100)
-    .refine((val) => !/^grp_/i.test(val.trim()), {
-      message: "Slug cannot start with 'grp_'.",
+    .refine(
+      (val) => {
+        const trimmed = val.trim();
+        return validSlugRegex.test(trimmed) && !/^grp_/i.test(trimmed);
+      },
+      {
+        message: "Invalid slug format.",
+      },
+    )
+    .transform((val) => slugify(val)),
+  color: z
+    .string()
+    .trim()
+    .transform((val) => val.toLowerCase())
+    .refine((val) => /^#[0-9a-f]{6}$/i.test(val), {
+      message: "Color must be a valid 6-digit hex code (e.g. #ef4444).",
     }),
-  color: z.string().trim().nullable(),
 });
 
 export const updateGroupSchema = createGroupSchema.partial();
