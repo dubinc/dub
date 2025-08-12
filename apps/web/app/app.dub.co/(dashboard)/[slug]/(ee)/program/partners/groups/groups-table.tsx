@@ -27,7 +27,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function GroupsTable() {
-  const { id: workspaceId } = useWorkspace();
+  const router = useRouter();
+  const { id: workspaceId, slug } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams } = useRouterStuff();
 
@@ -123,7 +124,7 @@ export function GroupsTable() {
       },
     ],
     onRowClick: (row) => {
-      // TODO: Navigate to group page
+      router.push(`/${slug}/program/partners/groups/${row.original.slug}`);
     },
     pagination,
     onPaginationChange: setPagination,
