@@ -256,27 +256,31 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 </motion.div>
               </button>
 
-              <AnimatedSizeContainer height>
-                {showAdvancedOptions && (
-                  <div className="grid grid-cols-1 gap-6 pt-6">
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-900">
-                        Group{" "}
-                        <span className="text-neutral-500">(optional)</span>
-                      </label>
+              <div className="-m-1">
+                <AnimatedSizeContainer height>
+                  {showAdvancedOptions && (
+                    <div className="grid grid-cols-1 gap-6 p-1 pt-6">
+                      <div>
+                        <label className="block text-sm font-medium text-neutral-900">
+                          Group{" "}
+                          <span className="text-neutral-500">(optional)</span>
+                        </label>
 
-                      <div className="relative mt-2 rounded-md shadow-sm">
-                        <GroupSelector
-                          selectedGroupId={watch("groupId")}
-                          setSelectedGroupId={(groupId) => {
-                            setValue("groupId", groupId, { shouldDirty: true });
-                          }}
-                        />
+                        <div className="relative mt-2 rounded-md shadow-sm">
+                          <GroupSelector
+                            selectedGroupId={watch("groupId")}
+                            setSelectedGroupId={(groupId) => {
+                              setValue("groupId", groupId, {
+                                shouldDirty: true,
+                              });
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </AnimatedSizeContainer>
+                  )}
+                </AnimatedSizeContainer>
+              </div>
             </div>
           </div>
 
