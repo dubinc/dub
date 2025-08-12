@@ -16,16 +16,16 @@ export async function approvePartnerEnrollment({
   programId,
   partnerId,
   linkId,
-  groupId,
   userId,
+  groupId,
 }: {
   programId: string;
   partnerId: string;
   linkId: string | null;
-  groupId: string;
   userId: string;
+  groupId?: string | null;
 }) {
-  const [program, link, group] = await Promise.all([
+  const [program, link] = await Promise.all([
     prisma.program.findUniqueOrThrow({
       where: {
         id: programId,
@@ -44,13 +44,17 @@ export async function approvePartnerEnrollment({
           },
         })
       : Promise.resolve(null),
-
-    getGroupOrThrow({
-      programId,
-      groupId,
-      includeRewardsAndDiscount: true,
-    }),
   ]);
+
+  if (!groupId && !program.defaultGroupId) {
+    throw new Error("No group ID provided and no default group ID found.");
+  }
+
+  const group = await getGroupOrThrow({
+    programId,
+    groupId: groupId ?? program.defaultGroupId!,
+    includeRewardsAndDiscount: true,
+  });
 
   if (link) {
     if (link.projectId !== program.workspaceId) {
@@ -73,10 +77,11 @@ export async function approvePartnerEnrollment({
       data: {
         status: "approved",
         createdAt: new Date(),
-        clickRewardId: group.clickRewardId,
-        leadRewardId: group.leadRewardId,
-        saleRewardId: group.saleRewardId,
-        discountId: group.discountId,
+        groupId: group?.id,
+        clickRewardId: group?.clickRewardId,
+        leadRewardId: group?.leadRewardId,
+        saleRewardId: group?.saleRewardId,
+        discountId: group?.discountId,
       },
       include: {
         partner: {
@@ -161,9 +166,9 @@ export async function approvePartnerEnrollment({
       });
 
       const rewards = [
-        group.clickReward,
-        group.leadReward,
-        group.saleReward,
+        group?.clickReward,
+        group?.leadReward,
+        group?.saleReward,
       ].filter(Boolean) as RewardProps[];
 
       await Promise.allSettled([

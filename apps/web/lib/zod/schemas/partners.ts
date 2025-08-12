@@ -549,7 +549,7 @@ export const approvePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   linkId: z.string().nullable(),
-  groupId: z.string(),
+  groupId: z.string().nullish(),
 });
 
 export const bulkApprovePartnersSchema = z.object({
