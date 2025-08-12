@@ -20,34 +20,15 @@ import { FC, useMemo, useRef } from "react";
 
 interface IPlansContentProps {
   user: ICustomerBody;
-  mostScannedQR: QrStorageData | null;
 }
 
 export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
   user,
-  mostScannedQR,
 }) => {
   const { isTrialOver } = useTrialStatus();
   const paymentSectionRef = useRef<HTMLDivElement>(null);
 
   const hasSubscription = !!user?.paymentInfo?.subscriptionId;
-
-  const qrCodeDemo = mostScannedQR?.qrType
-    ? QRCodeDemoMap[mostScannedQR.qrType as EQRType]
-    : QRCodeDemoMap[EQRType.WEBSITE];
-
-  const demoProps = useMemo(() => {
-    if (!mostScannedQR || !qrCodeDemo || !mostScannedQR.data) return {};
-
-    const qrType = mostScannedQR.qrType as EQRType;
-    const stylesData = (mostScannedQR.styles as Options)?.data;
-
-    if (FILE_QR_TYPES.includes(qrType)) {
-      return parseQRData(qrType, mostScannedQR.link.url);
-    }
-
-    return parseQRData(qrType, stylesData || mostScannedQR.data);
-  }, [mostScannedQR, qrCodeDemo]);
 
   const handleScrollToPayment = () => {
     if (paymentSectionRef.current) {
@@ -68,9 +49,6 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
       <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
         <PopularQrInfo
           user={user}
-          qrCodeDemo={qrCodeDemo}
-          demoProps={demoProps}
-          mostScannedQR={mostScannedQR}
           isTrialOver={isTrialOver}
           hasSubscription={hasSubscription}
           handleScroll={handleScrollToPayment}
