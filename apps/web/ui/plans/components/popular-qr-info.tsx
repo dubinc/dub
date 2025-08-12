@@ -1,16 +1,19 @@
+"use client";
+
 import { PlansFeatures } from "@/ui/plans/components/plans-features.tsx";
-import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { EQRType, FILE_QR_TYPES, QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { Flex, Heading, Text } from "@radix-ui/themes";
-import { FC } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { ICustomerBody } from "../../../core/integration/payment/config";
+import { getMostScannedQr } from '../actions/getMostScannedQr';
+import { QRCodeDemoMap } from '@/ui/qr-builder/components/qr-code-demos/qr-code-demo-map';
+import { parseQRData } from '@/ui/utils/qr-data-parser';
+import { Options } from "qr-code-styling/lib/types";
 
 interface IPopularQrInfo {
-  qrCodeDemo: any;
-  demoProps: any;
-  mostScannedQR: QrStorageData | null;
   isTrialOver: boolean;
   hasSubscription: boolean;
   handleScroll: () => void;
@@ -18,14 +21,37 @@ interface IPopularQrInfo {
 }
 
 export const PopularQrInfo: FC<IPopularQrInfo> = ({
-  qrCodeDemo,
-  demoProps,
-  mostScannedQR,
   isTrialOver,
   hasSubscription,
   handleScroll,
   user,
 }) => {
+  const [qr, setQr] = useState<QrStorageData | null>(null);
+
+  useEffect(() => {
+    getMostScannedQr(user.id)
+      .then((mostScannedQr: QrStorageData | null) => {
+        setQr(mostScannedQr);
+      });
+  }, [user]);
+  
+  const qrCodeDemo = qr?.qrType
+    ? QRCodeDemoMap[qr.qrType as EQRType]
+    : QRCodeDemoMap[EQRType.WEBSITE];
+
+  const demoProps = useMemo(() => {
+    if (!qr || !qrCodeDemo || !qr.data) return {};
+
+    const qrType = qr.qrType as EQRType;
+    const stylesData = (qr.styles as Options)?.data;
+
+    if (FILE_QR_TYPES.includes(qrType)) {
+      return parseQRData(qrType, qr.link.url);
+    }
+
+    return parseQRData(qrType, stylesData || qr.data);
+  }, [qr, qrCodeDemo]);
+
   return (
     <Flex
       direction="column"
@@ -71,7 +97,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
               weight="bold"
               className="text-neutral"
             >
-              {mostScannedQR?.title || mostScannedQR?.title || "web-1"}
+              {qr?.title || qr?.title || "web-1"}
             </Text>
           </Flex>
 
@@ -91,7 +117,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
             >
               {
                 QR_TYPES.find(
-                  (item) => (mostScannedQR?.qrType || "website") === item.id,
+                  (item) => (qr?.qrType || "website") === item.id,
                 )?.label || "Website"
               }
             </Text>
@@ -111,7 +137,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
               weight="bold"
               className="text-neutral"
             >
-              {(mostScannedQR && mostScannedQR.link?.clicks) ?? 231}
+              {(qr && qr.link?.clicks) ?? 231}
             </Text>
           </Flex>
 
