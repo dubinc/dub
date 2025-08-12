@@ -8,7 +8,6 @@ import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
-import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
@@ -50,7 +49,6 @@ import {
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
-import { RewardPartnersCard } from "./reward-partners-card";
 import { RewardsLogic } from "./rewards-logic";
 import { useRewardsUpgradeModal } from "./rewards-upgrade-modal";
 
@@ -58,7 +56,6 @@ interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: EventType;
   reward?: RewardProps;
-  isDefault?: boolean;
 }
 
 // Special form schema to allow for empty condition fields when adding a new condition
@@ -76,12 +73,7 @@ type FormData = z.infer<typeof formSchema>;
 
 export const useAddEditRewardForm = () => useFormContext<FormData>();
 
-function RewardSheetContent({
-  setIsOpen,
-  event,
-  reward,
-  isDefault,
-}: RewardSheetProps) {
+function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   const { id: workspaceId, defaultProgramId, plan } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
@@ -96,9 +88,6 @@ function RewardSheetContent({
           : reward.maxDuration
         : Infinity,
       amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
-      isDefault: isDefault || false,
-      includedPartnerIds: null,
-      excludedPartnerIds: null,
       modifiers: reward?.modifiers?.map((m) => ({
         ...m,
         amount: reward?.type === "flat" ? m.amount / 100 : m.amount,
@@ -106,42 +95,15 @@ function RewardSheetContent({
     },
   });
 
-  const { handleSubmit, watch, getValues, setValue, setError } = form;
+  const { handleSubmit, watch, setValue, setError } = form;
 
-  const [
-    selectedEvent,
-    amount,
-    type,
-    maxDuration,
-    modifiers,
-    includedPartnerIds = [],
-    excludedPartnerIds = [],
-  ] = watch([
+  const [selectedEvent, amount, type, maxDuration, modifiers] = watch([
     "event",
     "amount",
     "type",
     "maxDuration",
     "modifiers",
-    "includedPartnerIds",
-    "excludedPartnerIds",
   ]);
-
-  const { data: rewardPartners, loading: isLoadingRewardPartners } =
-    useRewardPartners({
-      query: {
-        rewardId: reward?.id,
-      },
-      enabled: Boolean(reward?.id && defaultProgramId),
-    });
-
-  useEffect(() => {
-    if (rewardPartners && rewardPartners.length > 0) {
-      setValue(
-        isDefault ? "excludedPartnerIds" : "includedPartnerIds",
-        rewardPartners.map((partner) => partner.id),
-      );
-    }
-  }, [rewardPartners, setValue]);
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -229,8 +191,6 @@ function RewardSheetContent({
     const payload = {
       ...data,
       workspaceId,
-      includedPartnerIds: isDefault ? null : includedPartnerIds,
-      excludedPartnerIds: isDefault ? excludedPartnerIds : null,
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
@@ -238,7 +198,10 @@ function RewardSheetContent({
     };
 
     if (!reward) {
-      await createReward(payload);
+      await createReward({
+        ...payload,
+        groupId: "", // TODO: Fix this
+      });
     } else {
       await updateReward({
         ...payload,
@@ -275,8 +238,7 @@ function RewardSheetContent({
       >
         <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            {reward ? "Edit" : "Create"} {isDefault ? "default" : ""}{" "}
-            {selectedEvent} reward
+            {reward ? "Edit" : "Create"} {selectedEvent} reward
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -378,19 +340,12 @@ function RewardSheetContent({
             }
             content={
               selectedEvent === "click" ? undefined : (
-                <RewardsLogic isDefaultReward={!!isDefault} />
+                <RewardsLogic isDefaultReward={false} />
               )
             }
           />
 
           <VerticalLine />
-
-          <RewardPartnersCard
-            isDefault={isDefault}
-            rewardPartners={rewardPartners}
-            isLoadingRewardPartners={isLoadingRewardPartners}
-            reward={reward}
-          />
         </div>
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">

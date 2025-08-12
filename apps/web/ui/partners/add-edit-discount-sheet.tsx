@@ -5,7 +5,6 @@ import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
 import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useDiscountPartners from "@/lib/swr/use-discount-partners";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps } from "@/lib/types";
@@ -15,12 +14,11 @@ import { X } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, Button, CircleCheckFill, Sheet } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
-import { DiscountPartnersTable } from "./discount-partners-table";
 import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
@@ -31,7 +29,6 @@ import {
 interface DiscountSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   discount?: DiscountProps;
-  isDefault?: boolean;
 }
 
 type FormData = z.infer<typeof createDiscountSchema>;
@@ -49,11 +46,7 @@ const discountTypes = [
   },
 ] as const;
 
-function DiscountSheetContent({
-  setIsOpen,
-  discount,
-  isDefault,
-}: DiscountSheetProps) {
+function DiscountSheetContent({ setIsOpen, discount }: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { mutate: mutateProgram } = useProgram();
@@ -82,42 +75,10 @@ function DiscountSheetContent({
         discount?.maxDuration === null ? Infinity : discount?.maxDuration || 0,
       couponId: discount?.couponId || "",
       couponTestId: discount?.couponTestId || "",
-      includedPartnerIds: null,
-      excludedPartnerIds: null,
     },
   });
 
-  const [type, amount, includedPartnerIds = [], excludedPartnerIds = []] =
-    watch(["type", "amount", "includedPartnerIds", "excludedPartnerIds"]);
-
-  const { data: discountPartners, loading: isLoadingDiscountPartners } =
-    useDiscountPartners({
-      query: {
-        discountId: discount?.id,
-      },
-      enabled: Boolean(discount?.id && defaultProgramId),
-    });
-
-  useEffect(() => {
-    if (discountPartners && discountPartners.length > 0) {
-      setValue(
-        isDefault ? "excludedPartnerIds" : "includedPartnerIds",
-        discountPartners.map((partner) => partner.id),
-      );
-    }
-  }, [discountPartners, setValue, isDefault]);
-
-  useEffect(() => {
-    // Only include partner-eligibility if:
-    // 1. New non-default discount, OR
-    // 2. Existing discount that has discountPartners (either included or excluded)
-    if (
-      (!discount && !isDefault) ||
-      (discountPartners && discountPartners.length > 0)
-    ) {
-      setAccordionValues((prev) => [...prev, "partner-eligibility"]);
-    }
-  }, [discountPartners, discount, isDefault]);
+  const [type, amount] = watch(["type", "amount"]);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -172,16 +133,16 @@ function DiscountSheetContent({
     const payload = {
       ...data,
       workspaceId,
-      includedPartnerIds: isDefault ? null : includedPartnerIds,
-      excludedPartnerIds: isDefault ? excludedPartnerIds : null,
       amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
       maxDuration:
         Number(data.maxDuration) === Infinity ? null : data.maxDuration,
-      isDefault: isDefault || false,
     };
 
     if (!discount) {
-      await createDiscount(payload);
+      await createDiscount({
+        ...payload,
+        groupId: "", // TODO: fix it
+      });
     } else {
       await updateDiscount({
         ...payload,
@@ -214,7 +175,7 @@ function DiscountSheetContent({
       >
         <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            {discount ? "Edit" : "Create"} {isDefault ? "default" : ""} discount
+            {discount ? "Edit" : "Create"} discount
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -461,47 +422,6 @@ function DiscountSheetContent({
                 </div>
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
-
-            {!isDefault && defaultProgramId && (
-              <ProgramSheetAccordionItem value="partner-eligibility">
-                <ProgramSheetAccordionTrigger>
-                  Partner Eligibility
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="space-y-4">
-                    <DiscountPartnersTable
-                      partnerIds={includedPartnerIds || []}
-                      setPartnerIds={(value: string[]) => {
-                        setValue("includedPartnerIds", value);
-                      }}
-                      discountPartners={discountPartners || []}
-                      loading={isLoadingDiscountPartners}
-                    />
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
-            )}
-
-            {isDefault && defaultProgramId && (
-              <ProgramSheetAccordionItem value="partner-eligibility">
-                <ProgramSheetAccordionTrigger>
-                  Partner Eligibility
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="space-y-4">
-                    <DiscountPartnersTable
-                      partnerIds={excludedPartnerIds || []}
-                      setPartnerIds={(value: string[]) => {
-                        setValue("excludedPartnerIds", value);
-                      }}
-                      discountPartners={discountPartners || []}
-                      loading={isLoadingDiscountPartners}
-                      mode="exclude"
-                    />
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
-            )}
           </ProgramSheetAccordion>
         </div>
 
