@@ -36,7 +36,6 @@ import { useBrandingFormContext } from "../branding-form";
 import { LanderAIBanner } from "../lander-ai-banner";
 import { LanderPreviewControls } from "../lander-preview-controls";
 import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
-import { useEditRewardsModal } from "../modals/edit-rewards-modal";
 import { RewardsDiscountsPreview } from "../rewards-discounts-preview";
 
 export function LanderPreview({
@@ -79,7 +78,6 @@ export function LanderPreview({
   );
 
   const { setShowEditHeroModal, EditHeroModal } = useEditHeroModal();
-  const { setShowEditRewardsModal, EditRewardsModal } = useEditRewardsModal();
 
   const [addBlockIndex, setAddBlockIndex] = useState<number | null>(null);
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
@@ -116,7 +114,6 @@ export function LanderPreview({
         />
       )}
       <EditHeroModal />
-      <EditRewardsModal />
       <AddBlockModal
         addIndex={addBlockIndex ?? 0}
         showAddBlockModal={addBlockIndex !== null}
@@ -240,17 +237,9 @@ export function LanderPreview({
             </div>
 
             {/* Program rewards */}
-            <div
-              className="group relative"
-              data-touched={touchedBlockId === "rewards"}
-              onClick={() => isMobile && setTouchedBlockId("rewards")}
-            >
-              <EditIndicatorGrid />
-              <EditToolbar onEdit={() => setShowEditRewardsModal(true)} />
-              <div className="relative mx-auto max-w-screen-sm py-4">
-                <div className="px-6">
-                  <RewardsDiscountsPreview />
-                </div>
+            <div className="relative mx-auto max-w-screen-sm py-4">
+              <div className="px-6">
+                <RewardsDiscountsPreview />
               </div>
             </div>
 
