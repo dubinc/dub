@@ -5,15 +5,21 @@ import {
   PartnerStatus,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
-import { COUNTRY_CODES, currencyFormatter } from "@dub/utils";
+import {
+  COUNTRY_CODES,
+  currencyFormatter,
+  GOOGLE_FAVICON_URL,
+} from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
 import { createLinkBodySchema } from "./links";
 import {
+  base64ImageSchema,
   booleanQuerySchema,
   getPaginationQuerySchema,
-  uploadedImageSchema,
+  publicHostedImageSchema,
+  storedR2ImageUrlSchema,
 } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseUrlSchema } from "./utils";
@@ -412,6 +418,26 @@ export const createPartnerSchema = z.object({
     ),
 });
 
+// This is a temporary fix to allow arbitrary image URL
+// TODO: Fix this by using file-type
+const partnerImageSchema = z
+  .union([
+    base64ImageSchema,
+    storedR2ImageUrlSchema,
+    publicHostedImageSchema,
+    z
+      .string()
+      .url()
+      .trim()
+      .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
+        message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
+      }),
+  ])
+  .transform((v) => v || "")
+  .refine((v) => v !== "", {
+    message: "Image is required",
+  });
+
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
     username: true,
@@ -421,11 +447,7 @@ export const onboardPartnerSchema = createPartnerSchema
   .merge(
     z.object({
       name: z.string().min(1, "Name is required"),
-      image: uploadedImageSchema
-        .transform((v) => v || "")
-        .refine((v) => v !== "", {
-          message: "Image is required",
-        }),
+      image: partnerImageSchema,
       country: z.enum(COUNTRY_CODES),
       profileType: z.nativeEnum(PartnerProfileType).default("individual"),
       companyName: z.string().nullish(),

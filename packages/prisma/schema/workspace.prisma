@@ -42,7 +42,6 @@ model Project {
 
   conversionEnabled Boolean @default(false) // Whether to enable conversion tracking for links by default
   webhookEnabled    Boolean @default(false)
-  partnersEnabled   Boolean @default(false)
   ssoEnabled        Boolean @default(false)
   dotLinkClaimed    Boolean @default(false)
 
