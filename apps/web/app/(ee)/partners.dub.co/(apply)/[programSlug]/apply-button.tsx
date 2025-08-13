@@ -1,11 +1,21 @@
 "use client";
 
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { Button } from "@dub/ui";
 import Link from "next/link";
 
-export function ApplyButton({ programSlug }: { programSlug: string }) {
+export function ApplyButton({
+  programSlug,
+  groupSlug,
+}: {
+  programSlug: string;
+  groupSlug: string;
+}) {
+  const partnerGroupSlug =
+    groupSlug === DEFAULT_PARTNER_GROUP.slug ? "" : `/${groupSlug}`;
+
   return (
-    <Link href={`/${programSlug}/apply`}>
+    <Link href={`/${programSlug}${partnerGroupSlug}/apply`}>
       <Button
         type="button"
         text="Apply today"

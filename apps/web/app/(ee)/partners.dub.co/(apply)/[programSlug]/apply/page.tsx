@@ -57,7 +57,7 @@ export default async function ApplicationPage({
 
         {/* Application form */}
         <div className="mt-10">
-          <ProgramApplicationForm program={program} />
+          <ProgramApplicationForm program={program} group={program.group!} />
         </div>
       </div>
     </div>

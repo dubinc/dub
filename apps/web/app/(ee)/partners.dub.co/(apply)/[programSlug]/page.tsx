@@ -37,7 +37,7 @@ export default async function ApplyPage({
         } as CSSProperties
       }
     >
-      <Header program={program} />
+      <Header program={program} groupSlug={partnerGroupSlug} />
       <div className="p-6">
         <LanderHero program={program} landerData={landerData} />
 
@@ -50,8 +50,7 @@ export default async function ApplyPage({
 
         {/* Buttons */}
         <div className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]">
-          <ApplyButton programSlug={programSlug} />
-          {/* <Button type="button" variant="secondary" text="Learn more" /> */}
+          <ApplyButton programSlug={programSlug} groupSlug={partnerGroupSlug} />
         </div>
 
         {/* Content blocks */}

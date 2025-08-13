@@ -1,5 +1,6 @@
 "use client";
 
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { Program } from "@dub/prisma/client";
 import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -11,15 +12,19 @@ export function Header({
   program,
   showLogin = true,
   showApply = true,
+  groupSlug,
 }: {
   program: Pick<Program, "slug" | "wordmark" | "logo">;
   showLogin?: boolean;
   showApply?: boolean;
+  groupSlug?: string;
 }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
   const scrolled = useScroll(0);
+  const partnerGroupSlug =
+    groupSlug === DEFAULT_PARTNER_GROUP.slug ? "" : `/${groupSlug}`;
 
   return (
     <header
@@ -58,7 +63,7 @@ export function Header({
           </Link>
         )}
         {showApply && (
-          <Link href={`/${program.slug}/apply`}>
+          <Link href={`/${program.slug}${partnerGroupSlug}/apply`}>
             <Button
               type="button"
               text="Apply"

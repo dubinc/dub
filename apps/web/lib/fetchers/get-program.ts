@@ -38,6 +38,7 @@ export const getProgram = cache(
     if (!groupSlug) {
       return {
         ...programData,
+        group: null,
         rewards: [],
         discount: null,
       };
@@ -45,6 +46,12 @@ export const getProgram = cache(
 
     // Extract the group data and find its rewards and discount
     const { groups, ...program } = programData as unknown as Result;
+
+    // Group not found
+    if (groups.length === 0) {
+      return;
+    }
+
     const group = groups[0];
 
     const rewards = [
@@ -57,6 +64,12 @@ export const getProgram = cache(
 
     return {
       ...program,
+      group: {
+        id: group.id,
+        name: group.name,
+        slug: group.slug,
+        color: group.color,
+      },
       rewards: rewards as RewardProps[],
       discount: discount as DiscountProps | null,
     };
