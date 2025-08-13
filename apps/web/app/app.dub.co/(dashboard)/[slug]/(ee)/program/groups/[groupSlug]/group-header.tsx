@@ -51,7 +51,7 @@ const GROUP_NAVIGATION_TABS = (workspaceSlug: string) =>
       icon: Sliders,
       external: false,
       getHref(group: GroupProps) {
-        return `/${workspaceSlug}/program/groups/${group.slug}/settings`;
+        return `/${workspaceSlug}/program/groups/${group.slug}`;
       },
       isActive(pathname: string) {
         return pathname.includes("/");
