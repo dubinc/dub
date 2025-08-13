@@ -70,7 +70,9 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
         );
 
         if (cachedData) {
-          return NextResponse.json(trackOpenResponseSchema.parse(cachedData));
+          return NextResponse.json(trackOpenResponseSchema.parse(cachedData), {
+            headers: CORS_HEADERS,
+          });
         }
       }
 
