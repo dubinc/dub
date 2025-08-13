@@ -2,7 +2,7 @@ import {
   createResponseWithCookies,
   detectBot,
   getFinalUrl,
-  isSupportedDeeplinkProtocol,
+  isSupportedCustomURIScheme,
   parse,
 } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
@@ -316,7 +316,7 @@ export default async function LinkMiddleware(
     );
 
     // rewrite to deeplink page if the link is a mailto: or tel:
-  } else if (isSupportedDeeplinkProtocol(url)) {
+  } else if (isSupportedCustomURIScheme(url)) {
     ev.waitUntil(
       recordClick({
         req,
@@ -334,7 +334,7 @@ export default async function LinkMiddleware(
     return createResponseWithCookies(
       NextResponse.rewrite(
         new URL(
-          `/deeplink/${encodeURIComponent(
+          `/custom-uri-scheme/${encodeURIComponent(
             getFinalUrl(url, {
               req,
               ...(shouldCacheClickId && { clickId }),
@@ -396,33 +396,47 @@ export default async function LinkMiddleware(
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && ua.os?.name === "iOS") {
     ev.waitUntil(
-      Promise.all([
-        recordClick({
-          req,
-          clickId,
-          linkId,
-          domain,
-          key,
-          url: ios,
-          webhookIds,
-          workspaceId,
-          shouldCacheClickId,
-        }),
-        // cache click if it's an iOS app store URL
-        ios.startsWith("https://apps.apple.com/") &&
-          cacheDeepLinkClickData({
-            req,
-            clickId,
-            link: {
-              id: linkId,
-              domain,
-              key,
-              url, // pass the main destination URL to the cache (for deferred deep linking)
-            },
-          }),
-      ]),
+      recordClick({
+        req,
+        clickId,
+        linkId,
+        domain,
+        key,
+        url: ios,
+        webhookIds,
+        workspaceId,
+        shouldCacheClickId,
+      }),
     );
 
+    // if it's an iOS app store URL, we need to show the interstitial page +
+    if (ios.startsWith("https://apps.apple.com/")) {
+      ev.waitUntil(
+        cacheDeepLinkClickData({
+          req,
+          clickId,
+          link: {
+            id: linkId,
+            domain,
+            key,
+            url, // pass the main destination URL to the cache (for deferred deep linking)
+          },
+        }),
+      );
+      // rewrite to the deeplink interstitial page
+      return createResponseWithCookies(
+        NextResponse.rewrite(
+          new URL(`/deeplink/${domain}/${encodeURIComponent(key)}`, req.url),
+          {
+            headers: {
+              ...DUB_HEADERS,
+              ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+            },
+          },
+        ),
+        cookieData,
+      );
+    }
     return createResponseWithCookies(
       NextResponse.redirect(
         getFinalUrl(ios, {

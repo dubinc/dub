@@ -1,6 +1,10 @@
 export const runtime = "edge";
 
-export default function DeepLinkPage({ params }: { params: { url: string } }) {
+export default function CustomURISchemePage({
+  params,
+}: {
+  params: { url: string };
+}) {
   // First decode the full URL parameter from the route
   const url = decodeURIComponent(params.url);
   // Split into base URL and query string
