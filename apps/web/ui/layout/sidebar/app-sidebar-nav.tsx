@@ -254,12 +254,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Rewards",
             icon: Gift,
-            href: `/${slug}/program/rewards`,
+            href: `/${slug}/program/groups/default/rewards`,
+            arrow: true,
+            isActive: () => false,
           },
           {
             name: "Discounts",
             icon: Discount,
-            href: `/${slug}/program/discounts`,
+            href: `/${slug}/program/groups/default/discounts`,
+            arrow: true,
+            isActive: () => false,
           },
           {
             name: "Branding",

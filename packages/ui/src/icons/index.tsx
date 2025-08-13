@@ -4,6 +4,7 @@ import { LucideIcon } from "lucide-react";
 import { ComponentType, SVGProps } from "react";
 
 // custom icons
+export * from "./arrow-up-right-2";
 export * from "./copy";
 export * from "./crown-small";
 export * from "./dub-analytics";
