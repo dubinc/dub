@@ -17,16 +17,22 @@ import { z } from "zod";
 type FormData = z.input<typeof updateGroupSchema>;
 
 export function GroupSettings() {
-  const { group, loading } = useGroup();
+  const { group, loading, mutateGroup } = useGroup();
 
   if (!group || loading) {
     return <LoadingSpinner />;
   }
 
-  return <GroupSettingsForm group={group} />;
+  return <GroupSettingsForm group={group} mutateGroup={mutateGroup} />;
 }
 
-function GroupSettingsForm({ group }: { group: GroupProps }) {
+function GroupSettingsForm({
+  group,
+  mutateGroup,
+}: {
+  group: GroupProps;
+  mutateGroup: () => void;
+}) {
   const router = useRouter();
   const { program } = useProgram();
   const { slug } = useParams<{ slug: string }>();
@@ -55,13 +61,15 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
     await updateGroup(`/api/groups/${group.id}`, {
       method: "PATCH",
       body: data,
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success("Group updated successfully!");
 
         // If slug changed, redirect to new URL
         if (data.slug !== group.slug) {
           router.push(`/${slug}/program/groups/${data.slug}`);
         }
+
+        await mutateGroup();
       },
     });
   };
