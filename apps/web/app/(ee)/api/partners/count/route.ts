@@ -100,6 +100,9 @@ export const GET = withWorkspace(
             }),
             ...commonWhere,
           },
+          status: status || {
+            in: ["approved", "invited"],
+          },
         },
         _count: true,
       });
