@@ -125,7 +125,7 @@ const RewardItem = ({
       <As
         href={
           reward
-            ? `/${slug}/program/partners/${group.slug}/rewards?rewardId=${reward.id}`
+            ? `/${slug}/program/groups/${group.slug}/rewards?rewardId=${reward.id}`
             : ""
         }
         scroll={false}

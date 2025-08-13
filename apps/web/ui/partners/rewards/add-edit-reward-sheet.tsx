@@ -49,6 +49,7 @@ import {
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
+import { RewardPartnersCard } from "./reward-partners-card";
 import { RewardsLogic } from "./rewards-logic";
 
 interface RewardSheetProps {
@@ -347,6 +348,8 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
           />
 
           <VerticalLine />
+
+          {group && <RewardPartnersCard groupId={group.id} />}
         </div>
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">
