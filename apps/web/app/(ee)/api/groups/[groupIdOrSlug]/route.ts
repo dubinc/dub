@@ -29,6 +29,7 @@ export const GET = withWorkspace(
     return NextResponse.json(GroupSchema.parse(group));
   },
   {
+    requiredPermissions: ["groups.read"],
     requiredPlan: [
       "business",
       "business extra",
@@ -117,6 +118,7 @@ export const PATCH = withWorkspace(
     return NextResponse.json(GroupSchema.parse(updatedGroup));
   },
   {
+    requiredPermissions: ["groups.write"],
     requiredPlan: [
       "business",
       "business extra",
@@ -240,6 +242,7 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ id: group.id });
   },
   {
+    requiredPermissions: ["groups.write"],
     requiredPlan: [
       "business",
       "business extra",

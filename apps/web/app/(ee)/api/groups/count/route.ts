@@ -33,6 +33,7 @@ export const GET = withWorkspace(
     return NextResponse.json(count);
   },
   {
+    requiredPermissions: ["groups.read"],
     requiredPlan: [
       "business",
       "business extra",

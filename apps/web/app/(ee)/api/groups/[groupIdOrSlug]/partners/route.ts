@@ -59,6 +59,7 @@ export const POST = withWorkspace(
     });
   },
   {
+    requiredPermissions: ["groups.write"],
     requiredPlan: [
       "business",
       "business extra",

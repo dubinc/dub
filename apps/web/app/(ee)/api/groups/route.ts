@@ -30,6 +30,7 @@ export const GET = withWorkspace(
     return NextResponse.json(z.array(GroupSchemaExtended).parse(groups));
   },
   {
+    requiredPermissions: ["groups.write"],
     requiredPlan: [
       "business",
       "business extra",
@@ -121,6 +122,7 @@ export const POST = withWorkspace(
     });
   },
   {
+    requiredPermissions: ["groups.write"],
     requiredPlan: [
       "business",
       "business extra",
