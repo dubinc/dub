@@ -82,8 +82,18 @@ function GroupSettingsForm({
       onSubmit={handleSubmit(onSubmit)}
       className="rounded-lg border border-neutral-200"
     >
-      <div className="px-5 py-5">
-        <h2 className="mb-4 text-base font-bold text-neutral-900">Settings</h2>
+      <div className="p-5">
+        <div className="flex items-start justify-between">
+          <h2 className="text-content-emphasis mb-4 text-base font-semibold">
+            Settings
+          </h2>
+          <Button
+            text="Save changes"
+            className="h-8 w-fit"
+            loading={isSubmitting}
+            disabled={!isDirty}
+          />
+        </div>
         <div className="space-y-6">
           <div>
             <label
@@ -166,17 +176,6 @@ function GroupSettingsForm({
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">
-        <div>
-          <Button
-            text="Save changes"
-            className="h-8"
-            loading={isSubmitting}
-            disabled={!isDirty}
-          />
         </div>
       </div>
     </form>

@@ -1,6 +1,7 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { GroupHeaderTabs, GroupHeaderTitle } from "./group-header";
+import { GroupPartners } from "./group-partners";
 import { GroupSettings } from "./group-settings";
 
 export default function ProgramPartnersGroup() {
@@ -10,7 +11,10 @@ export default function ProgramPartnersGroup() {
       headerContent={<GroupHeaderTabs />}
     >
       <PageWidthWrapper>
-        <GroupSettings />
+        <div className="flex flex-col gap-6">
+          <GroupSettings />
+          <GroupPartners />
+        </div>
       </PageWidthWrapper>
     </PageContent>
   );
