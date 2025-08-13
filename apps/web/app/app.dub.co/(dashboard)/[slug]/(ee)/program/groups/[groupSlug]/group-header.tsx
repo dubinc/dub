@@ -52,7 +52,7 @@ const GROUP_NAVIGATION_TABS = (workspaceSlug: string) =>
       icon: Users,
       external: true,
       getHref: (group: GroupProps) =>
-        `/${workspaceSlug}/program/commissions?groupId=${group.id}`,
+        `/${workspaceSlug}/program/partners?groupId=${group.id}`,
     },
   ] as const;
 
