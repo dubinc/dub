@@ -32,7 +32,7 @@ const DeleteGroupModal = ({
     await deleteGroup(`/api/groups/${group.id}`, {
       method: "DELETE",
       onSuccess: async () => {
-        toast.success(`Group ${group.name} deleted successfully!`);
+        toast.success(`Group deleted successfully!`);
         await mutatePrefix(`/api/groups?workspaceId=${workspace.id}`);
         setShowModal(false);
         onDelete?.();
