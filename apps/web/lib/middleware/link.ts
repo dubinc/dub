@@ -31,6 +31,7 @@ import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { cacheIdentityHashClicks } from "./utils/cache-identity-hash-clicks";
 import { crawlBitly } from "./utils/crawl-bitly";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
@@ -395,17 +396,31 @@ export default async function LinkMiddleware(
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && ua.os?.name === "iOS") {
     ev.waitUntil(
-      recordClick({
-        req,
-        clickId,
-        linkId,
-        domain,
-        key,
-        url: ios,
-        webhookIds,
-        workspaceId,
-        shouldCacheClickId,
-      }),
+      Promise.all([
+        recordClick({
+          req,
+          clickId,
+          linkId,
+          domain,
+          key,
+          url: ios,
+          webhookIds,
+          workspaceId,
+          shouldCacheClickId,
+        }),
+        // cache click if it's an iOS app store URL
+        ios.startsWith("https://apps.apple.com/") &&
+          cacheIdentityHashClicks({
+            req,
+            clickId,
+            link: {
+              id: linkId,
+              domain,
+              key,
+              url, // pass the main destination URL to the cache (for deferred deep linking)
+            },
+          }),
+      ]),
     );
 
     return createResponseWithCookies(

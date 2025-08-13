@@ -2,6 +2,8 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
+import { getIdentityHash } from "@/lib/middleware/utils";
+import { IdentityHashClicksData } from "@/lib/middleware/utils/cache-identity-hash-clicks";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
@@ -19,24 +21,71 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+const trackOpenRequestSchema = z
+  .object({
+    deepLink: parseUrlSchema.optional(),
+    dubDomain: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.deepLink && !data.dubDomain) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "You need to provide either `deepLink` or `dubDomain` for deferred deep linking.",
+      });
+    }
+  });
+
 const trackOpenResponseSchema = z.object({
-  clickId: z.string(),
-  link: z.object({
-    id: z.string(),
-    domain: z.string(),
-    key: z.string(),
-    url: z.string(),
-  }),
+  clickId: z.string().nullable(),
+  link: z
+    .object({
+      id: z.string(),
+      domain: z.string(),
+      key: z.string(),
+      url: z.string(),
+    })
+    .nullable(),
 });
 
 // POST /api/track/open – Track an open event for deep link
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
-    const { deepLink: deepLinkUrl } = z
-      .object({
-        deepLink: parseUrlSchema,
-      })
-      .parse(await parseRequestBody(req));
+    const { deepLink: deepLinkUrl, dubDomain } = trackOpenRequestSchema.parse(
+      await parseRequestBody(req),
+    );
+
+    if (!deepLinkUrl) {
+      const identityHash = await getIdentityHash(req);
+
+      // Get all iOS click cache keys for this identity hash
+      const [_, cacheKeys] = await redis.scan(0, {
+        match: `iosClickCache:${identityHash}*`,
+        count: 50,
+      });
+
+      const firstCacheKeyForDomain = cacheKeys.find((key) =>
+        key.startsWith(`iosClickCache:${identityHash}:${dubDomain}`),
+      );
+
+      if (firstCacheKeyForDomain) {
+        const cachedData = await redis.get<IdentityHashClicksData>(
+          firstCacheKeyForDomain,
+        );
+
+        if (cachedData) {
+          return NextResponse.json(trackOpenResponseSchema.parse(cachedData));
+        }
+      }
+
+      return NextResponse.json(
+        trackOpenResponseSchema.parse({
+          clickId: null,
+          link: null,
+        }),
+        { headers: CORS_HEADERS },
+      );
+    }
 
     const deepLink = new URL(deepLinkUrl);
 
