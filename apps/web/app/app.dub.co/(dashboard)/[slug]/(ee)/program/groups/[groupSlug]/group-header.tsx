@@ -73,7 +73,7 @@ export function GroupHeaderTitle() {
       </Link>
       <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
       <div className="flex items-center gap-1.5">
-        {<GroupColorCircle group={group} />}
+        <GroupColorCircle group={group} />
         <span className="text-lg font-semibold leading-7 text-neutral-900">
           {group.name}
         </span>
