@@ -17,9 +17,9 @@ import { z } from "zod";
 type FormData = z.input<typeof updateGroupSchema>;
 
 export function GroupSettings() {
-  const { group } = useGroup();
+  const { group, loading } = useGroup();
 
-  if (!group) {
+  if (!group || loading) {
     return <LoadingSpinner />;
   }
 
@@ -40,6 +40,11 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
     formState: { errors, isDirty },
   } = useForm<FormData>({
     mode: "onBlur",
+    defaultValues: {
+      name: group.name,
+      slug: group.slug,
+      color: group.color,
+    },
   });
 
   const onSubmit = async (data: FormData) => {
