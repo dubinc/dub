@@ -10,7 +10,6 @@ import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,
-  COUNTRY_CODES,
   PAGINATION_LIMIT,
   THE_BEGINNING_OF_TIME,
   capitalize,
@@ -146,10 +145,10 @@ export const analyticsQuerySchema = z
       )
       .openapi({ example: "America/New_York", default: "UTC" }),
     country: z
-      .enum(COUNTRY_CODES)
+      .string()
       .optional()
       .describe(
-        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. Learn more: https://d.to/geo",
+        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
       )
       .openapi({ ref: "countryCode" }),
     city: z

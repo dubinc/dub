@@ -1,7 +1,6 @@
 import { ErrorCode } from "@/lib/api/errors";
 import z from "@/lib/zod";
 import {
-  COUNTRY_CODES,
   THE_BEGINNING_OF_TIME,
   formatDate,
   validDomainRegex,
@@ -377,10 +376,10 @@ export const createLinkBodySchema = z.object({
       "The Android destination URL for the short link for Android device targeting.",
     ),
   geo: z
-    .record(z.enum(COUNTRY_CODES), parseUrlSchema)
+    .record(z.string(), parseUrlSchema)
     .nullish()
     .describe(
-      "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
+      "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
     )
     .openapi({ ref: "linkGeoTargeting" }),
   doIndex: z
@@ -620,10 +619,10 @@ export const LinkSchema = z
         "The Android destination URL for the short link for Android device targeting.",
       ),
     geo: z
-      .record(z.enum(COUNTRY_CODES), z.string().url())
+      .record(z.string(), z.string().url())
       .nullable()
       .describe(
-        "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. Learn more: https://d.to/geo",
+        "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
       ),
     publicStats: z
       .boolean()
