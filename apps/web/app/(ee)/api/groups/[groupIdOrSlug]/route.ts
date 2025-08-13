@@ -4,12 +4,14 @@ import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import {
   DEFAULT_PARTNER_GROUP,
   GroupSchema,
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -167,13 +169,11 @@ export const DELETE = withWorkspace(
           groupId: group.id,
         },
         data: {
-          ...(defaultGroup && {
-            groupId: defaultGroup.id,
-            clickRewardId: defaultGroup.clickRewardId,
-            leadRewardId: defaultGroup.leadRewardId,
-            saleRewardId: defaultGroup.saleRewardId,
-            discountId: defaultGroup.discountId,
-          }),
+          groupId: defaultGroup.id,
+          clickRewardId: defaultGroup.clickRewardId,
+          leadRewardId: defaultGroup.leadRewardId,
+          saleRewardId: defaultGroup.saleRewardId,
+          discountId: defaultGroup.discountId,
         },
       });
 
@@ -210,20 +210,31 @@ export const DELETE = withWorkspace(
     });
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "group.deleted",
-        description: `Group ${group.name} (${group.id}) deleted`,
-        actor: session.user,
-        targets: [
-          {
-            type: "group",
-            id: group.id,
-            metadata: group,
-          },
-        ],
-      }),
+      (async () => {
+        await Promise.allSettled([
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+            body: {
+              groupId: defaultGroup.id,
+            },
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "group.deleted",
+            description: `Group ${group.name} (${group.id}) deleted`,
+            actor: session.user,
+            targets: [
+              {
+                type: "group",
+                id: group.id,
+                metadata: group,
+              },
+            ],
+          }),
+        ]);
+      })(),
     );
 
     return NextResponse.json({ id: group.id });

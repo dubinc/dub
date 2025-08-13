@@ -9,6 +9,12 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   groupId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "If provided, only invalidate the cache for the given partner ids.",
+    ),
 });
 
 // This route is used to invalidate the partnerlink cache when a discount is created/updated/deleted.
@@ -18,7 +24,7 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { groupId } = schema.parse(JSON.parse(rawBody));
+    const { groupId, partnerIds } = schema.parse(JSON.parse(rawBody));
 
     // Find the group
     const group = await prisma.partnerGroup.findUnique({
@@ -36,6 +42,11 @@ export async function POST(req: Request) {
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         groupId,
+        ...(partnerIds && {
+          partnerId: {
+            in: partnerIds,
+          },
+        }),
       },
       include: {
         links: true,

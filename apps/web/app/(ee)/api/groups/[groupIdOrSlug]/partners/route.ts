@@ -1,9 +1,13 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { changeGroupSchema } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // POST /api/groups/[groupIdOrSlug]/partners - change group of partners
@@ -16,7 +20,15 @@ export const POST = withWorkspace(
       groupId: params.groupIdOrSlug,
     });
 
-    const { partnerIds } = changeGroupSchema.parse(await parseRequestBody(req));
+    let { partnerIds } = changeGroupSchema.parse(await parseRequestBody(req));
+    partnerIds = [...new Set(partnerIds)];
+
+    if (partnerIds.length === 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "At least one partner ID is required.",
+      });
+    }
 
     const { count } = await prisma.programEnrollment.updateMany({
       where: {
@@ -29,6 +41,18 @@ export const POST = withWorkspace(
         groupId: group.id,
       },
     });
+
+    if (count > 0) {
+      waitUntil(
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+          body: {
+            groupId: group.id,
+            partnerIds,
+          },
+        }),
+      );
+    }
 
     return NextResponse.json({
       count,
