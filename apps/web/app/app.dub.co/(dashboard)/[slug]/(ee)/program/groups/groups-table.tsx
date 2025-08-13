@@ -50,7 +50,13 @@ export function GroupsTable() {
   const isFiltered = !!searchParams.get("search");
 
   const { table, ...tableProps } = useTable({
-    data: groups || [],
+    data: groups
+      ? groups.map((group) => {
+          // prefetch the group page
+          router.prefetch(`/${slug}/program/groups/${group.slug}`);
+          return group;
+        })
+      : [],
     columns: [
       {
         id: "group",
@@ -124,7 +130,7 @@ export function GroupsTable() {
       },
     ],
     onRowClick: (row) => {
-      router.push(`/${slug}/program/partners/groups/${row.original.slug}`);
+      router.push(`/${slug}/program/groups/${row.original.slug}`);
     },
     pagination,
     onPaginationChange: setPagination,
@@ -217,7 +223,7 @@ function RowMenuButton({
                 variant="default"
                 onSelect={async () => {
                   router.push(
-                    `/${slug}/program/partners/groups/${row.original.slug}/settings`,
+                    `/${slug}/program/groups/${row.original.slug}/settings`,
                   );
                   setIsOpen(false);
                 }}

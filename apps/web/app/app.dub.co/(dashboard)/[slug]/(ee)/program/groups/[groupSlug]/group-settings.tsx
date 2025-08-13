@@ -60,7 +60,7 @@ export function GroupSettings() {
 
         // If slug changed, redirect to new URL
         if (data.slug !== group.slug) {
-          router.push(`/${slug}/program/partners/groups/${data.slug}`);
+          router.push(`/${slug}/program/groups/${data.slug}`);
         }
       },
     });
