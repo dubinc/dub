@@ -44,7 +44,7 @@ const GROUP_NAVIGATION_TABS = (workspaceSlug: string) =>
       icon: Sliders,
       external: false,
       getHref: (group: GroupProps) =>
-        `/${workspaceSlug}/program/groups/${group.slug}`,
+        `/${workspaceSlug}/program/groups/${group.slug}/settings`,
     },
     {
       id: "partners",

@@ -214,7 +214,9 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
                 label="Edit group"
                 variant="default"
                 onSelect={async () => {
-                  router.push(`/${slug}/program/groups/${row.original.slug}`);
+                  router.push(
+                    `/${slug}/program/groups/${row.original.slug}/settings`,
+                  );
                   setIsOpen(false);
                 }}
               />

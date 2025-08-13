@@ -144,7 +144,6 @@ const Banner = () => {
             <a
               href="https://dub.co/help/article/dual-sided-incentives"
               target="_blank"
-              rel="noopener noreferrer"
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-8 w-fit items-center rounded-lg border bg-white px-3 text-sm",

@@ -9,7 +9,7 @@ import {
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
-import { Button, LoadingSpinner } from "@dub/ui";
+import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { useParams, useRouter } from "next/navigation";
@@ -23,7 +23,7 @@ export function GroupSettings() {
   const { group, loading, mutateGroup } = useGroup();
 
   if (!group || loading) {
-    return <LoadingSpinner />;
+    return <GroupSettingsFormSkeleton />;
   }
 
   return <GroupSettingsForm group={group} mutateGroup={mutateGroup} />;
@@ -180,5 +180,42 @@ function GroupSettingsForm({
         </div>
       </div>
     </form>
+  );
+}
+
+function GroupSettingsFormSkeleton() {
+  return (
+    <div className="rounded-lg border border-neutral-200">
+      <div className="px-5 py-5">
+        <div className="mb-4 h-6 w-20 animate-pulse rounded bg-neutral-200" />
+        <div className="space-y-6 py-2">
+          {/* Name field skeleton */}
+          <div>
+            <div className="mb-2 h-4 w-10 animate-pulse rounded bg-neutral-200" />
+            <div className="relative">
+              <div className="h-10 w-full animate-pulse rounded-md bg-neutral-200" />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
+                <div className="h-6 w-6 animate-pulse rounded-full bg-neutral-300" />
+              </div>
+            </div>
+            <div className="mt-2 h-3 w-56 animate-pulse rounded bg-neutral-100" />
+          </div>
+
+          {/* Landing page slug field skeleton */}
+          <div>
+            <div className="mb-2 h-4 w-32 animate-pulse rounded bg-neutral-200" />
+            <div className="flex">
+              <div className="h-10 w-48 animate-pulse rounded-l-md bg-neutral-200" />
+              <div className="h-10 w-full animate-pulse rounded-r-md bg-neutral-200" />
+            </div>
+            <div className="mt-2 h-3 w-48 animate-pulse rounded bg-neutral-100" />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">
+        <div className="h-8 w-28 animate-pulse rounded bg-neutral-200" />
+      </div>
+    </div>
   );
 }

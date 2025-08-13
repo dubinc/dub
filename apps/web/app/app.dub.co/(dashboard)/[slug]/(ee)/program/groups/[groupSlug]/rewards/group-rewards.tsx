@@ -79,13 +79,13 @@ export function GroupRewards() {
           </>
         ) : (
           <>
+            <RewardItem reward={group.saleReward} event="sale" group={group} />
+            <RewardItem reward={group.leadReward} event="lead" group={group} />
             <RewardItem
               reward={group.clickReward}
               event="click"
               group={group}
             />
-            <RewardItem reward={group.leadReward} event="lead" group={group} />
-            <RewardItem reward={group.saleReward} event="sale" group={group} />
           </>
         )}
       </div>
@@ -145,8 +145,9 @@ const RewardItem = ({
         }
         scroll={false}
         className={cn(
-          "flex cursor-pointer items-center gap-4 rounded-lg p-6 transition-all",
-          reward && "border border-neutral-200 hover:border-neutral-300",
+          "flex items-center gap-4 rounded-lg p-6 transition-all",
+          reward &&
+            "cursor-pointer border border-neutral-200 hover:border-neutral-300",
           !reward && "bg-neutral-50 hover:bg-neutral-100",
         )}
       >
@@ -267,7 +268,6 @@ const Banner = () => {
             <a
               href="https://dub.co/help/article/partner-rewards"
               target="_blank"
-              rel="noopener noreferrer"
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-8 w-fit items-center rounded-lg border bg-white px-3 text-sm",
