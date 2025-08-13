@@ -21,7 +21,7 @@ export function RewardPartnersCard({ groupId }: { groupId: string }) {
           {isLoading ? (
             <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
-            <span className="relative font-medium">
+            <span className="relative whitespace-nowrap font-medium">
               To {partnersCount} {pluralize("partner", partnersCount ?? 0)}
               <span className="ml-2 inline-flex min-w-full items-center align-text-top">
                 {partners?.map(({ id, name, image }, idx) => (
