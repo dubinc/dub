@@ -59,18 +59,14 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       const identityHash = await getIdentityHash(req);
 
       // Get all iOS click cache keys for this identity hash
-      const [_, cacheKeys] = await redis.scan(0, {
-        match: `iosClickCache:${identityHash}*`,
-        count: 50,
+      const [_, cacheKeysForDomain] = await redis.scan(0, {
+        match: `iosClickCache:${identityHash}:${dubDomain}:*`,
+        count: 10,
       });
 
-      const firstCacheKeyForDomain = cacheKeys.find((key) =>
-        key.startsWith(`iosClickCache:${identityHash}:${dubDomain}`),
-      );
-
-      if (firstCacheKeyForDomain) {
+      if (cacheKeysForDomain.length > 0) {
         const cachedData = await redis.get<IdentityHashClicksData>(
-          firstCacheKeyForDomain,
+          cacheKeysForDomain[0],
         );
 
         if (cachedData) {
