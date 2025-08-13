@@ -3,13 +3,13 @@
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
+import { GroupProps } from "@/lib/types";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
 import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
-import { Button } from "@dub/ui";
+import { Button, LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -17,14 +17,24 @@ import { z } from "zod";
 type FormData = z.input<typeof updateGroupSchema>;
 
 export function GroupSettings() {
-  const router = useRouter();
-  const { program } = useProgram();
-  const { groupSlug, slug } = useParams<{ groupSlug: string; slug: string }>();
-  const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
+  const { groupSlug } = useParams<{ groupSlug: string }>();
 
   const { group } = useGroup({
     groupIdOrSlug: groupSlug,
   });
+
+  if (!group) {
+    return <LoadingSpinner />;
+  }
+
+  return <GroupSettingsForm group={group} />;
+}
+
+function GroupSettingsForm({ group }: { group: GroupProps }) {
+  const router = useRouter();
+  const { program } = useProgram();
+  const { slug } = useParams<{ slug: string }>();
+  const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
   const {
     register,
@@ -37,17 +47,6 @@ export function GroupSettings() {
   } = useForm<FormData>({
     mode: "onBlur",
   });
-
-  // Reset form when group data loads
-  useEffect(() => {
-    if (group) {
-      reset({
-        name: group.name,
-        slug: group.slug,
-        color: group.color || "",
-      });
-    }
-  }, [group, reset]);
 
   const onSubmit = async (data: FormData) => {
     if (!group) {
@@ -104,29 +103,16 @@ export function GroupSettings() {
                   placeholder="Group name"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
-                  <div className="relative">
-                    <div
-                      className="h-6 w-6 cursor-pointer rounded-full border-none"
-                      style={{
-                        backgroundColor: watch("color") || "",
-                      }}
-                      onClick={() =>
-                        document.getElementById("color-picker")?.click()
-                      }
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
-                      <Controller
-                        control={control}
-                        name="color"
-                        render={({ field }) => (
-                          <GroupColorPicker
-                            color={field.value}
-                            onChange={field.onChange}
-                          />
-                        )}
+                  <Controller
+                    control={control}
+                    name="color"
+                    render={({ field }) => (
+                      <GroupColorPicker
+                        color={field.value}
+                        onChange={field.onChange}
                       />
-                    </div>
-                  </div>
+                    )}
+                  />
                 </div>
               </div>
 
