@@ -54,25 +54,32 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       await parseRequestBody(req),
     );
 
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+
     if (!deepLinkUrl) {
-      const ip = ipAddress(req);
-      console.log(`Checking cache for ${ip}:${dubDomain}:*`);
+      if (ip) {
+        // if ip address is present, check if there's a cached click
+        console.log(`Checking cache for ${ip}:${dubDomain}:*`);
 
-      // Get all iOS click cache keys for this identity hash
-      const [_, cacheKeysForDomain] = await redis.scan(0, {
-        match: `deepLinkClickCache:${ip}:${dubDomain}:*`,
-        count: 10,
-      });
+        // Get all iOS click cache keys for this identity hash
+        const [_, cacheKeysForDomain] = await redis.scan(0, {
+          match: `deepLinkClickCache:${ip}:${dubDomain}:*`,
+          count: 10,
+        });
 
-      if (cacheKeysForDomain.length > 0) {
-        const cachedData = await redis.get<DeepLinkClickData>(
-          cacheKeysForDomain[0],
-        );
+        if (cacheKeysForDomain.length > 0) {
+          const cachedData = await redis.get<DeepLinkClickData>(
+            cacheKeysForDomain[0],
+          );
 
-        if (cachedData) {
-          return NextResponse.json(trackOpenResponseSchema.parse(cachedData), {
-            headers: CORS_HEADERS,
-          });
+          if (cachedData) {
+            return NextResponse.json(
+              trackOpenResponseSchema.parse(cachedData),
+              {
+                headers: CORS_HEADERS,
+              },
+            );
+          }
         }
       }
 
@@ -89,8 +96,6 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const domain = deepLink.hostname.replace(/^www\./, "").toLowerCase();
     const key = deepLink.pathname.slice(1) || "_root"; // Remove leading slash, default to _root if empty
-
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
     let [cachedClickId, cachedLink] = await redis.mget<
       [string, RedisLinkProps, string[]]

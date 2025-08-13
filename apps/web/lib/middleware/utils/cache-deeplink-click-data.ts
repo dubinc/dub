@@ -16,6 +16,10 @@ export async function cacheDeepLinkClickData({
   link: { id: string; domain: string; key: string; url: string };
 }) {
   const ip = ipAddress(req);
+  if (!ip) {
+    return; // skip caching if ip address is not present
+  }
+
   return await redis.set<DeepLinkClickData>(
     `deepLinkClickCache:${ip}:${link.domain}:${link.key}`,
     {
