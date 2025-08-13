@@ -385,10 +385,10 @@ export const createPartnerSchema = z.object({
       "The partner's unique ID in your system. Useful for retrieving the partner's links and stats later on. If not provided, the partner will be created as a standalone partner.",
     ),
   country: z
-    .enum(COUNTRY_CODES)
+    .string()
     .nullish()
     .describe(
-      "The partner's country of residence. Must be passed as a 2-letter ISO 3166-1 country code. Learn more: https://d.to/geo",
+      "The partner's country of residence. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
     ),
   description: z
     .string()
