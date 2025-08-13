@@ -223,7 +223,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Groups",
             icon: Users6,
-            href: `/${slug}/program/partners/groups`,
+            href: `/${slug}/program/groups`,
             badge: "New",
           },
         ],

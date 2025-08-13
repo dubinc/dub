@@ -1,7 +1,7 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CreateGroupButton } from "./create-group-button";
-import { ProgramPartnersGroupsPageClient } from "./page-client";
+import { GroupsTable } from "./groups-table";
 
 export default function ProgramPartnersGroups() {
   return (
@@ -15,7 +15,7 @@ export default function ProgramPartnersGroups() {
       controls={<CreateGroupButton />}
     >
       <PageWidthWrapper>
-        <ProgramPartnersGroupsPageClient />
+        <GroupsTable />
       </PageWidthWrapper>
     </PageContent>
   );

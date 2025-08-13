@@ -14,7 +14,7 @@ export function GroupColorPicker({
   onChange,
   id,
 }: {
-  color: string | null;
+  color?: string | null;
   onChange: (color: string | null) => void;
   id?: string;
 }) {

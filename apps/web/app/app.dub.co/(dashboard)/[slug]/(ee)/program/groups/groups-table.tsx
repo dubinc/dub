@@ -28,7 +28,7 @@ import { useState } from "react";
 
 export function GroupsTable() {
   const router = useRouter();
-  const { id: workspaceId, slug } = useWorkspace();
+  const { slug } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams } = useRouterStuff();
 
@@ -50,7 +50,13 @@ export function GroupsTable() {
   const isFiltered = !!searchParams.get("search");
 
   const { table, ...tableProps } = useTable({
-    data: groups || [],
+    data: groups
+      ? groups.map((group) => {
+          // prefetch the group page
+          router.prefetch(`/${slug}/program/groups/${group.slug}`);
+          return group;
+        })
+      : [],
     columns: [
       {
         id: "group",
@@ -118,13 +124,11 @@ export function GroupsTable() {
         size: 43,
         maxSize: 43,
         header: () => <EditColumnsButton table={table} />,
-        cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} />
-        ),
+        cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
     onRowClick: (row) => {
-      router.push(`/${slug}/program/partners/groups/${row.original.slug}`);
+      router.push(`/${slug}/program/groups/${row.original.slug}`);
     },
     pagination,
     onPaginationChange: setPagination,
@@ -187,13 +191,7 @@ export function GroupsTable() {
   );
 }
 
-function RowMenuButton({
-  row,
-  workspaceId,
-}: {
-  row: Row<GroupExtendedProps>;
-  workspaceId: string;
-}) {
+function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
   const router = useRouter();
   const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -217,7 +215,7 @@ function RowMenuButton({
                 variant="default"
                 onSelect={async () => {
                   router.push(
-                    `/${slug}/program/partners/groups/${row.original.slug}`,
+                    `/${slug}/program/groups/${row.original.slug}/settings`,
                   );
                   setIsOpen(false);
                 }}
@@ -237,13 +235,11 @@ function RowMenuButton({
 
               {row.original.slug !== DEFAULT_PARTNER_GROUP.slug && (
                 <MenuItem
-                  // icon={isDeleting ? LoadingSpinner : Trash}
                   icon={Trash}
                   label="Delete group"
                   variant="danger"
                   onSelect={async () => {
                     setShowDeleteGroupModal(true);
-                    // setIsOpen(false);
                   }}
                 />
               )}

@@ -14,65 +14,65 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 
 // TODO:
 // Handle error when the group doesn't exists
 
-const GROUP_NAVIGATION_TABS = [
-  {
-    id: "rewards",
-    label: "Rewards",
-    icon: Gift,
-    external: false,
-    getHref(group: GroupProps) {
-      return `/program/partners/groups/${group.slug}/rewards`;
+const GROUP_NAVIGATION_TABS = (workspaceSlug: string) =>
+  [
+    {
+      id: "rewards",
+      label: "Rewards",
+      icon: Gift,
+      external: false,
+      getHref(group: GroupProps) {
+        return `/${workspaceSlug}/program/groups/${group.slug}/rewards`;
+      },
+      isActive(pathname: string) {
+        return pathname.includes("/rewards");
+      },
     },
-    isActive(pathname: string) {
-      return pathname.includes("/rewards");
+    {
+      id: "discount",
+      label: "Discount",
+      icon: Discount,
+      external: false,
+      getHref(group: GroupProps) {
+        return `/${workspaceSlug}/program/groups/${group.slug}/discount`;
+      },
+      isActive(pathname: string) {
+        return pathname.includes("/discounts");
+      },
     },
-  },
-  {
-    id: "discount",
-    label: "Discount",
-    icon: Discount,
-    external: false,
-    getHref(group: GroupProps) {
-      return `/program/partners/groups/${group.slug}/discount`;
+    {
+      id: "settings",
+      label: "Settings",
+      icon: Sliders,
+      external: false,
+      getHref(group: GroupProps) {
+        return `/${workspaceSlug}/program/groups/${group.slug}/settings`;
+      },
+      isActive(pathname: string) {
+        return pathname.includes("/");
+      },
     },
-    isActive(pathname: string) {
-      return pathname.includes("/discounts");
+    {
+      id: "partners",
+      label: "Partners",
+      icon: Users,
+      external: true,
+      getHref(group: GroupProps) {
+        return `/${workspaceSlug}/program/commissions?groupId=${group.id}`;
+      },
+      isActive() {},
     },
-  },
-  {
-    id: "settings",
-    label: "Settings",
-    icon: Sliders,
-    external: false,
-    getHref(group: GroupProps) {
-      return `/program/partners/groups/${group.slug}`;
-    },
-    isActive(pathname: string) {
-      return pathname.includes("/");
-    },
-  },
-  {
-    id: "partners",
-    label: "Partners",
-    icon: Users,
-    external: true,
-    getHref(group: GroupProps) {
-      return `/program/commissions?groupId=${group.id}`;
-    },
-    isActive(pathname: string) {
-      return false;
-    },
-  },
-] as const;
+  ] as const;
 
 export function GroupHeader() {
   const pathname = usePathname();
   const { group, loading } = useGroup();
+  const { slug } = useParams<{ slug: string }>();
 
   if (loading || !group) {
     return <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-200" />;
@@ -96,7 +96,7 @@ export function GroupHeader() {
       </div>
 
       <div className="flex gap-2.5">
-        {GROUP_NAVIGATION_TABS.map((tab) => {
+        {GROUP_NAVIGATION_TABS(slug).map((tab) => {
           const Icon = tab.icon;
           const isActive = tab.isActive(pathname);
 

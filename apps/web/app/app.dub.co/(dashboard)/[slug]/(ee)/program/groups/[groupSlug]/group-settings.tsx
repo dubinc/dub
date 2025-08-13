@@ -3,13 +3,13 @@
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
+import { GroupProps } from "@/lib/types";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
 import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
-import { Button } from "@dub/ui";
+import { Button, LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -17,8 +17,17 @@ import { z } from "zod";
 type FormData = z.input<typeof updateGroupSchema>;
 
 export function GroupSettings() {
-  const router = useRouter();
   const { group } = useGroup();
+
+  if (!group) {
+    return <LoadingSpinner />;
+  }
+
+  return <GroupSettingsForm group={group} />;
+}
+
+function GroupSettingsForm({ group }: { group: GroupProps }) {
+  const router = useRouter();
   const { program } = useProgram();
   const { slug } = useParams<{ slug: string }>();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
@@ -28,22 +37,10 @@ export function GroupSettings() {
     handleSubmit,
     setValue,
     control,
-    reset,
     formState: { errors, isDirty },
   } = useForm<FormData>({
     mode: "onBlur",
   });
-
-  // Reset form when group data loads
-  React.useEffect(() => {
-    if (group) {
-      reset({
-        name: group.name,
-        slug: group.slug,
-        color: group.color || "",
-      });
-    }
-  }, [group, reset]);
 
   const onSubmit = async (data: FormData) => {
     if (!group) {
@@ -58,7 +55,7 @@ export function GroupSettings() {
 
         // If slug changed, redirect to new URL
         if (data.slug !== group.slug) {
-          router.push(`/${slug}/program/partners/groups/${data.slug}`);
+          router.push(`/${slug}/program/groups/${data.slug}`);
         }
       },
     });
@@ -106,7 +103,7 @@ export function GroupSettings() {
                     name="color"
                     render={({ field }) => (
                       <GroupColorPicker
-                        color={field.value ?? null}
+                        color={field.value}
                         onChange={field.onChange}
                       />
                     )}
