@@ -1,6 +1,7 @@
 "use client";
 
 import useGroup from "@/lib/swr/use-group";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
@@ -26,101 +27,102 @@ const GROUP_NAVIGATION_TABS = (workspaceSlug: string) =>
       label: "Rewards",
       icon: Gift,
       external: false,
-      getHref(group: GroupProps) {
-        return `/${workspaceSlug}/program/groups/${group.slug}/rewards`;
-      },
-      isActive(pathname: string) {
-        return pathname.includes("/rewards");
-      },
+      getHref: (group: GroupProps) =>
+        `/${workspaceSlug}/program/groups/${group.slug}/rewards`,
     },
     {
       id: "discount",
       label: "Discount",
       icon: Discount,
       external: false,
-      getHref(group: GroupProps) {
-        return `/${workspaceSlug}/program/groups/${group.slug}/discount`;
-      },
-      isActive(pathname: string) {
-        return pathname.includes("/discounts");
-      },
+      getHref: (group: GroupProps) =>
+        `/${workspaceSlug}/program/groups/${group.slug}/discount`,
     },
     {
       id: "settings",
       label: "Settings",
       icon: Sliders,
       external: false,
-      getHref(group: GroupProps) {
-        return `/${workspaceSlug}/program/groups/${group.slug}`;
-      },
-      isActive(pathname: string) {
-        return pathname.includes("/");
-      },
+      getHref: (group: GroupProps) =>
+        `/${workspaceSlug}/program/groups/${group.slug}`,
     },
     {
       id: "partners",
       label: "Partners",
       icon: Users,
       external: true,
-      getHref(group: GroupProps) {
-        return `/${workspaceSlug}/program/commissions?groupId=${group.id}`;
-      },
-      isActive() {},
+      getHref: (group: GroupProps) =>
+        `/${workspaceSlug}/program/commissions?groupId=${group.id}`,
     },
   ] as const;
 
-export function GroupHeader() {
+export function GroupHeaderTitle() {
+  const { group, loading } = useGroup();
+  const { slug: workspaceSlug } = useWorkspace();
+
+  if (loading || !group)
+    return <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-200" />;
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <Link
+        href={`/${workspaceSlug}/program/groups`}
+        className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
+      >
+        <Users className="size-4" />
+      </Link>
+      <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+      <div className="flex items-center gap-1.5">
+        {<GroupColorCircle group={group} />}
+        <span className="text-lg font-semibold leading-7 text-neutral-900">
+          {group.name}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function GroupHeaderTabs() {
   const pathname = usePathname();
   const { group, loading } = useGroup();
   const { slug } = useParams<{ slug: string }>();
 
-  if (loading || !group) {
-    return <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-200" />;
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1">
-        <div className="flex items-center justify-center rounded-lg bg-neutral-100 p-2">
-          <Users className="size-4" />
-        </div>
-        <div className="flex items-center gap-1.5">
-          <ChevronRight className="text-content-subtle size-2.5 shrink-0 [&_*]:stroke-2" />
-          <div className="flex items-center gap-1.5">
-            {<GroupColorCircle group={group} />}
-            <span className="text-lg font-semibold leading-7 text-neutral-900">
-              {group.name}
-            </span>
-          </div>
-        </div>
-      </div>
+    <div className="scrollbar-hide -mx-3 flex gap-2.5 overflow-x-auto px-3">
+      {GROUP_NAVIGATION_TABS(slug).map((tab) => {
+        const Icon = tab.icon;
 
-      <div className="flex gap-2.5">
-        {GROUP_NAVIGATION_TABS(slug).map((tab) => {
-          const Icon = tab.icon;
-          const isActive = tab.isActive(pathname);
-
+        if (loading || !group)
           return (
-            <Link
+            <div
               key={tab.id}
-              href={tab.getHref(group)}
-              target={tab.external ? "_blank" : undefined}
-            >
-              <Button
-                variant="secondary"
-                icon={<Icon className="size-4" />}
-                text={tab.label}
-                right={
-                  tab.external ? <ArrowUpRight className="size-3" /> : undefined
-                }
-                className={cn("h-7 rounded-lg px-3 text-sm font-medium", {
-                  "bg-bg-subtle": isActive,
-                })}
-              />
-            </Link>
+              className="h-7 w-28 animate-pulse rounded-lg bg-neutral-200"
+            />
           );
-        })}
-      </div>
+
+        const href = tab.getHref(group);
+        const isActive = pathname === href;
+
+        return (
+          <Link
+            key={tab.id}
+            href={href}
+            target={tab.external ? "_blank" : undefined}
+          >
+            <Button
+              variant="secondary"
+              icon={<Icon className="size-4" />}
+              text={tab.label}
+              right={
+                tab.external ? <ArrowUpRight className="size-3" /> : undefined
+              }
+              className={cn("h-7 rounded-lg px-3 text-sm font-medium", {
+                "bg-bg-subtle": isActive,
+              })}
+            />
+          </Link>
+        );
+      })}
     </div>
   );
 }

@@ -53,7 +53,7 @@ export function GroupsTable() {
     data: groups
       ? groups.map((group) => {
           // prefetch the group page
-          router.prefetch(`/${slug}/program/groups/${group.slug}`);
+          router.prefetch(`/${slug}/program/groups/${group.slug}/rewards`);
           return group;
         })
       : [],
@@ -128,7 +128,7 @@ export function GroupsTable() {
       },
     ],
     onRowClick: (row) => {
-      router.push(`/${slug}/program/groups/${row.original.slug}`);
+      router.push(`/${slug}/program/groups/${row.original.slug}/rewards`);
     },
     pagination,
     onPaginationChange: setPagination,
@@ -214,9 +214,7 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
                 label="Edit group"
                 variant="default"
                 onSelect={async () => {
-                  router.push(
-                    `/${slug}/program/groups/${row.original.slug}`,
-                  );
+                  router.push(`/${slug}/program/groups/${row.original.slug}`);
                   setIsOpen(false);
                 }}
               />
