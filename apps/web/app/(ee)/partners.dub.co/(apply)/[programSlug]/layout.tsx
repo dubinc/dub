@@ -1,5 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { Wordmark } from "@dub/ui";
@@ -14,24 +14,22 @@ export async function generateMetadata({
 }: {
   params: { programSlug: string; groupSlug?: string };
 }) {
-  const partnerGroupSlug = groupSlug ?? "default";
+  const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
   const program = await getProgram({
     slug: programSlug,
-    include: ["allRewards", "allDiscounts"],
+    groupSlug: partnerGroupSlug,
   });
 
   if (!program) {
     notFound();
   }
 
-  const { rewards } = getProgramApplicationRewardsAndDiscount(program);
-
   return constructMetadata({
     title: `${program.name} Affiliate Program`,
     description: `Join the ${program.name} affiliate program and ${
-      rewards.length > 0
-        ? formatRewardDescription({ reward: rewards[0] }).toLowerCase()
+      program.rewards.length > 0
+        ? formatRewardDescription({ reward: program.rewards[0] }).toLowerCase()
         : "earn commissions"
     } by referring ${program.name} to your friends and followers.`,
     image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}`,
@@ -52,11 +50,8 @@ export async function generateStaticParams() {
 
 export default async function ApplyLayout({
   children,
-  params: { programSlug, groupSlug },
-}: PropsWithChildren<{ params: { programSlug: string; groupSlug?: string } }>) {
-  const partnerGroupSlug = groupSlug ?? "default";
-  console.log("partnerGroupSlug", partnerGroupSlug);
-
+  params: { programSlug },
+}: PropsWithChildren<{ params: { programSlug: string } }>) {
   const program = await getProgram({ slug: programSlug });
 
   if (!program) {

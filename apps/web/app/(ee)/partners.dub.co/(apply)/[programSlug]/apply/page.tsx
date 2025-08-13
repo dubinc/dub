@@ -1,5 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
 import { capitalize } from "@dub/utils";
@@ -12,20 +12,16 @@ export default async function ApplicationPage({
 }: {
   params: { programSlug: string; groupSlug?: string };
 }) {
-  const partnerGroupSlug = groupSlug ?? "default";
-  console.log("partnerGroupSlug", partnerGroupSlug);
+  const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
   const program = await getProgram({
     slug: programSlug,
-    include: ["allRewards", "allDiscounts"],
+    groupSlug: partnerGroupSlug,
   });
 
   if (!program) {
     notFound();
   }
-
-  const { rewards, discount } =
-    getProgramApplicationRewardsAndDiscount(program);
 
   return (
     <div
@@ -55,8 +51,8 @@ export default async function ApplicationPage({
 
         <LanderRewards
           className="mt-10"
-          rewards={rewards}
-          discount={discount}
+          rewards={program.rewards}
+          discount={program.discount}
         />
 
         {/* Application form */}

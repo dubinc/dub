@@ -40,15 +40,12 @@ const FEATURES = [
 ];
 
 export default async function SuccessPage({
-  params: { programSlug, groupSlug },
+  params: { programSlug },
   searchParams: { applicationId, enrollmentId },
 }: {
-  params: { programSlug: string; groupSlug?: string };
+  params: { programSlug: string };
   searchParams: { applicationId?: string; enrollmentId?: string };
 }) {
-  const partnerGroupSlug = groupSlug ?? "default";
-  console.log("partnerGroupSlug", partnerGroupSlug);
-
   const program = await getProgram({ slug: programSlug });
 
   if (!program) {

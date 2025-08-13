@@ -1,5 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
@@ -14,11 +14,11 @@ export default async function ApplyPage({
 }: {
   params: { programSlug: string; groupSlug?: string };
 }) {
-  const partnerGroupSlug = groupSlug ?? "default";
+  const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
   const program = await getProgram({
     slug: programSlug,
-    include: ["allRewards", "allDiscounts"],
+    groupSlug: partnerGroupSlug,
   });
 
   if (!program || !program.landerData || !program.landerPublishedAt) {
@@ -26,9 +26,6 @@ export default async function ApplyPage({
   }
 
   const landerData = programLanderSchema.parse(program.landerData);
-
-  const { rewards, discount } =
-    getProgramApplicationRewardsAndDiscount(program);
 
   return (
     <div
@@ -45,7 +42,11 @@ export default async function ApplyPage({
         <LanderHero program={program} landerData={landerData} />
 
         {/* Program details grid */}
-        <LanderRewards className="mt-4" rewards={rewards} discount={discount} />
+        <LanderRewards
+          className="mt-4"
+          rewards={program.rewards}
+          discount={program.discount}
+        />
 
         {/* Buttons */}
         <div className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]">
