@@ -156,7 +156,7 @@ const RewardItem = ({
             <Button
               text="Edit"
               variant="secondary"
-              className="h-9 w-fit"
+              className="h-9 w-fit rounded-lg"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -172,7 +172,7 @@ const RewardItem = ({
             <Button
               text="Create"
               variant="primary"
-              className="h-9 w-fit"
+              className="h-9 w-fit rounded-lg"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

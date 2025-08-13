@@ -4,7 +4,7 @@ import { createDiscountAction } from "@/lib/actions/partners/create-discount";
 import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
 import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
-import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps } from "@/lib/types";
@@ -50,6 +50,7 @@ function DiscountSheetContent({ setIsOpen, discount }: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { mutate: mutateProgram } = useProgram();
+  const { group, mutateGroup } = useGroup();
 
   const [isRecurring, setIsRecurring] = useState(
     discount ? discount.maxDuration !== 0 : false,
@@ -87,7 +88,7 @@ function DiscountSheetContent({ setIsOpen, discount }: DiscountSheetProps) {
         setIsOpen(false);
         toast.success("Discount created!");
         await mutateProgram();
-        await mutatePrefix(`/api/programs/${defaultProgramId}/discounts`);
+        await mutateGroup();
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -102,7 +103,7 @@ function DiscountSheetContent({ setIsOpen, discount }: DiscountSheetProps) {
         setIsOpen(false);
         toast.success("Discount updated!");
         await mutateProgram();
-        await mutatePrefix(`/api/programs/${defaultProgramId}/discounts`);
+        await mutateGroup();
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -117,7 +118,7 @@ function DiscountSheetContent({ setIsOpen, discount }: DiscountSheetProps) {
         setIsOpen(false);
         toast.success("Discount deleted!");
         await mutate(`/api/programs/${defaultProgramId}`);
-        await mutatePrefix(`/api/programs/${defaultProgramId}/discounts`);
+        await mutateGroup();
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -126,7 +127,7 @@ function DiscountSheetContent({ setIsOpen, discount }: DiscountSheetProps) {
   );
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !defaultProgramId) {
+    if (!workspaceId || !defaultProgramId || !group) {
       return;
     }
 
@@ -141,7 +142,7 @@ function DiscountSheetContent({ setIsOpen, discount }: DiscountSheetProps) {
     if (!discount) {
       await createDiscount({
         ...payload,
-        groupId: "", // TODO: fix it
+        groupId: group.id,
       });
     } else {
       await updateDiscount({

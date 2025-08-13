@@ -20,10 +20,16 @@ export const createDiscountAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await getGroupOrThrow({
+    const group = await getGroupOrThrow({
       groupId,
       programId,
     });
+
+    if (group.discountId) {
+      throw new Error(
+        `You can't create a discount for this group because it already has a discount.`,
+      );
+    }
 
     const discount = await prisma.$transaction(async (tx) => {
       const discount = await tx.discount.create({
