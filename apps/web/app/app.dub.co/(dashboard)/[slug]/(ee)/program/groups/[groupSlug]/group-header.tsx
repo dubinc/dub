@@ -5,7 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
-  ArrowUpRight,
+  ArrowUpRight2,
   Button,
   ChevronRight,
   Discount,
@@ -114,9 +114,11 @@ export function GroupHeaderTabs() {
               icon={<Icon className="size-4" />}
               text={tab.label}
               right={
-                tab.external ? <ArrowUpRight className="size-3" /> : undefined
+                tab.external ? (
+                  <ArrowUpRight2 className="text-content-subtle size-3.5" />
+                ) : undefined
               }
-              className={cn("h-7 rounded-lg px-3 text-sm font-medium", {
+              className={cn("h-7 rounded-lg px-2.5 text-sm font-medium", {
                 "bg-bg-subtle": isActive,
               })}
             />

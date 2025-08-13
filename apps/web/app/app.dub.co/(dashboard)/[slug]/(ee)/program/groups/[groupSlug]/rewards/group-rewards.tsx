@@ -8,9 +8,18 @@ import {
   RewardSheet,
   useRewardSheet,
 } from "@/ui/partners/rewards/add-edit-reward-sheet";
+import { X } from "@/ui/shared/icons";
 import { EventType } from "@dub/prisma/client";
-import { Button, Gift, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  buttonVariants,
+  Gift,
+  Grid,
+  useLocalStorage,
+  useRouterStuff,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -47,7 +56,7 @@ export function GroupRewards() {
     : undefined;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div>
       {rewardSheetState.rewardId && (currentReward || isNewReward) && (
         <RewardSheetWrapper
           reward={currentReward}
@@ -61,19 +70,25 @@ export function GroupRewards() {
 
       <Banner />
 
-      {loading || !group ? (
-        <>
-          <RewardSkeleton />
-          <RewardSkeleton />
-          <RewardSkeleton />
-        </>
-      ) : (
-        <>
-          <RewardItem reward={group.clickReward} event="click" group={group} />
-          <RewardItem reward={group.leadReward} event="lead" group={group} />
-          <RewardItem reward={group.saleReward} event="sale" group={group} />
-        </>
-      )}
+      <div className="flex flex-col gap-6">
+        {loading || !group ? (
+          <>
+            <RewardSkeleton />
+            <RewardSkeleton />
+            <RewardSkeleton />
+          </>
+        ) : (
+          <>
+            <RewardItem
+              reward={group.clickReward}
+              event="click"
+              group={group}
+            />
+            <RewardItem reward={group.leadReward} event="lead" group={group} />
+            <RewardItem reward={group.saleReward} event="sale" group={group} />
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -201,24 +216,74 @@ const RewardSkeleton = () => {
 };
 
 const Banner = () => {
+  const [dismissedBanner, setDismissedBanner] = useLocalStorage<boolean>(
+    "program-rewards-banner-dismissed",
+    false,
+  );
+
   return (
-    <div className="flex flex-col gap-6 rounded-xl bg-neutral-100 p-5">
-      <Gift className="size-6" />
-      <div>
-        <h2 className="text-base font-semibold leading-6 text-neutral-900">
-          Rewards
-        </h2>
-        <p className="text-base font-normal leading-6 text-neutral-500">
-          Rewards offered to all partners enrolled in this group
-        </p>
+    <motion.div
+      animate={
+        dismissedBanner
+          ? { opacity: 0, height: 0 }
+          : { opacity: 1, height: "auto" }
+      }
+      className="overflow-hidden"
+    >
+      <div className="pb-6">
+        <div className="relative isolate overflow-hidden rounded-xl bg-neutral-100">
+          <div
+            className="pointer-events-none absolute inset-0 [mask-image:linear-gradient(90deg,transparent,black)]"
+            aria-hidden
+          >
+            <div className="absolute right-0 top-0 h-full w-[600px]">
+              <Grid
+                cellSize={60}
+                patternOffset={[1, -30]}
+                className="text-neutral-200"
+              />
+            </div>
+            <div className="absolute -inset-16 opacity-15 blur-[50px] [transform:translateZ(0)]">
+              <div
+                className="absolute right-0 top-0 h-full w-[350px] -scale-y-100 rounded-l-full saturate-150"
+                style={{
+                  backgroundImage: `conic-gradient(from -66deg, #855AFC -32deg, #FF0000 63deg, #EAB308 158deg, #5CFF80 240deg, #855AFC 328deg, #FF0000 423deg)`,
+                }}
+              />
+            </div>
+          </div>
+          <div className="relative flex flex-col gap-4 p-5">
+            <Gift className="size-6" />
+            <div>
+              <h2 className="text-content-emphasis text-base font-semibold">
+                Rewards
+              </h2>
+              <p className="text-content-subtle text-base font-normal leading-6">
+                Rewards offered to all partners enrolled in this group
+              </p>
+            </div>
+            <a
+              href="https://dub.co/help/article/partner-rewards"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-8 w-fit items-center rounded-lg border bg-white px-3 text-sm",
+              )}
+            >
+              Learn more
+            </a>
+          </div>
+
+          <button
+            type="button"
+            className="text-content-emphasis absolute right-4 top-4 flex size-7 items-center justify-center rounded-lg transition-colors duration-150 hover:bg-black/5 active:bg-black/10"
+            onClick={() => setDismissedBanner(true)}
+          >
+            <X className="size-4" />
+          </button>
+        </div>
       </div>
-      <Link href="/">
-        <Button
-          text="Learn more"
-          variant="secondary"
-          className="h-8 w-fit rounded-lg bg-white"
-        />
-      </Link>
-    </div>
+    </motion.div>
   );
 };
