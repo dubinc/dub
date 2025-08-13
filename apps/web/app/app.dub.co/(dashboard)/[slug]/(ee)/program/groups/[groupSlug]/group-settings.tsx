@@ -4,12 +4,13 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
+import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { useParams, useRouter } from "next/navigation";
-import React from "react";
-import { useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -30,6 +31,7 @@ export function GroupSettings() {
     handleSubmit,
     setValue,
     watch,
+    control,
     reset,
     formState: { errors, isDirty },
   } = useForm<FormData>({
@@ -37,7 +39,7 @@ export function GroupSettings() {
   });
 
   // Reset form when group data loads
-  React.useEffect(() => {
+  useEffect(() => {
     if (group) {
       reset({
         name: group.name,
@@ -112,15 +114,18 @@ export function GroupSettings() {
                         document.getElementById("color-picker")?.click()
                       }
                     />
-                    <input
-                      id="color-picker"
-                      type="color"
-                      {...register("color", {
-                        required: true,
-                      })}
-                      className="absolute inset-0 cursor-pointer opacity-0"
-                      title="Choose group color"
-                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
+                      <Controller
+                        control={control}
+                        name="color"
+                        render={({ field }) => (
+                          <GroupColorPicker
+                            color={field.value}
+                            onChange={field.onChange}
+                          />
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
