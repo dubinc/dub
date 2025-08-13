@@ -117,9 +117,6 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.merge(
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
-    clickRewardId: z.string().optional(),
-    leadRewardId: z.string().optional(),
-    saleRewardId: z.string().optional(),
     groupId: z.string().optional(),
   }),
 );
@@ -143,15 +140,7 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     pageSize: true,
   })
   .extend({
-    groupBy: z
-      .enum([
-        "status",
-        "country",
-        "clickRewardId",
-        "leadRewardId",
-        "saleRewardId",
-      ])
-      .optional(),
+    groupBy: z.enum(["status", "country", "groupId"]).optional(),
   });
 
 export const partnerInvitesQuerySchema = getPaginationQuerySchema({

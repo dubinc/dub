@@ -34,9 +34,6 @@ export async function getPartners(filters: PartnerFilters) {
   const {
     status,
     country,
-    clickRewardId,
-    leadRewardId,
-    saleRewardId,
     search,
     tenantId,
     partnerIds,
@@ -138,9 +135,6 @@ export async function getPartners(filters: PartnerFilters) {
       ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status NOT IN ('pending', 'rejected', 'banned', 'archived')`}
       ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
-      ${clickRewardId ? Prisma.sql`AND pe.clickRewardId = ${clickRewardId}` : Prisma.sql``}
-      ${leadRewardId ? Prisma.sql`AND pe.leadRewardId = ${leadRewardId}` : Prisma.sql``}
-      ${saleRewardId ? Prisma.sql`AND pe.saleRewardId = ${saleRewardId}` : Prisma.sql``}
       ${
         search
           ? Prisma.sql`AND (
