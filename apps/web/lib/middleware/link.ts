@@ -31,7 +31,7 @@ import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
-import { cacheIdentityHashClicks } from "./utils/cache-identity-hash-clicks";
+import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
@@ -410,7 +410,7 @@ export default async function LinkMiddleware(
         }),
         // cache click if it's an iOS app store URL
         ios.startsWith("https://apps.apple.com/") &&
-          cacheIdentityHashClicks({
+          cacheDeepLinkClickData({
             req,
             clickId,
             link: {

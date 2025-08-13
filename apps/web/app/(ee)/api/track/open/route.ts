@@ -2,8 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
-import { getIdentityHash } from "@/lib/middleware/utils";
-import { IdentityHashClicksData } from "@/lib/middleware/utils/cache-identity-hash-clicks";
+import { DeepLinkClickData } from "@/lib/middleware/utils/cache-deeplink-click-data";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
@@ -56,16 +55,17 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     );
 
     if (!deepLinkUrl) {
-      const identityHash = await getIdentityHash(req);
+      const ip = ipAddress(req);
+      console.log(`Checking cache for ${ip}:${dubDomain}:*`);
 
       // Get all iOS click cache keys for this identity hash
       const [_, cacheKeysForDomain] = await redis.scan(0, {
-        match: `iosClickCache:${identityHash}:${dubDomain}:*`,
+        match: `deepLinkClickCache:${ip}:${dubDomain}:*`,
         count: 10,
       });
 
       if (cacheKeysForDomain.length > 0) {
-        const cachedData = await redis.get<IdentityHashClicksData>(
+        const cachedData = await redis.get<DeepLinkClickData>(
           cacheKeysForDomain[0],
         );
 

@@ -1,12 +1,12 @@
 import { redis } from "@/lib/upstash";
-import { getIdentityHash } from "./get-identity-hash";
+import { ipAddress } from "@vercel/functions";
 
-export type IdentityHashClicksData = {
+export type DeepLinkClickData = {
   clickId: string;
   link: { id: string; domain: string; key: string; url: string };
 };
 
-export async function cacheIdentityHashClicks({
+export async function cacheDeepLinkClickData({
   req,
   clickId,
   link,
@@ -15,9 +15,9 @@ export async function cacheIdentityHashClicks({
   clickId: string;
   link: { id: string; domain: string; key: string; url: string };
 }) {
-  const identityHash = await getIdentityHash(req);
-  return await redis.set<IdentityHashClicksData>(
-    `iosClickCache:${identityHash}:${link.domain}:${link.key}`,
+  const ip = ipAddress(req);
+  return await redis.set<DeepLinkClickData>(
+    `deepLinkClickCache:${ip}:${link.domain}:${link.key}`,
     {
       clickId,
       link,
