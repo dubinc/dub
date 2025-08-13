@@ -59,15 +59,15 @@ export const GET = withWorkspace(
         by: ["status"],
         where: {
           programId,
+          ...(groupId && {
+            groupId,
+          }),
           partner: {
             ...(country && {
               country,
             }),
             ...commonWhere,
           },
-          ...(groupId && {
-            groupId,
-          }),
         },
         _count: true,
       });
@@ -117,18 +117,14 @@ export const GET = withWorkspace(
         status: status || {
           in: ["approved", "invited"],
         },
+        ...(groupId && {
+          groupId,
+        }),
         partner: {
           ...(country && {
             country,
           }),
           ...commonWhere,
-          ...(groupId && {
-            programs: {
-              some: {
-                groupId,
-              },
-            },
-          }),
         },
       },
     });
