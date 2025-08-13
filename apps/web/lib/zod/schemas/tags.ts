@@ -41,12 +41,14 @@ export const getTagsCountQuerySchema = getTagsQuerySchema.omit({
   pageSize: true,
 });
 
+// TODO: Remove "pink" after confirming we don't have any pink tags in the database
+const tagColors = [...RESOURCE_COLORS, "pink"] as const;
+
 export const tagColorSchema = z
-  // TODO: Remove "pink" after confirming we don't have any pink tags in the database
-  .enum([...RESOURCE_COLORS, "pink"], {
+  .enum(tagColors, {
     errorMap: () => {
       return {
-        message: `Invalid color. Must be one of: ${RESOURCE_COLORS.join(", ")}`,
+        message: `Invalid color. Must be one of: ${tagColors.join(", ")}`,
       };
     },
   })
