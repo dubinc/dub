@@ -90,7 +90,7 @@ function GroupSettingsForm({
               htmlFor="name"
               className="text-sm font-medium text-neutral-800"
             >
-              Name
+              Group name
             </label>
             <div className="mt-2">
               <div className="relative">
@@ -138,30 +138,25 @@ function GroupSettingsForm({
                 htmlFor="slug"
                 className="text-sm font-medium text-neutral-800"
               >
-                Landing page slug
+                Group slug
               </label>
               <div className="mt-2">
-                <div className="flex">
-                  <div className="flex items-center rounded-l-md border-y border-l border-neutral-300 px-3 py-2 text-sm text-neutral-800">
-                    partners.dub.co/{program?.slug}
-                  </div>
-                  <input
-                    type="text"
-                    id="slug"
-                    className={cn(
-                      "block w-full rounded-r-md border border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                      errors.slug &&
-                        "border-red-600 focus:border-red-500 focus:ring-red-600",
-                    )}
-                    {...register("slug", {
-                      required: true,
-                    })}
-                    placeholder="group-name"
-                  />
-                </div>
+                <input
+                  type="text"
+                  id="slug"
+                  className={cn(
+                    "block w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    errors.slug &&
+                      "border-red-600 focus:border-red-500 focus:ring-red-600",
+                  )}
+                  {...register("slug", {
+                    required: true,
+                  })}
+                  placeholder="group-name"
+                />
 
                 <p className="mt-2 text-xs text-neutral-500">
-                  For both internal and external use
+                  For program landing page and internal group page URLs
                 </p>
               </div>
             </div>
@@ -201,7 +196,7 @@ function GroupSettingsFormSkeleton() {
             <div className="mt-2 h-3 w-56 animate-pulse rounded bg-neutral-100" />
           </div>
 
-          {/* Landing page slug field skeleton */}
+          {/* Group slug field skeleton */}
           <div>
             <div className="mb-2 h-4 w-32 animate-pulse rounded bg-neutral-200" />
             <div className="flex">
