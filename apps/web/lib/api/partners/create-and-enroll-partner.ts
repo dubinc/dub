@@ -18,6 +18,7 @@ import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
+import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { linkCache } from "../links/cache";
 import { includeTags } from "../links/include-tags";
 import { backfillLinkCommissions } from "./backfill-link-commissions";
@@ -87,7 +88,7 @@ export const createAndEnrollPartner = async ({
     }
   }
 
-  const [defaultRewards, allDiscounts, group] = await prisma.$transaction([
+  const [defaultRewards, allDiscounts, group] = await Promise.all([
     prisma.reward.findMany({
       where: {
         programId: program.id,
@@ -107,10 +108,9 @@ export const createAndEnrollPartner = async ({
       },
     }),
 
-    prisma.partnerGroup.findUnique({
-      where: {
-        id: groupId || program.defaultGroupId!,
-      },
+    getGroupOrThrow({
+      programId: program.id,
+      groupId: groupId || program.defaultGroupId!,
     }),
   ]);
 
@@ -139,7 +139,9 @@ export const createAndEnrollPartner = async ({
           },
         },
         ...finalAssignedRewards,
-        discountId: finalAssignedDiscount,
+        ...(finalAssignedDiscount && {
+          discountId: finalAssignedDiscount,
+        }),
         ...(enrolledAt && {
           createdAt: enrolledAt,
         }),
