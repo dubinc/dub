@@ -9,7 +9,7 @@ import {
   useRewardSheet,
 } from "@/ui/partners/rewards/add-edit-reward-sheet";
 import { EventType } from "@dub/prisma/client";
-import { Button, useRouterStuff } from "@dub/ui";
+import { Button, Gift, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -58,6 +58,8 @@ export function GroupRewards() {
           }
         />
       )}
+
+      <Banner />
 
       {loading || !group ? (
         <>
@@ -194,6 +196,29 @@ const RewardSkeleton = () => {
         <div className="h-4 w-64 animate-pulse rounded bg-neutral-100" />
         <div className="h-6 w-24 animate-pulse rounded-full bg-neutral-100" />
       </div>
+    </div>
+  );
+};
+
+const Banner = () => {
+  return (
+    <div className="flex flex-col gap-6 rounded-xl bg-neutral-100 p-5">
+      <Gift className="size-6" />
+      <div>
+        <h2 className="text-base font-semibold leading-6 text-neutral-900">
+          Rewards
+        </h2>
+        <p className="text-base font-normal leading-6 text-neutral-500">
+          Rewards offered to all partners enrolled in this group
+        </p>
+      </div>
+      <Link href="/">
+        <Button
+          text="Learn more"
+          variant="secondary"
+          className="h-8 w-fit rounded-lg bg-white"
+        />
+      </Link>
     </div>
   );
 };

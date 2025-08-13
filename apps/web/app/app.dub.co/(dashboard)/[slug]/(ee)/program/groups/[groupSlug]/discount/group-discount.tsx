@@ -4,15 +4,18 @@ import useGroup from "@/lib/swr/use-group";
 import type { DiscountProps } from "@/lib/types";
 import { useDiscountSheet } from "@/ui/partners/add-edit-discount-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { Button } from "@dub/ui";
+import { Button, Discount } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { BadgePercent } from "lucide-react";
+import Link from "next/link";
 
 export const GroupDiscount = () => {
   const { group, loading } = useGroup();
 
   return (
     <div className="flex flex-col gap-6">
+      <Banner />
+
       {loading ? (
         <DiscountSkeleton />
       ) : (
@@ -77,6 +80,30 @@ const DiscountSkeleton = () => {
         <div className="h-4 w-64 animate-pulse rounded bg-neutral-100" />
         <div className="h-6 w-24 animate-pulse rounded-full bg-neutral-100" />
       </div>
+    </div>
+  );
+};
+
+const Banner = () => {
+  return (
+    <div className="flex flex-col gap-6 rounded-xl bg-neutral-100 p-5">
+      <Discount className="size-6" />
+      <div>
+        <h2 className="text-base font-semibold leading-6 text-neutral-900">
+          Referral discounts
+        </h2>
+        <p className="text-base font-normal leading-6 text-neutral-500">
+          Discounts offered to customers when referred by all partners in this
+          group
+        </p>
+      </div>
+      <Link href="/">
+        <Button
+          text="Learn more"
+          variant="secondary"
+          className="h-8 w-fit rounded-lg bg-white"
+        />
+      </Link>
     </div>
   );
 };
