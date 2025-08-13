@@ -228,7 +228,9 @@ const Banner = () => {
           ? { opacity: 0, height: 0 }
           : { opacity: 1, height: "auto" }
       }
+      initial={false}
       className="overflow-hidden"
+      {...(dismissedBanner && { inert: "" })}
     >
       <div className="pb-6">
         <div className="relative isolate overflow-hidden rounded-xl bg-neutral-100">
