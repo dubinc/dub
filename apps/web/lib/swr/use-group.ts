@@ -4,9 +4,11 @@ import useSWR from "swr";
 import { GroupProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useGroup() {
+export default function useGroup({ slug: slugProp }: { slug?: string } = {}) {
   const { id: workspaceId } = useWorkspace();
-  const { groupSlug } = useParams<{ groupSlug: string }>();
+  const { groupSlug: groupSlugParam } = useParams<{ groupSlug: string }>();
+
+  const groupSlug = slugProp ?? groupSlugParam;
 
   const {
     data: group,
