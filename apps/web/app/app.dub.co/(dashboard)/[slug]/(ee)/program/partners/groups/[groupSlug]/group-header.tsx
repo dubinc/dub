@@ -14,7 +14,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 // TODO:
 // Handle error when the group doesn't exists
@@ -72,11 +72,7 @@ const GROUP_NAVIGATION_TABS = [
 
 export function GroupHeader() {
   const pathname = usePathname();
-  const { groupSlug } = useParams<{ groupSlug: string }>();
-
-  const { group, loading } = useGroup({
-    groupIdOrSlug: groupSlug,
-  });
+  const { group, loading } = useGroup();
 
   if (loading || !group) {
     return <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-200" />;

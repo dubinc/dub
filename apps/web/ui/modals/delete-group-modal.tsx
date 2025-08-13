@@ -69,17 +69,19 @@ const DeleteGroupModal = ({
               <h4>Deleting this group will do the following:</h4>
 
               <ul className="mt-0.5 list-outside list-disc space-y-px pl-4">
-                <li>Rewards created for this group are deleted.</li>
+                <li>Rewards created for this group will be deleted.</li>
+                <li>Discount created for this group will be deleted.</li>
 
                 {group.partners && group.partners > 0 ? (
                   <>
                     <li>
-                      Partners in this group will be moved to your Default
-                      group.
+                      Partners in this group will be moved to your{" "}
+                      <strong>Default</strong> group.
                     </li>
                     <li>
                       Partners in this group will have their rewards and
-                      discount updated to the Default group settings.
+                      discount updated to the <strong>Default</strong> group
+                      settings.
                     </li>
                   </>
                 ) : null}

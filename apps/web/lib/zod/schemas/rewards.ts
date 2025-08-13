@@ -72,7 +72,6 @@ export const RewardSchema = z.object({
   amount: z.number(),
   maxDuration: z.number().nullish(),
   maxAmount: z.number().nullish(),
-  default: z.boolean(),
   modifiers: z.any().nullish(), // TODO: Fix this
 });
 

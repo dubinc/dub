@@ -1,14 +1,20 @@
 import { fetcher } from "@dub/utils";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { GroupProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useGroup({ groupIdOrSlug }: { groupIdOrSlug: string }) {
+export default function useGroup() {
   const { id: workspaceId } = useWorkspace();
+  const { groupSlug } = useParams<{ groupSlug: string }>();
 
-  const { data: group, error } = useSWR<GroupProps>(
-    workspaceId && groupIdOrSlug
-      ? `/api/groups/${groupIdOrSlug}?workspaceId=${workspaceId}`
+  const {
+    data: group,
+    error,
+    mutate: mutateGroup,
+  } = useSWR<GroupProps>(
+    workspaceId && groupSlug
+      ? `/api/groups/${groupSlug}?workspaceId=${workspaceId}`
       : undefined,
     fetcher,
   );
@@ -16,6 +22,7 @@ export default function useGroup({ groupIdOrSlug }: { groupIdOrSlug: string }) {
   return {
     group,
     error,
+    mutateGroup,
     loading: !group && !error,
   };
 }

@@ -4,12 +4,13 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
+import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -17,19 +18,16 @@ type FormData = z.input<typeof updateGroupSchema>;
 
 export function GroupSettings() {
   const router = useRouter();
+  const { group } = useGroup();
   const { program } = useProgram();
-  const { groupSlug, slug } = useParams<{ groupSlug: string; slug: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
-
-  const { group } = useGroup({
-    groupIdOrSlug: groupSlug,
-  });
 
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     reset,
     formState: { errors, isDirty },
   } = useForm<FormData>({
@@ -86,6 +84,7 @@ export function GroupSettings() {
                 <input
                   type="text"
                   id="name"
+                  autoFocus
                   className={cn(
                     "block w-full rounded-md border-neutral-300 px-3 py-2 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                     errors.name &&
@@ -96,32 +95,22 @@ export function GroupSettings() {
                   })}
                   onChange={(e) => {
                     const name = e.target.value;
-                    setValue("name", name, { shouldDirty: true });
-                    setValue("slug", slugify(name), { shouldDirty: true });
+                    setValue("name", name);
+                    setValue("slug", slugify(name));
                   }}
                   placeholder="Group name"
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
-                  <div className="relative">
-                    <div
-                      className="h-6 w-6 cursor-pointer rounded-full border-none"
-                      style={{
-                        backgroundColor: watch("color") || "",
-                      }}
-                      onClick={() =>
-                        document.getElementById("color-picker")?.click()
-                      }
-                    />
-                    <input
-                      id="color-picker"
-                      type="color"
-                      {...register("color", {
-                        required: true,
-                      })}
-                      className="absolute inset-0 cursor-pointer opacity-0"
-                      title="Choose group color"
-                    />
-                  </div>
+                  <Controller
+                    control={control}
+                    name="color"
+                    render={({ field }) => (
+                      <GroupColorPicker
+                        color={field.value ?? null}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
                 </div>
               </div>
 

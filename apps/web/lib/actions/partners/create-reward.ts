@@ -30,10 +30,18 @@ export const createRewardAction = authActionClient
       );
     }
 
-    await getGroupOrThrow({
+    const group = await getGroupOrThrow({
       groupId,
       programId,
     });
+
+    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
+
+    if (group[rewardIdColumn]) {
+      throw new Error(
+        `You can't create a ${event} reward for this group because it already has a ${event} reward.`,
+      );
+    }
 
     const reward = await prisma.$transaction(async (tx) => {
       const reward = await tx.reward.create({
@@ -47,8 +55,6 @@ export const createRewardAction = authActionClient
           modifiers: modifiers || Prisma.JsonNull,
         },
       });
-
-      const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
       await tx.partnerGroup.update({
         where: {

@@ -217,7 +217,7 @@ function RowMenuButton({
                 variant="default"
                 onSelect={async () => {
                   router.push(
-                    `/${slug}/program/partners/groups/${row.original.slug}/settings`,
+                    `/${slug}/program/partners/groups/${row.original.slug}`,
                   );
                   setIsOpen(false);
                 }}

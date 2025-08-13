@@ -6,14 +6,13 @@ import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   createOrUpdateRewardSchema,
-  REWARD_EVENT_COLUMN_MAPPING,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -74,6 +73,7 @@ type FormData = z.infer<typeof formSchema>;
 export const useAddEditRewardForm = () => useFormContext<FormData>();
 
 function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
+  const { group, mutateGroup } = useGroup();
   const { id: workspaceId, defaultProgramId, plan } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
@@ -112,7 +112,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         setIsOpen(false);
         toast.success("Reward created!");
         await mutateProgram();
-        await mutatePrefix(`/api/programs/${defaultProgramId}/rewards`);
+        await mutateGroup();
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -127,10 +127,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         setIsOpen(false);
         toast.success("Reward updated!");
         await mutateProgram();
-        await mutatePrefix([
-          `/api/programs/${defaultProgramId}/rewards`,
-          `/api/partners/count?groupBy=${REWARD_EVENT_COLUMN_MAPPING[event]}&workspaceId=${workspaceId}`,
-        ]);
+        await mutateGroup();
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -145,7 +142,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
         setIsOpen(false);
         toast.success("Reward deleted!");
         await mutate(`/api/programs/${defaultProgramId}`);
-        await mutatePrefix(`/api/programs/${defaultProgramId}/rewards`);
+        await mutateGroup();
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -165,7 +162,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
   }, [modifiers, plan]);
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !defaultProgramId || showAdvancedUpsell) {
+    if (!workspaceId || !defaultProgramId || showAdvancedUpsell || !group) {
       return;
     }
 
@@ -200,7 +197,7 @@ function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
     if (!reward) {
       await createReward({
         ...payload,
-        groupId: "", // TODO: Fix this
+        groupId: group.id,
       });
     } else {
       await updateReward({

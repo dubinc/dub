@@ -44,6 +44,15 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         gte: startDate.toISOString(),
         lte: endDate.toISOString(),
       },
+      ...(groupId && {
+        partner: {
+          programs: {
+            every: {
+              groupId,
+            },
+          },
+        },
+      }),
     },
     _count: true,
     _sum: {
