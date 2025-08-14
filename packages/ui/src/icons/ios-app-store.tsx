@@ -8,7 +8,7 @@ export function IOSAppStore({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <g clip-path="url(#clip0_24804_74166)">
+      <g clipPath="url(#clip0_24804_74166)">
         <path
           d="M19.652 0L5.348 0C2.669 0 0.5 2.169 0.5 4.848L0.5 19.155C0.5 21.831 2.669 24 5.348 24H19.655C22.331 24 24.503 21.831 24.503 19.152V4.848C24.5 2.169 22.331 0 19.652 0Z"
           fill="url(#paint0_linear_24804_74166)"
@@ -27,8 +27,8 @@ export function IOSAppStore({ className }: { className?: string }) {
           y2="24"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#18BFFB" />
-          <stop offset="1" stop-color="#2072F3" />
+          <stop stopColor="#18BFFB" />
+          <stop offset="1" stopColor="#2072F3" />
         </linearGradient>
         <clipPath id="clip0_24804_74166">
           <rect
