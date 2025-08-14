@@ -57,7 +57,7 @@ import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
@@ -158,140 +158,146 @@ export function PartnersTable() {
 
   const { pagination, setPagination } = usePagination();
 
+  const columns = useMemo(
+    () =>
+      [
+        {
+          id: "partner",
+          header: "Partner",
+          enableHiding: false,
+          minSize: 250,
+          cell: ({ row }) => {
+            return (
+              <PartnerRowItem partner={row.original} showPermalink={false} />
+            );
+          },
+        },
+        {
+          id: "group",
+          header: "Group",
+          cell: ({ row }) => {
+            if (!groups) return "-";
+            const partnerGroup =
+              groups.find((g) => g.id === row.original.groupId) ??
+              DEFAULT_PARTNER_GROUP;
+
+            return (
+              <div className="flex items-center gap-2">
+                <GroupColorCircle group={partnerGroup} />
+                <span className="truncate text-sm font-medium">
+                  {partnerGroup.name}
+                </span>
+              </div>
+            );
+          },
+        },
+        {
+          id: "createdAt",
+          header: "Enrolled",
+          accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+        },
+        {
+          id: "status",
+          header: "Status",
+          cell: ({ row }) => {
+            const badge = PartnerStatusBadges[row.original.status];
+            return badge ? (
+              <StatusBadge icon={null} variant={badge.variant}>
+                {badge.label}
+              </StatusBadge>
+            ) : (
+              "-"
+            );
+          },
+        },
+        {
+          id: "location",
+          header: "Location",
+          minSize: 150,
+          cell: ({ row }) => {
+            const country = row.original.country;
+            return (
+              <div className="flex items-center gap-2">
+                {country && (
+                  <img
+                    alt={`${country} flag`}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )}
+                <span className="min-w-0 truncate">
+                  {(country ? COUNTRIES[country] : null) ?? "-"}
+                </span>
+              </div>
+            );
+          },
+        },
+        {
+          id: "clicks",
+          header: "Clicks",
+          accessorFn: (d) => nFormatter(d.clicks),
+        },
+        {
+          id: "leads",
+          header: "Leads",
+          accessorFn: (d) => nFormatter(d.leads),
+        },
+        {
+          id: "conversions",
+          header: "Conversions",
+          accessorFn: (d) => nFormatter(d.conversions),
+        },
+        {
+          id: "sales",
+          header: "Sales",
+          accessorFn: (d) => nFormatter(d.sales),
+        },
+        {
+          id: "saleAmount",
+          header: "Revenue",
+          accessorFn: (d) =>
+            currencyFormatter(d.saleAmount / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+        },
+        {
+          id: "totalCommissions",
+          header: "Commissions",
+          accessorFn: (d) =>
+            currencyFormatter(d.totalCommissions / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+        },
+        {
+          id: "netRevenue",
+          header: "Net Revenue",
+          accessorFn: (d) =>
+            currencyFormatter(d.netRevenue / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+        },
+        // Menu
+        {
+          id: "menu",
+          enableHiding: false,
+          minSize: 43,
+          size: 43,
+          maxSize: 43,
+          header: ({ table }) => <EditColumnsButton table={table} />,
+          cell: ({ row }) => (
+            <RowMenuButton row={row} workspaceId={workspaceId!} />
+          ),
+        },
+      ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
+    [workspaceId, groups],
+  );
+
   const { table, ...tableProps } = useTable({
     data: partners || [],
-    columns: [
-      {
-        id: "partner",
-        header: "Partner",
-        enableHiding: false,
-        minSize: 250,
-        cell: ({ row }) => {
-          return (
-            <PartnerRowItem partner={row.original} showPermalink={false} />
-          );
-        },
-      },
-      {
-        id: "group",
-        header: "Group",
-        cell: ({ row }) => {
-          if (!groups) return "-";
-          const partnerGroup =
-            groups.find((g) => g.id === row.original.groupId) ??
-            DEFAULT_PARTNER_GROUP;
-
-          return (
-            <div className="flex items-center gap-2">
-              <GroupColorCircle group={partnerGroup} />
-              <span className="truncate text-sm font-medium">
-                {partnerGroup.name}
-              </span>
-            </div>
-          );
-        },
-      },
-      {
-        id: "createdAt",
-        header: "Enrolled",
-        accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
-      },
-      {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const badge = PartnerStatusBadges[row.original.status];
-          return badge ? (
-            <StatusBadge icon={null} variant={badge.variant}>
-              {badge.label}
-            </StatusBadge>
-          ) : (
-            "-"
-          );
-        },
-      },
-      {
-        id: "location",
-        header: "Location",
-        minSize: 150,
-        cell: ({ row }) => {
-          const country = row.original.country;
-          return (
-            <div className="flex items-center gap-2">
-              {country && (
-                <img
-                  alt={`${country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
-              <span className="min-w-0 truncate">
-                {(country ? COUNTRIES[country] : null) ?? "-"}
-              </span>
-            </div>
-          );
-        },
-      },
-      {
-        id: "clicks",
-        header: "Clicks",
-        accessorFn: (d) => nFormatter(d.clicks),
-      },
-      {
-        id: "leads",
-        header: "Leads",
-        accessorFn: (d) => nFormatter(d.leads),
-      },
-      {
-        id: "conversions",
-        header: "Conversions",
-        accessorFn: (d) => nFormatter(d.conversions),
-      },
-      {
-        id: "sales",
-        header: "Sales",
-        accessorFn: (d) => nFormatter(d.sales),
-      },
-      {
-        id: "saleAmount",
-        header: "Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.saleAmount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "totalCommissions",
-        header: "Commissions",
-        accessorFn: (d) =>
-          currencyFormatter(d.totalCommissions / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "netRevenue",
-        header: "Net Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.netRevenue / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      // Menu
-      {
-        id: "menu",
-        enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
-        header: () => <EditColumnsButton table={table} />,
-        cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} />
-        ),
-      },
-    ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
+    columns,
     onRowClick: (row) => {
       queryParams({
         set: {

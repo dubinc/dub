@@ -16,6 +16,7 @@ import {
   memo,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { Button } from "../button";
@@ -71,9 +72,7 @@ export function useTable<T extends any>(
     props.selectedRows ?? {},
   );
 
-  const [lastSelectedRowId, setLastSelectedRowId] = useState<string | null>(
-    null,
-  );
+  const lastSelectedRowId = useRef<string | null>(null);
 
   // Manually unset row selection if the row is no longer in the data
   // There doesn't seem to be a proper solution for this: https://github.com/TanStack/table/issues/4498
@@ -148,27 +147,29 @@ export function useTable<T extends any>(
                     checked={row.getIsSelected()}
                     onClick={(e) => {
                       const currentId = getRowId?.(row.original);
-                      const lastSelectedIndex = data.findIndex(
-                        (l) => getRowId?.(l) === lastSelectedRowId,
-                      );
+                      const rows = table.getRowModel().rows;
+                      const lastSelectedIndex =
+                        lastSelectedRowId.current !== null
+                          ? rows.findIndex(
+                              (row) =>
+                                getRowId?.(row.original) ===
+                                lastSelectedRowId.current,
+                            )
+                          : -1;
 
                       if (
                         e.shiftKey &&
-                        lastSelectedRowId !== null &&
+                        lastSelectedRowId.current !== null &&
                         lastSelectedIndex !== -1
                       ) {
                         // Multi-select w/ shift key
-                        const lastSelectedIndex = data.findIndex(
-                          (l) => getRowId?.(l) === lastSelectedRowId,
-                        );
-
                         const currentIndex = row.index;
 
                         const start = Math.min(lastSelectedIndex, currentIndex);
                         const end = Math.max(lastSelectedIndex, currentIndex);
-                        const rangeIds = data
+                        const rangeIds = rows
                           .slice(start, end + 1)
-                          .map((l) => getRowId?.(l));
+                          .map((row) => getRowId?.(row.original));
 
                         table.setRowSelection((rowSelection) => {
                           const alreadySelected =
@@ -183,10 +184,10 @@ export function useTable<T extends any>(
                           };
                         });
 
-                        setLastSelectedRowId(currentId ?? null);
+                        lastSelectedRowId.current = currentId ?? null;
                       } else {
                         row.toggleSelected();
-                        setLastSelectedRowId(currentId ?? null);
+                        lastSelectedRowId.current = currentId ?? null;
                       }
                     }}
                     title="Select"
