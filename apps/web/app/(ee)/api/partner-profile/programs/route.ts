@@ -24,38 +24,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           createdAt: "asc",
         },
       },
-      program: includeRewardsDiscounts
-        ? {
-            include: {
-              discounts: {
-                where: {
-                  OR: [
-                    // program-wide discounts
-                    {
-                      programEnrollments: {
-                        none: {},
-                      },
-                    },
-
-                    // partner-specific discounts
-                    {
-                      programEnrollments: {
-                        some: {
-                          partnerId: partner.id,
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-          }
-        : true,
-      ...(includeRewardsDiscounts && {
-        clickReward: true,
-        leadReward: true,
-        saleReward: true,
-      }),
+      program: true,
+      clickReward: includeRewardsDiscounts ? true : false,
+      leadReward: includeRewardsDiscounts ? true : false,
+      saleReward: includeRewardsDiscounts ? true : false,
+      discount: includeRewardsDiscounts ? true : false,
     },
     orderBy: [
       {
@@ -66,6 +39,8 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       },
     ],
   });
+
+  console.log(programEnrollments)
 
   const response = programEnrollments.map((enrollment) => {
     return {
