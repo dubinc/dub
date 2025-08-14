@@ -374,6 +374,12 @@ export const createPartnerSchema = z.object({
     .describe(
       "The partner's unique ID in your system. Useful for retrieving the partner's links and stats later on. If not provided, the partner will be created as a standalone partner.",
     ),
+  groupId: z
+    .string()
+    .optional()
+    .describe(
+      "The group ID to add the partner to. If not provided, the partner will be added to the default group.",
+    ),
   country: z
     .string()
     .nullish()
