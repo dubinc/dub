@@ -44,24 +44,28 @@ export type NavItemChildren = (
 
 export const FEATURES_LIST = [
   {
+    id: "links",
     title: "Dub Links",
     description: "Short links with superpowers",
     icon: DubLinksIcon,
     href: "/links",
   },
   {
+    id: "partners",
     title: "Dub Partners",
     description: "Grow your revenue with partnerships",
     icon: DubPartnersIcon,
     href: "/partners",
   },
   {
+    id: "analytics",
     title: "Dub Analytics",
     description: "Powerful real-time analytics",
     icon: DubAnalyticsIcon,
     href: "/analytics",
   },
   {
+    id: "api",
     title: "Dub API",
     description: "Programmatic link creation at scale",
     icon: DubApiIcon,
