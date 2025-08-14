@@ -161,7 +161,7 @@ export function useDeleteGroupModal(
         onDelete={onDelete}
       />
     );
-  }, [showDeleteGroupModal, setShowDeleteGroupModal, onDelete]);
+  }, [showDeleteGroupModal, setShowDeleteGroupModal, onDelete, group]);
 
   return useMemo(
     () => ({

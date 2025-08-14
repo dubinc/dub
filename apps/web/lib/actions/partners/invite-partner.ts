@@ -91,7 +91,7 @@ export const invitePartnerAction = authActionClient
       },
       skipEnrollmentCheck: true,
       status: "invited",
-      groupId,
+      groupId: groupId || program.defaultGroupId,
     });
 
     waitUntil(

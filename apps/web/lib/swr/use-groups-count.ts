@@ -17,10 +17,8 @@ export default function useGroupsCount({
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
-  const queryEnabled = enabled && defaultProgramId;
-
   const { data, isLoading, error } = useSWR<number>(
-    queryEnabled
+    enabled && defaultProgramId
       ? `/api/groups/count${getQueryString({ workspaceId, ...query })}`
       : null,
     fetcher,

@@ -65,6 +65,10 @@ export function useApiMutation<
           headers,
         });
 
+        if (!workspaceId) {
+          throw new Error("Workspace ID is required.");
+        }
+
         const response = await fetch(`${endpoint}?workspaceId=${workspaceId}`, {
           method,
           headers: {
@@ -89,16 +93,16 @@ export function useApiMutation<
 
         debug("Response received", data);
       } catch (error) {
-        setError(
+        const errorMessage =
           error instanceof Error
             ? error.message
-            : "Something went wrong. Please try again.",
-        );
+            : "Something went wrong. Please try again.";
 
+        setError(errorMessage);
         onError?.();
 
         if (showToast) {
-          toast.error(error.message);
+          toast.error(errorMessage);
         }
 
         debug("Error occurred", error);

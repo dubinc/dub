@@ -48,8 +48,13 @@ export async function POST(req: Request) {
           },
         }),
       },
-      include: {
-        links: true,
+      select: {
+        links: {
+          select: {
+            domain: true,
+            key: true,
+          },
+        },
       },
     });
 

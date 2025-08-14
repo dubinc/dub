@@ -67,37 +67,39 @@ export const POST = withWorkspace(
       });
     }
 
-    const groupsCount = await prisma.partnerGroup.count({
-      where: {
-        programId,
-      },
-    });
-
-    if (groupsCount >= workspace.groupsLimit) {
-      throw new DubApiError({
-        code: "exceeded_limit",
-        message: exceededLimitError({
-          plan: workspace.plan,
-          limit: workspace.groupsLimit,
-          type: "groups",
-        }),
+    const group = await prisma.$transaction(async (tx) => {
+      const groupsCount = await tx.partnerGroup.count({
+        where: {
+          programId,
+        },
       });
-    }
 
-    const group = await prisma.partnerGroup.create({
-      data: {
-        id: createId({ prefix: "grp_" }),
-        programId,
-        name,
-        slug,
-        color,
-      },
-      include: {
-        clickReward: true,
-        leadReward: true,
-        saleReward: true,
-        discount: true,
-      },
+      if (groupsCount >= workspace.groupsLimit) {
+        throw new DubApiError({
+          code: "exceeded_limit",
+          message: exceededLimitError({
+            plan: workspace.plan,
+            limit: workspace.groupsLimit,
+            type: "groups",
+          }),
+        });
+      }
+
+      return await tx.partnerGroup.create({
+        data: {
+          id: createId({ prefix: "grp_" }),
+          programId,
+          name,
+          slug,
+          color,
+        },
+        include: {
+          clickReward: true,
+          leadReward: true,
+          saleReward: true,
+          discount: true,
+        },
+      });
     });
 
     waitUntil(

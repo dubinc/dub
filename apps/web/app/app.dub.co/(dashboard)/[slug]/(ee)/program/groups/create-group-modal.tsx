@@ -1,6 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
-import useProgram from "@/lib/swr/use-program";
 import { createGroupSchema } from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
@@ -19,7 +18,6 @@ interface CreateGroupModalProps {
 type FormData = z.input<typeof createGroupSchema>;
 
 function CreateGroupModalContent({ setIsOpen }: CreateGroupModalProps) {
-  const { program } = useProgram();
   const { makeRequest: createGroup, isSubmitting } = useApiMutation();
 
   const {

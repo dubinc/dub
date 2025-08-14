@@ -19,7 +19,7 @@ export default async function ApplicationPage({
     groupSlug: partnerGroupSlug,
   });
 
-  if (!program) {
+  if (!program || !program.group) {
     notFound();
   }
 
@@ -57,7 +57,7 @@ export default async function ApplicationPage({
 
         {/* Application form */}
         <div className="mt-10">
-          <ProgramApplicationForm program={program} group={program.group!} />
+          <ProgramApplicationForm program={program} group={program.group} />
         </div>
       </div>
     </div>

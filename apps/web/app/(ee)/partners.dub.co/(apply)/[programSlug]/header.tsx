@@ -24,7 +24,9 @@ export function Header({
 
   const scrolled = useScroll(0);
   const partnerGroupSlug =
-    groupSlug === DEFAULT_PARTNER_GROUP.slug ? "" : `/${groupSlug}`;
+    groupSlug && groupSlug !== DEFAULT_PARTNER_GROUP.slug
+      ? `/${groupSlug}`
+      : "";
 
   return (
     <header

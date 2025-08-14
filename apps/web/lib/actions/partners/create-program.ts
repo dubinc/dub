@@ -78,27 +78,11 @@ export const createProgram = async ({
     },
   });
 
-  const programId = createId({ prefix: "prog_" });
-
-  const defaultGroup = await prisma.partnerGroup.upsert({
-    where: {
-      programId_slug: {
-        programId,
-        slug: DEFAULT_PARTNER_GROUP.slug,
-      },
-    },
-    create: {
-      id: createId({ prefix: "grp_" }),
-      programId,
-      slug: DEFAULT_PARTNER_GROUP.slug,
-      name: DEFAULT_PARTNER_GROUP.name,
-      color: DEFAULT_PARTNER_GROUP.color,
-    },
-    update: {}, // noop
-  });
-
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
+    const programId = createId({ prefix: "prog_" });
+    const defaultGroupId = createId({ prefix: "grp_" });
+
     const programData = await tx.program.create({
       data: {
         id: programId,
@@ -108,7 +92,7 @@ export const createProgram = async ({
         domain,
         url,
         defaultFolderId: programFolder.id,
-        defaultGroupId: defaultGroup.id,
+        defaultGroupId,
         linkStructure,
         supportEmail,
         helpUrl,
@@ -130,6 +114,23 @@ export const createProgram = async ({
       include: {
         rewards: true,
       },
+    });
+
+    await tx.partnerGroup.upsert({
+      where: {
+        programId_slug: {
+          programId,
+          slug: DEFAULT_PARTNER_GROUP.slug,
+        },
+      },
+      create: {
+        id: defaultGroupId,
+        programId,
+        slug: DEFAULT_PARTNER_GROUP.slug,
+        name: DEFAULT_PARTNER_GROUP.name,
+        color: DEFAULT_PARTNER_GROUP.color,
+      },
+      update: {}, // noop
     });
 
     await tx.project.update({

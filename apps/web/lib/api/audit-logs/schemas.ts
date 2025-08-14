@@ -149,10 +149,11 @@ export const auditLogTarget = z.union([
       name: true,
       slug: true,
       color: true,
-      clickRewardId: true,
-      leadRewardId: true,
-      saleRewardId: true,
-      discountId: true,
+    }).extend({
+      clickRewardId: z.string().nullish(),
+      leadRewardId: z.string().nullish(),
+      saleRewardId: z.string().nullish(),
+      discountId: z.string().nullish(),
     }),
   }),
 ]);

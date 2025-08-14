@@ -55,6 +55,10 @@ export const createProgramApplicationAction = actionClient
       }),
     ]);
 
+    if (group.programId !== program.id) {
+      throw new Error(`Group ${group.name} is not found on this program.`);
+    }
+
     const session = await getSession();
 
     // Get currently logged in partner
