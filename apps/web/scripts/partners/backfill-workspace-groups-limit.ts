@@ -27,22 +27,20 @@ async function main() {
   console.table(workspaces);
   console.log(`Found ${workspaces.length} workspaces to update.`);
 
-  for (const workspace of workspaces) {
-    const plan = getCurrentPlan(workspace.plan);
+  await Promise.allSettled(
+    workspaces.map((workspace) => {
+      const plan = getCurrentPlan(workspace.plan);
 
-    await prisma.project.update({
-      where: {
-        id: workspace.id,
-      },
-      data: {
-        groupsLimit: plan.limits.groups!,
-      },
-    });
-
-    console.log(
-      `Updated ${workspace.slug} groups limit to ${plan.limits.groups}`,
-    );
-  }
+      return prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          groupsLimit: plan.limits.groups!,
+        },
+      });
+    }),
+  );
 }
 
 main();
