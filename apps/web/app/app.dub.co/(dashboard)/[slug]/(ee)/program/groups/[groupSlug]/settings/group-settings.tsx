@@ -10,9 +10,11 @@ import {
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
-import { Button } from "@dub/ui";
+import { Button, useCopyToClipboard } from "@dub/ui";
+import { Copy } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -34,6 +36,7 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
   const router = useRouter();
   const { slug } = useWorkspace();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const {
     register,
@@ -151,6 +154,51 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
               </div>
             </div>
           )}
+
+          <div>
+            <label
+              htmlFor="slug"
+              className="text-sm font-medium text-neutral-800"
+            >
+              Group ID
+            </label>
+            <div className="mt-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  readOnly
+                  className={
+                    "block w-full rounded-md border border-neutral-300 bg-neutral-100 px-3 py-2 pr-12 text-sm font-normal text-neutral-800 focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-1"
+                  }
+                  defaultValue={group.id}
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      toast.promise(copyToClipboard(group.id), {
+                        success: "Group ID copied to clipboard!",
+                      });
+                    }}
+                    className="rounded-md p-1 text-neutral-500 transition-colors hover:bg-neutral-200 hover:text-neutral-700 focus:outline-none focus:ring-1 focus:ring-neutral-500 focus:ring-offset-1"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <p className="mt-2 text-xs text-neutral-500">
+                Used for embedding Dub in your platform.{" "}
+                <Link
+                  href="https://dub.co/docs"
+                  target="_blank"
+                  className="underline"
+                >
+                  Learn more
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
