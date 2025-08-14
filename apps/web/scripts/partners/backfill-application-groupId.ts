@@ -8,6 +8,7 @@ async function main() {
       id: true,
       defaultGroupId: true,
     },
+    take: 100,
   });
 
   console.table(programs);
@@ -32,21 +33,23 @@ async function main() {
     programs.map(({ id, defaultGroupId }) => [id, defaultGroupId]),
   );
 
-  for (const { id, programId } of programApplications) {
-    if (!programMap.has(programId)) {
-      console.error(`defaultGroupId not found for ${programId}.`);
-      continue;
-    }
+  await Promise.allSettled(
+    programApplications.map(({ id, programId }) => {
+      if (!programMap.has(programId)) {
+        console.error(`defaultGroupId not found for ${programId}.`);
+        return;
+      }
 
-    await prisma.programApplication.update({
-      where: {
-        id,
-      },
-      data: {
-        groupId: programMap.get(programId),
-      },
-    });
-  }
+      return prisma.programApplication.update({
+        where: {
+          id,
+        },
+        data: {
+          groupId: programMap.get(programId),
+        },
+      });
+    }),
+  );
 }
 
 main();
