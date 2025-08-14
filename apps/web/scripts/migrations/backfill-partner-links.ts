@@ -1,8 +1,8 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { includeTags } from "../lib/api/links/include-tags";
-import { backfillLinkCommissions } from "../lib/api/partners/backfill-link-commissions";
-import { recordLink } from "../lib/tinybird";
+import { includeTags } from "../../lib/api/links/include-tags";
+import { backfillLinkCommissions } from "../../lib/api/partners/backfill-link-commissions";
+import { recordLink } from "../../lib/tinybird";
 
 // script to backfill partner links (including sales events if present)
 async function main() {

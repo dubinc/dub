@@ -50,6 +50,7 @@ async function main() {
     await prisma.programApplication.updateMany({
       where: {
         programId,
+        groupId: null,
       },
       data: {
         groupId,

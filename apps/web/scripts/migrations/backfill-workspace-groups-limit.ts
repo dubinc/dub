@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { getCurrentPlan } from "@dub/utils";
 import "dotenv-flow/config";
 
+// one time script for backfilling groupsLimit for workspaces
 async function main() {
   const workspaces = await prisma.project.findMany({
     where: {
@@ -28,10 +29,12 @@ async function main() {
   console.log(`Found ${workspaces.length} workspaces to update.`);
 
   // Batch update the workspaces
+  // if "business plus/extra/max", group under business
   const groupedByPlan = workspaces.reduce(
     (acc, ws) => {
-      if (!acc[ws.plan]) acc[ws.plan] = [];
-      acc[ws.plan].push(ws.id);
+      const plan = ws.plan.startsWith("business") ? "business" : ws.plan;
+      if (!acc[plan]) acc[plan] = [];
+      acc[plan].push(ws.id);
       return acc;
     },
     {} as Record<string, string[]>,

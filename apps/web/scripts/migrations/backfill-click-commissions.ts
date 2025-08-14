@@ -1,8 +1,8 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { getAnalytics } from "../lib/analytics/get-analytics";
-import { determinePartnerReward } from "../lib/partners/determine-partner-reward";
+import { getAnalytics } from "../../lib/analytics/get-analytics";
+import { determinePartnerReward } from "../../lib/partners/determine-partner-reward";
 
 async function main() {
   const programId = "prog_xxx";

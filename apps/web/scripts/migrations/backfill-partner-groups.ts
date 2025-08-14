@@ -6,6 +6,7 @@ import { Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID, randomValue } from "@dub/utils";
 import "dotenv-flow/config";
 
+// one time script for migrating to partner groups
 async function main() {
   const groups = await prisma.programEnrollment.groupBy({
     by: [
