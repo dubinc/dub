@@ -36,6 +36,9 @@ export const POST = withWorkspace(
           in: partnerIds,
         },
         programId,
+        groupId: {
+          not: group.id,
+        },
       },
       data: {
         groupId: group.id,
