@@ -101,7 +101,10 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
                   onChange={(e) => {
                     const name = e.target.value;
                     setValue("name", name, { shouldDirty: true });
-                    setValue("slug", slugify(name), { shouldDirty: true });
+
+                    if (group.slug !== DEFAULT_PARTNER_GROUP.slug) {
+                      setValue("slug", slugify(name), { shouldDirty: true });
+                    }
                   }}
                   placeholder="Group name"
                 />
