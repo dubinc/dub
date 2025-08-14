@@ -65,6 +65,7 @@ export function QRBuilderModal({
 
       await updateQrWithOriginal(props, data);
     } else {
+      console.log('its here qweeqweqweqwe');
       await createQr(data);
     }
 

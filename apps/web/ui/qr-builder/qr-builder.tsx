@@ -152,6 +152,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         qrTitle: props?.title || undefined,
         handleContent,
       });
+      console.log('form awddfcsdcas', form.getValues());
 
       const {
         step,
