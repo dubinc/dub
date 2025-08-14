@@ -1,8 +1,7 @@
 "use client";
 
 import { EdgeLinkProps } from "@/lib/planetscale";
-import { Button, Check2, Copy, Wordmark } from "@dub/ui";
-import Link from "next/link";
+import { Button, IOSAppStore } from "@dub/ui";
 import { useState } from "react";
 
 export function DeepLinkActionButtons({ link }: { link: EdgeLinkProps }) {
@@ -18,34 +17,25 @@ export function DeepLinkActionButtons({ link }: { link: EdgeLinkProps }) {
         console.error("Failed to copy:", err);
       }
     }
+
     window.location.href = link.ios || link.url;
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 pt-8">
-      <Link
-        href="https://dub.co"
-        target="_blank"
-        className="flex items-center gap-1.5 whitespace-nowrap text-sm"
-      >
-        Powered by <Wordmark className="h-4 p-0.5" />
-      </Link>
-
+    <div className="flex flex-col items-center gap-5">
       <Button
         text="Get the App"
-        className="h-11 w-full rounded-xl"
+        className="h-12 w-full rounded-xl bg-neutral-900 text-white hover:bg-neutral-800"
         variant="primary"
         onClick={() => handleClick({ withCopy: true })}
-        icon={
-          copied ? <Check2 className="size-4" /> : <Copy className="size-4" />
-        }
+        icon={<IOSAppStore className="size-6" />}
       />
 
       <button
         onClick={() => handleClick()}
-        className="text-sm text-neutral-400"
+        className="text-base font-medium text-neutral-700 hover:text-neutral-900"
       >
-        Get the app without copying
+        Get the App without copying
       </button>
     </div>
   );
