@@ -116,6 +116,7 @@ export const FileCardContent: FC<IFileCardContentProps> = ({
               );
 
               onSuccess(file);
+              console.log('result from files handler', result);
 
               if (result?.file?.id) {
                 const fileId = result.file.id;

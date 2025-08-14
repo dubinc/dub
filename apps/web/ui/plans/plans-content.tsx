@@ -22,8 +22,6 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
 }) => {
   const paymentSectionRef = useRef<HTMLDivElement>(null);
 
-  const hasSubscription = !!user?.paymentInfo?.subscriptionId;
-
   const handleScrollToPayment = () => {
     if (paymentSectionRef.current) {
       paymentSectionRef.current.scrollIntoView({
