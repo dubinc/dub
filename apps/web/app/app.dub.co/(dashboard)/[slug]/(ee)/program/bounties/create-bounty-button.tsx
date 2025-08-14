@@ -6,7 +6,6 @@ import { useBountySheet } from "./add-edit-bounty-sheet";
 export function CreateBountyButton() {
   const { BountySheet, setShowCreateBountySheet } = useBountySheet({
     nested: false,
-    partnerId: "",
   });
 
   useKeyboardShortcut("c", () => setShowCreateBountySheet(true));
