@@ -21,6 +21,7 @@ import {
   LifeRing,
   LinesY as LinesYStatic,
   MoneyBills2,
+  PaperPlane,
   Receipt2,
   ShieldCheck,
   ShieldKeyhole,
@@ -229,7 +230,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Analytics",
             icon: LinesYStatic,
             href: `/${slug}/program/analytics`,
-            badge: "New",
           },
           {
             name: "Commissions",
@@ -240,6 +240,23 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Fraud & Risk",
             icon: ShieldKeyhole,
             href: `/${slug}/program/fraud`,
+          },
+        ],
+      },
+      {
+        name: "Communication",
+        items: [
+          {
+            name: "Email Campaigns",
+            icon: PaperPlane,
+            href: `/${slug}/program/emails`,
+            badge: "New",
+          },
+          {
+            name: "Resources",
+            icon: LifeRing,
+            href: `/${slug}/program/resources`,
+            exact: true,
           },
         ],
       },
@@ -260,11 +277,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Branding",
             icon: Brush,
             href: `/${slug}/program/branding`,
-          },
-          {
-            name: "Resources",
-            icon: LifeRing,
-            href: `/${slug}/program/resources`,
           },
           {
             name: "Link Settings",
@@ -409,6 +421,8 @@ export function AppSidebarNav({
           // TODO: remove when we migrate to Next.js 15 + PPR
           pathname.endsWith("/guides") ||
             pathname.includes("/guides/") ||
+            // for the email editor page
+            pathname.includes("/program/emails/") ||
             // this one is for the payout success page
             pathname.endsWith("/program/payouts/success")
           ? null
