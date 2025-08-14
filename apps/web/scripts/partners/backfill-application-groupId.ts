@@ -13,9 +13,13 @@ async function main() {
 
   console.table(programs);
 
-  const programApplications = await prisma.programApplication.findMany({
+  const programApplications = await prisma.programApplication.groupBy({
+    by: ["programId"],
     where: {
       groupId: null,
+    },
+    _count: {
+      _all: true,
     },
   });
 
@@ -28,28 +32,31 @@ async function main() {
     `Found ${programApplications.length} program applications to update`,
   );
 
+  console.log(programApplications);
+
   // Create a map of programId -> defaultGroupId
   const programMap = new Map(
     programs.map(({ id, defaultGroupId }) => [id, defaultGroupId]),
   );
 
-  await Promise.allSettled(
-    programApplications.map(({ id, programId }) => {
-      if (!programMap.has(programId)) {
-        console.error(`defaultGroupId not found for ${programId}.`);
-        return;
-      }
+  const toUpdate = programApplications.map(({ programId, _count }) => ({
+    programId,
+    count: _count._all,
+    groupId: programMap.get(programId),
+  }));
 
-      return prisma.programApplication.update({
-        where: {
-          id,
-        },
-        data: {
-          groupId: programMap.get(programId),
-        },
-      });
-    }),
-  );
+  console.table(toUpdate);
+
+  for (const { programId, groupId } of toUpdate) {
+    await prisma.programApplication.updateMany({
+      where: {
+        programId,
+      },
+      data: {
+        groupId,
+      },
+    });
+  }
 }
 
 main();
