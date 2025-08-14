@@ -39,6 +39,10 @@ export const POST = withWorkspace(
       },
       data: {
         groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        discountId: group.discountId,
       },
     });
 
