@@ -72,7 +72,6 @@ export const E2E_DISCOUNT = {
   maxDuration: 3,
   couponId: "XZuejd0Q",
   couponTestId: "2NMXz81x",
-  default: true,
   description: null,
 };
 
