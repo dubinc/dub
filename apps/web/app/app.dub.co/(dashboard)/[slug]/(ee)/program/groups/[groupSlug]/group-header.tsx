@@ -23,16 +23,20 @@ import { useParams, usePathname } from "next/navigation";
 // Handle error when the group doesn't exists
 
 export function GroupHeaderTitle() {
+  const { program } = useProgram();
   const { group, loading } = useGroup();
   const { slug: workspaceSlug } = useWorkspace();
 
-  if (loading || !group)
+  if (loading || !group || !program) {
     return <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-200" />;
+  }
 
   return (
     <div className="flex items-center gap-1.5">
       <Link
         href={`/${workspaceSlug}/program/groups`}
+        aria-label="Back to groups"
+        title="Back to groups"
         className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
       >
         <Users className="size-4" />
