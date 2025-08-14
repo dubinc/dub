@@ -60,7 +60,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
           ...(groupId && {
             partner: {
               programs: {
-                every: {
+                some: {
+                  programId,
                   groupId,
                 },
               },
