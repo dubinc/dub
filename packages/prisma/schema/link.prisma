@@ -87,4 +87,5 @@ model Link {
   @@unique([projectId, externalId])
   @@index(folderId) // used in /api/folders
   @@index(userId) // used in /api/admin/links
+  @@index([userId, clicks(sort: Desc)])
 }
