@@ -40,8 +40,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     ],
   });
 
-  console.log(programEnrollments)
-
   const response = programEnrollments.map((enrollment) => {
     return {
       ...enrollment,
