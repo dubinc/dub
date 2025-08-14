@@ -27,20 +27,30 @@ async function main() {
   console.table(workspaces);
   console.log(`Found ${workspaces.length} workspaces to update.`);
 
-  await Promise.allSettled(
-    workspaces.map((workspace) => {
-      const plan = getCurrentPlan(workspace.plan);
-
-      return prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          groupsLimit: plan.limits.groups!,
-        },
-      });
-    }),
+  // Batch update the workspaces
+  const groupedByPlan = workspaces.reduce(
+    (acc, ws) => {
+      if (!acc[ws.plan]) acc[ws.plan] = [];
+      acc[ws.plan].push(ws.id);
+      return acc;
+    },
+    {} as Record<string, string[]>,
   );
+
+  console.log(groupedByPlan);
+
+  for (const [plan, workspaceIds] of Object.entries(groupedByPlan)) {
+    await prisma.project.updateMany({
+      where: {
+        id: {
+          in: workspaceIds,
+        },
+      },
+      data: {
+        groupsLimit: getCurrentPlan(plan).limits.groups!,
+      },
+    });
+  }
 }
 
 main();
