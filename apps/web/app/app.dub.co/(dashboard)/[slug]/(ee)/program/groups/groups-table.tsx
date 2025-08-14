@@ -19,7 +19,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, MoneyBill2, PenWriting, Trash, Users } from "@dub/ui/icons";
+import { Dots, PenWriting, Trash, Users } from "@dub/ui/icons";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -213,24 +213,22 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
                 icon={PenWriting}
                 label="Edit group"
                 variant="default"
-                onSelect={async () => {
+                onSelect={() =>
                   router.push(
                     `/${slug}/program/groups/${row.original.slug}/settings`,
-                  );
-                  setIsOpen(false);
-                }}
+                  )
+                }
               />
 
               <MenuItem
-                icon={MoneyBill2}
-                label="View commissions"
+                icon={Users}
+                label="View partners"
                 variant="default"
-                onSelect={async () => {
+                onSelect={() =>
                   router.push(
-                    `/${slug}/program/commissions?groupId=${row.original.id}`,
-                  );
-                  setIsOpen(false);
-                }}
+                    `/${slug}/program/partners?groupId=${row.original.id}`,
+                  )
+                }
               />
 
               {row.original.slug !== DEFAULT_PARTNER_GROUP.slug && (
@@ -238,9 +236,7 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
                   icon={Trash}
                   label="Delete group"
                   variant="danger"
-                  onSelect={async () => {
-                    setShowDeleteGroupModal(true);
-                  }}
+                  onSelect={() => setShowDeleteGroupModal(true)}
                 />
               )}
             </Command.List>
