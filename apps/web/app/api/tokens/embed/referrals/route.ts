@@ -91,7 +91,7 @@ export const POST = withWorkspace(
             description: partnerProps.description,
           },
           tenantId: partnerProps.tenantId,
-          groupId: groupId || program.defaultGroupId,
+          groupId,
         });
 
         programEnrollment = {
