@@ -9,7 +9,7 @@ import {
 } from "react";
 import { Icon } from "./icons";
 
-const menuItemVariants = cva(
+export const menuItemVariants = cva(
   [
     "flex h-9 w-full rounded-md px-2 items-center justify-center gap-2 transition-colors cursor-pointer",
     "whitespace-nowrap text-sm font-medium text-content-default enabled:hover:bg-bg-subtle transition-colors",

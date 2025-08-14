@@ -12,6 +12,7 @@ export * from "./dub-api";
 export * from "./dub-crafted-shield";
 export * from "./dub-links";
 export * from "./dub-partners";
+export * from "./dub-product-icon";
 export * from "./expanding-arrow";
 export * from "./magic";
 export * from "./markdown-icon";
