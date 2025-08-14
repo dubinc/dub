@@ -2,7 +2,6 @@ import { BountyProps } from "@/lib/types";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import { CalendarDays, Users } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
-import { Trophy } from "lucide-react";
 import Link from "next/link";
 
 export function BountyCard({ bounty }: { bounty: BountyProps }) {
@@ -12,9 +11,20 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
         href={`/program/bounties/${bounty.id}`}
         className="flex flex-col gap-5"
       >
-        <div className="flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 px-32 py-4">
-          <div className="relative">
-            <Trophy className="size-20" />
+        <div className="flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
+          <div className="relative size-full">
+            <img
+              {...(bounty.type === "performance"
+                ? {
+                    src: "https://assets.dub.co/icons/trophy.webp",
+                    alt: "Trophy thumbnail",
+                  }
+                : {
+                    src: "https://assets.dub.co/icons/heart.webp",
+                    alt: "Heart thumbnail",
+                  })}
+              className="size-full object-contain"
+            />
           </div>
         </div>
 
@@ -56,11 +66,7 @@ export const BountyCardSkeleton = () => {
   return (
     <ProgramOverviewCard className="cursor-pointer p-5 transition-shadow hover:shadow-lg">
       <div className="flex flex-col gap-5">
-        <div className="flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 px-32 py-4">
-          <div className="relative">
-            <Trophy className="size-20" />
-          </div>
-        </div>
+        <div className="flex h-[132px] animate-pulse items-center justify-center rounded-lg bg-neutral-100 px-32 py-4" />
 
         <div className="flex flex-col gap-1.5">
           <div className="h-5 w-48 animate-pulse rounded-md bg-neutral-200" />
