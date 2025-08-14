@@ -71,6 +71,10 @@ export function useTable<T extends any>(
     props.selectedRows ?? {},
   );
 
+  const [lastSelectedRowId, setLastSelectedRowId] = useState<string | null>(
+    null,
+  );
+
   // Manually unset row selection if the row is no longer in the data
   // There doesn't seem to be a proper solution for this: https://github.com/TanStack/table/issues/4498
   useEffect(() => {
@@ -137,12 +141,54 @@ export function useTable<T extends any>(
                   />
                 </div>
               ),
-              cell: ({ row }: { row: Row<T> }) => (
+              cell: ({ row, table }: { row: Row<T>; table: TableType<T> }) => (
                 <div className="flex size-full items-center justify-center">
                   <Checkbox
                     className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                     checked={row.getIsSelected()}
-                    onCheckedChange={row.getToggleSelectedHandler()}
+                    onClick={(e) => {
+                      const currentId = getRowId?.(row.original);
+                      const lastSelectedIndex = data.findIndex(
+                        (l) => getRowId?.(l) === lastSelectedRowId,
+                      );
+
+                      if (
+                        e.shiftKey &&
+                        lastSelectedRowId !== null &&
+                        lastSelectedIndex !== -1
+                      ) {
+                        // Multi-select w/ shift key
+                        const lastSelectedIndex = data.findIndex(
+                          (l) => getRowId?.(l) === lastSelectedRowId,
+                        );
+
+                        const currentIndex = row.index;
+
+                        const start = Math.min(lastSelectedIndex, currentIndex);
+                        const end = Math.max(lastSelectedIndex, currentIndex);
+                        const rangeIds = data
+                          .slice(start, end + 1)
+                          .map((l) => getRowId?.(l));
+
+                        table.setRowSelection((rowSelection) => {
+                          const alreadySelected =
+                            currentId !== undefined &&
+                            (rowSelection?.[currentId] ?? false);
+
+                          return {
+                            ...rowSelection,
+                            ...Object.fromEntries(
+                              rangeIds.map((id) => [id, !alreadySelected]),
+                            ),
+                          };
+                        });
+
+                        setLastSelectedRowId(currentId ?? null);
+                      } else {
+                        row.toggleSelected();
+                        setLastSelectedRowId(currentId ?? null);
+                      }
+                    }}
                     title="Select"
                   />
                 </div>
