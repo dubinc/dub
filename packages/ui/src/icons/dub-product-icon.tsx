@@ -1,10 +1,8 @@
 import { cn } from "@dub/utils";
-import {
-  DubAnalyticsIcon,
-  DubApiIcon,
-  DubLinksIcon,
-  DubPartnersIcon,
-} from "./";
+import { DubAnalyticsIcon } from "./dub-analytics";
+import { DubApiIcon } from "./dub-api";
+import { DubLinksIcon } from "./dub-links";
+import { DubPartnersIcon } from "./dub-partners";
 
 const icons = {
   links: {
