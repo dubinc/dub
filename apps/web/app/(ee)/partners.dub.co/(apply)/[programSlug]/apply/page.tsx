@@ -13,6 +13,7 @@ export default async function ApplicationPage({
   params: { programSlug: string; groupSlug?: string };
 }) {
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
+  const isDefaultGroup = partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug;
 
   const program = await getProgram({
     slug: programSlug,
@@ -41,7 +42,8 @@ export default async function ApplicationPage({
             {program.name} Affiliate Program
           </p>
           <h1 className="text-4xl font-semibold">
-            Apply to {program.name} {capitalize(partnerGroupSlug)}
+            Apply to {program.name}{" "}
+            {!isDefaultGroup ? `(${capitalize(partnerGroupSlug)})` : ""}
           </h1>
           <p className="text-base text-neutral-700">
             Submit your application to join the {program.name} affiliate program
