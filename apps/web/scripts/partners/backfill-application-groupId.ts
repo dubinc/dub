@@ -32,8 +32,6 @@ async function main() {
     `Found ${programApplications.length} program applications to update`,
   );
 
-  console.log(programApplications);
-
   // Create a map of programId -> defaultGroupId
   const programMap = new Map(
     programs.map(({ id, defaultGroupId }) => [id, defaultGroupId]),
@@ -47,6 +45,7 @@ async function main() {
 
   console.table(toUpdate);
 
+  // Batch update the applications for the same programId
   for (const { programId, groupId } of toUpdate) {
     await prisma.programApplication.updateMany({
       where: {
