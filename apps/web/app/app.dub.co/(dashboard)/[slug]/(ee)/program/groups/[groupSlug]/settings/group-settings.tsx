@@ -182,7 +182,8 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
               </div>
 
               <p className="mt-2 text-xs text-neutral-500">
-                Used for embedding Dub in your platform.{" "}
+                For embedding the Dub white-labeled referral dashboard within
+                your app.{" "}
                 <Link
                   href="https://dub.co/docs/partners/white-labeling"
                   target="_blank"
