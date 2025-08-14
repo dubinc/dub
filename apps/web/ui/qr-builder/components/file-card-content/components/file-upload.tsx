@@ -996,7 +996,7 @@ const FileUploadItem = React.forwardRef<HTMLDivElement, FileUploadItemProps>(
           {...itemProps}
           ref={forwardedRef}
           className={cn(
-            "relative flex items-center gap-2.5 rounded-md border p-3",
+            "relative flex items-center gap-2.5 rounded-md border p-3 flex-col",
             className,
           )}
         >
@@ -1236,10 +1236,8 @@ const FileUploadItemProgress = React.forwardRef<
     className,
     ...progressProps
   } = props;
-  console.log('here is progress', props);
 
   const itemContext = useFileUploadItemContext(ITEM_PROGRESS_NAME);
-  console.log('itemContext', itemContext);
 
   if (!itemContext.fileState) return null;
 
