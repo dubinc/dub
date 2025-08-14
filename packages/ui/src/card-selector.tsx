@@ -48,7 +48,7 @@ export function CardSelector({
           <label
             key={key}
             className={cn(
-              "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+              "relative flex w-full cursor-pointer items-start rounded-md border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-50",
               "transition-all duration-150",
               isSelected &&
                 "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
@@ -72,8 +72,8 @@ export function CardSelector({
 
             {icon && <div className="flex-shrink-0 pt-0.5">{icon}</div>}
 
-            <div className="flex grow flex-col">
-              <span className="text-sm font-semibold text-neutral-900">
+            <div className="flex grow flex-col p-3 pr-0">
+              <span className="pr-1 text-sm font-semibold text-neutral-900">
                 {label}
               </span>
               <span className="text-xs text-neutral-600">{description}</span>
@@ -81,7 +81,7 @@ export function CardSelector({
 
             <CircleCheckFill
               className={cn(
-                "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                "mr-1.5 mt-1.5 flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                 isSelected && "scale-100 opacity-100",
               )}
             />

@@ -174,7 +174,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
               </ProgramSheetAccordionTrigger>
               <ProgramSheetAccordionContent>
                 <div className="space-y-4">
-                  <p className="text-sm text-neutral-600">
+                  <p className="text-content-default text-sm">
                     Set how the bounty will be completed
                   </p>
                   <CardSelector
@@ -195,7 +195,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
               </ProgramSheetAccordionTrigger>
               <ProgramSheetAccordionContent>
                 <div className="space-y-6">
-                  <p className="text-sm text-neutral-600">
+                  <p className="text-content-default text-sm">
                     Set the schedule, reward and additional details
                   </p>
 
@@ -307,7 +307,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
                             errors.name &&
                               "border-red-600 focus:border-red-500 focus:ring-red-600",
                           )}
-                          placeholder="Create a YouTube video about ..."
+                          placeholder="Create a YouTube video about..."
                           {...register("name", {
                             setValueAs: (value) =>
                               value === "" ? null : value,
@@ -336,7 +336,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
                       <textarea
                         id="description"
                         rows={3}
-                        maxLength={5000}
+                        maxLength={500}
                         className={cn(
                           "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                           errors.description &&
@@ -349,7 +349,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
                       />
                       <div className="mt-1 text-left">
                         <span className="text-xs text-neutral-400">
-                          {description?.length || 0}/5000
+                          {description?.length || 0}/500
                         </span>
                       </div>
                     </div>
@@ -364,7 +364,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
               </ProgramSheetAccordionTrigger>
               <ProgramSheetAccordionContent>
                 <div className="space-y-6">
-                  <p className="text-sm text-neutral-600">
+                  <p className="text-content-default text-sm">
                     Set how partners should submit proof of their work. By
                     default an open text field is provided.
                   </p>
@@ -410,10 +410,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
               </ProgramSheetAccordionTrigger>
               <ProgramSheetAccordionContent>
                 <div className="space-y-6">
-                  <p className="text-sm text-neutral-600">
-                    Configure group settings for this bounty.
-                  </p>
-                  
+                  WIP
                   {/* Add your groups-related content here */}
                 </div>
               </ProgramSheetAccordionContent>
