@@ -1,8 +1,9 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
-import useProgram from "@/lib/swr/use-program";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
 import {
   DEFAULT_PARTNER_GROUP,
@@ -12,7 +13,7 @@ import { GroupColorPicker } from "@/ui/partners/groups/group-color-picker";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -20,25 +21,18 @@ import { z } from "zod";
 type FormData = z.input<typeof updateGroupSchema>;
 
 export function GroupSettings() {
-  const { group, loading, mutateGroup } = useGroup();
+  const { group, loading } = useGroup();
 
   if (!group || loading) {
     return <GroupSettingsFormSkeleton />;
   }
 
-  return <GroupSettingsForm group={group} mutateGroup={mutateGroup} />;
+  return <GroupSettingsForm group={group} />;
 }
 
-function GroupSettingsForm({
-  group,
-  mutateGroup,
-}: {
-  group: GroupProps;
-  mutateGroup: () => void;
-}) {
+function GroupSettingsForm({ group }: { group: GroupProps }) {
   const router = useRouter();
-  const { program } = useProgram();
-  const { slug } = useParams<{ slug: string }>();
+  const { slug } = useWorkspace();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
   const {
@@ -57,10 +51,6 @@ function GroupSettingsForm({
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!group) {
-      return;
-    }
-
     await updateGroup(`/api/groups/${group.id}`, {
       method: "PATCH",
       body: data,
@@ -69,10 +59,10 @@ function GroupSettingsForm({
 
         // If slug changed, redirect to new URL
         if (data.slug !== group.slug) {
-          router.push(`/${slug}/program/groups/${data.slug}`);
+          router.push(`/${slug}/program/groups/${data.slug}/settings`);
         }
 
-        await mutateGroup();
+        await mutatePrefix("/api/groups");
       },
     });
   };
