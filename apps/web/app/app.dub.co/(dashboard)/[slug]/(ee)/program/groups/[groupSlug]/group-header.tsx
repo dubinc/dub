@@ -1,6 +1,7 @@
 "use client";
 
 import useGroup from "@/lib/swr/use-group";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
@@ -10,51 +11,16 @@ import {
   ChevronRight,
   Discount,
   Gift,
+  Post,
   Sliders,
   Users,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 
 // TODO:
 // Handle error when the group doesn't exists
-
-const GROUP_NAVIGATION_TABS = (workspaceSlug: string) =>
-  [
-    {
-      id: "rewards",
-      label: "Rewards",
-      icon: Gift,
-      external: false,
-      getHref: (group: GroupProps) =>
-        `/${workspaceSlug}/program/groups/${group.slug}/rewards`,
-    },
-    {
-      id: "discount",
-      label: "Discount",
-      icon: Discount,
-      external: false,
-      getHref: (group: GroupProps) =>
-        `/${workspaceSlug}/program/groups/${group.slug}/discount`,
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: Sliders,
-      external: false,
-      getHref: (group: GroupProps) =>
-        `/${workspaceSlug}/program/groups/${group.slug}/settings`,
-    },
-    {
-      id: "partners",
-      label: "Partners",
-      icon: Users,
-      external: true,
-      getHref: (group: GroupProps) =>
-        `/${workspaceSlug}/program/partners?groupId=${group.id}`,
-    },
-  ] as const;
 
 export function GroupHeaderTitle() {
   const { group, loading } = useGroup();
@@ -84,12 +50,56 @@ export function GroupHeaderTitle() {
 
 export function GroupHeaderTabs() {
   const pathname = usePathname();
-  const { group, loading } = useGroup();
   const { slug } = useParams<{ slug: string }>();
+  const { program } = useProgram();
+  const { group, loading } = useGroup();
+
+  const GROUP_NAVIGATION_TABS = [
+    {
+      id: "rewards",
+      label: "Rewards",
+      icon: Gift,
+      external: false,
+      getHref: (group: GroupProps) =>
+        `/${slug}/program/groups/${group.slug}/rewards`,
+    },
+    {
+      id: "discount",
+      label: "Discount",
+      icon: Discount,
+      external: false,
+      getHref: (group: GroupProps) =>
+        `/${slug}/program/groups/${group.slug}/discount`,
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: Sliders,
+      external: false,
+      getHref: (group: GroupProps) =>
+        `/${slug}/program/groups/${group.slug}/settings`,
+    },
+    {
+      id: "partners",
+      label: "Partners",
+      icon: Users,
+      external: true,
+      getHref: (group: GroupProps) =>
+        `/${slug}/program/partners?groupId=${group.id}`,
+    },
+    {
+      id: "landing",
+      label: "Landing page",
+      icon: Post,
+      external: true,
+      getHref: (group: GroupProps) =>
+        `${PARTNERS_DOMAIN}/${program?.slug}/${group.slug}`,
+    },
+  ];
 
   return (
     <div className="scrollbar-hide -mx-3 flex gap-2.5 overflow-x-auto px-3">
-      {GROUP_NAVIGATION_TABS(slug).map((tab) => {
+      {GROUP_NAVIGATION_TABS.map((tab) => {
         const Icon = tab.icon;
 
         if (loading || !group)
