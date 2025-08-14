@@ -25,10 +25,12 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         },
       },
       program: true,
-      clickReward: includeRewardsDiscounts ? true : false,
-      leadReward: includeRewardsDiscounts ? true : false,
-      saleReward: includeRewardsDiscounts ? true : false,
-      discount: includeRewardsDiscounts ? true : false,
+      ...(includeRewardsDiscounts && {
+        clickReward: true,
+        leadReward: true,
+        saleReward: true,
+        discount: true,
+      }),
     },
     orderBy: [
       {
