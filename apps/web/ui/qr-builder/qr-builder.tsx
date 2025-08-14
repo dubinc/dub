@@ -486,6 +486,11 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 onBack={handleBack}
                 onContinue={handleContinue}
                 isEdit={isEdit}
+                isProcessing={
+                  isProcessing || isFileUploading || isFileProcessing
+                }
+                isFileUploading={isFileUploading}
+                isFileProcessing={isFileProcessing}
                 homePageDemo={homepageDemo}
               />
             </div>
