@@ -52,8 +52,20 @@ export function BountyList() {
     <>
       {BountySheet}
       <AnimatedEmptyState
-        title="No bounties found"
-        description="No bounties have been created for this program yet."
+        title="No bounties active"
+        description={
+          <>
+            This program doesn't have any active bounties.{" "}
+            <a
+              href="https://dub.co/help/article/bounties"
+              target="_blank"
+              className="hover:text-content-default underline sm:whitespace-nowrap"
+            >
+              Learn more about bounties
+            </a>
+            .
+          </>
+        }
         cardContent={() => (
           <>
             <Trophy className="size-4 text-neutral-700" />

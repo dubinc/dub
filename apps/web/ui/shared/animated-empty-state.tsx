@@ -18,7 +18,7 @@ export function AnimatedEmptyState({
   className,
 }: {
   title: string;
-  description: string;
+  description: ReactNode;
   cardContent: ReactNode | ((index: number) => ReactNode);
   addButton?: ReactNode;
   pillContent?: string;
