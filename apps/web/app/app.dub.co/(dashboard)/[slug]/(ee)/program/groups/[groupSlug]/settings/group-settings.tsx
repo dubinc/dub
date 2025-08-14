@@ -193,7 +193,7 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
               <p className="mt-2 text-xs text-neutral-500">
                 Used for embedding Dub in your platform.{" "}
                 <Link
-                  href="https://dub.co/docs"
+                  href="https://dub.co/docs/sdks/embed/referrals"
                   target="_blank"
                   className="underline"
                 >
