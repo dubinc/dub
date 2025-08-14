@@ -27,7 +27,6 @@ const sortColumnExtraMap = {
 };
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
-  workspaceId: string;
   programId: string;
 };
 
@@ -35,9 +34,6 @@ export async function getPartners(filters: PartnerFilters) {
   const {
     status,
     country,
-    clickRewardId,
-    leadRewardId,
-    saleRewardId,
     search,
     tenantId,
     partnerIds,
@@ -47,6 +43,7 @@ export async function getPartners(filters: PartnerFilters) {
     sortOrder,
     programId,
     includeExpandedFields,
+    groupId,
   } = filters;
 
   const partners = (await prisma.$queryRaw`
@@ -57,6 +54,7 @@ export async function getPartners(filters: PartnerFilters) {
       pe.programId, 
       pe.partnerId, 
       pe.tenantId,
+      pe.groupId,
       pe.applicationId,
       pe.createdAt as enrollmentCreatedAt,
       pe.bannedAt,
@@ -137,9 +135,6 @@ export async function getPartners(filters: PartnerFilters) {
       ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status NOT IN ('pending', 'rejected', 'banned', 'archived')`}
       ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
-      ${clickRewardId ? Prisma.sql`AND pe.clickRewardId = ${clickRewardId}` : Prisma.sql``}
-      ${leadRewardId ? Prisma.sql`AND pe.leadRewardId = ${leadRewardId}` : Prisma.sql``}
-      ${saleRewardId ? Prisma.sql`AND pe.saleRewardId = ${saleRewardId}` : Prisma.sql``}
       ${
         search
           ? Prisma.sql`AND (
@@ -155,6 +150,7 @@ export async function getPartners(filters: PartnerFilters) {
           : Prisma.sql``
       }
       ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
+      ${groupId ? Prisma.sql`AND pe.groupId = ${groupId}` : Prisma.sql``}
     GROUP BY 
       p.id, pe.id${includeExpandedFields ? Prisma.sql`, metrics.totalClicks, metrics.totalLeads, metrics.totalConversions, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions` : Prisma.sql``}
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)} ${Prisma.raw(`, ${sortColumnExtraMap[sortBy]} ${sortOrder}`)}

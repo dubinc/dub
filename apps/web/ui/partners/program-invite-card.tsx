@@ -78,7 +78,6 @@ export function ProgramInviteCard({
             loading={isPending}
             onClick={async () =>
               await executeAsync({
-                partnerId: programEnrollment.partnerId,
                 programId: programEnrollment.programId,
               })
             }

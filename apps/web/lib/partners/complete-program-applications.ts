@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { createId } from "../api/create-id";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
@@ -72,6 +73,7 @@ export async function completeProgramApplications(userId: string) {
       },
       include: {
         program: true,
+        partnerGroup: true,
       },
       orderBy: {
         createdAt: "desc",
@@ -90,13 +92,22 @@ export async function completeProgramApplications(userId: string) {
       return true;
     });
 
-    await prisma.programEnrollment.createMany({
-      data: programApplications.map((programApplication) => ({
+    // Program enrollments to create
+    const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
+      programApplications.map((programApplication) => ({
         id: createId({ prefix: "pge_" }),
         programId: programApplication.programId,
         partnerId: user.partners[0].partnerId,
         applicationId: programApplication.id,
-      })),
+        groupId: programApplication?.partnerGroup?.id,
+        clickRewardId: programApplication?.partnerGroup?.clickRewardId,
+        leadRewardId: programApplication?.partnerGroup?.leadRewardId,
+        saleRewardId: programApplication?.partnerGroup?.saleRewardId,
+        discountId: programApplication?.partnerGroup?.discountId,
+      }));
+
+    await prisma.programEnrollment.createMany({
+      data: programEnrollments,
       skipDuplicates: true,
     });
 

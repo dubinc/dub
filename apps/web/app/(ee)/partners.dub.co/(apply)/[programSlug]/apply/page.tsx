@@ -1,27 +1,28 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
+import { capitalize } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { Header } from "../header";
 
 export default async function ApplicationPage({
-  params: { programSlug },
+  params: { programSlug, groupSlug },
 }: {
-  params: { programSlug: string };
+  params: { programSlug: string; groupSlug?: string };
 }) {
+  const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
+  const isDefaultGroup = partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug;
+
   const program = await getProgram({
     slug: programSlug,
-    include: ["allRewards", "allDiscounts"],
+    groupSlug: partnerGroupSlug,
   });
 
-  if (!program) {
+  if (!program || !program.group) {
     notFound();
   }
-
-  const { rewards, discount } =
-    getProgramApplicationRewardsAndDiscount(program);
 
   return (
     <div
@@ -40,7 +41,10 @@ export default async function ApplicationPage({
           <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
             {program.name} Affiliate Program
           </p>
-          <h1 className="text-4xl font-semibold">Apply to {program.name}</h1>
+          <h1 className="text-4xl font-semibold">
+            Apply to {program.name}{" "}
+            {!isDefaultGroup ? `(${capitalize(partnerGroupSlug)})` : ""}
+          </h1>
           <p className="text-base text-neutral-700">
             Submit your application to join the {program.name} affiliate program
             and start earning commissions for your referrals.
@@ -49,13 +53,13 @@ export default async function ApplicationPage({
 
         <LanderRewards
           className="mt-10"
-          rewards={rewards}
-          discount={discount}
+          rewards={program.rewards}
+          discount={program.discount}
         />
 
         {/* Application form */}
         <div className="mt-10">
-          <ProgramApplicationForm program={program} />
+          <ProgramApplicationForm program={program} group={program.group} />
         </div>
       </div>
     </div>

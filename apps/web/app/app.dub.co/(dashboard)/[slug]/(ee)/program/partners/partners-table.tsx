@@ -3,12 +3,16 @@
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
+import { useChangeGroupModal } from "@/ui/partners/change-group-modal";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -38,6 +42,7 @@ import {
   Trash,
   UserDelete,
   Users,
+  Users6,
 } from "@dub/ui/icons";
 import {
   cn,
@@ -60,6 +65,7 @@ import { usePartnerFilters } from "./use-partner-filters";
 const partnersColumns = {
   all: [
     "partner",
+    "group",
     "createdAt",
     "status",
     "location",
@@ -73,7 +79,7 @@ const partnersColumns = {
   ],
   defaultVisible: [
     "partner",
-    "createdAt",
+    "group",
     "location",
     "clicks",
     "leads",
@@ -135,6 +141,16 @@ export function PartnersTable() {
       partnerId: detailsSheetState.partnerId,
     });
 
+  const { groups } = useGroups();
+
+  const [pendingChangeGroupPartners, setPendingChangeGroupPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
+  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
+    partners: pendingChangeGroupPartners,
+  });
+
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "partners-table-columns", // TODO: update to v2 once we add partner groups
     partnersColumns,
@@ -153,6 +169,25 @@ export function PartnersTable() {
         cell: ({ row }) => {
           return (
             <PartnerRowItem partner={row.original} showPermalink={false} />
+          );
+        },
+      },
+      {
+        id: "group",
+        header: "Group",
+        cell: ({ row }) => {
+          if (!groups) return "-";
+          const partnerGroup =
+            groups.find((g) => g.id === row.original.groupId) ??
+            DEFAULT_PARTNER_GROUP;
+
+          return (
+            <div className="flex items-center gap-2">
+              <GroupColorCircle group={partnerGroup} />
+              <span className="truncate text-sm font-medium">
+                {partnerGroup.name}
+              </span>
+            </div>
           );
         },
       },
@@ -290,6 +325,55 @@ export function PartnersTable() {
         del: "page",
         scroll: false,
       }),
+
+    getRowId: (row) => row.id,
+    selectionControls: (table) => (
+      <>
+        <Button
+          variant="primary"
+          text="Add to group"
+          icon={<Users6 className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5"
+          loading={false}
+          onClick={() => {
+            const partners = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original);
+
+            setPendingChangeGroupPartners(partners);
+            setShowChangeGroupModal(true);
+          }}
+        />
+        {/* <Button
+          variant="secondary"
+          text="Archive"
+          icon={<BoxArchive className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5"
+          loading={false}
+          onClick={() => {
+            const partnerIds = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original.id);
+
+            toast.info("WIP");
+          }}
+        />
+        <Button
+          variant="secondary"
+          text="Ban"
+          icon={<UserXmark className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5 text-red-700"
+          loading={false}
+          onClick={() => {
+            const partnerIds = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original.id);
+
+            toast.info("WIP");
+          }}
+        /> */}
+      </>
+    ),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
@@ -300,6 +384,7 @@ export function PartnersTable() {
 
   return (
     <div className="flex flex-col gap-6">
+      <ChangeGroupModal />
       {detailsSheetState.partnerId && currentPartner && (
         <PartnerDetailsSheet
           isOpen={detailsSheetState.open}
@@ -371,6 +456,10 @@ function RowMenuButton({
   const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
+  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
+    partners: [row.original],
+  });
+
   const { ArchivePartnerModal, setShowArchivePartnerModal } =
     useArchivePartnerModal({
       partner: row.original,
@@ -411,6 +500,7 @@ function RowMenuButton({
 
   return (
     <>
+      <ChangeGroupModal />
       <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
@@ -422,6 +512,15 @@ function RowMenuButton({
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
               {row.original.status === "invited" ? (
                 <>
+                  <MenuItem
+                    icon={Users6}
+                    label="Change group"
+                    onSelect={() => {
+                      setShowChangeGroupModal(true);
+                      setIsOpen(false);
+                    }}
+                  />
+
                   <MenuItem
                     icon={
                       isResendingInvite ? LoadingSpinner : EnvelopeArrowRight
@@ -471,6 +570,15 @@ function RowMenuButton({
                       router.push(
                         `/${slug}/program/commissions?partnerId=${row.original.id}&interval=all`,
                       );
+                      setIsOpen(false);
+                    }}
+                  />
+
+                  <MenuItem
+                    icon={Users6}
+                    label="Change group"
+                    onSelect={() => {
+                      setShowChangeGroupModal(true);
                       setIsOpen(false);
                     }}
                   />

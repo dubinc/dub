@@ -5,15 +5,21 @@ import {
   PartnerStatus,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
-import { COUNTRY_CODES, currencyFormatter } from "@dub/utils";
+import {
+  COUNTRY_CODES,
+  currencyFormatter,
+  GOOGLE_FAVICON_URL,
+} from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
 import { createLinkBodySchema } from "./links";
 import {
+  base64ImageSchema,
   booleanQuerySchema,
   getPaginationQuerySchema,
-  uploadedImageSchema,
+  publicHostedImageSchema,
+  storedR2ImageUrlSchema,
 } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { parseUrlSchema } from "./utils";
@@ -117,9 +123,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.merge(
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
-    clickRewardId: z.string().optional(),
-    leadRewardId: z.string().optional(),
-    saleRewardId: z.string().optional(),
+    groupId: z.string().optional(),
   }),
 );
 
@@ -142,15 +146,7 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     pageSize: true,
   })
   .extend({
-    groupBy: z
-      .enum([
-        "status",
-        "country",
-        "clickRewardId",
-        "leadRewardId",
-        "saleRewardId",
-      ])
-      .optional(),
+    groupBy: z.enum(["status", "country", "groupId"]).optional(),
   });
 
 export const partnerInvitesQuerySchema = getPaginationQuerySchema({
@@ -378,11 +374,17 @@ export const createPartnerSchema = z.object({
     .describe(
       "The partner's unique ID in your system. Useful for retrieving the partner's links and stats later on. If not provided, the partner will be created as a standalone partner.",
     ),
+  groupId: z
+    .string()
+    .optional()
+    .describe(
+      "The group ID to add the partner to. If not provided, the partner will be added to the default group.",
+    ),
   country: z
-    .enum(COUNTRY_CODES)
+    .string()
     .nullish()
     .describe(
-      "The partner's country of residence. Must be passed as a 2-letter ISO 3166-1 country code. Learn more: https://d.to/geo",
+      "The partner's country of residence. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
     ),
   description: z
     .string()
@@ -412,6 +414,26 @@ export const createPartnerSchema = z.object({
     ),
 });
 
+// This is a temporary fix to allow arbitrary image URL
+// TODO: Fix this by using file-type
+const partnerImageSchema = z
+  .union([
+    base64ImageSchema,
+    storedR2ImageUrlSchema,
+    publicHostedImageSchema,
+    z
+      .string()
+      .url()
+      .trim()
+      .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
+        message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
+      }),
+  ])
+  .transform((v) => v || "")
+  .refine((v) => v !== "", {
+    message: "Image is required",
+  });
+
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
     username: true,
@@ -421,11 +443,7 @@ export const onboardPartnerSchema = createPartnerSchema
   .merge(
     z.object({
       name: z.string().min(1, "Name is required"),
-      image: uploadedImageSchema
-        .transform((v) => v || "")
-        .refine((v) => v !== "", {
-          message: "Image is required",
-        }),
+      image: partnerImageSchema,
       country: z.enum(COUNTRY_CODES),
       profileType: z.nativeEnum(PartnerProfileType).default("individual"),
       companyName: z.string().nullish(),
@@ -541,18 +559,19 @@ export const invitePartnerSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   linkId: z.string().optional(),
-  rewardId: z.string().optional(),
-  discountId: z.string().optional(),
+  groupId: z.string().nullish().default(null),
 });
 
 export const approvePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   linkId: z.string().nullable(),
+  groupId: z.string().nullish(),
 });
 
 export const bulkApprovePartnersSchema = z.object({
   workspaceId: z.string(),
+  groupId: z.string().nullish().default(null),
   partnerIds: z
     .array(z.string())
     .max(100)

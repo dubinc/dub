@@ -1,7 +1,8 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { TagColorProps, TagProps } from "@/lib/types";
+import { ResourceColorsEnum, TagProps } from "@/lib/types";
+import { RESOURCE_COLORS_DATA } from "@/ui/colors";
 import {
   Button,
   InfoTooltip,
@@ -25,7 +26,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { COLORS_LIST, randomBadgeColor } from "../links/tag-badge";
+import { randomBadgeColor } from "../links/tag-badge";
 
 function AddEditTagModal({
   showAddEditTagModal,
@@ -168,12 +169,12 @@ function AddEditTagModal({
           </label>
           <RadioGroup
             defaultValue={color}
-            onValueChange={(value: TagColorProps) => {
+            onValueChange={(value: ResourceColorsEnum) => {
               setData({ ...data, color: value });
             }}
             className="mt-2 flex flex-wrap gap-3"
           >
-            {COLORS_LIST.map(({ color: colorOption, css }) => (
+            {RESOURCE_COLORS_DATA.map(({ color: colorOption, tagVariants }) => (
               <div key={colorOption} className="flex items-center">
                 <RadioGroupItem
                   value={colorOption}
@@ -184,7 +185,7 @@ function AddEditTagModal({
                   htmlFor={colorOption}
                   className={cn(
                     "cursor-pointer whitespace-nowrap rounded-md px-2 py-0.5 text-sm capitalize ring-current peer-focus-visible:ring-offset-2",
-                    css,
+                    tagVariants,
                     color === colorOption && "ring-2",
                   )}
                 >

@@ -13,6 +13,7 @@ export function PageContent({
   titleInfo,
   titleBackHref,
   controls,
+  headerContent,
   className,
   contentWrapperClassName,
   children,
@@ -21,6 +22,7 @@ export function PageContent({
   titleInfo?: ReactNode | { title: string; href?: string };
   titleBackHref?: string;
   controls?: ReactNode;
+  headerContent?: ReactNode;
   className?: string;
   contentWrapperClassName?: string;
 }>) {
@@ -40,7 +42,7 @@ export function PageContent({
       titleInfo
     );
 
-  const hasHeaderContent = !!(title || controls);
+  const hasHeaderContent = !!(title || controls || headerContent);
 
   return (
     <div
@@ -82,6 +84,7 @@ export function PageContent({
               <div className="flex items-center gap-2">{controls}</div>
             )}
           </div>
+          {headerContent && <div className="pb-3 pt-1">{headerContent}</div>}
         </PageWidthWrapper>
       </div>
       <div

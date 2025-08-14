@@ -1,6 +1,7 @@
 import { revokeProgramInviteAction } from "@/lib/actions/partners/revoke-program-invite";
 import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroups from "@/lib/swr/use-groups";
 import usePayouts from "@/lib/swr/use-payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
@@ -29,6 +30,8 @@ import { toast } from "sonner";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { useAddPartnerLinkModal } from "./add-partner-link-modal";
 import { useBanPartnerModal } from "./ban-partner-modal";
+import { useChangeGroupModal } from "./change-group-modal";
+import { GroupColorCircle } from "./groups/group-color-circle";
 import { usePartnerApplicationSheet } from "./partner-application-sheet";
 import { PartnerInfoSection } from "./partner-info-section";
 import { usePartnerProfileSheet } from "./partner-profile-sheet";
@@ -46,6 +49,18 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
   const { slug } = useWorkspace();
   const [tab, setTab] = useState<Tab>("links");
 
+  const { groups } = useGroups({
+    query: {
+      groupIds: partner.groupId ? [partner.groupId] : undefined,
+    },
+  });
+
+  const group = groups?.find((g) => g.id === partner.groupId);
+
+  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
+    partners: [partner],
+  });
+
   const { createCommissionSheet, setIsOpen: setCreateCommissionSheetOpen } =
     useCreateCommissionSheet({
       nested: true,
@@ -59,6 +74,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
 
   return (
     <div className="flex h-full flex-col">
+      <ChangeGroupModal />
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
@@ -81,9 +97,37 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
             <Menu partner={partner} />
           </PartnerInfoSection>
 
+          {/* Group */}
+          <div className="mt-6 flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-100 p-2 pl-3">
+            <div className="flex items-center gap-2">
+              {group ? (
+                <GroupColorCircle group={group} />
+              ) : (
+                <div className="size-3 shrink-0 animate-pulse rounded-full bg-neutral-200" />
+              )}
+              {group ? (
+                <span className="text-sm font-medium text-neutral-800">
+                  {group.name}
+                </span>
+              ) : (
+                <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+              )}
+            </div>
+            {group ? (
+              <Button
+                variant="secondary"
+                text="Change group"
+                className="h-7 w-fit rounded-lg px-2.5"
+                onClick={() => setShowChangeGroupModal(true)}
+              />
+            ) : (
+              <div className="h-7 w-24 animate-pulse rounded-lg bg-neutral-200" />
+            )}
+          </div>
+
           {/* Stats */}
           {showPartnerDetails && (
-            <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
+            <div className="xs:grid-cols-3 mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
               {[
                 [
                   "Clicks",
