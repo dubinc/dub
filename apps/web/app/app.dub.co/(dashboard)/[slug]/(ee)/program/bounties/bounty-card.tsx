@@ -29,13 +29,13 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <h3 className="line-clamp-1 text-sm font-semibold text-neutral-900">
+          <h3 className="text-content-emphasis truncate text-sm font-semibold">
             {bounty.name}
           </h3>
 
-          <div className="flex items-center space-x-2">
-            <CalendarDays className="size-4" />
-            <span className="text-sm text-neutral-500">
+          <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+            <CalendarDays className="size-3.5" />
+            <span>
               {formatDate(bounty.startsAt, { month: "short" })}
               {bounty.endsAt && (
                 <>
@@ -46,11 +46,11 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
             </span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Users className="size-4" />
-            <div className="text-sm text-neutral-500">
-              <span className="font-medium text-neutral-700">{100}</span> of{" "}
-              <span className="font-medium text-neutral-700">
+          <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+            <Users className="size-3.5" />
+            <div>
+              <span className="text-content-default">N</span> of{" "}
+              <span className="text-content-default">
                 {/* {bounty.submissionsCount} */} X
               </span>{" "}
               partners completed
