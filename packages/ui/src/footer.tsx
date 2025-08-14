@@ -18,7 +18,7 @@ import {
   YouTube,
 } from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
-import { MenuItem } from "./menu-item";
+import { menuItemVariants } from "./menu-item";
 import { NavWordmark } from "./nav-wordmark";
 import { Popover } from "./popover";
 
@@ -244,13 +244,12 @@ export function Footer({
                         </Link>
                       </li>
                     ))}
-                    <li>
+                    <li className="-mt-1">
                       <Popover
                         content={
                           <div className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
                             {LEGAL_PAGES.map((page) => (
-                              <MenuItem
-                                as={Link}
+                              <Link
                                 key={page.name}
                                 href={createHref(
                                   `/legal/${page.slug}`,
@@ -263,12 +262,13 @@ export function Footer({
                                   },
                                 )}
                                 className={cn(
+                                  menuItemVariants({ variant: "default" }),
                                   linkListItemClassName,
-                                  "font-normal",
+                                  "justify-start font-normal",
                                 )}
                               >
                                 {page.name}
-                              </MenuItem>
+                              </Link>
                             ))}
                           </div>
                         }
