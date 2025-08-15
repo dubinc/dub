@@ -49,7 +49,7 @@ const DiscountItem = ({
       {DiscountSheet}
       <div
         className={cn(
-          "flex cursor-pointer items-center gap-4 rounded-lg p-6 transition-all",
+          "flex cursor-pointer flex-col gap-4 rounded-lg p-6 transition-all md:flex-row md:items-center",
           discount && "border border-neutral-200 hover:border-neutral-300",
           !discount && "bg-neutral-50 hover:bg-neutral-100",
         )}
@@ -61,7 +61,7 @@ const DiscountItem = ({
         <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
           <BadgePercent className="size-4 text-neutral-600" />
         </div>
-        <div className="flex flex-1 items-center justify-between">
+        <div className="flex flex-1 flex-col justify-between gap-y-4 md:flex-row md:items-center">
           <div className="flex items-center gap-2">
             <span className="text-sm font-normal">
               {discount ? (
@@ -81,7 +81,7 @@ const DiscountItem = ({
             <Button
               text={discount ? "Edit" : "Create"}
               variant={discount ? "secondary" : "primary"}
-              className="h-9 w-fit rounded-lg"
+              className="h-9 w-full rounded-lg md:w-fit"
               onClick={(e) => {
                 e.preventDefault();
                 setIsOpen(true);
