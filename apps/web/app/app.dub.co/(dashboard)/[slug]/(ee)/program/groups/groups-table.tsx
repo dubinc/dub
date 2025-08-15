@@ -14,17 +14,20 @@ import {
   EditColumnsButton,
   Icon,
   Popover,
+  StatusBadge,
   Table,
+  useCopyToClipboard,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, PenWriting, Trash, Users } from "@dub/ui/icons";
+import { Copy, Dots, PenWriting, Tick, Trash, Users } from "@dub/ui/icons";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function GroupsTable() {
   const router = useRouter();
@@ -67,6 +70,11 @@ export function GroupsTable() {
           <div className="flex items-center gap-2">
             <GroupColorCircle group={row.original} />
             <span>{row.original.name}</span>
+            {row.original.slug === DEFAULT_PARTNER_GROUP.slug && (
+              <StatusBadge variant="new" icon={null} className="px-1.5 py-0.5">
+                Default
+              </StatusBadge>
+            )}
           </div>
         ),
       },
@@ -200,6 +208,8 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
     row.original,
   );
 
+  const [copiedGroupId, copyToClipboard] = useCopyToClipboard();
+
   return (
     <>
       <DeleteGroupModal />
@@ -229,6 +239,17 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
                     `/${slug}/program/partners?groupId=${row.original.id}`,
                   )
                 }
+              />
+
+              <MenuItem
+                icon={copiedGroupId ? Tick : Copy}
+                label="Copy group ID"
+                variant="default"
+                onSelect={() => {
+                  toast.promise(copyToClipboard(row.original.id), {
+                    success: "Group ID copied!",
+                  });
+                }}
               />
 
               {row.original.slug !== DEFAULT_PARTNER_GROUP.slug && (

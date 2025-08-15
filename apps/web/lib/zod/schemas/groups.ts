@@ -7,7 +7,7 @@ import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { RewardSchema } from "./rewards";
 
 export const DEFAULT_PARTNER_GROUP = {
-  name: "Default",
+  name: "Default Group",
   slug: "default",
   color: null,
 } as const;

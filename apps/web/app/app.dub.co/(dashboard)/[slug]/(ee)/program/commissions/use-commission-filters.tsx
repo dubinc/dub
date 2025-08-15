@@ -4,6 +4,7 @@ import useCustomersCount from "@/lib/swr/use-customers-count";
 import useGroups from "@/lib/swr/use-groups";
 import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
@@ -18,6 +19,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 export function useCommissionFilters() {
+  const { slug } = useWorkspace();
   const { commissionsCount } = useCommissionsCount();
   const { searchParamsObj, queryParams } = useRouterStuff();
 
@@ -78,6 +80,20 @@ export function useCommissionFilters() {
           }) ?? null,
       },
       {
+        key: "groupId",
+        icon: Users6,
+        label: "Partner Group",
+        options:
+          groups?.map((group) => {
+            return {
+              value: group.id,
+              label: group.name,
+              icon: <GroupColorCircle group={group} />,
+              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
+            };
+          }) ?? null,
+      },
+      {
         key: "type",
         icon: Sliders,
         label: "Type",
@@ -111,19 +127,6 @@ export function useCommissionFilters() {
             };
           },
         ),
-      },
-      {
-        key: "groupId",
-        icon: Users6,
-        label: "Group",
-        options:
-          groups?.map((group) => {
-            return {
-              value: group.id,
-              label: group.name,
-              icon: <GroupColorCircle group={group} />,
-            };
-          }) ?? null,
       },
     ],
     [commissionsCount, partners, customers, groups],
