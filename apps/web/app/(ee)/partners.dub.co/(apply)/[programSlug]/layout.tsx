@@ -3,7 +3,7 @@ import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { Wordmark } from "@dub/ui";
-import { APP_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 import { constructMetadata } from "@dub/utils/src/functions";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -33,6 +33,7 @@ export async function generateMetadata({
         : "earn commissions"
     } by referring ${program.name} to your friends and followers.`,
     image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}`,
+    canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}`,
   });
 }
 

@@ -2,7 +2,6 @@ import { getProgram } from "@/lib/fetchers/get-program";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
-import { capitalize } from "@dub/utils";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { Header } from "../header";
@@ -41,10 +40,7 @@ export default async function ApplicationPage({
           <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
             {program.name} Affiliate Program
           </p>
-          <h1 className="text-4xl font-semibold">
-            Apply to {program.name}{" "}
-            {!isDefaultGroup ? `(${capitalize(partnerGroupSlug)})` : ""}
-          </h1>
+          <h1 className="text-4xl font-semibold">Apply to {program.name}</h1>
           <p className="text-base text-neutral-700">
             Submit your application to join the {program.name} affiliate program
             and start earning commissions for your referrals.
