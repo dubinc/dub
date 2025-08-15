@@ -35,12 +35,18 @@ export function RewardPartnersCard({ groupId }: { groupId: string }) {
             <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
             <span>
-              To{" "}
-              <PartnerPreviewOrCount
-                previewPartners={partners?.slice(0, 3) || []}
-                partnersCount={partnersCount}
-                isExpanded={isExpanded}
-              />
+              {partnersCount === 0 ? (
+                "No partners selected"
+              ) : (
+                <>
+                  To{" "}
+                  <PartnerPreviewOrCount
+                    previewPartners={partners?.slice(0, 3) || []}
+                    partnersCount={partnersCount}
+                    isExpanded={isExpanded}
+                  />
+                </>
+              )}
             </span>
           )}
         </div>
