@@ -3,7 +3,7 @@ import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { ACME_PROGRAM_ID, randomValue } from "@dub/utils";
+import { randomValue } from "@dub/utils";
 import "dotenv-flow/config";
 
 // one time script for migrating to partner groups
@@ -17,8 +17,10 @@ async function main() {
       "discountId",
     ],
     where: {
-      programId: ACME_PROGRAM_ID,
-      status: "approved",
+      groupId: null,
+      status: {
+        notIn: ["pending", "rejected", "banned"],
+      },
     },
     _count: {
       _all: true,
@@ -31,6 +33,7 @@ async function main() {
   });
 
   console.log(`Found total of ${groups.length} groups`);
+  console.table(groups);
 
   const rewards = await prisma.reward.findMany({
     where: {
@@ -182,7 +185,7 @@ async function main() {
       });
 
       if (isDefaultGroup) {
-        const programRes = await prisma.program.update({
+        await prisma.program.update({
           where: { id: group.programId },
           data: { defaultGroupId: finalGroupId },
         });
