@@ -3,11 +3,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { qstash } from "@/lib/cron";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
-import { Discount } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -15,19 +12,7 @@ export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let {
-      discountId,
-      amount,
-      type,
-      maxDuration,
-      couponId,
-      couponTestId,
-      includedPartnerIds,
-      excludedPartnerIds,
-    } = parsedInput;
-
-    includedPartnerIds = includedPartnerIds || [];
-    excludedPartnerIds = excludedPartnerIds || [];
+    let { discountId, includedPartnerIds, excludedPartnerIds } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -35,6 +20,9 @@ export const updateDiscountAction = authActionClient
       programId,
       discountId,
     });
+
+    includedPartnerIds = includedPartnerIds || [];
+    excludedPartnerIds = excludedPartnerIds || [];
 
     const finalPartnerIds = [...includedPartnerIds, ...excludedPartnerIds];
 
@@ -62,90 +50,52 @@ export const updateDiscountAction = authActionClient
       }
     }
 
-    const updatedDiscount = await prisma.discount.update({
-      where: {
-        id: discountId,
-      },
-      data: {
-        amount,
-        type,
-        maxDuration,
-        couponId,
-        couponTestId,
-      },
-    });
-
     // Update partners associated with the discount
-    if (updatedDiscount.default) {
+    if (discount.default) {
       await updateDefaultDiscountPartners({
-        discount: updatedDiscount,
+        programId,
+        discountId,
         partnerIds: excludedPartnerIds,
       });
     } else {
       await updateNonDefaultDiscountPartners({
-        discount: updatedDiscount,
+        programId,
+        discountId,
         partnerIds: includedPartnerIds,
       });
     }
 
     waitUntil(
-      (async () => {
-        const shouldExpireCache = !deepEqual(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "discount.updated",
+        description: `Discount ${discount.id} updated`,
+        actor: user,
+        targets: [
           {
-            amount: discount.amount,
-            type: discount.type,
-            maxDuration: discount.maxDuration,
+            type: "discount",
+            id: discount.id,
+            metadata: discount,
           },
-          {
-            amount: updatedDiscount.amount,
-            type: updatedDiscount.type,
-            maxDuration: updatedDiscount.maxDuration,
-          },
-        );
-
-        await Promise.allSettled([
-          shouldExpireCache
-            ? qstash.publishJSON({
-                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-                body: {
-                  programId,
-                  discountId,
-                  isDefault: updatedDiscount.default,
-                  action: "discount-updated",
-                },
-              })
-            : Promise.resolve(),
-
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "discount.updated",
-            description: `Discount ${discount.id} updated`,
-            actor: user,
-            targets: [
-              {
-                type: "discount",
-                id: discount.id,
-                metadata: updatedDiscount,
-              },
-            ],
-          }),
-        ]);
-      })(),
+        ],
+      }),
     );
   });
 
 // Update default discount
 const updateDefaultDiscountPartners = async ({
-  discount,
+  programId,
+  discountId,
   partnerIds,
 }: {
-  discount: Discount;
+  programId: string;
+  discountId: string;
   partnerIds: string[]; // Excluded partners
 }) => {
   const existingPartners = await prisma.programEnrollment.findMany({
     where: {
-      programId: discount.programId,
+      programId,
       discountId: null,
     },
     select: {
@@ -167,7 +117,7 @@ const updateDefaultDiscountPartners = async ({
   if (excludedPartnerIds.length > 0) {
     await prisma.programEnrollment.updateMany({
       where: {
-        programId: discount.programId,
+        programId,
         partnerId: {
           in: excludedPartnerIds,
         },
@@ -182,14 +132,14 @@ const updateDefaultDiscountPartners = async ({
   if (includedPartnerIds.length > 0) {
     await prisma.programEnrollment.updateMany({
       where: {
-        programId: discount.programId,
+        programId,
         discountId: null,
         partnerId: {
           in: includedPartnerIds,
         },
       },
       data: {
-        discountId: discount.id,
+        discountId,
       },
     });
   }
@@ -197,16 +147,18 @@ const updateDefaultDiscountPartners = async ({
 
 // Update non-default discount
 const updateNonDefaultDiscountPartners = async ({
-  discount,
+  programId,
+  discountId,
   partnerIds,
 }: {
-  discount: Discount;
+  programId: string;
+  discountId: string;
   partnerIds: string[]; // Included partners
 }) => {
   const existingPartners = await prisma.programEnrollment.findMany({
     where: {
-      programId: discount.programId,
-      discountId: discount.id,
+      programId,
+      discountId,
     },
     select: {
       partnerId: true,
@@ -227,13 +179,13 @@ const updateNonDefaultDiscountPartners = async ({
   if (includedPartnerIds.length > 0) {
     await prisma.programEnrollment.updateMany({
       where: {
-        programId: discount.programId,
+        programId,
         partnerId: {
           in: includedPartnerIds,
         },
       },
       data: {
-        discountId: discount.id,
+        discountId,
       },
     });
   }
@@ -242,15 +194,15 @@ const updateNonDefaultDiscountPartners = async ({
   if (excludedPartnerIds.length > 0) {
     const defaultDiscount = await prisma.discount.findFirst({
       where: {
-        programId: discount.programId,
+        programId,
         default: true,
       },
     });
 
     await prisma.programEnrollment.updateMany({
       where: {
-        programId: discount.programId,
-        discountId: discount.id,
+        programId,
+        discountId,
         partnerId: {
           in: excludedPartnerIds,
         },

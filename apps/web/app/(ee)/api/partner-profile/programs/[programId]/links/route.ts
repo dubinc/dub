@@ -27,10 +27,11 @@ export const POST = withPartnerProfile(
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
-    const { program, links, tenantId, status } =
+    const { program, links, tenantId, status, discount } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
+        includeDiscount: true,
       });
 
     if (status === "banned") {
@@ -86,7 +87,11 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const partnerLink = await createLink({
+      ...link,
+      program,
+      discount,
+    });
 
     return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink), {
       status: 201,

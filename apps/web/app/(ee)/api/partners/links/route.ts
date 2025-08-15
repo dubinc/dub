@@ -94,6 +94,16 @@ export const POST = withWorkspace(
       where: partnerId
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
+      select: {
+        partnerId: true,
+        tenantId: true,
+        discount: {
+          select: {
+            id: true,
+            couponId: true,
+          },
+        },
+      },
     });
 
     if (!partner) {
@@ -127,7 +137,12 @@ export const POST = withWorkspace(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const partnerLink = await createLink({
+      ...link,
+      workspace,
+      program,
+      discount: partner.discount,
+    });
 
     waitUntil(
       sendWorkspaceWebhook({

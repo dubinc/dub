@@ -17,7 +17,7 @@ export const GET = withReferralsEmbedToken(async ({ links }) => {
 
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
-  async ({ req, programEnrollment, program, links }) => {
+  async ({ req, programEnrollment, program, links, discount }) => {
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
@@ -54,6 +54,9 @@ export const POST = withReferralsEmbedToken(
       orderBy: {
         createdAt: "desc",
       },
+      include: {
+        project: true,
+      },
     });
 
     const { link, error, code } = await processLink({
@@ -84,7 +87,12 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const partnerLink = await createLink({
+      ...link,
+      workspace: workspaceOwner?.project,
+      program,
+      discount,
+    });
 
     return NextResponse.json(ReferralsEmbedLinkSchema.parse(partnerLink), {
       status: 201,

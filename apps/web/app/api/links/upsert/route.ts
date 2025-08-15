@@ -149,6 +149,7 @@ export const PUT = withWorkspace(
             domain: link.domain,
             key: link.key,
             image: link.image,
+            couponCode: link.couponCode,
           },
           updatedLink: processedLink,
         });
@@ -186,7 +187,10 @@ export const PUT = withWorkspace(
       }
 
       try {
-        const response = await createLink(link);
+        const response = await createLink({
+          ...link,
+          workspace,
+        });
         return NextResponse.json(response, { headers });
       } catch (error) {
         throw new DubApiError({

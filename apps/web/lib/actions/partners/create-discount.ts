@@ -3,8 +3,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
+import { createStripeCoupon } from "@/lib/stripe/create-stripe-coupon";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -30,11 +30,6 @@ export const createDiscountAction = authActionClient
     excludedPartnerIds = excludedPartnerIds || [];
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-
-    await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
 
     // A program can have only one default discount
     if (isDefault) {
@@ -81,6 +76,31 @@ export const createDiscountAction = authActionClient
       }
     }
 
+    const shouldCreateCouponOnStripe = !couponId && !couponTestId;
+
+    if (shouldCreateCouponOnStripe) {
+      if (!workspace.stripeConnectId) {
+        throw new Error(
+          "You need to install Dub Stripe app before creating a coupon.",
+        );
+      }
+
+      const stripeCoupon = await createStripeCoupon({
+        stripeConnectId: workspace.stripeConnectId,
+        coupon: {
+          amount,
+          type,
+          maxDuration: maxDuration ?? null,
+        },
+      });
+
+      if (!stripeCoupon) {
+        throw new Error("Failed to create Stripe coupon. Please try again.");
+      }
+
+      couponId = stripeCoupon.id;
+    }
+
     const discount = await prisma.discount.create({
       data: {
         id: createId({ prefix: "disc_" }),
@@ -91,6 +111,9 @@ export const createDiscountAction = authActionClient
         couponId,
         couponTestId,
         default: isDefault,
+      },
+      include: {
+        program: true,
       },
     });
 
@@ -123,9 +146,7 @@ export const createDiscountAction = authActionClient
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
             body: {
-              programId,
               discountId: discount.id,
-              isDefault,
               action: "discount-created",
             },
           }),
@@ -144,6 +165,14 @@ export const createDiscountAction = authActionClient
               },
             ],
           }),
+
+          discount.program.couponCodeTrackingEnabledAt &&
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
+              body: {
+                discountId: discount.id,
+              },
+            }),
         ]);
       })(),
     );

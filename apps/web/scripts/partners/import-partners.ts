@@ -1,3 +1,4 @@
+import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
@@ -55,11 +56,7 @@ async function main() {
         };
 
         const partnerLink = await createPartnerLink({
-          workspace: {
-            id: program.workspace.id,
-            plan: program.workspace.plan as "advanced",
-            webhookEnabled: program.workspace.webhookEnabled,
-          },
+          workspace: program.workspace as WorkspaceProps,
           program: {
             id: programId,
             domain: program.domain,
