@@ -95,7 +95,9 @@ const DiscountItem = ({
 };
 
 const CopyDefaultDiscountButton = () => {
-  const { group: defaultGroup } = useGroup({ slug: "default" });
+  const { group: defaultGroup } = useGroup({
+    slug: DEFAULT_PARTNER_GROUP.slug,
+  });
 
   const { DiscountSheet, setIsOpen } = useDiscountSheet({
     defaultDiscountValues: defaultGroup?.discount ?? undefined,

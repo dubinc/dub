@@ -211,7 +211,9 @@ const RewardItem = ({
 };
 
 const CopyDefaultRewardButton = ({ event }: { event: EventType }) => {
-  const { group: defaultGroup } = useGroup({ slug: "default" });
+  const { group: defaultGroup } = useGroup({
+    slug: DEFAULT_PARTNER_GROUP.slug,
+  });
 
   const defaultReward = defaultGroup?.[`${event}Reward`];
 

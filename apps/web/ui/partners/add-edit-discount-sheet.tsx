@@ -57,16 +57,16 @@ function DiscountSheetContent({
   const { mutate: mutateProgram } = useProgram();
   const { group, mutateGroup } = useGroup();
 
+  const defaultValuesSource = discount || defaultDiscountValues;
+
   const [isRecurring, setIsRecurring] = useState(
-    discount ? discount.maxDuration !== 0 : false,
+    defaultValuesSource ? defaultValuesSource.maxDuration !== 0 : false,
   );
 
   const [accordionValues, setAccordionValues] = useState<string[]>([
     "discount-type",
     "discount-details",
   ]);
-
-  const defaultValuesSource = discount || defaultDiscountValues;
 
   const {
     register,
