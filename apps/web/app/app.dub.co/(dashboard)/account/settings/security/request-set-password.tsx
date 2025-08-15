@@ -43,7 +43,10 @@ export const RequestSetPassword = () => {
           {user?.provider && (
             <>
               Your account is managed by{" "}
-              <span className="uppercase">{user?.provider}</span>.{" "}
+              <span className="font-medium capitalize text-neutral-700">
+                {user?.provider}
+              </span>
+              .{" "}
             </>
           )}
           You can set a password to use with your Dub account.

@@ -3,7 +3,7 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { buttonVariants } from "@dub/ui";
-import { capitalize, cn, nFormatter } from "@dub/utils";
+import { capitalize, cn, isLegacyBusinessPlan, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -14,12 +14,12 @@ export function PartnersUpgradeCTA({
   title?: string;
   description?: string;
 }) {
-  const { slug, plan, store } = useWorkspace();
+  const { slug, plan, store, payoutsLimit } = useWorkspace();
 
   const { canManageProgram } = getPlanCapabilities(plan);
 
   const { cta, href } = useMemo(() => {
-    if (!canManageProgram) {
+    if (!canManageProgram || isLegacyBusinessPlan({ plan, payoutsLimit })) {
       return {
         cta: "Upgrade plan",
         href: `/${slug}/upgrade`,
@@ -30,7 +30,7 @@ export function PartnersUpgradeCTA({
         href: `/${slug}/program/new`,
       };
     }
-  }, [canManageProgram, slug]);
+  }, [canManageProgram, slug, payoutsLimit]);
 
   return (
     <div className="flex min-h-[calc(100vh-60px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
