@@ -177,6 +177,8 @@ function LinkSelector({
   const { links } = useLinks(
     {
       search: debouncedSearch,
+      // if searching, search across all folders, otherwise just list links in the current folder
+      ...(folderId && !debouncedSearch && { folderId }),
     },
     {
       keepPreviousData: false,
