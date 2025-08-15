@@ -10,6 +10,7 @@ export const GET = withSession(async ({ session }) => {
       email: session.user.email,
       image: session.user.image || null,
       tenantId: session.user.id,
+      groupId: "grp_1K2QJWRQ917XX2YR5VHQ1RRC5", // User Referrals group
     },
   });
 

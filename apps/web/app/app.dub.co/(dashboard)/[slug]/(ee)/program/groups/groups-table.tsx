@@ -81,7 +81,7 @@ export function GroupsTable() {
       {
         id: "partners",
         header: "Partners",
-        accessorFn: (d) => nFormatter(d.partners),
+        accessorFn: (d) => nFormatter(d.partners, { full: true }),
       },
       {
         id: "clicks",
