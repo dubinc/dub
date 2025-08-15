@@ -10,7 +10,7 @@ import { useMemo } from "react";
 
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { groups } = useGroups();
 
   const { partnersCount: countriesCount } = usePartnersCount<
@@ -105,6 +105,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
               label: group.name,
               icon: <GroupColorCircle group={group} />,
               right: nFormatter(count || 0, { full: true }),
+              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
             };
           }) ?? null,
       },
