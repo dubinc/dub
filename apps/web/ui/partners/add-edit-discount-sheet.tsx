@@ -29,6 +29,7 @@ import {
 interface DiscountSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   discount?: DiscountProps;
+  defaultDiscountValues?: DiscountProps;
 }
 
 type FormData = z.infer<typeof createDiscountSchema>;
@@ -46,7 +47,11 @@ const discountTypes = [
   },
 ] as const;
 
-function DiscountSheetContent({ setIsOpen, discount }: DiscountSheetProps) {
+function DiscountSheetContent({
+  setIsOpen,
+  discount,
+  defaultDiscountValues,
+}: DiscountSheetProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { mutate: mutateProgram } = useProgram();
@@ -61,6 +66,8 @@ function DiscountSheetContent({ setIsOpen, discount }: DiscountSheetProps) {
     "discount-details",
   ]);
 
+  const defaultValuesSource = discount || defaultDiscountValues;
+
   const {
     register,
     handleSubmit,
@@ -70,12 +77,16 @@ function DiscountSheetContent({ setIsOpen, discount }: DiscountSheetProps) {
   } = useForm<FormData>({
     defaultValues: {
       amount:
-        discount?.type === "flat" ? discount.amount / 100 : discount?.amount,
-      type: discount?.type || "percentage",
+        defaultValuesSource?.type === "flat"
+          ? defaultValuesSource.amount / 100
+          : defaultValuesSource?.amount,
+      type: defaultValuesSource?.type || "percentage",
       maxDuration:
-        discount?.maxDuration === null ? Infinity : discount?.maxDuration || 0,
-      couponId: discount?.couponId || "",
-      couponTestId: discount?.couponTestId || "",
+        defaultValuesSource?.maxDuration === null
+          ? Infinity
+          : defaultValuesSource?.maxDuration || 0,
+      couponId: defaultValuesSource?.couponId || "",
+      couponTestId: defaultValuesSource?.couponTestId || "",
     },
   });
 
