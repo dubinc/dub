@@ -177,7 +177,6 @@ function LinkSelector({
   const { links } = useLinks(
     {
       search: debouncedSearch,
-      ...(folderId && { folderId }),
     },
     {
       keepPreviousData: false,
