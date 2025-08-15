@@ -14,6 +14,7 @@ import {
   EditColumnsButton,
   Icon,
   Popover,
+  StatusBadge,
   Table,
   usePagination,
   useRouterStuff,
@@ -67,6 +68,11 @@ export function GroupsTable() {
           <div className="flex items-center gap-2">
             <GroupColorCircle group={row.original} />
             <span>{row.original.name}</span>
+            {row.original.slug === DEFAULT_PARTNER_GROUP.slug && (
+              <StatusBadge variant="new" icon={null} className="px-1.5 py-0.5">
+                Default
+              </StatusBadge>
+            )}
           </div>
         ),
       },

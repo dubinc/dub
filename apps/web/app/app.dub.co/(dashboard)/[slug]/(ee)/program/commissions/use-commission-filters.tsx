@@ -78,6 +78,19 @@ export function useCommissionFilters() {
           }) ?? null,
       },
       {
+        key: "groupId",
+        icon: Users6,
+        label: "Partner Group",
+        options:
+          groups?.map((group) => {
+            return {
+              value: group.id,
+              label: group.name,
+              icon: <GroupColorCircle group={group} />,
+            };
+          }) ?? null,
+      },
+      {
         key: "type",
         icon: Sliders,
         label: "Type",
@@ -111,19 +124,6 @@ export function useCommissionFilters() {
             };
           },
         ),
-      },
-      {
-        key: "groupId",
-        icon: Users6,
-        label: "Group",
-        options:
-          groups?.map((group) => {
-            return {
-              value: group.id,
-              label: group.name,
-              icon: <GroupColorCircle group={group} />,
-            };
-          }) ?? null,
       },
     ],
     [commissionsCount, partners, customers, groups],
