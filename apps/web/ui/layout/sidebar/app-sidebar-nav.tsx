@@ -27,7 +27,7 @@ import {
   Sliders,
   Tag,
   UserCheck,
-  Users2,
+  Users,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
@@ -206,7 +206,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "All Partners",
-            icon: Users2,
+            icon: Users,
             href: `/${slug}/program/partners`,
             exact: true,
           },
@@ -220,6 +220,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 : applicationsCount
               : undefined,
           },
+          {
+            name: "Groups",
+            icon: Users6,
+            href: `/${slug}/program/groups`,
+            badge: "New",
+          },
         ],
       },
       {
@@ -229,7 +235,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Analytics",
             icon: LinesYStatic,
             href: `/${slug}/program/analytics`,
-            badge: "New",
           },
           {
             name: "Commissions",
@@ -249,12 +254,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Rewards",
             icon: Gift,
-            href: `/${slug}/program/rewards`,
+            href: `/${slug}/program/groups/default/rewards`,
+            arrow: true,
+            isActive: () => false,
           },
           {
             name: "Discounts",
             icon: Discount,
-            href: `/${slug}/program/discounts`,
+            href: `/${slug}/program/groups/default/discount`,
+            arrow: true,
+            isActive: () => false,
           },
           {
             name: "Branding",

@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -37,7 +38,12 @@ export const rejectPartnerAction = authActionClient
         id: programEnrollment.id,
       },
       data: {
-        status: "rejected",
+        status: ProgramEnrollmentStatus.rejected,
+        groupId: null,
+        clickRewardId: null,
+        leadRewardId: null,
+        saleRewardId: null,
+        discountId: null,
       },
     });
 

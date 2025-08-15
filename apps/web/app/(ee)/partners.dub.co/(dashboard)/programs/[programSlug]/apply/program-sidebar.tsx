@@ -145,7 +145,6 @@ export function ProgramSidebar({
         onClick={() => {
           if (programEnrollment?.status === "invited") {
             executeAcceptInvite({
-              partnerId: programEnrollment.partnerId,
               programId: programEnrollment.programId,
             });
           } else setIsApplicationSheetOpen(true);

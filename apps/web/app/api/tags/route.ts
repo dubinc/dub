@@ -6,7 +6,7 @@ import {
   createTagBodySchema,
   getTagsQuerySchemaExtended,
 } from "@/lib/zod/schemas/tags";
-import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
+import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -103,10 +103,7 @@ export const POST = withWorkspace(
       data: {
         id: createId({ prefix: "tag_" }),
         name: tag || name!,
-        color:
-          color && COLORS_LIST.map(({ color }) => color).includes(color)
-            ? color
-            : randomBadgeColor(),
+        color: color || randomBadgeColor(),
         projectId: workspace.id,
       },
     });

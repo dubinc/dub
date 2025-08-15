@@ -49,6 +49,7 @@ export default function PlanUsage() {
     domainsLimit,
     foldersUsage,
     foldersLimit,
+    groupsLimit,
     tagsLimit,
     usersLimit,
     billingCycleStart,

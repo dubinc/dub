@@ -1,5 +1,6 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prismaEdge } from "@dub/prisma/edge";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
@@ -37,8 +38,16 @@ export async function GET(req: NextRequest) {
       slug,
     },
     include: {
-      rewards: true,
-      discounts: true,
+      groups: {
+        where: {
+          slug: DEFAULT_PARTNER_GROUP.slug,
+        },
+        include: {
+          clickReward: true,
+          saleReward: true,
+          leadReward: true,
+        },
+      },
     },
   });
 
@@ -51,7 +60,7 @@ export async function GET(req: NextRequest) {
   const logo = program.wordmark || program.logo;
   const brandColor = program.brandColor || "#000000";
 
-  const { rewards } = getProgramApplicationRewardsAndDiscount(program);
+  const { rewards } = getGroupRewardsAndDiscount(program.groups[0]);
 
   return new ImageResponse(
     (

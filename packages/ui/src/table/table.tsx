@@ -16,6 +16,7 @@ import {
   memo,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { Button } from "../button";
@@ -70,6 +71,8 @@ export function useTable<T extends any>(
   const [rowSelection, setRowSelection] = useState<RowSelectionState>(
     props.selectedRows ?? {},
   );
+
+  const lastSelectedRowId = useRef<string | null>(null);
 
   // Manually unset row selection if the row is no longer in the data
   // There doesn't seem to be a proper solution for this: https://github.com/TanStack/table/issues/4498
@@ -137,12 +140,56 @@ export function useTable<T extends any>(
                   />
                 </div>
               ),
-              cell: ({ row }: { row: Row<T> }) => (
+              cell: ({ row, table }: { row: Row<T>; table: TableType<T> }) => (
                 <div className="flex size-full items-center justify-center">
                   <Checkbox
                     className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                     checked={row.getIsSelected()}
-                    onCheckedChange={row.getToggleSelectedHandler()}
+                    onClick={(e) => {
+                      const currentId = getRowId?.(row.original);
+                      const rows = table.getRowModel().rows;
+                      const lastSelectedIndex =
+                        lastSelectedRowId.current !== null
+                          ? rows.findIndex(
+                              (row) =>
+                                getRowId?.(row.original) ===
+                                lastSelectedRowId.current,
+                            )
+                          : -1;
+
+                      if (
+                        e.shiftKey &&
+                        lastSelectedRowId.current !== null &&
+                        lastSelectedIndex !== -1
+                      ) {
+                        // Multi-select w/ shift key
+                        const currentIndex = row.index;
+
+                        const start = Math.min(lastSelectedIndex, currentIndex);
+                        const end = Math.max(lastSelectedIndex, currentIndex);
+                        const rangeIds = rows
+                          .slice(start, end + 1)
+                          .map((row) => getRowId?.(row.original));
+
+                        table.setRowSelection((rowSelection) => {
+                          const alreadySelected =
+                            currentId !== undefined &&
+                            (rowSelection?.[currentId] ?? false);
+
+                          return {
+                            ...rowSelection,
+                            ...Object.fromEntries(
+                              rangeIds.map((id) => [id, !alreadySelected]),
+                            ),
+                          };
+                        });
+
+                        lastSelectedRowId.current = currentId ?? null;
+                      } else {
+                        row.toggleSelected();
+                        lastSelectedRowId.current = currentId ?? null;
+                      }
+                    }}
                     title="Select"
                   />
                 </div>

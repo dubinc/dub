@@ -52,6 +52,11 @@ export const appRedirect = (path: string) => {
         `/${slug}/program${subPath ? `/${subPath}` : ""}`,
     );
 
+  // Redirect "/[slug]/program/groups/:groupSlug" to "/[slug]/program/groups/:groupSlug/rewards"
+  const groupRegex = /^\/([^\/]+)\/program\/groups\/([^\/]+)$/;
+  if (groupRegex.test(path))
+    return path.replace(groupRegex, "/$1/program/groups/$2/rewards");
+
   // Handle additional simpler program redirects
   const programRedirect = Object.keys(PROGRAM_REDIRECTS).find((redirect) =>
     path.endsWith(redirect),

@@ -38,6 +38,7 @@ export const ProgramSchema = z.object({
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string().nullable(),
+  defaultGroupId: z.string().nullable(),
   wordmark: z.string().nullable(),
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
@@ -89,6 +90,8 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
 });
 
 export const ProgramEnrollmentSchema = z.object({
+  programId: z.string().describe("The program's unique ID on Dub."),
+  groupId: z.string().nullish().describe("The partner's group ID on Dub."), // TODO update to required after migration complete
   partnerId: z.string().describe("The partner's unique ID on Dub."),
   tenantId: z
     .string()
@@ -96,7 +99,6 @@ export const ProgramEnrollmentSchema = z.object({
     .describe(
       "The partner's unique ID within your database. Can be useful for associating the partner with a user in your database and retrieving/update their data in the future.",
     ),
-  programId: z.string().describe("The program's unique ID on Dub."),
   program: ProgramSchema,
   createdAt: z.date(),
   status: z
@@ -168,6 +170,7 @@ export const ProgramMetricsSchema = z.object({
 
 export const createProgramApplicationSchema = z.object({
   programId: z.string(),
+  groupId: z.string(),
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   website: z.string().trim().max(100).optional(),

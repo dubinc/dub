@@ -21,6 +21,7 @@ export const POST = withWorkspace(
     const {
       partnerId,
       tenantId,
+      groupId,
       partner: partnerProps,
     } = createReferralsEmbedTokenSchema.parse(await parseRequestBody(req));
 
@@ -51,6 +52,7 @@ export const POST = withWorkspace(
           defaultFolderId: true,
           domain: true,
           url: true,
+          defaultGroupId: true,
         },
       });
 
@@ -89,6 +91,7 @@ export const POST = withWorkspace(
             description: partnerProps.description,
           },
           tenantId: partnerProps.tenantId,
+          groupId,
         });
 
         programEnrollment = {
