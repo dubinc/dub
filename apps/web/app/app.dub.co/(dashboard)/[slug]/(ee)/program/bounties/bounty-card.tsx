@@ -64,7 +64,7 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
 
 export const BountyCardSkeleton = () => {
   return (
-    <ProgramOverviewCard className="cursor-pointer p-5 transition-shadow hover:shadow-lg">
+    <ProgramOverviewCard className="cursor-pointer p-5">
       <div className="flex flex-col gap-5">
         <div className="flex h-[132px] animate-pulse items-center justify-center rounded-lg bg-neutral-100 px-32 py-4" />
 

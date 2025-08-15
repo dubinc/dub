@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
 import {
@@ -134,6 +135,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
       method: "POST",
       body: data,
       onSuccess: () => {
+        mutatePrefix("/api/bounties");
         setIsOpen(false);
         toast.success("Bounty created successfully!");
       },
