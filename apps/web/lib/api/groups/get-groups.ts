@@ -64,7 +64,7 @@ export async function getGroups(filters: GroupFilters) {
         `
       }
     FROM PartnerGroup pg
-    LEFT JOIN ProgramEnrollment pe ON pe.groupId = pg.id
+    LEFT JOIN ProgramEnrollment pe ON pe.groupId = pg.id AND pe.status IN ('approved', 'invited')
     ${
       includeExpandedFields
         ? Prisma.sql`

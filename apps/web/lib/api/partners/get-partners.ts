@@ -132,7 +132,7 @@ export async function getPartners(filters: PartnerFilters) {
     }
     WHERE 
       pe.programId = ${programId}
-      ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status NOT IN ('pending', 'rejected', 'banned', 'archived')`}
+      ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status IN ('approved', 'invited')`}
       ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
       ${

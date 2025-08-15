@@ -46,7 +46,7 @@ function CreateGroupModalContent({ setIsOpen }: CreateGroupModalProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
           <h2 className="text-lg font-semibold">Create group</h2>
