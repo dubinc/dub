@@ -4,6 +4,7 @@ import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
   ArrowUpRight2,
@@ -97,7 +98,11 @@ export function GroupHeaderTabs() {
       icon: Post,
       external: true,
       getHref: (group: GroupProps) =>
-        `${PARTNERS_DOMAIN}/${program?.slug}/${group.slug}`,
+        `${PARTNERS_DOMAIN}/${program?.slug}${
+          group.slug === DEFAULT_PARTNER_GROUP.slug
+            ? ""
+            : `/${group.slug}/apply`
+        }`,
     },
   ];
 

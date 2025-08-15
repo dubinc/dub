@@ -10,7 +10,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// POST /api/groups/[groupIdOrSlug]/partners - change group of partners
+// POST /api/groups/[groupIdOrSlug]/partners - add partners to group
 export const POST = withWorkspace(
   async ({ req, params, workspace }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -36,9 +36,6 @@ export const POST = withWorkspace(
           in: partnerIds,
         },
         programId,
-        groupId: {
-          not: group.id,
-        },
       },
       data: {
         groupId: group.id,
@@ -48,6 +45,8 @@ export const POST = withWorkspace(
         discountId: group.discountId,
       },
     });
+
+    console.log({ count });
 
     if (count > 0) {
       waitUntil(
