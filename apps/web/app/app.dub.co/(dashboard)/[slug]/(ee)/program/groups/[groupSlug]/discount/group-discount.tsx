@@ -1,7 +1,8 @@
 "use client";
 
 import useGroup from "@/lib/swr/use-group";
-import type { DiscountProps } from "@/lib/types";
+import type { DiscountProps, GroupProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useDiscountSheet } from "@/ui/partners/add-edit-discount-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { X } from "@/ui/shared/icons";
@@ -12,7 +13,7 @@ import {
   Grid,
   useLocalStorage,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { motion } from "framer-motion";
 import { BadgePercent } from "lucide-react";
 
@@ -23,16 +24,22 @@ export const GroupDiscount = () => {
     <div>
       <Banner />
 
-      {loading ? (
+      {loading || !group ? (
         <DiscountSkeleton />
       ) : (
-        <DiscountItem discount={group?.discount} />
+        <DiscountItem discount={group?.discount} group={group} />
       )}
     </div>
   );
 };
 
-const DiscountItem = ({ discount }: { discount?: DiscountProps | null }) => {
+const DiscountItem = ({
+  discount,
+  group,
+}: {
+  discount?: DiscountProps | null;
+  group: GroupProps;
+}) => {
   const { DiscountSheet, setIsOpen } = useDiscountSheet({
     ...(discount && { discount }),
   });
@@ -42,16 +49,19 @@ const DiscountItem = ({ discount }: { discount?: DiscountProps | null }) => {
       {DiscountSheet}
       <div
         className={cn(
-          "flex cursor-pointer items-center gap-4 rounded-lg p-6 transition-all",
+          "flex cursor-pointer flex-col gap-4 rounded-lg p-6 transition-all md:flex-row md:items-center",
           discount && "border border-neutral-200 hover:border-neutral-300",
           !discount && "bg-neutral-50 hover:bg-neutral-100",
         )}
-        onClick={() => setIsOpen(true)}
+        onClick={(e) => {
+          if (isClickOnInteractiveChild(e)) return;
+          setIsOpen(true);
+        }}
       >
         <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
           <BadgePercent className="size-4 text-neutral-600" />
         </div>
-        <div className="flex flex-1 items-center justify-between">
+        <div className="flex flex-1 flex-col justify-between gap-y-4 md:flex-row md:items-center">
           <div className="flex items-center gap-2">
             <span className="text-sm font-normal">
               {discount ? (
@@ -64,19 +74,50 @@ const DiscountItem = ({ discount }: { discount?: DiscountProps | null }) => {
             </span>
           </div>
 
-          <Button
-            text={discount ? "Edit" : "Create"}
-            variant={discount ? "secondary" : "primary"}
-            className="h-9 w-fit rounded-lg"
-            onClick={(e) => {
-              e.preventDefault();
-              setIsOpen(true);
-            }}
-          />
+          <div className="flex flex-col-reverse items-center gap-2 md:flex-row">
+            {group.slug !== DEFAULT_PARTNER_GROUP.slug && (
+              <CopyDefaultDiscountButton />
+            )}
+            <Button
+              text={discount ? "Edit" : "Create"}
+              variant={discount ? "secondary" : "primary"}
+              className="h-9 w-full rounded-lg md:w-fit"
+              onClick={(e) => {
+                e.preventDefault();
+                setIsOpen(true);
+              }}
+            />
+          </div>
         </div>
       </div>
     </>
   );
+};
+
+const CopyDefaultDiscountButton = () => {
+  const { group: defaultGroup } = useGroup({
+    slug: DEFAULT_PARTNER_GROUP.slug,
+  });
+
+  const { DiscountSheet, setIsOpen } = useDiscountSheet({
+    defaultDiscountValues: defaultGroup?.discount ?? undefined,
+  });
+
+  return defaultGroup?.discount ? (
+    <>
+      {DiscountSheet}
+      <Button
+        text="Duplicate default group"
+        variant="secondary"
+        className="animate-fade-in h-9 w-full rounded-lg md:w-fit"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen(true);
+        }}
+      />
+    </>
+  ) : null;
 };
 
 const DiscountSkeleton = () => {
