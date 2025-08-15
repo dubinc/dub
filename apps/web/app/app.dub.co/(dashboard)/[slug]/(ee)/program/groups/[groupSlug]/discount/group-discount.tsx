@@ -75,7 +75,7 @@ const DiscountItem = ({
           </div>
 
           <div className="flex flex-col-reverse items-center gap-2 md:flex-row">
-            {group.slug !== DEFAULT_PARTNER_GROUP.slug && (
+            {!discount && group.slug !== DEFAULT_PARTNER_GROUP.slug && (
               <CopyDefaultDiscountButton />
             )}
             <Button
