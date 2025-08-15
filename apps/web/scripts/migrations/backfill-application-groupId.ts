@@ -11,8 +11,6 @@ async function main() {
     take: 100,
   });
 
-  console.table(programs);
-
   const programApplications = await prisma.programApplication.groupBy({
     by: ["programId"],
     where: {
