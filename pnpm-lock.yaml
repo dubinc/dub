@@ -197,8 +197,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.64.1
-        version: 0.64.1(zod@3.22.4)
+        specifier: ^0.65.0
+        version: 0.65.0
       fast-xml-parser:
         specifier: ^5.0.6
         version: 5.0.6
@@ -6031,15 +6031,8 @@ packages:
     peerDependencies:
       zod: '>= 3'
 
-  dub@0.64.1:
-    resolution: {integrity: sha512-IXeoWN3lPBwMASvH+b/J8HQgQZI1dUfH/4pbLwvOXIioMVBBS2X+YwsX6c1MkZoUk0PsF6PoZNjahiNRMKpIyQ==}
-    hasBin: true
-    peerDependencies:
-      '@modelcontextprotocol/sdk': '>=1.5.0 <1.10.0'
-      zod: ^3
-    peerDependenciesMeta:
-      '@modelcontextprotocol/sdk':
-        optional: true
+  dub@0.65.0:
+    resolution: {integrity: sha512-y8rSHVhcPlnJXV9kkHiz5Zrk7SgMZIAwdQZQWJ99YIld3Ky+ssKJUEX+EX10eYDX27Jxvob37V0VoIvkwkN2AQ==}
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
@@ -9323,6 +9316,7 @@ packages:
   source-map@0.8.0-beta.0:
     resolution: {integrity: sha512-2ymg6oRBpebeZi9UUNsgQ89bhx01TcTkmNTGnNO88imTmbSgy4nfujrgVEFKWpMTEGA11EDkTt7mqObTPdigIA==}
     engines: {node: '>= 8'}
+    deprecated: The work that was done in this beta branch won't be included in future versions
 
   space-separated-tokens@2.0.2:
     resolution: {integrity: sha512-PEGlAwrG8yXGXRjW32fGbg66JAlOAwbObuqVoJpv/mRgoWDQfgH1wDPvtzWyUSNAXBGSk8h755YDbbcEy3SH2Q==}
@@ -16752,9 +16746,9 @@ snapshots:
     dependencies:
       zod: 3.23.8
 
-  dub@0.64.1(zod@3.22.4):
+  dub@0.65.0:
     dependencies:
-      zod: 3.22.4
+      zod: 3.23.8
 
   eastasianwidth@0.2.0: {}
 
