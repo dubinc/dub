@@ -23,10 +23,13 @@ model Reward {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  program          Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
-  clickEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
-  leadEnrollments  ProgramEnrollment[] @relation("LeadRewardEnrollments")
-  saleEnrollments  ProgramEnrollment[] @relation("SaleRewardEnrollments")
+  program           Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  clickEnrollments  ProgramEnrollment[] @relation("ClickRewardEnrollments")
+  leadEnrollments   ProgramEnrollment[] @relation("LeadRewardEnrollments")
+  saleEnrollments   ProgramEnrollment[] @relation("SaleRewardEnrollments")
+  clickPartnerGroup PartnerGroup?       @relation("ClickReward")
+  leadPartnerGroup  PartnerGroup?       @relation("LeadReward")
+  salePartnerGroup  PartnerGroup?       @relation("SaleReward")
 
   @@index([programId, event])
   @@index(event) // used in aggregate-clicks cron job

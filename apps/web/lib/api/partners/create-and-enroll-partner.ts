@@ -18,6 +18,7 @@ import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
+import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { linkCache } from "../links/cache";
 import { includeTags } from "../links/include-tags";
 import { backfillLinkCommissions } from "./backfill-link-commissions";
@@ -33,8 +34,9 @@ export const createAndEnrollPartner = async ({
   status = "approved",
   skipEnrollmentCheck = false,
   enrolledAt,
+  groupId,
 }: {
-  program: Pick<ProgramProps, "id" | "defaultFolderId">;
+  program: Pick<ProgramProps, "id" | "defaultFolderId" | "defaultGroupId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
@@ -47,6 +49,7 @@ export const createAndEnrollPartner = async ({
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
   enrolledAt?: Date;
+  groupId?: string | null;
 }) => {
   if (!skipEnrollmentCheck && partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
@@ -85,7 +88,7 @@ export const createAndEnrollPartner = async ({
     }
   }
 
-  const [defaultRewards, allDiscounts] = await prisma.$transaction([
+  const [defaultRewards, allDiscounts, group] = await Promise.all([
     prisma.reward.findMany({
       where: {
         programId: program.id,
@@ -98,10 +101,16 @@ export const createAndEnrollPartner = async ({
         default: true,
       },
     }),
+
     prisma.discount.findMany({
       where: {
         programId: program.id,
       },
+    }),
+
+    getGroupOrThrow({
+      programId: program.id,
+      groupId: groupId || program.defaultGroupId!,
     }),
   ]);
 
@@ -130,9 +139,18 @@ export const createAndEnrollPartner = async ({
           },
         },
         ...finalAssignedRewards,
-        discountId: finalAssignedDiscount,
+        ...(finalAssignedDiscount && {
+          discountId: finalAssignedDiscount,
+        }),
         ...(enrolledAt && {
           createdAt: enrolledAt,
+        }),
+        ...(group && {
+          groupId: group.id,
+          clickRewardId: group.clickRewardId,
+          leadRewardId: group.leadRewardId,
+          saleRewardId: group.saleRewardId,
+          discountId: group.discountId,
         }),
       },
     },

@@ -123,9 +123,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.merge(
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
-    clickRewardId: z.string().optional(),
-    leadRewardId: z.string().optional(),
-    saleRewardId: z.string().optional(),
+    groupId: z.string().optional(),
   }),
 );
 
@@ -148,15 +146,7 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     pageSize: true,
   })
   .extend({
-    groupBy: z
-      .enum([
-        "status",
-        "country",
-        "clickRewardId",
-        "leadRewardId",
-        "saleRewardId",
-      ])
-      .optional(),
+    groupBy: z.enum(["status", "country", "groupId"]).optional(),
   });
 
 export const partnerInvitesQuerySchema = getPaginationQuerySchema({
@@ -384,6 +374,12 @@ export const createPartnerSchema = z.object({
     .describe(
       "The partner's unique ID in your system. Useful for retrieving the partner's links and stats later on. If not provided, the partner will be created as a standalone partner.",
     ),
+  groupId: z
+    .string()
+    .optional()
+    .describe(
+      "The group ID to add the partner to. If not provided, the partner will be added to the default group.",
+    ),
   country: z
     .string()
     .nullish()
@@ -563,18 +559,19 @@ export const invitePartnerSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   linkId: z.string().optional(),
-  rewardId: z.string().optional(),
-  discountId: z.string().optional(),
+  groupId: z.string().nullish().default(null),
 });
 
 export const approvePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   linkId: z.string().nullable(),
+  groupId: z.string().nullish(),
 });
 
 export const bulkApprovePartnersSchema = z.object({
   workspaceId: z.string(),
+  groupId: z.string().nullish().default(null),
   partnerIds: z
     .array(z.string())
     .max(100)
