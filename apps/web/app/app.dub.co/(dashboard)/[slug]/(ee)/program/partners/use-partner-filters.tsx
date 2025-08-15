@@ -46,25 +46,23 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const filters = useMemo(
     () => [
       {
-        key: "country",
-        icon: FlagWavy,
-        label: "Location",
-        getOptionIcon: (value) => (
-          <img
-            alt={value}
-            src={`https://flag.vercel.app/m/${value}.svg`}
-            className="h-2.5 w-4"
-          />
-        ),
-        getOptionLabel: (value) => COUNTRIES[value],
+        key: "groupId",
+        icon: Users6,
+        label: "Group",
         options:
-          countriesCount
-            ?.filter(({ country }) => COUNTRIES[country])
-            .map(({ country, _count }) => ({
-              value: country,
-              label: COUNTRIES[country],
-              right: nFormatter(_count, { full: true }),
-            })) ?? [],
+          groups?.map((group) => {
+            const count = groupCount?.find(
+              ({ groupId }) => groupId === group.id,
+            )?._count;
+
+            return {
+              value: group.id,
+              label: group.name,
+              icon: <GroupColorCircle group={group} />,
+              right: nFormatter(count || 0, { full: true }),
+              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
+            };
+          }) ?? null,
       },
       {
         key: "status",
@@ -91,26 +89,28 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
             }) ?? [],
       },
       {
-        key: "groupId",
-        icon: Users6,
-        label: "Group",
+        key: "country",
+        icon: FlagWavy,
+        label: "Location",
+        getOptionIcon: (value) => (
+          <img
+            alt={value}
+            src={`https://flag.vercel.app/m/${value}.svg`}
+            className="h-2.5 w-4"
+          />
+        ),
+        getOptionLabel: (value) => COUNTRIES[value],
         options:
-          groups?.map((group) => {
-            const count = groupCount?.find(
-              ({ groupId }) => groupId === group.id,
-            )?._count;
-
-            return {
-              value: group.id,
-              label: group.name,
-              icon: <GroupColorCircle group={group} />,
-              right: nFormatter(count || 0, { full: true }),
-              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
-            };
-          }) ?? null,
+          countriesCount
+            ?.filter(({ country }) => COUNTRIES[country])
+            .map(({ country, _count }) => ({
+              value: country,
+              label: COUNTRIES[country],
+              right: nFormatter(_count, { full: true }),
+            })) ?? [],
       },
     ],
-    [countriesCount, statusCount, groupCount, groups],
+    [groupCount, groups, statusCount, countriesCount],
   );
 
   const activeFilters = useMemo(() => {
