@@ -27,6 +27,7 @@ export const createBountySchema = z.object({
     .min(0)
     .max(2)
     .nullish(),
+  groupIds: z.array(z.string()).nullable(),
 });
 
 export const BountySchema = z.object({

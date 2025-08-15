@@ -5,6 +5,7 @@ import {
   createBountySchema,
   SUBMISSION_REQUIREMENTS,
 } from "@/lib/zod/schemas/bounties";
+import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
@@ -411,10 +412,16 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
                 Groups
               </ProgramSheetAccordionTrigger>
               <ProgramSheetAccordionContent>
-                <div className="space-y-6">
-                  WIP
-                  {/* Add your groups-related content here */}
-                </div>
+                <Controller
+                  control={control}
+                  name="groupIds"
+                  render={({ field }) => (
+                    <GroupsMultiSelect
+                      selectedGroupIds={field.value}
+                      setSelectedGroupIds={(ids) => field.onChange(ids)}
+                    />
+                  )}
+                />
               </ProgramSheetAccordionContent>
             </ProgramSheetAccordionItem>
           </ProgramSheetAccordion>
