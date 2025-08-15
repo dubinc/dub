@@ -23,6 +23,7 @@ import {
   Sheet,
   SmartDateTimePicker,
   Switch,
+  Trophy,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -321,6 +322,22 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
                             {name?.length || 0}/100
                           </span>
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {type === "performance" && (
+                    <div>
+                      <span className="text-sm font-medium text-neutral-800">
+                        Logic
+                      </span>
+                      <div className="mt-2 block flex w-full items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2">
+                        <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+                          <Trophy className="size-4 text-neutral-800" />
+                        </div>
+                        <span className="text-content-emphasis text-sm font-medium leading-relaxed">
+                          When
+                        </span>
                       </div>
                     </div>
                   )}
