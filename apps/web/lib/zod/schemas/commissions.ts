@@ -203,3 +203,71 @@ export const createClawbackSchema = z.object({
     CLAWBACK_REASONS.map((r) => r.value) as [string, ...string[]],
   ),
 });
+
+export const COMMISSION_EXPORT_COLUMNS = [
+  { id: "id", label: "ID", type: "string", default: true },
+  { id: "type", label: "Type", type: "string", default: true },
+  { id: "amount", label: "Amount", type: "number", default: true },
+  { id: "earnings", label: "Earnings", type: "number", default: true },
+  { id: "currency", label: "Currency", type: "string", default: true },
+  { id: "status", label: "Status", type: "string", default: true },
+  { id: "invoiceId", label: "Invoice ID", type: "string", default: true },
+  { id: "quantity", label: "Quantity", type: "number", default: true },
+  { id: "createdAt", label: "Created at", type: "date", default: true },
+  { id: "updatedAt", label: "Updated at", type: "date", default: false },
+  { id: "partnerId", label: "Partner ID", type: "string", default: false },
+  { id: "partnerName", label: "Partner name", type: "string", default: false },
+  {
+    id: "partnerEmail",
+    label: "Partner email",
+    type: "string",
+    default: false,
+  },
+  { id: "customerId", label: "Customer ID", type: "string", default: false },
+  {
+    id: "customerName",
+    label: "Customer name",
+    type: "string",
+    default: false,
+  },
+  {
+    id: "customerEmail",
+    label: "Customer email",
+    type: "string",
+    default: false,
+  },
+] as const;
+
+type CommissionExportColumnId =
+  (typeof COMMISSION_EXPORT_COLUMNS)[number]["id"];
+
+export const DEFAULT_COMMISSION_EXPORT_COLUMNS =
+  COMMISSION_EXPORT_COLUMNS.filter((column) => column.default).map(
+    (column) => column.id,
+  );
+
+export const commissionsExportQuerySchema = getCommissionsQuerySchema
+  .omit({ page: true, pageSize: true })
+  .merge(
+    z.object({
+      columns: z
+        .string()
+        .default(DEFAULT_COMMISSION_EXPORT_COLUMNS.join(","))
+        .transform((v) => v.split(","))
+        .refine(
+          (columns): columns is CommissionExportColumnId[] => {
+            const validColumnIds = COMMISSION_EXPORT_COLUMNS.map(
+              (col) => col.id,
+            );
+
+            return columns.every((column): column is CommissionExportColumnId =>
+              validColumnIds.includes(column as CommissionExportColumnId),
+            );
+          },
+          {
+            message:
+              "Invalid column IDs provided. Please check the available columns.",
+          },
+        ),
+    }),
+  );
