@@ -82,9 +82,19 @@ export const createAndEnrollPartner = async ({
     }
   }
 
+  const finalGroupId = groupId || program.defaultGroupId;
+  // this should never happen, but just in case
+  if (!finalGroupId) {
+    throw new DubApiError({
+      message:
+        "There was no group ID provided, and the program does not have a default group. Please contact support.",
+      code: "bad_request",
+    });
+  }
+
   const group = await getGroupOrThrow({
     programId: program.id,
-    groupId: groupId || program.defaultGroupId!,
+    groupId: finalGroupId,
     includeRewardsAndDiscount: true,
   });
 

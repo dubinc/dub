@@ -70,7 +70,7 @@ export async function importCampaign(payload: RewardfulImportPayload) {
     });
 
     // if the default group has an associated sale reward already, we need to create a new group
-    if (groups[0].saleRewardId) {
+    if (groups.length > 0 && groups[0].saleRewardId) {
       const groupSlug = `rewardful-${campaignId}`;
       const createdGroup = await prisma.partnerGroup.upsert({
         where: {
