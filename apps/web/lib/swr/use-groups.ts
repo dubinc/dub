@@ -10,16 +10,14 @@ const partialQuerySchema = getGroupsQuerySchema.partial();
 
 export default function useGroups<T extends GroupProps>({
   query,
-  enabled = true,
 }: {
   query?: z.infer<typeof partialQuerySchema>;
-  enabled?: boolean;
 } = {}) {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const { data, isLoading, error } = useSWR<T[]>(
-    enabled && defaultProgramId
+    defaultProgramId
       ? `/api/groups${getQueryString(
           {
             workspaceId,
