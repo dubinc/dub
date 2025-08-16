@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
-import { Program } from "@dub/prisma/client";
-import { COUNTRIES } from "@dub/utils";
+import { PartnerGroup, Program } from "@dub/prisma/client";
+import { COUNTRIES, COUNTRY_CODES } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
@@ -13,6 +13,10 @@ import {
 } from "./importer";
 import { PartnerStackImportPayload, PartnerStackPartner } from "./types";
 
+const COUNTRY_NAME_TO_CODE = new Map(
+  Object.entries(COUNTRIES).map(([code, name]) => [name, code]),
+);
+
 export async function importPartners(payload: PartnerStackImportPayload) {
   const { importId, programId, startingAfter } = payload;
 
@@ -21,15 +25,13 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       id: programId,
     },
     include: {
-      groups: {
-        where: {
-          slug: DEFAULT_PARTNER_GROUP.slug,
-        },
-      },
+      groups: true,
     },
   });
 
-  const defaultGroup = program.groups[0];
+  const groupMap = Object.fromEntries(
+    program.groups.map((group) => [group.slug, group]),
+  );
 
   const { publicKey, secretKey } = await partnerStackImporter.getCredentials(
     program.workspaceId,
@@ -59,13 +61,7 @@ export async function importPartners(payload: PartnerStackImportPayload) {
         createPartner({
           program,
           partner,
-          defaultGroupAttributes: {
-            groupId: defaultGroup.id,
-            saleRewardId: defaultGroup.saleRewardId,
-            leadRewardId: defaultGroup.leadRewardId,
-            clickRewardId: defaultGroup.clickRewardId,
-            discountId: defaultGroup.discountId,
-          },
+          group: groupMap[partner.group?.slug ?? DEFAULT_PARTNER_GROUP.slug],
           importId,
         }),
       ),
@@ -75,6 +71,38 @@ export async function importPartners(payload: PartnerStackImportPayload) {
 
     processedBatches++;
     currentStartingAfter = partners[partners.length - 1].key;
+  }
+
+  // After importing partners, clean up by deleting any groups that have no assigned partners
+  if (!hasMore) {
+    const groups = await prisma.partnerGroup.findMany({
+      where: {
+        programId,
+        slug: {
+          not: DEFAULT_PARTNER_GROUP.slug,
+        },
+        partners: {
+          none: {},
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (groups.length > 0) {
+      console.log(
+        `Found ${groups.length} groups with no partners, deleting...`,
+      );
+
+      await prisma.partnerGroup.deleteMany({
+        where: {
+          id: {
+            in: groups.map(({ id }) => id),
+          },
+        },
+      });
+    }
   }
 
   await partnerStackImporter.queue({
@@ -87,18 +115,12 @@ export async function importPartners(payload: PartnerStackImportPayload) {
 async function createPartner({
   program,
   partner,
-  defaultGroupAttributes,
+  group,
   importId,
 }: {
   program: Program;
   partner: PartnerStackPartner;
-  defaultGroupAttributes: {
-    groupId: string;
-    saleRewardId: string | null;
-    leadRewardId: string | null;
-    clickRewardId: string | null;
-    discountId: string | null;
-  };
+  group: PartnerGroup;
   importId: string;
 }) {
   const commonImportLogInputs = {
@@ -119,16 +141,17 @@ async function createPartner({
     return;
   }
 
-  const countryCode = partner.address?.country
-    ? Object.keys(COUNTRIES).find(
-        (key) => COUNTRIES[key] === partner.address?.country,
-      )
+  // Resolve partner's country: check if it's a valid code first,
+  // otherwise fall back to lookup by country name because PS returns the name in some cases
+  const country = partner.address?.country;
+  const countryCode = country
+    ? COUNTRY_CODES.includes(country)
+      ? country
+      : COUNTRY_NAME_TO_CODE.get(country) ?? null
     : null;
 
-  if (!countryCode && partner.address?.country) {
-    console.log(
-      `Country code not found for country ${partner.address.country}`,
-    );
+  if (country && !countryCode) {
+    console.log(`Country code not found for country ${country}`);
   }
 
   const { id: partnerId } = await prisma.partner.upsert({
@@ -157,7 +180,11 @@ async function createPartner({
       programId: program.id,
       partnerId,
       status: "approved",
-      ...defaultGroupAttributes,
+      groupId: group.id,
+      clickRewardId: group.clickRewardId,
+      leadRewardId: group.leadRewardId,
+      saleRewardId: group.saleRewardId,
+      discountId: group.discountId,
     },
     update: {
       status: "approved",

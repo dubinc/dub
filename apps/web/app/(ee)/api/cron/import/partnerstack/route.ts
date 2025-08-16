@@ -2,6 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { importCommissions } from "@/lib/partnerstack/import-commissions";
 import { importCustomers } from "@/lib/partnerstack/import-customers";
+import { importGroups } from "@/lib/partnerstack/import-groups";
 import { importLinks } from "@/lib/partnerstack/import-links";
 import { importPartners } from "@/lib/partnerstack/import-partners";
 import { partnerStackImportPayloadSchema } from "@/lib/partnerstack/schemas";
@@ -22,6 +23,9 @@ export async function POST(req: Request) {
     const payload = partnerStackImportPayloadSchema.parse(JSON.parse(rawBody));
 
     switch (payload.action) {
+      case "import-groups":
+        await importGroups(payload);
+        break;
       case "import-partners":
         await importPartners(payload);
         break;

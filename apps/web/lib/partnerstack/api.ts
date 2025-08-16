@@ -1,12 +1,14 @@
 import {
   partnerStackCommission,
   partnerStackCustomer,
+  partnerStackGroup,
   partnerStackLink,
   partnerStackPartner,
 } from "./schemas";
 import {
   PartnerStackCommission,
   PartnerStackCustomer,
+  PartnerStackGroup,
   PartnerStackLink,
   PartnerStackListResponse,
   PartnerStackPartner,
@@ -59,6 +61,17 @@ export class PartnerStackApi {
     } catch (error) {
       throw new Error("Invalid PartnerStack API token.");
     }
+  }
+
+  async listGroups() {
+    const {
+      data: { items },
+    } =
+      await this.fetch<PartnerStackListResponse<PartnerStackGroup>>(
+        `/groups?limit=100`,
+      );
+
+    return partnerStackGroup.array().parse(items);
   }
 
   async listPartners({ startingAfter }: { startingAfter?: string }) {
