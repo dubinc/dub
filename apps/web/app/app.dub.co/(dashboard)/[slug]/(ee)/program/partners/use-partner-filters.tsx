@@ -11,7 +11,14 @@ import { useMemo } from "react";
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId, slug } = useWorkspace();
-  const { groups } = useGroups();
+
+  const { groups } = useGroups({
+    // here we're coercing page to 1 to make sure the partner table pagination doesn't mess with this
+    // TODO: standardize how we handle params in useSWR hooks – it's a bit all over the place rn
+    query: {
+      page: 1,
+    },
+  });
 
   const { partnersCount: countriesCount } = usePartnersCount<
     | {
