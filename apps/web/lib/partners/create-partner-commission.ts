@@ -101,8 +101,8 @@ export const createPartnerCommission = async ({
       });
 
       if (firstCommission) {
-        // the partner reward has been changed since the first commission was created
-        // make sure the new reward has the same max duration as the original reward
+        // partner's reward was updated after the first commission.
+        // make sure it wasn't changed from one-time to recurring so we don't create a new commission
         if (
           firstCommission.rewardId &&
           firstCommission.rewardId !== reward.id
