@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ProgramProps } from "@/lib/types";
@@ -72,10 +73,16 @@ function ProgramApplicationSheetContent({
     });
 
     if (result?.serverError || result?.validationErrors) {
+      const errorMessage = parseActionError(
+        result,
+        "Failed to submit application",
+      );
+
       setError("root.serverError", {
-        message: "Failed to submit application",
+        message: errorMessage,
       });
-      toast.error("Failed to submit application");
+
+      toast.error(errorMessage);
     }
   };
 
