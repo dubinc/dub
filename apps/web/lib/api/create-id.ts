@@ -29,6 +29,9 @@ const prefixes = [
   "audit_",
   "import_",
   "grp_",
+  "bounty_", // TODO: Finalize this
+  "bounty_submission_", // TODO: Finalize this
+  "wf_",
 ] as const;
 
 // ULID uses base32 encoding

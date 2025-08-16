@@ -23,6 +23,7 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
+import { BountySchema, BountySubmissionSchema } from "./zod/schemas/bounties";
 import {
   clickEventResponseSchema,
   clickEventSchemaTB,
@@ -509,3 +510,7 @@ export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 export type GroupProps = z.infer<typeof GroupSchema>;
 
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
+
+export type BountyProps = z.infer<typeof BountySchema>;
+
+export type BountySubmissionProps = z.infer<typeof BountySubmissionSchema>;

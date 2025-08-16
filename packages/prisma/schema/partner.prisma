@@ -50,11 +50,12 @@ model Partner {
   tiktokVerifiedAt             DateTime?
   invoiceSettings              Json?
 
-  programs    ProgramEnrollment[]
-  users       PartnerUser[]
-  invites     PartnerInvite[]
-  payouts     Payout[]
-  commissions Commission[]
+  programs          ProgramEnrollment[]
+  users             PartnerUser[]
+  invites           PartnerInvite[]
+  payouts           Payout[]
+  commissions       Commission[]
+  bountySubmissions BountySubmission[]
 }
 
 model PartnerInvite {
@@ -117,6 +118,7 @@ model PartnerGroup {
   discount     Discount?            @relation(fields: [discountId], references: [id])
   partners     ProgramEnrollment[]
   applications ProgramApplication[]
+  bounties     BountyGroup[]
 
   @@unique([programId, slug])
 }
