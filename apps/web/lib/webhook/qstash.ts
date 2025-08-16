@@ -49,7 +49,7 @@ const publishWebhookEventToQStash = async ({
   callbackUrl.searchParams.append("event", payload.event);
 
   const receiver = identifyWebhookReceiver(webhook.url);
-  const finalPayload = transformPayload({ payload, receiver });
+  const finalPayload = await transformPayload({ payload, receiver });
   const signature = await createWebhookSignature(webhook.secret, finalPayload);
 
   const response = await qstash.publishJSON({
@@ -79,7 +79,7 @@ const publishWebhookEventToQStash = async ({
 };
 
 // Transform the payload based on the integration
-const transformPayload = ({
+const transformPayload = async ({
   payload,
   receiver,
 }: {
@@ -88,7 +88,7 @@ const transformPayload = ({
 }) => {
   switch (receiver) {
     case "slack":
-      return formatEventForSlack(payload);
+      return await formatEventForSlack(payload);
     case "segment":
       return formatEventForSegment(payload);
     default:
