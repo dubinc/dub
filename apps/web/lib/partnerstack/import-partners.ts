@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Program } from "@dub/prisma/client";
+import { PartnerGroup, Program } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { logImportError } from "../tinybird/log-import-error";
@@ -21,15 +21,13 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       id: programId,
     },
     include: {
-      groups: {
-        where: {
-          slug: DEFAULT_PARTNER_GROUP.slug,
-        },
-      },
+      groups: true,
     },
   });
 
-  const defaultGroup = program.groups[0];
+  const groupMap = Object.fromEntries(
+    program.groups.map((group) => [group.slug, group]),
+  );
 
   const { publicKey, secretKey } = await partnerStackImporter.getCredentials(
     program.workspaceId,
@@ -59,13 +57,7 @@ export async function importPartners(payload: PartnerStackImportPayload) {
         createPartner({
           program,
           partner,
-          defaultGroupAttributes: {
-            groupId: defaultGroup.id,
-            saleRewardId: defaultGroup.saleRewardId,
-            leadRewardId: defaultGroup.leadRewardId,
-            clickRewardId: defaultGroup.clickRewardId,
-            discountId: defaultGroup.discountId,
-          },
+          group: groupMap[partner.group?.slug ?? DEFAULT_PARTNER_GROUP.slug],
           importId,
         }),
       ),
@@ -87,18 +79,12 @@ export async function importPartners(payload: PartnerStackImportPayload) {
 async function createPartner({
   program,
   partner,
-  defaultGroupAttributes,
+  group,
   importId,
 }: {
   program: Program;
   partner: PartnerStackPartner;
-  defaultGroupAttributes: {
-    groupId: string;
-    saleRewardId: string | null;
-    leadRewardId: string | null;
-    clickRewardId: string | null;
-    discountId: string | null;
-  };
+  group: PartnerGroup;
   importId: string;
 }) {
   const commonImportLogInputs = {
@@ -157,7 +143,11 @@ async function createPartner({
       programId: program.id,
       partnerId,
       status: "approved",
-      ...defaultGroupAttributes,
+      groupId: group.id,
+      clickRewardId: group.clickRewardId,
+      leadRewardId: group.leadRewardId,
+      saleRewardId: group.saleRewardId,
+      discountId: group.discountId,
     },
     update: {
       status: "approved",
