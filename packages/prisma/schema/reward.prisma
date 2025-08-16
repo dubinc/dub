@@ -29,6 +29,7 @@ model Reward {
   clickPartnerGroup PartnerGroup?       @relation("ClickReward")
   leadPartnerGroup  PartnerGroup?       @relation("LeadReward")
   salePartnerGroup  PartnerGroup?       @relation("SaleReward")
+  commissions       Commission[]
 
   @@index([programId, event])
   @@index(event) // used in aggregate-clicks cron job
