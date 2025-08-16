@@ -14,9 +14,6 @@ export async function getTopProgramsByCommissions({
       earnings: true,
     },
     where: {
-      earnings: {
-        gt: 0,
-      },
       programId: {
         not: ACME_PROGRAM_ID,
       },
