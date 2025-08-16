@@ -45,6 +45,8 @@ export async function GET(req: Request) {
       };
     });
 
+    console.log("targetDates", targetDates);
+
     // Find all domains that are eligible for renewal reminders
     const domains = await prisma.registeredDomain.findMany({
       where: {
@@ -73,6 +75,7 @@ export async function GET(req: Request) {
     });
 
     if (domains.length === 0) {
+      console.log("No domains found to send reminders for. Skipping...");
       return NextResponse.json("No domains found to send reminders for.");
     }
 
@@ -100,16 +103,12 @@ export async function GET(req: Request) {
       },
     );
 
+    console.table(reminderDomains);
+
     const reminderDomainsChunks = chunk(reminderDomains, 100);
 
-    if (!resend) {
-      return NextResponse.json(
-        "Resend is not configured, skipping email sending.",
-      );
-    }
-
     for (const reminderDomainsChunk of reminderDomainsChunks) {
-      await resend.batch.send(
+      const res = await resend?.batch.send(
         reminderDomainsChunk.map(({ workspace, user, domain }) => ({
           from: VARIANT_TO_FROM_MAP.notifications,
           to: user.email!,
@@ -122,6 +121,7 @@ export async function GET(req: Request) {
           }),
         })),
       );
+      console.log(`Sent ${reminderDomainsChunk.length} emails`, res);
     }
 
     return NextResponse.json(reminderDomains);

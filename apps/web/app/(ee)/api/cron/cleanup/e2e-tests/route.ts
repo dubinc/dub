@@ -3,7 +3,6 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { unsubscribe } from "@dub/email/resend";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -147,24 +146,6 @@ export async function GET(req: Request) {
           },
         },
       });
-
-      for (const user of users) {
-        if (user.email) {
-          const res = await Promise.all([
-            unsubscribe({
-              email: user.email,
-              audience: "partners.dub.co",
-            }),
-            unsubscribe({
-              email: user.email,
-              audience: "app.dub.co",
-            }),
-          ]);
-          console.log("Unsubscribed user", user.email, res);
-          // sleep for 500ms
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-      }
     }
 
     console.log("Removed the following items.", {
