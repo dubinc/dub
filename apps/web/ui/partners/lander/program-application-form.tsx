@@ -1,7 +1,7 @@
 "use client";
 
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
-import { ProgramProps } from "@/lib/types";
+import { GroupProps, ProgramProps } from "@/lib/types";
 import { Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -24,12 +24,14 @@ type FormData = {
 
 export function ProgramApplicationForm({
   program,
+  group,
   preview = false,
 }: {
   program: Pick<
     ProgramProps,
     "id" | "slug" | "name" | "termsUrl" | "ageVerification"
   >;
+  group?: Pick<GroupProps, "id">;
   preview?: boolean;
 }) {
   const { isMobile } = useMediaQuery();
@@ -89,6 +91,7 @@ export function ProgramApplicationForm({
         const result = await executeAsync({
           ...data,
           programId: program.id,
+          groupId: group?.id!,
         });
 
         if (!result || result.serverError || result.validationErrors) {

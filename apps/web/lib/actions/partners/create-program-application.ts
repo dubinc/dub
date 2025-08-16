@@ -8,7 +8,12 @@ import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
-import { Partner, Program, ProgramEnrollment } from "@dub/prisma/client";
+import {
+  Partner,
+  PartnerGroup,
+  Program,
+  ProgramEnrollment,
+} from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";
@@ -16,78 +21,94 @@ import { cookies } from "next/headers";
 import z from "../../zod";
 import { actionClient } from "../safe-action";
 
+interface Response {
+  programApplicationId: string;
+  programEnrollmentId?: string;
+}
+
 // Create a program application (or enrollment if a partner is already logged in)
 export const createProgramApplicationAction = actionClient
   .schema(createProgramApplicationSchema)
-  .action(
-    async ({
-      parsedInput,
-    }): Promise<{
-      programApplicationId: string;
-      programEnrollmentId?: string;
-    }> => {
-      const { programId } = parsedInput;
+  .action(async ({ parsedInput }): Promise<Response> => {
+    const { programId, groupId } = parsedInput;
 
-      // Limit to 3 requests per minute per program per IP
-      const { success } = await ratelimit(3, "1 m").limit(
-        `create-program-application:${programId}:${getIP()}`,
-      );
+    // Limit to 3 requests per minute per program per IP
+    const { success } = await ratelimit(3, "1 m").limit(
+      `create-program-application:${programId}:${getIP()}`,
+    );
 
-      if (!success) {
-        throw new Error("Too many requests. Please try again later.");
-      }
+    if (!success) {
+      throw new Error("Too many requests. Please try again later.");
+    }
 
-      const program = await prisma.program.findUniqueOrThrow({
-        where: { id: programId },
-      });
+    const [program, group] = await Promise.all([
+      prisma.program.findUniqueOrThrow({
+        where: {
+          id: programId,
+        },
+      }),
 
-      const session = await getSession();
+      prisma.partnerGroup.findUniqueOrThrow({
+        where: {
+          id: groupId,
+        },
+      }),
+    ]);
 
-      // Get currently logged in partner
-      const existingPartner = session?.user.id
-        ? await prisma.partner.findFirst({
-            where: {
-              users: { some: { userId: session.user.id } },
-            },
-            include: {
-              programs: true,
-            },
-          })
-        : null;
+    if (group.programId !== program.id) {
+      throw new Error(`Group ${group.name} is not found on this program.`);
+    }
 
-      if (existingPartner) {
-        return createApplicationAndEnrollment({
-          program,
-          data: parsedInput,
-          partner: existingPartner,
-        });
-      }
+    const session = await getSession();
 
-      const application = await createApplication({
+    // Get currently logged in partner
+    const existingPartner = session?.user.id
+      ? await prisma.partner.findFirst({
+          where: {
+            users: { some: { userId: session.user.id } },
+          },
+          include: {
+            programs: true,
+          },
+        })
+      : null;
+
+    if (existingPartner) {
+      return createApplicationAndEnrollment({
         program,
         data: parsedInput,
+        partner: existingPartner,
+        group,
       });
+    }
 
-      await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/program-application-reminder`,
-        delay: 15 * 60, // 15 minutes
-        body: {
-          applicationId: application.programApplicationId,
-        },
-      });
+    const application = await createApplication({
+      program,
+      data: parsedInput,
+      group,
+    });
 
-      return application;
-    },
-  );
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/program-application-reminder`,
+      delay: 15 * 60, // 15 minutes
+      body: {
+        applicationId: application.programApplicationId,
+      },
+    });
+
+    return application;
+  });
 
 async function createApplicationAndEnrollment({
   partner,
   program,
   data,
+  group,
 }: {
   partner: Partner & { programs: ProgramEnrollment[] };
   program: Program;
   data: z.infer<typeof createProgramApplicationSchema>;
+  group: PartnerGroup;
 }) {
   // Check if ProgramEnrollment already exists
   if (partner.programs.some((p) => p.programId === program.id)) {
@@ -103,6 +124,7 @@ async function createApplicationAndEnrollment({
         ...data,
         id: applicationId,
         programId: program.id,
+        groupId: group.id,
       },
     }),
 
@@ -113,6 +135,11 @@ async function createApplicationAndEnrollment({
         programId: program.id,
         status: "pending",
         applicationId,
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        discountId: group.discountId,
       },
     }),
   ]);
@@ -150,15 +177,18 @@ async function createApplicationAndEnrollment({
 async function createApplication({
   program,
   data,
+  group,
 }: {
   program: Program;
   data: z.infer<typeof createProgramApplicationSchema>;
+  group: PartnerGroup;
 }) {
   const application = await prisma.programApplication.create({
     data: {
       ...data,
       id: createId({ prefix: "pga_" }),
       programId: program.id,
+      groupId: group.id,
     },
   });
 

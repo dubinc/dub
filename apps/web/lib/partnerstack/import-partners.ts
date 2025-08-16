@@ -1,10 +1,10 @@
 import { prisma } from "@dub/prisma";
-import { Program, Reward } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
-import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { PartnerStackApi } from "./api";
 import {
   MAX_BATCHES,
@@ -21,13 +21,15 @@ export async function importPartners(payload: PartnerStackImportPayload) {
       id: programId,
     },
     include: {
-      rewards: {
+      groups: {
         where: {
-          default: true,
+          slug: DEFAULT_PARTNER_GROUP.slug,
         },
       },
     },
   });
+
+  const defaultGroup = program.groups[0];
 
   const { publicKey, secretKey } = await partnerStackImporter.getCredentials(
     program.workspaceId,
@@ -37,11 +39,6 @@ export async function importPartners(payload: PartnerStackImportPayload) {
     publicKey,
     secretKey,
   });
-
-  const saleReward = program.rewards.find((r) => r.event === "sale");
-  const leadReward = program.rewards.find((r) => r.event === "lead");
-  const clickReward = program.rewards.find((r) => r.event === "click");
-  const reward = saleReward || leadReward || clickReward;
 
   let hasMore = true;
   let processedBatches = 0;
@@ -62,7 +59,13 @@ export async function importPartners(payload: PartnerStackImportPayload) {
         createPartner({
           program,
           partner,
-          reward,
+          defaultGroupAttributes: {
+            groupId: defaultGroup.id,
+            saleRewardId: defaultGroup.saleRewardId,
+            leadRewardId: defaultGroup.leadRewardId,
+            clickRewardId: defaultGroup.clickRewardId,
+            discountId: defaultGroup.discountId,
+          },
           importId,
         }),
       ),
@@ -84,12 +87,18 @@ export async function importPartners(payload: PartnerStackImportPayload) {
 async function createPartner({
   program,
   partner,
-  reward,
+  defaultGroupAttributes,
   importId,
 }: {
   program: Program;
   partner: PartnerStackPartner;
-  reward?: Pick<Reward, "id" | "event">;
+  defaultGroupAttributes: {
+    groupId: string;
+    saleRewardId: string | null;
+    leadRewardId: string | null;
+    clickRewardId: string | null;
+    discountId: string | null;
+  };
   importId: string;
 }) {
   const commonImportLogInputs = {
@@ -148,7 +157,7 @@ async function createPartner({
       programId: program.id,
       partnerId,
       status: "approved",
-      ...(reward && { [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id }),
+      ...defaultGroupAttributes,
     },
     update: {
       status: "approved",
