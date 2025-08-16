@@ -229,6 +229,12 @@ export const COMMISSION_EXPORT_COLUMNS = [
     type: "string",
     default: false,
   },
+  {
+    id: "partnerTenantId",
+    label: "Partner tenant ID",
+    type: "string",
+    default: false,
+  },
   { id: "customerId", label: "Customer ID", type: "string", default: false },
   {
     id: "customerName",
@@ -239,6 +245,12 @@ export const COMMISSION_EXPORT_COLUMNS = [
   {
     id: "customerEmail",
     label: "Customer email",
+    type: "string",
+    default: false,
+  },
+  {
+    id: "customerExternalId",
+    label: "Customer external ID",
     type: "string",
     default: false,
   },

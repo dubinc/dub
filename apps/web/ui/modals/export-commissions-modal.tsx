@@ -104,6 +104,7 @@ function ExportCommissionsModal({
     <Modal
       showModal={showExportCommissionsModal}
       setShowModal={setShowExportCommissionsModal}
+      className="max-w-lg"
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
         <Logo />

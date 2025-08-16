@@ -105,12 +105,21 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
         select: {
           name: true,
           email: true,
+          externalId: true,
         },
       },
       partner: {
         select: {
           name: true,
           email: true,
+          programs: {
+            select: {
+              tenantId: true,
+            },
+            where: {
+              programId,
+            },
+          },
         },
       },
     },
@@ -125,8 +134,10 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
     ...commission,
     customerName: commission.customer?.name || "",
     customerEmail: commission.customer?.email || "",
+    customerExternalId: commission.customer?.externalId || "",
     partnerName: commission.partner?.name || "",
     partnerEmail: commission.partner?.email || "",
+    partnerTenantId: commission.partner?.programs[0]?.tenantId || "",
   }));
 
   // Sort columns by their order
@@ -154,7 +165,7 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
   const csvData = convertToCSV(data);
 
   // Sanitize timestamp for filesystem compatibility (replace colons with hyphens)
-  const sanitizedTimestamp = new Date().toISOString().replace(/:/g, '-');
+  const sanitizedTimestamp = new Date().toISOString().replace(/:/g, "-");
 
   return new Response(csvData, {
     headers: {
