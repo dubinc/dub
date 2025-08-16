@@ -2,6 +2,7 @@
 
 import useUser from "@/lib/swr/use-user";
 import { Button } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -43,7 +44,15 @@ export const RequestSetPassword = () => {
           {user?.provider && (
             <>
               Your account is managed by{" "}
-              <span className="uppercase">{user?.provider}</span>.{" "}
+              <span
+                className={cn(
+                  "font-medium capitalize text-neutral-700",
+                  user?.provider === "saml" && "uppercase",
+                )}
+              >
+                {user?.provider}
+              </span>
+              .{" "}
             </>
           )}
           You can set a password to use with your Dub account.

@@ -56,6 +56,7 @@ interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: EventType;
   reward?: RewardProps;
+  defaultRewardValues?: RewardProps;
 }
 
 // Special form schema to allow for empty condition fields when adding a new condition
@@ -73,25 +74,37 @@ type FormData = z.infer<typeof formSchema>;
 
 export const useAddEditRewardForm = () => useFormContext<FormData>();
 
-function RewardSheetContent({ setIsOpen, event, reward }: RewardSheetProps) {
+function RewardSheetContent({
+  setIsOpen,
+  event,
+  reward,
+  defaultRewardValues,
+}: RewardSheetProps) {
   const { group, mutateGroup } = useGroup();
   const { id: workspaceId, defaultProgramId, plan } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
 
+  const defaultValuesSource = reward || defaultRewardValues;
+
   const form = useForm<FormData>({
     defaultValues: {
       event,
-      type: reward?.type || (event === "sale" ? "percentage" : "flat"),
-      maxDuration: reward
-        ? reward.maxDuration === null
+      type:
+        defaultValuesSource?.type || (event === "sale" ? "percentage" : "flat"),
+      maxDuration: defaultValuesSource
+        ? defaultValuesSource.maxDuration === null
           ? Infinity
-          : reward.maxDuration
+          : defaultValuesSource.maxDuration
         : Infinity,
-      amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
-      modifiers: reward?.modifiers?.map((m) => ({
+      amount:
+        defaultValuesSource?.type === "flat"
+          ? defaultValuesSource.amount / 100
+          : defaultValuesSource?.amount,
+      modifiers: defaultValuesSource?.modifiers?.map((m) => ({
         ...m,
-        amount: reward?.type === "flat" ? m.amount / 100 : m.amount,
+        amount:
+          defaultValuesSource?.type === "flat" ? m.amount / 100 : m.amount,
       })),
     },
   });

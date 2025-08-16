@@ -18,7 +18,6 @@ model Reward {
   amount      Int             @default(0)
   maxDuration Int? // in months (0 -> not recurring, null -> infinite)
   maxAmount   Int? // how much a partner can receive payouts (in cents)
-  default     Boolean         @default(false)
   modifiers   Json?           @db.Json
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt

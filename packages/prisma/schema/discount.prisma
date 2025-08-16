@@ -7,7 +7,6 @@ model Discount {
   description  String?
   couponId     String?
   couponTestId String?
-  default      Boolean         @default(false)
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 

@@ -10,12 +10,13 @@ import { toltImporter } from "@/lib/tolt/importer";
 import { WorkspaceProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
+import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { sendEmail } from "@dub/email";
 import PartnerInvite from "@dub/email/templates/partner-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
 import { generateRandomString, nanoid, R2_URL } from "@dub/utils";
-import { Program, Project, Reward, User } from "@prisma/client";
+import { Program, Project, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
@@ -83,12 +84,19 @@ export const createProgram = async ({
     const programId = createId({ prefix: "prog_" });
     const defaultGroupId = createId({ prefix: "grp_" });
 
+    const logoUrl = uploadedLogo
+      ? await storage
+          .upload(`programs/${programId}/logo_${nanoid(7)}`, uploadedLogo)
+          .then(({ url }) => url)
+      : null;
+
     const programData = await tx.program.create({
       data: {
         id: programId,
         workspaceId: workspace.id,
         name,
         slug: workspace.slug,
+        ...(logoUrl && { logo: logoUrl }),
         domain,
         url,
         defaultFolderId: programFolder.id,
@@ -106,7 +114,6 @@ export const createProgram = async ({
                 amount,
                 maxDuration,
                 event: defaultRewardType,
-                default: true,
               },
             },
           }),
@@ -115,6 +122,8 @@ export const createProgram = async ({
         rewards: true,
       },
     });
+
+    const createdReward = programData.rewards?.[0];
 
     await tx.partnerGroup.upsert({
       where: {
@@ -129,6 +138,9 @@ export const createProgram = async ({
         slug: DEFAULT_PARTNER_GROUP.slug,
         name: DEFAULT_PARTNER_GROUP.name,
         color: DEFAULT_PARTNER_GROUP.color,
+        ...(createdReward && {
+          [REWARD_EVENT_COLUMN_MAPPING[createdReward.event]]: createdReward.id,
+        }),
       },
       update: {}, // noop
     });
@@ -156,12 +168,6 @@ export const createProgram = async ({
     return programData;
   });
 
-  const logoUrl = uploadedLogo
-    ? await storage
-        .upload(`programs/${program.id}/logo_${nanoid(7)}`, uploadedLogo)
-        .then(({ url }) => url)
-    : null;
-
   // Start the import process if the import source is set
   if (importSource === "rewardful" && rewardful?.id) {
     await rewardfulImporter.queue({
@@ -188,8 +194,6 @@ export const createProgram = async ({
     });
   }
 
-  const reward = program.rewards?.[0];
-
   waitUntil(
     Promise.allSettled([
       // invite partners
@@ -198,22 +202,11 @@ export const createProgram = async ({
             invitePartner({
               workspace,
               program,
-              reward,
               partner,
               userId: user.id,
             }),
           )
         : []),
-
-      // update the program with the logo and default reward
-      prisma.program.update({
-        where: {
-          id: program.id,
-        },
-        data: {
-          ...(logoUrl && { logo: logoUrl }),
-        },
-      }),
 
       // delete the temporary uploaded logo
       uploadedLogo &&
@@ -227,10 +220,7 @@ export const createProgram = async ({
         react: ProgramWelcome({
           email: user.email!,
           workspace,
-          program: {
-            ...program,
-            logo: logoUrl,
-          },
+          program,
         }),
       }),
 
@@ -257,13 +247,11 @@ export const createProgram = async ({
 // Invite a partner to the program
 async function invitePartner({
   program,
-  reward,
   workspace,
   partner,
   userId,
 }: {
   program: Program;
-  reward?: Pick<Reward, "id" | "event">;
   workspace: Pick<Project, "id" | "plan" | "webhookEnabled">;
   partner: {
     email: string;
@@ -290,7 +278,6 @@ async function invitePartner({
     },
     skipEnrollmentCheck: true,
     status: "invited",
-    ...(reward && { reward }),
   });
 
   waitUntil(

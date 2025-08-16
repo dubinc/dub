@@ -1,4 +1,3 @@
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { ProgramProps } from "@/lib/types";
 import {
   ProgramSchema,
@@ -16,12 +15,8 @@ export const getProgramOrThrow = async (
     programId: string;
   },
   {
-    includeDefaultDiscount = false,
-    includeDefaultRewards = false,
     includeLanderData = false,
   }: {
-    includeDefaultRewards?: boolean;
-    includeDefaultDiscount?: boolean;
     includeLanderData?: boolean;
   } = {},
 ) => {
@@ -29,22 +24,6 @@ export const getProgramOrThrow = async (
     where: {
       id: programId,
       workspaceId,
-    },
-    include: {
-      ...(includeDefaultRewards && {
-        rewards: {
-          where: {
-            default: true,
-          },
-        },
-      }),
-      ...(includeDefaultDiscount && {
-        discounts: {
-          where: {
-            default: true,
-          },
-        },
-      }),
     },
   })) as ProgramProps | null;
 
@@ -57,13 +36,5 @@ export const getProgramOrThrow = async (
 
   return (
     includeLanderData ? ProgramWithLanderDataSchema : ProgramSchema
-  ).parse({
-    ...program,
-    ...(includeDefaultRewards && program.rewards?.length
-      ? { rewards: sortRewardsByEventOrder(program.rewards) }
-      : {}),
-    ...(includeDefaultDiscount && program.discounts?.length
-      ? { discounts: [program.discounts[0]] }
-      : {}),
-  });
+  ).parse(program);
 };

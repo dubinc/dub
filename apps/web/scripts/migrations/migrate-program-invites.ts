@@ -7,8 +7,8 @@ import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@prisma/client";
 import "dotenv-flow/config";
-import { getEvents } from "../lib/analytics/get-events";
-import { recordLink } from "../lib/tinybird";
+import { getEvents } from "../../lib/analytics/get-events";
+import { recordLink } from "../../lib/tinybird";
 
 async function main() {
   const programInvites = await prisma.programInvite.findMany({

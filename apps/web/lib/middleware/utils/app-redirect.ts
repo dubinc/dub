@@ -14,6 +14,9 @@ const PROGRAM_REDIRECTS = {
   "/program/sales": "/program/commissions",
   "/program/communication": "/program/resources",
   "/program/branding/resources": "/program/resources",
+  "/program/rewards": "/program/groups/default/rewards",
+  "/program/discount": "/program/groups/default/discount",
+  "/program/discounts": "/program/groups/default/discount",
 };
 
 export const appRedirect = (path: string) => {
