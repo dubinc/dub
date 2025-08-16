@@ -73,6 +73,38 @@ export async function importPartners(payload: PartnerStackImportPayload) {
     currentStartingAfter = partners[partners.length - 1].key;
   }
 
+  // After importing partners, clean up by deleting any groups that have no assigned partners
+  if (!hasMore) {
+    const groups = await prisma.partnerGroup.findMany({
+      where: {
+        programId,
+        slug: {
+          not: DEFAULT_PARTNER_GROUP.slug,
+        },
+        partners: {
+          none: {},
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (groups.length > 0) {
+      console.log(
+        `Found ${groups.length} groups with no partners, deleting...`,
+      );
+
+      await prisma.partnerGroup.deleteMany({
+        where: {
+          id: {
+            in: groups.map(({ id }) => id),
+          },
+        },
+      });
+    }
+  }
+
   await partnerStackImporter.queue({
     ...payload,
     startingAfter: hasMore ? currentStartingAfter : undefined,
