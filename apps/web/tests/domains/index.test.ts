@@ -79,6 +79,14 @@ describe.sequential("/domains/**", async () => {
       ...expectedDomain,
       primary: true,
     });
+
+    onTestFinished(async () => {
+      // reset the primary domain
+      await http.post<Domain>({
+        path: "/domains/getacme.link/primary",
+        query: { workspaceId: workspace.id },
+      });
+    });
   });
 
   test("PATCH /domains/{slug}", { retry: 3 }, async () => {

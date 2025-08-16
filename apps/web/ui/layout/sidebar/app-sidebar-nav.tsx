@@ -1,10 +1,12 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
+  Bell,
   Brush,
-  CircleInfo,
   ConnectedDots,
   CubeSettings,
   DiamondTurnRight,
@@ -16,14 +18,16 @@ import {
   Globe,
   InvoiceDollar,
   Key,
+  LifeRing,
+  LinesY as LinesYStatic,
   MoneyBills2,
-  PaperPlane,
   Receipt2,
   ShieldCheck,
+  ShieldKeyhole,
   Sliders,
   Tag,
-  UserPlus,
-  Users2,
+  UserCheck,
+  Users,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
@@ -31,6 +35,7 @@ import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
+import { DubPartnersPopup } from "./dub-partners-popup";
 import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
 import { CursorRays } from "./icons/cursor-rays";
@@ -38,6 +43,8 @@ import { Hyperlink } from "./icons/hyperlink";
 import { LinesY } from "./icons/lines-y";
 import { User } from "./icons/user";
 import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
+import { SidebarUsage } from "./sidebar-usage";
+import { useProgramApplicationsCount } from "./use-program-applications-count";
 import { WorkspaceDropdown } from "./workspace-dropdown";
 
 type SidebarNavData = {
@@ -47,6 +54,8 @@ type SidebarNavData = {
   defaultProgramId?: string;
   session?: Session | null;
   showNews?: boolean;
+  applicationsCount?: number;
+  showConversionGuides?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -81,6 +90,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     icon: ConnectedDots4,
     href: slug ? `/${slug}/program` : "/program",
     active: pathname.startsWith(`/${slug}/program`),
+    popup: DubPartnersPopup,
 
     onClick: defaultProgramId
       ? () => {
@@ -171,7 +181,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   }),
 
   // Program
-  program: ({ slug, showNews }) => ({
+  program: ({ slug, showNews, applicationsCount }) => ({
     title: "Partner Program",
     showNews,
     direction: "left",
@@ -196,14 +206,25 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "All Partners",
-            icon: Users2,
+            icon: Users,
             href: `/${slug}/program/partners`,
             exact: true,
           },
           {
-            name: "Partner Directory",
-            icon: UserPlus,
-            href: `/${slug}/program/partners/directory`,
+            name: "Applications",
+            icon: UserCheck,
+            href: `/${slug}/program/partners/applications`,
+            badge: applicationsCount
+              ? applicationsCount > 99
+                ? "99+"
+                : applicationsCount
+              : undefined,
+          },
+          {
+            name: "Groups",
+            icon: Users6,
+            href: `/${slug}/program/groups`,
+            badge: "New",
           },
         ],
       },
@@ -211,9 +232,19 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         name: "Insights",
         items: [
           {
+            name: "Analytics",
+            icon: LinesYStatic,
+            href: `/${slug}/program/analytics`,
+          },
+          {
             name: "Commissions",
             icon: InvoiceDollar,
             href: `/${slug}/program/commissions`,
+          },
+          {
+            name: "Fraud & Risk",
+            icon: ShieldKeyhole,
+            href: `/${slug}/program/fraud`,
           },
         ],
       },
@@ -223,12 +254,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Rewards",
             icon: Gift,
-            href: `/${slug}/program/rewards`,
+            href: `/${slug}/program/groups/default/rewards`,
+            arrow: true,
+            isActive: () => false,
           },
           {
             name: "Discounts",
             icon: Discount,
-            href: `/${slug}/program/discounts`,
+            href: `/${slug}/program/groups/default/discount`,
+            arrow: true,
+            isActive: () => false,
           },
           {
             name: "Branding",
@@ -236,14 +271,14 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/branding`,
           },
           {
+            name: "Resources",
+            icon: LifeRing,
+            href: `/${slug}/program/resources`,
+          },
+          {
             name: "Link Settings",
             icon: Sliders,
             href: `/${slug}/program/link-settings`,
-          },
-          {
-            name: "Communication",
-            icon: PaperPlane,
-            href: `/${slug}/program/communication`,
           },
         ],
       },
@@ -321,7 +356,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "Notifications",
-            icon: CircleInfo,
+            icon: Bell,
             href: `/${slug}/settings/notifications`,
           },
         ],
@@ -371,17 +406,33 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { defaultProgramId } = useWorkspace();
+  const { plan, defaultProgramId } = useWorkspace();
+  const { canTrackConversions } = getPlanCapabilities(plan);
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : pathname.startsWith(`/${slug}/program`)
-          ? "program"
-          : "default";
+        : // hacky fix for guides because slug is undefined at render time
+          // TODO: remove when we migrate to Next.js 15 + PPR
+          pathname.endsWith("/guides") ||
+            pathname.includes("/guides/") ||
+            // this one is for the payout success page
+            pathname.endsWith("/program/payouts/success")
+          ? null
+          : pathname.startsWith(`/${slug}/program`)
+            ? "program"
+            : "default";
   }, [slug, pathname]);
+
+  const applicationsCount = useProgramApplicationsCount({
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
+  const { data: customersCount } = useCustomersCount({
+    enabled: canTrackConversions === true,
+  });
 
   return (
     <SidebarNav
@@ -397,9 +448,11 @@ export function AppSidebarNav({
         session: session || undefined,
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
+        applicationsCount,
+        showConversionGuides: canTrackConversions && customersCount === 0,
       }}
       toolContent={toolContent}
-      newsContent={newsContent}
+      newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}
       switcher={<WorkspaceDropdown />}
     />
   );

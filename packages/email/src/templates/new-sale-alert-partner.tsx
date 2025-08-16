@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function NewSaleAlertPartner({
+export default function NewSaleAlertPartner({
   email = "panic@thedis.co",
   partner = {
     referralLink: "https://refer.dub.co/steven",
@@ -23,6 +23,7 @@ export function NewSaleAlertPartner({
     name: "Acme",
     slug: "acme",
     logo: DUB_WORDMARK,
+    holdingPeriodDays: 30,
   },
   sale = {
     amount: 4900,
@@ -37,6 +38,7 @@ export function NewSaleAlertPartner({
     name: string;
     slug: string;
     logo: string | null;
+    holdingPeriodDays: number;
   };
   sale: {
     amount: number;
@@ -90,11 +92,32 @@ export function NewSaleAlertPartner({
               </a>
               ).
             </Text>
+
             <Text className="text-sm leading-6 text-neutral-600">
               You received{" "}
               <strong className="text-black">{earningsInDollars}</strong> in
-              commission for this sale and it will be included in your next
-              payout.
+              commission for this sale
+              {program.holdingPeriodDays > 0 ? (
+                <>
+                  {" "}
+                  and it will be eligible for payout after the program's{" "}
+                  {program.holdingPeriodDays}-day holding period (
+                  <strong>
+                    {new Date(
+                      Date.now() +
+                        program.holdingPeriodDays * 24 * 60 * 60 * 1000,
+                    ).toLocaleDateString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </strong>
+                  )
+                </>
+              ) : (
+                " and it will be included in your next payout"
+              )}
+              .
             </Text>
 
             <Section className="mb-12 mt-8">
@@ -105,12 +128,13 @@ export function NewSaleAlertPartner({
                 View earnings
               </Link>
             </Section>
-            <Footer email={email} />
+            <Footer
+              email={email}
+              notificationSettingsUrl="https://partners.dub.co/settings/notifications"
+            />
           </Container>
         </Body>
       </Tailwind>
     </Html>
   );
 }
-
-export default NewSaleAlertPartner;

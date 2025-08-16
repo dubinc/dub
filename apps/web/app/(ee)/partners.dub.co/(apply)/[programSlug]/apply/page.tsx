@@ -1,21 +1,25 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
-import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { Header } from "../header";
 
 export default async function ApplicationPage({
-  params: { programSlug },
+  params: { programSlug, groupSlug },
 }: {
-  params: { programSlug: string };
+  params: { programSlug: string; groupSlug?: string };
 }) {
+  const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
+  const isDefaultGroup = partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug;
+
   const program = await getProgram({
     slug: programSlug,
-    include: ["rewards", "defaultDiscount"],
+    groupSlug: partnerGroupSlug,
   });
 
-  if (!program) {
+  if (!program || !program.group) {
     notFound();
   }
 
@@ -43,20 +47,15 @@ export default async function ApplicationPage({
           </p>
         </div>
 
-        <div className="mt-10">
-          <h2 className="mb-2 text-base font-semibold text-neutral-800">
-            Rewards
-          </h2>
-          <ProgramRewardList
-            rewards={program.rewards}
-            discount={program.defaultDiscount}
-            className="bg-neutral-100"
-          />
-        </div>
+        <LanderRewards
+          className="mt-10"
+          rewards={program.rewards}
+          discount={program.discount}
+        />
 
         {/* Application form */}
         <div className="mt-10">
-          <ProgramApplicationForm program={program} />
+          <ProgramApplicationForm program={program} group={program.group} />
         </div>
       </div>
     </div>

@@ -9,7 +9,11 @@ import { AnalyticsContext } from "./analytics-provider";
 import BarList from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 
-export default function TopLinks() {
+export default function TopLinks({
+  filterLinks = true,
+}: {
+  filterLinks?: boolean;
+}) {
   const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab, saleUnit } = useContext(AnalyticsContext);
@@ -66,23 +70,31 @@ export default function TopLinks() {
                     ),
                     title: shortLinkTitle(d as any),
                     // TODO: simplify this once we switch from domain+key to linkId
-                    href: queryParams({
-                      ...((tab === "links" &&
-                        searchParams.has("domain") &&
-                        searchParams.has("key")) ||
-                      (tab === "urls" && searchParams.has("url"))
-                        ? { del: tab === "links" ? ["domain", "key"] : "url" }
-                        : {
-                            set: {
-                              ...(tab === "links"
-                                ? { domain: d.domain, key: d.key || "_root" }
-                                : {
-                                    url: d.url,
-                                  }),
-                            },
-                          }),
-                      getNewPath: true,
-                    }) as string,
+                    href: filterLinks
+                      ? (queryParams({
+                          ...((tab === "links" &&
+                            searchParams.has("domain") &&
+                            searchParams.has("key")) ||
+                          (tab === "urls" && searchParams.has("url"))
+                            ? {
+                                del:
+                                  tab === "links" ? ["domain", "key"] : "url",
+                              }
+                            : {
+                                set: {
+                                  ...(tab === "links"
+                                    ? {
+                                        domain: d.domain,
+                                        key: d.key || "_root",
+                                      }
+                                    : {
+                                        url: d.url,
+                                      }),
+                                },
+                              }),
+                          getNewPath: true,
+                        }) as string)
+                      : undefined,
                     value: d[dataKey] || 0,
                     ...(tab === "links" && { linkData: d }),
                   }))

@@ -1,7 +1,10 @@
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { createId } from "../api/create-id";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
+import { qstash } from "../cron";
 import { ratelimit } from "../upstash";
 
 /**
@@ -70,6 +73,7 @@ export async function completeProgramApplications(userId: string) {
       },
       include: {
         program: true,
+        partnerGroup: true,
       },
       orderBy: {
         createdAt: "desc",
@@ -88,13 +92,22 @@ export async function completeProgramApplications(userId: string) {
       return true;
     });
 
-    await prisma.programEnrollment.createMany({
-      data: programApplications.map((programApplication) => ({
+    // Program enrollments to create
+    const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
+      programApplications.map((programApplication) => ({
         id: createId({ prefix: "pge_" }),
         programId: programApplication.programId,
         partnerId: user.partners[0].partnerId,
         applicationId: programApplication.id,
-      })),
+        groupId: programApplication?.partnerGroup?.id,
+        clickRewardId: programApplication?.partnerGroup?.clickRewardId,
+        leadRewardId: programApplication?.partnerGroup?.leadRewardId,
+        saleRewardId: programApplication?.partnerGroup?.saleRewardId,
+        discountId: programApplication?.partnerGroup?.discountId,
+      }));
+
+    await prisma.programEnrollment.createMany({
+      data: programEnrollments,
       skipDuplicates: true,
     });
 
@@ -109,6 +122,7 @@ export async function completeProgramApplications(userId: string) {
           program,
           application,
         }),
+
         // if the application has a website but the partner doesn't have a website (maybe they forgot to add during onboarding)
         // update the partner to use the website they applied with
         application.website &&
@@ -117,6 +131,18 @@ export async function completeProgramApplications(userId: string) {
             where: { id: partner.id },
             data: { website: application.website },
           }),
+
+        // Auto-approve the partner
+        program.autoApprovePartnersEnabledAt
+          ? qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/auto-approve-partner`,
+              delay: 5 * 60,
+              body: {
+                programId: program.id,
+                partnerId: partner.id,
+              },
+            })
+          : Promise.resolve(null),
       ]);
     }
 

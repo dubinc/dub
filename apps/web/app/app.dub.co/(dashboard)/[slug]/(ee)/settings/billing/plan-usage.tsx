@@ -1,6 +1,5 @@
 "use client";
 
-import { PAYOUT_FEES } from "@/lib/partners/constants";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
@@ -26,6 +25,7 @@ import {
   INFINITY_NUMBER,
   nFormatter,
 } from "@dub/utils";
+import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { CSSProperties, useMemo } from "react";
@@ -44,13 +44,14 @@ export default function PlanUsage() {
     totalLinks,
     payoutsUsage,
     payoutsLimit,
+    payoutFee,
     domains,
     domainsLimit,
     foldersUsage,
     foldersLimit,
+    groupsLimit,
     tagsLimit,
     usersLimit,
-    partnersEnabled,
     billingCycleStart,
   } = useWorkspace();
 
@@ -58,8 +59,6 @@ export default function PlanUsage() {
     programId: defaultProgramId ?? undefined,
     status: "approved",
   });
-
-  const payoutFees = plan ? PAYOUT_FEES[plan.toLowerCase()]?.ach : null;
 
   const { data: tags } = useTagsCount();
   const { users } = useUsers();
@@ -114,7 +113,12 @@ export default function PlanUsage() {
     <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
         <div>
-          <h2 className="text-xl font-medium">{capitalize(plan)} Plan</h2>
+          <h2 className="text-xl font-medium">
+            {plan && isLegacyBusinessPlan({ plan, payoutsLimit })
+              ? "Business (Legacy)"
+              : capitalize(plan)}{" "}
+            Plan
+          </h2>
           {billingStart && billingEnd && (
             <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
               <>
@@ -165,7 +169,6 @@ export default function PlanUsage() {
           className={cn(
             "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
             "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
-            !partnersEnabled && "rounded-b-lg",
           )}
         >
           <UsageCategory
@@ -197,7 +200,7 @@ export default function PlanUsage() {
             href={`/${slug}/settings/people`}
           />
         </div>
-        {partnersEnabled && defaultProgramId && (
+        {defaultProgramId && (
           <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3">
             <UsageCategory
               title="Partners"
@@ -217,13 +220,7 @@ export default function PlanUsage() {
             <UsageCategory
               title="Payout fees"
               icon={CirclePercentage}
-              usage={
-                plan
-                  ? payoutFees
-                    ? `${Math.round(payoutFees * 100)}%`
-                    : "-"
-                  : undefined
-              }
+              usage={plan && payoutFee && `${payoutFee * 100}%`}
               href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
             />
           </div>

@@ -73,6 +73,7 @@ export const authActionClient = actionClient.use(
         user: session.user,
         workspace: {
           ...workspace,
+          role: workspace.users[0].role,
           plan: workspace.plan as PlanProps,
         },
       },

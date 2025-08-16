@@ -1,5 +1,8 @@
 import Toolbar from "@/ui/layout/toolbar/toolbar";
 import { Grid, Wordmark } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { SignedInHint } from "app/app.dub.co/(onboarding)/signed-in-hint";
+import Link from "next/link";
 
 export default function PartnerOnboardingLayout({
   children,
@@ -8,25 +11,63 @@ export default function PartnerOnboardingLayout({
 }) {
   return (
     <>
-      <div className="flex min-h-screen flex-col">
-        <div className="fixed left-1/2 top-0 h-full w-[1280px] -translate-x-1/2 [mask-image:radial-gradient(50%_70%_at_50%_0%,black_70%,transparent)]">
+      <div className="absolute inset-0 isolate overflow-hidden bg-white">
+        {/* Grid */}
+        <div
+          className={cn(
+            "absolute inset-y-0 left-1/2 w-[1200px] -translate-x-1/2",
+            "[mask-composite:intersect] [mask-image:linear-gradient(black,transparent_320px),linear-gradient(90deg,transparent,black_5%,black_95%,transparent)]",
+          )}
+        >
           <Grid
-            cellSize={80}
-            patternOffset={[-79.25, -59]}
+            cellSize={60}
+            patternOffset={[0.75, 0]}
             className="text-neutral-200"
           />
         </div>
-        <div className="relative z-10 mt-10 flex w-full flex-col items-center justify-center px-3 text-center md:px-8">
-          <div className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]">
-            <Wordmark className="relative h-10" />
-            <span className="text-sm font-medium text-neutral-700">
-              Partner
-            </span>
+
+        {/* Gradient */}
+        {[...Array(2)].map((_, idx) => (
+          <div
+            key={idx}
+            className={cn(
+              "absolute left-1/2 top-6 size-[80px] -translate-x-1/2 -translate-y-1/2 scale-x-[1.6]",
+              idx === 0 ? "mix-blend-overlay" : "opacity-10",
+            )}
+          >
+            {[...Array(idx === 0 ? 2 : 1)].map((_, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "absolute -inset-16 mix-blend-overlay blur-[50px] saturate-[2]",
+                  "bg-[conic-gradient(from_90deg,#F00_5deg,#EAB308_63deg,#5CFF80_115deg,#1E00FF_170deg,#855AFC_220deg,#3A8BFD_286deg,#F00_360deg)]",
+                )}
+              />
+            ))}
           </div>
-          {children}
-        </div>
+        ))}
       </div>
+
+      <div className="relative flex min-h-screen w-full flex-col items-center justify-between">
+        <div className="grow basis-0">
+          <div className="pt-4">
+            <Link href="https://dub.co/home" target="_blank" className="block">
+              <Wordmark className="h-8" />
+              <div className="text-center text-sm font-semibold text-black/80">
+                Partners
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        <div className="w-full py-16">{children}</div>
+
+        {/* Empty div to center main content */}
+        <div className="grow basis-0" />
+      </div>
+
       <Toolbar show={["help"]} />
+      <SignedInHint />
     </>
   );
 }

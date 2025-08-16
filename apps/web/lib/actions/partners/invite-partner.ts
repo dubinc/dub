@@ -1,13 +1,12 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
-import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
-import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import { PartnerInvite } from "@dub/email/templates/partner-invite";
+import PartnerInvite from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
@@ -18,11 +17,11 @@ export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { name, email, linkId, rewardId, discountId } = parsedInput;
+    const { name, email, linkId, groupId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    let [program, link, , ,] = await Promise.all([
+    let [program, link] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -32,20 +31,6 @@ export const invitePartnerAction = authActionClient
         ? getLinkOrThrow({
             workspaceId: workspace.id,
             linkId,
-          })
-        : null,
-
-      rewardId
-        ? getRewardOrThrow({
-            programId,
-            rewardId,
-          })
-        : null,
-
-      discountId
-        ? getDiscountOrThrow({
-            programId,
-            discountId,
           })
         : null,
     ]);
@@ -92,7 +77,11 @@ export const invitePartnerAction = authActionClient
       });
     }
 
-    await createAndEnrollPartner({
+    if (!groupId && !program.defaultGroupId) {
+      throw new Error("No group ID provided and no default group ID found.");
+    }
+
+    const enrolledPartner = await createAndEnrollPartner({
       program,
       link,
       workspace,
@@ -102,22 +91,40 @@ export const invitePartnerAction = authActionClient
       },
       skipEnrollmentCheck: true,
       status: "invited",
-      ...(rewardId && { rewardId }),
-      ...(discountId && { discountId }),
+      groupId,
     });
 
     waitUntil(
-      sendEmail({
-        subject: `${program.name} invited you to join Dub Partners`,
-        email,
-        react: PartnerInvite({
-          email,
-          program: {
-            name: program.name,
-            slug: program.slug,
-            logo: program.logo,
-          },
-        }),
-      }),
+      (async () => {
+        await Promise.allSettled([
+          sendEmail({
+            subject: `${program.name} invited you to join Dub Partners`,
+            email,
+            react: PartnerInvite({
+              email,
+              program: {
+                name: program.name,
+                slug: program.slug,
+                logo: program.logo,
+              },
+            }),
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "partner.invited",
+            description: `Partner ${enrolledPartner.id} invited`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: enrolledPartner.id,
+                metadata: enrolledPartner,
+              },
+            ],
+          }),
+        ]);
+      })(),
     );
   });

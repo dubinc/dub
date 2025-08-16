@@ -1,9 +1,9 @@
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
-import { determinePartnerDiscount } from "@/lib/partners/determine-partner-discount";
-import { determinePartnerRewards } from "@/lib/partners/determine-partner-rewards";
-import { RewardProps } from "@/lib/types";
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
+import { Reward } from "@prisma/client";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
@@ -14,55 +14,42 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const programEnrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
-      },
-    },
-    include: {
-      links: true,
-      program: true,
-    },
+  const programEnrollment = await getProgramEnrollmentOrThrow({
+    partnerId,
+    programId,
+    includeRewards: true,
+    includeDiscount: true,
   });
 
   if (!programEnrollment) {
     notFound();
   }
 
-  const [rewards, discount, commissions] = await Promise.all([
-    determinePartnerRewards({
-      partnerId,
-      programId,
-    }),
-
-    determinePartnerDiscount({
-      programId,
-      partnerId,
-    }),
-
-    prisma.commission.groupBy({
-      by: ["status"],
-      _sum: {
-        earnings: true,
+  const commissions = await prisma.commission.groupBy({
+    by: ["status"],
+    _sum: {
+      earnings: true,
+    },
+    where: {
+      earnings: {
+        gt: 0,
       },
-      where: {
-        earnings: {
-          gt: 0,
-        },
-        programId,
-        partnerId,
-      },
-    }),
-  ]);
+      programId,
+      partnerId,
+    },
+  });
 
-  const { program, links } = programEnrollment;
+  const { program, links, discount, clickReward, leadReward, saleReward } =
+    programEnrollment;
 
   return {
     program,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: rewards as RewardProps[],
+    rewards: sortRewardsByEventOrder(
+      [clickReward, leadReward, saleReward].filter(
+        (r): r is Reward => r !== null,
+      ),
+    ),
     discount,
     earnings: {
       upcoming: commissions.reduce((acc, c) => {

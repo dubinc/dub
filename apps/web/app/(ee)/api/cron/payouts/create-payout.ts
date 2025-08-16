@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { endOfMonth } from "date-fns";
 
 export const createPayout = async ({
@@ -20,6 +21,7 @@ export const createPayout = async ({
       status: true,
       program: {
         select: {
+          name: true,
           holdingPeriodDays: true,
         },
       },
@@ -51,37 +53,59 @@ export const createPayout = async ({
 
   const { holdingPeriodDays } = programEnrollment.program;
 
-  const commissions = await prisma.commission.findMany({
-    where: {
-      earnings: {
-        gt: 0,
-      },
-      programId,
-      partnerId,
-      status: "pending",
-      payoutId: null,
-      // Only process commissions that were created before the holding period
-      ...(holdingPeriodDays > 0 && {
-        createdAt: {
-          lt: new Date(Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000),
+  const commonWhere: Prisma.CommissionWhereInput = {
+    programId,
+    partnerId,
+    status: "pending",
+    payoutId: null,
+  };
+
+  const [commissions, clawbacks] = await Promise.all([
+    // Find all pending commissions
+    // We only process commissions that were created before the holding period
+    prisma.commission.findMany({
+      where: {
+        earnings: {
+          gt: 0,
         },
-      }),
-    },
-    select: {
-      id: true,
-      createdAt: true,
-      earnings: true,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
+        ...commonWhere,
+        ...(holdingPeriodDays > 0 && {
+          createdAt: {
+            lt: new Date(Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000),
+          },
+        }),
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        earnings: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    }),
 
-  if (commissions.length === 0) {
-    console.log(
-      `No pending commissions found for partner ${partnerId} in program ${programId}.`,
-    );
+    // Find all pending clawbacks
+    // We don't wait for the holding period to be over for clawbacks
+    prisma.commission.findMany({
+      where: {
+        earnings: {
+          lt: 0,
+        },
+        ...commonWhere,
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        earnings: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    }),
+  ]);
 
+  if (commissions.length === 0 && clawbacks.length === 0) {
     return;
   }
 
@@ -89,12 +113,23 @@ export const createPayout = async ({
     `Found ${commissions.length} pending commissions for partner ${partnerId} in program ${programId}.`,
   );
 
+  console.log(
+    `Found ${clawbacks.length} pending clawbacks for partner ${partnerId} in program ${programId}.`,
+  );
+
+  // sort the commissions and clawbacks by createdAt
+  const allCommissions = [...commissions, ...clawbacks].sort(
+    (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+  );
+
   // earliest commission date
-  const periodStart = commissions[0].createdAt;
+  const periodStart = allCommissions[0].createdAt;
 
   // end of the month of the latest commission date
   // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
-  const periodEnd = endOfMonth(commissions[commissions.length - 1].createdAt);
+  const periodEnd = endOfMonth(
+    allCommissions[allCommissions.length - 1].createdAt,
+  );
 
   await prisma.$transaction(async (tx) => {
     // check if the partner has another pending payout (take the latest entry)
@@ -119,18 +154,18 @@ export const createPayout = async ({
           partnerId,
           periodStart,
           periodEnd,
-          description: "Dub Partners payout",
+          description: `Dub Partners payout (${programEnrollment.program.name})`,
         },
       });
     }
 
-    console.log(`Payout ID to use: ${payout.id}`);
+    console.log(`Using payout ID ${payout.id}.`);
 
     // update the commissions to processed and set the payoutId
     await tx.commission.updateMany({
       where: {
         id: {
-          in: commissions.map(({ id }) => id),
+          in: allCommissions.map(({ id }) => id),
         },
       },
       data: {
@@ -140,7 +175,7 @@ export const createPayout = async ({
     });
 
     console.log(
-      `Updated ${commissions.length} commissions to processed and set payoutId to ${payout.id}.`,
+      `Updated ${allCommissions.length} commissions to processed and set payoutId to ${payout.id}.`,
     );
 
     // get the total earnings for the commissions in the payout

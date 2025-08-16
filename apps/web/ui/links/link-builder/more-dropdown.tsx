@@ -2,9 +2,9 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useABTestingModal } from "@/ui/modals/link-builder/ab-testing-modal";
 import { useAdvancedModal } from "@/ui/modals/link-builder/advanced-modal";
 import { useExpirationModal } from "@/ui/modals/link-builder/expiration-modal";
+import { usePartnersModal } from "@/ui/modals/link-builder/partners-modal";
 import { usePasswordModal } from "@/ui/modals/link-builder/password-modal";
 import { useTargetingModal } from "@/ui/modals/link-builder/targeting-modal";
-import { useWebhooksModal } from "@/ui/modals/link-builder/webhooks-modal";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { Button, Popover, SimpleTooltipContent, useMediaQuery } from "@dub/ui";
 import { Dots } from "@dub/ui/icons";
@@ -15,35 +15,49 @@ import { MOBILE_MORE_ITEMS, MORE_ITEMS } from "./constants";
 import { LinkFormData } from "./link-builder-provider";
 import { useLinkBuilderKeyboardShortcut } from "./use-link-builder-keyboard-shortcut";
 
-export function MoreDropdown() {
-  const { flags } = useWorkspace();
+export function MoreDropdown({
+  variant = "page",
+}: {
+  variant?: "page" | "modal";
+}) {
+  const { domains, flags, defaultProgramId } = useWorkspace();
   const { isMobile } = useMediaQuery();
-
-  const { watch, setValue } = useFormContext<LinkFormData>();
-  const data = watch();
-
   const [openPopover, setOpenPopover] = useState(false);
+  const { watch, setValue } = useFormContext<LinkFormData>();
+
+  const data = watch();
 
   const options = useMemo(() => {
     return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...MORE_ITEMS].filter(
-      (option) => (option.key === "testVariants" ? flags?.abTesting : true),
+      (option) => {
+        if (option.key === "testVariants") return flags?.abTesting;
+        if (option.key === "partnerId") return Boolean(defaultProgramId);
+        if (option.key === "linkRetentionCleanupDisabledAt")
+          return (
+            Boolean(
+              domains?.find((d) => d.slug === data.domain)?.linkRetentionDays,
+            ) && variant === "page" // only show this in full page builder
+          );
+
+        return true;
+      },
     );
-  }, [data, isMobile, flags]);
+  }, [data, isMobile, domains, flags, defaultProgramId, variant]);
 
   const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();
   const { TargetingModal, setShowTargetingModal } = useTargetingModal();
   const { ExpirationModal, setShowExpirationModal } = useExpirationModal();
-  const { WebhooksModal, setShowWebhooksModal } = useWebhooksModal();
   const { AdvancedModal, setShowAdvancedModal } = useAdvancedModal();
+  const { PartnersModal, setShowPartnerModal } = usePartnersModal();
 
   const modalCallbacks = {
     testVariants: setShowABTestingModal,
     password: setShowPasswordModal,
     targeting: setShowTargetingModal,
     expiresAt: setShowExpirationModal,
-    webhookIds: setShowWebhooksModal,
     advanced: setShowAdvancedModal,
+    partnerId: setShowPartnerModal,
   };
 
   useLinkBuilderKeyboardShortcut(
@@ -52,8 +66,15 @@ export function MoreDropdown() {
       const option = options.find(({ shortcutKey }) => shortcutKey === e.key);
       if (!option) return;
 
+      const enabled =
+        "enabled" in option && typeof option.enabled === "function"
+          ? option.enabled(data)
+          : data[option.key];
+
       setOpenPopover(false);
       if (option.type === "modal") modalCallbacks[option.key]?.(true);
+      else if (enabled && option.remove) option.remove(setValue);
+      else if (!enabled && option.enable) option.enable(setValue);
       else
         setValue(option.key as any, !data[option.key], { shouldDirty: true });
     },
@@ -66,12 +87,12 @@ export function MoreDropdown() {
       <PasswordModal />
       <TargetingModal />
       <ExpirationModal />
-      <WebhooksModal />
       <AdvancedModal />
+      <PartnersModal />
       <Popover
         align="start"
         content={
-          <div className="grid p-1 max-sm:w-full md:min-w-72">
+          <div className="grid p-1 max-sm:w-full md:min-w-80">
             {options.map((option) => {
               const enabled =
                 "enabled" in option && typeof option.enabled === "function"
@@ -86,9 +107,11 @@ export function MoreDropdown() {
                   onClick={() => {
                     setOpenPopover(false);
 
-                    if (option.type === "modal") {
+                    if (option.type === "modal")
                       modalCallbacks[option.key]?.(true);
-                    } else
+                    else if (enabled && option.remove) option.remove(setValue);
+                    else if (!enabled && option.enable) option.enable(setValue);
+                    else
                       setValue(option.key as any, !enabled, {
                         shouldDirty: true,
                       });
@@ -117,13 +140,15 @@ export function MoreDropdown() {
                             {option.label}
                           </>
                         )}
-                        {option.description && option.learnMoreUrl && (
+                        {option.description && (
                           <ProBadgeTooltip
                             content={
                               <SimpleTooltipContent
                                 title={option.description}
-                                cta="Learn more."
-                                href={option.learnMoreUrl}
+                                {...(option.learnMoreUrl && {
+                                  cta: "Learn more.",
+                                  href: option.learnMoreUrl,
+                                })}
                               />
                             }
                           />

@@ -73,7 +73,7 @@ export function PageContentOld({
           )}
           {showControls && (
             <div className="flex items-center gap-4 md:hidden">
-              <HelpButtonRSC variant="old" />
+              <HelpButtonRSC />
               <UserDropdownOld />
             </div>
           )}

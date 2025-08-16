@@ -1,15 +1,11 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus, CommissionType } from "@prisma/client";
+import { CommissionStatus, CommissionType, Prisma } from "@prisma/client";
 import "dotenv-flow/config";
 
 async function main() {
-  const programId = "prog_";
-
   const manualPayouts = await prisma.payout.findMany({
     where: {
-      programId,
-      status: "pending",
       periodStart: null,
       periodEnd: null,
     },
@@ -18,67 +14,35 @@ async function main() {
     },
   });
 
-  let groupedPayouts: {
-    partnerId: string;
-    partnerName: string;
-    programId: string;
-    amount: number;
-  }[] = [];
+  console.table(manualPayouts);
 
-  for (const payout of manualPayouts) {
-    const existingPayout = groupedPayouts.find(
-      (group) => group.partnerId === payout.partnerId,
-    );
-
-    if (!existingPayout) {
-      groupedPayouts.push({
-        partnerName: payout.partner.name,
-        partnerId: payout.partnerId,
+  const manualCommissions: Prisma.CommissionCreateManyInput[] =
+    manualPayouts.map((payout) => {
+      return {
+        id: createId({ prefix: "cm_" }),
         programId: payout.programId,
-        amount: payout.amount,
-      });
-    } else {
-      existingPayout.amount += payout.amount;
-    }
-  }
-
-  if (groupedPayouts.length === 0) {
-    console.log("No manual payouts found.");
-    return;
-  }
-
-  console.table(groupedPayouts);
-
-  const manualCommissions = groupedPayouts.map((payout) => {
-    return {
-      id: createId({ prefix: "cm_" }),
-      programId: payout.programId,
-      partnerId: payout.partnerId,
-      type: CommissionType.custom,
-      amount: 0,
-      quantity: 1,
-      earnings: payout.amount,
-      status: CommissionStatus.pending,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-  });
+        partnerId: payout.partnerId,
+        payoutId: payout.id,
+        type: CommissionType.custom,
+        amount: 0,
+        quantity: 1,
+        earnings: payout.amount,
+        description: payout.description,
+        status: CommissionStatus.processed,
+        createdAt: payout.createdAt,
+        updatedAt: new Date(),
+      };
+    });
 
   console.table(manualCommissions);
 
   // Add manual commissions to the database
-  await prisma.commission.createMany({
+  const createdCommissions = await prisma.commission.createMany({
     data: manualCommissions,
     skipDuplicates: true,
   });
 
-  // Cancel the manual payouts
-  await prisma.payout.updateMany({
-    where: {
-      id: { in: manualPayouts.map((payout) => payout.id) },
-    },
-    data: { status: "canceled" },
-  });
+  console.log({ createdCommissions });
 }
 
 main();

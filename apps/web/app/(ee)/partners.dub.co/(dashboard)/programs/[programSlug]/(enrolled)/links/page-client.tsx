@@ -14,7 +14,7 @@ import { Button, CardList, useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
 import { useParams } from "next/navigation";
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
 
 const PartnerLinksContext = createContext<{
@@ -50,16 +50,6 @@ export function ProgramLinksPageClient() {
     interval?: IntervalOptions;
   };
 
-  // Get first link sorted by createdAt
-  const defaultLinkId = useMemo(
-    () =>
-      links?.sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      )[0]?.id,
-    [links],
-  );
-
   useKeyboardShortcut("c", () => setShowPartnerLinkModal(true));
 
   return (
@@ -71,20 +61,22 @@ export function ProgramLinksPageClient() {
           align="start"
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
-        {!["framer"].includes(programSlug) && (
-          <Button
-            text="Create Link"
-            className="w-fit"
-            shortcut="C"
-            onClick={() => setShowPartnerLinkModal(true)}
-            disabled={programEnrollment?.status === "banned"}
-            disabledTooltip={
-              programEnrollment?.status === "banned"
-                ? "You are banned from this program."
-                : undefined
-            }
-          />
-        )}
+        {links &&
+          links.length <
+            (programEnrollment?.program?.maxPartnerLinks ?? 10) && (
+            <Button
+              text="Create Link"
+              className="w-fit"
+              shortcut="C"
+              onClick={() => setShowPartnerLinkModal(true)}
+              disabled={programEnrollment?.status === "banned"}
+              disabledTooltip={
+                programEnrollment?.status === "banned"
+                  ? "You are banned from this program."
+                  : undefined
+              }
+            />
+          )}
       </div>
       <PartnerLinksContext.Provider
         value={{
@@ -126,11 +118,7 @@ export function ProgramLinksPageClient() {
               />
             ) : (
               links?.map((link) => (
-                <PartnerLinkCard
-                  key={link.id}
-                  link={link}
-                  isDefaultLink={link.id === defaultLinkId}
-                />
+                <PartnerLinkCard key={link.id} link={link} />
               ))
             )}
           </CardList>
@@ -143,7 +131,6 @@ export function ProgramLinksPageClient() {
 function LinkCardSkeleton() {
   return (
     <CardList.Card innerClassName="px-0 py-0" hoverStateEnabled={false}>
-      <div className="h-[33px] rounded-t-xl bg-neutral-50"></div>
       <div className="p-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">

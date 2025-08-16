@@ -20,7 +20,7 @@ import {
   useLocalStorage,
   Wordmark,
 } from "@dub/ui";
-import { cn, getDomainWithoutWWW, getPrettyUrl } from "@dub/utils";
+import { cn, getPrettyUrl } from "@dub/utils";
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
@@ -43,6 +43,7 @@ export function ReferralsEmbedPageClient({
   earnings,
   stats,
   themeOptions,
+  dynamicHeight,
 }: {
   program: Program;
   links: ReferralsEmbedLink[];
@@ -59,6 +60,7 @@ export function ReferralsEmbedPageClient({
     saleAmount: number;
   };
   themeOptions: ThemeOptions;
+  dynamicHeight: boolean;
 }) {
   const resources = programResourcesSchema.parse(
     program.resources ?? { logos: [], colors: [], files: [] },
@@ -97,11 +99,6 @@ export function ReferralsEmbedPageClient({
     if (!tabs.includes(selectedTab)) setSelectedTab(tabs[0]);
   }, [tabs, selectedTab]);
 
-  const shortLinkDomain = program.domain || "";
-  const destinationDomain = program.url
-    ? getDomainWithoutWWW(program.url)!
-    : "";
-
   const partnerLink =
     links.length > 0
       ? constructPartnerLink({
@@ -113,7 +110,7 @@ export function ReferralsEmbedPageClient({
   return (
     <div
       style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
-      className="flex min-h-screen flex-col"
+      className={cn("flex flex-col", !dynamicHeight && "min-h-screen")}
     >
       <div className="relative z-0 p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
@@ -255,11 +252,7 @@ export function ReferralsEmbedPageClient({
               ) : selectedTab === "Earnings" ? (
                 <ReferralsEmbedEarnings salesCount={stats.sales} />
               ) : selectedTab === "Links" ? (
-                <ReferralsEmbedLinks
-                  links={links}
-                  destinationDomain={destinationDomain}
-                  shortLinkDomain={shortLinkDomain}
-                />
+                <ReferralsEmbedLinks links={links} program={program} />
               ) : selectedTab === "Leaderboard" &&
                 programEmbedData?.leaderboard?.mode !== "disabled" ? (
                 <ReferralsEmbedLeaderboard />

@@ -72,11 +72,7 @@ function ModalInner({
       ),
 
       Partner: (
-        <PartnerRowItem
-          partner={commission.partner!}
-          showPayoutsEnabled={false}
-          showPermalink={false}
-        />
+        <PartnerRowItem partner={commission.partner!} showPermalink={false} />
       ),
 
       Type: <CommissionTypeBadge type={commission.type!} />,

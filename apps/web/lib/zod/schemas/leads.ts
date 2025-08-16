@@ -21,13 +21,7 @@ export const trackLeadRequestSchema = z.object({
       "The name of the lead event to track. Can also be used as a unique identifier to associate a given lead event for a customer for a subsequent sale event (via the `leadEventName` prop in `/track/sale`).",
     )
     .openapi({ example: "Sign up" }),
-  eventQuantity: z
-    .number()
-    .nullish()
-    .describe(
-      "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
-    ),
-  externalId: z
+  customerExternalId: z
     .string()
     .trim()
     .max(100)
@@ -54,6 +48,12 @@ export const trackLeadRequestSchema = z.object({
     .nullish()
     .default(null)
     .describe("The avatar URL of the customer."),
+  eventQuantity: z
+    .number()
+    .nullish()
+    .describe(
+      "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
+    ),
   mode: z
     .enum(["async", "wait"])
     .default("async")
@@ -113,11 +113,13 @@ export const leadEventSchemaTBEndpoint = z.object({
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
+  trigger: z.string().nullish(), // backwards compatibility
   referer: z.string().nullable(),
   referer_url: z.string().nullable(),
   referer_url_processed: z.string().nullable(),
   qr: z.number().nullable(),
   ip: z.string().nullable(),
+  metadata: z.string().nullish(),
 });
 
 // response from dub api
@@ -125,8 +127,10 @@ export const leadEventResponseSchema = z
   .object({
     event: z.literal("lead"),
     timestamp: z.coerce.string(),
+    // core event fields
     eventId: z.string(),
     eventName: z.string(),
+    metadata: z.any().nullish(),
     // nested objects
     click: clickEventSchema,
     link: linkEventSchema,
@@ -134,14 +138,3 @@ export const leadEventResponseSchema = z
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "LeadEvent", title: "LeadEvent" });
-
-export const leadEventResponseSchemaExtended = leadEventResponseSchema.merge(
-  z.object({
-    metadata: z
-      .string()
-      .nullish()
-      .transform((val) => (val === "" ? null : val))
-      .default(null)
-      .openapi({ type: "string" }),
-  }),
-);

@@ -9,11 +9,12 @@ import {
   Flask,
   Icon,
   Incognito,
+  InfinityIcon,
   InputPassword,
-  Webhook,
   WindowSearch,
 } from "@dub/ui/icons";
-import { Settings } from "lucide-react";
+import { Settings, User2 } from "lucide-react";
+import { UseFormSetValue } from "react-hook-form";
 
 type MoreItem = {
   key: string;
@@ -25,6 +26,8 @@ type MoreItem = {
   type: string;
   badgeLabel?: (data: LinkFormData) => string;
   enabled?: (data: LinkFormData) => boolean;
+  enable?: (setValue: UseFormSetValue<LinkFormData>) => void;
+  remove?: (setValue: UseFormSetValue<LinkFormData>) => void;
   add?: boolean;
 };
 
@@ -50,13 +53,30 @@ export const MORE_ITEMS: MoreItem[] = [
     type: "boolean",
   },
   {
-    key: "webhookIds",
-    icon: Webhook,
-    label: "Webhooks",
-    shortcutKey: "w",
-    enabled: (data) => Boolean(data.webhookIds?.length),
+    key: "linkRetentionCleanupDisabledAt",
+    icon: InfinityIcon,
+    label: "Permanent Retention",
+    description: "Exclude this link from link retention settings.",
+    shortcutKey: "r",
+    type: "boolean",
+    enabled: (data) => Boolean(data.linkRetentionCleanupDisabledAt),
+    enable: (setValue) =>
+      setValue("linkRetentionCleanupDisabledAt", new Date(), {
+        shouldDirty: true,
+      }),
+    remove: (setValue) =>
+      setValue("linkRetentionCleanupDisabledAt", null, { shouldDirty: true }),
+  },
+  {
+    key: "partnerId",
+    icon: User2,
+    label: "Assign to Partner",
+    shortcutKey: "b",
     type: "modal",
+    enabled: (data) => Boolean(data.partnerId),
     add: false,
+    description: "Assign this link to a partner.",
+    learnMoreUrl: "https://dub.co/help/article/dub-partners",
   },
   {
     key: "advanced",

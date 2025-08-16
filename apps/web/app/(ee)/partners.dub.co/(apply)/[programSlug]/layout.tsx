@@ -1,33 +1,39 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getReward } from "@/lib/fetchers/get-reward";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { Wordmark } from "@dub/ui";
-import { APP_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 import { constructMetadata } from "@dub/utils/src/functions";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PropsWithChildren } from "react";
 
 export async function generateMetadata({
-  params: { programSlug },
+  params: { programSlug, groupSlug },
 }: {
-  params: { programSlug: string };
+  params: { programSlug: string; groupSlug?: string };
 }) {
-  const program = await getProgram({ slug: programSlug });
+  const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
-  if (!program || !program.defaultRewardId) {
+  const program = await getProgram({
+    slug: programSlug,
+    groupSlug: partnerGroupSlug,
+  });
+
+  if (!program) {
     notFound();
   }
 
-  const reward = await getReward({ id: program.defaultRewardId });
-
   return constructMetadata({
     title: `${program.name} Affiliate Program`,
-    description: `Join the ${program.name} affiliate program and earn ${formatRewardDescription(
-      { reward },
-    )} by referring ${program.name} to your friends and followers.`,
+    description: `Join the ${program.name} affiliate program and ${
+      program.rewards && program.rewards.length > 0
+        ? formatRewardDescription({ reward: program.rewards[0] }).toLowerCase()
+        : "earn commissions"
+    } by referring ${program.name} to your friends and followers.`,
     image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}`,
+    canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}`,
   });
 }
 
@@ -69,7 +75,7 @@ export default async function ApplyLayout({
           </Link>
           <span className="flex items-center gap-2">
             <a
-              href="https://dub.co/legal/terms"
+              href="https://dub.co/legal/partners"
               target="_blank"
               className="transition-colors duration-75 hover:text-neutral-600"
             >

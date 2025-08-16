@@ -98,7 +98,7 @@ export const PLAN_COMPARE_FEATURES: {
           default: true,
         },
         text: "Deep links",
-        href: "https://dub.co/help/article/custom-domain-deep-links",
+        href: "https://dub.co/docs/concepts/deep-links/quickstart",
       },
       {
         check: {
@@ -152,67 +152,6 @@ export const PLAN_COMPARE_FEATURES: {
     ],
   },
   {
-    category: "Analytics",
-    href: "https://dub.co/analytics",
-    features: [
-      {
-        text: "Advanced analytics",
-        href: "https://dub.co/help/article/dub-analytics",
-      },
-      {
-        text: ({ plan }) => (
-          <>
-            <strong>
-              {plan.name === "Enterprise"
-                ? "Unlimited"
-                : nFormatter(plan.limits.clicks)}
-            </strong>{" "}
-            tracked clicks
-            {plan.name === "Enterprise" ? "" : "/mo"}
-          </>
-        ),
-        href: "https://dub.co/help/article/dub-analytics-limits",
-      },
-      {
-        text: ({ plan }) => (
-          <>
-            <strong>{plan.limits.retention}</strong> retention
-          </>
-        ),
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
-        text: "Conversion tracking",
-        href: "https://dub.co/help/article/dub-conversions",
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
-        text: "Customer insights",
-        href: "https://dub.co/help/article/customer-insights",
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
-        text: "Real-time events stream",
-        href: "https://dub.co/help/article/real-time-events-stream",
-      },
-    ],
-  },
-  {
     category: "Partners",
     href: "https://dub.co/partners",
     features: [
@@ -223,8 +162,7 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Partner management",
-        href: "https://dub.co/partners",
+        text: "Unlimited partners",
       },
       {
         check: {
@@ -297,7 +235,44 @@ export const PLAN_COMPARE_FEATURES: {
       {
         check: {
           default: false,
-          business: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ id, plan }) =>
+          id === "free" || id === "pro" ? (
+            "No partner rewards"
+          ) : (
+            <>
+              <strong>{plan.name === "Business" ? "Basic" : "Advanced"}</strong>{" "}
+              partner rewards
+            </>
+          ),
+        href: "https://dub.co/help/article/partner-rewards",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Dual-sided incentives",
+        href: "https://dub.co/help/article/dual-sided-incentives",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "AI landing page generator",
+        href: "https://dub.co/help/article/program-landing-page",
+      },
+      {
+        check: {
+          default: false,
           advanced: true,
           enterprise: true,
         },
@@ -307,12 +282,95 @@ export const PLAN_COMPARE_FEATURES: {
       {
         check: {
           default: false,
-          business: false,
           advanced: true,
           enterprise: true,
         },
         text: "Partners API",
         href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
+      },
+      {
+        check: {
+          default: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Email campaigns (beta)",
+      },
+      {
+        check: {
+          default: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Fraud & risk prevention",
+      },
+      {
+        check: {
+          default: false,
+          enterprise: true,
+        },
+        text: "Partner network access",
+      },
+    ],
+  },
+  {
+    category: "Analytics",
+    href: "https://dub.co/analytics",
+    features: [
+      {
+        text: "Advanced analytics",
+        href: "https://dub.co/help/article/dub-analytics",
+      },
+      {
+        text: ({ plan }) => (
+          <>
+            <strong>
+              {plan.name === "Enterprise"
+                ? "Unlimited"
+                : nFormatter(plan.limits.clicks)}
+            </strong>{" "}
+            tracked clicks
+            {plan.name === "Enterprise" ? "" : "/mo"}
+          </>
+        ),
+        href: "https://dub.co/help/article/dub-analytics-limits",
+      },
+      {
+        text: ({ plan }) => (
+          <>
+            <strong>{plan.limits.retention}</strong> retention
+          </>
+        ),
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Conversion tracking",
+        href: "https://dub.co/help/article/dub-conversions",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Customer insights",
+        href: "https://dub.co/help/article/customer-insights",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Real-time events stream",
+        href: "https://dub.co/help/article/real-time-events-stream",
       },
     ],
   },
@@ -429,13 +487,6 @@ export const PLAN_COMPARE_FEATURES: {
         },
         text: "SAML/SSO",
         href: "https://dub.co/help/category/saml-sso",
-      },
-      {
-        check: {
-          default: false,
-          enterprise: true,
-        },
-        text: "Custom SLA",
       },
       {
         check: {

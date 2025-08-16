@@ -7,8 +7,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   createPartnerSchema,
-  EnrolledPartnerSchemaExtended,
-  partnersQuerySchema,
+  EnrolledPartnerSchema,
+  getPartnersQuerySchemaExtended,
 } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -17,16 +17,14 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+    const parsedParams = getPartnersQuerySchemaExtended.parse(searchParams);
 
     const partners = await getPartners({
-      ...partnersQuerySchema.parse(searchParams),
-      workspaceId: workspace.id,
+      ...parsedParams,
       programId,
     });
 
-    return NextResponse.json(
-      z.array(EnrolledPartnerSchemaExtended).parse(partners),
-    );
+    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
   },
   {
     requiredPlan: [
@@ -43,8 +41,9 @@ export const GET = withWorkspace(
 // POST /api/partners - add a partner for a program
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     const {
-      programId,
       name,
       email,
       username,
@@ -53,6 +52,7 @@ export const POST = withWorkspace(
       description = null,
       tenantId,
       linkProps,
+      groupId,
     } = createPartnerSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
@@ -85,6 +85,7 @@ export const POST = withWorkspace(
         description,
       },
       tenantId,
+      groupId,
     });
 
     return NextResponse.json(enrolledPartner, {

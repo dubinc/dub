@@ -23,17 +23,21 @@ export const DiscountSchemaWithDeprecatedFields = DiscountSchema.extend({
 
 export const createDiscountSchema = z.object({
   workspaceId: z.string(),
-  partnerIds: z.array(z.string()).nullish(),
   amount: z.number().min(0),
   type: z.nativeEnum(RewardStructure).default("flat"),
   maxDuration: maxDurationSchema,
   couponId: z.string(),
   couponTestId: z.string().nullish(),
+  groupId: z.string(),
 });
 
-export const updateDiscountSchema = createDiscountSchema.extend({
-  discountId: z.string(),
-});
+export const updateDiscountSchema = createDiscountSchema
+  .omit({
+    groupId: true,
+  })
+  .extend({
+    discountId: z.string(),
+  });
 
 export const discountPartnersQuerySchema = z
   .object({

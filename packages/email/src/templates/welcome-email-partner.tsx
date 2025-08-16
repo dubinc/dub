@@ -15,7 +15,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function WelcomeEmailPartner({
+export default function WelcomeEmailPartner({
   name = "Brendon Urie",
   email = "panic@thedis.co",
 }: {
@@ -82,7 +82,7 @@ export function WelcomeEmailPartner({
               </strong>
               :{" "}
               <Link
-                href="https://partners.dub.co/settings/payouts"
+                href="https://partners.dub.co/payouts"
                 className="font-semibold text-black underline underline-offset-4"
               >
                 Connect a payout method
@@ -106,5 +106,3 @@ export function WelcomeEmailPartner({
     </Html>
   );
 }
-
-export default WelcomeEmailPartner;

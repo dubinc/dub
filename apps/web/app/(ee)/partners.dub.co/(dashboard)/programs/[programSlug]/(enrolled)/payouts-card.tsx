@@ -3,12 +3,13 @@
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
+import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { CircleWarning, MoneyBills2, StatusBadge } from "@dub/ui";
-import { currencyFormatter, formatDate } from "@dub/utils";
+import { CircleWarning, MoneyBills2 } from "@dub/ui";
+import { currencyFormatter, formatPeriod } from "@dub/utils";
 import Link from "next/link";
 import { useState } from "react";
-import { PayoutDetailsSheet } from "../../../settings/payouts/payout-details-sheet";
+import { PayoutDetailsSheet } from "../../../payouts/payout-details-sheet";
 
 export function PayoutsCard({ programId }: { programId?: string }) {
   const { payouts, error } = usePartnerPayouts({
@@ -68,15 +69,14 @@ export function PayoutsCard({ programId }: { programId?: string }) {
                           maximumFractionDigits: 2,
                         })}
                       </span>
-                      <span className="text-[0.625rem] text-neutral-500">
-                        {formatDate(payout.createdAt)}
+                      <span className="text-[0.7rem] text-neutral-500">
+                        {formatPeriod(payout)}
                       </span>
                     </div>
-                    <span>
-                      <StatusBadge variant={badge.variant} className="">
-                        {badge.label}
-                      </StatusBadge>
-                    </span>
+                    <PayoutStatusBadgePartner
+                      payout={payout}
+                      program={payout.program}
+                    />
                   </button>
                 );
               })}

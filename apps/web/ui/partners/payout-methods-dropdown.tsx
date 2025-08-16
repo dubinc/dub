@@ -9,18 +9,24 @@ import {
   MatrixLines,
   Paypal,
   Popover,
-  StatusBadge,
   Stripe as StripeIcon,
 } from "@dub/ui";
-import { cn, CONNECT_SUPPORTED_COUNTRIES, fetcher } from "@dub/utils";
+import {
+  cn,
+  CONNECT_SUPPORTED_COUNTRIES,
+  fetcher,
+  PAYPAL_SUPPORTED_COUNTRIES,
+} from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { Stripe } from "stripe";
 import useSWR from "swr";
 
 export function PayoutMethodsDropdown() {
+  const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
   const { partner, loading: isPartnerLoading } = usePartnerProfile();
 
@@ -37,7 +43,7 @@ export function PayoutMethodsDropdown() {
           toast.error("Unable to create account link. Please contact support.");
           return;
         }
-        window.open(data.url, "_blank");
+        router.push(data.url);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
@@ -51,7 +57,7 @@ export function PayoutMethodsDropdown() {
           toast.error("Unable to redirect to Paypal. Please contact support.");
           return;
         }
-        window.open(data.url, "_blank");
+        router.push(data.url);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
@@ -72,9 +78,10 @@ export function PayoutMethodsDropdown() {
         partner?.paypalEmail
           ? `Account ${partner.paypalEmail}`
           : "Not connected",
-      isVisible: (partner: Pick<PartnerProps, "country">) =>
-        partner.country &&
-        !CONNECT_SUPPORTED_COUNTRIES.includes(partner.country),
+      isVisible: (partner: Pick<PartnerProps, "country" | "paypalEmail">) =>
+        (partner.country &&
+          PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)) ||
+        partner.paypalEmail,
     },
     {
       id: "stripe",
@@ -117,15 +124,13 @@ export function PayoutMethodsDropdown() {
   };
 
   const selectedMethod = (() => {
-    if (partner?.country === "US") {
-      return payoutMethods.find(({ id }) => id === "stripe")!;
-    }
-
     if (partner?.stripeConnectId) {
       return payoutMethods.find(({ id }) => id === "stripe");
+    } else if (partner?.paypalEmail) {
+      return payoutMethods.find(({ id }) => id === "paypal");
     }
 
-    return payoutMethods.find(({ id }) => id === "paypal");
+    return null;
   })();
 
   const isConnected = (method: string) => {
@@ -144,7 +149,12 @@ export function PayoutMethodsDropdown() {
     <div>
       <Popover
         content={
-          <div className="relative w-[350px]">
+          <div
+            className={cn(
+              "relative w-[350px]",
+              isConnected("paypal") && "w-fit",
+            )}
+          >
             <div className="w-full space-y-0.5 rounded-lg bg-white p-1 text-sm">
               <div className="flex flex-col gap-2">
                 {payoutMethods
@@ -153,9 +163,7 @@ export function PayoutMethodsDropdown() {
                     return (
                       <div
                         key={id}
-                        className={cn(
-                          "flex w-full items-center justify-between rounded-md px-2 py-1.5 transition-all duration-75",
-                        )}
+                        className="flex w-full items-center justify-between gap-4 rounded-md px-2 py-1.5 transition-all duration-75"
                       >
                         <div className="flex items-center gap-x-2">
                           <div
@@ -167,17 +175,8 @@ export function PayoutMethodsDropdown() {
                             {icon}
                           </div>
                           <div>
-                            <span className="flex items-center gap-1.5 text-xs font-medium text-neutral-900">
+                            <span className="text-xs font-medium text-neutral-900">
                               {label}
-                              {id === "paypal" && (
-                                <StatusBadge
-                                  variant={isConnected(id) ? "neutral" : "new"}
-                                  icon={null}
-                                  className="px-1.5 py-0.5"
-                                >
-                                  {isConnected(id) ? "Default" : "Recommended"}
-                                </StatusBadge>
-                              )}
                             </span>
                             <span className="block w-44 truncate text-xs text-neutral-500">
                               {getAccountDetails(partner)}
@@ -187,14 +186,15 @@ export function PayoutMethodsDropdown() {
 
                         <Button
                           variant={isConnected(id) ? "secondary" : "primary"}
-                          text={isConnected(id) ? "Manage" : "Connect"}
+                          text={
+                            isConnected(id)
+                              ? id === "paypal"
+                                ? "Switch account"
+                                : "Manage"
+                              : "Connect"
+                          }
                           onClick={() => connectPayout(id)}
                           loading={isStripePending || isPaypalPending}
-                          disabledTooltip={
-                            id === "paypal" && !isConnected(id)
-                              ? "PayPal payouts are coming soon."
-                              : undefined
-                          }
                           className="h-7 w-fit text-xs"
                         />
                       </div>
@@ -208,42 +208,42 @@ export function PayoutMethodsDropdown() {
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >
-        {isBankAccountLoading || isPartnerLoading ? (
-          <div className="rounded-lg border border-neutral-200">
+        <button
+          onClick={() => setOpenPopover(!openPopover)}
+          className={cn(
+            "flex w-full items-center justify-between rounded-lg bg-white p-2 text-left text-sm transition-all duration-75",
+            "border border-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+          )}
+        >
+          {isBankAccountLoading || isPartnerLoading ? (
             <PayoutMethodSkeleton />
-          </div>
-        ) : (
-          <button
-            onClick={() => setOpenPopover(!openPopover)}
-            className={cn(
-              "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75",
-              "border border-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-            )}
-          >
-            <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
-              <div
-                className={cn(
-                  "size-8 shrink-0 rounded-lg p-2",
-                  selectedMethod?.color,
-                )}
-              >
-                {selectedMethod?.icon}
+          ) : (
+            <>
+              <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
+                <div
+                  className={cn(
+                    "size-8 shrink-0 rounded-lg p-2",
+                    selectedMethod?.color,
+                  )}
+                >
+                  {selectedMethod?.icon}
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-xs font-medium text-neutral-900">
+                    {selectedMethod?.label}
+                  </span>
+                  <span className="block w-44 truncate text-xs text-neutral-500">
+                    {selectedMethod?.getAccountDetails(partner)}
+                  </span>
+                </div>
               </div>
-              <div className="min-w-0">
-                <span className="block text-xs font-medium text-neutral-900">
-                  {selectedMethod?.label}
-                </span>
-                <span className="block w-44 truncate text-xs text-neutral-500">
-                  {selectedMethod?.getAccountDetails(partner)}
-                </span>
-              </div>
-            </div>
-            <ChevronsUpDown
-              className="size-4 shrink-0 text-neutral-400"
-              aria-hidden="true"
-            />
-          </button>
-        )}
+              <ChevronsUpDown
+                className="size-4 shrink-0 text-neutral-400"
+                aria-hidden="true"
+              />
+            </>
+          )}
+        </button>
       </Popover>
     </div>
   );
@@ -251,15 +251,15 @@ export function PayoutMethodsDropdown() {
 
 function PayoutMethodSkeleton() {
   return (
-    <div className="flex w-full items-center justify-between rounded-lg p-1.5">
+    <>
       <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
         <div className="size-8 shrink-0 animate-pulse rounded-lg bg-neutral-200" />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0">
           <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
           <div className="mt-1 h-3 w-44 animate-pulse rounded bg-neutral-200" />
         </div>
       </div>
       <div className="size-4 shrink-0 animate-pulse rounded bg-neutral-200" />
-    </div>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -7,22 +8,25 @@ import { getLeadEvent } from "@/lib/tinybird";
 import { recordClick } from "@/lib/tinybird/record-click";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
-import z from "@/lib/zod";
+import { ClickEventTB, LeadEventTB } from "@/lib/types";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
+import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const createCommissionAction = authActionClient
   .schema(createCommissionSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
 
     const {
       partnerId,
+      date,
+      amount,
       linkId,
       invoiceId,
       customerId,
@@ -30,29 +34,46 @@ export const createCommissionAction = authActionClient
       saleEventDate,
       leadEventDate,
       leadEventName,
+      description,
     } = parsedInput;
-
-    if (!linkId) {
-      // TODO: Remove this once when we support creating custom commissions via dashboard
-      throw new Error("Link ID is required.");
-    }
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [programEnrollment, customer] = await Promise.all([
+    const [{ partner, links }, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
         programId,
         partnerId,
       }),
 
-      prisma.customer.findUniqueOrThrow({
-        where: {
-          id: customerId,
-        },
-      }),
+      customerId
+        ? prisma.customer.findUniqueOrThrow({
+            where: {
+              id: customerId,
+            },
+          })
+        : Promise.resolve(null),
     ]);
 
-    const { partner, links } = programEnrollment;
+    // Create a custom commission
+    if (!linkId) {
+      await createPartnerCommission({
+        event: "custom",
+        partnerId,
+        programId,
+        amount: amount ?? 0,
+        quantity: 1,
+        createdAt: date ?? new Date(),
+        user,
+        description,
+      });
+
+      return;
+    }
+
+    // Create a lead or sale commission
+    if (!customerId || !customer) {
+      throw new Error("Customer not found.");
+    }
 
     if (customer.projectId !== workspace.id) {
       throw new Error(`Customer ${customerId} not found.`);
@@ -69,9 +90,9 @@ export const createCommissionAction = authActionClient
     if (invoiceId) {
       const commission = await prisma.commission.findUnique({
         where: {
-          programId_invoiceId: {
-            programId,
+          invoiceId_programId: {
             invoiceId,
+            programId,
           },
         },
         select: {
@@ -86,8 +107,8 @@ export const createCommissionAction = authActionClient
       }
     }
 
-    let clickEvent: z.infer<typeof clickEventSchemaTB> | null = null;
-    let leadEvent: z.infer<typeof leadEventSchemaTB> | null = null;
+    let clickEvent: ClickEventTB | null = null;
+    let leadEvent: LeadEventTB | null = null;
     let shouldUpdateCustomer = false;
 
     const existingLeadEvent = await getLeadEvent({
@@ -105,14 +126,22 @@ export const createCommissionAction = authActionClient
       leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
     } else {
       // else, if there's no existing lead event and there is also no custom leadEventName/Date
-      // we need to create a dummy click + lead event
+      // we need to create a dummy click + lead event (using the customer's country if available)
       const dummyRequest = new Request(link.url, {
         headers: new Headers({
           "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
           "x-forwarded-for": "127.0.0.1",
-          "x-vercel-ip-country": "US",
-          "x-vercel-ip-country-region": "CA",
-          "x-vercel-ip-continent": "NA",
+          ...(customer.country
+            ? {
+                "x-vercel-ip-country": customer.country.toUpperCase(),
+                "x-vercel-ip-continent":
+                  COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()],
+              }
+            : {
+                "x-vercel-ip-country": "US",
+                "x-vercel-ip-country-region": "CA",
+                "x-vercel-ip-continent": "NA",
+              }),
         }),
       });
 
@@ -163,15 +192,19 @@ export const createCommissionAction = authActionClient
           amount: 0,
           quantity: 1,
           createdAt: finalLeadEventDate,
+          user,
+          context: {
+            customer: {
+              country: customer.country,
+            },
+          },
         }),
       ]);
     }
 
-    // Record sale
-    const shouldRecordSale = saleAmount && saleEventDate;
-
-    if (shouldRecordSale && leadEvent) {
+    if (saleAmount && leadEvent) {
       const saleEventId = nanoid(16);
+      const saleDate = new Date(saleEventDate ?? Date.now());
 
       await Promise.allSettled([
         recordSaleWithTimestamp({
@@ -182,7 +215,7 @@ export const createCommissionAction = authActionClient
           customer_id: customerId,
           payment_processor: "custom",
           currency: "usd",
-          timestamp: new Date(saleEventDate).toISOString(),
+          timestamp: saleDate.toISOString(),
         }),
 
         createPartnerCommission({
@@ -196,7 +229,13 @@ export const createCommissionAction = authActionClient
           quantity: 1,
           invoiceId,
           currency: "usd",
-          createdAt: saleEventDate,
+          createdAt: saleDate,
+          user,
+          context: {
+            customer: {
+              country: customer.country,
+            },
+          },
         }),
       ]);
     }
@@ -210,10 +249,18 @@ export const createCommissionAction = authActionClient
             id: linkId,
           },
           data: {
-            leads: {
-              increment: 1,
-            },
-            ...(shouldRecordSale && {
+            ...(isFirstConversion({
+              customer,
+              linkId,
+            }) && {
+              leads: {
+                increment: 1,
+              },
+              conversions: {
+                increment: 1,
+              },
+            }),
+            ...(saleAmount && {
               sales: {
                 increment: 1,
               },
@@ -225,7 +272,7 @@ export const createCommissionAction = authActionClient
         }),
 
         // Update customer details / stats
-        (shouldUpdateCustomer || shouldRecordSale) &&
+        (shouldUpdateCustomer || saleAmount) &&
           prisma.customer.update({
             where: {
               id: customerId,
@@ -236,7 +283,7 @@ export const createCommissionAction = authActionClient
                 clickId: clickEvent?.click_id,
                 clickedAt: clickEvent?.timestamp,
               }),
-              ...(shouldRecordSale && {
+              ...(saleAmount && {
                 sales: {
                   increment: 1,
                 },

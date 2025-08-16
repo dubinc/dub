@@ -12,6 +12,7 @@ export default function usePartnerCustomer({
 
   const { data, isLoading } = useSWR<PartnerProfileCustomerProps>(
     programSlug &&
+      customerId &&
       `/api/partner-profile/programs/${programSlug}/customers/${customerId}`,
     fetcher,
   );

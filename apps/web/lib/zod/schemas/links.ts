@@ -1,7 +1,6 @@
 import { ErrorCode } from "@/lib/api/errors";
 import z from "@/lib/zod";
 import {
-  COUNTRY_CODES,
   THE_BEGINNING_OF_TIME,
   formatDate,
   validDomainRegex,
@@ -72,7 +71,7 @@ const LinksQuerySchema = z.object({
     .string()
     .optional()
     .describe(
-      "Deprecated. Use `tagIds` instead. The tag ID to filter the links by.",
+      "Deprecated: Use `tagIds` instead. The tag ID to filter the links by.",
     )
     .openapi({ deprecated: true }),
   tagIds: z
@@ -246,6 +245,14 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The short link slug. If not provided, a random 7-character slug will be generated.",
     ),
+  keyLength: z
+    .number()
+    .min(3)
+    .max(190)
+    .optional()
+    .describe(
+      "The length of the short link slug. Defaults to 7 if not provided. When used with `prefix`, the total length of the key will be `prefix.length + keyLength`.",
+    ),
   externalId: z
     .string()
     .min(1)
@@ -290,20 +297,6 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Whether the short link is archived. Defaults to `false` if not provided.",
     ),
-  publicStats: z
-    .boolean()
-    .optional()
-    .describe(
-      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible. Defaults to `false` if not provided.",
-    )
-    .openapi({ deprecated: true }),
-  tagId: z
-    .string()
-    .nullish()
-    .describe(
-      "The unique ID of the tag assigned to the short link. This field is deprecated – use `tagIds` instead.",
-    )
-    .openapi({ deprecated: true }),
   tagIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -383,10 +376,10 @@ export const createLinkBodySchema = z.object({
       "The Android destination URL for the short link for Android device targeting.",
     ),
   geo: z
-    .record(z.enum(COUNTRY_CODES), parseUrlSchema)
+    .record(z.string(), parseUrlSchema)
     .nullish()
     .describe(
-      "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
+      "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
     )
     .openapi({ ref: "linkGeoTargeting" }),
   doIndex: z
@@ -446,13 +439,35 @@ export const createLinkBodySchema = z.object({
     .string()
     .nullish()
     .describe("The date and time when the tests were or will be completed."),
+
+  // deprecated fields
+  publicStats: z
+    .boolean()
+    .optional()
+    .describe(
+      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible. Defaults to `false` if not provided.",
+    )
+    .openapi({ deprecated: true }),
+  tagId: z
+    .string()
+    .nullish()
+    .describe(
+      "Deprecated: Use `tagIds` instead. The unique ID of the tag assigned to the short link.",
+    )
+    .openapi({ deprecated: true }),
 });
 
 export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
   image: z.union([base64ImageSchema, publicHostedImageSchema]).nullish(),
 });
 
-export const updateLinkBodySchema = createLinkBodySchemaAsync.partial();
+export const updateLinkBodySchema = createLinkBodySchemaAsync
+  .omit({ keyLength: true, prefix: true })
+  .partial();
+
+export const updateLinkBodySchemaExtended = updateLinkBodySchema.extend({
+  linkRetentionCleanupDisabledAt: z.string().nullish(),
+});
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
@@ -481,6 +496,7 @@ export const bulkUpdateLinksBodySchema = z.object({
       domain: true,
       key: true,
       externalId: true,
+      keyLength: true,
       prefix: true,
     })
     .merge(
@@ -603,22 +619,15 @@ export const LinkSchema = z
         "The Android destination URL for the short link for Android device targeting.",
       ),
     geo: z
-      .record(z.enum(COUNTRY_CODES), z.string().url())
+      .record(z.string(), z.string().url())
       .nullable()
       .describe(
-        "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. Learn more: https://d.to/geo",
+        "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
       ),
     publicStats: z
       .boolean()
       .default(false)
       .describe("Whether the short link's stats are publicly accessible."),
-    tagId: z
-      .string()
-      .nullable()
-      .describe(
-        "The unique ID of the tag assigned to the short link. This field is deprecated – use `tags` instead.",
-      )
-      .openapi({ deprecated: true }),
     tags: TagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
@@ -682,34 +691,50 @@ export const LinkSchema = z
       .number()
       .default(0)
       .describe("The number of clicks on the short link."),
-    lastClicked: z
-      .string()
-      .nullable()
-      .describe("The date and time when the short link was last clicked."),
     leads: z
       .number()
       .default(0)
-      .describe("The number of leads the short links has generated."),
+      .describe("The number of leads the short link has generated."),
+    conversions: z
+      .number()
+      .default(0)
+      .describe("The number of leads that converted to paying customers."),
     sales: z
       .number()
       .default(0)
-      .describe("The number of sales the short links has generated."),
+      .describe(
+        "The total number of sales (includes recurring sales) generated by the short link.",
+      ),
     saleAmount: z
       .number()
       .default(0)
       .describe(
-        "The total dollar amount of sales the short links has generated (in cents).",
+        "The total dollar value of sales (in cents) generated by the short link.",
       ),
+
+    lastClicked: z
+      .string()
+      .nullable()
+      .describe("The date and time when the short link was last clicked."),
     createdAt: z
       .string()
       .describe("The date and time when the short link was created."),
     updatedAt: z
       .string()
       .describe("The date and time when the short link was last updated."),
+
+    // deprecated fields
+    tagId: z
+      .string()
+      .nullable()
+      .describe(
+        "Deprecated: Use `tags` instead. The unique ID of the tag assigned to the short link.",
+      )
+      .openapi({ deprecated: true }),
     projectId: z
       .string()
       .describe(
-        "The project ID of the short link. This field is deprecated – use `workspaceId` instead.",
+        "Deprecated: Use `workspaceId` instead. The project ID of the short link.",
       )
       .openapi({ deprecated: true }),
   })

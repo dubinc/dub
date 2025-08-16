@@ -9,14 +9,10 @@ import { useState } from "react";
 import { HelpArticle, HelpContext } from "../help";
 import { HelpSection } from "../help/help-section";
 
-export type HelpButtonVariant = "old" | "default";
-
 export function HelpButton({
-  variant = "default",
   popularHelpArticles,
   allHelpArticles,
 }: {
-  variant?: HelpButtonVariant;
   popularHelpArticles: HelpArticle[];
   allHelpArticles: HelpArticle[];
 }) {
@@ -40,16 +36,9 @@ export function HelpButton({
           }}
           className={cn(
             "relative",
-            variant === "old"
-              ? [
-                  "font-lg size-4 shrink-0 overflow-hidden rounded-full text-neutral-500 hover:text-neutral-700 active:bg-neutral-50",
-                  "outline-none ring-offset-2 ring-offset-neutral-100 focus-visible:ring-2 focus-visible:ring-black/50",
-                ]
-              : [
-                  "text-content-default flex size-11 shrink-0 items-center justify-center rounded-lg",
-                  "hover:bg-bg-inverted/5 active:bg-bg-inverted/10 data-[state=open]:bg-bg-inverted/10 transition-colors duration-150",
-                  "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                ],
+            "text-content-default flex size-11 shrink-0 items-center justify-center rounded-lg",
+            "hover:bg-bg-inverted/5 active:bg-bg-inverted/10 data-[state=open]:bg-bg-inverted/10 transition-colors duration-150",
+            "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           )}
         >
           <AnimatePresence>
@@ -61,14 +50,9 @@ export function HelpButton({
               exit={{ opacity: 0, scale: 0 }}
             >
               {isOpen ? (
-                <X
-                  className={variant === "old" ? "size-4" : "size-5"}
-                  strokeWidth={2}
-                />
+                <X className="size-5" strokeWidth={2} />
               ) : (
-                <CircleQuestion
-                  className={variant === "old" ? "size-4" : "size-5"}
-                />
+                <CircleQuestion className="size-5" />
               )}
             </motion.div>
           </AnimatePresence>

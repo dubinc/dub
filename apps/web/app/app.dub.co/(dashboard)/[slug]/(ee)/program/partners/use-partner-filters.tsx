@@ -1,17 +1,17 @@
+import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { RewardProps } from "@/lib/types";
-import { REWARD_EVENTS } from "@/ui/partners/constants";
-import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, FlagWavy, Gift } from "@dub/ui/icons";
+import { CircleDotted, FlagWavy, Users6 } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
 
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
+  const { groups } = useGroups();
 
   const { partnersCount: countriesCount } = usePartnersCount<
     | {
@@ -33,17 +33,61 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     groupBy: "status",
   });
 
-  const { partnersCount: rewardsCount } = usePartnersCount<
-    | (RewardProps & {
-        partnersCount: number;
-      })[]
+  const { partnersCount: groupCount } = usePartnersCount<
+    | {
+        groupId: string;
+        _count: number;
+      }[]
     | undefined
   >({
-    groupBy: "rewardId",
+    groupBy: "groupId",
   });
 
   const filters = useMemo(
     () => [
+      {
+        key: "groupId",
+        icon: Users6,
+        label: "Group",
+        options:
+          groups?.map((group) => {
+            const count = groupCount?.find(
+              ({ groupId }) => groupId === group.id,
+            )?._count;
+
+            return {
+              value: group.id,
+              label: group.name,
+              icon: <GroupColorCircle group={group} />,
+              right: nFormatter(count || 0, { full: true }),
+              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
+            };
+          }) ?? null,
+      },
+      {
+        key: "status",
+        icon: CircleDotted,
+        label: "Status",
+        options:
+          statusCount
+            ?.filter(({ status }) => !["pending", "rejected"].includes(status))
+            ?.map(({ status, _count }) => {
+              const Icon = PartnerStatusBadges[status].icon;
+              return {
+                value: status,
+                label: PartnerStatusBadges[status].label,
+                icon: (
+                  <Icon
+                    className={cn(
+                      PartnerStatusBadges[status].className,
+                      "size-4 bg-transparent",
+                    )}
+                  />
+                ),
+                right: nFormatter(_count || 0, { full: true }),
+              };
+            }) ?? [],
+      },
       {
         key: "country",
         icon: FlagWavy,
@@ -65,54 +109,17 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
               right: nFormatter(_count, { full: true }),
             })) ?? [],
       },
-      {
-        key: "rewardId",
-        icon: Gift,
-        label: "Reward",
-        options:
-          rewardsCount?.map((reward) => {
-            const Icon = REWARD_EVENTS[reward.event].icon;
-            return {
-              value: reward.id,
-              label: reward.name || formatRewardDescription({ reward }),
-              icon: <Icon className="size-4 bg-transparent" />,
-              right: nFormatter(reward.partnersCount, { full: true }),
-            };
-          }) ?? [],
-      },
-      {
-        key: "status",
-        icon: CircleDotted,
-        label: "Status",
-        options:
-          statusCount?.map(({ status, _count }) => {
-            const Icon = PartnerStatusBadges[status].icon;
-            return {
-              value: status,
-              label: PartnerStatusBadges[status].label,
-              icon: (
-                <Icon
-                  className={cn(
-                    PartnerStatusBadges[status].className,
-                    "size-4 bg-transparent",
-                  )}
-                />
-              ),
-              right: nFormatter(_count || 0, { full: true }),
-            };
-          }) ?? [],
-      },
     ],
-    [countriesCount, statusCount, rewardsCount],
+    [groupCount, groups, statusCount, countriesCount],
   );
 
   const activeFilters = useMemo(() => {
-    const { status, country, rewardId } = searchParamsObj;
+    const { status, country, groupId } = searchParamsObj;
 
     return [
       ...(status ? [{ key: "status", value: status }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
-      ...(rewardId ? [{ key: "rewardId", value: rewardId }] : []),
+      ...(groupId ? [{ key: "groupId", value: groupId }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -131,7 +138,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "country", "rewardId", "search"],
+      del: ["status", "country", "groupId", "search"],
     });
 
   const searchQuery = useMemo(

@@ -1,46 +1,75 @@
 "use server";
 
-import { DubApiError } from "@/lib/api/errors";
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-const schema = z.object({
+const deleteRewardSchema = z.object({
   workspaceId: z.string(),
   rewardId: z.string(),
 });
 
 export const deleteRewardAction = authActionClient
-  .schema(schema)
+  .schema(deleteRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { rewardId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
-
-    await getRewardOrThrow({
+    const reward = await getRewardOrThrow({
       rewardId,
       programId,
     });
 
-    if (program.defaultRewardId === rewardId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This is a default reward and cannot be deleted.",
-      });
-    }
+    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-    await prisma.reward.delete({
-      where: {
-        id: rewardId,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.partnerGroup.update({
+        // @ts-ignore
+        where: {
+          [rewardIdColumn]: reward.id,
+        },
+        data: {
+          [rewardIdColumn]: null,
+        },
+      });
+
+      await tx.programEnrollment.updateMany({
+        where: {
+          [rewardIdColumn]: reward.id,
+        },
+        data: {
+          [rewardIdColumn]: null,
+        },
+      });
+
+      await tx.reward.delete({
+        where: {
+          id: reward.id,
+        },
+      });
     });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "reward.deleted",
+        description: `Reward ${rewardId} deleted`,
+        actor: user,
+        targets: [
+          {
+            type: "reward",
+            id: rewardId,
+            metadata: reward,
+          },
+        ],
+      }),
+    );
   });

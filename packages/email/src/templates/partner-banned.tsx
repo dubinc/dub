@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function PartnerBanned({
+export default function PartnerBanned({
   partner = {
     name: "John",
     email: "panic@thedis.co",
@@ -82,5 +82,3 @@ export function PartnerBanned({
     </Html>
   );
 }
-
-export default PartnerBanned;

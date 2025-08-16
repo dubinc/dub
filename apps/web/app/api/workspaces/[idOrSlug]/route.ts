@@ -1,3 +1,4 @@
+import { allowedHostnamesCache } from "@/lib/analytics/allowed-hostnames-cache";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
@@ -24,8 +25,11 @@ export const GET = withWorkspace(
         projectId: workspace.id,
       },
       select: {
+        id: true,
         slug: true,
         primary: true,
+        verified: true,
+        linkRetentionDays: true,
       },
       take: 100,
     });
@@ -90,7 +94,14 @@ export const PATCH = withWorkspace(
           }),
         },
         include: {
-          domains: true,
+          domains: {
+            select: {
+              slug: true,
+              primary: true,
+              verified: true,
+            },
+            take: 100,
+          },
           users: true,
         },
       });
@@ -106,9 +117,34 @@ export const PATCH = withWorkspace(
         });
       }
 
-      if (logoUploaded && workspace.logo) {
-        waitUntil(storage.delete(workspace.logo.replace(`${R2_URL}/`, "")));
-      }
+      waitUntil(
+        (async () => {
+          if (logoUploaded && workspace.logo) {
+            await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
+          }
+
+          // Sync the allowedHostnames cache for workspace domains
+          const current = JSON.stringify(workspace.allowedHostnames);
+          const next = JSON.stringify(response.allowedHostnames);
+          const domains = response.domains.map(({ slug }) => slug);
+
+          if (current !== next) {
+            if (
+              Array.isArray(response.allowedHostnames) &&
+              response.allowedHostnames.length > 0
+            ) {
+              allowedHostnamesCache.mset({
+                allowedHostnames: next,
+                domains,
+              });
+            } else {
+              allowedHostnamesCache.deleteMany({
+                domains,
+              });
+            }
+          }
+        })(),
+      );
 
       return NextResponse.json(
         WorkspaceSchema.parse({

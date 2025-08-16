@@ -5,12 +5,16 @@
       "schedule": "0 * * * *"
     },
     {
-      "path": "/api/cron/usage",
-      "schedule": "0 12 * * *"
+      "path": "/api/cron/domains/renewal-reminders",
+      "schedule": "0 8 * * *"
     },
     {
-      "path": "/api/cron/cleanup",
-      "schedule": "0 */6 * * *"
+      "path": "/api/cron/domains/renewal-payments",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/usage",
+      "schedule": "0 12 * * *"
     },
     {
       "path": "/api/cron/disposable-emails",
@@ -43,10 +47,26 @@
     {
       "path": "/api/cron/payouts/reminders/program-owners",
       "schedule": "0 13 25-31,1-5 * *"
+    },
+    {
+      "path": "/api/cron/online-presence/youtube",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup/e2e-tests",
+      "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup/expired-tokens",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup/link-retention",
+      "schedule": "0 */12 * * *"
     }
   ],
   "functions": {
-    "app/api/cron/**/*.ts": {
+    "app/(ee)/api/cron/**/*.ts": {
       "maxDuration": 300
     }
   }

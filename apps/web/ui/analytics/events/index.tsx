@@ -24,12 +24,12 @@ export default function AnalyticsEvents({
       <div className="pb-10">
         <Toggle page="events" />
         <AnalyticsContext.Consumer>
-          {({ dashboardProps, partnerPage }) => (
+          {({ dashboardProps }) => (
             <div
               className={cn(
                 "mx-auto flex max-w-screen-xl flex-col gap-3 px-3 lg:px-10",
                 // TODO: [PageContent] Remove once all pages are migrated to the new PageContent
-                !dashboardProps && !adminPage && !partnerPage && "lg:px-6",
+                !dashboardProps && !adminPage && "lg:px-6",
               )}
             >
               <EventsTabs />

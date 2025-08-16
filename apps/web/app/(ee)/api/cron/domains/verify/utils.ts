@@ -1,8 +1,8 @@
 import { markDomainAsDeleted } from "@/lib/api/domains";
 import { limiter } from "@/lib/cron/limiter";
 import { sendEmail } from "@dub/email";
-import { DomainDeleted } from "@dub/email/templates/domain-deleted";
-import { InvalidDomain } from "@dub/email/templates/invalid-domain";
+import DomainDeleted from "@dub/email/templates/domain-deleted";
+import InvalidDomain from "@dub/email/templates/invalid-domain";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 
@@ -23,7 +23,6 @@ export const handleDomainUpdates = async ({
     await log({
       message: `Domain *${domain}* changed status to *${verified}*`,
       type: "cron",
-      mention: verified,
     });
   }
 
@@ -73,7 +72,6 @@ export const handleDomainUpdates = async ({
     await log({
       message: `Domain *${domain}* is invalid but not associated with any workspace, skipping.`,
       type: "cron",
-      mention: true,
     });
     return;
   }

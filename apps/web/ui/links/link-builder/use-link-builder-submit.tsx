@@ -17,13 +17,12 @@ export function useLinkBuilderSubmit({
   const router = useRouter();
   const { workspace, props } = useLinkBuilderContext();
   const { getValues, setError } = useFormContext<LinkFormData>();
-
   const [, copyToClipboard] = useCopyToClipboard();
 
   return useCallback(
     async (data: LinkFormData) => {
       // @ts-ignore – exclude extra attributes from `data` object before sending to API
-      const { user, tags, tagId, folderId, ...rest } = data;
+      const { user, tags, tagId, folderId, partnerId, ...rest } = data;
       const bodyData = {
         ...rest,
 
@@ -37,6 +36,11 @@ export function useLinkBuilderSubmit({
         expiredUrl: rest.expiredUrl || null,
         ios: rest.ios || null,
         android: rest.android || null,
+
+        // Create partner links
+        ...(partnerId
+          ? { programId: workspace.defaultProgramId, partnerId }
+          : {}),
       };
 
       const endpoint = props?.id

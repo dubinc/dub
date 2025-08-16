@@ -1,4 +1,4 @@
-import { FolderSwitcher } from "@/ui/folders/folder-switcher";
+import { FolderDropdown } from "@/ui/folders/folder-dropdown";
 import { PageContent } from "@/ui/layout/page-content";
 import WorkspaceLinksClient, {
   WorkspaceLinksPageControls,
@@ -7,7 +7,11 @@ import WorkspaceLinksClient, {
 export default function WorkspaceLinks() {
   return (
     <PageContent
-      title={<FolderSwitcher />}
+      title={
+        <div className="-ml-2">
+          <FolderDropdown hideFolderIcon={true} />
+        </div>
+      }
       controls={<WorkspaceLinksPageControls />}
     >
       <WorkspaceLinksClient />

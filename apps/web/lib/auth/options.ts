@@ -4,7 +4,7 @@ import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
-import { LoginLink } from "@dub/email/templates/login-link";
+import LoginLink from "@dub/email/templates/login-link";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -27,7 +27,7 @@ import {
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
-import { trackLead } from "./track-lead";
+import { trackDubLead } from "./track-dub-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -529,7 +529,7 @@ export const authOptions: NextAuthOptions = {
         waitUntil(
           Promise.allSettled([
             // track lead if dub_id cookie is present
-            trackLead(user),
+            trackDubLead(user),
             // trigger welcome workflow 15 minutes after the user signed up
             qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/welcome-user`,

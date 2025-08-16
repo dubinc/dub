@@ -103,7 +103,7 @@ export default function TokensPageClient() {
                 <img
                   src={
                     row.original.user.isMachine
-                      ? "https://api.dicebear.com/7.x/bottts/svg?seed=Sara"
+                      ? `https://api.dicebear.com/7.x/bottts/svg?seed=${row.original.user.id}`
                       : row.original.user.image ||
                         `${OG_AVATAR_URL}${row.original.user.id}`
                   }

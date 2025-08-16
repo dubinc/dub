@@ -1,5 +1,4 @@
-import { reorderTopProgramRewards } from "@/lib/partners/reorder-top-program-rewards";
-import { DiscountProps, ProgramProps } from "@/lib/types";
+import { ProgramProps } from "@/lib/types";
 import {
   ProgramSchema,
   ProgramWithLanderDataSchema,
@@ -16,14 +15,8 @@ export const getProgramOrThrow = async (
     programId: string;
   },
   {
-    includeDefaultDiscount = false,
-    includeDefaultReward = false,
-    includeRewards = false,
     includeLanderData = false,
   }: {
-    includeDefaultDiscount?: boolean;
-    includeDefaultReward?: boolean;
-    includeRewards?: boolean;
     includeLanderData?: boolean;
   } = {},
 ) => {
@@ -32,25 +25,7 @@ export const getProgramOrThrow = async (
       id: programId,
       workspaceId,
     },
-
-    include: {
-      ...(includeDefaultDiscount && {
-        defaultDiscount: true,
-      }),
-      ...(includeDefaultReward && {
-        defaultReward: true,
-      }),
-      ...(includeRewards && {
-        rewards: {
-          where: {
-            partners: {
-              none: {}, // program-wide rewards only
-            },
-          },
-        },
-      }),
-    },
-  })) as (ProgramProps & { defaultDiscount: DiscountProps | null }) | null;
+  })) as ProgramProps | null;
 
   if (!program) {
     throw new DubApiError({
@@ -61,13 +36,5 @@ export const getProgramOrThrow = async (
 
   return (
     includeLanderData ? ProgramWithLanderDataSchema : ProgramSchema
-  ).parse({
-    ...program,
-    ...(includeRewards && program.rewards?.length
-      ? { rewards: reorderTopProgramRewards(program.rewards as any) }
-      : {}),
-    ...(includeDefaultDiscount && program.defaultDiscount
-      ? { discounts: [program.defaultDiscount] }
-      : {}),
-  });
+  ).parse(program);
 };

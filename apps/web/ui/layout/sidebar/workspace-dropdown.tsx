@@ -10,8 +10,8 @@ import {
   useScrollProgress,
 } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
-import { ChevronsUpDown } from "lucide-react";
+import { cn } from "@dub/utils";
+import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -46,8 +46,15 @@ export function WorkspaceDropdown() {
     if (slug && workspaces && selectedWorkspace) {
       return {
         ...selectedWorkspace,
+        plan: isLegacyBusinessPlan({
+          plan: selectedWorkspace.plan,
+          payoutsLimit: selectedWorkspace.payoutsLimit,
+        })
+          ? "business (legacy)"
+          : selectedWorkspace.plan,
         image:
-          selectedWorkspace.logo || `${OG_AVATAR_URL}${selectedWorkspace.name}`,
+          selectedWorkspace.logo ||
+          `https://avatar.vercel.sh/${selectedWorkspace.id}`,
       };
 
       // return personal account selector if there's no workspace or error (user doesn't have access to workspace)
@@ -113,11 +120,7 @@ export function WorkspaceDropdown() {
 
 function WorkspaceDropdownPlaceholder() {
   return (
-    <div className="flex w-full animate-pulse items-center gap-x-1.5 rounded-lg p-1.5">
-      <div className="size-7 animate-pulse rounded-full bg-neutral-200" />
-      <div className="mb-px mt-0.5 h-8 w-28 grow animate-pulse rounded-md bg-neutral-200" />
-      <ChevronsUpDown className="h-4 w-4 text-neutral-400" aria-hidden="true" />
-    </div>
+    <div className="flex size-11 animate-pulse items-center gap-x-1.5 rounded-lg bg-neutral-300" />
   );
 }
 
@@ -169,7 +172,7 @@ function WorkspaceList({
         <div className="border-b border-neutral-200 p-2">
           <div className="flex items-center gap-x-2.5 rounded-md p-2">
             <BlurImage
-              src={selected.image || `${OG_AVATAR_URL}${selected.name}`}
+              src={selected.image}
               width={28}
               height={28}
               alt={selected.name}
@@ -234,7 +237,7 @@ function WorkspaceList({
                   onClick={() => setOpenPopover(false)}
                 >
                   <BlurImage
-                    src={logo || `${OG_AVATAR_URL}${name}`}
+                    src={logo || `https://avatar.vercel.sh/${id}`}
                     width={28}
                     height={28}
                     alt={id}

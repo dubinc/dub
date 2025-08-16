@@ -5,12 +5,12 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { PayoutDetailsSheet } from "@/ui/partners/payout-details-sheet";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
+  DynamicTooltipWrapper,
   Filter,
   StatusBadge,
   Table,
@@ -29,6 +29,7 @@ import {
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
+import { PayoutDetailsSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-details-sheet";
 import { useParams } from "next/navigation";
 import { memo, useEffect, useState } from "react";
 import useSWR from "swr";
@@ -50,8 +51,7 @@ const PayoutTableInner = memo(
     setSearch,
     setSelectedFilter,
   }: ReturnType<typeof usePayoutFilters>) => {
-    const { program } = useProgram();
-    const { id: workspaceId } = useWorkspace();
+    const { id: workspaceId, defaultProgramId } = useWorkspace();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
     const sortBy = searchParams.get("sortBy") || "periodEnd";
@@ -64,8 +64,8 @@ const PayoutTableInner = memo(
       error,
       isLoading,
     } = useSWR<PayoutResponse[]>(
-      program?.id
-        ? `/api/programs/${program.id}/payouts${getQueryString(
+      defaultProgramId
+        ? `/api/programs/${defaultProgramId}/payouts${getQueryString(
             { workspaceId },
             {
               exclude: ["payoutId"],
@@ -120,7 +120,18 @@ const PayoutTableInner = memo(
 
             return badge ? (
               <StatusBadge icon={badge.icon} variant={badge.variant}>
-                {badge.label}
+                <DynamicTooltipWrapper
+                  tooltipProps={
+                    row.original.status === "failed" &&
+                    row.original.failureReason
+                      ? {
+                          content: row.original.failureReason,
+                        }
+                      : undefined
+                  }
+                >
+                  {badge.label}
+                </DynamicTooltipWrapper>
               </StatusBadge>
             ) : (
               "-"
@@ -193,7 +204,6 @@ const PayoutTableInner = memo(
               amount={row.original.amount}
               status={row.original.status}
               payoutsEnabled={Boolean(row.original.partner.payoutsEnabledAt)}
-              minPayoutAmount={program?.minPayoutAmount!}
             />
           ),
         },
@@ -292,18 +302,19 @@ function AmountRowItem({
   amount,
   status,
   payoutsEnabled,
-  minPayoutAmount,
 }: {
   amount: number;
   status: PayoutStatus;
   payoutsEnabled: boolean;
-  minPayoutAmount: number;
 }) {
   const { slug } = useParams();
+  const { program } = useProgram();
   const display = currencyFormatter(amount / 100, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
+  const minPayoutAmount = program?.minPayoutAmount || 0;
 
   if (status === PayoutStatus.pending) {
     if (amount < minPayoutAmount) {

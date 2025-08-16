@@ -2,10 +2,16 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
+import {
+  sanitizeSocialHandle,
+  sanitizeWebsite,
+  SocialPlatform,
+} from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import {
+  AnimatedSizeContainer,
   Button,
   CircleCheckFill,
   Globe,
@@ -16,15 +22,21 @@ import {
   Twitter,
   YouTube,
 } from "@dub/ui";
-import { getPrettyUrl } from "@dub/utils";
+import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { ReactNode, useCallback, useState } from "react";
-import { FormProvider, useForm, useFormContext } from "react-hook-form";
+import { forwardRef, ReactNode, useCallback, useMemo, useState } from "react";
+import {
+  FormProvider,
+  useForm,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { OnlinePresenceCard } from "./online-presence-card";
 
 const onlinePresenceSchema = z.object({
   website: parseUrlSchemaAllowEmpty().optional(),
@@ -41,22 +53,24 @@ interface OnlinePresenceFormProps {
   variant?: "onboarding" | "settings";
   partner?: {
     email: string | null;
-    website: string | null;
-    youtube: string | null;
-    twitter: string | null;
-    linkedin: string | null;
-    instagram: string | null;
-    tiktok: string | null;
+    website?: string | null;
+    youtube?: string | null;
+    twitter?: string | null;
+    linkedin?: string | null;
+    instagram?: string | null;
+    tiktok?: string | null;
   } | null;
   onSubmitSuccessful?: () => void;
 }
 
-export function OnlinePresenceForm({
-  variant = "onboarding",
+/**
+ * Separate optional hook to allow for form management outside of the main component.
+ * If used, the returned form object should be passed to the main component as a prop.
+ */
+export function useOnlinePresenceForm({
   partner,
-  onSubmitSuccessful,
-}: OnlinePresenceFormProps) {
-  const form = useForm<OnlinePresenceFormData>({
+}: Pick<OnlinePresenceFormProps, "partner">) {
+  return useForm<OnlinePresenceFormData>({
     defaultValues: {
       website: partner?.website ? getPrettyUrl(partner.website) : undefined,
       youtube: partner?.youtube || undefined,
@@ -66,313 +80,326 @@ export function OnlinePresenceForm({
       tiktok: partner?.tiktok || undefined,
     },
   });
+}
 
-  const {
-    register,
-    setError,
-    getValues,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = form;
+type OnlinePresenceFormWithFormProps = OnlinePresenceFormProps & {
+  form?: ReturnType<typeof useOnlinePresenceForm>;
+};
 
-  const { executeAsync } = useAction(updateOnlinePresenceAction, {
-    onSuccess: (result) => {
-      if (!result?.data?.success)
-        setError("root.serverError", {
-          message: "Failed to update online presence",
-        });
-      else mutate("/api/partner-profile");
-    },
-    onError: ({ error }) => {
-      toast.error(parseActionError(error, "Failed to update online presence"));
+export const OnlinePresenceForm = forwardRef<
+  HTMLFormElement,
+  OnlinePresenceFormWithFormProps
+>(
+  (
+    {
+      form: formProp,
+      variant = "onboarding",
+      partner,
+      onSubmitSuccessful,
+    }: OnlinePresenceFormWithFormProps,
+    ref,
+  ) => {
+    const form = formProp ?? useOnlinePresenceForm({ partner });
 
-      reset(form.getValues(), { keepErrors: true });
-    },
-  });
+    const {
+      register,
+      setError,
+      getValues,
+      handleSubmit,
+      reset,
+      setValue,
+      formState: { errors, isSubmitting, isSubmitSuccessful },
+    } = form;
 
-  const [domainVerificationData, setDomainVerificationData] = useState<{
-    domain: string;
-    txtRecord: string;
-  } | null>(null);
+    const { executeAsync } = useAction(updateOnlinePresenceAction, {
+      onSuccess: (result) => {
+        if (!result?.data?.success)
+          setError("root.serverError", {
+            message: "Failed to update online presence",
+          });
+        else mutate("/api/partner-profile");
+      },
+      onError: ({ error }) => {
+        toast.error(
+          parseActionError(error, "Failed to update online presence"),
+        );
 
-  const startVerification = useOAuthVerification(variant);
+        reset(form.getValues(), { keepErrors: true });
+      },
+    });
 
-  return (
-    <>
-      <DomainVerificationModal
-        showDomainVerificationModal={domainVerificationData !== null}
-        setShowDomainVerificationModal={() => setDomainVerificationData(null)}
-        domain={domainVerificationData?.domain || ""}
-        txtRecord={domainVerificationData?.txtRecord || ""}
-      />
-      <FormProvider {...form}>
-        <form
-          onSubmit={handleSubmit(async (data) => {
-            const result = await executeAsync(data);
+    const [domainVerificationData, setDomainVerificationData] = useState<{
+      domain: string;
+      txtRecord: string;
+    } | null>(null);
 
-            if (result?.data?.success) onSubmitSuccessful?.();
-          })}
-        >
-          <div
-            className={cn(
-              "flex w-full flex-col gap-4 text-left",
-              variant === "settings" && "gap-0 divide-y divide-neutral-200 p-5",
-            )}
+    const startVerification = useOAuthVerification(variant);
+
+    const onPasteWebsite = useCallback(
+      (e: React.ClipboardEvent<HTMLInputElement>) => {
+        const text = e.clipboardData.getData("text/plain");
+        const sanitized = sanitizeWebsite(text);
+
+        if (sanitized) {
+          setValue("website", sanitized);
+          e.preventDefault();
+        }
+      },
+      [setValue],
+    );
+
+    const onPasteSocial = useCallback(
+      (e: React.ClipboardEvent<HTMLInputElement>, platform: SocialPlatform) => {
+        const text = e.clipboardData.getData("text/plain");
+        const sanitized = sanitizeSocialHandle(text, platform);
+
+        if (sanitized) {
+          setValue(platform, sanitized);
+          e.preventDefault();
+        }
+      },
+      [setValue],
+    );
+
+    return (
+      <>
+        <DomainVerificationModal
+          showDomainVerificationModal={domainVerificationData !== null}
+          setShowDomainVerificationModal={() => setDomainVerificationData(null)}
+          domain={domainVerificationData?.domain || ""}
+          txtRecord={domainVerificationData?.txtRecord || ""}
+        />
+        <FormProvider {...form}>
+          <form
+            ref={ref}
+            onSubmit={handleSubmit(async (data) => {
+              const result = await executeAsync(data);
+
+              if (result?.data?.success) onSubmitSuccessful?.();
+            })}
           >
-            <FormRow
-              variant={variant}
-              label="Website"
-              input={
-                <input
-                  type="text"
-                  className={cn(
-                    "block w-full rounded-md focus:outline-none sm:text-sm",
-                    errors.website
-                      ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                  )}
-                  placeholder="example.com"
-                  {...register("website")}
-                />
-              }
-              button={
-                <VerifyButton
-                  property="website"
-                  verifiedAtField="websiteVerifiedAt"
-                  icon={Globe}
-                  onClick={async () => {
-                    try {
-                      const result =
-                        await updateOnlinePresenceAction(getValues());
+            <div className={cn("flex w-full flex-col gap-6 text-left")}>
+              <FormRow
+                label="Website"
+                property="website"
+                verifiedAtField="websiteVerifiedAt"
+                icon={Globe}
+                onVerifyClick={async () => {
+                  try {
+                    const result =
+                      await updateOnlinePresenceAction(getValues());
 
-                      if (
-                        !result?.data?.website ||
-                        !result?.data?.websiteTxtRecord
-                      ) {
-                        throw new Error(
-                          "Missing website or TXT record in update result",
-                        );
-                      }
-
-                      setDomainVerificationData({
-                        domain: new URL(result.data.website).hostname,
-                        txtRecord: result.data.websiteTxtRecord,
-                      });
-
-                      mutate("/api/partner-profile");
-                    } catch (e) {
-                      toast.error("Failed to start website verification");
-                      console.error("Failed to start website verification", e);
+                    if (
+                      !result?.data?.website ||
+                      !result?.data?.websiteTxtRecord
+                    ) {
+                      throw new Error(
+                        "Missing website or TXT record in update result",
+                      );
                     }
 
-                    return false;
-                  }}
-                />
-              }
-            />
+                    setDomainVerificationData({
+                      domain: new URL(result.data.website).hostname,
+                      txtRecord: result.data.websiteTxtRecord,
+                    });
 
-            <FormRow
-              variant={variant}
-              label="YouTube"
-              input={
-                <div className="flex rounded-md">
-                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    youtube.com
-                  </span>
-                  <span className="absolute inset-y-0 left-[6.7rem] flex items-center pl-3 text-sm text-neutral-400">
-                    @
-                  </span>
+                    mutate("/api/partner-profile");
+                  } catch (e) {
+                    toast.error("Failed to start website verification");
+                    console.error("Failed to start website verification", e);
+                  }
+
+                  return false;
+                }}
+                input={
                   <input
                     type="text"
                     className={cn(
-                      "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
-                      errors.youtube
+                      "block w-full rounded-md focus:outline-none sm:text-sm",
+                      errors.website
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                     )}
-                    placeholder="handle"
-                    onPaste={onPasteSocial}
-                    {...register("youtube")}
+                    placeholder="example.com"
+                    onPaste={onPasteWebsite}
+                    {...register("website")}
                   />
-                </div>
-              }
-              button={
-                <VerifyButton
-                  property="youtube"
-                  verifiedAtField="youtubeVerifiedAt"
-                  icon={YouTube}
-                  onClick={() =>
-                    startVerification("youtube", getValues("youtube"))
-                  }
-                />
-              }
-            />
+                }
+              />
 
-            <FormRow
-              variant={variant}
-              label="X/Twitter"
-              input={
-                <div className="flex rounded-md">
-                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    x.com
-                  </span>
-                  <input
-                    type="text"
-                    className={cn(
-                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                      errors.twitter
-                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                    )}
-                    placeholder="handle"
-                    onPaste={onPasteSocial}
-                    {...register("twitter")}
-                  />
-                </div>
-              }
-              button={
-                <VerifyButton
-                  property="twitter"
-                  verifiedAtField="twitterVerifiedAt"
-                  icon={Twitter}
-                  onClick={() =>
-                    startVerification("twitter", getValues("twitter"))
-                  }
-                />
-              }
-            />
+              <FormRow
+                label="YouTube"
+                property="youtube"
+                prefix="@"
+                verifiedAtField="youtubeVerifiedAt"
+                icon={YouTube}
+                onVerifyClick={() =>
+                  startVerification("youtube", getValues("youtube"))
+                }
+                input={
+                  <div className="flex rounded-md">
+                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                      youtube.com
+                    </span>
+                    <span className="absolute inset-y-0 left-[6.7rem] flex items-center pl-3 text-sm text-neutral-400">
+                      @
+                    </span>
+                    <input
+                      type="text"
+                      className={cn(
+                        "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
+                        errors.youtube
+                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                      )}
+                      placeholder="handle"
+                      onPaste={(e) => onPasteSocial(e, "youtube")}
+                      {...register("youtube")}
+                    />
+                  </div>
+                }
+              />
 
-            <FormRow
-              variant={variant}
-              label="LinkedIn"
-              input={
-                <div className="flex rounded-md">
-                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    linkedin.com/in
-                  </span>
-                  <input
-                    type="text"
-                    className={cn(
-                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                      errors.linkedin
-                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                    )}
-                    placeholder="handle"
-                    onPaste={onPasteSocial}
-                    {...register("linkedin")}
-                  />
-                </div>
-              }
-              button={
-                <VerifyButton
-                  property="linkedin"
-                  verifiedAtField="linkedinVerifiedAt"
-                  icon={LinkedIn}
-                  onClick={() =>
-                    startVerification("linkedin", getValues("linkedin"))
-                  }
-                  disabledTooltip="LinkedIn verification is coming soon."
-                />
-              }
-            />
+              <FormRow
+                label="X/Twitter"
+                property="twitter"
+                prefix="@"
+                verifiedAtField="twitterVerifiedAt"
+                icon={Twitter}
+                onVerifyClick={() =>
+                  startVerification("twitter", getValues("twitter"))
+                }
+                input={
+                  <div className="flex rounded-md">
+                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                      x.com
+                    </span>
+                    <input
+                      type="text"
+                      className={cn(
+                        "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                        errors.twitter
+                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                      )}
+                      placeholder="handle"
+                      onPaste={(e) => onPasteSocial(e, "twitter")}
+                      {...register("twitter")}
+                    />
+                  </div>
+                }
+              />
 
-            <FormRow
-              variant={variant}
-              label="Instagram"
-              input={
-                <div className="flex rounded-md">
-                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    instagram.com
-                  </span>
-                  <input
-                    type="text"
-                    className={cn(
-                      "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                      errors.instagram
-                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                    )}
-                    placeholder="handle"
-                    onPaste={onPasteSocial}
-                    {...register("instagram")}
-                  />
-                </div>
-              }
-              button={
-                <VerifyButton
-                  property="instagram"
-                  verifiedAtField="instagramVerifiedAt"
-                  icon={Instagram}
-                  onClick={() =>
-                    startVerification("instagram", getValues("instagram"))
-                  }
-                  disabledTooltip="Instagram verification is coming soon."
-                />
-              }
-            />
+              <FormRow
+                label="LinkedIn"
+                property="linkedin"
+                prefix="in/"
+                verifiedAtField="linkedinVerifiedAt"
+                icon={LinkedIn}
+                onVerifyClick={() =>
+                  startVerification("linkedin", getValues("linkedin"))
+                }
+                verifyDisabledTooltip="LinkedIn verification is coming soon."
+                input={
+                  <div className="flex rounded-md">
+                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                      linkedin.com/in
+                    </span>
+                    <input
+                      type="text"
+                      className={cn(
+                        "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                        errors.linkedin
+                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                      )}
+                      placeholder="handle"
+                      onPaste={(e) => onPasteSocial(e, "linkedin")}
+                      {...register("linkedin")}
+                    />
+                  </div>
+                }
+              />
 
-            <FormRow
-              variant={variant}
-              label="TikTok"
-              input={
-                <div className="flex rounded-md">
-                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    tiktok.com
-                  </span>
-                  <span className="absolute inset-y-0 left-[5.7rem] flex items-center pl-3 text-sm text-neutral-400">
-                    @
-                  </span>
-                  <input
-                    type="text"
-                    className={cn(
-                      "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
-                      errors.tiktok
-                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                    )}
-                    placeholder="handle"
-                    onPaste={onPasteSocial}
-                    {...register("tiktok")}
-                  />
-                </div>
-              }
-              button={
-                <VerifyButton
-                  property="tiktok"
-                  verifiedAtField="tiktokVerifiedAt"
-                  icon={TikTok}
-                  onClick={() =>
-                    startVerification("tiktok", getValues("tiktok"))
-                  }
-                />
-              }
-            />
-          </div>
+              <FormRow
+                label="Instagram"
+                property="instagram"
+                prefix="@"
+                verifiedAtField="instagramVerifiedAt"
+                icon={Instagram}
+                onVerifyClick={() =>
+                  startVerification("instagram", getValues("instagram"))
+                }
+                verifyDisabledTooltip="Instagram verification is coming soon."
+                input={
+                  <div className="flex rounded-md">
+                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                      instagram.com
+                    </span>
+                    <input
+                      type="text"
+                      className={cn(
+                        "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                        errors.instagram
+                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                      )}
+                      placeholder="handle"
+                      onPaste={(e) => onPasteSocial(e, "instagram")}
+                      {...register("instagram")}
+                    />
+                  </div>
+                }
+              />
 
-          {variant === "onboarding" ? (
-            <Button
-              type="submit"
-              text="Continue"
-              className="mt-6"
-              loading={isSubmitting || isSubmitSuccessful}
-            />
-          ) : (
-            <div className="flex justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-100 px-5 py-3.5">
-              <Button
-                type="submit"
-                text="Save changes"
-                className="h-8 w-fit px-2.5"
-                loading={isSubmitting}
+              <FormRow
+                label="TikTok"
+                property="tiktok"
+                prefix="@"
+                verifiedAtField="tiktokVerifiedAt"
+                icon={TikTok}
+                onVerifyClick={() =>
+                  startVerification("tiktok", getValues("tiktok"))
+                }
+                input={
+                  <div className="flex rounded-md">
+                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                      tiktok.com
+                    </span>
+                    <span className="absolute inset-y-0 left-[5.7rem] flex items-center pl-3 text-sm text-neutral-400">
+                      @
+                    </span>
+                    <input
+                      type="text"
+                      className={cn(
+                        "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
+                        errors.tiktok
+                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                      )}
+                      placeholder="handle"
+                      onPaste={(e) => onPasteSocial(e, "tiktok")}
+                      {...register("tiktok")}
+                    />
+                  </div>
+                }
               />
             </div>
-          )}
-        </form>
-      </FormProvider>
-    </>
-  );
-}
+
+            {variant === "onboarding" && (
+              <Button
+                type="submit"
+                text="Continue"
+                className="mt-6"
+                loading={isSubmitting || isSubmitSuccessful}
+              />
+            )}
+          </form>
+        </FormProvider>
+      </>
+    );
+  },
+);
 
 function useOAuthVerification(source: "onboarding" | "settings") {
   const router = useRouter();
@@ -406,18 +433,12 @@ function useOAuthVerification(source: "onboarding" | "settings") {
   );
 }
 
-function VerifyButton({
+function useVerifiedState({
   property,
   verifiedAtField,
-  icon: Icon,
-  onClick,
-  disabledTooltip,
 }: {
   property: keyof OnlinePresenceFormData;
   verifiedAtField: string;
-  icon: Icon;
-  onClick: () => Promise<boolean>;
-  disabledTooltip?: string;
 }) {
   const { partner: partnerProfile } = usePartnerProfile();
 
@@ -434,6 +455,33 @@ function VerifyButton({
       : partnerProfile?.[property] === value;
 
   const isVerified = noChange && Boolean(partnerProfile?.[verifiedAtField]);
+
+  return {
+    isVerified,
+    loading,
+  };
+}
+
+function VerifyButton({
+  property,
+  verifiedAtField,
+  icon: Icon,
+  onClick,
+  disabledTooltip,
+}: {
+  property: keyof OnlinePresenceFormData;
+  verifiedAtField: string;
+  icon: Icon;
+  onClick: () => Promise<boolean>;
+  disabledTooltip?: string;
+}) {
+  const { control, getFieldState } = useFormContext<OnlinePresenceFormData>();
+  const value = useWatch({ control, name: property });
+
+  const { isVerified, loading } = useVerifiedState({
+    property,
+    verifiedAtField,
+  });
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -468,43 +516,86 @@ function VerifyButton({
 }
 
 function FormRow({
-  variant,
   label,
   input,
-  button,
+  property,
+  prefix,
+  verifiedAtField,
+  icon: Icon,
+  onVerifyClick,
+  verifyDisabledTooltip,
 }: {
-  variant: "onboarding" | "settings";
   label: string;
   input: ReactNode;
-  button: ReactNode;
+
+  property: keyof OnlinePresenceFormData;
+  prefix?: string;
+  verifiedAtField: string;
+  icon: Icon;
+  onVerifyClick: () => Promise<boolean>;
+  verifyDisabledTooltip?: string;
 }) {
+  const { partner } = usePartnerProfile();
+  const { control, setValue } = useFormContext<OnlinePresenceFormData>();
+  const value = useWatch({ control, name: property });
+
+  const { isVerified } = useVerifiedState({ property, verifiedAtField });
+
+  const info = useMemo(() => {
+    if (partner && property === "youtube" && isVerified) {
+      return [
+        partner.youtubeSubscriberCount && partner.youtubeSubscriberCount > 0
+          ? `${nFormatter(partner.youtubeSubscriberCount)} subscribers`
+          : null,
+        partner.youtubeViewCount && partner.youtubeViewCount > 0
+          ? `${nFormatter(partner.youtubeViewCount)} views`
+          : null,
+      ].filter(Boolean) as string[];
+    }
+    return null;
+  }, [partner, property, isVerified]);
+
   return (
-    <div className={cn(variant === "settings" && "py-5")}>
-      <label
-        className={cn(
-          "flex flex-col gap-2",
-          variant === "settings" && "flex-row items-center justify-between",
-        )}
+    <div className="-m-0.5">
+      <AnimatedSizeContainer
+        height
+        initial={false}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
       >
-        <span className="text-sm font-medium text-neutral-800">{label}</span>
-        <div
-          className={cn(
-            "relative",
-            variant === "settings" && "max-w-[55%] grow",
+        <div className="p-0.5">
+          {isVerified ? (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-content-emphasis text-sm font-medium">
+                {label}
+              </span>
+              <OnlinePresenceCard
+                icon={Icon}
+                prefix={prefix}
+                value={value ?? ""}
+                verified
+                info={info ?? undefined}
+                onRemove={() => setValue(property, "", { shouldDirty: true })}
+              />
+            </div>
+          ) : (
+            <label className={cn("flex flex-col gap-1.5")}>
+              <span className="text-content-emphasis text-sm font-medium">
+                {label}
+              </span>
+              <div className={cn("relative")}>
+                {input}
+                <VerifyButton
+                  property={property}
+                  verifiedAtField={verifiedAtField}
+                  icon={Icon}
+                  onClick={onVerifyClick}
+                  disabledTooltip={verifyDisabledTooltip}
+                />
+              </div>
+            </label>
           )}
-        >
-          {input}
-          {button}
         </div>
-      </label>
+      </AnimatedSizeContainer>
     </div>
   );
 }
-
-const onPasteSocial = (e: React.ClipboardEvent<HTMLInputElement>) => {
-  e.preventDefault();
-
-  // Extract the final portion of any URL
-  const text = e.clipboardData.getData("text/plain");
-  e.currentTarget.value = (text.split("/").at(-1) ?? text).replace(/^@/, "");
-};

@@ -1,5 +1,6 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
+import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -12,7 +13,6 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
-import { getApexDomain } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -20,10 +20,10 @@ import { z } from "zod";
 // GET /api/partners/links - get the partner links
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     const { partnerId, tenantId } =
       retrievePartnerLinksSchema.parse(searchParams);
-
-    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: partnerId
@@ -63,7 +63,9 @@ export const GET = withWorkspace(
 // POST /api/partners/links - create a link for a partner
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    const { programId, partnerId, tenantId, url, key, linkProps } =
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { partnerId, tenantId, url, key, linkProps } =
       createPartnerLinkSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
@@ -79,12 +81,7 @@ export const POST = withWorkspace(
       });
     }
 
-    if (url && getApexDomain(url) !== getApexDomain(program.url)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-      });
-    }
+    validatePartnerLinkUrl({ program, url });
 
     if (!partnerId && !tenantId) {
       throw new DubApiError({

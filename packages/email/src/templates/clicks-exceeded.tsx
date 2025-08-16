@@ -15,7 +15,7 @@ import {
 import { Footer } from "../components/footer";
 import { WorkspaceProps } from "../types";
 
-export function ClicksExceeded({
+export default function ClicksExceeded({
   email = "panic@thedis.co",
   workspace = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
@@ -101,5 +101,3 @@ export function ClicksExceeded({
     </Html>
   );
 }
-
-export default ClicksExceeded;

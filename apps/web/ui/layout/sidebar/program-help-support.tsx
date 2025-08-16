@@ -44,27 +44,19 @@ export const ProgramHelpSupport = memo(() => {
   if (supportItems.length === 0) return null;
 
   return (
-    <div className="m-2 grid gap-1 rounded-md border border-neutral-300/80 p-1">
-      <div className="grid gap-2 p-2.5">
-        {program.logo && (
-          <img
-            src={program.logo}
-            alt={program.name}
-            width={32}
-            height={32}
-            className="size-4 rounded-md"
-          />
-        )}
-        <p className="text-sm font-medium text-neutral-900">Help & support</p>
+    <div className="border-border-default grid gap-2 border-t p-3">
+      <div className="text-content-default px-2 text-sm font-semibold">
+        {program.name.length <= 12 ? `${program.name} ` : ""}
+        Program Support
       </div>
-      <div className="grid p-1">
+      <div className="grid grid-cols-1">
         {supportItems.map(({ icon: Icon, label, href }) => (
           <a
             key={label}
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-md p-1.5 text-sm text-neutral-500 transition-colors hover:bg-neutral-300/75 hover:text-neutral-700"
+            className="text-content-default hover:text-content-emphasis hover:bg-bg-inverted/5 active:bg-bg-inverted/10 flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm transition-colors"
           >
             <Icon className="size-4" />
             {label}

@@ -39,7 +39,7 @@ export default function RootProviders({ children }: { children: ReactNode }) {
       />
       <TooltipProvider>
         <KeyboardShortcutProvider>
-          <Toaster closeButton className="pointer-events-auto" />
+          <Toaster className="pointer-events-auto" closeButton />
           <PosthogPageview />
           {children}
           <DubAnalytics

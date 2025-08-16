@@ -101,7 +101,6 @@ async function seedClicks(count = 10000) {
       country,
       continent,
       device: devices[Math.floor(Math.random() * devices.length)],
-      alias_link_id: "",
       ip: "63.141.57.109",
       city: "San Francisco",
       region: "CA",
@@ -121,6 +120,7 @@ async function seedClicks(count = 10000) {
       qr: 0,
       referer: "(direct)",
       referer_url: "(direct)",
+      trigger: "link",
     };
   });
 

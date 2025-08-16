@@ -78,7 +78,7 @@ function DeleteTokenModal({
                 <img
                   src={
                     token.user.isMachine
-                      ? "https://api.dicebear.com/7.x/bottts/svg?seed=Sara"
+                      ? `https://api.dicebear.com/7.x/bottts/svg?seed=${token.user.id}`
                       : token.user.image || `${OG_AVATAR_URL}${token.user.id}`
                   }
                   alt={token.user.name!}

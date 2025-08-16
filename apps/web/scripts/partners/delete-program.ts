@@ -4,12 +4,9 @@ import "dotenv-flow/config";
 import { storage } from "../../lib/storage";
 
 async function main() {
-  const program = await prisma.program.update({
+  const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: "prog_1JWPV1GFN7K4XEYZHZ3DS5VTG",
-    },
-    data: {
-      defaultRewardId: null,
     },
   });
 

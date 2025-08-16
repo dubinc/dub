@@ -3,7 +3,8 @@ import { withAdmin } from "@/lib/auth";
 import { THE_BEGINNING_OF_TIME } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
-import { getCommissionsTimeseries, getTopProgramsByCommissions } from "./utils";
+import { getCommissionsTimeseries } from "./get-commissions-timeseries";
+import { getTopProgramsByCommissions } from "./get-top-program-by-commissions";
 
 export const GET = withAdmin(async ({ searchParams }) => {
   const { interval = "mtd", start, end, timezone = "UTC" } = searchParams;

@@ -9,6 +9,7 @@ import posthog from "posthog-js";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { CustomToast } from "../shared/custom-toast";
 import { CheckCircleFill } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
@@ -68,7 +69,11 @@ export function InviteTeammatesForm({
 
           if (saveOnly) {
             toast.custom(
-              () => <InviteSavedToast teammates={teammates.length} />,
+              () => (
+                <CustomToast icon={CheckCircleFill}>
+                  {`${pluralize("Invitation", teammates.length)} saved. You'll need a pro plan to invite teammates. [Learn more](https://dub.co/help/article/how-to-invite-teammates)`}
+                </CustomToast>
+              ),
               { duration: 7000 },
             );
           } else {
@@ -165,24 +170,5 @@ export function InviteTeammatesForm({
         }
       />
     </form>
-  );
-}
-
-function InviteSavedToast({ teammates }: { teammates: number }) {
-  return (
-    <div className="flex items-center gap-1.5 rounded-lg bg-white p-4 text-sm shadow-[0_4px_12px_#0000001a]">
-      <CheckCircleFill className="size-5 shrink-0 text-black" />
-      <p className="text-[13px] font-medium text-neutral-900">
-        {pluralize("Invitation", teammates)} saved. You'll need a pro plan to
-        invite teammates.{" "}
-        <a
-          href="https://dub.co/help/article/how-to-invite-teammates"
-          target="_blank"
-          className="text-neutral-500 underline transition-colors hover:text-neutral-800"
-        >
-          Learn more
-        </a>
-      </p>
-    </div>
   );
 }

@@ -5,7 +5,10 @@ import { useCreateCommissionSheet } from "./create-commission-sheet";
 
 export function CreateCommissionButton() {
   const { createCommissionSheet, setIsOpen: setShowCreateCommissionSheet } =
-    useCreateCommissionSheet();
+    useCreateCommissionSheet({
+      nested: false,
+      partnerId: "",
+    });
 
   useKeyboardShortcut("c", () => setShowCreateCommissionSheet(true));
 

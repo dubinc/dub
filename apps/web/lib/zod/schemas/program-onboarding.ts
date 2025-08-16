@@ -1,4 +1,5 @@
-import { LinkStructure, RewardStructure } from "@dub/prisma/client";
+import { ToltProgramSchema } from "@/lib/tolt/schemas";
+import { PartnerLinkStructure, RewardStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
 import { updateProgramSchema } from "./programs";
@@ -10,7 +11,7 @@ export const programInfoSchema = z.object({
   logo: z.string(),
   domain: z.string(),
   url: parseUrlSchema.nullable(),
-  linkStructure: z.nativeEnum(LinkStructure).default("short"),
+  linkStructure: z.nativeEnum(PartnerLinkStructure).default("short"),
   linkParameter: z.string().nullish(),
 });
 
@@ -18,6 +19,7 @@ export const programInfoSchema = z.object({
 export const programRewardSchema = z
   .object({
     programType: z.enum(["new", "import"]),
+    importSource: z.enum(["rewardful", "tolt", "partnerstack"]).nullish(),
     rewardful: z
       .object({
         maskedToken: z.string().nullish(),
@@ -29,6 +31,10 @@ export const programRewardSchema = z
         commission_percent: z.number().nullable(),
       })
       .nullish(),
+    tolt: ToltProgramSchema.extend({
+      id: z.string(),
+      affiliates: z.number(),
+    }).nullish(),
   })
   .merge(
     z.object({
@@ -45,16 +51,12 @@ export const programInvitePartnersSchema = z.object({
     .array(
       z.object({
         email: z.string().email("Please enter a valid email"),
-        key: z.string().min(1, "Please enter a referral key"),
       }),
     )
     .max(10, "You can only invite up to 10 partners.")
     .nullable()
     .transform(
-      (partners) =>
-        partners?.filter(
-          (partner) => partner.email.trim() && partner.key.trim(),
-        ) || null,
+      (partners) => partners?.filter((partner) => partner.email.trim()) || null,
     ),
 });
 

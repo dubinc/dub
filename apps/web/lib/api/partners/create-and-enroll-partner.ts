@@ -16,6 +16,7 @@ import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
+import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { linkCache } from "../links/cache";
 import { includeTags } from "../links/include-tags";
 import { backfillLinkCommissions } from "./backfill-link-commissions";
@@ -25,26 +26,21 @@ export const createAndEnrollPartner = async ({
   workspace,
   link,
   partner,
-  rewardId,
-  discountId,
   tenantId,
+  groupId,
   status = "approved",
   skipEnrollmentCheck = false,
   enrolledAt,
 }: {
-  program: Pick<
-    ProgramProps,
-    "id" | "defaultFolderId" | "defaultRewardId" | "defaultDiscountId"
-  >;
+  program: Pick<ProgramProps, "id" | "defaultFolderId" | "defaultGroupId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
     CreatePartnerProps,
     "email" | "name" | "image" | "country" | "description"
   >;
-  rewardId?: string;
-  discountId?: string;
   tenantId?: string;
+  groupId?: string | null;
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
   enrolledAt?: Date;
@@ -86,6 +82,22 @@ export const createAndEnrollPartner = async ({
     }
   }
 
+  const finalGroupId = groupId || program.defaultGroupId;
+  // this should never happen, but just in case
+  if (!finalGroupId) {
+    throw new DubApiError({
+      message:
+        "There was no group ID provided, and the program does not have a default group. Please contact support.",
+      code: "bad_request",
+    });
+  }
+
+  const group = await getGroupOrThrow({
+    programId: program.id,
+    groupId: finalGroupId,
+    includeRewardsAndDiscount: true,
+  });
+
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
       create: {
@@ -97,18 +109,11 @@ export const createAndEnrollPartner = async ({
             id: link.id,
           },
         },
-        ...(rewardId &&
-          rewardId !== program.defaultRewardId && {
-            rewards: {
-              create: {
-                rewardId,
-              },
-            },
-          }),
-        ...(discountId &&
-          discountId !== program.defaultDiscountId && {
-            discountId,
-          }),
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        discountId: group.discountId,
         ...(enrolledAt && {
           createdAt: enrolledAt,
         }),
@@ -124,7 +129,7 @@ export const createAndEnrollPartner = async ({
     create: {
       ...payload,
       id: createId({ prefix: "pn_" }),
-      name: partner.name,
+      name: partner.name || partner.email,
       email: partner.email,
       image: partner.image && !isStored(partner.image) ? null : partner.image,
       country: partner.country,

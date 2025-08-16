@@ -15,10 +15,11 @@ import {
   Button,
   MaxWidthWrapper,
   Popover,
+  Refresh2,
   TokenAvatar,
 } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { RefreshCcw, Trash, Upload } from "lucide-react";
+import { Trash, Upload } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { notFound, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -113,7 +114,7 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
                 <Button
                   text={isPending ? "Regenerating..." : "Regenerate secret"}
                   variant="outline"
-                  icon={<RefreshCcw className="h-4 w-4" />}
+                  icon={<Refresh2 className="h-4 w-4" />}
                   className="h-9 justify-start px-2 font-medium"
                   disabled={isPending}
                   onClick={async () => {

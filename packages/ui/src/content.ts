@@ -44,24 +44,28 @@ export type NavItemChildren = (
 
 export const FEATURES_LIST = [
   {
+    id: "links",
     title: "Dub Links",
     description: "Short links with superpowers",
     icon: DubLinksIcon,
-    href: "/home",
+    href: "/links",
   },
   {
+    id: "partners",
     title: "Dub Partners",
     description: "Grow your revenue with partnerships",
     icon: DubPartnersIcon,
     href: "/partners",
   },
   {
+    id: "analytics",
     title: "Dub Analytics",
     description: "Powerful real-time analytics",
     icon: DubAnalyticsIcon,
     href: "/analytics",
   },
   {
+    id: "api",
     title: "Dub API",
     description: "Programmatic link creation at scale",
     icon: DubApiIcon,
@@ -219,8 +223,10 @@ export const COMPARE_PAGES = [
 ];
 
 export const LEGAL_PAGES = [
-  { name: "Privacy", slug: "privacy" },
-  { name: "Terms", slug: "terms" },
+  { name: "Privacy Policy", slug: "privacy" },
+  { name: "Terms of Service", slug: "terms" },
+  { name: "Partner Terms", slug: "partners" },
+  { name: "Affiliate Program Terms", slug: "affiliates" },
   { name: "DPA", slug: "dpa" },
   { name: "Subprocessors", slug: "subprocessors" },
   { name: "Report Abuse", slug: "abuse" },

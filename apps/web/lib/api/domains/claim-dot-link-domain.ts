@@ -1,15 +1,16 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
-import { qstash } from "@/lib/cron";
 import { registerDomain } from "@/lib/dynadot/register-domain";
 import { WorkspaceWithUsers } from "@/lib/types";
-import { sendEmail } from "@dub/email";
-import { DomainClaimed } from "@dub/email/templates/domain-claimed";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, DEFAULT_LINK_PROPS } from "@dub/utils";
+import { DEFAULT_LINK_PROPS } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { waitUntil } from "@vercel/functions";
 import { addDomainToVercel } from "./add-domain-vercel";
+import { configureVercelNameservers } from "./configure-vercel-nameservers";
 import { markDomainAsDeleted } from "./mark-domain-deleted";
 
 export async function claimDotLinkDomain({
@@ -88,7 +89,7 @@ export async function claimDotLinkDomain({
   // if the domain was added to a different workspace but is not verified
   // we should remove it to free up the domain for the current workspace
   if (matchingUnverifiedDomain) {
-    const { projectId, slug } = matchingUnverifiedDomain;
+    const { slug } = matchingUnverifiedDomain;
 
     await markDomainAsDeleted({
       domain: slug,
@@ -128,16 +129,8 @@ export async function claimDotLinkDomain({
 
   waitUntil(
     Promise.all([
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/configure-dns`,
-        delay: 3 * 60,
-        body: {
-          domain,
-        },
-      }),
-
-      // add domain to Vercel
-      addDomainToVercel(domain),
+      // add domain to Vercel + configure it to use Vercel nameservers
+      addDomainToVercel(domain).then(() => configureVercelNameservers(domain)),
 
       // send email to workspace owners
       !skipWorkspaceChecks
@@ -159,7 +152,7 @@ export async function claimDotLinkDomain({
   return response;
 }
 
-const sendDomainClaimedEmails = async ({
+export const sendDomainClaimedEmails = async ({
   workspace,
   domain,
 }: {
@@ -182,17 +175,22 @@ const sendDomainClaimedEmails = async ({
     },
   });
 
-  workspaceWithOwner.users.map(({ user }) => {
-    if (user.email) {
-      sendEmail({
-        email: user.email,
-        subject: "Successfully claimed your .link domain!",
-        react: DomainClaimed({
-          email: user.email,
-          domain,
-          workspaceSlug: workspace.slug,
-        }),
-      });
-    }
-  });
+  const emails = workspaceWithOwner.users
+    .filter(({ user }) => user.email)
+    .map(({ user }) => ({
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: user.email!,
+      subject: "Successfully claimed your .link domain!",
+      react: DomainClaimed({
+        email: user.email!,
+        domain,
+        workspaceSlug: workspace.slug,
+      }),
+    }));
+
+  if (emails.length > 0) {
+    return await resend?.batch.send(emails);
+  }
+
+  return null;
 };

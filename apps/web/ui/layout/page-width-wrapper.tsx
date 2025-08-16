@@ -10,7 +10,10 @@ export function PageWidthWrapper({
 }) {
   return (
     <div
-      className={cn("mx-auto w-full max-w-screen-xl px-3 lg:px-6", className)}
+      className={cn(
+        "@container/page mx-auto w-full max-w-screen-xl px-3 lg:px-6",
+        className,
+      )}
     >
       {children}
     </div>

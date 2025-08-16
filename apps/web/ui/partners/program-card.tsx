@@ -1,9 +1,9 @@
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { BlurImage, Link4, MiniAreaChart } from "@dub/ui";
-import { cn, formatDate, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
+import { formatDate, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { addDays } from "date-fns";
 import Linkify from "linkify-react";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -37,14 +37,10 @@ export function ProgramCard({
 
   const defaultLink = programEnrollment.links?.[0];
 
-  const clickable = ["approved", "pending"].includes(status);
-
-  const card = (
-    <div
-      className={cn(
-        "flex h-full flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5",
-        clickable && "hover:drop-shadow-card-hover transition-[filter]",
-      )}
+  return (
+    <Link
+      href={`/programs/${program.slug}`}
+      className="hover:drop-shadow-card-hover flex h-full flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 transition-[filter]"
     >
       <div>
         <BlurImage
@@ -58,16 +54,17 @@ export function ProgramCard({
           <span className="text-base font-semibold text-neutral-800">
             {program.name}
           </span>
-          {(defaultLink || program.domain) && (
-            <div className="flex items-center gap-1 text-neutral-500">
-              <Link4 className="size-3" />
-              <span className="text-sm font-medium">
-                {defaultLink?.shortLink
-                  ? getPrettyUrl(defaultLink.shortLink)
-                  : program.domain}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-1 text-neutral-500">
+            <Link4 className="size-3" />
+            <span className="text-sm font-medium">
+              {getPrettyUrl(
+                constructPartnerLink({
+                  program,
+                  linkKey: defaultLink?.key,
+                }),
+              )}
+            </span>
+          </div>
         </div>
       </div>
       {status === "approved" ? (
@@ -76,7 +73,7 @@ export function ProgramCard({
         <div className="mt-4 flex h-20 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
           {status === "pending" ? (
             `Applied ${formatDate(createdAt)}`
-          ) : status === "banned" ? (
+          ) : status === "banned" || status === "rejected" ? (
             <Linkify
               as="p"
               options={{
@@ -86,25 +83,17 @@ export function ProgramCard({
                   "underline underline-offset-2 decoration-dotted text-neutral-400 hover:text-neutral-700",
               }}
             >
-              You're banned from this program.
+              {status === "banned"
+                ? "You're banned from this program."
+                : "Your application has been rejected."}
               {program.supportEmail
                 ? ` Contact ${program.supportEmail} to appeal.`
                 : ""}
             </Linkify>
-          ) : (
-            `You will be able to apply again after ${formatDate(
-              addDays(createdAt, 30),
-            )}`
-          )}
+          ) : null}
         </div>
       )}
-    </div>
-  );
-
-  return clickable ? (
-    <Link href={`/programs/${program.slug}`}>{card}</Link>
-  ) : (
-    card
+    </Link>
   );
 }
 

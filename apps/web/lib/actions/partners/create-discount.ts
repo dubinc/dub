@@ -1,8 +1,9 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
@@ -13,98 +14,82 @@ import { authActionClient } from "../safe-action";
 export const createDiscountAction = authActionClient
   .schema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    const { partnerIds, amount, type, maxDuration, couponId, couponTestId } =
+    const { workspace, user } = ctx;
+    const { amount, type, maxDuration, couponId, couponTestId, groupId } =
       parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
+    const group = await getGroupOrThrow({
+      groupId,
       programId,
     });
 
-    let isDefault = true;
+    if (group.discountId) {
+      throw new Error(
+        `You can't create a discount for this group because it already has a discount.`,
+      );
+    }
 
-    if (partnerIds) {
-      const programEnrollments = await prisma.programEnrollment.findMany({
-        where: {
+    const discount = await prisma.$transaction(async (tx) => {
+      const discount = await tx.discount.create({
+        data: {
+          id: createId({ prefix: "disc_" }),
           programId,
-          partnerId: {
-            in: partnerIds,
-          },
-        },
-        select: {
-          id: true,
-          discountId: true,
+          amount,
+          type,
+          maxDuration,
+          couponId,
+          couponTestId,
         },
       });
 
-      if (programEnrollments.length !== partnerIds.length) {
-        throw new Error("Invalid partner IDs provided.");
-      }
+      await tx.partnerGroup.update({
+        where: {
+          id: groupId,
+        },
+        data: {
+          discountId: discount.id,
+        },
+      });
 
-      const partnersWithDiscounts = programEnrollments.filter(
-        (pe) => pe.discountId,
-      );
+      await tx.programEnrollment.updateMany({
+        where: {
+          groupId,
+        },
+        data: {
+          discountId: discount.id,
+        },
+      });
 
-      if (partnersWithDiscounts.length > 0) {
-        throw new Error("Partners cannot belong to more than one discount.");
-      }
-
-      isDefault = false;
-    }
-
-    if (program.defaultDiscountId && isDefault) {
-      throw new Error("A program can have only one default discount.");
-    }
-
-    const discount = await prisma.discount.create({
-      data: {
-        id: createId({ prefix: "disc_" }),
-        programId,
-        amount,
-        type,
-        maxDuration,
-        couponId,
-        couponTestId,
-      },
+      return discount;
     });
 
-    if (partnerIds && partnerIds.length > 0) {
-      await prisma.programEnrollment.updateMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIds,
-          },
-        },
-        data: {
-          discountId: discount.id,
-        },
-      });
-    }
-
-    if (isDefault) {
-      await prisma.program.update({
-        where: {
-          id: programId,
-        },
-        data: {
-          defaultDiscountId: discount.id,
-        },
-      });
-    }
-
     waitUntil(
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-        body: {
-          programId,
-          discountId: discount.id,
-          isDefault,
-          action: "discount-created",
-        },
-      }),
+      (async () => {
+        await Promise.allSettled([
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+            body: {
+              groupId,
+            },
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "discount.created",
+            description: `Discount ${discount.id} created`,
+            actor: user,
+            targets: [
+              {
+                type: "discount",
+                id: discount.id,
+                metadata: discount,
+              },
+            ],
+          }),
+        ]);
+      })(),
     );
   });

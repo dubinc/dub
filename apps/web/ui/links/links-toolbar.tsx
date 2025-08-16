@@ -49,7 +49,7 @@ export const LinksToolbar = memo(
     links: ResponseLink[];
     linksCount: number;
   }) => {
-    const { flags, slug, plan } = useWorkspace();
+    const { slug, plan } = useWorkspace();
 
     const { isMegaFolder } = useIsMegaFolder();
 

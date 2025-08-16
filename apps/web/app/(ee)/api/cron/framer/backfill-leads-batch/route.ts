@@ -45,6 +45,9 @@ const getFramerLeadEvents = tb.buildPipe({
     linkIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(","))),
+    customerIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(","))),
   }),
   data: z.any(),
 });
@@ -67,40 +70,43 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       (p) => `${p.externalId}:${p.eventName}`,
     );
 
-    const [existsResults, links] = await Promise.all([
-      redis.smismember(CACHE_KEY, externalIdEventNames),
-      prisma.link.findMany({
-        where: {
-          shortLink: {
-            in: originalPayload.map((p) =>
-              linkConstructorSimple({
-                domain: DOMAIN,
-                key: p.via,
-              }),
-            ),
+    const [existsResults, existingLinks, existingCustomers] = await Promise.all(
+      [
+        redis.smismember(CACHE_KEY, externalIdEventNames),
+        prisma.link.findMany({
+          where: {
+            shortLink: {
+              in: originalPayload.map((p) =>
+                linkConstructorSimple({
+                  domain: DOMAIN,
+                  key: p.via,
+                }),
+              ),
+            },
           },
-        },
-        select: {
-          id: true,
-          key: true,
-          url: true,
-          domain: true,
-          programId: true,
-          partnerId: true,
-        },
-      }),
-    ]);
+          select: {
+            id: true,
+            key: true,
+            url: true,
+            domain: true,
+            programId: true,
+            partnerId: true,
+          },
+        }),
+        prisma.customer.findMany({
+          where: {
+            projectId: workspace.id,
+            externalId: {
+              in: originalPayload.map((p) => p.externalId),
+            },
+          },
+        }),
+      ],
+    );
 
     const { data: existingLeadEventsForLinks } = await getFramerLeadEvents({
-      linkIds: links.map((l) => l.id),
-    });
-
-    const existingCustomers = await prisma.customer.findMany({
-      where: {
-        externalId: {
-          in: originalPayload.map((p) => p.externalId),
-        },
-      },
+      linkIds: existingLinks.map((l) => l.id),
+      customerIds: existingCustomers.map((c) => c.id),
     });
 
     let validEntries: PayloadItem[] = [];
@@ -108,7 +114,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       [];
 
     originalPayload.map((p, index) => {
-      const existingLinkData = links.find((l) => l.key === p.via);
+      const existingLinkData = existingLinks.find((l) => l.key === p.via);
       const existingCustomerData = existingCustomers.find(
         (c) => c.externalId === p.externalId,
       );
@@ -141,7 +147,9 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       }
 
       if (
-        links.some((l) => l.key === p.via && (!l.partnerId || !l.programId))
+        existingLinks.some(
+          (l) => l.key === p.via && (!l.partnerId || !l.programId),
+        )
       ) {
         invalidEntries.push({
           ...p,
@@ -153,7 +161,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       validEntries.push(p);
     });
 
-    const linkMap = new Map(links.map((l) => [l.key, l]));
+    const linkMap = new Map(existingLinks.map((l) => [l.key, l]));
 
     const customerData = validEntries.map((p) => {
       return {
@@ -205,7 +213,6 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
         identity_hash: p.externalId,
         click_id: customerMap.get(p.externalId)!.clickId,
         link_id: link.id,
-        alias_link_id: "",
         url: link.url,
         ip: "",
         continent: "NA",
@@ -230,6 +237,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
         qr: 0,
         referer: "(direct)",
         referer_url: "(direct)",
+        trigger: "link",
       };
 
       const clickEvent = clickEventSchemaTB.parse(clickData);

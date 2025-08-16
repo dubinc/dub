@@ -74,7 +74,7 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
           params,
           searchParams,
           session,
-          partner: partnerUser.partner,
+          partner: partnerUser.partner as PartnerProps,
         });
       } catch (error) {
         req.log.error(error);

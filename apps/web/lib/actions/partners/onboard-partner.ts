@@ -37,7 +37,7 @@ export const onboardPartnerAction = authUserActionClient
 
     // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
-      name,
+      name: name || user.email,
       email: user.email,
       // you can only update these fields if the partner doesn't already have a stripeConnectId
       ...(existingPartner?.stripeConnectId
@@ -60,6 +60,9 @@ export const onboardPartnerAction = authUserActionClient
           create: {
             userId: user.id,
             role: "owner",
+            notificationPreferences: {
+              create: {},
+            },
           },
         },
       },

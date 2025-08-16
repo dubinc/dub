@@ -1,12 +1,9 @@
 import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useDiscounts from "@/lib/swr/use-discounts";
 import useProgram from "@/lib/swr/use-program";
-import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
-import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
-import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { GroupSelector } from "@/ui/partners/groups/group-selector";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
 import { X } from "@/ui/shared/icons";
 import {
@@ -17,14 +14,14 @@ import {
   EyeSlash,
   InfoTooltip,
   Sheet,
+  SimpleTooltipContent,
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils/src";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, memo, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -39,8 +36,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { program } = useProgram();
   const { isMobile } = useMediaQuery();
   const { id: workspaceId, slug } = useWorkspace();
-  const { rewards, loading: rewardsLoading } = useRewards();
-  const { discounts, loading: discountsLoading } = useDiscounts();
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   const {
     register,
@@ -49,7 +45,11 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     setValue,
     clearErrors,
     formState: { errors },
-  } = useForm<InvitePartnerFormData>();
+  } = useForm<InvitePartnerFormData>({
+    defaultValues: {
+      groupId: program?.defaultGroupId || "",
+    },
+  });
 
   const [name, email, linkId] = watch(["name", "email", "linkId"]);
 
@@ -103,8 +103,6 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     return result.id;
   };
 
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
-
   const onSubmit = async (data: InvitePartnerFormData) => {
     if (!workspaceId || !program?.id) {
       return;
@@ -119,9 +117,18 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
-        <div className="flex items-start justify-between p-6">
-          <Sheet.Title className="text-xl font-semibold">
-            Invite partner
+        <div className="flex h-16 items-center justify-between px-6 py-4">
+          <Sheet.Title className="flex items-center gap-1 text-lg font-semibold">
+            Invite partner{" "}
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title="Invite influencers, affiliates, and users to your program, or enroll them automatically."
+                  cta="Learn more."
+                  href="https://dub.co/help/article/inviting-partners"
+                />
+              }
+            />
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -249,70 +256,33 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 </motion.div>
               </button>
 
-              <AnimatedSizeContainer height>
-                {showAdvancedOptions && (
-                  <div className="grid grid-cols-1 gap-6 py-6">
-                    <div>
-                      <label
-                        htmlFor="rewardId"
-                        className="block text-sm font-medium text-neutral-900"
-                      >
-                        Reward{" "}
-                        <span className="text-neutral-500">(optional)</span>
-                      </label>
+              <div className="-m-1">
+                <AnimatedSizeContainer height>
+                  <div className="p-1">
+                    {showAdvancedOptions && (
+                      <div className="grid grid-cols-1 gap-6 pt-6">
+                        <div>
+                          <label className="block text-sm font-medium text-neutral-900">
+                            Group{" "}
+                            <span className="text-neutral-500">(optional)</span>
+                          </label>
 
-                      <div className="relative mt-2 rounded-md shadow-sm">
-                        <select
-                          className={cn(
-                            "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            errors.rewardId && "border-red-600",
-                            rewardsLoading && "opacity-50",
-                          )}
-                          {...register("rewardId")}
-                          disabled={rewardsLoading}
-                        >
-                          <option value="">Select a reward</option>
-                          {rewards?.map((reward) => (
-                            <option value={reward.id} key={reward.id}>
-                              {reward.name ||
-                                formatRewardDescription({ reward })}
-                            </option>
-                          ))}
-                        </select>
+                          <div className="relative mt-2 rounded-md shadow-sm">
+                            <GroupSelector
+                              selectedGroupId={watch("groupId")}
+                              setSelectedGroupId={(groupId) => {
+                                setValue("groupId", groupId, {
+                                  shouldDirty: true,
+                                });
+                              }}
+                            />
+                          </div>
+                        </div>
                       </div>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="discountId"
-                        className="block text-sm font-medium text-neutral-900"
-                      >
-                        Discount{" "}
-                        <span className="text-neutral-500">(optional)</span>
-                      </label>
-
-                      <div className="relative mt-2 rounded-md shadow-sm">
-                        <select
-                          className={cn(
-                            "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                            errors.discountId && "border-red-600",
-                            discountsLoading && "opacity-50",
-                          )}
-                          {...register("discountId")}
-                          disabled={discountsLoading}
-                        >
-                          <option value="">Select a discount</option>
-                          {discounts?.map((discount) => (
-                            <option value={discount.id} key={discount.id}>
-                              {formatDiscountDescription({ discount })}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                )}
-              </AnimatedSizeContainer>
+                </AnimatedSizeContainer>
+              </div>
             </div>
           </div>
 
@@ -377,7 +347,7 @@ function EmailPreview() {
       >
         <div className="mt-2 overflow-hidden rounded-md border border-neutral-200 bg-white">
           <div className="grid grid-cols-1 gap-4 p-6 pb-10">
-            <MemoBlurImage
+            <BlurImage
               src={program?.logo || "https://assets.dub.co/logo.png"}
               alt={program?.name || "Dub"}
               className="my-2 size-8 rounded-full"
@@ -411,8 +381,6 @@ function EmailPreview() {
     </div>
   );
 }
-
-const MemoBlurImage = memo(BlurImage);
 
 export function InvitePartnerSheet({
   isOpen,

@@ -56,7 +56,6 @@ function ImageBlockModalInner({
     try {
       const result = await executeAsync({
         workspaceId: workspaceId!,
-        programId: defaultProgramId!,
       });
 
       if (!result?.data) throw new Error("Failed to get signed upload URL");

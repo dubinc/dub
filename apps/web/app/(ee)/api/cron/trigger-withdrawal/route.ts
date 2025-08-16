@@ -14,11 +14,14 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const [currentBalance, pendingPayouts] = await Promise.all([
+    const [stripeBalanceData, toBeSentPayouts] = await Promise.all([
       stripe.balance.retrieve(),
       prisma.payout.aggregate({
         where: {
-          status: "processing",
+          status: {
+            in: ["processing", "processed"],
+          },
+          stripeTransferId: null,
         },
         _sum: {
           amount: true,
@@ -26,23 +29,36 @@ export async function GET(req: Request) {
       }),
     ]);
 
+    const currentAvailableBalance = stripeBalanceData.available[0].amount;
+    const currentPendingBalance = stripeBalanceData.pending[0].amount;
+
+    // if the pending balance is negative, add it to the available balance
+    // this only happens when we have a connected account transfer that hasn't fully settled yet
+    // x-slack-ref: https://dub.slack.com/archives/C074P7LMV9C/p1750185638973479
+    const currentNetBalance =
+      currentPendingBalance < 0
+        ? currentAvailableBalance + currentPendingBalance
+        : currentAvailableBalance;
+
+    console.log({
+      currentAvailableBalance,
+      currentPendingBalance,
+      currentNetBalance,
+      toBeSentPayouts,
+      stripeBalanceData,
+    });
+
     let reservedBalance = 50000; // keep at least $500 in the account
 
-    const totalPendingPayouts = pendingPayouts._sum.amount;
-    if (totalPendingPayouts) {
-      // add the pending payouts to the reserved balance (to make sure we have enough balance
+    const totalToBeSentPayouts = toBeSentPayouts._sum.amount;
+    if (totalToBeSentPayouts) {
+      // add the total payouts that are still to be sent to connected accounts
+      // to the reserved balance (to make sure we have enough balance
       // to pay out partners when chargeSucceeded webhook is triggered)
-      reservedBalance += totalPendingPayouts;
+      reservedBalance += totalToBeSentPayouts;
     }
 
-    if (reservedBalance > currentBalance.available[0].amount) {
-      return NextResponse.json({
-        message: "Insufficient balance to trigger withdrawal, skipping...",
-      });
-    }
-
-    const balanceToWithdraw =
-      currentBalance.available[0].amount - reservedBalance;
+    const balanceToWithdraw = currentNetBalance - reservedBalance;
 
     if (balanceToWithdraw <= 10000) {
       return NextResponse.json({
@@ -50,16 +66,18 @@ export async function GET(req: Request) {
       });
     }
 
-    const createPayout = await stripe.payouts.create({
+    const createdPayout = await stripe.payouts.create({
       amount: balanceToWithdraw,
       currency: "usd",
     });
 
     return NextResponse.json({
-      currentBalance,
+      currentAvailableBalance,
+      currentPendingBalance,
+      currentNetBalance,
       reservedBalance,
       balanceToWithdraw,
-      createPayout,
+      createdPayout,
     });
   } catch (error) {
     return handleAndReturnErrorResponse(error);

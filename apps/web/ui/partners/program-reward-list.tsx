@@ -4,15 +4,18 @@ import { Gift, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren } from "react";
 import { REWARD_EVENTS } from "./constants";
+import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
 
 export function ProgramRewardList({
   rewards,
   discount,
   className,
+  showModifiersTooltip = true,
 }: {
   rewards: RewardProps[];
   discount?: DiscountProps | null;
   className?: string;
+  showModifiersTooltip?: boolean;
 }) {
   const sortedFilteredRewards = rewards.filter((r) => r.amount >= 0);
 
@@ -28,15 +31,46 @@ export function ProgramRewardList({
           {reward.description || (
             <>
               {constructRewardAmount({
-                amount: reward.amount,
+                ...(reward.modifiers
+                  ? {
+                      amounts: [
+                        reward.amount,
+                        ...reward.modifiers.map(({ amount }) => amount),
+                      ],
+                    }
+                  : { amount: reward.amount }),
                 type: reward.type,
               })}{" "}
-              per {reward.event}
+              {reward.event === "sale" && reward.maxDuration === 0 ? (
+                <>for the first sale</>
+              ) : (
+                <>per {reward.event}</>
+              )}
               {reward.maxDuration === null ? (
-                <> for the customer's lifetime</>
+                <>
+                  {" "}
+                  for the{" "}
+                  <strong className={cn("font-semibold")}>
+                    customer's lifetime
+                  </strong>
+                </>
               ) : reward.maxDuration && reward.maxDuration > 1 ? (
-                <>, and again every month for {reward.maxDuration} months</>
+                <>
+                  {" "}
+                  for{" "}
+                  <strong className={cn("font-semibold")}>
+                    {reward.maxDuration % 12 === 0
+                      ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
+                      : `${reward.maxDuration} months`}
+                  </strong>
+                </>
               ) : null}
+              {showModifiersTooltip && !!reward.modifiers?.length && (
+                <>
+                  {" "}
+                  <ProgramRewardModifiersTooltip reward={reward} />
+                </>
+              )}
             </>
           )}
         </Item>
@@ -57,7 +91,7 @@ export function ProgramRewardList({
               ) : discount.maxDuration && discount.maxDuration > 1 ? (
                 <>for {discount.maxDuration} months</>
               ) : (
-                <>for their first purchase</>
+                <>for their first month</>
               )}
             </>
           )}

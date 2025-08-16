@@ -1,12 +1,12 @@
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { recordSale } from "@/lib/tinybird";
+import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
-import z from "@/lib/zod";
-import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -21,7 +21,7 @@ export async function createShopifySale({
   event: any;
   customerId: string;
   workspaceId: string;
-  leadData: z.infer<typeof leadEventSchemaTB>;
+  leadData: LeadEventTB;
 }) {
   const order = orderSchema.parse(event);
 
@@ -31,7 +31,7 @@ export async function createShopifySale({
     current_subtotal_price_set: { shop_money: shopMoney },
   } = order;
 
-  const amount = Number(shopMoney.amount) * 100;
+  const amount = Math.round(Number(shopMoney.amount) * 100); // round to nearest cent
   const { link_id: linkId } = leadData;
   const currency = shopMoney.currency_code.toLowerCase();
 
@@ -62,6 +62,12 @@ export async function createShopifySale({
     metadata: JSON.stringify(order),
   };
 
+  const existingCustomer = await prisma.customer.findUniqueOrThrow({
+    where: {
+      id: customerId,
+    },
+  });
+
   const [_sale, link, workspace, customer] = await Promise.all([
     // record sale
     recordSale(saleData),
@@ -72,6 +78,14 @@ export async function createShopifySale({
         id: linkId,
       },
       data: {
+        ...(isFirstConversion({
+          customer: existingCustomer,
+          linkId,
+        }) && {
+          conversions: {
+            increment: 1,
+          },
+        }),
         sales: {
           increment: 1,
         },
@@ -93,7 +107,6 @@ export async function createShopifySale({
         },
       },
     }),
-
     prisma.customer.update({
       where: {
         id: customerId,
@@ -107,7 +120,6 @@ export async function createShopifySale({
         },
       },
     }),
-
     redis.del(`shopify:checkout:${checkoutToken}`),
   ]);
 
@@ -137,6 +149,11 @@ export async function createShopifySale({
       quantity: 1,
       invoiceId: saleData.invoice_id,
       currency: saleData.currency,
+      context: {
+        customer: {
+          country: customer.country,
+        },
+      },
     });
 
     if (commission) {

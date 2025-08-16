@@ -11,7 +11,7 @@ export const syncTotalCommissions = async ({
   return await prisma.$transaction(async (tx) => {
     const totalCommissions = await tx.commission.aggregate({
       where: {
-        earnings: { gt: 0 },
+        earnings: { not: 0 },
         programId,
         partnerId,
         status: { in: ["pending", "processed", "paid"] },

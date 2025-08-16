@@ -99,14 +99,14 @@ export function OnboardingForm({
     <form
       ref={formRef}
       onSubmit={handleSubmit(async (data) => await executeAsync(data))}
-      className="flex w-full flex-col gap-4 text-left"
+      className="flex w-full flex-col gap-6 text-left"
     >
       <label>
         <span className="text-sm font-medium text-neutral-800">Full Name</span>
         <input
           type="text"
           className={cn(
-            "mt-2 block w-full rounded-md read-only:bg-neutral-100 read-only:text-neutral-500 focus:outline-none sm:text-sm",
+            "mt-1.5 block w-full rounded-md read-only:bg-neutral-100 read-only:text-neutral-500 focus:outline-none sm:text-sm",
             errors.name
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -131,7 +131,7 @@ export function OnboardingForm({
               <FileUpload
                 accept="images"
                 className={cn(
-                  "mt-2 size-20 rounded-full border border-neutral-300",
+                  "mt-1.5 size-20 rounded-full border border-neutral-300",
                   errors.image && "border-0 ring-2 ring-red-500",
                 )}
                 iconClassName="size-5"
@@ -192,7 +192,7 @@ export function OnboardingForm({
         </span>
         <ReactTextareaAutosize
           className={cn(
-            "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
+            "mt-1.5 block w-full rounded-md focus:outline-none sm:text-sm",
             errors.description
               ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -209,7 +209,7 @@ export function OnboardingForm({
           <span className="text-sm font-medium text-neutral-800">
             Profile Type
           </span>
-          <div className="mt-2">
+          <div className="mt-1.5">
             <ToggleGroup
               options={[
                 {
@@ -262,7 +262,7 @@ export function OnboardingForm({
                 <input
                   type="text"
                   className={cn(
-                    "mt-2 block w-full rounded-md read-only:bg-neutral-100 read-only:text-neutral-500 focus:outline-none sm:text-sm",
+                    "mt-1.5 block w-full rounded-md read-only:bg-neutral-100 read-only:text-neutral-500 focus:outline-none sm:text-sm",
                     errors.companyName
                       ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                       : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -284,7 +284,7 @@ export function OnboardingForm({
           <Button
             type="submit"
             text="Continue"
-            className="mt-2"
+            className="mt-1.5"
             loading={isPending || isSubmitting || isSubmitSuccessful}
           />
         </motion.div>

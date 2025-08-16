@@ -1,8 +1,7 @@
 "use client";
 
-import { LinkStructure } from "@dub/prisma/client";
+import { PartnerLinkStructure } from "@dub/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
-import { useSession } from "next-auth/react";
 
 export const getLinkStructureOptions = ({
   domain,
@@ -11,31 +10,26 @@ export const getLinkStructureOptions = ({
   domain?: string | null;
   url?: string | null;
 }) => {
-  const { data: session } = useSession();
-  const username =
-    session?.user?.name?.split(" ")[0].toLowerCase() ??
-    session?.user?.email?.split("@")[0] ??
-    "steven";
   const shortDomain = domain || "refer.dub.co";
   const websiteDomain = (url && getDomainWithoutWWW(url)) || "dub.co";
 
   return [
     {
-      id: LinkStructure.short,
+      id: PartnerLinkStructure.short,
       label: "Short link",
-      example: `${shortDomain}/${username}`,
+      example: `${shortDomain}/{partnerName}`,
       comingSoon: false,
     },
     {
-      id: LinkStructure.query,
+      id: PartnerLinkStructure.query,
       label: "Query parameter",
-      example: `${websiteDomain}?via=${username}`,
+      example: `${websiteDomain}?via={partnerName}`,
       comingSoon: false,
     },
     {
-      id: LinkStructure.path,
+      id: PartnerLinkStructure.path,
       label: "Dynamic path",
-      example: `${websiteDomain}/refer/${username}`,
+      example: `${websiteDomain}/refer/{partnerName}`,
       comingSoon: true,
     },
   ];

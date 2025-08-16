@@ -8,12 +8,12 @@ import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
+  ChevronRight,
   MoneyBills2,
   SimpleTooltipContent,
   Tooltip,
 } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
-import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { memo } from "react";
 
@@ -25,20 +25,22 @@ export const PayoutStats = memo(() => {
 
   return (
     <AnimatedSizeContainer height>
-      <div className="border-t border-neutral-300/80 p-3">
+      <div className="border-border-default grid gap-3 border-t p-3">
         <Link
-          className="group flex items-center gap-1.5 text-sm font-normal text-neutral-500 transition-colors hover:text-neutral-700"
+          className="group flex items-center justify-between gap-2"
           href="/settings/payouts"
         >
-          <MoneyBills2 className="size-4" />
-          Payouts
-          <ChevronRight className="size-3 text-neutral-400 transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-neutral-500" />
+          <div className="text-content-default flex items-center gap-2 text-sm font-semibold">
+            <MoneyBills2 className="size-4" />
+            Payouts
+          </div>
+          <ChevronRight className="text-content-muted group-hover:text-content-default size-3 transition-[color,transform] group-hover:translate-x-0.5 [&_*]:stroke-2" />
         </Link>
 
-        <div className="mt-4 flex flex-col gap-2">
-          <div className="grid gap-1 text-sm">
-            <p className="text-neutral-500">Upcoming payouts</p>
-            <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-4">
+          <div className="grid gap-1 text-xs">
+            <p className="text-content-subtle font-medium">Upcoming payouts</p>
+            <div className="flex items-center gap-1">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
                   content={
@@ -51,16 +53,20 @@ export const PayoutStats = memo(() => {
                   side="right"
                 >
                   <div>
-                    <AlertCircleFill className="size-4 text-black" />
+                    <AlertCircleFill className="text-content-default size-3" />
                   </div>
                 </Tooltip>
               )}
               {payoutsCount ? (
-                <p className="text-black">
+                <p className="text-content-default font-medium">
                   {currencyFormatter(
-                    (payoutsCount?.find(
-                      (payout) => payout.status === PayoutStatus.pending,
-                    )?.amount || 0) / 100,
+                    (payoutsCount
+                      ?.filter(
+                        (payout) =>
+                          payout.status === PayoutStatus.pending ||
+                          payout.status === PayoutStatus.processing,
+                      )
+                      ?.reduce((acc, p) => acc + p.amount, 0) || 0) / 100,
                     {
                       maximumFractionDigits: 2,
                     },
@@ -71,16 +77,19 @@ export const PayoutStats = memo(() => {
               )}
             </div>
           </div>
-          <div className="grid gap-1 text-sm">
-            <p className="text-neutral-500">Total payouts</p>
+          <div className="grid gap-1 text-xs">
+            <p className="text-content-subtle font-medium">Received payouts</p>
             {payoutsCount ? (
-              <p className="text-black">
+              <p className="text-content-default font-medium">
                 {currencyFormatter(
-                  (payoutsCount?.find(
-                    (payout) =>
-                      payout.status === PayoutStatus.completed ||
-                      payout.status === PayoutStatus.processing,
-                  )?.amount || 0) / 100,
+                  (payoutsCount
+                    ?.filter(
+                      (payout) =>
+                        payout.status === PayoutStatus.processed ||
+                        payout.status === PayoutStatus.sent ||
+                        payout.status === PayoutStatus.completed,
+                    )
+                    ?.reduce((acc, p) => acc + p.amount, 0) ?? 0) / 100,
                   {
                     maximumFractionDigits: 2,
                   },
@@ -92,7 +101,7 @@ export const PayoutStats = memo(() => {
           </div>
         </div>
         {partner && !partner.payoutsEnabledAt && (
-          <ConnectPayoutButton className="mt-4 h-9 w-full" />
+          <ConnectPayoutButton className="mt-4 h-8 w-full" />
         )}
       </div>
     </AnimatedSizeContainer>

@@ -1,66 +1,68 @@
-import { createPaypalToken } from "@/lib/paypal/create-paypal-token";
-import { paypalEnv } from "@/lib/paypal/env";
-import { log } from "@dub/utils";
-import { Payload, Payouts } from "./utils";
+import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
+import { prisma } from "@dub/prisma";
 
-export async function sendPaypalPayouts({
-  payload,
-  payouts,
-}: {
-  payload: Payload;
-  payouts: Payouts[];
-}) {
+export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
+  const payouts = await prisma.payout.findMany({
+    where: {
+      invoiceId,
+      status: {
+        not: "completed",
+      },
+      partner: {
+        payoutsEnabledAt: {
+          not: null,
+        },
+        paypalEmail: {
+          not: null,
+        },
+      },
+    },
+    include: {
+      partner: {
+        select: {
+          email: true,
+          paypalEmail: true,
+        },
+      },
+      program: {
+        select: {
+          name: true,
+          logo: true,
+        },
+      },
+    },
+  });
+
   if (payouts.length === 0) {
     console.log("No payouts for sending via PayPal, skipping...");
     return;
   }
 
-  const { invoiceId } = payload;
-  const paypalAccessToken = await createPaypalToken();
+  const batchPayout = await createPayPalBatchPayout({
+    payouts,
+    invoiceId,
+  });
 
-  const body = {
-    sender_batch_header: {
-      sender_batch_id: invoiceId,
-    },
-    items: payouts.map((payout) => ({
-      recipient_type: "EMAIL",
-      receiver: payout.partner.paypalEmail,
-      sender_item_id: payout.id,
-      note: `Dub Partners payout (${payout.program.name})`,
-      amount: {
-        value: (payout.amount / 100).toString(),
-        currency: "USD",
-      },
-    })),
-  };
+  console.log("PayPal batch payout created", batchPayout);
 
-  const response = await fetch(
-    `${paypalEnv.PAYPAL_API_HOST}/v1/payments/payouts`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${paypalAccessToken}`,
-      },
-      body: JSON.stringify(body),
-    },
+  const batchEmails = await resend?.batch.send(
+    payouts
+      .filter((payout) => payout.partner.email)
+      .map((payout) => ({
+        from: VARIANT_TO_FROM_MAP.notifications,
+        to: payout.partner.email!,
+        subject: "You've been paid!",
+        react: PartnerPayoutProcessed({
+          email: payout.partner.email!,
+          program: payout.program,
+          payout,
+          variant: "paypal",
+        }),
+      })),
   );
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    console.error("[PayPal] Error creating PayPal batch payout", data);
-
-    await log({
-      message: `Error creating PayPal batch payout. Invoice ID: ${invoiceId}. Error: ${JSON.stringify(
-        data,
-      )}`,
-      type: "alerts",
-      mention: true,
-    });
-
-    return;
-  }
-
-  console.log("Paypal batch payout created", data);
+  console.log("Resend batch emails sent", batchEmails);
 }

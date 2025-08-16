@@ -27,7 +27,9 @@ export function PartnerSelector({
 
   const { partners: selectedPartners, loading: selectedPartnersLoading } =
     usePartners({
-      query: selectedPartnerId ? { ids: [selectedPartnerId] } : undefined,
+      query: selectedPartnerId
+        ? { partnerIds: [selectedPartnerId] }
+        : undefined,
     });
 
   useEffect(() => {

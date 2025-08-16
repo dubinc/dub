@@ -1,44 +1,37 @@
-import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
+import { recordLinkTB, transformLinkTB } from "../lib/tinybird";
 
-const domain = "song.fyi";
+const programId = "prog_xxx";
 
 async function main() {
   const links = await prisma.link.findMany({
     where: {
-      domain,
+      programId,
     },
-    include: {
-      tags: {
-        select: {
-          tag: true,
-        },
-      },
-    },
-    // take: 10000,
   });
-  const response = await Promise.allSettled([
-    prisma.link.deleteMany({
-      where: {
-        domain,
-        id: {
-          in: links.map((link) => link.id),
-        },
-      },
-    }),
-    // redis.del(domain),
-    recordLinkTB(
-      links.map((link) => ({
-        ...transformLinkTB(link),
-        deleted: true,
-      })),
-    ),
-  ]);
 
-  console.log(links.length);
+  console.log(`Found ${links.length} links to delete`);
   console.table(links.slice(-10), ["domain", "key"]);
-  console.log(response);
+
+  const response = await recordLinkTB(
+    links.map((link) => ({
+      ...transformLinkTB(link),
+      deleted: true,
+    })),
+  );
+
+  console.log("Deleted links in Tinybird", response);
+
+  const deletedLinks = await prisma.link.deleteMany({
+    where: {
+      id: {
+        in: links.map((link) => link.id),
+      },
+    },
+  });
+
+  console.log(`Deleted ${deletedLinks.count} links`);
 }
 
 main();

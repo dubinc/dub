@@ -10,7 +10,6 @@ import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,
-  COUNTRY_CODES,
   PAGINATION_LIMIT,
   THE_BEGINNING_OF_TIME,
   capitalize,
@@ -87,6 +86,14 @@ export const analyticsQuerySchema = z
       .describe(
         "The unique ID of the short link on Dub to retrieve analytics for.",
       ),
+    // TODO: Add this to the public API when we can properly verify linkIds ownership in /api/analytics
+    // linkIds: z
+    //   .union([z.string(), z.array(z.string())])
+    //   .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    //   .optional()
+    //   .describe(
+    //     "A list of link IDs to retrieve analytics for. Takes precidence over ",
+    //   ),
     externalId: z
       .string()
       .optional()
@@ -138,9 +145,11 @@ export const analyticsQuerySchema = z
       )
       .openapi({ example: "America/New_York", default: "UTC" }),
     country: z
-      .enum(COUNTRY_CODES)
+      .string()
       .optional()
-      .describe("The country to retrieve analytics for.")
+      .describe(
+        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
+      )
       .openapi({ ref: "countryCode" }),
     city: z
       .string()
@@ -182,7 +191,7 @@ export const analyticsQuerySchema = z
       .enum(TRIGGER_TYPES)
       .optional()
       .describe(
-        "The trigger to retrieve analytics for. If undefined, return both QR and link clicks.",
+        "The trigger to retrieve analytics for. If undefined, returns all trigger types.",
       ),
     referer: z
       .string()
@@ -195,13 +204,6 @@ export const analyticsQuerySchema = z
       .describe("The full referer URL to retrieve analytics for.")
       .openapi({ example: "https://dub.co/blog" }),
     url: z.string().optional().describe("The URL to retrieve analytics for."),
-    tagId: z
-      .string()
-      .optional()
-      .describe(
-        "Deprecated. Use `tagIds` instead. The tag ID to retrieve analytics for.",
-      )
-      .openapi({ deprecated: true }),
     tagIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -213,17 +215,41 @@ export const analyticsQuerySchema = z
       .describe(
         "The folder ID to retrieve analytics for. If not provided, return analytics for unsorted links.",
       ),
-    qr: booleanQuerySchema
-      .optional()
-      .describe(
-        "Deprecated. Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
-      )
-      .openapi({ deprecated: true }),
     root: booleanQuerySchema
       .optional()
       .describe(
         "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
       ),
+    saleType: z
+      .enum(["new", "recurring"])
+      .optional()
+      .describe(
+        "Filter sales by type: 'new' for first-time purchases, 'recurring' for repeat purchases. If undefined, returns both.",
+      ),
+    query: z
+      .string()
+      .max(10000)
+      .optional()
+      .describe(
+        "Search the events by a custom metadata value. Only available for lead and sale events.",
+      )
+      .openapi({
+        example: "metadata['key']:'value'",
+      }),
+    // deprecated fields
+    tagId: z
+      .string()
+      .optional()
+      .describe(
+        "Deprecated: Use `tagIds` instead. The tag ID to retrieve analytics for.",
+      )
+      .openapi({ deprecated: true }),
+    qr: booleanQuerySchema
+      .optional()
+      .describe(
+        "Deprecated: Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
+      )
+      .openapi({ deprecated: true }),
   })
   .merge(utmTagsSchema);
 
@@ -237,7 +263,8 @@ export const analyticsFilterTB = z
       .transform((v) => (v ? prefixWorkspaceId(v) : undefined)),
     customerId: z.string().optional(),
     root: z.boolean().optional(),
-    qr: z.boolean().optional(),
+    saleType: z.string().optional(),
+    trigger: z.enum(TRIGGER_TYPES).optional(),
     start: z.string(),
     end: z.string(),
     granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
@@ -246,12 +273,22 @@ export const analyticsFilterTB = z
       .string()
       .optional()
       .describe("The UTM tag to group by. Defaults to `utm_source`."),
+    // TODO: remove this once it's been added to the public API
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("The link IDs to retrieve analytics for."),
     folderIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("The folder IDs to retrieve analytics for."),
     isMegaFolder: z.boolean().optional(),
+    filters: z
+      .string()
+      .optional()
+      .describe("The filters to apply to the analytics."),
   })
   .merge(
     analyticsQuerySchema.pick({
@@ -277,11 +314,12 @@ export const analyticsFilterTB = z
       partnerId: true,
       tenantId: true,
       folderId: true,
+      sortBy: true,
     }),
   );
 
 export const eventsFilterTB = analyticsFilterTB
-  .omit({ granularity: true, timezone: true, page: true })
+  .omit({ granularity: true, timezone: true, page: true, sortBy: true })
   .and(
     z.object({
       offset: z.coerce.number().default(0),
@@ -298,7 +336,7 @@ const sortOrder = z
   .describe("The sort order. The default is `desc`.");
 
 export const eventsQuerySchema = analyticsQuerySchema
-  .omit({ groupBy: true })
+  .omit({ groupBy: true, sortBy: true })
   .extend({
     event: z
       .enum(EVENT_TYPES)

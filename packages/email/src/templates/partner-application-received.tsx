@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function PartnerApplicationReceived({
+export default function PartnerApplicationReceived({
   email = "panic@thedis.co",
   partner = {
     id: "pn_1JPBEGP7EXF76CXT1W99VERW5",
@@ -30,6 +30,7 @@ export function PartnerApplicationReceived({
   },
   program = {
     name: "Acme",
+    autoApprovePartners: true,
   },
   workspace = {
     slug: "acme",
@@ -47,12 +48,13 @@ export function PartnerApplicationReceived({
   };
   program: {
     name: string;
+    autoApprovePartners: boolean;
   };
   workspace: {
     slug: string;
   };
 }) {
-  const applicationUrl = `https://app.dub.co/${workspace.slug}/program/partners?status=pending&partnerId=${partner.id}`;
+  const applicationUrl = `https://app.dub.co/${workspace.slug}/program/partners/applications?partnerId=${partner.id}`;
 
   return (
     <Html>
@@ -73,8 +75,9 @@ export function PartnerApplicationReceived({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You have a new pending application to review, view their
-              application below or{" "}
+              Your program <strong>{program.name}</strong> just received a new
+              application from <strong>{partner.name}</strong> ({partner.email}
+              ). You can view it below or{" "}
               <Link
                 href={applicationUrl}
                 className="text-neutral-600 underline underline-offset-4"
@@ -83,6 +86,14 @@ export function PartnerApplicationReceived({
               </Link>
               .
             </Text>
+
+            {program.autoApprovePartners && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                Since you have auto-approve partners enabled, this application
+                will be <strong>automatically approved</strong> – no action is
+                needed on your part.
+              </Text>
+            )}
 
             <Container className="mb-8 mt-10 rounded-lg border border-solid border-neutral-200">
               <Section className="p-2">
@@ -165,5 +176,3 @@ export function PartnerApplicationReceived({
     </Html>
   );
 }
-
-export default PartnerApplicationReceived;

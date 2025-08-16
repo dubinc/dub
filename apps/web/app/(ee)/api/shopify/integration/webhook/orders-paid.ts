@@ -12,29 +12,31 @@ export async function ordersPaid({
   event: any;
   workspaceId: string;
 }) {
-  const {
-    customer: { id: externalId },
-    checkout_token: checkoutToken,
-  } = orderSchema.parse(event);
+  const { customer: orderCustomer, checkout_token: checkoutToken } =
+    orderSchema.parse(event);
 
-  const customer = await prisma.customer.findUnique({
-    where: {
-      projectId_externalId: {
-        projectId: workspaceId,
-        externalId: externalId.toString(),
+  if (orderCustomer) {
+    const { id: externalId } = orderCustomer;
+
+    const customer = await prisma.customer.findUnique({
+      where: {
+        projectId_externalId: {
+          projectId: workspaceId,
+          externalId: externalId.toString(),
+        },
       },
-    },
-  });
-
-  // customer is found, process the order right away
-  if (customer) {
-    await processOrder({
-      event,
-      workspaceId,
-      customerId: customer.id,
     });
 
-    return "[Shopify] Order event processed successfully.";
+    // customer is found, process the order right away
+    if (customer) {
+      await processOrder({
+        event,
+        workspaceId,
+        customerId: customer.id,
+      });
+
+      return "[Shopify] Order event processed successfully.";
+    }
   }
 
   // Check the cache to see the pixel event for this checkout token exist before publishing the event to the queue

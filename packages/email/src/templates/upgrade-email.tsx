@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function UpgradeEmail({
+export default function UpgradeEmail({
   name = "Brendon Urie",
   email = "panic@thedis.co",
   plan = "Business",
@@ -82,5 +82,3 @@ export function UpgradeEmail({
     </Html>
   );
 }
-
-export default UpgradeEmail;

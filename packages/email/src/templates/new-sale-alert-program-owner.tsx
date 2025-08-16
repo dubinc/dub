@@ -16,7 +16,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function NewSaleAlertProgramOwner({
+export default function NewSaleAlertProgramOwner({
   user = {
     name: "Brendan Urie",
     email: "panic@thedis.co",
@@ -211,5 +211,3 @@ export function NewSaleAlertProgramOwner({
     </Html>
   );
 }
-
-export default NewSaleAlertProgramOwner;

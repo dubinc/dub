@@ -1,11 +1,9 @@
-import { Globe } from "@dub/ui/icons";
 import { StepPage } from "../../step-page";
 import { Form } from "./form";
 
 export default function Custom() {
   return (
     <StepPage
-      icon={Globe}
       title="Connect a custom domain"
       description={
         <a

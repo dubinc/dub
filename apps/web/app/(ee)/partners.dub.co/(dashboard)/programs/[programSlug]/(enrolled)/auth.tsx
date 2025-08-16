@@ -3,6 +3,7 @@
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { redirect, useParams, usePathname } from "next/navigation";
+import { UnapprovedProgramPage } from "./unapproved-program-page";
 
 export function ProgramEnrollmentAuth({
   children,
@@ -19,9 +20,13 @@ export function ProgramEnrollmentAuth({
 
   if (
     (error && error.status === 404) ||
-    (programEnrollment && programEnrollment.status !== "approved")
+    (programEnrollment && programEnrollment.status === "invited")
   ) {
     redirect(`/programs/${programSlug}/apply`);
+  }
+
+  if (programEnrollment && programEnrollment.status !== "approved") {
+    return <UnapprovedProgramPage programEnrollment={programEnrollment} />;
   }
 
   // Redirect to /links if no links found for a program enrollment

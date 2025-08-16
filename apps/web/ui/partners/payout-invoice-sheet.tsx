@@ -1,13 +1,15 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
-import { PAYOUT_FEES } from "@/lib/partners/constants";
+import { exceededLimitError } from "@/lib/api/errors";
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { mutatePrefix } from "@/lib/swr/mutate";
+import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutResponse } from "@/lib/types";
+import { PayoutResponse, PlanProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -16,9 +18,12 @@ import {
   DynamicTooltipWrapper,
   Gear,
   GreekTemple,
+  PaperPlane,
   Sheet,
+  ShimmerDots,
   SimpleTooltipContent,
   Table,
+  TooltipContent,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
@@ -32,47 +37,69 @@ import {
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import Stripe from "stripe";
 import useSWR from "swr";
 
+const PAYMENT_METHODS = Object.freeze({
+  link: {
+    label: "link",
+    type: "link",
+    icon: CreditCard,
+    duration: "Instantly",
+  },
+  card: {
+    label: "card",
+    type: "card",
+    icon: CreditCard,
+    duration: "Instantly",
+  },
+  us_bank_account: {
+    label: "ACH",
+    type: "us_bank_account",
+    icon: GreekTemple,
+    duration: "4 business days",
+  },
+  acss_debit: {
+    label: "ACSS Debit",
+    type: "acss_debit",
+    icon: GreekTemple,
+    duration: "5 business days",
+  },
+  sepa_debit: {
+    label: "SEPA Debit",
+    type: "sepa_debit",
+    icon: GreekTemple,
+    duration: "5 business days",
+  },
+});
+
+type SelectPaymentMethod =
+  (typeof PAYMENT_METHODS)[keyof typeof PAYMENT_METHODS] & {
+    id: string;
+    fee: number;
+  };
+
 function PayoutInvoiceSheetContent() {
-  const { id: workspaceId, slug, plan, defaultProgramId } = useWorkspace();
-  const { queryParams } = useRouterStuff();
+  const router = useRouter();
+  const {
+    id: workspaceId,
+    slug,
+    plan,
+    role,
+    defaultProgramId,
+    payoutsUsage,
+    payoutsLimit,
+    payoutFee,
+  } = useWorkspace();
+
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
 
-  const paymentMethodsTypes = Object.freeze({
-    link: {
-      label: "link",
-      type: "link",
-      icon: CreditCard,
-      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].card,
-      duration: "Instantly",
-    },
-    card: {
-      label: "card",
-      type: "card",
-      icon: CreditCard,
-      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].card,
-      duration: "Instantly",
-    },
-    us_bank_account: {
-      label: "ACH",
-      type: "us_bank_account",
-      icon: GreekTemple,
-      fee: PAYOUT_FEES[plan?.split(" ")[0] ?? "business"].ach,
-      duration: "4 business days",
-    },
-  });
-
-  type PaymentMethodWithFee =
-    (typeof paymentMethodsTypes)[keyof typeof paymentMethodsTypes] & {
-      id: string;
-    };
-
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<PaymentMethodWithFee | null>(null);
+    useState<SelectPaymentMethod | null>(null);
 
   const [cutoffPeriod, setCutoffPeriod] =
     useState<CUTOFF_PERIOD_TYPES>("today");
@@ -89,59 +116,73 @@ function PayoutInvoiceSheetContent() {
     fetcher,
   );
 
-  const { executeAsync, isPending } = useAction(confirmPayoutsAction, {
-    onSuccess: async () => {
-      await mutatePrefix(`/api/programs/${defaultProgramId}/payouts`);
-      toast.success(
-        "Payouts confirmed successfully! They will be processed soon.",
-      );
-      queryParams({
-        del: "confirmPayouts",
-      });
-    },
+  const [excludedPayoutIds, setExcludedPayoutIds] = useState<string[]>([]);
+
+  const includedPayouts = useMemo(
+    () =>
+      eligiblePayouts?.filter(
+        (payout) => !excludedPayoutIds.includes(payout.id),
+      ),
+    [eligiblePayouts, excludedPayoutIds],
+  );
+
+  const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
     onError({ error }) {
       toast.error(error.serverError);
     },
   });
 
-  // Set the first payment method as the selected payment method
+  const finalPaymentMethods = useMemo(
+    () =>
+      paymentMethods?.map((pm) => {
+        const paymentMethod = PAYMENT_METHODS[pm.type];
+
+        const base = {
+          ...paymentMethod,
+          id: pm.id,
+          fee: calculatePayoutFeeForMethod({
+            paymentMethod: pm.type,
+            payoutFee,
+          }),
+        };
+
+        if (pm.link) {
+          return {
+            ...base,
+            title: `Link – ${truncate(pm.link.email, 16)}`,
+          };
+        }
+
+        if (pm.card) {
+          return {
+            ...base,
+            title: `${capitalize(pm.card.brand)} **** ${pm.card.last4}`,
+          };
+        }
+
+        return {
+          ...base,
+          title: `${paymentMethod.label} **** ${pm[paymentMethod.type]?.last4}`,
+        };
+      }),
+    [paymentMethods, plan],
+  );
+
   useEffect(() => {
-    if (!paymentMethods || !paymentMethods.length) {
-      return;
+    if (
+      !selectedPaymentMethod &&
+      finalPaymentMethods &&
+      finalPaymentMethods.length > 0
+    ) {
+      setSelectedPaymentMethod(finalPaymentMethods[0]);
     }
+  }, [finalPaymentMethods, selectedPaymentMethod]);
 
-    if (!selectedPaymentMethod) {
-      const firstPaymentMethod = paymentMethods[0];
-      setSelectedPaymentMethod({
-        ...paymentMethodsTypes[firstPaymentMethod.type],
-        id: firstPaymentMethod.id,
-      });
-    }
-  }, [paymentMethods, selectedPaymentMethod]);
+  const { amount, fee, total } = useMemo(() => {
+    const amount = includedPayouts?.reduce((acc, payout) => {
+      return acc + payout.amount;
+    }, 0);
 
-  const paymentMethodsWithFee = useMemo(
-    () =>
-      paymentMethods?.map((pm) => ({
-        ...paymentMethodsTypes[pm.type],
-        id: pm.id,
-        title: pm.link
-          ? `Link – ${truncate(pm.link.email, 24)}`
-          : pm.card
-            ? `${capitalize(pm.card?.brand)} **** ${pm.card?.last4}`
-            : `ACH **** ${pm.us_bank_account?.last4}`,
-      })),
-    [paymentMethods],
-  );
-
-  const amount = useMemo(
-    () =>
-      eligiblePayouts?.reduce((acc, payout) => {
-        return acc + payout.amount;
-      }, 0),
-    [eligiblePayouts],
-  );
-
-  const invoiceData = useMemo(() => {
     const fee =
       amount === undefined
         ? undefined
@@ -149,6 +190,10 @@ function PayoutInvoiceSheetContent() {
     const total =
       amount !== undefined && fee !== undefined ? amount + fee : undefined;
 
+    return { amount, fee, total };
+  }, [includedPayouts, selectedPaymentMethod]);
+
+  const invoiceData = useMemo(() => {
     return [
       {
         key: "Method",
@@ -162,13 +207,13 @@ function PayoutInvoiceSheetContent() {
                 value={selectedPaymentMethod?.id || ""}
                 onChange={(e) =>
                   setSelectedPaymentMethod(
-                    paymentMethodsWithFee?.find(
+                    finalPaymentMethods?.find(
                       (pm) => pm.id === e.target.value,
                     ) || null,
                   )
                 }
               >
-                {paymentMethodsWithFee?.map(({ id, title }) => (
+                {finalPaymentMethods?.map(({ id, title }) => (
                   <option key={id} value={id}>
                     {title}
                   </option>
@@ -237,7 +282,7 @@ function PayoutInvoiceSheetContent() {
           ),
         tooltipContent: selectedPaymentMethod ? (
           <SimpleTooltipContent
-            title={`${Math.round(selectedPaymentMethod.fee * 100)}% processing fee.${selectedPaymentMethod.type !== "us_bank_account" ? " Switch to ACH for a reduced fee." : ""}`}
+            title={`${selectedPaymentMethod.fee * 100}% processing fee. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
             cta="Learn more"
             href="https://d.to/payouts"
           />
@@ -266,40 +311,85 @@ function PayoutInvoiceSheetContent() {
     ];
   }, [amount, paymentMethods, selectedPaymentMethod, cutoffPeriod]);
 
+  const partnerColumn = useMemo(
+    () => ({
+      header: "Partner",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <img
+            src={
+              row.original.partner.image ||
+              `${OG_AVATAR_URL}${row.original.partner.name}`
+            }
+            alt={row.original.partner.name}
+            className="size-6 rounded-full"
+          />
+          <span className="text-sm text-neutral-700">
+            {row.original.partner.name}
+          </span>
+        </div>
+      ),
+    }),
+    [],
+  );
+
   const table = useTable({
     data: eligiblePayouts || [],
     columns: [
-      {
-        header: "Partner",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <img
-              src={
-                row.original.partner.image ||
-                `${OG_AVATAR_URL}${row.original.partner.name}`
-              }
-              alt={row.original.partner.name}
-              className="size-6 rounded-full"
-            />
-            <span className="text-sm text-neutral-700">
-              {row.original.partner.name}
-            </span>
-          </div>
-        ),
-      },
+      partnerColumn,
       {
         id: "total",
         header: "Total",
-        cell: ({ row }) =>
-          currencyFormatter(row.original.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => (
+          <>
+            <div className="relative">
+              <span
+                className={cn(
+                  "group-hover/row:opacity-0",
+                  excludedPayoutIds.includes(row.original.id) && "line-through",
+                )}
+              >
+                {currencyFormatter(row.original.amount / 100, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+              <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
+                <Button
+                  variant="secondary"
+                  text={
+                    excludedPayoutIds.includes(row.original.id)
+                      ? "Include"
+                      : "Exclude"
+                  }
+                  className="h-6 w-fit px-2"
+                  onClick={() =>
+                    // Toggle excluded
+                    setExcludedPayoutIds((ids) =>
+                      ids.includes(row.original.id)
+                        ? ids.filter((id) => id !== row.original.id)
+                        : [...ids, row.original.id],
+                    )
+                  }
+                />
+              </div>
+            </div>
+          </>
+        ),
       },
     ],
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
-    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
+    tdClassName: (id, row) =>
+      cn(
+        "transition-opacity",
+        excludedPayoutIds.includes(row.original.id) && [
+          "[&>div]:opacity-50",
+          id === "total" && "group-hover/row:[&>div]:opacity-100",
+        ], // Excluded payout
+        id === "total" && "text-right",
+        "border-l-0",
+      ),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `eligible payout${p ? "s" : ""}`,
@@ -307,18 +397,18 @@ function PayoutInvoiceSheetContent() {
     error: eligiblePayoutsError
       ? "Failed to load payouts for this invoice."
       : undefined,
-  } as any);
+  });
 
-  useEffect(() => {
-    if (eligiblePayouts) {
-      table.table.toggleAllRowsSelected();
-    }
-  }, [eligiblePayouts]);
+  const { error: permissionsError } = clientAccessCheck({
+    role,
+    action: "payouts.write",
+    customPermissionDescription: "confirm payouts",
+  });
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-        <Sheet.Title className="text-xl font-semibold">
+      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
+        <Sheet.Title className="text-lg font-semibold">
           Payout invoice
         </Sheet.Title>
         <Sheet.Close asChild>
@@ -371,31 +461,63 @@ function PayoutInvoiceSheetContent() {
       </div>
 
       <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
-        <Button
-          type="button"
-          variant="primary"
-          loading={isPending}
-          disabled={
-            eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
-          }
+        <ConfirmPayoutsButton
           onClick={async () => {
             if (!workspaceId || !selectedPaymentMethod) {
-              return;
+              return false;
             }
 
-            await executeAsync({
+            const result = await confirmPayouts({
               workspaceId,
               paymentMethodId: selectedPaymentMethod.id,
               cutoffPeriod,
+              excludedPayoutIds,
+              amount: amount ?? 0,
+              fee: fee ?? 0,
+              total: total ?? 0,
             });
+
+            if (!result?.data?.invoiceId) return false;
+
+            setTimeout(
+              () =>
+                result?.data?.invoiceId &&
+                router.push(
+                  `/${slug}/program/payouts/success?invoiceId=${result.data.invoiceId}`,
+                ),
+              1000,
+            );
+
+            return true;
           }}
           text={
             amount && amount > 0
-              ? `Confirm ${currencyFormatter(amount / 100, {
+              ? `Hold to confirm ${currencyFormatter(amount / 100, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })} payout`
-              : "Confirm payout"
+              : "Hold to confirm payout"
+          }
+          disabled={
+            eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
+          }
+          disabledTooltip={
+            payoutsUsage &&
+            payoutsLimit &&
+            amount &&
+            payoutsUsage + amount > payoutsLimit ? (
+              <TooltipContent
+                title={exceededLimitError({
+                  plan: plan as PlanProps,
+                  limit: payoutsLimit,
+                  type: "payouts",
+                })}
+                cta="Upgrade"
+                href={`/${slug}/settings/billing/upgrade`}
+              />
+            ) : (
+              permissionsError || undefined
+            )
           }
         />
       </div>
@@ -430,5 +552,163 @@ export function PayoutInvoiceSheet() {
     >
       <PayoutInvoiceSheetContent />
     </Sheet>
+  );
+}
+
+function ConfirmPayoutsButton({
+  onClick,
+  text,
+  disabled,
+  disabledTooltip,
+}: {
+  onClick: () => Promise<boolean>;
+  text: string;
+  disabled: boolean;
+  disabledTooltip: React.ReactNode;
+}) {
+  const loadingBar = useRef<HTMLDivElement>(null);
+
+  const holding = useRef(false);
+  const progress = useRef(0);
+
+  const requestRef = useRef<number | null>();
+  const previousTimeRef = useRef();
+
+  // Rounded progress to nearest tenth
+  const [roundedProgress, setRoundedProgress] = useState(0);
+
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const animate = (time) => {
+    if (previousTimeRef.current !== undefined) {
+      const deltaTime = time - previousTimeRef.current;
+
+      if (progress.current < 1) {
+        progress.current = Math.max(
+          0,
+          Math.min(
+            1,
+            progress.current + deltaTime * (holding.current ? 0.0005 : -0.001),
+          ),
+        );
+
+        setRoundedProgress(Math.round(progress.current * 10) / 10);
+
+        if (loadingBar.current)
+          loadingBar.current.style.width = `${progress.current * 100}%`;
+      }
+    }
+
+    previousTimeRef.current = time;
+    requestRef.current = requestAnimationFrame(animate);
+  };
+
+  const submitting = useRef(false);
+
+  // Submit when the progress is >= 1 and not already submitting
+  useEffect(() => {
+    if (roundedProgress < 1 || submitting.current) return;
+
+    submitting.current = true;
+    onClick()
+      .then((result) => {
+        if (result) {
+          setIsSuccess(true);
+        } else {
+          progress.current = 0;
+          setRoundedProgress(0);
+          submitting.current = false;
+        }
+      })
+      .catch(() => {
+        progress.current = 0;
+        setRoundedProgress(0);
+        submitting.current = false;
+      });
+  }, [roundedProgress]);
+
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(requestRef.current!);
+  }, []);
+
+  return (
+    <Button
+      type="button"
+      variant="primary"
+      className={cn(
+        "relative overflow-hidden",
+        isSuccess && "border-green-500 bg-green-500",
+      )}
+      textWrapperClassName="!overflow-visible"
+      {...(!disabled &&
+        !disabledTooltip && {
+          // TODO: Handle keyboard control
+          onPointerDown: () => (holding.current = true),
+          onPointerUp: () => (holding.current = false),
+          onPointerLeave: () => (holding.current = false),
+          onPointerCancel: () => (holding.current = false),
+        })}
+      text={
+        <>
+          <div
+            ref={loadingBar}
+            className={cn(
+              "pointer-events-none absolute inset-y-0 left-0 overflow-hidden",
+              !isSuccess && "bg-[linear-gradient(90deg,#fff1,#fff4)]",
+            )}
+          >
+            <ShimmerDots
+              className="inset-[unset] inset-y-0 left-0 w-[600px] opacity-30"
+              color={[1, 1, 1]}
+            />
+          </div>
+          <div className="relative text-center">
+            <div
+              className={cn(
+                "transition-[transform,opacity] duration-300",
+                roundedProgress >= 0.5 && "-translate-y-4 opacity-0",
+              )}
+            >
+              {text}
+            </div>
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-0 transition-[transform,opacity] duration-300",
+                roundedProgress < 0.5 && "translate-y-4 opacity-0",
+                roundedProgress >= 1 && "-translate-y-4 opacity-0",
+              )}
+              aria-hidden
+            >
+              Preparing payout...
+            </div>
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
+                roundedProgress < 1 && "-translate-x-1 translate-y-4 opacity-0",
+                roundedProgress >= 1 &&
+                  isSuccess &&
+                  "-translate-y-4 translate-x-3 opacity-0",
+              )}
+              aria-hidden
+            >
+              <PaperPlane className="size-4" />
+            </div>
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-0 flex items-center justify-center transition-[transform,opacity] duration-300",
+                (roundedProgress < 1 || !isSuccess) &&
+                  "translate-y-4 opacity-0",
+              )}
+              aria-hidden
+            >
+              Payout sent
+            </div>
+          </div>
+        </>
+      }
+      disabled={disabled}
+      disabledTooltip={disabledTooltip}
+    />
   );
 }

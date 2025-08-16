@@ -7,7 +7,13 @@ import {
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { cn, linkConstructor, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
+import {
+  cn,
+  getDomainWithoutWWW,
+  linkConstructor,
+  TAB_ITEM_ANIMATION_SETTINGS,
+} from "@dub/utils";
+import { Program } from "@prisma/client";
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -15,8 +21,10 @@ import { useEmbedToken } from "../use-embed-token";
 import { ReferralsEmbedLink } from "./types";
 
 interface Props {
-  destinationDomain: string;
-  shortLinkDomain: string;
+  program: Pick<
+    Program,
+    "domain" | "url" | "urlValidationMode" | "maxPartnerLinks"
+  >;
   link?: ReferralsEmbedLink | null;
   onCancel: () => void;
 }
@@ -27,8 +35,7 @@ interface FormData {
 }
 
 export function ReferralsEmbedCreateUpdateLink({
-  destinationDomain,
-  shortLinkDomain,
+  program,
   link,
   onCancel,
 }: Props) {
@@ -38,6 +45,12 @@ export function ReferralsEmbedCreateUpdateLink({
   const [lockKey, setLockKey] = useState(Boolean(link));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const shortLinkDomain = program.domain || "";
+  const destinationDomain = program.url
+    ? getDomainWithoutWWW(program.url)!
+    : "";
+  const isExactMode = program.urlValidationMode === "exact";
 
   const {
     watch,
@@ -75,10 +88,12 @@ export function ReferralsEmbedCreateUpdateLink({
         },
         body: JSON.stringify({
           ...data,
-          url: linkConstructor({
-            domain: destinationDomain,
-            key: data.url,
-          }),
+          url: isExactMode
+            ? undefined
+            : linkConstructor({
+                domain: destinationDomain,
+                key: data.url,
+              }),
         }),
       });
 
@@ -140,55 +155,6 @@ export function ReferralsEmbedCreateUpdateLink({
 
         <div className="space-y-6 p-6">
           <div>
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="url"
-                className="text-content-default block text-sm font-medium"
-              >
-                Destination URL
-              </label>
-              <InfoTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="The URL your users will get redirected to when they visit your referral link."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/how-to-create-link"
-                  />
-                }
-              />
-            </div>
-            <div className="mt-2 flex rounded-md">
-              <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400">
-                {destinationDomain}
-              </span>
-              <input
-                type="text"
-                placeholder="about"
-                className="border-border-default text-content-default bg-bg-default block w-full rounded-r-md placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm dark:placeholder-neutral-500 dark:focus:border-neutral-400 dark:focus:ring-neutral-400"
-                {...register("url", { required: false })}
-                autoFocus={!isMobile}
-                onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
-                  e.preventDefault();
-
-                  // if pasting in a URL, extract the pathname
-                  const text = e.clipboardData.getData("text/plain");
-
-                  try {
-                    const url = new URL(text);
-                    e.currentTarget.value = url.pathname.slice(1);
-                  } catch (err) {
-                    e.currentTarget.value = text;
-                  }
-
-                  setValue("url", e.currentTarget.value, {
-                    shouldDirty: true,
-                  });
-                }}
-              />
-            </div>
-          </div>
-
-          <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <label
@@ -229,6 +195,7 @@ export function ReferralsEmbedCreateUpdateLink({
               <input
                 type="text"
                 placeholder="another-link"
+                autoFocus={!isMobile}
                 className={cn(
                   "border-border-default text-content-default bg-bg-default block w-full rounded-r-md placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm dark:placeholder-neutral-500 dark:focus:border-neutral-400 dark:focus:ring-neutral-400",
                   {
@@ -249,6 +216,56 @@ export function ReferralsEmbedCreateUpdateLink({
               </div>
             )}
           </div>
+
+          {!isExactMode && (
+            <div>
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="url"
+                  className="text-content-default block text-sm font-medium"
+                >
+                  Destination URL
+                </label>
+                <InfoTooltip
+                  content={
+                    <SimpleTooltipContent
+                      title="The URL your users will get redirected to when they visit your referral link."
+                      cta="Learn more."
+                      href="https://dub.co/help/article/how-to-create-link"
+                    />
+                  }
+                />
+              </div>
+              <div className="mt-2 flex rounded-md">
+                <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400">
+                  {destinationDomain}
+                </span>
+                <input
+                  type="text"
+                  placeholder="about"
+                  className="border-border-default text-content-default bg-bg-default block w-full rounded-r-md placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm dark:placeholder-neutral-500 dark:focus:border-neutral-400 dark:focus:ring-neutral-400"
+                  {...register("url", { required: false })}
+                  onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+                    e.preventDefault();
+
+                    // if pasting in a URL, extract the pathname
+                    const text = e.clipboardData.getData("text/plain");
+
+                    try {
+                      const url = new URL(text);
+                      e.currentTarget.value = url.pathname.slice(1);
+                    } catch (err) {
+                      e.currentTarget.value = text;
+                    }
+
+                    setValue("url", e.currentTarget.value, {
+                      shouldDirty: true,
+                    });
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </form>
     </motion.div>

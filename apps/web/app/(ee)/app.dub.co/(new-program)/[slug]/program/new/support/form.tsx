@@ -54,9 +54,9 @@ export function Form() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <p className="text-sm text-neutral-600">
-        These will be displayed to the partners on their dashboard. They can be
-        added later, but it is recommended to have these setup before your first
-        partner joins.
+        These will be displayed to partners on their dashboard. You can add them
+        later, but you have to provide your support email address before your
+        first partner joins.
       </p>
 
       <div className="space-y-6">
@@ -92,7 +92,7 @@ export function Form() {
           <Input
             type="url"
             {...register("termsUrl")}
-            placeholder="https://dub.co/legal/terms"
+            placeholder="https://dub.co/legal/affiliates"
             className="mt-2 w-full max-w-none"
           />
         </div>

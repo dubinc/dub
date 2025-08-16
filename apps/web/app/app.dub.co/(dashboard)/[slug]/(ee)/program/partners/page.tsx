@@ -8,6 +8,11 @@ export default function ProgramPartners() {
   return (
     <PageContent
       title="Partners"
+      titleInfo={{
+        title:
+          "Understand how all your partners are performing and contributing to the success of your partner program.",
+        href: "https://dub.co/help/article/managing-program-partners",
+      }}
       controls={
         <>
           <InvitePartnerButton />

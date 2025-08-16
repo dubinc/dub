@@ -1,6 +1,7 @@
 import useFolders from "@/lib/swr/use-folders";
 import useFoldersCount from "@/lib/swr/use-folders-count";
 import useLinksCount from "@/lib/swr/use-links-count";
+import { FolderLinkCount } from "@/lib/types";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { useMemo } from "react";
 
@@ -13,12 +14,11 @@ export function useFolderFilterOptions({ search }: { search: string }) {
     query: { search: foldersAsync ? search : "" },
   });
 
-  const { data: folderLinksCount } = useLinksCount<
-    {
-      folderId: string;
-      _count: number;
-    }[]
-  >({ query: { groupBy: "folderId" } });
+  const { data: folderLinksCount } = useLinksCount<FolderLinkCount[]>({
+    query: {
+      groupBy: "folderId",
+    },
+  });
 
   const foldersResult = useMemo(() => {
     return (

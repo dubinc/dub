@@ -53,8 +53,7 @@ export function formatRedisLink(link: ExpandedLink): RedisLinkProps {
       partner: {
         id: partner.id,
         name: partner.name,
-        image:
-          partner.image || `https://api.dub.co/og/avatar?seed=${partner.id}`,
+        image: partner.image || `https://api.dub.co/og/avatar/${partner.id}`,
       },
     }),
     ...(discount && {

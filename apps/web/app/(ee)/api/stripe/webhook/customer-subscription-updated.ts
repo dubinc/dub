@@ -1,7 +1,8 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
+import { tokenCache } from "@/lib/auth/token-cache";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { getPlanFromPriceId } from "@dub/utils";
+import { getPlanFromPriceId, LEGACY_PRICE_IDS } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils";
@@ -29,6 +30,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
       id: true,
       plan: true,
       paymentFailedAt: true,
+      payoutsLimit: true,
       foldersUsage: true,
       users: {
         select: {
@@ -46,6 +48,11 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           },
         },
       },
+      restrictedTokens: {
+        select: {
+          hashedKey: true,
+        },
+      },
     },
   });
 
@@ -58,19 +65,26 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     return NextResponse.json({ received: true });
   }
 
-  const newPlan = plan.name.toLowerCase();
-  const shouldDisableWebhooks = newPlan === "free" || newPlan === "pro";
-  const shouldDeleteFolders = newPlan === "free" && workspace.foldersUsage > 0;
+  const newPlanName = plan.name.toLowerCase();
+  const shouldDisableWebhooks = newPlanName === "free" || newPlanName === "pro";
+  const shouldDeleteFolders =
+    newPlanName === "free" && workspace.foldersUsage > 0;
 
-  // If a workspace upgrades/downgrades their subscription, update their usage limit in the database.
-  if (workspace.plan !== newPlan) {
+  // If a workspace upgrades/downgrades their subscription
+  // or if the payouts limit changes and the new plan is not a legacy plan
+  // update their usage limit in the database
+  if (
+    workspace.plan !== newPlanName ||
+    (workspace.payoutsLimit !== plan.limits.payouts &&
+      !LEGACY_PRICE_IDS.includes(priceId))
+  ) {
     await Promise.allSettled([
       prisma.project.update({
         where: {
           stripeId,
         },
         data: {
-          plan: newPlan,
+          plan: newPlanName,
           usageLimit: plan.limits.clicks!,
           linksLimit: plan.limits.links!,
           payoutsLimit: plan.limits.payouts!,
@@ -78,6 +92,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
           aiLimit: plan.limits.ai!,
           tagsLimit: plan.limits.tags!,
           foldersLimit: plan.limits.folders!,
+          groupsLimit: plan.limits.groups!,
           usersLimit: plan.limits.users!,
           paymentFailedAt: null,
           ...(shouldDeleteFolders && { foldersUsage: 0 }),
@@ -91,6 +106,13 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
         data: {
           rateLimit: plan.limits.api,
         },
+      }),
+
+      // expire tokens cache
+      tokenCache.expireMany({
+        hashedKeys: workspace.restrictedTokens.map(
+          ({ hashedKey }) => hashedKey,
+        ),
       }),
     ]);
 

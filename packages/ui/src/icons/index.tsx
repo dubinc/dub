@@ -4,20 +4,23 @@ import { LucideIcon } from "lucide-react";
 import { ComponentType, SVGProps } from "react";
 
 // custom icons
-export { default as Copy } from "./copy";
+export * from "./arrow-up-right-2";
+export * from "./copy";
 export * from "./crown-small";
 export * from "./dub-analytics";
 export * from "./dub-api";
 export * from "./dub-crafted-shield";
 export * from "./dub-links";
 export * from "./dub-partners";
-export { default as ExpandingArrow } from "./expanding-arrow";
-export { default as Magic } from "./magic";
+export * from "./dub-product-icon";
+export * from "./expanding-arrow";
+export * from "./magic";
+export * from "./markdown-icon";
 export * from "./matrix-lines";
-export { default as Photo } from "./photo";
-export { default as SortOrder } from "./sort-order";
-export { default as Success } from "./success";
-export { default as Tick } from "./tick";
+export * from "./photo";
+export * from "./sort-order";
+export * from "./success";
+export * from "./tick";
 
 // loaders
 export * from "./loading-circle";

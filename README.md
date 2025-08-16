@@ -49,7 +49,6 @@ Our platform powers 100M+ clicks and 2M+ links monthly, and is used by world-cla
 - [Stripe](https://stripe.com/) – payments
 - [Resend](https://resend.com/) – emails
 - [Vercel](https://vercel.com/) – deployments
-- [Pangea](https://pangea.cloud/services/domain-intel/reputation) - link scanning
 
 ## Self-Hosting
 
@@ -73,4 +72,4 @@ We love our contributors! Here's how you can contribute:
 
 ## License
 
-Dub Technologies, Inc. is a commercial open-source company, which means some parts of this open-source repository require a commercial license. The concept is called "Open Core" where the core technology (99%) is fully open source, licensed under [AGPLv3](https://opensource.org/license/agpl-v3) and the last 1% is covered under a commercial license (["/ee" Enterprise Edition](https://github.com/dubinc/dub/tree/ee/apps/web/app/(ee))) which we believe is entirely relevant for larger organisations that require enterprise features. Enterprise features are built by the core engineering team of Dub Technologies, Inc., which is hired full-time. 
+Dub Technologies, Inc. is a commercial open-source company, which means some parts of this open-source repository require a commercial license. The concept is called "Open Core" where the core technology (99%) is fully open source, licensed under [AGPLv3](https://opensource.org/license/agpl-v3) and the last 1% is covered under a commercial license (["/ee" Enterprise Edition](<https://github.com/dubinc/dub/tree/ee/apps/web/app/(ee)>)) which we believe is entirely relevant for larger organisations that require enterprise features. Enterprise features are built by the core engineering team of Dub Technologies, Inc., which is hired full-time.

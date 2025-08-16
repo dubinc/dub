@@ -2,13 +2,12 @@
 
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
-import useFolders from "@/lib/swr/use-folders";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { ProgramLinkConfiguration } from "@/ui/partners/program-link-configuration";
-import { Badge, Button } from "@dub/ui";
-import { CircleCheckFill, LoadingSpinner } from "@dub/ui/icons";
+import { Badge, Button, NumberStepper, Tooltip } from "@dub/ui";
+import { CircleCheckFill, CircleQuestion } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
@@ -18,28 +17,35 @@ import { SettingsRow } from "../program-settings-row";
 
 type FormData = Pick<
   ProgramProps,
-  "domain" | "url" | "cookieLength" | "defaultFolderId" | "linkStructure"
+  "domain" | "url" | "linkStructure" | "urlValidationMode" | "maxPartnerLinks"
 >;
 
-export function LinksSettings() {
+const URL_VALIDATION_MODES = [
+  {
+    value: "domain",
+    label: "Domain",
+    description: "Partners can create any referral links on your domain",
+  },
+  {
+    value: "exact",
+    label: "Exact",
+    description:
+      "Partners can only create referral links from your destination URL",
+  },
+];
+
+export function LinksSettingsForm() {
   const { program } = useProgram();
 
-  return (
-    <div className="flex flex-col gap-10">
-      {program ? (
-        <LinksSettingsForm program={program} />
-      ) : (
-        <div className="flex h-32 items-center justify-center">
-          <LoadingSpinner />
-        </div>
-      )}
-    </div>
-  );
+  if (!program) {
+    return null;
+  }
+
+  return <LinksSettingsFormInner program={program} />;
 }
 
-function LinksSettingsForm({ program }: { program: ProgramProps }) {
+function LinksSettingsFormInner({ program }: { program: ProgramProps }) {
   const { id: workspaceId } = useWorkspace();
-  const { folders, loading: loadingFolders } = useFolders();
 
   const {
     register,
@@ -53,9 +59,9 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
     defaultValues: {
       domain: program.domain,
       url: program.url,
-      cookieLength: program.cookieLength,
-      defaultFolderId: program.defaultFolderId,
       linkStructure: program.linkStructure,
+      urlValidationMode: program.urlValidationMode,
+      maxPartnerLinks: program.maxPartnerLinks,
     },
   });
 
@@ -85,7 +91,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
       })}
     >
       <div className="divide-y divide-neutral-200 px-6">
-        <SettingsRow heading="Default Referral Link">
+        <SettingsRow heading="Default partner link">
           <div className="grid grid-cols-2 gap-6">
             <div className="col-span-2">
               <ProgramLinkConfiguration
@@ -103,7 +109,7 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
           </div>
         </SettingsRow>
 
-        <SettingsRow heading="Link type">
+        <SettingsRow heading="Link structure">
           <div className="grid grid-cols-1 gap-3">
             {getLinkStructureOptions({
               domain: program.domain,
@@ -151,81 +157,78 @@ function LinksSettingsForm({ program }: { program: ProgramProps }) {
               );
             })}
           </div>
-          <div className="mt-6">
-            <label>
-              <span className="text-sm font-medium text-neutral-800">
-                Cookie length
-              </span>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <select
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  {...register("cookieLength", {
-                    required: true,
-                    valueAsNumber: true,
-                  })}
-                >
-                  {[7, 14, 30, 60, 90, 180].map((v) => (
-                    <option value={v} key={v}>
-                      {v} days
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </label>
-            <p className="mt-2 text-xs text-neutral-400">
-              Days your cookie will remain active and track referrals
-            </p>
-          </div>
-
-          <div className="mt-6">
-            <span className="text-sm font-medium text-neutral-800">
-              Installation
-            </span>
-            <p className="mt-2 text-sm text-neutral-500">
-              View our{" "}
-              <a
-                href="https://dub.co/docs/sdks/client-side/introduction"
-                target="_blank"
-                className="underline transition-colors duration-75 hover:text-neutral-600"
-              >
-                installation guides
-              </a>{" "}
-              to add our tracking script to your website.
-            </p>
-          </div>
         </SettingsRow>
 
-        <SettingsRow heading="Folder for partner links">
-          <div className="flex flex-col gap-6">
-            <div>
-              <label
-                htmlFor="defaultFolderId"
-                className="text-sm font-medium text-neutral-800"
-              >
-                Default Folder
+        <SettingsRow heading="Advanced settings">
+          <div className="space-y-6">
+            <div className="flex flex-col">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="text-sm font-medium text-neutral-800">
+                  Max partner links
+                </span>
+                <Tooltip content="Maximum number of referral links a partner can create.">
+                  <div className="text-neutral-400">
+                    <CircleQuestion className="size-4" />
+                  </div>
+                </Tooltip>
+              </div>
+              <NumberStepper
+                value={watch("maxPartnerLinks")}
+                onChange={(v) =>
+                  setValue("maxPartnerLinks", v, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                min={1}
+                max={999}
+                step={1}
+                className="w-full"
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <label className="mb-2 block text-sm font-medium text-neutral-800">
+                Link restriction
               </label>
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <select
-                  className={cn(
-                    "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    loadingFolders && "opacity-50",
-                  )}
-                  {...register("defaultFolderId", {
-                    // required: true,
-                  })}
-                  disabled={loadingFolders}
-                >
-                  <option value="">Select a folder</option>
-                  {folders?.map((folder) => (
-                    <option
-                      key={folder.id}
-                      value={folder.id}
-                      selected={folder.id === program.defaultFolderId}
+              <div className="grid grid-cols-1 gap-3">
+                {URL_VALIDATION_MODES.map((mode) => {
+                  const isSelected = mode.value === watch("urlValidationMode");
+
+                  return (
+                    <label
+                      key={mode.value}
+                      className={cn(
+                        "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600",
+                        "hover:bg-neutral-50",
+                        "transition-all duration-150",
+                        isSelected &&
+                          "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                      )}
                     >
-                      {folder.name}
-                    </option>
-                  ))}
-                </select>
+                      <input
+                        type="radio"
+                        value={mode.value}
+                        className="hidden"
+                        {...register("urlValidationMode")}
+                      />
+
+                      <div className="flex grow flex-col text-sm">
+                        <span className="font-medium">{mode.label}</span>
+                        <span className="text-neutral-600">
+                          {mode.description}
+                        </span>
+                      </div>
+
+                      <CircleCheckFill
+                        className={cn(
+                          "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                          isSelected && "scale-100 opacity-100",
+                        )}
+                      />
+                    </label>
+                  );
+                })}
               </div>
             </div>
           </div>

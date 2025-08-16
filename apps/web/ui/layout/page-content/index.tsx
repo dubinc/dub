@@ -13,23 +13,22 @@ export function PageContent({
   titleInfo,
   titleBackHref,
   controls,
+  headerContent,
   className,
   contentWrapperClassName,
   children,
 }: PropsWithChildren<{
   title?: ReactNode;
-  titleInfo?: ReactNode | { title: string; href: string };
+  titleInfo?: ReactNode | { title: string; href?: string };
   titleBackHref?: string;
   controls?: ReactNode;
+  headerContent?: ReactNode;
   className?: string;
   contentWrapperClassName?: string;
 }>) {
   // Generate titleInfo from object if provided
   const finalTitleInfo =
-    titleInfo &&
-    typeof titleInfo === "object" &&
-    "title" in titleInfo &&
-    "href" in titleInfo ? (
+    titleInfo && typeof titleInfo === "object" && "title" in titleInfo ? (
       <InfoTooltip
         content={
           <SimpleTooltipContent
@@ -43,7 +42,7 @@ export function PageContent({
       titleInfo
     );
 
-  const hasHeaderContent = !!(title || controls);
+  const hasHeaderContent = !!(title || controls || headerContent);
 
   return (
     <div
@@ -85,11 +84,12 @@ export function PageContent({
               <div className="flex items-center gap-2">{controls}</div>
             )}
           </div>
+          {headerContent && <div className="pb-3 pt-1">{headerContent}</div>}
         </PageWidthWrapper>
       </div>
       <div
         className={cn(
-          "bg-white pt-3 max-md:rounded-t-[16px] lg:pt-6",
+          "rounded-t-[inherit] bg-white pt-3 lg:pt-6",
           contentWrapperClassName,
         )}
       >

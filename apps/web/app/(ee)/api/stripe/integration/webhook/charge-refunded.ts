@@ -52,9 +52,9 @@ export async function chargeRefunded(event: Stripe.Event) {
 
   const commission = await prisma.commission.findUnique({
     where: {
-      programId_invoiceId: {
-        programId: workspace.programs[0].id,
+      invoiceId_programId: {
         invoiceId: invoicePayment.invoice as string,
+        programId: workspace.programs[0].id,
       },
     },
     select: {

@@ -1,4 +1,5 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
@@ -6,19 +7,20 @@ import { CommentsBadge } from "@/ui/links/comments-badge";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import {
   ArrowTurnRight2,
-  BlurImage,
+  Button,
   CardList,
   CopyButton,
   CursorRays,
   InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
+  PenWriting,
   useInViewport,
   UserCheck,
   useRouterStuff,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
-import { cn, getApexDomain, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
+import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { ComponentProps, useMemo, useRef } from "react";
@@ -46,19 +48,12 @@ const CHARTS = [
   },
 ];
 
-export function PartnerLinkCard({
-  link,
-  isDefaultLink,
-}: {
-  link: PartnerProfileLinkProps;
-  isDefaultLink?: boolean;
-}) {
+export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = usePartnerLinksContext();
   const { programEnrollment } = useProgramEnrollment();
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal({
     link,
-    isDefaultLink,
   });
 
   const ref = useRef<HTMLDivElement>(null);
@@ -109,67 +104,18 @@ export function PartnerLinkCard({
     }));
   }, [timeseries]);
 
-  const stats = useMemo(
-    () => [
-      {
-        id: "clicks",
-        icon: CursorRays,
-        value: totals?.clicks ?? 0,
-        iconClassName: "data-[active=true]:text-blue-500",
-      },
-      {
-        id: "leads",
-        icon: UserCheck,
-        value: totals?.leads ?? 0,
-        className: "hidden sm:flex",
-        iconClassName: "data-[active=true]:text-purple-500",
-      },
-      {
-        id: "sales",
-        icon: InvoiceDollar,
-        value: totals?.saleAmount ?? 0,
-        className: "hidden sm:flex",
-        iconClassName: "data-[active=true]:text-teal-500",
-      },
-    ],
-    [totals],
-  );
+  const partnerLink = constructPartnerLink({
+    program: programEnrollment?.program,
+    linkKey: link.key,
+  });
 
   return (
     <CardList.Card
-      innerClassName="px-0 py-0 hover:cursor-pointer"
+      innerClassName="px-0 py-0 hover:cursor-pointer group"
       onClick={() => setShowPartnerLinkModal(true)}
     >
       <PartnerLinkModal />
-      {isDefaultLink && (
-        <div className="flex items-center justify-between gap-4 rounded-t-[11px] border-b border-neutral-200 bg-neutral-100 px-5 py-2">
-          <div className="flex items-center gap-1.5">
-            {programEnrollment && (
-              <BlurImage
-                src={
-                  programEnrollment.program.logo ||
-                  `${OG_AVATAR_URL}${programEnrollment.program.name}`
-                }
-                width={16}
-                height={16}
-                alt={programEnrollment?.program.name}
-                className="size-4 shrink-0 overflow-hidden rounded-full"
-              />
-            )}
-            <span className="text-xs font-medium text-neutral-700">
-              Default program link
-            </span>
-          </div>
-          <a
-            href="https://dub.co/help/category/partners" // TODO: Update link
-            target="_blank"
-            className="text-xs font-medium text-neutral-600 underline hover:text-neutral-800"
-          >
-            Learn more
-          </a>
-        </div>
-      )}
-      <div className="p-4" ref={ref}>
+      <div className="relative p-4" ref={ref}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative hidden shrink-0 items-center justify-center sm:flex">
@@ -185,35 +131,55 @@ export function PartnerLinkCard({
             </div>
 
             <div className="flex min-w-0 flex-col">
-              <div className="flex items-center gap-2">
-                <a
-                  href={link.shortLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
-                >
-                  {getPrettyUrl(link.shortLink)}
-                </a>
-                <CopyButton
-                  value={link.shortLink}
-                  variant="neutral"
-                  className="p-1.5"
-                />
-                {link.comments && <CommentsBadge comments={link.comments} />}
-              </div>
-              <div className="flex items-center gap-1">
-                <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="truncate text-sm text-neutral-500 transition-colors hover:text-neutral-700"
-                >
-                  {getPrettyUrl(link.url)}
-                </a>
+              <div className="flex flex-col">
+                <div className="group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
+                  <a
+                    href={partnerLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
+                  >
+                    {getPrettyUrl(partnerLink)}
+                  </a>
+                  <span className="flex items-center">
+                    <CopyButton
+                      value={partnerLink}
+                      variant="neutral"
+                      className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
+                    />
+                  </span>
+                  {link.comments && <CommentsBadge comments={link.comments} />}
+                </div>
+                {/* The max width implementation here is a bit hacky, we should improve in the future */}
+                <div className="group/desturl flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100 sm:w-fit sm:max-w-[400px]">
+                  <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="truncate text-sm text-neutral-500 transition-colors hover:text-neutral-700"
+                    title={getPrettyUrl(link.url)}
+                  >
+                    {getPrettyUrl(link.url)}
+                  </a>
+                  <span className="flex items-center">
+                    <CopyButton
+                      value={link.url}
+                      variant="neutral"
+                      className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/desturl:opacity-100"
+                    />
+                  </span>
+                </div>
               </div>
             </div>
           </div>
+          <Button
+            variant="secondary"
+            icon={<PenWriting className="size-3.5" />}
+            text="Edit"
+            className="h-7 w-fit px-2"
+            onClick={() => setShowPartnerLinkModal(true)}
+          />
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -227,8 +193,17 @@ export function PartnerLinkCard({
                   event: chart.key === "saleAmount" ? "sales" : chart.key,
                 },
               )}`}
-              className="rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
+              className="group/chart relative isolate rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
             >
+              <div className="absolute right-2 top-2 overflow-hidden">
+                <div className="translate-x-full transition-transform duration-200 group-hover/chart:translate-x-0">
+                  <Button
+                    text="View more"
+                    variant="secondary"
+                    className="h-6 w-fit px-2 text-xs"
+                  />
+                </div>
+              </div>
               <div className="flex flex-col gap-1 pl-2 pt-3 lg:pl-1.5">
                 <div className="flex items-center gap-1.5">
                   <chart.icon

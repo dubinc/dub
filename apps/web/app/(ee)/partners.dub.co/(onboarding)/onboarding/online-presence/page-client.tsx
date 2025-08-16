@@ -21,7 +21,7 @@ export function OnlinePresencePageClient({
       />
       <Link
         href="/onboarding/verify"
-        className="text-sm text-neutral-500 transition-colors hover:text-neutral-800"
+        className="text-sm font-medium text-neutral-800 transition-colors hover:text-neutral-950"
       >
         I'll complete this later
       </Link>

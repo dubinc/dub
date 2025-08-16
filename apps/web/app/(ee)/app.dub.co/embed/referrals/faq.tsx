@@ -21,7 +21,14 @@ export function ReferralsEmbedFAQ({
 }) {
   const rewardDescription = reward
     ? `For each new customer you refer, you'll earn a ${constructRewardAmount({
-        amount: reward.amount,
+        ...(reward.modifiers
+          ? {
+              amounts: [
+                reward.amount,
+                ...reward.modifiers.map(({ amount }) => amount),
+              ],
+            }
+          : { amount: reward.amount }),
         type: reward.type,
       })} commission on their subscription${
         reward.maxDuration === null

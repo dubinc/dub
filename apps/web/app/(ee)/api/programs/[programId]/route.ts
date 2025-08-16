@@ -14,9 +14,6 @@ export const GET = withWorkspace(
         programId: params.programId,
       },
       {
-        includeDefaultDiscount: true,
-        includeDefaultReward: true,
-        includeRewards: true,
         includeLanderData: includeLanderData || false,
       },
     );

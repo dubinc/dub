@@ -44,10 +44,9 @@ export const tokenSchema = z.object({
 
 export const createReferralsEmbedTokenSchema = z
   .object({
-    programId: z.string(),
     partnerId: z.string().optional(),
     tenantId: z.string().optional(),
-    partner: createPartnerSchema.omit({ programId: true }).optional(),
+    partner: createPartnerSchema.optional(),
   })
   .superRefine((data, ctx) => {
     if (!data.partnerId && !data.tenantId && !data.partner) {
