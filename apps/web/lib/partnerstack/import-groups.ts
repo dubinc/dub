@@ -1,6 +1,5 @@
 import { prisma } from "@dub/prisma";
 import { createId } from "../api/create-id";
-import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { PartnerStackApi } from "./api";
 import { partnerStackImporter } from "./importer";
 import { PartnerStackImportPayload } from "./types";
@@ -12,12 +11,8 @@ export async function importGroups(payload: PartnerStackImportPayload) {
     where: {
       id: programId,
     },
-    include: {
-      groups: {
-        where: {
-          slug: DEFAULT_PARTNER_GROUP.slug,
-        },
-      },
+    select: {
+      workspaceId: true,
     },
   });
 
@@ -34,8 +29,6 @@ export async function importGroups(payload: PartnerStackImportPayload) {
 
   if (groups.length > 0) {
     for (const group of groups) {
-      console.log(group);
-
       // Default group is already created in the program creation
       if (group.default) {
         continue;
