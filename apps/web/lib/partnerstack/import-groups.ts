@@ -49,6 +49,8 @@ export async function importGroups(payload: PartnerStackImportPayload) {
         },
         update: {},
       });
+
+      console.log(`Imported group ${group.name}.`);
     }
   }
 
