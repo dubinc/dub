@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { PartnerGroup, Program } from "@dub/prisma/client";
-import { COUNTRIES } from "@dub/utils";
+import { COUNTRIES, COUNTRY_CODES } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
@@ -12,6 +12,10 @@ import {
   partnerStackImporter,
 } from "./importer";
 import { PartnerStackImportPayload, PartnerStackPartner } from "./types";
+
+const COUNTRY_NAME_TO_CODE = new Map(
+  Object.entries(COUNTRIES).map(([code, name]) => [name, code]),
+);
 
 export async function importPartners(payload: PartnerStackImportPayload) {
   const { importId, programId, startingAfter } = payload;
@@ -105,16 +109,17 @@ async function createPartner({
     return;
   }
 
-  const countryCode = partner.address?.country
-    ? Object.keys(COUNTRIES).find(
-        (key) => COUNTRIES[key] === partner.address?.country,
-      )
+  // Resolve partner's country: check if it's a valid code first,
+  // otherwise fall back to lookup by country name because PS returns the name in some cases
+  const country = partner.address?.country;
+  const countryCode = country
+    ? COUNTRY_CODES.includes(country)
+      ? country
+      : COUNTRY_NAME_TO_CODE.get(country) ?? null
     : null;
 
-  if (!countryCode && partner.address?.country) {
-    console.log(
-      `Country code not found for country ${partner.address.country}`,
-    );
+  if (country && !countryCode) {
+    console.log(`Country code not found for country ${country}`);
   }
 
   const { id: partnerId } = await prisma.partner.upsert({
