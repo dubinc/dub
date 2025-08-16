@@ -10,7 +10,7 @@ export function NextAuth(props: SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g clip-path="url(#clip0_18024_112096)">
+      <g clipPath="url(#clip0_18024_112096)">
         <path
           fill-rule="evenodd"
           clip-rule="evenodd"

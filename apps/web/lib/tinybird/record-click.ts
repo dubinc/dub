@@ -118,13 +118,13 @@ export async function recordClick({
 
   const referer = referrer || req.headers.get("referer");
 
-  const identity_hash = await getIdentityHash(req);
+  const identityHash = await getIdentityHash(req);
 
   const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
 
   const clickData = {
     timestamp: timestamp || new Date(Date.now()).toISOString(),
-    identity_hash,
+    identity_hash: identityHash,
     click_id: clickId,
     link_id: linkId,
     url: finalUrl,
