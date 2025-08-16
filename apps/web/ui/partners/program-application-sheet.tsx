@@ -73,16 +73,10 @@ function ProgramApplicationSheetContent({
     });
 
     if (result?.serverError || result?.validationErrors) {
-      const errorMessage = parseActionError(
-        result,
-        "Failed to submit application",
-      );
-
       setError("root.serverError", {
-        message: errorMessage,
+        message: "Failed to submit application",
       });
-
-      toast.error(errorMessage);
+      toast.error(parseActionError(result, "Failed to submit application"));
     }
   };
 
