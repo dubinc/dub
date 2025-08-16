@@ -29,6 +29,14 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
+const getGroupUrl = ({
+  workspaceSlug,
+  groupSlug,
+}: {
+  workspaceSlug: string;
+  groupSlug: string;
+}) => `/${workspaceSlug}/program/groups/${groupSlug}/rewards`;
+
 export function GroupsTable() {
   const router = useRouter();
   const { slug } = useWorkspace();
@@ -56,7 +64,9 @@ export function GroupsTable() {
     data: groups
       ? groups.map((group) => {
           // prefetch the group page
-          router.prefetch(`/${slug}/program/groups/${group.slug}/rewards`);
+          router.prefetch(
+            getGroupUrl({ workspaceSlug: slug!, groupSlug: group.slug }),
+          );
           return group;
         })
       : [],
@@ -135,9 +145,20 @@ export function GroupsTable() {
         cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
-    onRowClick: (row) => {
-      router.push(`/${slug}/program/groups/${row.original.slug}/rewards`);
+    onRowClick: (row, e) => {
+      const url = getGroupUrl({
+        workspaceSlug: slug!,
+        groupSlug: row.original.slug,
+      });
+
+      if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
+      else router.push(url);
     },
+    onRowAuxClick: (row) =>
+      window.open(
+        getGroupUrl({ workspaceSlug: slug!, groupSlug: row.original.slug }),
+        "_blank",
+      ),
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: [

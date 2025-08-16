@@ -55,6 +55,7 @@ type BaseTableProps<T> = {
 
   // Misc. row props
   onRowClick?: (row: Row<T>, e: MouseEvent) => void;
+  onRowAuxClick?: (row: Row<T>, e: MouseEvent) => void;
   rowProps?:
     | HTMLAttributes<HTMLTableRowElement>
     | ((row: Row<T>) => HTMLAttributes<HTMLTableRowElement>);
