@@ -176,6 +176,7 @@ export const createPartnerCommission = async ({
         id: createId({ prefix: "cm_" }),
         programId,
         partnerId,
+        rewardId: reward?.id,
         customerId,
         linkId,
         eventId,
@@ -189,9 +190,6 @@ export const createPartnerCommission = async ({
         status,
         description,
         createdAt,
-        rewardType: reward.type,
-        rewardAmount: reward.amount,
-        rewardMaxDuration: reward.maxDuration,
       },
       include: {
         partner: true,
