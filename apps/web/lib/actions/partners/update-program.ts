@@ -137,7 +137,6 @@ export const updateProgramAction = authActionClient
           ? [
               revalidatePath(`/partners.dub.co/${program.slug}`),
               revalidatePath(`/partners.dub.co/${program.slug}/apply`),
-              revalidatePath(`/partners.dub.co/${program.slug}/apply/form`),
               revalidatePath(`/partners.dub.co/${program.slug}/apply/success`),
             ]
           : []),

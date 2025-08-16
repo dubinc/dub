@@ -106,9 +106,13 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                 <div className="size-3 shrink-0 animate-pulse rounded-full bg-neutral-200" />
               )}
               {group ? (
-                <span className="text-sm font-medium text-neutral-800">
+                <Link
+                  href={`/${slug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  className="cursor-alias text-sm font-medium text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+                >
                   {group.name}
-                </span>
+                </Link>
               ) : (
                 <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
               )}
