@@ -618,9 +618,33 @@ export const banPartnerSchema = z.object({
   ),
 });
 
+export const bulkBanPartnersSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
+  reason: z.enum(
+    Object.keys(BAN_PARTNER_REASONS) as [
+      PartnerBannedReason,
+      ...PartnerBannedReason[],
+    ],
+  ),
+});
+
 export const archivePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
+});
+
+export const bulkArchivePartnersSchema = z.object({
+  workspaceId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .max(100)
+    .min(1)
+    .transform((v) => [...new Set(v)]),
 });
 
 export const partnerPayoutSettingsSchema = z.object({
