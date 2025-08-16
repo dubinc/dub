@@ -53,6 +53,7 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
     customerId,
     payoutId,
     partnerId,
+    groupId,
     invoiceId,
     sortBy,
     sortOrder,
@@ -88,6 +89,16 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
             gte: startDate.toISOString(),
             lte: endDate.toISOString(),
           },
+          ...(groupId && {
+            partner: {
+              programs: {
+                some: {
+                  programId,
+                  groupId,
+                },
+              },
+            },
+          }),
         },
     include: {
       customer: {
@@ -142,10 +153,13 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
   const data = z.array(z.object(columnSchemas)).parse(formattedCommissions);
   const csvData = convertToCSV(data);
 
+  // Sanitize timestamp for filesystem compatibility (replace colons with hyphens)
+  const sanitizedTimestamp = new Date().toISOString().replace(/:/g, '-');
+
   return new Response(csvData, {
     headers: {
       "Content-Type": "text/csv",
-      "Content-Disposition": `attachment; filename="Dub Commissions Export - ${new Date().toISOString()}.csv"`,
+      "Content-Disposition": `attachment; filename="Dub Commissions Export - ${sanitizedTimestamp}.csv"`,
     },
   });
 });
