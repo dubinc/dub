@@ -190,7 +190,7 @@ export const createProgram = async ({
       importId: createId({ prefix: "import_" }),
       userId: user.id,
       programId: program.id,
-      action: "import-partners",
+      action: "import-groups",
     });
   }
 
