@@ -150,8 +150,19 @@ export async function GET(req: Request) {
 
       for (const user of users) {
         if (user.email) {
-          const res = await unsubscribe({ email: user.email });
+          const res = await Promise.all([
+            unsubscribe({
+              email: user.email,
+              audience: "partners.dub.co",
+            }),
+            unsubscribe({
+              email: user.email,
+              audience: "app.dub.co",
+            }),
+          ]);
           console.log("Unsubscribed user", user.email, res);
+          // sleep for 500ms
+          await new Promise((resolve) => setTimeout(resolve, 500));
         }
       }
     }
