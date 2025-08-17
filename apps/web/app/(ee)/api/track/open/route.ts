@@ -7,45 +7,20 @@ import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { parseUrlSchema } from "@/lib/zod/schemas/utils";
+import {
+  trackOpenRequestSchema,
+  trackOpenResponseSchema,
+} from "@/lib/zod/schemas/opens";
 import { LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
-
-const trackOpenRequestSchema = z
-  .object({
-    deepLink: parseUrlSchema.optional(),
-    dubDomain: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (!data.deepLink && !data.dubDomain) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "You need to provide either `deepLink` or `dubDomain` for deferred deep linking.",
-      });
-    }
-  });
-
-const trackOpenResponseSchema = z.object({
-  clickId: z.string().nullable(),
-  link: z
-    .object({
-      id: z.string(),
-      domain: z.string(),
-      key: z.string(),
-      url: z.string(),
-    })
-    .nullable(),
-});
 
 // POST /api/track/open – Track an open event for deep link
 export const POST = withAxiom(async (req: AxiomRequest) => {
