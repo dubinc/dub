@@ -57,30 +57,31 @@ export const createProgram = async ({
 
   await getDomainOrThrow({ workspace, domain });
 
-  const programFolder = await prisma.folder.upsert({
-    where: {
-      name_projectId: {
-        name: "Partner Links",
-        projectId: workspace.id,
-      },
-    },
-    update: {},
-    create: {
-      id: createId({ prefix: "fold_" }),
-      name: "Partner Links",
-      projectId: workspace.id,
-      accessLevel: "write",
-      users: {
-        create: {
-          userId: user.id,
-          role: "owner",
-        },
-      },
-    },
-  });
-
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
+    const folderId = createId({ prefix: "fold_" });
+    const programFolder = await tx.folder.upsert({
+      where: {
+        name_projectId: {
+          name: "Partner Links",
+          projectId: workspace.id,
+        },
+      },
+      update: {},
+      create: {
+        id: folderId,
+        name: "Partner Links",
+        projectId: workspace.id,
+        accessLevel: "write",
+        users: {
+          create: {
+            userId: user.id,
+            role: "owner",
+          },
+        },
+      },
+    });
+
     const programId = createId({ prefix: "prog_" });
     const defaultGroupId = createId({ prefix: "grp_" });
 
@@ -145,15 +146,20 @@ export const createProgram = async ({
       update: {}, // noop
     });
 
+    // folder might be upserted, so we need to check if it was created
+    const didCreateFolder = programFolder.id === folderId;
+
     await tx.project.update({
       where: {
         id: workspace.id,
       },
       data: {
         defaultProgramId: programData.id,
-        foldersUsage: {
-          increment: 1,
-        },
+        ...(didCreateFolder && {
+          foldersUsage: {
+            increment: 1,
+          },
+        }),
         store: {
           ...store,
           programOnboarding: undefined,
@@ -190,7 +196,7 @@ export const createProgram = async ({
       importId: createId({ prefix: "import_" }),
       userId: user.id,
       programId: program.id,
-      action: "import-partners",
+      action: "import-groups",
     });
   }
 

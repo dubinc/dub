@@ -3,6 +3,7 @@ import {
   partnerStackCommission,
   partnerStackCredentialsSchema,
   partnerStackCustomer,
+  partnerStackGroup,
   partnerStackImportPayloadSchema,
   partnerStackLink,
   partnerStackPartner,
@@ -17,6 +18,8 @@ export interface PartnerStackListResponse<T> {
 export type PartnerStackImportPayload = z.infer<
   typeof partnerStackImportPayloadSchema
 >;
+
+export type PartnerStackGroup = z.infer<typeof partnerStackGroup>;
 
 export type PartnerStackPartner = z.infer<typeof partnerStackPartner>;
 

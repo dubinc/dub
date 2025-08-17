@@ -8,10 +8,10 @@ import { useParams } from "next/navigation";
 export default function PartnerLinksButton() {
   const { slug } = useParams();
   const { program } = useProgram();
+  if (!program) return null;
+
   return (
-    <Link
-      href={`/${slug}/links${program?.defaultFolderId ? `?folderId=${program.defaultFolderId}` : ""}`}
-    >
+    <Link href={`/${slug}/links?folderId=${program.defaultFolderId}`}>
       <Button text="View partner links" variant="secondary" />
     </Link>
   );
