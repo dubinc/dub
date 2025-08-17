@@ -107,7 +107,6 @@ export const updateProgramAction = authActionClient
         cookieLength,
         holdingPeriodDays,
         minPayoutAmount,
-        defaultFolderId,
       },
     });
 
