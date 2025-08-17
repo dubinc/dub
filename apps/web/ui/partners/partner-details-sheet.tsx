@@ -52,6 +52,9 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
   const { groups } = useGroups({
     query: {
       groupIds: partner.groupId ? [partner.groupId] : undefined,
+      // here we're coercing page to 1 to make sure the partner table pagination doesn't mess with this
+      // TODO: standardize how we handle params in useSWR hooks – it's a bit all over the place rn
+      page: 1,
     },
   });
 

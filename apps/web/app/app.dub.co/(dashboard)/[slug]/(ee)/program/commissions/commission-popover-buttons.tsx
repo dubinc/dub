@@ -1,7 +1,8 @@
 "use client";
 
+import { useExportCommissionsModal } from "@/ui/modals/export-commissions-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, IconMenu, Popover, Refresh2 } from "@dub/ui";
+import { Button, Download, IconMenu, Popover, Refresh2 } from "@dub/ui";
 import { useState } from "react";
 import { useCreateClawbackSheet } from "./create-clawback-sheet";
 
@@ -11,9 +12,13 @@ export function CommissionPopoverButtons() {
   const { createClawbackSheet, setIsOpen: setClawbackSheetOpen } =
     useCreateClawbackSheet({});
 
+  const { ExportCommissionsModal, setShowExportCommissionsModal } =
+    useExportCommissionsModal();
+
   return (
     <>
       {createClawbackSheet}
+      <ExportCommissionsModal />
       <Popover
         content={
           <div className="w-full md:w-52">
@@ -28,6 +33,26 @@ export function CommissionPopoverButtons() {
                 <IconMenu
                   text="Create clawback"
                   icon={<Refresh2 className="h-4 w-4" />}
+                />
+              </button>
+            </div>
+
+            <div className="border-t border-neutral-200" />
+
+            <div className="grid gap-px p-2">
+              <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
+                Export Commissions
+              </p>
+              <button
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowExportCommissionsModal(true);
+                }}
+                className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
+              >
+                <IconMenu
+                  text="Export as CSV"
+                  icon={<Download className="h-4 w-4" />}
                 />
               </button>
             </div>
