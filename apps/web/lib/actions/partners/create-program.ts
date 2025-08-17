@@ -59,6 +59,7 @@ export const createProgram = async ({
 
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
+    const folderId = createId({ prefix: "fold_" });
     const programFolder = await tx.folder.upsert({
       where: {
         name_projectId: {
@@ -68,7 +69,7 @@ export const createProgram = async ({
       },
       update: {},
       create: {
-        id: createId({ prefix: "fold_" }),
+        id: folderId,
         name: "Partner Links",
         projectId: workspace.id,
         accessLevel: "write",
@@ -145,15 +146,20 @@ export const createProgram = async ({
       update: {}, // noop
     });
 
+    // folder might be upserted, so we need to check if it was created
+    const didCreateFolder = programFolder.id === folderId;
+
     await tx.project.update({
       where: {
         id: workspace.id,
       },
       data: {
         defaultProgramId: programData.id,
-        foldersUsage: {
-          increment: 1,
-        },
+        ...(didCreateFolder && {
+          foldersUsage: {
+            increment: 1,
+          },
+        }),
         store: {
           ...store,
           programOnboarding: undefined,
