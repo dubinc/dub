@@ -66,13 +66,12 @@ export const E2E_CUSTOMER_WITH_DISCOUNT = {
 };
 
 export const E2E_DISCOUNT = {
-  id: "disc_1JY5V6W88X71C7T5DMXPNWTCD",
+  id: "disc_1K2E253814K7TA6YRKA86XMX5",
   amount: 30,
   type: "percentage",
   maxDuration: 3,
   couponId: "XZuejd0Q",
   couponTestId: "2NMXz81x",
-  default: true,
   description: null,
 };
 

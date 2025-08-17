@@ -1,15 +1,16 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { prisma } from "@dub/prisma";
+import { CommissionType, Prisma } from "@dub/prisma/client";
+import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
-
-/**
- * TODO: Use a cron job (similar to how we do it for usage cron) to account for the future where we have a lot of links to process
- */
 
 // This route is used aggregate clicks events on daily basis for Program links and add to the Commission table
 // Runs every day at 00:00 (0 0 * * *)
@@ -30,96 +31,124 @@ export async function GET(req: Request) {
     end.setDate(end.getDate() - 1);
     end.setHours(23, 59, 59, 999);
 
-    const clickRewards = await prisma.reward.findMany({
+    const clickRewardsWithEnrollments = await prisma.reward.findMany({
       where: {
         event: "click",
       },
       include: {
-        clickEnrollments: true,
+        clickEnrollments: {
+          include: {
+            links: {
+              where: {
+                clicks: {
+                  gt: 0,
+                },
+                lastClicked: {
+                  gte: start, // links that were clicked on after the start date
+                },
+              },
+            },
+          },
+        },
       },
     });
 
-    if (!clickRewards.length) {
+    if (!clickRewardsWithEnrollments.length) {
       return NextResponse.json({
         message: "No programs with click rewards found. Skipping...",
       });
     }
 
-    for (const { programId, clickEnrollments, ...reward } of clickRewards) {
-      const partnerIds = clickEnrollments.map(({ partnerId }) => partnerId);
+    // getting a list of links with clicks
+    const linkWithClicks = clickRewardsWithEnrollments.flatMap(
+      ({ clickEnrollments }) => clickEnrollments.flatMap(({ links }) => links),
+    );
 
-      if (!partnerIds || partnerIds.length === 0) {
-        console.log("No partnerIds found for program", { programId });
-        continue;
-      }
+    if (linkWithClicks.length === 0) {
+      return NextResponse.json({
+        message: "No links with clicks found. Skipping...",
+      });
+    }
 
-      const links = await prisma.link.findMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIds,
-          },
-          clicks: {
-            gt: 0,
-          },
-          lastClicked: {
-            gte: start, // links that were clicked on after the start date
-          },
-        },
-        select: {
-          id: true,
-          programId: true,
-          partnerId: true,
-        },
+    // getting the actual click count for the links for the previous day
+    const linkClickStats: z.infer<(typeof analyticsResponse)["top_links"]>[] =
+      await getAnalytics({
+        event: "clicks",
+        groupBy: "top_links",
+        linkIds: linkWithClicks.map(({ id }) => id),
+        start,
+        end,
       });
 
-      if (!links.length) {
-        console.log("No links found for program", { programId });
-        continue;
-      }
-
-      for (const { id: linkId, programId, partnerId } of links) {
-        if (!linkId || !programId || !partnerId) {
-          console.log("Invalid link", { linkId, programId, partnerId });
-          continue;
-        }
-
-        const { clicks: quantity } = await getAnalytics({
-          linkId,
-          start,
-          end,
-          groupBy: "count",
-          event: "clicks",
-        });
-
-        if (!quantity || quantity === 0) {
-          console.log("No clicks found for link", {
-            linkId,
-            programId,
-            partnerId,
-          });
-          continue;
-        }
-
-        console.log("Creating commission", {
-          reward,
-          event: "click",
-          programId,
-          partnerId,
-          linkId,
-          quantity,
-        });
-
-        await createPartnerCommission({
-          reward,
-          event: "click",
-          programId,
-          partnerId,
-          linkId,
-          quantity,
-        });
-      }
+    // This should never happen, but just in case
+    if (linkClickStats.length === 0) {
+      await log({
+        message:
+          "Failed to get link click stats from Tinybird. Needs investigation.",
+        type: "errors",
+        mention: true,
+      });
+      throw new Error("Failed to get link click stats from Tinybird.");
     }
+
+    // creating a map of link id to reward (for easy lookup)
+    const linkRewardMap = new Map(
+      clickRewardsWithEnrollments.flatMap(({ clickEnrollments, ...reward }) =>
+        clickEnrollments.flatMap(({ links }) =>
+          links.map(({ id }) => [id, reward]),
+        ),
+      ),
+    );
+    const linkClicksMap = new Map(
+      linkClickStats.map(({ id, clicks }) => [id, clicks]),
+    );
+
+    // creating a list of commissions to create
+    const commissionsToCreate = linkWithClicks
+      .map(({ id, programId, partnerId }) => {
+        const linkClicks = linkClicksMap.get(id) ?? 0;
+        const reward = linkRewardMap.get(id);
+        if (!programId || !partnerId || linkClicks === 0 || !reward) {
+          return null;
+        }
+
+        return {
+          id: createId({ prefix: "cm_" }),
+          programId,
+          partnerId,
+          linkId: id,
+          quantity: linkClicks,
+          type: CommissionType.click,
+          amount: 0,
+          earnings: reward.amount * linkClicks,
+        };
+      })
+      .filter((c) => c !== null) as Prisma.CommissionCreateManyInput[];
+
+    console.table(commissionsToCreate);
+
+    // // Create commissions
+    await prisma.commission.createMany({
+      data: commissionsToCreate,
+    });
+
+    // getting a list of click reward program enrollments
+    const clickEnrollments = clickRewardsWithEnrollments.flatMap(
+      ({ clickEnrollments }) => clickEnrollments,
+    );
+
+    console.time("syncTotalCommissions");
+    for (const { partnerId, programId } of commissionsToCreate) {
+      // Sync total commissions for each partner that we created commissions for
+      await syncTotalCommissions({
+        partnerId,
+        programId,
+      });
+    }
+    console.timeEnd("syncTotalCommissions");
+    console.log(
+      `Updated total commissions count for ${commissionsToCreate.length} partners`,
+    );
 
     return NextResponse.json("OK");
   } catch (error) {

@@ -33,6 +33,15 @@ export const CONDITION_OPERATORS = [
   "not_in",
 ] as const;
 
+export const CONDITION_OPERATOR_LABELS = {
+  equals_to: "is",
+  not_equals: "is not",
+  starts_with: "starts with",
+  ends_with: "ends with",
+  in: "is one of",
+  not_in: "is not one of",
+} as const;
+
 export const rewardConditionSchema = z.object({
   entity: z.enum(CONDITION_ENTITIES),
   attribute: z.enum(CONDITION_ATTRIBUTES),
@@ -63,7 +72,6 @@ export const RewardSchema = z.object({
   amount: z.number(),
   maxDuration: z.number().nullish(),
   maxAmount: z.number().nullish(),
-  default: z.boolean(),
   modifiers: z.any().nullish(), // TODO: Fix this
 });
 
@@ -73,16 +81,8 @@ export const createOrUpdateRewardSchema = z.object({
   type: z.nativeEnum(RewardStructure).default(RewardStructure.flat),
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
-  isDefault: z.boolean(),
-  includedPartnerIds: z
-    .array(z.string())
-    .nullish()
-    .describe("Only applicable for non-default rewards"),
-  excludedPartnerIds: z
-    .array(z.string())
-    .nullish()
-    .describe("Only applicable for default rewards"),
   modifiers: rewardConditionsArraySchema.nullish(),
+  groupId: z.string(),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
@@ -97,7 +97,7 @@ export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({
     event: true,
-    isDefault: true,
+    groupId: true,
   })
   .merge(
     z.object({

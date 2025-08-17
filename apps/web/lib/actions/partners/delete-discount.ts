@@ -1,8 +1,13 @@
 "use server";
 
-import { deleteDiscount } from "@/lib/api/partners/delete-discount";
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { qstash } from "@/lib/cron";
+import { deleteStripeCoupon } from "@/lib/stripe/delete-stripe-coupon";
+import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -24,9 +29,65 @@ export const deleteDiscountAction = authActionClient
       discountId,
     });
 
-    await deleteDiscount({
-      workspace,
-      discount,
-      user,
+    const group = await prisma.$transaction(async (tx) => {
+      const group = await tx.partnerGroup.update({
+        where: {
+          discountId: discount.id,
+        },
+        data: {
+          discountId: null,
+        },
+      });
+
+      await tx.programEnrollment.updateMany({
+        where: {
+          discountId: discount.id,
+        },
+        data: {
+          discountId: null,
+        },
+      });
+
+      await tx.discount.delete({
+        where: {
+          id: discount.id,
+        },
+      });
+
+      return group;
     });
+
+    waitUntil(
+      Promise.allSettled([
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+          body: {
+            groupId: group.id,
+          },
+        }),
+
+        // Question:
+        // Would this be a problem if the coupon is used in their application?
+        discount.couponId &&
+          deleteStripeCoupon({
+            couponId: discount.couponId,
+            stripeConnectId: workspace.stripeConnectId,
+          }),
+
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "discount.deleted",
+          description: `Discount ${discountId} deleted`,
+          actor: user,
+          targets: [
+            {
+              type: "discount",
+              id: discountId,
+              metadata: discount,
+            },
+          ],
+        }),
+      ]),
+    );
   });

@@ -9,7 +9,6 @@ export const DiscountSchema = z.object({
   maxDuration: z.number().nullable(),
   couponId: z.string().nullable(),
   couponTestId: z.string().nullable(),
-  default: z.boolean(),
   description: z.string().nullish(),
   partnersCount: z.number().nullish(),
 });
@@ -27,27 +26,14 @@ export const createDiscountSchema = z.object({
   amount: z.number().min(0),
   type: z.nativeEnum(RewardStructure).default("flat"),
   maxDuration: maxDurationSchema,
-  couponId: z.string().nullish().describe("Use existing Stripe coupon ID"),
-  couponTestId: z
-    .string()
-    .nullish()
-    .describe("Use existing Stripe test coupon ID"),
-  isDefault: z.boolean(),
-  includedPartnerIds: z
-    .array(z.string())
-    .nullish()
-    .describe("Only applicable for non-default discounts"),
-  excludedPartnerIds: z
-    .array(z.string())
-    .nullish()
-    .describe("Only applicable for default discounts"),
+  couponId: z.string().nullish(),
+  couponTestId: z.string().nullish(),
+  groupId: z.string(),
 });
 
 export const updateDiscountSchema = createDiscountSchema
   .pick({
     workspaceId: true,
-    includedPartnerIds: true,
-    excludedPartnerIds: true,
   })
   .extend({
     discountId: z.string(),

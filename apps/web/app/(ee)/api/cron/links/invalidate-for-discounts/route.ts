@@ -1,26 +1,21 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { chunk } from "@dub/utils";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
-  discountId: z.string(),
-  programId: z
-    .string()
+  groupId: z.string(),
+  partnerIds: z
+    .array(z.string())
     .optional()
-    .describe("Must be passed for discount-deleted action"),
-  isDefault: z
-    .boolean()
-    .optional()
-    .describe("Must be passed for discount-deleted action"),
-  action: z.enum(["discount-created", "discount-deleted"]),
+    .describe(
+      "If provided, only invalidate the cache for the given partner ids.",
+    ),
 });
-
-type Payload = Omit<z.infer<typeof schema>, "action">;
 
 // This route is used to invalidate the partnerlink cache when a discount is created/updated/deleted.
 // POST /api/cron/links/invalidate-for-discounts
@@ -29,122 +24,66 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { action, ...payload } = schema.parse(JSON.parse(rawBody));
+    const { groupId, partnerIds } = schema.parse(JSON.parse(rawBody));
 
-    switch (action) {
-      case "discount-created":
-        return handleDiscountCreated(payload);
-      case "discount-deleted":
-        return handleDiscountDeleted(payload);
-      default:
-        return new Response("Invalid action.");
+    // Find the group
+    const group = await prisma.partnerGroup.findUnique({
+      where: {
+        id: groupId,
+      },
+    });
+
+    if (!group) {
+      console.error(`Group ${groupId} not found.`);
+      return new Response("OK");
     }
+
+    // Find all the links of the partners in the group
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        groupId,
+        ...(partnerIds && {
+          partnerId: {
+            in: partnerIds,
+          },
+        }),
+      },
+      select: {
+        links: {
+          select: {
+            domain: true,
+            key: true,
+          },
+        },
+      },
+    });
+
+    if (programEnrollments.length === 0) {
+      console.log(`No program enrollments found for group ${groupId}.`);
+      return new Response("OK");
+    }
+
+    const links = programEnrollments.flatMap((enrollment) => enrollment.links);
+
+    if (links.length === 0) {
+      console.log(`No links found for partners in the group ${groupId}.`);
+      return new Response("OK");
+    }
+
+    console.log(`Found ${links.length} links to invalidate the cache for.`);
+
+    const linkChunks = chunk(links, 100);
+
+    // Expire the cache for the links
+    for (const linkChunk of linkChunks) {
+      const toExpire = linkChunk.map(({ domain, key }) => ({ domain, key }));
+      await linkCache.expireMany(toExpire);
+      console.log(toExpire);
+      console.log(`Expired cache for ${toExpire.length} links.`);
+    }
+
+    return new Response("OK");
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
 }
-
-// Discount has been created
-const handleDiscountCreated = async ({ discountId }: Payload) => {
-  const discount = await prisma.discount.findUnique({
-    where: {
-      id: discountId,
-    },
-  });
-
-  if (!discount) {
-    return new Response(`Discount ${discountId} not found.`);
-  }
-
-  let page = 0;
-  let total = 0;
-  const take = 1000;
-
-  while (true) {
-    const links = await prisma.link.findMany({
-      where: {
-        programEnrollment: { discountId },
-      },
-      select: {
-        domain: true,
-        key: true,
-      },
-      take,
-      skip: page * take,
-    });
-
-    if (links.length === 0) {
-      break;
-    }
-
-    await linkCache.expireMany(links);
-
-    page += 1;
-    total += links.length;
-  }
-
-  return new Response(`Invalidated ${total} links for discount ${discountId}.`);
-};
-
-// Discount has been deleted
-const handleDiscountDeleted = async ({
-  programId,
-  discountId,
-  isDefault,
-}: Payload) => {
-  while (true) {
-    let partnerIds: string[] = [];
-
-    if (!isDefault) {
-      partnerIds =
-        (await redis.lpop<string[]>(`discount-partners:${discountId}`, 100)) ||
-        [];
-
-      // There won't be any entries in Redis for the default discount
-      if (!partnerIds || partnerIds.length === 0) {
-        await redis.del(`discount-partners:${discountId}`);
-        break;
-      }
-    }
-
-    const links = await prisma.link.findMany({
-      where: {
-        programId,
-        programEnrollment: {
-          ...(partnerIds.length > 0 && {
-            partnerId: {
-              in: partnerIds,
-            },
-          }),
-          discountId: null,
-        },
-      },
-      select: {
-        id: true,
-        domain: true,
-        key: true,
-      },
-    });
-
-    if (links.length === 0) {
-      continue;
-    }
-
-    await Promise.allSettled([
-      linkCache.expireMany(links),
-
-      prisma.link.updateMany({
-        where: {
-          id: {
-            in: links.map((link) => link.id),
-          },
-        },
-        data: {
-          couponCode: null,
-        },
-      }),
-    ]);
-  }
-
-  return new Response(`Invalidated links for discount ${discountId}.`);
-};

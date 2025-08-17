@@ -21,7 +21,6 @@ export const GET = withWorkspace(
 
     const partners = await getPartners({
       ...parsedParams,
-      workspaceId: workspace.id,
       programId,
     });
 
@@ -53,6 +52,7 @@ export const POST = withWorkspace(
       description = null,
       tenantId,
       linkProps,
+      groupId,
     } = createPartnerSchema.parse(await parseRequestBody(req));
 
     const program = await getProgramOrThrow({
@@ -85,6 +85,7 @@ export const POST = withWorkspace(
         description,
       },
       tenantId,
+      groupId,
     });
 
     return NextResponse.json(enrolledPartner, {

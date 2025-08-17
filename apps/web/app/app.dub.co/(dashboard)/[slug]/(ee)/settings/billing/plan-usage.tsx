@@ -49,9 +49,9 @@ export default function PlanUsage() {
     domainsLimit,
     foldersUsage,
     foldersLimit,
+    groupsLimit,
     tagsLimit,
     usersLimit,
-    partnersEnabled,
     billingCycleStart,
   } = useWorkspace();
 
@@ -114,7 +114,7 @@ export default function PlanUsage() {
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
         <div>
           <h2 className="text-xl font-medium">
-            {plan && isLegacyBusinessPlan(plan, payoutsLimit ?? 0)
+            {plan && isLegacyBusinessPlan({ plan, payoutsLimit })
               ? "Business (Legacy)"
               : capitalize(plan)}{" "}
             Plan
@@ -169,7 +169,6 @@ export default function PlanUsage() {
           className={cn(
             "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
             "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
-            !partnersEnabled && "rounded-b-lg",
           )}
         >
           <UsageCategory
@@ -201,7 +200,7 @@ export default function PlanUsage() {
             href={`/${slug}/settings/people`}
           />
         </div>
-        {partnersEnabled && defaultProgramId && (
+        {defaultProgramId && (
           <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3">
             <UsageCategory
               title="Partners"

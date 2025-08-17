@@ -10,7 +10,6 @@ import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,
-  COUNTRY_CODES,
   PAGINATION_LIMIT,
   THE_BEGINNING_OF_TIME,
   capitalize,
@@ -87,6 +86,14 @@ export const analyticsQuerySchema = z
       .describe(
         "The unique ID of the short link on Dub to retrieve analytics for.",
       ),
+    // TODO: Add this to the public API when we can properly verify linkIds ownership in /api/analytics
+    // linkIds: z
+    //   .union([z.string(), z.array(z.string())])
+    //   .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    //   .optional()
+    //   .describe(
+    //     "A list of link IDs to retrieve analytics for. Takes precidence over ",
+    //   ),
     externalId: z
       .string()
       .optional()
@@ -138,10 +145,10 @@ export const analyticsQuerySchema = z
       )
       .openapi({ example: "America/New_York", default: "UTC" }),
     country: z
-      .enum(COUNTRY_CODES)
+      .string()
       .optional()
       .describe(
-        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. Learn more: https://d.to/geo",
+        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
       )
       .openapi({ ref: "countryCode" }),
     city: z
@@ -266,6 +273,12 @@ export const analyticsFilterTB = z
       .string()
       .optional()
       .describe("The UTM tag to group by. Defaults to `utm_source`."),
+    // TODO: remove this once it's been added to the public API
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("The link IDs to retrieve analytics for."),
     folderIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))

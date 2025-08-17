@@ -32,6 +32,7 @@ model Program {
   id                           String                   @id @default(cuid())
   workspaceId                  String
   defaultFolderId              String?
+  defaultGroupId               String?
   name                         String
   slug                         String                   @unique
   logo                         String?
@@ -69,6 +70,7 @@ model Program {
   commissions   Commission[]
   rewards       Reward[]
   discounts     Discount[]           @relation("ProgramDiscounts")
+  groups        PartnerGroup[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -79,11 +81,12 @@ model ProgramEnrollment {
   partnerId        String
   programId        String
   tenantId         String?
-  discountId       String? // custom discount for this partner
+  groupId          String?
+  applicationId    String?                 @unique
   clickRewardId    String?
   leadRewardId     String?
   saleRewardId     String?
-  applicationId    String?                 @unique
+  discountId       String?
   status           ProgramEnrollmentStatus @default(pending)
   totalCommissions Int                     @default(0) // total commissions earned by the partner (in cents)
   createdAt        DateTime                @default(now())
@@ -91,27 +94,30 @@ model ProgramEnrollment {
   bannedAt         DateTime?
   bannedReason     PartnerBannedReason?
 
-  partner     Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  links       Link[]
-  discount    Discount?           @relation(fields: [discountId], references: [id])
-  application ProgramApplication? @relation(fields: [applicationId], references: [id])
-  clickReward Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
-  leadReward  Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
-  saleReward  Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  partner      Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program      Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  links        Link[]
+  partnerGroup PartnerGroup?       @relation(fields: [groupId], references: [id])
+  application  ProgramApplication? @relation(fields: [applicationId], references: [id])
+  clickReward  Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward   Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward   Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  discount     Discount?           @relation(fields: [discountId], references: [id])
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
   @@index(programId)
-  @@index(discountId)
+  @@index(groupId)
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
+  @@index(discountId)
 }
 
 model ProgramApplication {
   id        String   @id @default(cuid())
   programId String
+  groupId   String?
   name      String
   email     String
   proposal  String?  @db.Text
@@ -120,8 +126,10 @@ model ProgramApplication {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  program    Program            @relation(fields: [programId], references: [id])
-  enrollment ProgramEnrollment?
+  program      Program            @relation(fields: [programId], references: [id])
+  partnerGroup PartnerGroup?      @relation(fields: [groupId], references: [id])
+  enrollment   ProgramEnrollment?
 
   @@index(programId)
+  @@index(groupId)
 }
