@@ -1,9 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useScriptContext } from './script-context';
 
 export const SupportChatbot = () => {
+  const { scriptsLoaded } = useScriptContext();
+
   useEffect(() => {
+    // Only set up listeners after scripts are loaded
+    if (!scriptsLoaded) {
+      return;
+    }
     const bpIframe: HTMLIFrameElement | null = document.querySelector('.bpFab');
     const bpWebChatIframe: HTMLIFrameElement | null =
       document.querySelector('.bpWebchat');
@@ -45,7 +52,7 @@ export const SupportChatbot = () => {
 
       document.removeEventListener('click', handleClick);
     };
-  }, []);
+  }, [scriptsLoaded]);
 
   return null;
 };
