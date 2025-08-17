@@ -1,7 +1,7 @@
 import { getLinkViaEdge } from "@/lib/planetscale";
-import { Grid, LinkLogo, Wordmark } from "@dub/ui";
+import { Grid, Wordmark } from "@dub/ui";
 import { ArrowRight, Copy, IOSAppStore, MobilePhone } from "@dub/ui/icons";
-import { cn, getApexDomain } from "@dub/utils";
+import { cn, getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeepLinkActionButtons } from "./action-buttons";
@@ -63,7 +63,7 @@ export default async function DeepLinkPage({
       <div className="relative z-10 flex flex-1 flex-col px-8 py-8">
         <div className="flex justify-center">
           <Link
-            href="https://dub.co"
+            href="https://dub.co/docs/concepts/deep-links/quickstart"
             target="_blank"
             className="flex items-center gap-1 whitespace-nowrap text-sm font-medium text-neutral-900"
           >
@@ -73,20 +73,20 @@ export default async function DeepLinkPage({
 
         <div className="flex flex-1 flex-col justify-center gap-12">
           <div className="flex flex-col items-center gap-y-6">
-            <div className="flex flex-col items-center gap-4">
-              <LinkLogo
-                apexDomain={getApexDomain(link.url)}
-                className="size-20 shrink-0"
+            <div className="inline-flex items-center gap-2 rounded-full bg-white p-1.5 shadow-lg shadow-black/10 ring-1 ring-neutral-200">
+              <img
+                src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
+                className="size-8 shrink-0 overflow-visible rounded-full p-px"
               />
-              <div className="text-xl font-semibold text-neutral-900">
+              <div className="pr-1.5 text-lg font-semibold text-neutral-900">
                 {getApexDomain(link.url)}
               </div>
             </div>
 
             <div className="flex h-40 w-full max-w-xs flex-col gap-6 rounded-xl border border-neutral-300 px-10 py-8">
               <p className="text-center text-sm font-normal leading-5 text-neutral-700">
-                Clicking below will copy this page, and open it after you
-                install the app.
+                Clicking below will copy this page and open it after you install
+                the app.
               </p>
 
               <div className="flex items-center justify-center gap-3">

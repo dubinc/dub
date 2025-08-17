@@ -1,31 +1,24 @@
 "use client";
 
 import { EdgeLinkProps } from "@/lib/planetscale";
-import { Button, IOSAppStore } from "@dub/ui";
-import { useState } from "react";
+import { Button, IOSAppStore, useCopyToClipboard } from "@dub/ui";
 
 export function DeepLinkActionButtons({ link }: { link: EdgeLinkProps }) {
-  const [copied, setCopied] = useState(false);
+  const [_copied, copyToClipboard] = useCopyToClipboard();
 
   const handleClick = async ({ withCopy }: { withCopy?: boolean } = {}) => {
     if (withCopy) {
-      try {
-        await navigator.clipboard.writeText(link.shortLink);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error("Failed to copy:", err);
-      }
+      copyToClipboard(link.shortLink);
     }
 
     window.location.href = link.ios || link.url;
   };
 
   return (
-    <div className="flex flex-col items-center gap-5">
+    <div className="flex flex-col items-center gap-4">
       <Button
         text="Get the App"
-        className="h-12 w-full rounded-xl bg-neutral-900 text-white hover:bg-neutral-800"
+        className="h-12 w-full rounded-xl bg-neutral-900 text-white"
         variant="primary"
         onClick={() => handleClick({ withCopy: true })}
         icon={<IOSAppStore className="size-6" />}
@@ -33,7 +26,7 @@ export function DeepLinkActionButtons({ link }: { link: EdgeLinkProps }) {
 
       <button
         onClick={() => handleClick()}
-        className="text-base font-medium text-neutral-700 hover:text-neutral-900"
+        className="text-sm text-neutral-500"
       >
         Get the App without copying
       </button>
