@@ -1,10 +1,10 @@
 import { prisma } from "@dub/prisma";
-import { Program, Reward } from "@dub/prisma/client";
+import { Program } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { logImportError } from "../tinybird/log-import-error";
-import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate, RewardfulImportPayload } from "./types";
@@ -13,17 +13,27 @@ export async function importPartners(payload: RewardfulImportPayload) {
   const {
     importId,
     programId,
+    groupId,
     userId,
     campaignId,
     page = 1,
-    rewardId,
   } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
+    include: {
+      groups: {
+        // if groupId is provided, use it, otherwise use the default group
+        where: {
+          ...(groupId ? { id: groupId } : { slug: DEFAULT_PARTNER_GROUP.slug }),
+        },
+      },
+    },
   });
+
+  const defaultGroup = program.groups[0];
 
   const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
@@ -32,16 +42,6 @@ export async function importPartners(payload: RewardfulImportPayload) {
   let currentPage = page;
   let hasMore = true;
   let processedBatches = 0;
-
-  const reward = await prisma.reward.findUniqueOrThrow({
-    where: {
-      id: rewardId,
-    },
-    select: {
-      id: true,
-      event: true,
-    },
-  });
 
   const commonImportLogInputs = {
     workspace_id: program.workspaceId,
@@ -79,7 +79,13 @@ export async function importPartners(payload: RewardfulImportPayload) {
             program,
             affiliate,
             userId,
-            reward,
+            defaultGroupAttributes: {
+              groupId: defaultGroup.id,
+              saleRewardId: defaultGroup.saleRewardId,
+              leadRewardId: defaultGroup.leadRewardId,
+              clickRewardId: defaultGroup.clickRewardId,
+              discountId: defaultGroup.discountId,
+            },
           }),
         ),
       );
@@ -105,7 +111,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
   await rewardfulImporter.queue({
     ...payload,
     action,
-    ...(action === "import-partners" && rewardId && { rewardId }),
+    ...(action === "import-partners" && groupId && { groupId }),
     page: hasMore ? currentPage : undefined,
   });
 }
@@ -115,12 +121,18 @@ async function createPartnerAndLinks({
   program,
   affiliate,
   userId,
-  reward,
+  defaultGroupAttributes,
 }: {
   program: Program;
   affiliate: RewardfulAffiliate;
   userId: string;
-  reward: Pick<Reward, "id" | "event">;
+  defaultGroupAttributes: {
+    groupId: string;
+    saleRewardId: string | null;
+    leadRewardId: string | null;
+    clickRewardId: string | null;
+    discountId: string | null;
+  };
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -145,7 +157,7 @@ async function createPartnerAndLinks({
       programId: program.id,
       partnerId: partner.id,
       status: "approved",
-      ...(reward && { [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id }),
+      ...defaultGroupAttributes,
     },
     update: {
       status: "approved",

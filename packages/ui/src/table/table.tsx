@@ -243,13 +243,17 @@ type ResizableTableRowProps<T> = {
   row: Row<T>;
   rowProps?: HTMLAttributes<HTMLTableRowElement>;
   table: TableType<T>;
-} & Pick<TableProps<T>, "cellRight" | "tdClassName" | "onRowClick">;
+} & Pick<
+  TableProps<T>,
+  "cellRight" | "tdClassName" | "onRowClick" | "onRowAuxClick"
+>;
 
 // Memoized row component to prevent re-renders during column resizing
 const ResizableTableRow = memo(
   function ResizableTableRow<T>({
     row,
     onRowClick,
+    onRowAuxClick,
     rowProps,
     cellRight,
     tdClassName,
@@ -275,6 +279,15 @@ const ResizableTableRow = memo(
                 // Ignore if click is on an interactive child
                 if (isClickOnInteractiveChild(e)) return;
                 onRowClick(row, e);
+              }
+            : undefined
+        }
+        onAuxClick={
+          onRowAuxClick
+            ? (e) => {
+                // Ignore if click is on an interactive child
+                if (isClickOnInteractiveChild(e)) return;
+                onRowAuxClick(row, e);
               }
             : undefined
         }
@@ -342,6 +355,7 @@ export function Table<T>({
   pagination,
   resourceName,
   onRowClick,
+  onRowAuxClick,
   onRowSelectionChange,
   selectionControls,
   rowProps,
@@ -497,6 +511,7 @@ export function Table<T>({
                         .join(",")}`}
                       row={row}
                       onRowClick={onRowClick}
+                      onRowAuxClick={onRowAuxClick}
                       rowProps={props}
                       cellRight={cellRight}
                       tdClassName={tdClassName}
@@ -518,6 +533,14 @@ export function Table<T>({
                           ? (e) => {
                               if (isClickOnInteractiveChild(e)) return;
                               onRowClick(row, e);
+                            }
+                          : undefined
+                      }
+                      onAuxClick={
+                        onRowAuxClick
+                          ? (e) => {
+                              if (isClickOnInteractiveChild(e)) return;
+                              onRowAuxClick(row, e);
                             }
                           : undefined
                       }

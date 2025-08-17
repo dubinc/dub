@@ -141,6 +141,7 @@ async function main() {
 
       const hasDefaultReward = rewards.some(
         (reward) =>
+          // @ts-ignore (old reward schema)
           reward.default &&
           (reward.id === group.saleRewardId ||
             reward.id === group.leadRewardId ||

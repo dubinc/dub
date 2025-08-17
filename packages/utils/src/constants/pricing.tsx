@@ -387,5 +387,10 @@ export const isDowngradePlan = (currentPlan: string, newPlan: string) => {
   return currentPlanIndex > newPlanIndex;
 };
 
-export const isLegacyBusinessPlan = (plan: string, payoutsLimit: number) =>
-  plan === "business" && payoutsLimit === 0;
+export const isLegacyBusinessPlan = ({
+  plan = "business",
+  payoutsLimit = 0,
+}: {
+  plan?: string;
+  payoutsLimit?: number;
+}) => plan === "business" && payoutsLimit === 0;
