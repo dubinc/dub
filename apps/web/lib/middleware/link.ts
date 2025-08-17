@@ -33,6 +33,7 @@ import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
 import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
+import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
@@ -409,8 +410,8 @@ export default async function LinkMiddleware(
       }),
     );
 
-    // if it's an iOS app store URL, we need to show the interstitial page +
-    if (ios.startsWith("https://apps.apple.com/")) {
+    // if it's an iOS app store URL, we need to show the interstitial page + cache deep link click data
+    if (isIosAppStoreUrl(ios)) {
       ev.waitUntil(
         cacheDeepLinkClickData({
           req,
