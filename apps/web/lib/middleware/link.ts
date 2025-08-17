@@ -2,7 +2,7 @@ import {
   createResponseWithCookies,
   detectBot,
   getFinalUrl,
-  isSupportedDeeplinkProtocol,
+  isSupportedCustomURIScheme,
   parse,
 } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
@@ -31,7 +31,9 @@ import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
+import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
@@ -315,7 +317,7 @@ export default async function LinkMiddleware(
     );
 
     // rewrite to deeplink page if the link is a mailto: or tel:
-  } else if (isSupportedDeeplinkProtocol(url)) {
+  } else if (isSupportedCustomURIScheme(url)) {
     ev.waitUntil(
       recordClick({
         req,
@@ -333,7 +335,7 @@ export default async function LinkMiddleware(
     return createResponseWithCookies(
       NextResponse.rewrite(
         new URL(
-          `/deeplink/${encodeURIComponent(
+          `/custom-uri-scheme/${encodeURIComponent(
             getFinalUrl(url, {
               req,
               ...(shouldCacheClickId && { clickId }),
@@ -408,6 +410,34 @@ export default async function LinkMiddleware(
       }),
     );
 
+    // if it's an iOS app store URL, we need to show the interstitial page + cache deep link click data
+    if (isIosAppStoreUrl(ios)) {
+      ev.waitUntil(
+        cacheDeepLinkClickData({
+          req,
+          clickId,
+          link: {
+            id: linkId,
+            domain,
+            key,
+            url, // pass the main destination URL to the cache (for deferred deep linking)
+          },
+        }),
+      );
+      // rewrite to the deeplink interstitial page
+      return createResponseWithCookies(
+        NextResponse.rewrite(
+          new URL(`/deeplink/${domain}/${encodeURIComponent(key)}`, req.url),
+          {
+            headers: {
+              ...DUB_HEADERS,
+              ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+            },
+          },
+        ),
+        cookieData,
+      );
+    }
     return createResponseWithCookies(
       NextResponse.redirect(
         getFinalUrl(ios, {
