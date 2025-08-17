@@ -29,6 +29,8 @@ export async function GET(req: Request) {
 
     const targetDate = addDays(new Date(), 14);
 
+    console.log("targetDate", targetDate);
+
     // Find all domains expiring in 14 days
     const domains = await prisma.registeredDomain.findMany({
       where: {
@@ -50,10 +52,15 @@ export async function GET(req: Request) {
     });
 
     if (domains.length === 0) {
+      console.log(
+        "No domains found expiring exactly 14 days from today. Skipping...",
+      );
       return NextResponse.json(
         "No domains found expiring exactly 14 days from today.",
       );
     }
+
+    console.table(domains, ["slug", "expiresAt", "renewalFee"]);
 
     // Group domains by workspaceId
     const groupedByWorkspace = domains.reduce(
@@ -114,7 +121,7 @@ export async function GET(req: Request) {
       });
 
       console.log(
-        `Invoice ${invoice.id} created for workspace ${workspace.id} to renew ${domains.length} domains.`,
+        `Invoice ${invoice.id} with total ${invoice.total} created for workspace ${workspace.id} to renew ${domains.length} domains.`,
       );
 
       invoices.push(invoice);
@@ -129,7 +136,7 @@ export async function GET(req: Request) {
         continue;
       }
 
-      await createPaymentIntent({
+      const res = await createPaymentIntent({
         stripeId: workspace.stripeId!,
         amount: invoice.total,
         invoiceId: invoice.id,
@@ -137,6 +144,8 @@ export async function GET(req: Request) {
         description: `Domain renewal invoice (${invoice.id})`,
         idempotencyKey: `${invoice.id}-${invoice.failedAttempts}`,
       });
+
+      console.log(`Payment intent created for invoice ${invoice.id}`, res);
     }
 
     return NextResponse.json("OK");

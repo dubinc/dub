@@ -41,22 +41,22 @@ export const createProgramApplicationAction = actionClient
       throw new Error("Too many requests. Please try again later.");
     }
 
-    const [program, group] = await Promise.all([
-      prisma.program.findUniqueOrThrow({
-        where: {
-          id: programId,
+    const program = await prisma.program.findUniqueOrThrow({
+      where: {
+        id: programId,
+      },
+      include: {
+        groups: {
+          where: {
+            ...(groupId ? { id: groupId } : { slug: "default" }),
+          },
         },
-      }),
+      },
+    });
 
-      prisma.partnerGroup.findUniqueOrThrow({
-        where: {
-          id: groupId,
-        },
-      }),
-    ]);
-
-    if (group.programId !== program.id) {
-      throw new Error(`Group ${group.name} is not found on this program.`);
+    // this should never happen, but just in case
+    if (!program.groups.length) {
+      throw new Error("This program has no groups.");
     }
 
     const session = await getSession();
@@ -78,14 +78,14 @@ export const createProgramApplicationAction = actionClient
         program,
         data: parsedInput,
         partner: existingPartner,
-        group,
+        group: program.groups[0],
       });
     }
 
     const application = await createApplication({
       program,
       data: parsedInput,
-      group,
+      group: program.groups[0],
     });
 
     await qstash.publishJSON({

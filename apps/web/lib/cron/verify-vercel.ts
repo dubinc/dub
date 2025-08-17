@@ -13,7 +13,7 @@ export const verifyVercelSignature = async (req: Request) => {
   ) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "Invalid QStash request signature",
+      message: "Invalid Vercel cron request signature",
     });
   }
 };

@@ -42,7 +42,6 @@ export default function ProgramWelcome({
     logo: string | null;
   };
 }) {
-  const programLandingUrl = `https://partners.dub.co/${program.slug}`;
   const workspaceUrlPrefix = `https://app.dub.co/${workspace.slug}`;
 
   return (
@@ -86,10 +85,10 @@ export default function ProgramWelcome({
                   </Text>
 
                   <Link
-                    href={programLandingUrl}
+                    href={`${workspaceUrlPrefix}/program`}
                     className="m-0 text-xs font-medium text-neutral-800 underline"
                   >
-                    {getPrettyUrl(programLandingUrl)}
+                    {getPrettyUrl(`${workspaceUrlPrefix}/program`)}
                   </Link>
                 </Column>
               </Row>

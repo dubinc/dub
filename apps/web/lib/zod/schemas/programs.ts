@@ -170,7 +170,7 @@ export const ProgramMetricsSchema = z.object({
 
 export const createProgramApplicationSchema = z.object({
   programId: z.string(),
-  groupId: z.string(),
+  groupId: z.string().optional(),
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   website: z.string().trim().max(100).optional(),
