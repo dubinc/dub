@@ -57,30 +57,30 @@ export const createProgram = async ({
 
   await getDomainOrThrow({ workspace, domain });
 
-  const programFolder = await prisma.folder.upsert({
-    where: {
-      name_projectId: {
-        name: "Partner Links",
-        projectId: workspace.id,
-      },
-    },
-    update: {},
-    create: {
-      id: createId({ prefix: "fold_" }),
-      name: "Partner Links",
-      projectId: workspace.id,
-      accessLevel: "write",
-      users: {
-        create: {
-          userId: user.id,
-          role: "owner",
-        },
-      },
-    },
-  });
-
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
+    const programFolder = await tx.folder.upsert({
+      where: {
+        name_projectId: {
+          name: "Partner Links",
+          projectId: workspace.id,
+        },
+      },
+      update: {},
+      create: {
+        id: createId({ prefix: "fold_" }),
+        name: "Partner Links",
+        projectId: workspace.id,
+        accessLevel: "write",
+        users: {
+          create: {
+            userId: user.id,
+            role: "owner",
+          },
+        },
+      },
+    });
+
     const programId = createId({ prefix: "prog_" });
     const defaultGroupId = createId({ prefix: "grp_" });
 

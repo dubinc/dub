@@ -31,7 +31,7 @@ enum PartnerUrlValidationMode {
 model Program {
   id                           String                   @id @default(cuid())
   workspaceId                  String
-  defaultFolderId              String?
+  defaultFolderId              String
   defaultGroupId               String
   name                         String
   slug                         String                   @unique
