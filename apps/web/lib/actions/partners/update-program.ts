@@ -2,7 +2,6 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
 import { isStored, storage } from "@/lib/storage";
 import { ProgramLanderData } from "@/lib/types";
 import {
@@ -51,7 +50,6 @@ export const updateProgramAction = authActionClient
       holdingPeriodDays,
       minPayoutAmount,
       cookieLength,
-      defaultFolderId,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -59,14 +57,6 @@ export const updateProgramAction = authActionClient
       workspaceId: workspace.id,
       programId,
     });
-
-    if (defaultFolderId) {
-      await getFolderOrThrow({
-        workspaceId: workspace.id,
-        userId: ctx.user.id,
-        folderId: defaultFolderId,
-      });
-    }
 
     const [logoUrl, wordmarkUrl] = await Promise.all([
       logo && !isStored(logo)
@@ -107,7 +97,6 @@ export const updateProgramAction = authActionClient
         cookieLength,
         holdingPeriodDays,
         minPayoutAmount,
-        defaultFolderId,
       },
     });
 
