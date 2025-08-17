@@ -25,11 +25,11 @@ const BotpressScripts = () => {
     <>
       <Script 
         async 
-        defer 
         src={process.env.NEXT_PUBLIC_BOTPRESS_WEBCHAT_URL} 
         onLoad={handleScriptLoad}
       />
       <Script 
+        async
         src={process.env.NEXT_PUBLIC_BOTPRESS_WEBCHAT_SCRIPT_URL} 
         onLoad={handleScriptLoad}
       />
