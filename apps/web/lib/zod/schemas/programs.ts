@@ -38,8 +38,8 @@ export const ProgramSchema = z.object({
   couponCodeTrackingEnabledAt: z.date().nullish(),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
-  defaultFolderId: z.string().nullable(),
-  defaultGroupId: z.string().nullable(),
+  defaultFolderId: z.string(),
+  defaultGroupId: z.string(),
   wordmark: z.string().nullable(),
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
@@ -59,7 +59,6 @@ export const updateProgramSchema = z.object({
   cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  defaultFolderId: z.string().nullable(),
   holdingPeriodDays: z.coerce
     .number()
     .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {

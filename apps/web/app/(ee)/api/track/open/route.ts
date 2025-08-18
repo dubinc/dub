@@ -2,16 +2,19 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
+import { DeepLinkClickData } from "@/lib/middleware/utils/cache-deeplink-click-data";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { parseUrlSchema } from "@/lib/zod/schemas/utils";
+import {
+  trackOpenRequestSchema,
+  trackOpenResponseSchema,
+} from "@/lib/zod/schemas/opens";
 import { LOCALHOST_IP, nanoid } from "@dub/utils";
 import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -19,31 +22,55 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-const trackOpenResponseSchema = z.object({
-  clickId: z.string(),
-  link: z.object({
-    id: z.string(),
-    domain: z.string(),
-    key: z.string(),
-    url: z.string(),
-  }),
-});
-
 // POST /api/track/open – Track an open event for deep link
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
-    const { deepLink: deepLinkUrl } = z
-      .object({
-        deepLink: parseUrlSchema,
-      })
-      .parse(await parseRequestBody(req));
+    const { deepLink: deepLinkUrl, dubDomain } = trackOpenRequestSchema.parse(
+      await parseRequestBody(req),
+    );
+
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+
+    if (!deepLinkUrl) {
+      if (ip) {
+        // if ip address is present, check if there's a cached click
+        console.log(`Checking cache for ${ip}:${dubDomain}:*`);
+
+        // Get all iOS click cache keys for this identity hash
+        const [_, cacheKeysForDomain] = await redis.scan(0, {
+          match: `deepLinkClickCache:${ip}:${dubDomain}:*`,
+          count: 10,
+        });
+
+        if (cacheKeysForDomain.length > 0) {
+          const cachedData = await redis.get<DeepLinkClickData>(
+            cacheKeysForDomain[0],
+          );
+
+          if (cachedData) {
+            return NextResponse.json(
+              trackOpenResponseSchema.parse(cachedData),
+              {
+                headers: CORS_HEADERS,
+              },
+            );
+          }
+        }
+      }
+
+      return NextResponse.json(
+        trackOpenResponseSchema.parse({
+          clickId: null,
+          link: null,
+        }),
+        { headers: CORS_HEADERS },
+      );
+    }
 
     const deepLink = new URL(deepLinkUrl);
 
     const domain = deepLink.hostname.replace(/^www\./, "").toLowerCase();
     const key = deepLink.pathname.slice(1) || "_root"; // Remove leading slash, default to _root if empty
-
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
     let [cachedClickId, cachedLink] = await redis.mget<
       [string, RedisLinkProps, string[]]
