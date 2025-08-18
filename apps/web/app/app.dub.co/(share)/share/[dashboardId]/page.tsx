@@ -30,7 +30,7 @@ export async function generateMetadata({
   });
 }
 
-export default async function dashboardPage({
+export default async function DashboardPage({
   params,
 }: {
   params: { dashboardId: string };
