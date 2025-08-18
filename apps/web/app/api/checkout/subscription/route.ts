@@ -11,6 +11,7 @@ import {
 import {
   getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
+  ICustomerBody,
 } from "core/integration/payment/config";
 import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
@@ -39,9 +40,12 @@ export const POST = withSession(
     req,
     session: authSession,
   }): Promise<NextResponse<ICreateSubscriptionRes>> => {
-    const { user } = await getUserCookieService();
-    console.log("user", user);
-    console.log("authSession", authSession);
+    const { user: customerUser } = await getUserCookieService();
+
+    const user: ICustomerBody | null = customerUser ? {
+      email: customerUser.email || authSession?.user?.email,
+      ...customerUser,
+    } : null;
 
     if (!user || !authSession?.user) {
       return NextResponse.json(
@@ -78,7 +82,7 @@ export const POST = withSession(
       user: {
         ...user,
         paymentInfo: {
-          ...user.paymentInfo,
+          ...user?.paymentInfo,
           paymentMethodType: body.payment.paymentMethodType,
         },
       },
