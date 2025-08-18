@@ -15,5 +15,5 @@ model Discount {
   program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   partnerGroup       PartnerGroup?
 
-  @@unique([programId, couponId])
+  @@unique(programId)
 }
