@@ -996,7 +996,7 @@ const FileUploadItem = React.forwardRef<HTMLDivElement, FileUploadItemProps>(
           {...itemProps}
           ref={forwardedRef}
           className={cn(
-            "relative flex items-center gap-2.5 rounded-md border p-3",
+            "relative flex items-center gap-2.5 rounded-md border p-3 flex-col",
             className,
           )}
         >

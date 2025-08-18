@@ -31,9 +31,11 @@ export const useQrOperations = () => {
           return false;
         }
 
+        console.log("qrBuilderData", qrBuilderData);
         const serverData = await convertQRBuilderDataToServer(qrBuilderData, {
           domain: SHORT_DOMAIN!,
         });
+        console.log("serverData", serverData);
 
         const res = await fetch(`/api/qrs?workspaceId=${workspaceId}`, {
           method: "POST",

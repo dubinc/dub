@@ -205,13 +205,19 @@ export const PATCH = withSession(
       const metadata = {
         ...body.metadata,
         ...getMetadata({
-          user,
+          user: {
+            ...user,
+            email: authSession.user.email,
+          },
           paymentPlan: body.paymentPlan,
         }),
       };
 
       const { priceForPay } = getPaymentPlanPrice({
-        user,
+        user: {
+          ...user,
+          email: authSession.user.email,
+        },
         paymentPlan: body.paymentPlan,
       });
 
@@ -240,6 +246,11 @@ export const PATCH = withSession(
       const { clientToken, clientTokenExpirationDate } =
         await paymentService.updateClientPaymentSession({
           ...requestBody,
+          customer: {
+            emailAddress: authSession.user.email,
+            billingAddress: { countryCode: user.currency?.countryCode || "" },
+            shippingAddress: { countryCode: user.currency?.countryCode || "" },
+          },
           metadata,
         } as IUpdatePrimerClientSessionBody);
 

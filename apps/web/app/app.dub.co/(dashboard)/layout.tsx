@@ -1,3 +1,4 @@
+import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
 import { getSession } from "@/lib/auth";
 import { TrialStatusProvider } from "@/lib/contexts/trial-status-context";
 import { MainNav } from "@/ui/layout/main-nav";
@@ -19,6 +20,8 @@ export default async function Layout({ children }: { children: ReactNode }) {
   const oauthFlowCookie = cookieStore.get(ECookieArg.OAUTH_FLOW)?.value;
   const parsedOauthFlowInfo = JSON.parse(oauthFlowCookie ?? "{}");
 
+  const featuresAccess = await checkFeaturesAccessAuthLess(user.id);
+
   return (
     <TrialStatusProvider>
       <div className="min-h-screen w-full bg-white">
@@ -36,7 +39,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
           {children}
         </MainNav>
       </div>
-      {!user?.paymentData?.subscriptionId && <ClientSessionComponent />}
+      {!featuresAccess.isSubscribed && <ClientSessionComponent />}
       {oauthFlowCookie && (
         <OauthTrackerComponent oauthData={parsedOauthFlowInfo} />
       )}

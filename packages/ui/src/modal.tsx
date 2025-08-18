@@ -59,6 +59,7 @@ export function Modal({
     return (
       <Drawer.Root
         open={setShowModal ? showModal : true}
+        dismissible={false}
         onOpenChange={(open) => {
           if (!open) {
             closeModal({ dragged: true });
@@ -89,7 +90,7 @@ export function Modal({
                 <Drawer.Title>Modal</Drawer.Title>
                 <Drawer.Description>This is a modal</Drawer.Description>
               </VisuallyHidden.Root>
-              <DrawerIsland />
+              {/*<DrawerIsland />*/}
               {children}
             </div>
           </Drawer.Content>

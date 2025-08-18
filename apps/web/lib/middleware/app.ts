@@ -29,8 +29,8 @@ export default async function AppMiddleware(
 
   // if there's no user and the path isn't /login or /register, redirect to /login
   if (
-    !user
-    // path !== "/login" &&
+    !user &&
+    path !== "/login"
     // path !== "/forgot-password" &&
     // path !== "/register" &&
     // path !== "/auth/saml" &&
