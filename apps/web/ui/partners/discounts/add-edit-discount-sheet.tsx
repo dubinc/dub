@@ -2,6 +2,7 @@
 
 import { createDiscountAction } from "@/lib/actions/partners/create-discount";
 import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
+import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import useGroup from "@/lib/swr/use-group";
@@ -125,6 +126,21 @@ function DiscountSheetContent({
     },
   );
 
+  const { executeAsync: updateDiscount, isPending: isUpdating } = useAction(
+    updateDiscountAction,
+    {
+      onSuccess: async () => {
+        // setIsOpen(false);
+        toast.success("Discount updated!");
+        await mutateProgram();
+        await mutateGroup();
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
+    },
+  );
+
   const { executeAsync: deleteDiscount, isPending: isDeleting } = useAction(
     deleteDiscountAction,
     {
@@ -145,13 +161,23 @@ function DiscountSheetContent({
       return;
     }
 
-    await createDiscount({
-      ...data,
+    if (!discount) {
+      await createDiscount({
+        ...data,
+        workspaceId,
+        groupId: group.id,
+        amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
+        maxDuration:
+          Number(data.maxDuration) === Infinity ? null : data.maxDuration,
+      });
+      return;
+    }
+
+    await updateDiscount({
       workspaceId,
-      groupId: group.id,
-      amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
-      maxDuration:
-        Number(data.maxDuration) === Infinity ? null : data.maxDuration,
+      discountId: discount.id,
+      couponId: data.couponId,
+      couponTestId: data.couponTestId,
     });
   };
 
@@ -466,15 +492,15 @@ function DiscountSheetContent({
               onClick={() => setIsOpen(false)}
               text="Cancel"
               className="w-fit"
-              disabled={isCreating || isDeleting}
+              disabled={isCreating || isDeleting || isUpdating}
             />
 
             <Button
               type="submit"
               variant="primary"
-              text="Create discount"
+              text={discount ? "Update discount" : "Create discount"}
               className="w-fit"
-              loading={isCreating || isDeleting}
+              loading={isCreating || isDeleting || isUpdating}
               disabled={!discount && amount == null}
             />
           </div>
