@@ -5,7 +5,7 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { BackLink } from "@/ui/shared/back-link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ProgramSidebar } from "./program-sidebar";
 
@@ -20,7 +20,7 @@ export default async function ProgramDetailsPage({
   });
 
   if (!program) {
-    notFound();
+    redirect("/programs");
   }
 
   return (

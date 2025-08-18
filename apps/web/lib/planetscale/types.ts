@@ -3,6 +3,7 @@ export interface EdgeLinkProps {
   domain: string;
   key: string;
   url: string;
+  shortLink: string;
   proxy: number;
   title: string;
   description: string;

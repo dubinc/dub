@@ -10,7 +10,7 @@ export function Wordpress(props: SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g clip-path="url(#clip0_18024_111652)">
+      <g clipPath="url(#clip0_18024_111652)">
         <path
           d="M2.84375 19.9996C2.84375 26.7908 6.79044 32.6598 12.5134 35.441L4.32919 13.0171C3.3772 15.1509 2.84375 17.5122 2.84375 19.9996Z"
           fill="#21759B"

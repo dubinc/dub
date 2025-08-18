@@ -50,6 +50,7 @@ export function GroupsTable() {
     query: {
       includeExpandedFields: true,
     },
+    includeParams: true,
   });
 
   const {
