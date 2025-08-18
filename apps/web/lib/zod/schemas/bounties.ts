@@ -42,7 +42,7 @@ export const BountySchema = z.object({
 });
 
 export const BountySchemaExtended = BountySchema.extend({
-  partners: z.number().default(0),
+  partnersCount: z.number().default(0),
 });
 
 export const BountySubmissionSchema = z.object({

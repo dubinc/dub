@@ -50,7 +50,9 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
             <Users className="size-3.5" />
             <div>
               <span className="text-content-default">N</span> of{" "}
-              <span className="text-content-default">{bounty.partners}</span>{" "}
+              <span className="text-content-default">
+                {bounty.partnersCount}
+              </span>{" "}
               partners completed
             </div>
           </div>

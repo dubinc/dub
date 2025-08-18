@@ -33,10 +33,10 @@ export async function getBounties(filters: BountyFilters) {
       ${
         includeExpandedFields
           ? Prisma.sql`
-            COUNT(DISTINCT pe.partnerId) as partners
+            COUNT(DISTINCT pe.partnerId) as partnersCount
           `
           : Prisma.sql`
-            0 as partners
+            0 as partnersCount
           `
       }
     FROM Bounty b
@@ -56,6 +56,6 @@ export async function getBounties(filters: BountyFilters) {
 
   return bounties.map((bounty) => ({
     ...bounty,
-    partners: Number(bounty.partners),
+    partnersCount: Number(bounty.partnersCount),
   }));
 }
