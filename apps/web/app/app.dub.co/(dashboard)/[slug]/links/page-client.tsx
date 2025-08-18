@@ -4,7 +4,7 @@ import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
-import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
+import { useIsMegaWorkspace } from "@/lib/swr/use-is-mega-workspace";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
@@ -72,6 +72,7 @@ function WorkspaceLinks() {
   const { isValidating } = useLinks();
   const searchParams = useSearchParams();
   const workspace = useWorkspace();
+  const { isMegaWorkspace } = useIsMegaWorkspace();
   const { LinkBuilder, CreateLinkButton } = useLinkBuilder();
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal();
 
@@ -86,7 +87,6 @@ function WorkspaceLinks() {
   } = useLinkFilters();
 
   const folderId = searchParams.get("folderId");
-  const { isMegaFolder } = useIsMegaFolder();
 
   const { isLoading } = useFolderPermissions();
   const canCreateLinks = useCheckFolderPermission(
@@ -140,7 +140,7 @@ function WorkspaceLinks() {
         <PageWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex w-full grow gap-2 md:w-auto">
-              {!isMegaFolder && (
+              {!isMegaWorkspace && (
                 <div className="grow basis-0 md:grow-0">
                   <Filter.Select
                     filters={filters}
@@ -209,7 +209,7 @@ function WorkspaceLinks() {
                   loading={isValidating}
                   inputClassName="h-10"
                   placeholder={
-                    isMegaFolder
+                    isMegaWorkspace
                       ? "Search by short link"
                       : "Search by short link or URL"
                   }

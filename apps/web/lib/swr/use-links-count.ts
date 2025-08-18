@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import z from "../zod";
 import { getLinksCountQuerySchema } from "../zod/schemas/links";
-import { useIsMegaFolder } from "./use-is-mega-folder";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getLinksCountQuerySchema.partial();
@@ -20,17 +19,16 @@ export default function useLinksCount<T = any>({
 } = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
-
   const [admin, setAdmin] = useState(false);
+
   useEffect(() => {
     if (window.location.host.startsWith("admin.")) {
       setAdmin(true);
     }
   }, []);
-  const { isMegaFolder } = useIsMegaFolder();
 
   const { data, error } = useSWR<any>(
-    workspaceId && !isMegaFolder && enabled
+    workspaceId && enabled
       ? `/api/links/count${getQueryString(
           {
             workspaceId,
