@@ -4,7 +4,6 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
-import { deleteStripeCoupon } from "@/lib/stripe/delete-stripe-coupon";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -65,14 +64,6 @@ export const deleteDiscountAction = authActionClient
             groupId: group.id,
           },
         }),
-
-        // Question:
-        // Would this be a problem if the coupon is used in their application?
-        discount.couponId &&
-          deleteStripeCoupon({
-            couponId: discount.couponId,
-            stripeConnectId: workspace.stripeConnectId,
-          }),
 
         recordAuditLog({
           workspaceId: workspace.id,

@@ -16,8 +16,15 @@ export const createDiscountAction = authActionClient
   .schema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let { amount, type, maxDuration, couponId, couponTestId, groupId, enableCouponTracking } =
-      parsedInput;
+    let {
+      amount,
+      type,
+      maxDuration,
+      couponId,
+      couponTestId,
+      groupId,
+      enableCouponTracking,
+    } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -69,13 +76,9 @@ export const createDiscountAction = authActionClient
           maxDuration,
           couponId,
           couponTestId,
-        },
-        include: {
-          program: {
-            select: {
-              couponCodeTrackingEnabledAt: true,
-            },
-          },
+          ...(enableCouponTracking && {
+            couponCodeTrackingEnabledAt: new Date(),
+          }),
         },
       });
 
@@ -109,14 +112,6 @@ export const createDiscountAction = authActionClient
               groupId,
             },
           }),
-
-          discount.program.couponCodeTrackingEnabledAt &&
-            qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
-              body: {
-                discountId: discount.id,
-              },
-            }),
 
           recordAuditLog({
             workspaceId: workspace.id,

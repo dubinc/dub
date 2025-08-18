@@ -35,6 +35,8 @@ export const createDiscountSchema = z.object({
 export const updateDiscountSchema = createDiscountSchema
   .pick({
     workspaceId: true,
+    couponId: true,
+    couponTestId: true,
   })
   .extend({
     discountId: z.string(),
