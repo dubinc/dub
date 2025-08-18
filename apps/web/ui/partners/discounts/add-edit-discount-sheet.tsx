@@ -75,9 +75,7 @@ function DiscountSheetContent({
   const { mutate: mutateProgram } = useProgram();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
-  const [useExistingCoupon, setUseExistingCoupon] = useState(
-    Boolean(discount?.couponId),
-  );
+  const [useExistingCoupon, setUseExistingCoupon] = useState(false);
 
   const [useStripeTestCouponId, setUseStripeTestCouponId] = useState(
     Boolean(discount?.couponTestId),
@@ -130,7 +128,7 @@ function DiscountSheetContent({
     updateDiscountAction,
     {
       onSuccess: async () => {
-        // setIsOpen(false);
+        setIsOpen(false);
         toast.success("Discount updated!");
         await mutateProgram();
         await mutateGroup();
@@ -240,49 +238,51 @@ function DiscountSheetContent({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                    {COUPON_CREATION_OPTIONS.map(
-                      ({ label, description, useExisting }) => {
-                        const isSelected = useExistingCoupon === useExisting;
+                  {!discount && (
+                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                      {COUPON_CREATION_OPTIONS.map(
+                        ({ label, description, useExisting }) => {
+                          const isSelected = useExistingCoupon === useExisting;
 
-                        return (
-                          <label
-                            key={label}
-                            className={cn(
-                              "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                              "transition-all duration-150",
-                              isSelected &&
-                                "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                            )}
-                          >
-                            <input
-                              type="radio"
-                              value={label}
-                              className="hidden"
-                              checked={isSelected}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setUseExistingCoupon(useExisting);
-                                }
-                              }}
-                            />
-                            <div className="flex grow flex-col text-sm">
-                              <span className="font-medium">{label}</span>
-                              <span>{description}</span>
-                            </div>
-                            <CircleCheckFill
+                          return (
+                            <label
+                              key={label}
                               className={cn(
-                                "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                                isSelected && "scale-100 opacity-100",
+                                "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                                "transition-all duration-150",
+                                isSelected &&
+                                  "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                               )}
-                            />
-                          </label>
-                        );
-                      },
-                    )}
-                  </div>
+                            >
+                              <input
+                                type="radio"
+                                value={label}
+                                className="hidden"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setUseExistingCoupon(useExisting);
+                                  }
+                                }}
+                              />
+                              <div className="flex grow flex-col text-sm">
+                                <span className="font-medium">{label}</span>
+                                <span>{description}</span>
+                              </div>
+                              <CircleCheckFill
+                                className={cn(
+                                  "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                  isSelected && "scale-100 opacity-100",
+                                )}
+                              />
+                            </label>
+                          );
+                        },
+                      )}
+                    </div>
+                  )}
 
-                  {useExistingCoupon && (
+                  {(useExistingCoupon || discount) && (
                     <>
                       <div>
                         <label
@@ -305,7 +305,10 @@ function DiscountSheetContent({
 
                       <div className="flex items-center gap-3">
                         <Switch
-                          fn={setUseStripeTestCouponId}
+                          fn={() => {
+                            setUseStripeTestCouponId(!useStripeTestCouponId);
+                            setValue("couponTestId", "");
+                          }}
                           checked={useStripeTestCouponId}
                           trackDimensions="w-8 h-4"
                           thumbDimensions="w-3 h-3"
@@ -347,41 +350,43 @@ function DiscountSheetContent({
                     </>
                   )}
 
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      fn={() =>
-                        setValue(
-                          "enableCouponTracking",
-                          !watch("enableCouponTracking"),
-                        )
-                      }
-                      checked={watch("enableCouponTracking")}
-                      trackDimensions="w-8 h-4"
-                      thumbDimensions="w-3 h-3"
-                      thumbTranslate="translate-x-4"
-                    />
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-medium text-neutral-800">
-                        Enable automatic coupon code tracking
-                      </h3>
-
-                      <InfoTooltip
-                        content={
-                          <SimpleTooltipContent
-                            title="Enabling this will allow the partners to create a promo code for their links."
-                            href="https://dub.co/help/article/coupon-codes-tracking"
-                            cta="Learn more"
-                          />
+                  {!discount && (
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        fn={() =>
+                          setValue(
+                            "enableCouponTracking",
+                            !watch("enableCouponTracking"),
+                          )
                         }
+                        checked={watch("enableCouponTracking")}
+                        trackDimensions="w-8 h-4"
+                        thumbDimensions="w-3 h-3"
+                        thumbTranslate="translate-x-4"
                       />
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-medium text-neutral-800">
+                          Enable automatic coupon code tracking
+                        </h3>
+
+                        <InfoTooltip
+                          content={
+                            <SimpleTooltipContent
+                              title="Enabling this will allow the partners to create a promo code for their links."
+                              href="https://dub.co/help/article/coupon-codes-tracking"
+                              cta="Learn more"
+                            />
+                          }
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             }
           />
 
-          {!useExistingCoupon && (
+          {(!useExistingCoupon || discount) && (
             <>
               <VerticalLine />
 
@@ -391,7 +396,10 @@ function DiscountSheetContent({
                     <Stripe className="size-7" />
                     <span className="leading-relaxed">
                       Discount a{" "}
-                      <InlineBadgePopover text={capitalize(type)}>
+                      <InlineBadgePopover
+                        text={capitalize(type)}
+                        disabled={!!discount}
+                      >
                         <InlineBadgePopoverMenu
                           selectedValue={type}
                           onSelect={(value) =>
@@ -422,8 +430,9 @@ function DiscountSheetContent({
                             : "amount"
                         }
                         invalid={!amount}
+                        disabled={!!discount}
                       >
-                        <AmountInput />
+                        <AmountInput disabled={!!discount} />
                       </InlineBadgePopover>{" "}
                       <InlineBadgePopover
                         text={
@@ -433,6 +442,7 @@ function DiscountSheetContent({
                               ? "for the customer's lifetime"
                               : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
                         }
+                        disabled={!!discount}
                       >
                         <InlineBadgePopoverMenu
                           selectedValue={maxDuration?.toString()}
@@ -528,7 +538,7 @@ const VerticalLine = () => (
   <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
 );
 
-function AmountInput() {
+function AmountInput({ disabled }: { disabled?: boolean }) {
   const { watch, register } = useAddEditDiscountForm();
   const type = watch("type");
 
@@ -544,6 +554,7 @@ function AmountInput() {
           "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
           type === "flat" ? "pl-4 pr-12" : "pr-7",
         )}
+        disabled={disabled}
         {...register("amount", {
           required: true,
           setValueAs: (value: string) => (value === "" ? undefined : +value),
