@@ -42,7 +42,7 @@ export const determinePartnerReward = async ({
     return null;
   }
 
-  const partnerReward = partnerEnrollment[rewardIdColumn];
+  let partnerReward = partnerEnrollment[rewardIdColumn];
 
   if (!partnerReward) {
     return null;
@@ -55,18 +55,17 @@ export const determinePartnerReward = async ({
 
     // Parse the conditions before evaluating them
     if (modifiers.success) {
-      const matchingCondition = evaluateRewardConditions({
+      const matchedCondition = evaluateRewardConditions({
         conditions: modifiers.data,
         context,
       });
 
-      if (matchingCondition) {
-        partnerReward.amount = matchingCondition.amount;
-
-        console.log("Matching condition found", {
-          matchingCondition: JSON.stringify(matchingCondition, null, 2),
-          context: JSON.stringify(context, null, 2),
-        });
+      if (matchedCondition) {
+        partnerReward = {
+          ...partnerReward,
+          amount: matchedCondition.amount,
+          type: matchedCondition.type,
+        };
       }
     }
   }

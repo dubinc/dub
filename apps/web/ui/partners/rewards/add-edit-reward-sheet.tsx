@@ -18,7 +18,7 @@ import {
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
-import { EventType } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@dub/prisma/client";
 import {
   Button,
   MoneyBills2,
@@ -50,7 +50,7 @@ import {
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
 import { RewardPartnersCard } from "./reward-partners-card";
-import { RewardsLogic } from "./rewards-logic";
+import { REWARD_TYPES, RewardsLogic } from "./rewards-logic";
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -103,8 +103,7 @@ function RewardSheetContent({
           : defaultValuesSource?.amount,
       modifiers: defaultValuesSource?.modifiers?.map((m) => ({
         ...m,
-        amount:
-          defaultValuesSource?.type === "flat" ? m.amount / 100 : m.amount,
+        amount: m.type === "flat" ? m.amount / 100 : m.amount,
       })),
     },
   });
@@ -186,7 +185,7 @@ function RewardSheetContent({
         modifiers = rewardConditionsArraySchema.parse(
           data.modifiers.map((m) => ({
             ...m,
-            amount: type === "flat" ? m.amount * 100 : m.amount,
+            amount: m.type === "flat" ? m.amount * 100 : m.amount,
           })),
         );
       } catch (error) {
@@ -278,20 +277,11 @@ function RewardSheetContent({
                         <InlineBadgePopoverMenu
                           selectedValue={type}
                           onSelect={(value) =>
-                            setValue("type", value as "flat" | "percentage", {
+                            setValue("type", value as RewardStructure, {
                               shouldDirty: true,
                             })
                           }
-                          items={[
-                            {
-                              text: "Flat",
-                              value: "flat",
-                            },
-                            {
-                              text: "Percentage",
-                              value: "percentage",
-                            },
-                          ]}
+                          items={REWARD_TYPES}
                         />
                       </InlineBadgePopover>{" "}
                       {type === "percentage" && "of "}

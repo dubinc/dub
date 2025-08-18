@@ -12,7 +12,7 @@ import {
   CONDITION_SALE_ATTRIBUTES,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
-import { EventType } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@dub/prisma/client";
 import {
   ArrowTurnRight2,
   Button,
@@ -36,6 +36,17 @@ import {
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
+
+export const REWARD_TYPES = [
+  {
+    text: "Flat",
+    value: "flat",
+  },
+  {
+    text: "Percentage",
+    value: "percentage",
+  },
+];
 
 export function RewardsLogic({
   isDefaultReward,
@@ -92,6 +103,7 @@ export function RewardsLogic({
             operator: "AND",
             conditions: [{}],
             amount: getValues("amount") || 0,
+            type: getValues("type"),
           })
         }
         variant={isDefaultReward ? "primary" : "secondary"}
@@ -484,15 +496,37 @@ function OperatorDropdown({ modifierIndex }: { modifierIndex: number }) {
 function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
   const modifierKey = `modifiers.${modifierIndex}` as const;
 
-  const { control, register } = useAddEditRewardForm();
+  const { control, setValue } = useAddEditRewardForm();
   const [amount, type, maxDuration, event] = useWatch({
     control,
-    name: [`${modifierKey}.amount`, "type", "maxDuration", "event"],
+    name: [
+      `${modifierKey}.amount`,
+      `${modifierKey}.type`,
+      "maxDuration",
+      "event",
+    ],
   });
 
   return (
     <span className="leading-relaxed">
       Then pay{" "}
+      {event === "sale" && (
+        <>
+          a{" "}
+          <InlineBadgePopover text={capitalize(type)}>
+            <InlineBadgePopoverMenu
+              selectedValue={type}
+              onSelect={(value) =>
+                setValue(`${modifierKey}.type`, value as RewardStructure, {
+                  shouldDirty: true,
+                })
+              }
+              items={REWARD_TYPES}
+            />
+          </InlineBadgePopover>{" "}
+          {type === "percentage" && "of "}
+        </>
+      )}
       <InlineBadgePopover
         text={
           amount
@@ -523,7 +557,7 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
 
 function AmountInput({ modifierKey }: { modifierKey: `modifiers.${number}` }) {
   const { watch, register } = useAddEditRewardForm();
-  const type = watch("type");
+  const type = watch(`${modifierKey}.type`);
 
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
 
