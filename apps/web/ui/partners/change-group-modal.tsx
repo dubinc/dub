@@ -8,6 +8,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -26,6 +27,12 @@ function ChangeGroupModal({
   const { id: workspaceId } = useWorkspace();
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (partners.length === 1) {
+      setSelectedGroupId(partners[0].groupId ?? null);
+    }
+  }, [partners]);
 
   const { makeRequest: changeGroup, isSubmitting } = useApiMutation();
 
