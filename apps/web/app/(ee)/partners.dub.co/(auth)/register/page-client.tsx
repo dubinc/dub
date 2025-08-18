@@ -32,10 +32,10 @@ export default function RegisterPageClient({
   return (
     <RegisterProvider
       email={
-        email ||
-        (searchEmailResult.success ? searchEmailResult.data : undefined)
+        (searchEmailResult.success ? searchEmailResult.data : undefined) ??
+        email
       }
-      lockEmail={lockEmail || searchEmailResult.success}
+      lockEmail={searchEmailResult.success || lockEmail}
     >
       <RegisterFlow program={program} />
     </RegisterProvider>
