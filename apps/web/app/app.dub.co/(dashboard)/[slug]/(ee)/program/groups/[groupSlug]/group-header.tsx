@@ -18,18 +18,18 @@ import {
 } from "@dub/ui";
 import { cn, PARTNERS_DOMAIN } from "@dub/utils";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
-
-// TODO:
-// Handle error when the group doesn't exists
+import { redirect, useParams, usePathname } from "next/navigation";
 
 export function GroupHeaderTitle() {
-  const { program } = useProgram();
   const { group, loading } = useGroup();
   const { slug: workspaceSlug } = useWorkspace();
 
-  if (loading || !group || !program) {
+  if (loading) {
     return <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-200" />;
+  }
+
+  if (!group) {
+    redirect(`/${workspaceSlug}/program/groups`);
   }
 
   return (
