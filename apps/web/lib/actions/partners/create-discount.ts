@@ -59,7 +59,9 @@ export const createDiscountAction = authActionClient
       });
 
       if (!stripeCoupon) {
-        throw new Error("Failed to create Stripe coupon. Please try again.");
+        throw new Error(
+          "Failed to create Stripe coupon. Make sure you installed the latest version of the Dub Stripe app.",
+        );
       }
 
       couponId = stripeCoupon.id;
