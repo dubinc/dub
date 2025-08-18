@@ -8,7 +8,6 @@ import { DeepLinkActionButtons } from "./action-buttons";
 
 export const runtime = "edge";
 
-// /deeplink/[domain]/[key]
 export default async function DeepLinkPage({
   params,
 }: {

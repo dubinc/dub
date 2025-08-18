@@ -12,7 +12,7 @@ import { BackLink } from "@/ui/shared/back-link";
 import { Button, MoneyBill2, Tooltip } from "@dub/ui";
 import { fetcher, OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
-import { notFound, useParams } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
 
@@ -27,7 +27,7 @@ export function ProgramCustomerPageClient() {
     customerId,
   });
 
-  if (!customer && !isLoading) notFound();
+  if (!customer && !isLoading) redirect(`/programs/${programSlug}`);
 
   return (
     <div className="mb-10 mt-2">
