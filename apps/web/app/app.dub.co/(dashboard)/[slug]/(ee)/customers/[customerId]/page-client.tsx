@@ -17,7 +17,7 @@ import { BackLink } from "@/ui/shared/back-link";
 import { ArrowUpRight, Button, CopyButton } from "@dub/ui";
 import { OG_AVATAR_URL, fetcher } from "@dub/utils";
 import Link from "next/link";
-import { notFound, useParams } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import { memo } from "react";
 import useSWR from "swr";
 
@@ -37,7 +37,7 @@ export function CustomerPageClient() {
       fetcher,
     );
 
-  if (!customer && !isLoading) notFound();
+  if (!customer && !isLoading) redirect("/customers");
 
   return (
     <div className="mb-10 mt-2">

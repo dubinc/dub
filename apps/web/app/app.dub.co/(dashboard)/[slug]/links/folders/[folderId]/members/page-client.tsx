@@ -22,7 +22,7 @@ import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -94,16 +94,16 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   };
 
   if (!isFolderLoading && !folder) {
-    notFound();
+    redirect(`/${workspace.slug}/links/folders`);
   }
 
   if (!canManageFolderPermissions) {
-    redirect(`/${workspace.slug}/settings/library/folders`);
+    redirect(`/${workspace.slug}/links/folders`);
   }
   return (
     <>
       <Link
-        href={`/${workspace.slug}/settings/library/folders`}
+        href={`/${workspace.slug}/links/folders`}
         className="flex items-center gap-x-1"
       >
         <ChevronLeft className="size-4" />
