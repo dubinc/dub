@@ -9,8 +9,8 @@ export default function ProgramPartnersGroups() {
       title="Groups"
       titleInfo={{
         title:
-          "Understand how all your partners are performing and contributing to the success of your partner program.",
-        href: "https://dub.co/help/article/managing-program-partners",
+          "Learn how you can create partner groups to segment partners by rewards, discounts, performance, location, and more.",
+        href: "https://dub.co/help/article/partner-groups",
       }}
       controls={<CreateGroupButton />}
     >
