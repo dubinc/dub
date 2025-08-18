@@ -10,7 +10,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps } from "@/lib/types";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet } from "@dub/ui";
+import {
+  Button,
+  InfoTooltip,
+  Sheet,
+  SimpleTooltipContent,
+  Switch,
+} from "@dub/ui";
 import { CircleCheckFill, Tag } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -272,6 +278,36 @@ function DiscountSheetContent({
                       );
                     },
                   )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Switch
+                    fn={() =>
+                      setValue(
+                        "enableCouponTracking",
+                        !watch("enableCouponTracking"),
+                      )
+                    }
+                    checked={watch("enableCouponTracking")}
+                    trackDimensions="w-8 h-4"
+                    thumbDimensions="w-3 h-3"
+                    thumbTranslate="translate-x-4"
+                  />
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium text-neutral-800">
+                      Enable automatic coupon code tracking
+                    </h3>
+
+                    <InfoTooltip
+                      content={
+                        <SimpleTooltipContent
+                          title="Enabling this will allow the partners to create a promo code for their links."
+                          href="https://dub.co/help/article/coupon-codes-tracking"
+                          cta="Learn more"
+                        />
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             }
