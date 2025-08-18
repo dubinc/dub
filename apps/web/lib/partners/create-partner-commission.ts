@@ -101,12 +101,18 @@ export const createPartnerCommission = async ({
       });
 
       if (firstCommission) {
+        // rewardId is null, meaning the original reward was deleted from the program
+        // in this case we can’t reliably match a reward, so skip commission creation
+        if (firstCommission.rewardId === null) {
+          console.log(
+            `Skipping commission creation for partner ${partnerId}: original sale reward was removed from the program.`,
+          );
+          return;
+        }
+
         // partner's reward was updated after the first commission.
         // make sure it wasn't changed from one-time to recurring so we don't create a new commission
-        if (
-          firstCommission.rewardId &&
-          firstCommission.rewardId !== reward.id
-        ) {
+        if (firstCommission.rewardId !== reward.id) {
           const originalReward = await prisma.reward.findUnique({
             where: {
               id: firstCommission.rewardId,
