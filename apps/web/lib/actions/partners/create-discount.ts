@@ -16,7 +16,7 @@ export const createDiscountAction = authActionClient
   .schema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let { amount, type, maxDuration, couponId, couponTestId, groupId } =
+    let { amount, type, maxDuration, couponId, couponTestId, groupId, enableCouponTracking } =
       parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);

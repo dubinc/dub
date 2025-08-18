@@ -29,6 +29,7 @@ export const createDiscountSchema = z.object({
   couponId: z.string().nullish(),
   couponTestId: z.string().nullish(),
   groupId: z.string(),
+  enableCouponTracking: z.boolean().default(false),
 });
 
 export const updateDiscountSchema = createDiscountSchema
