@@ -38,6 +38,7 @@ export const createSystemTokenOnboarding = async (
     const data = await res.json();
 
     debugUtil({ text: "createSystemTokenOnboarding", value: data });
+    console.log("createSystemTokenOnboarding", data);
 
     return data;
   } catch (error: any) {
@@ -45,6 +46,7 @@ export const createSystemTokenOnboarding = async (
       error?.response?.body?.error?.message ||
       error?.message ||
       "Something went wrong";
+    console.log("createSystemTokenOnboarding", error);
 
     debugUtil({ text: "createSystemTokenOnboarding error", value: errorMsg });
     throw new Error(errorMsg);

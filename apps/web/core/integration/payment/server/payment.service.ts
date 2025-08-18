@@ -55,6 +55,7 @@ export class PaymentService {
       ...body,
       paymentMethodToken: paymentMethodToken || "",
     };
+    console.log("systemTokenOnboardingBody", systemTokenOnboardingBody);
 
     const tokenOnboardingData = await createSystemTokenOnboarding(
       systemTokenOnboardingBody,
