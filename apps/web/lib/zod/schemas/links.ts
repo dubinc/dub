@@ -1,10 +1,6 @@
 import { ErrorCode } from "@/lib/api/errors";
 import z from "@/lib/zod";
-import {
-  THE_BEGINNING_OF_TIME,
-  formatDate,
-  validDomainRegex,
-} from "@dub/utils";
+import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
 import {
   base64ImageSchema,
   booleanQuerySchema,
@@ -195,8 +191,8 @@ export const linksExportQuerySchema = getLinksQuerySchemaBase
         .transform((v) => v.split(","))
         .describe("The columns to export."),
       start: parseDateSchema
-        .refine((value: Date) => value >= THE_BEGINNING_OF_TIME, {
-          message: `The start date cannot be earlier than ${formatDate(THE_BEGINNING_OF_TIME)}.`,
+        .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
+          message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
         })
         .optional()
         .describe("The start date of creation to retrieve links from."),

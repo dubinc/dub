@@ -1,32 +1,29 @@
 "use client";
 
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { Program } from "@dub/prisma/client";
 import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 
-export function Header({
+export function ApplyHeader({
   program,
   showLogin = true,
   showApply = true,
-  groupSlug,
 }: {
   program: Pick<Program, "slug" | "wordmark" | "logo">;
   showLogin?: boolean;
   showApply?: boolean;
-  groupSlug?: string;
 }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
   const scrolled = useScroll(0);
-  const partnerGroupSlug =
-    groupSlug && groupSlug !== DEFAULT_PARTNER_GROUP.slug
-      ? `/${groupSlug}`
-      : "";
+
+  const { groupSlug } = useParams();
+
+  const partnerGroupSlug = groupSlug ? `/${groupSlug}` : "";
 
   return (
     <header
@@ -42,7 +39,10 @@ export function Header({
         )}
       />
 
-      <Link href={`/${program.slug}`} className="animate-fade-in my-0.5 block">
+      <Link
+        href={`/${program.slug}${partnerGroupSlug}`}
+        className="animate-fade-in my-0.5 block"
+      >
         {program.wordmark || program.logo ? (
           <img
             className="max-h-7 max-w-32"
