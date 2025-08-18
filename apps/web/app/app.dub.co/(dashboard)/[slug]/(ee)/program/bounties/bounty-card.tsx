@@ -1,10 +1,10 @@
-import { BountyProps } from "@/lib/types";
+import { BountyExtendedProps } from "@/lib/types";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import { CalendarDays, Users } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
 import Link from "next/link";
 
-export function BountyCard({ bounty }: { bounty: BountyProps }) {
+export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
   return (
     <ProgramOverviewCard className="cursor-pointer border-neutral-200 p-5 transition-all hover:border-neutral-300 hover:shadow-lg">
       <Link
@@ -50,9 +50,7 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
             <Users className="size-3.5" />
             <div>
               <span className="text-content-default">N</span> of{" "}
-              <span className="text-content-default">
-                {/* {bounty.submissionsCount} */} X
-              </span>{" "}
+              <span className="text-content-default">{bounty.partners}</span>{" "}
               partners completed
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { BountySubmissionStatus, BountyType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
@@ -40,6 +41,10 @@ export const BountySchema = z.object({
   rewardAmount: z.number(),
 });
 
+export const BountySchemaExtended = BountySchema.extend({
+  partners: z.number().default(0),
+});
+
 export const BountySubmissionSchema = z.object({
   id: z.string(),
   description: z.string().nullable(),
@@ -69,3 +74,13 @@ export const BountySubmissionSchema = z.object({
     image: true,
   }).nullable(),
 });
+
+export const BOUNTIES_MAX_PAGE_SIZE = 100;
+
+export const getBountiesQuerySchema = z
+  .object({
+    sortBy: z.enum(["createdAt"]).default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    includeExpandedFields: booleanQuerySchema.optional(),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: BOUNTIES_MAX_PAGE_SIZE }));

@@ -1,7 +1,7 @@
-import { getBountyOrThrow } from "@/lib/api/bounty/get-bounty-or-throw";
+import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { BountySchema } from "@/lib/zod/schemas/bounties";
+import { BountySchema, BountySchemaExtended } from "@/lib/zod/schemas/bounties";
 import { NextResponse } from "next/server";
 
 // GET /api/bounties/[bountyId] - get a bounty
@@ -14,7 +14,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     programId,
   });
 
-  return NextResponse.json(BountySchema.parse(bounty));
+  return NextResponse.json(BountySchemaExtended.parse(bounty));
 });
 
 // PATCH /api/bounties/[bountyId] - update a bounty

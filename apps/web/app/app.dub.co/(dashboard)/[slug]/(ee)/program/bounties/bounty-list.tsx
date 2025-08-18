@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyProps } from "@/lib/types";
+import { BountyExtendedProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button } from "@dub/ui";
 import { fetcher } from "@dub/utils";
@@ -24,9 +24,9 @@ export function BountyList() {
     data: bounties,
     isLoading,
     error,
-  } = useSWR<BountyProps[]>(
+  } = useSWR<BountyExtendedProps[]>(
     workspaceId && defaultProgramId
-      ? `/api/bounties?workspaceId=${workspaceId}&programId=${defaultProgramId}`
+      ? `/api/bounties?workspaceId=${workspaceId}&programId=${defaultProgramId}&includeExpandedFields=true`
       : null,
     fetcher,
     {

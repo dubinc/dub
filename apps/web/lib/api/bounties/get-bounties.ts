@@ -1,0 +1,61 @@
+import { getBountiesQuerySchema } from "@/lib/zod/schemas/bounties";
+import { prisma } from "@dub/prisma";
+import { Prisma } from "@prisma/client";
+import { z } from "zod";
+
+type BountyFilters = z.infer<typeof getBountiesQuerySchema> & {
+  programId: string;
+};
+
+const sortColumnsMap = {
+  createdAt: "b.createdAt",
+};
+
+export async function getBounties(filters: BountyFilters) {
+  const {
+    page,
+    pageSize,
+    sortBy,
+    sortOrder,
+    programId,
+    includeExpandedFields,
+  } = filters;
+
+  const bounties = (await prisma.$queryRaw`
+    SELECT
+      b.id,
+      b.name,
+      b.description,
+      b.type,
+      b.startsAt,
+      b.endsAt,
+      b.rewardAmount,
+      ${
+        includeExpandedFields
+          ? Prisma.sql`
+            COUNT(DISTINCT pe.partnerId) as partners
+          `
+          : Prisma.sql`
+            0 as partners
+          `
+      }
+    FROM Bounty b
+    ${
+      includeExpandedFields
+        ? Prisma.sql`
+          LEFT JOIN BountyGroup bg ON bg.bountyId = b.id
+          LEFT JOIN ProgramEnrollment pe ON pe.groupId = bg.groupId AND pe.status IN ('approved', 'invited')
+        `
+        : Prisma.sql``
+    }
+    WHERE b.programId = ${programId}
+    GROUP BY b.id
+    ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
+    LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
+  `) satisfies Array<any>;
+
+  return bounties.map((bounty) => ({
+    ...bounty,
+    partners: Number(bounty.partners),
+  }));
+}
