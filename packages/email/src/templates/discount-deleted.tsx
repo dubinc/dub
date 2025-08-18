@@ -6,7 +6,6 @@ import {
   Heading,
   Html,
   Img,
-  Link,
   Preview,
   Section,
   Tailwind,
@@ -16,17 +15,11 @@ import { Footer } from "../components/footer";
 
 export default function DiscountDeleted({
   email = "panic@thedis.co",
-  workspace = {
-    slug: "acme",
-  },
   coupon = {
     id: "jMT0WJUD",
   },
 }: {
   email: string;
-  workspace: {
-    slug: string;
-  };
   coupon: {
     id: string;
   };
@@ -55,15 +48,6 @@ export default function DiscountDeleted({
               This action also removes the discount association from any
               partners who were using this discount.
             </Text>
-
-            <Section className="mb-8 mt-8">
-              <Link
-                className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${workspace.slug}/program/discounts`}
-              >
-                Manage discounts
-              </Link>
-            </Section>
 
             <Footer email={email} />
           </Container>

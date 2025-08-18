@@ -119,9 +119,6 @@ export async function couponDeleted(event: Stripe.Event) {
           email: user.email!,
           react: DiscountDeleted({
             email: user.email!,
-            workspace: {
-              slug: workspace.slug,
-            },
             coupon: {
               id: coupon.id,
             },
