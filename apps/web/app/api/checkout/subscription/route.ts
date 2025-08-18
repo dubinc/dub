@@ -40,6 +40,8 @@ export const POST = withSession(
     session: authSession,
   }): Promise<NextResponse<ICreateSubscriptionRes>> => {
     const { user } = await getUserCookieService();
+    console.log("user", user);
+    console.log("authSession", authSession);
 
     if (!user || !authSession?.user) {
       return NextResponse.json(
