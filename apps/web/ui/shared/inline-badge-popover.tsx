@@ -212,8 +212,9 @@ export const InlineBadgePopoverInputs = ({
 
   // Kinda nasty but allows the component to only receive/return the values array without needing external IDs
   useEffect(() => {
-    const currentValues = values.map((item) => item.value);
+    const currentValues = values.map(({ value }) => value);
     if (JSON.stringify(currentValues) !== JSON.stringify(valuesProp)) {
+      // Values have changed: generate new IDs
       setValues(valuesProp.map((value) => ({ id: uuid(), value })));
     }
   }, [valuesProp, values]);
@@ -223,7 +224,7 @@ export const InlineBadgePopoverInputs = ({
       item.id === id ? { ...item, value: newValue } : item,
     );
     setValues(updatedValues);
-    onChange(updatedValues.map((item) => item.value));
+    onChange(updatedValues.map(({ value }) => value));
   };
 
   const handleDelete = (id: string) => {

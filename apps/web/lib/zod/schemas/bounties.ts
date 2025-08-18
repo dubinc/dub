@@ -8,6 +8,25 @@ import { parseDateSchema } from "./utils";
 
 export const SUBMISSION_REQUIREMENTS = ["image", "url"] as const;
 
+export const PERFORMANCE_ACTIVITIES = [
+  "earnings",
+  "revenue",
+  "clicks",
+  "click earnings",
+  "leads",
+  "lead earnings",
+  "sales",
+  "sale earnings",
+] as const;
+
+export const PERFORMANCE_CURRENCY_ACTIVITIES = [
+  "click earnings",
+  "lead earnings",
+  "sale earnings",
+  "earnings",
+  "revenue",
+];
+
 export const createBountySchema = z.object({
   name: z
     .string()
@@ -27,6 +46,13 @@ export const createBountySchema = z.object({
     .array(z.enum(SUBMISSION_REQUIREMENTS))
     .min(0)
     .max(2)
+    .nullish(),
+  performanceLogic: z
+    .object({
+      activity: z.enum(PERFORMANCE_ACTIVITIES),
+      operator: z.enum(["gte"]).default("gte"),
+      value: z.number().min(0, "Logic value must be at least 0"),
+    })
     .nullish(),
   groupIds: z.array(z.string()).nullable(),
 });
