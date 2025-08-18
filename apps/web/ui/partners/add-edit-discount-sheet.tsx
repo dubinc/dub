@@ -90,6 +90,10 @@ function DiscountSheetContent({
     Boolean(discount?.couponId),
   );
 
+  const [useStripeTestCouponId, setUseStripeTestCouponId] = useState(
+    Boolean(discount?.couponTestId),
+  );
+
   const form = useForm<FormData>({
     defaultValues: {
       amount:
@@ -279,6 +283,71 @@ function DiscountSheetContent({
                     },
                   )}
                 </div>
+
+                {useExistingCoupon && (
+                  <>
+                    <div>
+                      <label
+                        htmlFor="couponId"
+                        className="flex items-center space-x-2"
+                      >
+                        <h2 className="text-sm font-medium text-neutral-900">
+                          Stripe coupon ID
+                        </h2>
+                      </label>
+                      <div className="mt-2">
+                        <input
+                          type="text"
+                          id="couponId"
+                          className="border-border-subtle block w-full rounded-lg bg-white px-3 py-2 text-neutral-800 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                          {...register("couponId")}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        fn={setUseStripeTestCouponId}
+                        checked={useStripeTestCouponId}
+                        trackDimensions="w-8 h-4"
+                        thumbDimensions="w-3 h-3"
+                        thumbTranslate="translate-x-4"
+                      />
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-medium text-neutral-800">
+                          Use Stripe test coupon ID
+                        </h3>
+
+                        <InfoTooltip
+                          content={
+                            <SimpleTooltipContent title="Enabling this will allow you to test your coupon code before going live by entering your Stripe test coupon ID." />
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    {useStripeTestCouponId && (
+                      <div>
+                        <label
+                          htmlFor="couponTestId"
+                          className="flex items-center space-x-2"
+                        >
+                          <h2 className="text-sm font-medium text-neutral-900">
+                            Stripe test coupon ID
+                          </h2>
+                        </label>
+                        <div className="mt-2">
+                          <input
+                            type="text"
+                            id="couponTestId"
+                            className="border-border-subtle block w-full rounded-lg px-3 py-2 text-neutral-800 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                            {...register("couponTestId")}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
 
                 <div className="flex items-center gap-3">
                   <Switch
