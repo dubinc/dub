@@ -1,5 +1,3 @@
-"use client";
-
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
