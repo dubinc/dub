@@ -483,7 +483,7 @@ function ConditionLogic({
             }}
           >
             {displayProductLabel && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 pt-2">
                 <RewardIconSquare icon={Package} />
                 <span className="text-content-emphasis font-medium leading-relaxed">
                   Shown as{" "}
