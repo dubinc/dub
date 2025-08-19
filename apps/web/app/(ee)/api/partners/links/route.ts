@@ -94,15 +94,8 @@ export const POST = withWorkspace(
       where: partnerId
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
-      select: {
-        partnerId: true,
-        tenantId: true,
-        discount: {
-          select: {
-            id: true,
-            couponId: true,
-          },
-        },
+      include: {
+        discount: true,
       },
     });
 
