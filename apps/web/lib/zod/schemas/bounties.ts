@@ -27,6 +27,12 @@ export const PERFORMANCE_CURRENCY_ACTIVITIES = [
   "revenue",
 ];
 
+export const bountyPerformanceLogicSchema = z.object({
+  activity: z.enum(PERFORMANCE_ACTIVITIES),
+  operator: z.enum(["gte"]).default("gte"),
+  value: z.number().min(0, "Logic value must be at least 0"),
+});
+
 export const createBountySchema = z.object({
   name: z
     .string()
@@ -47,13 +53,7 @@ export const createBountySchema = z.object({
     .min(0)
     .max(2)
     .nullish(),
-  performanceLogic: z
-    .object({
-      activity: z.enum(PERFORMANCE_ACTIVITIES),
-      operator: z.enum(["gte"]).default("gte"),
-      value: z.number().min(0, "Logic value must be at least 0"),
-    })
-    .nullish(),
+  performanceLogic: bountyPerformanceLogicSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
 });
 

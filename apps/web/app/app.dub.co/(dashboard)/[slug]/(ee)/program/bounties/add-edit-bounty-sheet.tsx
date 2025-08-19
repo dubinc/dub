@@ -1,8 +1,10 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyProps } from "@/lib/types";
+import { BountyPerformanceLogic, BountyProps } from "@/lib/types";
 import {
+  bountyPerformanceLogicSchema,
   createBountySchema,
+  PERFORMANCE_CURRENCY_ACTIVITIES,
   SUBMISSION_REQUIREMENTS,
 } from "@/lib/zod/schemas/bounties";
 import { BountyLogic } from "@/ui/partners/bounties/bounty-logic";
@@ -25,7 +27,7 @@ import {
   SmartDateTimePicker,
   Switch,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, currencyFormatter } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
   Controller,
@@ -84,6 +86,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
         operator: "gte",
         value: undefined,
       },
+      groupIds: null,
     },
   });
 
@@ -93,6 +96,7 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
     setValue,
     control,
     register,
+    setError,
     formState: { errors },
   } = form;
 
@@ -147,6 +151,42 @@ function BountySheetContent({ setIsOpen }: BountySheetProps) {
   const onSubmit = async (data: FormData) => {
     if (!workspaceId) {
       return;
+    }
+
+    data.rewardAmount = data.rewardAmount * 100;
+
+    if (data.type === "performance") {
+      let performanceLogic: BountyPerformanceLogic | null = null;
+      if (data.performanceLogic) {
+        try {
+          const isCurrency = PERFORMANCE_CURRENCY_ACTIVITIES.includes(
+            data.performanceLogic.activity,
+          );
+
+          performanceLogic = bountyPerformanceLogicSchema.parse({
+            ...data.performanceLogic,
+            value: isCurrency
+              ? data.performanceLogic.value * 100
+              : data.performanceLogic.value,
+          });
+
+          data.name =
+            `Earn ${currencyFormatter(data.rewardAmount / 100)} after generating ` +
+            `${isCurrency ? `${currencyFormatter(performanceLogic.value)} in` : performanceLogic.value} ` +
+            performanceLogic.activity;
+        } catch (error) {
+          console.error(error);
+          setError("root.performanceLogic", {
+            message: "Invalid performance logic",
+          });
+          toast.error(
+            "Invalid performance logic. Please fix the errors and try again.",
+          );
+          return;
+        }
+
+        data.performanceLogic = performanceLogic;
+      }
     }
 
     await makeRequest("/api/bounties", {

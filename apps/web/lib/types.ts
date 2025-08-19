@@ -24,6 +24,7 @@ import {
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
+  bountyPerformanceLogicSchema,
   BountySchema,
   BountySchemaExtended,
   BountySubmissionSchema,
@@ -514,6 +515,10 @@ export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 export type GroupProps = z.infer<typeof GroupSchema>;
 
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
+
+export type BountyPerformanceLogic = z.infer<
+  typeof bountyPerformanceLogicSchema
+>;
 
 export type BountyProps = z.infer<typeof BountySchema>;
 
