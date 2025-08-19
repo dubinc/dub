@@ -13,7 +13,7 @@ export function formatRewardDescription({
     return reward.description;
   }
 
-  const rewardAmount = constructRewardAmount(reward);
+  const rewardAmount = constructRewardAmount({ reward });
   const parts: string[] = [];
 
   parts.push("Earn");

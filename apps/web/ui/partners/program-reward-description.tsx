@@ -27,15 +27,7 @@ export function ProgramRewardDescription({
               Earn{" "}
               <strong className={cn("font-semibold", amountClassName)}>
                 {constructRewardAmount({
-                  ...(reward.modifiers?.length
-                    ? {
-                        amounts: [
-                          reward.amount,
-                          ...reward.modifiers.map(({ amount }) => amount),
-                        ],
-                      }
-                    : { amount: reward.amount }),
-                  type: reward.type,
+                  reward,
                 })}{" "}
               </strong>
               {reward.event === "sale" && reward.maxDuration === 0 ? (
@@ -79,8 +71,7 @@ export function ProgramRewardDescription({
           New users get{" "}
           <strong className={cn("font-semibold", amountClassName)}>
             {constructRewardAmount({
-              amount: discount.amount,
-              type: discount.type,
+              reward: discount,
             })}
           </strong>{" "}
           off{" "}

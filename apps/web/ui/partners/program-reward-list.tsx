@@ -31,15 +31,7 @@ export function ProgramRewardList({
           {reward.description || (
             <>
               {constructRewardAmount({
-                ...(reward.modifiers
-                  ? {
-                      amounts: [
-                        reward.amount,
-                        ...reward.modifiers.map(({ amount }) => amount),
-                      ],
-                    }
-                  : { amount: reward.amount }),
-                type: reward.type,
+                reward,
               })}{" "}
               {reward.event === "sale" && reward.maxDuration === 0 ? (
                 <>for the first sale</>
@@ -82,8 +74,7 @@ export function ProgramRewardList({
               {" "}
               New users get{" "}
               {constructRewardAmount({
-                amount: discount.amount,
-                type: discount.type,
+                reward: discount,
               })}{" "}
               off{" "}
               {discount.maxDuration === null ? (

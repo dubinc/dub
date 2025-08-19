@@ -1,28 +1,52 @@
-import { RewardStructure } from "@dub/prisma/client";
+import { RewardProps } from "@/lib/types";
+import { rewardConditionsArraySchema } from "@/lib/zod/schemas/rewards";
 import { currencyFormatter } from "@dub/utils";
 
 export const constructRewardAmount = ({
-  type,
-  amount: amountProp,
-  amounts,
+  reward,
 }: {
-  type: RewardStructure;
-} & (
-  | { amount: number; amounts?: never }
-  | { amount?: never; amounts: number[] }
-)) => {
-  // Range of amounts
-  if (amounts && amounts.length > 1) {
-    const min = Math.min(...amounts);
-    const max = Math.max(...amounts);
-    return type === "percentage"
-      ? `${min}% - ${max}%`
-      : `${formatCurrency(min)} - ${formatCurrency(max)}`;
+  reward: Pick<RewardProps, "amount" | "type" | "maxDuration" | "modifiers">;
+}) => {
+  // If there are modifiers, we need to check if they match the primary reward
+  if (reward.modifiers) {
+    const parsedModifiers = rewardConditionsArraySchema.safeParse(
+      reward.modifiers,
+    );
+
+    if (parsedModifiers.success) {
+      const modifiers = parsedModifiers.data;
+
+      // If the type AND maxDuration matches the primary, show a range
+      if (
+        modifiers.every(
+          (modifier) =>
+            modifier.type === reward.type &&
+            modifier.maxDuration === reward.maxDuration,
+        )
+      ) {
+        const min = Math.min(
+          reward.amount,
+          ...modifiers.map((modifier) => modifier.amount),
+        );
+
+        const max = Math.max(
+          reward.amount,
+          ...modifiers.map((modifier) => modifier.amount),
+        );
+
+        return reward.type === "percentage"
+          ? `${min}% - ${max}%`
+          : `${formatCurrency(min)} - ${formatCurrency(max)}`;
+      }
+    }
   }
 
-  // Single amount
-  const amount = amountProp ?? amounts?.[0];
-  return type === "percentage" ? `${amount}%` : formatCurrency(amount);
+  // Return the primary reward amount if
+  // 1. There are no modifiers OR
+  // 2. type AND timelines doesn't match the primary reward
+  return reward.type === "percentage"
+    ? `${reward.amount}%`
+    : formatCurrency(reward.amount);
 };
 
 const formatCurrency = (amount: number) =>
