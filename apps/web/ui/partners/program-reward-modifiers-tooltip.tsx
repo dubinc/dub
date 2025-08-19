@@ -25,7 +25,7 @@ export function ProgramRewardModifiersTooltip({
     <div className="inline-block align-text-top">
       <InfoTooltip
         content={
-          <div className="max-w-xs space-y-2 p-3">
+          <div className="max-w-sm space-y-2 p-3">
             <RewardItem reward={reward} />
             {(
               reward.modifiers as z.infer<typeof rewardConditionsArraySchema>
@@ -95,11 +95,11 @@ const RewardItem = ({
       </div>
 
       {conditions && conditions.length > 0 && (
-        <ul className="ml-1 space-y-0.5 text-sm font-medium text-neutral-600">
+        <ul className="ml-1 text-xs font-medium text-neutral-600">
           {conditions.map((condition, idx) => (
             <li key={idx} className="flex items-start gap-1">
-              <span className="mt-0.5 text-lg leading-none">•</span>
-              <span className="min-w-0">
+              <span className="shrink-0 text-lg leading-none">&bull;</span>
+              <span className="min-w-0 truncate">
                 {idx === 0 ? "If" : "Or"} {condition.entity}{" "}
                 {ATTRIBUTE_LABELS[condition.attribute]}{" "}
                 {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
