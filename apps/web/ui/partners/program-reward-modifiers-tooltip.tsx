@@ -12,7 +12,10 @@ import { z } from "zod";
 export function ProgramRewardModifiersTooltip({
   reward,
 }: {
-  reward?: RewardProps | null;
+  reward?: Pick<
+    RewardProps,
+    "amount" | "type" | "event" | "maxDuration" | "modifiers"
+  > | null;
 }) {
   if (!reward?.modifiers?.length) {
     return null;
