@@ -1,5 +1,6 @@
 import {
   AnimatedSizeContainer,
+  ArrowUpRight2,
   BookOpen,
   ChevronLeft,
   ClientOnly,
@@ -30,6 +31,7 @@ export type NavItemCommon = {
   exact?: boolean;
   isActive?: (pathname: string, href: string) => boolean;
   badge?: ReactNode;
+  arrow?: boolean;
   locked?: boolean;
 };
 
@@ -415,6 +417,9 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
           )}
           {items && (
             <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
+          )}
+          {item.arrow && (
+            <ArrowUpRight2 className="text-content-default size-3.5 transition-transform duration-75 group-hover:-translate-y-px group-hover:translate-x-px" />
           )}
         </span>
       </Link>

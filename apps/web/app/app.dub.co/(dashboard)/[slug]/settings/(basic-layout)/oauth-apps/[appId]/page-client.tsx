@@ -21,7 +21,7 @@ import {
 import { fetcher } from "@dub/utils";
 import { Trash, Upload } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { notFound, useSearchParams } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -60,7 +60,7 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
   });
 
   if (!isLoading && !oAuthApp) {
-    notFound();
+    redirect(`/${slug}/settings/oauth-apps`);
   }
 
   return (

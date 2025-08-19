@@ -17,6 +17,11 @@ export async function subscribe({
     return;
   }
 
+  if (email.endsWith("@dub-internal-test.com")) {
+    // don't subscribe internal test emails
+    return;
+  }
+
   const audienceId = RESEND_AUDIENCES[audience];
 
   return await resend.contacts.create({

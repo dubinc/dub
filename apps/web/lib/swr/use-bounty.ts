@@ -1,6 +1,6 @@
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { BountyProps } from "../types";
+import { BountyExtendedProps } from "../types";
 import useWorkspace from "./use-workspace";
 
 export default function useBounty({ bountyId }: { bountyId: string }) {
@@ -10,9 +10,9 @@ export default function useBounty({ bountyId }: { bountyId: string }) {
     data: bounty,
     error,
     isLoading,
-  } = useSWR<BountyProps>(
+  } = useSWR<BountyExtendedProps>(
     workspaceId && bountyId
-      ? `/api/bounties/${bountyId}?workspaceId=${workspaceId}`
+      ? `/api/bounties/${bountyId}?workspaceId=${workspaceId}&includeExpandedFields=true`
       : undefined,
     fetcher,
   );

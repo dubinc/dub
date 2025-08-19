@@ -1,31 +1,48 @@
-import { BountyProps } from "@/lib/types";
+import { BountyExtendedProps } from "@/lib/types";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
-import { CalendarDays, Users } from "@dub/ui/icons";
+import { Button, MenuItem, Popover, useRouterStuff } from "@dub/ui";
+import { CalendarDays, Dots, PenWriting, Users } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
-import { Trophy } from "lucide-react";
+import { Command } from "cmdk";
 import Link from "next/link";
+import { useState } from "react";
 
-export function BountyCard({ bounty }: { bounty: BountyProps }) {
+export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
+  const { queryParams } = useRouterStuff();
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
-    <ProgramOverviewCard className="cursor-pointer border-neutral-200 p-5 transition-all hover:border-neutral-300 hover:shadow-lg">
+    <ProgramOverviewCard className="relative cursor-pointer border-neutral-200 p-5 transition-all hover:border-neutral-300 hover:shadow-lg">
       <Link
         href={`/program/bounties/${bounty.id}`}
         className="flex flex-col gap-5"
       >
-        <div className="flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 px-32 py-4">
-          <div className="relative">
-            <Trophy className="size-20" />
+        <div className="relative flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
+          <div className="relative size-full">
+            <img
+              {...(bounty.type === "performance"
+                ? {
+                    src: "https://assets.dub.co/icons/trophy.webp",
+                    alt: "Trophy thumbnail",
+                  }
+                : {
+                    src: "https://assets.dub.co/icons/heart.webp",
+                    alt: "Heart thumbnail",
+                  })}
+              className="size-full object-contain"
+            />
           </div>
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <h3 className="line-clamp-1 text-sm font-semibold text-neutral-900">
+          <h3 className="text-content-emphasis truncate text-sm font-semibold">
             {bounty.name}
           </h3>
 
-          <div className="flex items-center space-x-2">
-            <CalendarDays className="size-4" />
-            <span className="text-sm text-neutral-500">
+          <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+            <CalendarDays className="size-3.5" />
+            <span>
               {formatDate(bounty.startsAt, { month: "short" })}
               {bounty.endsAt && (
                 <>
@@ -36,31 +53,57 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
             </span>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Users className="size-4" />
-            <div className="text-sm text-neutral-500">
-              <span className="font-medium text-neutral-700">{100}</span> of{" "}
-              <span className="font-medium text-neutral-700">
-                {bounty.submissionsCount}
+          <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+            <Users className="size-3.5" />
+            <div>
+              <span className="text-content-default">N</span> of{" "}
+              <span className="text-content-default">
+                {bounty.partnersCount}
               </span>{" "}
               partners completed
             </div>
           </div>
         </div>
       </Link>
+
+      <Popover
+        openPopover={isMenuOpen}
+        setOpenPopover={setIsMenuOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+              <MenuItem
+                as={Command.Item}
+                icon={PenWriting}
+                variant="default"
+                onSelect={() => {
+                  queryParams({ set: { bountyId: bounty.id } });
+                  setIsMenuOpen(false);
+                }}
+              >
+                Edit bounty
+              </MenuItem>
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="absolute right-7 top-7 size-7 whitespace-nowrap p-0 hover:bg-neutral-200 active:bg-neutral-300 data-[state=open]:bg-neutral-300"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
     </ProgramOverviewCard>
   );
 }
 
 export const BountyCardSkeleton = () => {
   return (
-    <ProgramOverviewCard className="cursor-pointer p-5 transition-shadow hover:shadow-lg">
+    <ProgramOverviewCard className="cursor-pointer p-5">
       <div className="flex flex-col gap-5">
-        <div className="flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 px-32 py-4">
-          <div className="relative">
-            <Trophy className="size-20" />
-          </div>
-        </div>
+        <div className="flex h-[132px] animate-pulse items-center justify-center rounded-lg bg-neutral-100 px-32 py-4" />
 
         <div className="flex flex-col gap-1.5">
           <div className="h-5 w-48 animate-pulse rounded-md bg-neutral-200" />

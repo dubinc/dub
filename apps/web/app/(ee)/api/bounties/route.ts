@@ -1,33 +1,37 @@
+import { getBounties } from "@/lib/api/bounties/get-bounties";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { createWorkflow } from "@/lib/api/workflows/create-workflow";
 import { withWorkspace } from "@/lib/auth";
-import { BountySchema, createBountySchema } from "@/lib/zod/schemas/bounties";
+import {
+  BountySchema,
+  BountySchemaExtended,
+  createBountySchema,
+  getBountiesQuerySchema,
+} from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // GET /api/bounties - get all bounties for a program
-export const GET = withWorkspace(async ({ workspace }) => {
+export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
+  const parsedInput = getBountiesQuerySchema.parse(searchParams);
 
-  const bounties = await prisma.bounty.findMany({
-    where: {
-      programId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+  const bounties = await getBounties({
+    ...parsedInput,
+    programId,
   });
 
-  return NextResponse.json(z.array(BountySchema).parse(bounties));
+  return NextResponse.json(z.array(BountySchemaExtended).parse(bounties));
 });
 
 // POST /api/bounties - create a bounty
 export const POST = withWorkspace(async ({ workspace, req }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
+  // TODO: [bounties] Persist performance logic to workflow and groupIds to bountyGroup
   const { name, description, type, rewardAmount, startsAt, endsAt } =
     createBountySchema.parse(await parseRequestBody(req));
 
@@ -50,7 +54,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
       name,
       description,
       type,
-      startsAt,
+      startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
       endsAt,
       rewardAmount,
     },

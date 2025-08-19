@@ -12,6 +12,7 @@ import {
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -52,12 +53,14 @@ export const banPartnerAction = authActionClient
           partnerId_programId: where,
         },
         data: {
-          status: "banned",
+          status: ProgramEnrollmentStatus.banned,
           bannedAt: new Date(),
           bannedReason: parsedInput.reason,
+          groupId: null,
           clickRewardId: null,
           leadRewardId: null,
           saleRewardId: null,
+          discountId: null,
         },
       }),
 

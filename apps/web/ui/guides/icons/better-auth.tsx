@@ -10,7 +10,7 @@ export function BetterAuth(props: SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g clip-path="url(#clip0_18024_112090)">
+      <g clipPath="url(#clip0_18024_112090)">
         <path d="M0 0H40V40H0V0Z" fill="black" />
         <path
           d="M5.51953 9.68018H12.4786V30.4002H5.51953V9.68018ZM27.0055 9.68018H34.3995V30.4002H27.0055V9.68018Z"

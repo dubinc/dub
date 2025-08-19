@@ -3,12 +3,16 @@
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
+import { useChangeGroupModal } from "@/ui/partners/change-group-modal";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -38,6 +42,7 @@ import {
   Trash,
   UserDelete,
   Users,
+  Users6,
 } from "@dub/ui/icons";
 import {
   cn,
@@ -52,7 +57,7 @@ import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
@@ -60,6 +65,7 @@ import { usePartnerFilters } from "./use-partner-filters";
 const partnersColumns = {
   all: [
     "partner",
+    "group",
     "createdAt",
     "status",
     "location",
@@ -73,7 +79,7 @@ const partnersColumns = {
   ],
   defaultVisible: [
     "partner",
-    "createdAt",
+    "group",
     "location",
     "clicks",
     "leads",
@@ -135,6 +141,16 @@ export function PartnersTable() {
       partnerId: detailsSheetState.partnerId,
     });
 
+  const { groups } = useGroups();
+
+  const [pendingChangeGroupPartners, setPendingChangeGroupPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
+  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
+    partners: pendingChangeGroupPartners,
+  });
+
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "partners-table-columns", // TODO: update to v2 once we add partner groups
     partnersColumns,
@@ -142,121 +158,146 @@ export function PartnersTable() {
 
   const { pagination, setPagination } = usePagination();
 
+  const columns = useMemo(
+    () =>
+      [
+        {
+          id: "partner",
+          header: "Partner",
+          enableHiding: false,
+          minSize: 250,
+          cell: ({ row }) => {
+            return (
+              <PartnerRowItem partner={row.original} showPermalink={false} />
+            );
+          },
+        },
+        {
+          id: "group",
+          header: "Group",
+          cell: ({ row }) => {
+            if (!groups) return "-";
+            const partnerGroup =
+              groups.find((g) => g.id === row.original.groupId) ??
+              DEFAULT_PARTNER_GROUP;
+
+            return (
+              <div className="flex items-center gap-2">
+                <GroupColorCircle group={partnerGroup} />
+                <span className="truncate text-sm font-medium">
+                  {partnerGroup.name}
+                </span>
+              </div>
+            );
+          },
+        },
+        {
+          id: "createdAt",
+          header: "Enrolled",
+          accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+        },
+        {
+          id: "status",
+          header: "Status",
+          cell: ({ row }) => {
+            const badge = PartnerStatusBadges[row.original.status];
+            return badge ? (
+              <StatusBadge icon={null} variant={badge.variant}>
+                {badge.label}
+              </StatusBadge>
+            ) : (
+              "-"
+            );
+          },
+        },
+        {
+          id: "location",
+          header: "Location",
+          minSize: 150,
+          cell: ({ row }) => {
+            const country = row.original.country;
+            return (
+              <div className="flex items-center gap-2">
+                {country && (
+                  <img
+                    alt={`${country} flag`}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )}
+                <span className="min-w-0 truncate">
+                  {(country ? COUNTRIES[country] : null) ?? "-"}
+                </span>
+              </div>
+            );
+          },
+        },
+        {
+          id: "clicks",
+          header: "Clicks",
+          accessorFn: (d) => nFormatter(d.clicks),
+        },
+        {
+          id: "leads",
+          header: "Leads",
+          accessorFn: (d) => nFormatter(d.leads),
+        },
+        {
+          id: "conversions",
+          header: "Conversions",
+          accessorFn: (d) => nFormatter(d.conversions),
+        },
+        {
+          id: "sales",
+          header: "Sales",
+          accessorFn: (d) => nFormatter(d.sales),
+        },
+        {
+          id: "saleAmount",
+          header: "Revenue",
+          accessorFn: (d) =>
+            currencyFormatter(d.saleAmount / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+        },
+        {
+          id: "totalCommissions",
+          header: "Commissions",
+          accessorFn: (d) =>
+            currencyFormatter(d.totalCommissions / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+        },
+        {
+          id: "netRevenue",
+          header: "Net Revenue",
+          accessorFn: (d) =>
+            currencyFormatter(d.netRevenue / 100, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+        },
+        // Menu
+        {
+          id: "menu",
+          enableHiding: false,
+          minSize: 43,
+          size: 43,
+          maxSize: 43,
+          header: ({ table }) => <EditColumnsButton table={table} />,
+          cell: ({ row }) => (
+            <RowMenuButton row={row} workspaceId={workspaceId!} />
+          ),
+        },
+      ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
+    [workspaceId, groups],
+  );
+
   const { table, ...tableProps } = useTable({
     data: partners || [],
-    columns: [
-      {
-        id: "partner",
-        header: "Partner",
-        enableHiding: false,
-        minSize: 250,
-        cell: ({ row }) => {
-          return (
-            <PartnerRowItem partner={row.original} showPermalink={false} />
-          );
-        },
-      },
-      {
-        id: "createdAt",
-        header: "Enrolled",
-        accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
-      },
-      {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const badge = PartnerStatusBadges[row.original.status];
-          return badge ? (
-            <StatusBadge icon={null} variant={badge.variant}>
-              {badge.label}
-            </StatusBadge>
-          ) : (
-            "-"
-          );
-        },
-      },
-      {
-        id: "location",
-        header: "Location",
-        minSize: 150,
-        cell: ({ row }) => {
-          const country = row.original.country;
-          return (
-            <div className="flex items-center gap-2">
-              {country && (
-                <img
-                  alt={`${country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
-              <span className="min-w-0 truncate">
-                {(country ? COUNTRIES[country] : null) ?? "-"}
-              </span>
-            </div>
-          );
-        },
-      },
-      {
-        id: "clicks",
-        header: "Clicks",
-        accessorFn: (d) => nFormatter(d.clicks),
-      },
-      {
-        id: "leads",
-        header: "Leads",
-        accessorFn: (d) => nFormatter(d.leads),
-      },
-      {
-        id: "conversions",
-        header: "Conversions",
-        accessorFn: (d) => nFormatter(d.conversions),
-      },
-      {
-        id: "sales",
-        header: "Sales",
-        accessorFn: (d) => nFormatter(d.sales),
-      },
-      {
-        id: "saleAmount",
-        header: "Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.saleAmount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "totalCommissions",
-        header: "Commissions",
-        accessorFn: (d) =>
-          currencyFormatter(d.totalCommissions / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      {
-        id: "netRevenue",
-        header: "Net Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.netRevenue / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
-      // Menu
-      {
-        id: "menu",
-        enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
-        header: () => <EditColumnsButton table={table} />,
-        cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} />
-        ),
-      },
-    ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
+    columns,
     onRowClick: (row) => {
       queryParams({
         set: {
@@ -290,6 +331,55 @@ export function PartnersTable() {
         del: "page",
         scroll: false,
       }),
+
+    getRowId: (row) => row.id,
+    selectionControls: (table) => (
+      <>
+        <Button
+          variant="primary"
+          text="Add to group"
+          icon={<Users6 className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5"
+          loading={false}
+          onClick={() => {
+            const partners = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original);
+
+            setPendingChangeGroupPartners(partners);
+            setShowChangeGroupModal(true);
+          }}
+        />
+        {/* <Button
+          variant="secondary"
+          text="Archive"
+          icon={<BoxArchive className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5"
+          loading={false}
+          onClick={() => {
+            const partnerIds = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original.id);
+
+            toast.info("WIP");
+          }}
+        />
+        <Button
+          variant="secondary"
+          text="Ban"
+          icon={<UserXmark className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5 text-red-700"
+          loading={false}
+          onClick={() => {
+            const partnerIds = table
+              .getSelectedRowModel()
+              .rows.map((row) => row.original.id);
+
+            toast.info("WIP");
+          }}
+        /> */}
+      </>
+    ),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
@@ -300,6 +390,7 @@ export function PartnersTable() {
 
   return (
     <div className="flex flex-col gap-6">
+      <ChangeGroupModal />
       {detailsSheetState.partnerId && currentPartner && (
         <PartnerDetailsSheet
           isOpen={detailsSheetState.open}
@@ -371,6 +462,10 @@ function RowMenuButton({
   const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
+  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
+    partners: [row.original],
+  });
+
   const { ArchivePartnerModal, setShowArchivePartnerModal } =
     useArchivePartnerModal({
       partner: row.original,
@@ -411,6 +506,7 @@ function RowMenuButton({
 
   return (
     <>
+      <ChangeGroupModal />
       <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
@@ -422,6 +518,15 @@ function RowMenuButton({
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
               {row.original.status === "invited" ? (
                 <>
+                  <MenuItem
+                    icon={Users6}
+                    label="Change group"
+                    onSelect={() => {
+                      setShowChangeGroupModal(true);
+                      setIsOpen(false);
+                    }}
+                  />
+
                   <MenuItem
                     icon={
                       isResendingInvite ? LoadingSpinner : EnvelopeArrowRight
@@ -471,6 +576,15 @@ function RowMenuButton({
                       router.push(
                         `/${slug}/program/commissions?partnerId=${row.original.id}&interval=all`,
                       );
+                      setIsOpen(false);
+                    }}
+                  />
+
+                  <MenuItem
+                    icon={Users6}
+                    label="Change group"
+                    onSelect={() => {
+                      setShowChangeGroupModal(true);
                       setIsOpen(false);
                     }}
                   />

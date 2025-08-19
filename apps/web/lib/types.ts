@@ -17,12 +17,18 @@ import {
   UtmTemplate,
   Webhook,
 } from "@dub/prisma/client";
+import { RESOURCE_COLORS } from "../ui/colors";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
-import { BountySchema, BountySubmissionSchema } from "./zod/schemas/bounties";
+import {
+  bountyPerformanceLogicSchema,
+  BountySchema,
+  BountySchemaExtended,
+  BountySubmissionSchema,
+} from "./zod/schemas/bounties";
 import {
   clickEventResponseSchema,
   clickEventSchemaTB,
@@ -36,6 +42,7 @@ import {
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
+import { GroupSchema, GroupSchemaExtended } from "./zod/schemas/groups";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -138,13 +145,13 @@ export interface RedisLinkProps {
   testCompletedAt?: Date;
 }
 
+export type ResourceColorsEnum = (typeof RESOURCE_COLORS)[number];
+
 export interface TagProps {
   id: string;
   name: string;
-  color: TagColorProps;
+  color: ResourceColorsEnum;
 }
-
-export type TagColorProps = (typeof tagColors)[number];
 
 export type UtmTemplateProps = UtmTemplate;
 export type UtmTemplateWithUserProps = UtmTemplateProps & {
@@ -286,16 +293,6 @@ export const plans = [
 export const roles = ["owner", "member"] as const;
 
 export type Role = (typeof roles)[number];
-
-export const tagColors = [
-  "red",
-  "yellow",
-  "green",
-  "blue",
-  "purple",
-  "pink",
-  "brown",
-] as const;
 
 export type DashboardProps = z.infer<typeof dashboardSchema>;
 
@@ -515,6 +512,16 @@ export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 
+export type GroupProps = z.infer<typeof GroupSchema>;
+
+export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
+
+export type BountyPerformanceLogic = z.infer<
+  typeof bountyPerformanceLogicSchema
+>;
+
 export type BountyProps = z.infer<typeof BountySchema>;
+
+export type BountyExtendedProps = z.infer<typeof BountySchemaExtended>;
 
 export type BountySubmissionProps = z.infer<typeof BountySubmissionSchema>;

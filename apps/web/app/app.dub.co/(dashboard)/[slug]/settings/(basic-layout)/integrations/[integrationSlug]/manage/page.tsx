@@ -2,7 +2,7 @@ import AddEditIntegrationForm from "@/ui/oauth-apps/add-edit-integration-form";
 import { BackLink } from "@/ui/shared/back-link";
 import { prisma } from "@dub/prisma";
 import { MaxWidthWrapper } from "@dub/ui";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 
 export const revalidate = 0;
 
@@ -14,7 +14,7 @@ export default async function IntegrationManagePage({
   // this is only available for Dub workspace for now
   // we might open this up to other workspaces in the future
   if (params.slug !== "dub") {
-    notFound();
+    redirect(`/${params.slug}/settings/integrations`);
   }
   const integration = await prisma.integration.findUnique({
     where: {
@@ -22,7 +22,7 @@ export default async function IntegrationManagePage({
     },
   });
   if (!integration) {
-    notFound();
+    redirect(`/${params.slug}/settings/integrations`);
   }
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg gap-8">

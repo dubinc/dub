@@ -98,7 +98,10 @@ export function WorkspaceBillingUpgradePageClient() {
                 const disableCurrentPlan = Boolean(
                   stripeId &&
                     plan.name.toLowerCase() === currentPlan &&
-                    !isLegacyBusinessPlan(currentPlan, payoutsLimit ?? 0),
+                    !isLegacyBusinessPlan({
+                      plan: currentPlan,
+                      payoutsLimit,
+                    }),
                 );
 
                 // show downgrade button if user has a stripe id and is on the current plan

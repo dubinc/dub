@@ -1,11 +1,42 @@
 import { BountySubmissionStatus, BountyType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 
 export const SUBMISSION_REQUIREMENTS = ["image", "url"] as const;
+
+export const PERFORMANCE_ACTIVITIES = [
+  "earnings",
+  "revenue",
+  "clicks",
+  "click earnings",
+  "leads",
+  "lead earnings",
+  "sales",
+  "sale earnings",
+] as const;
+
+export const PERFORMANCE_CURRENCY_ACTIVITIES = [
+  "click earnings",
+  "lead earnings",
+  "sale earnings",
+  "earnings",
+  "revenue",
+];
+
+export const bountyPerformanceLogicSchema = z.object({
+  activity: z.enum(PERFORMANCE_ACTIVITIES),
+  operator: z.enum(["gte"]).default("gte"),
+  value: z.number().min(0, "Logic value must be at least 0"),
+});
+
+const bountySubmissionRequirementsSchema = z
+  .array(z.enum(SUBMISSION_REQUIREMENTS))
+  .min(0)
+  .max(2);
 
 export const createBountySchema = z.object({
   name: z
@@ -22,12 +53,12 @@ export const createBountySchema = z.object({
   startsAt: parseDateSchema,
   endsAt: parseDateSchema.nullish(),
   rewardAmount: z.number().min(1, "Reward amount must be greater than 1"),
-  submissionRequirements: z
-    .array(z.enum(SUBMISSION_REQUIREMENTS))
-    .min(0)
-    .max(2)
-    .nullish(),
+  submissionRequirements: bountySubmissionRequirementsSchema.nullish(),
+  performanceLogic: bountyPerformanceLogicSchema.nullish(),
+  groupIds: z.array(z.string()).nullable(),
 });
+
+export const updateBountySchema = createBountySchema;
 
 export const BountySchema = z.object({
   id: z.string(),
@@ -37,6 +68,11 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   rewardAmount: z.number(),
+  submissionRequirements: bountySubmissionRequirementsSchema.nullish(),
+});
+
+export const BountySchemaExtended = BountySchema.extend({
+  partnersCount: z.number().default(0),
 });
 
 export const BountySubmissionSchema = z.object({
@@ -68,3 +104,13 @@ export const BountySubmissionSchema = z.object({
     image: true,
   }).nullable(),
 });
+
+export const BOUNTIES_MAX_PAGE_SIZE = 100;
+
+export const getBountiesQuerySchema = z
+  .object({
+    sortBy: z.enum(["createdAt"]).default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    includeExpandedFields: booleanQuerySchema.optional(),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: BOUNTIES_MAX_PAGE_SIZE }));

@@ -25,8 +25,8 @@ export const archivePartnerAction = authActionClient
     const { status, partner } = await prisma.programEnrollment.update({
       where: {
         partnerId_programId: {
-          programId,
           partnerId,
+          programId,
         },
       },
       data: {

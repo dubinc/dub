@@ -40,7 +40,7 @@ export function BountyInfo() {
               <span className="font-medium text-neutral-700">{completed}</span>{" "}
               of{" "}
               <span className="font-medium text-neutral-700">
-                {bounty.submissionsCount}
+                {/* {bounty.submissionsCount} */} X
               </span>{" "}
               partners completed
             </div>

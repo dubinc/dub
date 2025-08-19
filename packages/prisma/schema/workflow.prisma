@@ -15,6 +15,7 @@ model Workflow {
   updatedAt         DateTime        @updatedAt
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  bounty  Bounty?
 
   @@index(programId)
 }
