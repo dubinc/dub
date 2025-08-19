@@ -27,7 +27,7 @@ export const createDiscountSchema = z.object({
   amount: z.number().min(0),
   type: z.nativeEnum(RewardStructure).default("flat"),
   maxDuration: maxDurationSchema,
-  couponId: z.string().nullish(),
+  couponId: z.string(),
   couponTestId: z.string().nullish(),
   groupId: z.string(),
   enableCouponTracking: z.boolean().default(false),
