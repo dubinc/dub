@@ -52,6 +52,10 @@ export const rewardConditionSchema = z.object({
     z.array(z.string()),
     z.array(z.number()),
   ]),
+  label: z
+    .string()
+    .nullish()
+    .describe("Product name used for display purposes in the UI."),
 });
 
 export const rewardConditionsSchema = z.object({
