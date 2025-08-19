@@ -102,7 +102,7 @@ function DiscountSheetContent({
         defaultValuesSource.maxDuration === null
           ? Infinity
           : defaultValuesSource.maxDuration,
-      couponId: defaultValuesSource.couponId,
+      couponId: defaultValuesSource.couponId || "",
       couponTestId: defaultValuesSource.couponTestId,
       enableCouponTracking:
         defaultValuesSource.couponCodeTrackingEnabledAt !== null,
