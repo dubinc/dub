@@ -26,7 +26,6 @@ export function BountyList() {
   // Open/close edit bounty sheet
   useEffect(() => {
     const bountyId = searchParams.get("bountyId");
-    console.log("bountyId", bountyId);
     setBountySheetState(
       bountyId ? { open: true, bountyId } : { open: false, bountyId: null },
     );

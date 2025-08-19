@@ -30,6 +30,7 @@ export async function getBounties(filters: BountyFilters) {
       b.startsAt,
       b.endsAt,
       b.rewardAmount,
+      b.submissionRequirements,
       ${
         includeExpandedFields
           ? Prisma.sql`

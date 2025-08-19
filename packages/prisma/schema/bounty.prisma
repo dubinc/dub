@@ -16,7 +16,7 @@ enum BountySubmissionStatus {
 model Bounty {
   id                     String     @id @default(cuid())
   programId              String
-  workflowId             String?
+  workflowId             String?    @unique
   name                   String?
   description            String?    @db.Text
   type                   BountyType
@@ -30,6 +30,7 @@ model Bounty {
   program     Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
   submissions BountySubmission[]
   groups      BountyGroup[]
+  workflow    Workflow?        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
   @@index(programId)
   @@index(workflowId)

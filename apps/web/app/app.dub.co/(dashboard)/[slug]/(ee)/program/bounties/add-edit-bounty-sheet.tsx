@@ -84,9 +84,17 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
   const form = useForm<FormData>({
     defaultValues: {
-      // TODO: Edit existing values (and handle currency / 100)
+      name: bounty?.name || undefined,
+      description: bounty?.description || undefined,
+      startsAt: bounty?.startsAt || undefined,
+      endsAt: bounty?.endsAt || undefined,
+      rewardAmount: bounty?.rewardAmount
+        ? bounty.rewardAmount / 100
+        : undefined,
+      type: bounty?.type || "performance",
+      submissionRequirements: bounty?.submissionRequirements || null,
 
-      type: "performance",
+      // TODO: [bounties] Get existing performance logic from bounty/workflow
       performanceLogic: {
         activity: undefined,
         operator: "gte",
@@ -155,13 +163,13 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
   // Handle form submission
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId) {
-      return;
-    }
+    if (!workspaceId) return;
 
     data.rewardAmount = data.rewardAmount * 100;
 
     if (data.type === "performance") {
+      data.submissionRequirements = null;
+
       let performanceLogic: BountyPerformanceLogic | null = null;
       if (data.performanceLogic) {
         try {
@@ -193,15 +201,15 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
         data.performanceLogic = performanceLogic;
       }
-    }
+    } else data.performanceLogic = null;
 
-    await makeRequest("/api/bounties", {
-      method: "POST",
+    await makeRequest(bounty ? `/api/bounties/${bounty.id}` : "/api/bounties", {
+      method: bounty ? "PATCH" : "POST",
       body: data,
       onSuccess: () => {
         mutatePrefix("/api/bounties");
         setIsOpen(false);
-        toast.success("Bounty created successfully!");
+        toast.success(`Bounty ${bounty ? "updated" : "created"} successfully!`);
       },
       onError: (message) => {
         toast.error(message);
@@ -214,7 +222,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            Create bounty
+            {bounty ? "Update" : "Create"} bounty
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -516,7 +524,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
             <Button
               type="submit"
               variant="primary"
-              text="Create bounty"
+              text={bounty ? "Update bounty" : "Create bounty"}
               className="w-fit"
               loading={isSubmitting}
               disabled={shouldDisableSubmit}

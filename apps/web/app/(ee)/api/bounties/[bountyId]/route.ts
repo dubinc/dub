@@ -1,7 +1,14 @@
 import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { BountySchema, BountySchemaExtended } from "@/lib/zod/schemas/bounties";
+import {
+  BountySchema,
+  BountySchemaExtended,
+  updateBountySchema,
+} from "@/lib/zod/schemas/bounties";
+import { prisma } from "@dub/prisma";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/bounties/[bountyId] - get a bounty
@@ -18,13 +25,30 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
 });
 
 // PATCH /api/bounties/[bountyId] - update a bounty
-export const PATCH = withWorkspace(async ({ workspace, params }) => {
+export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
   const { bountyId } = params;
   const programId = getDefaultProgramIdOrThrow(workspace);
+
+  // TODO: [bounties] Persist performance logic to workflow and groupIds to bountyGroup
+  const { performanceLogic, groupIds, ...data } = updateBountySchema.parse(
+    await parseRequestBody(req),
+  );
 
   const bounty = await getBountyOrThrow({
     bountyId,
     programId,
+  });
+
+  await prisma.bounty.update({
+    where: {
+      id: bounty.id,
+    },
+    data: {
+      ...data,
+      submissionRequirements: data.submissionRequirements ?? Prisma.JsonNull,
+      startsAt: new Date(data.startsAt!),
+      endsAt: data.endsAt ? new Date(data.endsAt) : null,
+    },
   });
 
   return NextResponse.json(BountySchema.parse(bounty));
@@ -38,6 +62,12 @@ export const DELETE = withWorkspace(async ({ workspace, params }) => {
   const bounty = await getBountyOrThrow({
     bountyId,
     programId,
+  });
+
+  await prisma.bounty.delete({
+    where: {
+      id: bounty.id,
+    },
   });
 
   return NextResponse.json({ id: bounty.id });

@@ -33,6 +33,11 @@ export const bountyPerformanceLogicSchema = z.object({
   value: z.number().min(0, "Logic value must be at least 0"),
 });
 
+const bountySubmissionRequirementsSchema = z
+  .array(z.enum(SUBMISSION_REQUIREMENTS))
+  .min(0)
+  .max(2);
+
 export const createBountySchema = z.object({
   name: z
     .string()
@@ -48,14 +53,12 @@ export const createBountySchema = z.object({
   startsAt: parseDateSchema,
   endsAt: parseDateSchema.nullish(),
   rewardAmount: z.number().min(1, "Reward amount must be greater than 1"),
-  submissionRequirements: z
-    .array(z.enum(SUBMISSION_REQUIREMENTS))
-    .min(0)
-    .max(2)
-    .nullish(),
+  submissionRequirements: bountySubmissionRequirementsSchema.nullish(),
   performanceLogic: bountyPerformanceLogicSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
 });
+
+export const updateBountySchema = createBountySchema;
 
 export const BountySchema = z.object({
   id: z.string(),
@@ -65,6 +68,7 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   rewardAmount: z.number(),
+  submissionRequirements: bountySubmissionRequirementsSchema.nullish(),
 });
 
 export const BountySchemaExtended = BountySchema.extend({

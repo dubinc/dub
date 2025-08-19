@@ -31,6 +31,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 export const POST = withWorkspace(async ({ workspace, req }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
+  // TODO: [bounties] Persist performance logic to workflow and groupIds to bountyGroup
   const { name, description, type, rewardAmount, startsAt, endsAt } =
     createBountySchema.parse(await parseRequestBody(req));
 

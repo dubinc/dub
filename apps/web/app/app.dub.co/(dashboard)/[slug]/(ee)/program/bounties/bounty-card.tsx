@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
-  const { queryParams, searchParams } = useRouterStuff();
+  const { queryParams } = useRouterStuff();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
