@@ -90,7 +90,8 @@ const RewardItem = ({
   return (
     <div>
       <div className="text-content-default text-xs font-semibold">
-        {rewardAmount} per {reward.event} {durationText}
+        {rewardAmount} per {reward.event}
+        {reward.event === "sale" && durationText ? ` ${durationText}` : ""}
       </div>
 
       {conditions && conditions.length > 0 && (
