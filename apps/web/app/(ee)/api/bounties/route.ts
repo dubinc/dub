@@ -11,6 +11,7 @@ import {
   getBountiesQuerySchema,
 } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -32,8 +33,15 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   // TODO: [bounties] Persist performance logic to workflow and groupIds to bountyGroup
-  const { name, description, type, rewardAmount, startsAt, endsAt } =
-    createBountySchema.parse(await parseRequestBody(req));
+  const {
+    name,
+    description,
+    type,
+    rewardAmount,
+    startsAt,
+    endsAt,
+    submissionRequirements,
+  } = createBountySchema.parse(await parseRequestBody(req));
 
   const workflow = await createWorkflow({
     program: {
@@ -57,6 +65,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
       startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
       endsAt,
       rewardAmount,
+      submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
     },
   });
 
