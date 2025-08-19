@@ -221,7 +221,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             select: {
               id: true,
               domain: true,
-              couponCodeTrackingEnabledAt: true,
             },
           },
         },
@@ -236,10 +235,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       }
 
       const program = workspace.programs[0];
-
-      if (!program.couponCodeTrackingEnabledAt) {
-        return `Program ${program.id} not enabled coupon code tracking, skipping...`;
-      }
 
       if (!program.domain) {
         return `Program ${program.id} has no domain, skipping...`;
