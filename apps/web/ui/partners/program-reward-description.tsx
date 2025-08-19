@@ -84,20 +84,23 @@ export function ProgramRewardDescription({
             })}
           </strong>{" "}
           off{" "}
-          <strong className={cn("font-semibold", periodClassName)}>
-            {discount.maxDuration === null ? (
-              <strong className={cn("font-semibold", periodClassName)}>
-                {" "}
-                for their lifetime
-              </strong>
-            ) : discount.maxDuration && discount.maxDuration > 1 ? (
-              <strong className={cn("font-semibold", periodClassName)}>
-                for {discount.maxDuration} months
-              </strong>
-            ) : (
-              " for their first month"
-            )}
-          </strong>
+          {discount.maxDuration === null ? (
+            <strong className={cn("font-semibold", periodClassName)}>
+              for their lifetime
+            </strong>
+          ) : discount.maxDuration === 0 ? (
+            <strong className={cn("font-semibold", periodClassName)}>
+              for their first purchase
+            </strong>
+          ) : discount.maxDuration === 1 ? (
+            <strong className={cn("font-semibold", periodClassName)}>
+              for their first month
+            </strong>
+          ) : discount.maxDuration && discount.maxDuration > 1 ? (
+            <strong className={cn("font-semibold", periodClassName)}>
+              for {discount.maxDuration} months
+            </strong>
+          ) : null}
         </>
       ) : null}
     </>

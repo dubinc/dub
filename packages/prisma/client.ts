@@ -20,4 +20,5 @@ export {
   RewardStructure,
   Role,
   WebhookReceiver,
+  WorkflowTrigger,
 } from "@prisma/client";
