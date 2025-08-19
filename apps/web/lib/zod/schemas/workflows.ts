@@ -7,21 +7,21 @@ export const WORKFLOW_CONDITION_ATTRIBUTES = [
   "clicks",
   "leads",
   "sales",
-  "click_earnings",
-  "lead_earnings",
-  "sale_earnings",
-  "sale_revenue",
+  "clickEarnings",
+  "leadEarnings",
+  "saleEarnings",
+  "saleRevenue",
   "earnings",
   "revenue",
 ] as const;
 
-export const WORKFLOW_CONDITION_OPERATORS = ["greater_than"] as const;
+export const WORKFLOW_CONDITION_OPERATORS = ["gt", "gte", "eq"] as const;
 
 export const WORKFLOW_ACTION_TYPES = [
-  "create_commission",
-  "move_group",
-  "send_email",
-  "send_webhook",
+  "awardBounty",
+  "moveToGroup",
+  // "sendEmail",
+  // "triggerWebhook",
 ] as const;
 
 // Individual condition
@@ -40,14 +40,14 @@ export const workflowConditionsSchema = z.object({
 // Individual action
 const workflowActionSchema = z.discriminatedUnion("type", [
   z.object({
-    type: z.literal("create_commission"),
+    type: z.literal("awardBounty"),
     data: z.object({
       bountyId: z.string(),
     }),
   }),
 
   z.object({
-    type: z.literal("move_group"),
+    type: z.literal("moveToGroup"),
     data: z.object({
       newGroupId: z.string(),
     }),
@@ -58,6 +58,13 @@ const workflowActionSchema = z.discriminatedUnion("type", [
 export const workflowActionsSchema = z.array(workflowActionSchema);
 
 export const createWorkflowSchema = z.object({
+  trigger: z.nativeEnum(WorkflowTrigger),
+  triggerConditions: workflowConditionsSchema,
+  actions: workflowActionsSchema,
+});
+
+export const workflowSchema = z.object({
+  name: z.string(),
   trigger: z.nativeEnum(WorkflowTrigger),
   triggerConditions: workflowConditionsSchema,
   actions: workflowActionsSchema,
