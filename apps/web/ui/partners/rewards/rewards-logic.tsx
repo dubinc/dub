@@ -566,10 +566,9 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
           amount
             ? constructRewardAmount({
                 reward: {
-                  amount,
+                  amount: displayType === "flat" ? amount * 100 : amount,
                   type: displayType,
-                  maxDuration,
-                  modifiers: undefined,
+                  maxDuration: displayMaxDuration,
                 },
               })
             : "amount"

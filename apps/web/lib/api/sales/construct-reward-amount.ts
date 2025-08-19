@@ -16,14 +16,16 @@ export const constructRewardAmount = ({
     if (parsedModifiers.success) {
       const modifiers = parsedModifiers.data;
 
+      const matchPrimary = modifiers.every((m) => {
+        const typeMatches = m.type === undefined || m.type === reward.type;
+        const durationMatches =
+          m.maxDuration === undefined || m.maxDuration === reward.maxDuration;
+
+        return typeMatches && durationMatches;
+      });
+
       // If the type AND maxDuration matches the primary, show a range
-      if (
-        modifiers.every(
-          (modifier) =>
-            modifier.type === reward.type &&
-            modifier.maxDuration === reward.maxDuration,
-        )
-      ) {
+      if (matchPrimary) {
         const min = Math.min(
           reward.amount,
           ...modifiers.map((modifier) => modifier.amount),
@@ -36,7 +38,7 @@ export const constructRewardAmount = ({
 
         return reward.type === "percentage"
           ? `${min}% - ${max}%`
-          : `${formatCurrency(min)} - ${formatCurrency(max)}`;
+          : `${formatCurrency(min / 100)} - ${formatCurrency(max / 100)}`;
       }
     }
   }
@@ -46,12 +48,12 @@ export const constructRewardAmount = ({
   // 2. type AND timelines doesn't match the primary reward
   return reward.type === "percentage"
     ? `${reward.amount}%`
-    : formatCurrency(reward.amount);
+    : formatCurrency(reward.amount / 100);
 };
 
 const formatCurrency = (amount: number) =>
   currencyFormatter(
-    amount / 100,
+    amount,
     amount % 100 === 0
       ? undefined
       : {
