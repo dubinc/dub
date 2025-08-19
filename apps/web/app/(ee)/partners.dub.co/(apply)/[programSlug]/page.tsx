@@ -7,7 +7,7 @@ import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
-import { Header } from "./header";
+import { ApplyHeader } from "./header";
 
 export default async function ApplyPage({
   params: { programSlug, groupSlug },
@@ -37,7 +37,7 @@ export default async function ApplyPage({
         } as CSSProperties
       }
     >
-      <Header program={program} groupSlug={partnerGroupSlug} />
+      <ApplyHeader program={program} />
       <div className="p-6">
         <LanderHero program={program} landerData={landerData} />
 

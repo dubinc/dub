@@ -11,12 +11,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import {
-  cn,
-  currencyFormatter,
-  fetcher,
-  THE_BEGINNING_OF_TIME,
-} from "@dub/utils";
+import { cn, currencyFormatter, DUB_FOUNDING_DATE, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { Fragment, useMemo } from "react";
 import useSWR from "swr";
@@ -252,7 +247,7 @@ export default function CommissionsPageClient() {
                         interval,
                         start,
                         end,
-                        dataAvailableFrom: THE_BEGINNING_OF_TIME,
+                        dataAvailableFrom: DUB_FOUNDING_DATE,
                       })
                     }
                   />

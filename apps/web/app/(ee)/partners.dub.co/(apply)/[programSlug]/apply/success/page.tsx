@@ -6,7 +6,7 @@ import { OG_AVATAR_URL } from "@dub/utils";
 import { Store } from "lucide-react";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
-import { Header } from "../../header";
+import { ApplyHeader } from "../../header";
 import { CTAButtons } from "./cta-buttons";
 import { Screenshot } from "./screenshot";
 
@@ -72,7 +72,7 @@ export default async function SuccessPage({
         } as CSSProperties
       }
     >
-      <Header program={program} showLogin={false} showApply={false} />
+      <ApplyHeader program={program} showLogin={false} showApply={false} />
       <div className="p-6">
         <div className="grid grid-cols-1 gap-5 sm:pt-20">
           <h1 className="text-4xl font-semibold">
