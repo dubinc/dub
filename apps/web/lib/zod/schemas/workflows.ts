@@ -7,22 +7,15 @@ export const WORKFLOW_CONDITION_ATTRIBUTES = [
   "clicks",
   "leads",
   "sales",
-  "clicks_earning",
-  "leads_earning",
-  "sales_earning",
+  "click_earnings",
+  "lead_earnings",
+  "sale_earnings",
   "sale_revenue",
   "earnings",
   "revenue",
 ] as const;
 
-export const WORKFLOW_CONDITION_OPERATORS = [
-  "equals_to",
-  "not_equals",
-  "starts_with",
-  "ends_with",
-  "in",
-  "not_in",
-] as const;
+export const WORKFLOW_CONDITION_OPERATORS = ["greater_than"] as const;
 
 export const WORKFLOW_ACTION_TYPES = [
   "create_commission",
