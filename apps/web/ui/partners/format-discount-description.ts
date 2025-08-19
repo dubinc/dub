@@ -22,7 +22,7 @@ export function formatDiscountDescription({
   if (discount.maxDuration === null) {
     parts.push("for the their lifetime");
   } else if (discount.maxDuration === 0) {
-    parts.push("for their first month");
+    parts.push("for their first purchase");
   } else if (discount.maxDuration && discount.maxDuration > 0) {
     parts.push(
       `for ${discount.maxDuration} ${pluralize("month", discount.maxDuration)}`,
