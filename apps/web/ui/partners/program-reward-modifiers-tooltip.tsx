@@ -1,6 +1,7 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { RewardProps } from "@/lib/types";
 import {
+  ATTRIBUTE_LABELS,
   CONDITION_OPERATOR_LABELS,
   rewardConditionsArraySchema,
 } from "@/lib/zod/schemas/rewards";
@@ -96,12 +97,14 @@ const RewardItem = ({
               <span className="mt-0.5 text-lg leading-none">•</span>
               <span className="min-w-0">
                 {idx === 0 ? "If" : "Or"} {condition.entity}{" "}
-                {condition.attribute}{" "}
+                {ATTRIBUTE_LABELS[condition.attribute]}{" "}
                 {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
                 {condition.value &&
                   (Array.isArray(condition.value)
                     ? condition.value.join(", ")
-                    : condition.value.toString())}
+                    : condition.attribute === "productId" && condition.label
+                      ? condition.label
+                      : condition.value.toString())}
               </span>
             </li>
           ))}
