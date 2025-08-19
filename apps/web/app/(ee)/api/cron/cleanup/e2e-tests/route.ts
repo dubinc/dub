@@ -23,88 +23,83 @@ export async function GET(req: Request) {
 
     const oneHourAgo = new Date(Date.now() - 1000 * 60 * 60);
 
-    const [links, domains, tags, partners, users, workspace] =
-      await Promise.all([
-        prisma.link.findMany({
-          where: {
-            userId: E2E_USER_ID,
-            projectId: E2E_WORKSPACE_ID,
-            createdAt: {
-              lt: oneHourAgo,
+    const [links, domains, tags, partners, users] = await Promise.all([
+      prisma.link.findMany({
+        where: {
+          userId: E2E_USER_ID,
+          projectId: E2E_WORKSPACE_ID,
+          createdAt: {
+            lt: oneHourAgo,
+          },
+        },
+        include: {
+          tags: {
+            select: {
+              tag: true,
             },
           },
-          include: {
-            tags: {
-              select: {
-                tag: true,
-              },
-            },
-          },
-          take: 100,
-        }),
+        },
+        take: 100,
+      }),
 
-        prisma.domain.findMany({
-          where: {
-            projectId: E2E_WORKSPACE_ID,
-            slug: {
-              endsWith: ".dub-internal-test.com",
-            },
-            createdAt: {
-              lt: oneHourAgo,
-            },
+      prisma.domain.findMany({
+        where: {
+          projectId: E2E_WORKSPACE_ID,
+          slug: {
+            endsWith: ".dub-internal-test.com",
           },
-          select: {
-            slug: true,
+          createdAt: {
+            lt: oneHourAgo,
           },
-        }),
+        },
+        select: {
+          slug: true,
+        },
+      }),
 
-        prisma.tag.findMany({
-          where: {
-            projectId: E2E_WORKSPACE_ID,
-            name: {
-              startsWith: "e2e-",
-            },
-            createdAt: {
-              lt: oneHourAgo,
-            },
+      prisma.tag.findMany({
+        where: {
+          projectId: E2E_WORKSPACE_ID,
+          name: {
+            startsWith: "e2e-",
           },
-        }),
+          createdAt: {
+            lt: oneHourAgo,
+          },
+        },
+      }),
 
-        prisma.partner.findMany({
-          where: {
-            email: {
-              endsWith: "@dub-internal-test.com",
-            },
-            createdAt: {
-              lt: oneHourAgo,
-            },
+      prisma.partner.findMany({
+        where: {
+          email: {
+            endsWith: "@dub-internal-test.com",
           },
-          select: {
-            id: true,
+          createdAt: {
+            lt: oneHourAgo,
           },
-        }),
+        },
+        select: {
+          id: true,
+        },
+      }),
 
-        prisma.user.findMany({
-          where: {
-            email: {
-              endsWith: "@dub-internal-test.com",
-            },
-            createdAt: {
-              lt: oneHourAgo,
-            },
+      prisma.user.findMany({
+        where: {
+          email: {
+            endsWith: "@dub-internal-test.com",
           },
-        }),
+          createdAt: {
+            lt: oneHourAgo,
+          },
+        },
+      }),
+    ]);
 
-        prisma.project.findUniqueOrThrow({
-          where: {
-            id: E2E_WORKSPACE_ID,
-          },
-          select: {
-            id: true,
-            stripeConnectId: true,
-          },
-        }),
-      ]);
+    const workspace = await prisma.project.findUniqueOrThrow({
+      where: {
+        id: E2E_WORKSPACE_ID,
+      },
+    });
 
     // Delete the links
     if (links.length > 0) {
