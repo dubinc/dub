@@ -15,7 +15,6 @@ import {
 import { X } from "@/ui/shared/icons";
 import { EventType, RewardStructure } from "@dub/prisma/client";
 import {
-  AnimatedSizeContainer,
   ArrowTurnRight2,
   Button,
   Check2,
@@ -27,6 +26,7 @@ import {
 } from "@dub/ui";
 import { capitalize, cn, COUNTRIES, pluralize, truncate } from "@dub/utils";
 import { Command } from "cmdk";
+import { motion } from "framer-motion";
 import { Package } from "lucide-react";
 import { Fragment, useContext, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
@@ -161,23 +161,16 @@ function ConditionalGroup({
       <div className="border-border-subtle rounded-lg border bg-white p-2.5">
         {conditions.map((condition, conditionIndex) => (
           <Fragment key={condition.id}>
-            <div className="border-border-subtle flex items-center justify-between rounded-md border bg-white p-2.5">
-              <div className="flex items-center gap-1.5">
-                <ConditionLogic
-                  modifierIndex={index}
-                  conditionIndex={conditionIndex}
-                />
-              </div>
-              <div className="flex items-center gap-1">
-                {conditions.length > 1 && (
-                  <Button
-                    variant="outline"
-                    className="h-6 w-fit px-1"
-                    icon={<X className="size-4" />}
-                    onClick={() => removeCondition(conditionIndex)}
-                  />
-                )}
-              </div>
+            <div className="border-border-subtle rounded-md border bg-white">
+              <ConditionLogic
+                modifierIndex={index}
+                conditionIndex={conditionIndex}
+                onRemove={
+                  conditions.length > 1
+                    ? () => removeCondition(conditionIndex)
+                    : undefined
+                }
+              />
             </div>
             <VerticalLine />
           </Fragment>
@@ -244,9 +237,11 @@ const formatValue = (
 function ConditionLogic({
   modifierIndex,
   conditionIndex,
+  onRemove,
 }: {
   modifierIndex: number;
   conditionIndex: number;
+  onRemove?: () => void;
 }) {
   const modifierKey = `modifiers.${modifierIndex}` as const;
   const conditionKey = `${modifierKey}.conditions.${conditionIndex}` as const;
@@ -268,237 +263,253 @@ function ConditionLogic({
 
   return (
     <div className="flex w-full flex-col">
-      <div className="flex items-center gap-1.5">
-        <RewardIconSquare icon={icon} />
-        <span className="text-content-emphasis font-medium leading-relaxed">
-          {conditionIndex === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
-          <InlineBadgePopover
-            text={capitalize(condition.entity) || "Select item"}
-            invalid={!condition.entity}
-          >
-            <InlineBadgePopoverMenu
-              selectedValue={condition.entity}
-              onSelect={(value) =>
-                setValue(
-                  conditionKey,
-                  { entity: value as keyof typeof ENTITIES },
-                  {
-                    shouldDirty: true,
-                  },
-                )
-              }
-              items={Object.keys(ENTITIES)
-                .filter((e) =>
-                  EVENT_ENTITIES[event]?.includes(e as keyof typeof ENTITIES),
-                )
-                .map((entity) => ({
-                  text: capitalize(entity) || entity,
-                  value: entity,
-                }))}
-            />
-          </InlineBadgePopover>{" "}
-          {condition.entity && (
-            <>
-              <InlineBadgePopover
-                text={
-                  condition.attribute
-                    ? ATTRIBUTE_LABELS?.[condition.attribute] ||
-                      capitalize(condition.attribute)
-                    : "Detail"
+      <div className="flex items-center justify-between p-2.5">
+        <div className="flex items-center gap-1.5">
+          <RewardIconSquare icon={icon} />
+          <span className="text-content-emphasis font-medium leading-relaxed">
+            {conditionIndex === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
+            <InlineBadgePopover
+              text={capitalize(condition.entity) || "Select item"}
+              invalid={!condition.entity}
+            >
+              <InlineBadgePopoverMenu
+                selectedValue={condition.entity}
+                onSelect={(value) =>
+                  setValue(
+                    conditionKey,
+                    { entity: value as keyof typeof ENTITIES },
+                    {
+                      shouldDirty: true,
+                    },
+                  )
                 }
-                invalid={!condition.attribute}
-              >
-                <InlineBadgePopoverMenu
-                  selectedValue={condition.attribute}
-                  onSelect={(value) =>
-                    setValue(
-                      conditionKey,
-                      {
-                        entity: condition.entity,
-                        attribute:
-                          value as (typeof CONDITION_ATTRIBUTES)[number],
-                      },
-                      {
-                        shouldDirty: true,
-                      },
-                    )
-                  }
-                  items={ENTITIES[condition.entity].attributes.map(
-                    (attribute) => ({
-                      text:
-                        ATTRIBUTE_LABELS?.[attribute] ||
-                        capitalize(attribute) ||
-                        attribute,
-                      value: attribute,
-                    }),
-                  )}
-                />
-              </InlineBadgePopover>{" "}
-              <InlineBadgePopover
-                text={
-                  condition.operator
-                    ? CONDITION_OPERATOR_LABELS[condition.operator]
-                    : "Condition"
-                }
-                invalid={!condition.operator}
-              >
-                <InlineBadgePopoverMenu
-                  selectedValue={condition.operator}
-                  onSelect={(value) =>
-                    setValue(
-                      conditionKey,
-                      {
-                        ...condition,
-                        operator: value as (typeof CONDITION_OPERATORS)[number],
-                        // Update value to array / string if needed
-                        ...(["in", "not_in"].includes(value)
-                          ? !Array.isArray(condition.value)
-                            ? { value: [] }
-                            : null
-                          : typeof condition.value !== "string"
-                            ? { value: "" }
-                            : null),
-                      },
-                      {
-                        shouldDirty: true,
-                      },
-                    )
-                  }
-                  items={CONDITION_OPERATORS.map((operator) => ({
-                    text: CONDITION_OPERATOR_LABELS[operator],
-                    value: operator,
+                items={Object.keys(ENTITIES)
+                  .filter((e) =>
+                    EVENT_ENTITIES[event]?.includes(e as keyof typeof ENTITIES),
+                  )
+                  .map((entity) => ({
+                    text: capitalize(entity) || entity,
+                    value: entity,
                   }))}
-                />
-              </InlineBadgePopover>{" "}
-              {condition.operator && (
-                <>
-                  <InlineBadgePopover
-                    text={formatValue(condition.value)}
-                    invalid={
-                      Array.isArray(condition.value)
-                        ? condition.value.filter(Boolean).length === 0
-                        : !condition.value
+              />
+            </InlineBadgePopover>{" "}
+            {condition.entity && (
+              <>
+                <InlineBadgePopover
+                  text={
+                    condition.attribute
+                      ? ATTRIBUTE_LABELS?.[condition.attribute] ||
+                        capitalize(condition.attribute)
+                      : "Detail"
+                  }
+                  invalid={!condition.attribute}
+                >
+                  <InlineBadgePopoverMenu
+                    selectedValue={condition.attribute}
+                    onSelect={(value) =>
+                      setValue(
+                        conditionKey,
+                        {
+                          entity: condition.entity,
+                          attribute:
+                            value as (typeof CONDITION_ATTRIBUTES)[number],
+                        },
+                        {
+                          shouldDirty: true,
+                        },
+                      )
                     }
-                    buttonClassName={cn(
-                      condition.attribute === "productId" && "rounded-r-none",
+                    items={ENTITIES[condition.entity].attributes.map(
+                      (attribute) => ({
+                        text:
+                          ATTRIBUTE_LABELS?.[attribute] ||
+                          capitalize(attribute) ||
+                          attribute,
+                        value: attribute,
+                      }),
                     )}
-                  >
-                    {/* Country selection */}
-                    {condition.attribute === "country" &&
-                    !["starts_with", "ends_with"].includes(
-                      condition.operator,
-                    ) ? (
-                      <InlineBadgePopoverMenu
-                        search
-                        selectedValue={
-                          (condition.value as string[] | undefined) ??
-                          (isArrayValue ? [] : undefined)
-                        }
-                        items={Object.entries(COUNTRIES).map(([key, name]) => ({
-                          text: name,
-                          value: key,
-                          icon: (
-                            <img
-                              alt={`${key} flag`}
-                              src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
-                              className="size-3 shrink-0"
-                            />
-                          ),
-                        }))}
-                        onSelect={(value) => {
-                          setValue(conditionKey, {
-                            ...condition,
-                            value: isArrayValue
-                              ? Array.isArray(condition.value)
-                                ? (condition.value as string[]).includes(value)
-                                  ? (condition.value.filter(
-                                      (v) => v !== value,
-                                    ) as string[])
-                                  : ([...condition.value, value] as string[])
-                                : [value]
-                              : value,
-                          });
-                        }}
-                      />
-                    ) : isArrayValue ? (
-                      // String array input
-                      <InlineBadgePopoverInputs
-                        values={
-                          condition.value
-                            ? Array.isArray(condition.value)
-                              ? condition.value.map(String)
-                              : [condition.value.toString()]
-                            : [""]
-                        }
-                        onChange={(values) => {
-                          setValue(conditionKey, {
-                            ...condition,
-                            value: values,
-                          });
-                        }}
-                      />
-                    ) : (
-                      // String input
-                      <InlineBadgePopoverInput
-                        {...register(`${conditionKey}.value`, {
-                          required: true,
-                        })}
-                      />
-                    )}
-                  </InlineBadgePopover>
-
-                  {condition.attribute === "productId" && (
-                    <button
-                      type="button"
-                      className="ml-0.5 inline-flex h-5 items-center justify-center rounded rounded-l-none bg-blue-50 px-1.5 hover:bg-blue-100"
-                      onClick={() =>
-                        setDisplayProductLabel(!displayProductLabel)
+                  />
+                </InlineBadgePopover>{" "}
+                <InlineBadgePopover
+                  text={
+                    condition.operator
+                      ? CONDITION_OPERATOR_LABELS[condition.operator]
+                      : "Condition"
+                  }
+                  invalid={!condition.operator}
+                >
+                  <InlineBadgePopoverMenu
+                    selectedValue={condition.operator}
+                    onSelect={(value) =>
+                      setValue(
+                        conditionKey,
+                        {
+                          ...condition,
+                          operator:
+                            value as (typeof CONDITION_OPERATORS)[number],
+                          // Update value to array / string if needed
+                          ...(["in", "not_in"].includes(value)
+                            ? !Array.isArray(condition.value)
+                              ? { value: [] }
+                              : null
+                            : typeof condition.value !== "string"
+                              ? { value: "" }
+                              : null),
+                        },
+                        {
+                          shouldDirty: true,
+                        },
+                      )
+                    }
+                    items={CONDITION_OPERATORS.map((operator) => ({
+                      text: CONDITION_OPERATOR_LABELS[operator],
+                      value: operator,
+                    }))}
+                  />
+                </InlineBadgePopover>{" "}
+                {condition.operator && (
+                  <>
+                    <InlineBadgePopover
+                      text={formatValue(condition.value)}
+                      invalid={
+                        Array.isArray(condition.value)
+                          ? condition.value.filter(Boolean).length === 0
+                          : !condition.value
                       }
+                      buttonClassName={cn(
+                        condition.attribute === "productId" && "rounded-r-none",
+                      )}
                     >
-                      <ChevronRight
-                        className={cn(
-                          "size-2.5 shrink-0 text-blue-500 transition-transform duration-200 [&_*]:stroke-[1.5]",
-                          displayProductLabel ? "rotate-90" : "",
-                        )}
-                      />
-                    </button>
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </span>
+                      {/* Country selection */}
+                      {condition.attribute === "country" &&
+                      !["starts_with", "ends_with"].includes(
+                        condition.operator,
+                      ) ? (
+                        <InlineBadgePopoverMenu
+                          search
+                          selectedValue={
+                            (condition.value as string[] | undefined) ??
+                            (isArrayValue ? [] : undefined)
+                          }
+                          items={Object.entries(COUNTRIES).map(
+                            ([key, name]) => ({
+                              text: name,
+                              value: key,
+                              icon: (
+                                <img
+                                  alt={`${key} flag`}
+                                  src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
+                                  className="size-3 shrink-0"
+                                />
+                              ),
+                            }),
+                          )}
+                          onSelect={(value) => {
+                            setValue(conditionKey, {
+                              ...condition,
+                              value: isArrayValue
+                                ? Array.isArray(condition.value)
+                                  ? (condition.value as string[]).includes(
+                                      value,
+                                    )
+                                    ? (condition.value.filter(
+                                        (v) => v !== value,
+                                      ) as string[])
+                                    : ([...condition.value, value] as string[])
+                                  : [value]
+                                : value,
+                            });
+                          }}
+                        />
+                      ) : isArrayValue ? (
+                        // String array input
+                        <InlineBadgePopoverInputs
+                          values={
+                            condition.value
+                              ? Array.isArray(condition.value)
+                                ? condition.value.map(String)
+                                : [condition.value.toString()]
+                              : [""]
+                          }
+                          onChange={(values) => {
+                            setValue(conditionKey, {
+                              ...condition,
+                              value: values,
+                            });
+                          }}
+                        />
+                      ) : (
+                        // String input
+                        <InlineBadgePopoverInput
+                          {...register(`${conditionKey}.value`, {
+                            required: true,
+                          })}
+                        />
+                      )}
+                    </InlineBadgePopover>
+
+                    {condition.attribute === "productId" && (
+                      <button
+                        type="button"
+                        className="ml-0.5 inline-flex h-5 items-center justify-center rounded rounded-l-none bg-blue-50 px-1.5 hover:bg-blue-100"
+                        onClick={() =>
+                          setDisplayProductLabel(!displayProductLabel)
+                        }
+                      >
+                        <ChevronRight
+                          className={cn(
+                            "size-2.5 shrink-0 text-blue-500 transition-transform duration-200 [&_*]:stroke-2",
+                            displayProductLabel ? "rotate-90" : "",
+                          )}
+                        />
+                      </button>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </span>
+        </div>
+        {onRemove && (
+          <Button
+            variant="outline"
+            className="h-6 w-fit px-1"
+            icon={<X className="size-4" />}
+            onClick={onRemove}
+          />
+        )}
       </div>
 
       {/* Product name input - only show for sale productId conditions with a value */}
       {condition.entity === "sale" &&
         condition.attribute === "productId" &&
         condition.value && (
-          <AnimatedSizeContainer
-            height
+          <motion.div
             transition={{ ease: "easeInOut", duration: 0.2 }}
-            style={{
-              height: displayProductLabel ? "auto" : "0px",
-              overflow: "hidden",
+            initial={false}
+            animate={{
+              height: displayProductLabel ? "auto" : 0,
+              opacity: displayProductLabel ? 1 : 0,
             }}
+            className="overflow-hidden"
           >
-            {displayProductLabel && (
-              <div className="flex items-center gap-1.5 pt-2">
-                <RewardIconSquare icon={Package} />
-                <span className="text-content-emphasis font-medium leading-relaxed">
-                  Shown as{" "}
-                  <InlineBadgePopover
-                    text={condition.label || "Product name"}
-                    invalid={!condition.label}
-                  >
+            <div className="border-border-subtle flex items-center gap-1.5 border-t p-2.5">
+              <RewardIconSquare icon={Package} />
+              <span className="text-content-emphasis font-medium leading-relaxed">
+                Shown as{" "}
+                <InlineBadgePopover
+                  text={condition.label || "Product name"}
+                  invalid={!condition.label}
+                >
+                  {displayProductLabel && (
                     <InlineBadgePopoverInput
                       {...register(`${conditionKey}.label`)}
                     />
-                  </InlineBadgePopover>
-                </span>
-              </div>
-            )}
-          </AnimatedSizeContainer>
+                  )}
+                </InlineBadgePopover>
+              </span>
+            </div>
+          </motion.div>
         )}
     </div>
   );
