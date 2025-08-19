@@ -3,22 +3,34 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Button } from "@dub/ui";
+import { Button, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Trophy } from "lucide-react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { useBountySheet } from "./add-edit-bounty-sheet";
+import { BountySheet } from "./add-edit-bounty-sheet";
 import { BountyCard, BountyCardSkeleton } from "./bounty-card";
 
 // TODO:
 // Fix error state
 
 export function BountyList() {
+  const { searchParams } = useRouterStuff();
+
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
-  const { BountySheet, setShowCreateBountySheet } = useBountySheet({
-    nested: false,
-  });
+  const [bountySheetState, setBountySheetState] = useState<
+    { open: false; bountyId: string | null } | { open: true; bountyId: string }
+  >({ open: false, bountyId: null });
+
+  // Open/close edit bounty sheet
+  useEffect(() => {
+    const bountyId = searchParams.get("bountyId");
+    console.log("bountyId", bountyId);
+    setBountySheetState(
+      bountyId ? { open: true, bountyId } : { open: false, bountyId: null },
+    );
+  }, [searchParams.get("bountyId")]);
 
   const {
     data: bounties,
@@ -38,8 +50,22 @@ export function BountyList() {
     return <></>;
   }
 
+  const currentBounty = bountySheetState.bountyId
+    ? bounties?.find((b) => b?.id === bountySheetState.bountyId)
+    : undefined;
+
   return bounties?.length !== 0 || isLoading ? (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+      {bountySheetState.open &&
+        (!bountySheetState.bountyId || currentBounty) && (
+          <BountySheet
+            isOpen={bountySheetState.open}
+            setIsOpen={(open) =>
+              setBountySheetState((s) => ({ ...s, open }) as any)
+            }
+            bounty={currentBounty}
+          />
+        )}
       {isLoading
         ? Array.from({ length: 3 }, (_, index) => (
             <BountyCardSkeleton key={index} />
@@ -50,7 +76,6 @@ export function BountyList() {
     </div>
   ) : (
     <>
-      {BountySheet}
       <AnimatedEmptyState
         title="No bounties active"
         description={
@@ -76,7 +101,11 @@ export function BountyList() {
           <Button
             text="Create bounty"
             variant="primary"
-            onClick={() => setShowCreateBountySheet(true)}
+            onClick={() =>
+              setBountySheetState(
+                (s) => ({ bountyId: null, open: true }) as any,
+              )
+            }
           />
         }
       />

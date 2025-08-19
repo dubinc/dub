@@ -1,14 +1,15 @@
 import { BountyExtendedProps } from "@/lib/types";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
-import { Button, MenuItem, Popover } from "@dub/ui";
+import { Button, MenuItem, Popover, useRouterStuff } from "@dub/ui";
 import { CalendarDays, Dots, PenWriting, Users } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
 import { Command } from "cmdk";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "sonner";
 
 export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
+  const { queryParams, searchParams } = useRouterStuff();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -76,7 +77,7 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
                 icon={PenWriting}
                 variant="default"
                 onSelect={() => {
-                  toast.info("WIP");
+                  queryParams({ set: { bountyId: bounty.id } });
                   setIsMenuOpen(false);
                 }}
               >

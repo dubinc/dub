@@ -1,6 +1,10 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyPerformanceLogic, BountyProps } from "@/lib/types";
+import {
+  BountyExtendedProps,
+  BountyPerformanceLogic,
+  BountyProps,
+} from "@/lib/types";
 import {
   bountyPerformanceLogicSchema,
   createBountySchema,
@@ -26,6 +30,7 @@ import {
   Sheet,
   SmartDateTimePicker,
   Switch,
+  useRouterStuff,
 } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -40,6 +45,7 @@ import { z } from "zod";
 
 type BountySheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  bounty?: BountyExtendedProps;
 };
 
 type FormData = z.infer<typeof createBountySchema>;
@@ -68,7 +74,7 @@ const ACCORDION_ITEMS = [
   "groups",
 ];
 
-function BountySheetContent({ setIsOpen }: BountySheetProps) {
+function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const { id: workspaceId } = useWorkspace();
   const [hasEndDate, setHasEndDate] = useState(false);
   const [requireImage, setRequireImage] = useState(false);
@@ -535,8 +541,15 @@ export function BountySheet({
   isOpen: boolean;
   nested?: boolean;
 }) {
+  const { queryParams } = useRouterStuff();
+
   return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={rest.setIsOpen}
+      onClose={() => queryParams({ del: "bountyId", scroll: false })}
+      nested={nested}
+    >
       <BountySheetContent {...rest} />
     </Sheet>
   );
