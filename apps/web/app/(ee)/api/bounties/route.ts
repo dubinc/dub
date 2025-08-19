@@ -41,6 +41,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     startsAt,
     endsAt,
     submissionRequirements,
+    groupIds,
   } = createBountySchema.parse(await parseRequestBody(req));
 
   const workflow = await createWorkflow({
@@ -49,10 +50,23 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     },
     workflow: {
       trigger: "clicks",
-      triggerConditions: {},
-      actions: {},
+      triggerConditions: {
+        conditions: [],
+      },
+      actions: [],
     },
   });
+
+  const groups = groupIds?.length
+    ? await prisma.partnerGroup.findMany({
+        where: {
+          programId,
+          id: {
+            in: groupIds,
+          },
+        },
+      })
+    : null;
 
   const bounty = await prisma.bounty.create({
     data: {
@@ -66,6 +80,16 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
       endsAt,
       rewardAmount,
       submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
+
+      ...(groups?.length && {
+        groups: {
+          createMany: {
+            data: groups?.map((group) => ({
+              groupId: group.id,
+            })),
+          },
+        },
+      }),
     },
   });
 
