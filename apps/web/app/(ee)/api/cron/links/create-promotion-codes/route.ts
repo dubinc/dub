@@ -9,7 +9,7 @@ import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
-  discountId: z.string(),
+  groupId: z.string(),
 });
 
 // POST /api/cron/links/create-promotion-codes
@@ -18,49 +18,51 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { discountId } = schema.parse(JSON.parse(rawBody));
+    const { groupId } = schema.parse(JSON.parse(rawBody));
 
-    const discount = await prisma.discount.findUnique({
+    const group = await prisma.partnerGroup.findUnique({
       where: {
-        id: discountId,
+        id: groupId,
       },
       include: {
-        partnerGroup: true,
         program: true,
+        discount: true,
       },
     });
 
+    if (!group) {
+      return logAndRespond({
+        message: `Partner group ${groupId} not found.`,
+        logLevel: "error",
+      });
+    }
+
+    const { discount, program } = group;
+
     if (!discount) {
       return logAndRespond({
-        message: `Discount ${discountId} not found.`,
+        message: `Partner group ${groupId} does not have a discount.`,
         logLevel: "error",
       });
     }
 
     if (!discount.couponId) {
       return logAndRespond({
-        message: `Discount ${discountId} does not have a couponId set.`,
+        message: `Discount ${discount.id} does not have a couponId set.`,
         logLevel: "error",
       });
     }
 
     if (!discount.couponCodeTrackingEnabledAt) {
       return logAndRespond({
-        message: `Discount ${discountId} is not enabled for coupon code tracking.`,
-      });
-    }
-
-    if (!discount.partnerGroup) {
-      return logAndRespond({
-        message: `Discount ${discountId} is not associated with a partner group.`,
-        logLevel: "error",
+        message: `Discount ${discount.id} is not enabled for coupon code tracking.`,
       });
     }
 
     // Find the workspace for the program
     const workspace = await prisma.project.findUnique({
       where: {
-        id: discount.program.workspaceId,
+        id: program.workspaceId,
       },
       select: {
         stripeConnectId: true,
@@ -69,14 +71,14 @@ export async function POST(req: Request) {
 
     if (!workspace) {
       return logAndRespond({
-        message: `Workspace ${discount.program.workspaceId} not found.`,
+        message: `Workspace ${program.workspaceId} not found.`,
         logLevel: "error",
       });
     }
 
     if (!workspace.stripeConnectId) {
       return logAndRespond({
-        message: `Workspace ${discount.program.workspaceId} does not have a stripeConnectId set.`,
+        message: `Workspace ${program.workspaceId} does not have a stripeConnectId set.`,
         logLevel: "error",
       });
     }
@@ -89,7 +91,7 @@ export async function POST(req: Request) {
       // Find all enrollments for the partner group
       const enrollments = await prisma.programEnrollment.findMany({
         where: {
-          groupId: discount.partnerGroup.id,
+          groupId: group.id,
         },
         orderBy: {
           id: "desc",
@@ -106,7 +108,7 @@ export async function POST(req: Request) {
       // Find all links for the enrollments
       const links = await prisma.link.findMany({
         where: {
-          programId: discount.programId,
+          programId: program.id,
           partnerId: {
             in: enrollments.map(({ partnerId }) => partnerId),
           },
@@ -155,7 +157,7 @@ export async function POST(req: Request) {
     }
 
     return logAndRespond({
-      message: `Promotion codes created for discount ${discountId}.`,
+      message: `Promotion codes created for discount ${discount.id} in group ${groupId}.`,
     });
   } catch (error) {
     console.log(error);

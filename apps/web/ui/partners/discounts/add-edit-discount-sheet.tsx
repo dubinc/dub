@@ -162,23 +162,23 @@ function DiscountSheetContent({
       return;
     }
 
-    if (!discount) {
-      await createDiscount({
-        ...data,
+    if (discount) {
+      await updateDiscount({
         workspaceId,
-        groupId: group.id,
-        amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
-        maxDuration:
-          Number(data.maxDuration) === Infinity ? null : data.maxDuration,
+        discountId: discount.id,
+        couponTestId: data.couponTestId,
+        enableCouponTracking: data.enableCouponTracking,
       });
       return;
     }
 
-    await updateDiscount({
+    await createDiscount({
+      ...data,
       workspaceId,
-      discountId: discount.id,
-      couponId: data.couponId,
-      couponTestId: data.couponTestId,
+      groupId: group.id,
+      amount: data.type === "flat" ? data.amount * 100 : data.amount || 0,
+      maxDuration:
+        Number(data.maxDuration) === Infinity ? null : data.maxDuration,
     });
   };
 
@@ -303,6 +303,7 @@ function DiscountSheetContent({
                             className="border-border-subtle block w-full rounded-lg bg-white px-3 py-2 text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                             {...register("couponId")}
                             placeholder="XZuejd0Q"
+                            disabled={!!discount} // we don't allow updating the coupon ID for existing discounts
                           />
                         </div>
                       </div>
@@ -355,37 +356,35 @@ function DiscountSheetContent({
                     </>
                   )}
 
-                  {!discount && (
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        fn={() =>
-                          setValue(
-                            "enableCouponTracking",
-                            !watch("enableCouponTracking"),
-                          )
-                        }
-                        checked={watch("enableCouponTracking")}
-                        trackDimensions="w-8 h-4"
-                        thumbDimensions="w-3 h-3"
-                        thumbTranslate="translate-x-4"
-                      />
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-medium text-neutral-800">
-                          Enable automatic coupon code tracking
-                        </h3>
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      fn={() =>
+                        setValue(
+                          "enableCouponTracking",
+                          !watch("enableCouponTracking"),
+                        )
+                      }
+                      checked={watch("enableCouponTracking")}
+                      trackDimensions="w-8 h-4"
+                      thumbDimensions="w-3 h-3"
+                      thumbTranslate="translate-x-4"
+                    />
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-medium text-neutral-800">
+                        Enable automatic coupon code tracking
+                      </h3>
 
-                        <InfoTooltip
-                          content={
-                            <SimpleTooltipContent
-                              title="Enabling this will allow the partners to create a promo code for their links."
-                              href="https://dub.co/help/article/coupon-codes-tracking"
-                              cta="Learn more"
-                            />
-                          }
-                        />
-                      </div>
+                      <InfoTooltip
+                        content={
+                          <SimpleTooltipContent
+                            title="Enabling this will allow the partners to create a promo code for their links."
+                            href="https://dub.co/help/article/coupon-codes-tracking"
+                            cta="Learn more"
+                          />
+                        }
+                      />
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             }

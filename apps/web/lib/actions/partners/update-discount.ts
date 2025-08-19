@@ -10,16 +10,11 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
-// TODO:
-// Allow updating couponCodeTrackingEnabledAt
-// If couponCodeTrackingEnabledAt is set to true, create promotion codes for all links in the group
-// If couponCodeTrackingEnabledAt is set to false, remove promotion codes for all links in the group
-
 export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let { discountId, couponId, couponTestId } = parsedInput;
+    let { discountId, enableCouponTracking, couponTestId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -33,8 +28,8 @@ export const updateDiscountAction = authActionClient
         id: discountId,
       },
       data: {
-        couponId,
-        couponTestId,
+        couponTestId: couponTestId || null,
+        couponCodeTrackingEnabledAt: enableCouponTracking ? new Date() : null,
       },
       include: {
         partnerGroup: {
@@ -45,13 +40,23 @@ export const updateDiscountAction = authActionClient
       },
     });
 
-    const discountChanged =
-      discount.couponId !== updatedDiscount.couponId ||
+    const couponTestIdChanged =
       discount.couponTestId !== updatedDiscount.couponTestId;
+    const trackingEnabledChanged =
+      discount.couponCodeTrackingEnabledAt !==
+      updatedDiscount.couponCodeTrackingEnabledAt;
 
-    if (discountChanged) {
-      waitUntil(
-        Promise.allSettled([
+    const shouldCreatePromotionCodes =
+      discount.couponCodeTrackingEnabledAt === null &&
+      updatedDiscount.couponCodeTrackingEnabledAt !== null;
+
+    const shouldDeletePromotionCodes =
+      discount.couponCodeTrackingEnabledAt !== null &&
+      updatedDiscount.couponCodeTrackingEnabledAt === null;
+
+    waitUntil(
+      Promise.allSettled([
+        couponTestIdChanged &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
             body: {
@@ -59,6 +64,23 @@ export const updateDiscountAction = authActionClient
             },
           }),
 
+        shouldCreatePromotionCodes &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
+            body: {
+              groupId: partnerGroup?.id,
+            },
+          }),
+
+        shouldDeletePromotionCodes &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete-promotion-codes`,
+            body: {
+              groupId: partnerGroup?.id,
+            },
+          }),
+
+        (couponTestIdChanged || trackingEnabledChanged) &&
           recordAuditLog({
             workspaceId: workspace.id,
             programId,
@@ -73,7 +95,6 @@ export const updateDiscountAction = authActionClient
               },
             ],
           }),
-        ]),
-      );
-    }
+      ]),
+    );
   });
