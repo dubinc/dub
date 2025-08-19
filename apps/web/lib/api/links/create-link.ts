@@ -28,7 +28,7 @@ type CreateLinkProps = ProcessedLinkProps & {
   workspace?: Pick<WorkspaceProps, "id" | "stripeConnectId">;
   discount?: Pick<
     DiscountProps,
-    "couponId" | "couponCodeTrackingEnabledAt"
+    "couponId" | "couponCodeTrackingEnabledAt" | "amount" | "type"
   > | null;
   skipCouponCreation?: boolean; // Skip Stripe promotion code creation for the link
 };
@@ -193,6 +193,8 @@ export async function createLink(link: CreateLinkProps) {
                 select: {
                   couponId: true,
                   couponCodeTrackingEnabledAt: true,
+                  amount: true,
+                  type: true,
                 },
               },
             },
@@ -200,14 +202,6 @@ export async function createLink(link: CreateLinkProps) {
 
         discount = programEnrollment.discount;
       }
-
-      const shouldCreateCouponCode = Boolean(
-        !skipCouponCreation &&
-          link.projectId &&
-          discount?.couponId &&
-          discount?.couponCodeTrackingEnabledAt &&
-          workspace?.stripeConnectId,
-      );
 
       Promise.allSettled([
         // cache link in Redis
@@ -266,10 +260,13 @@ export async function createLink(link: CreateLinkProps) {
 
         testVariants && testCompletedAt && scheduleABTestCompletion(response),
 
-        shouldCreateCouponCode &&
+        // Create promotion code for the link
+        !skipCouponCreation &&
+          link.projectId &&
+          discount?.couponCodeTrackingEnabledAt &&
           createStripePromotionCode({
             link: response,
-            couponId: discount?.couponId!,
+            coupon: discount,
             stripeConnectId: workspace?.stripeConnectId!,
           }),
       ]);

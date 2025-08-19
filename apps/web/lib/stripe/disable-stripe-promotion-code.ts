@@ -5,19 +5,19 @@ const stripe = stripeAppClient({
 });
 
 export async function disableStripePromotionCode({
-  couponCode,
+  promotionCode,
   stripeConnectId,
 }: {
-  couponCode: string | null;
+  promotionCode: string | null;
   stripeConnectId: string | null;
 }) {
-  if (!couponCode || !stripeConnectId) {
+  if (!promotionCode || !stripeConnectId) {
     return;
   }
 
   const promotionCodes = await stripe.promotionCodes.list(
     {
-      code: couponCode,
+      code: promotionCode,
       limit: 1,
     },
     {
@@ -43,7 +43,7 @@ export async function disableStripePromotionCode({
     );
   } catch (error) {
     console.error(
-      `Failed to disable Stripe promotion code ${couponCode} for ${stripeConnectId}: ${error}`,
+      `Failed to disable Stripe promotion code ${promotionCode} for ${stripeConnectId}: ${error}`,
     );
 
     throw new Error(error instanceof Error ? error.message : "Unknown error");

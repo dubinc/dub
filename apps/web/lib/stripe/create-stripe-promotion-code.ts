@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { stripeAppClient } from ".";
-import { LinkProps } from "../types";
+import { DiscountProps, LinkProps } from "../types";
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
@@ -10,14 +10,14 @@ const MAX_RETRIES = 2;
 
 export async function createStripePromotionCode({
   link,
-  couponId,
+  coupon,
   stripeConnectId,
 }: {
   link: Pick<LinkProps, "id" | "key">;
-  couponId: string | null;
+  coupon: Pick<DiscountProps, "couponId" | "amount" | "type">;
   stripeConnectId: string | null;
 }) {
-  if (!couponId) {
+  if (!coupon.couponId) {
     console.error(
       "couponId not found for the discount. Stripe promotion code creation skipped.",
     );
@@ -34,14 +34,16 @@ export async function createStripePromotionCode({
   let lastError: Error | null = null;
   let couponCode: string | undefined;
 
+  const amount =
+    coupon.type === "percentage" ? coupon.amount : coupon.amount / 100;
+
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      // Add DUB_ prefix after first retry
-      couponCode = attempt === 1 ? link.key : `DUB_${link.key}`;
+      couponCode = attempt === 1 ? link.key : `${link.key}${amount}`; // eg: DAVID30
 
       const promotionCode = await stripe.promotionCodes.create(
         {
-          coupon: couponId,
+          coupon: coupon.couponId,
           code: couponCode.toUpperCase(),
         },
         {

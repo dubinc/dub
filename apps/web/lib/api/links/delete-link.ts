@@ -52,7 +52,7 @@ export async function deleteLink(linkId: string) {
       link.project &&
         link.couponCode &&
         disableStripePromotionCode({
-          couponCode: link.couponCode,
+          promotionCode: link.couponCode,
           stripeConnectId: link.project.stripeConnectId,
         }),
     ]),

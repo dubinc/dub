@@ -10,6 +10,11 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
+// TODO:
+// Allow updating couponCodeTrackingEnabledAt
+// If couponCodeTrackingEnabledAt is set to true, create promotion codes for all links in the group
+// If couponCodeTrackingEnabledAt is set to false, remove promotion codes for all links in the group
+
 export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
@@ -40,9 +45,13 @@ export const updateDiscountAction = authActionClient
       },
     });
 
-    waitUntil(
-      (async () => {
-        await Promise.allSettled([
+    const discountChanged =
+      discount.couponId !== updatedDiscount.couponId ||
+      discount.couponTestId !== updatedDiscount.couponTestId;
+
+    if (discountChanged) {
+      waitUntil(
+        Promise.allSettled([
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
             body: {
@@ -64,7 +73,7 @@ export const updateDiscountAction = authActionClient
               },
             ],
           }),
-        ]);
-      })(),
-    );
+        ]),
+      );
+    }
   });

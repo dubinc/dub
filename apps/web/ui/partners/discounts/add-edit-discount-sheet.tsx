@@ -88,6 +88,7 @@ function DiscountSheetContent({
       maxDuration: 6,
       couponId: "",
       couponTestId: "",
+      couponCodeTrackingEnabledAt: null,
     }; // default is 10% for 6 months
 
   const form = useForm<FormData>({
@@ -103,6 +104,8 @@ function DiscountSheetContent({
           : defaultValuesSource.maxDuration,
       couponId: defaultValuesSource.couponId,
       couponTestId: defaultValuesSource.couponTestId,
+      enableCouponTracking:
+        defaultValuesSource.couponCodeTrackingEnabledAt !== null,
     },
   });
 
@@ -297,8 +300,9 @@ function DiscountSheetContent({
                           <input
                             type="text"
                             id="couponId"
-                            className="border-border-subtle block w-full rounded-lg bg-white px-3 py-2 text-neutral-800 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                            className="border-border-subtle block w-full rounded-lg bg-white px-3 py-2 text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                             {...register("couponId")}
+                            placeholder="XZuejd0Q"
                           />
                         </div>
                       </div>
@@ -341,8 +345,9 @@ function DiscountSheetContent({
                             <input
                               type="text"
                               id="couponTestId"
-                              className="border-border-subtle block w-full rounded-lg px-3 py-2 text-neutral-800 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                              className="border-border-subtle block w-full rounded-lg px-3 py-2 text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                               {...register("couponTestId")}
+                              placeholder="2NMXz81x"
                             />
                           </div>
                         </div>
@@ -510,8 +515,8 @@ function DiscountSheetContent({
               variant="primary"
               text={discount ? "Update discount" : "Create discount"}
               className="w-fit"
-              loading={isCreating || isDeleting || isUpdating}
-              disabled={!discount && amount == null}
+              loading={isCreating || isUpdating}
+              disabled={(!discount && amount == null) || isDeleting}
             />
           </div>
         </div>
