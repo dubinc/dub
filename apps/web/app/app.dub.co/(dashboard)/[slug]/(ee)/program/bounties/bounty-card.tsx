@@ -1,17 +1,23 @@
 import { BountyExtendedProps } from "@/lib/types";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
-import { CalendarDays, Users } from "@dub/ui/icons";
+import { Button, MenuItem, Popover } from "@dub/ui";
+import { CalendarDays, Dots, PenWriting, Users } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
+import { Command } from "cmdk";
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
-    <ProgramOverviewCard className="cursor-pointer border-neutral-200 p-5 transition-all hover:border-neutral-300 hover:shadow-lg">
+    <ProgramOverviewCard className="relative cursor-pointer border-neutral-200 p-5 transition-all hover:border-neutral-300 hover:shadow-lg">
       <Link
         href={`/program/bounties/${bounty.id}`}
         className="flex flex-col gap-5"
       >
-        <div className="flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
+        <div className="relative flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
           <div className="relative size-full">
             <img
               {...(bounty.type === "performance"
@@ -58,6 +64,36 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
           </div>
         </div>
       </Link>
+
+      <Popover
+        openPopover={isMenuOpen}
+        setOpenPopover={setIsMenuOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+              <MenuItem
+                as={Command.Item}
+                icon={PenWriting}
+                variant="default"
+                onSelect={() => {
+                  toast.info("WIP");
+                  setIsMenuOpen(false);
+                }}
+              >
+                Edit bounty
+              </MenuItem>
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="absolute right-7 top-7 size-7 whitespace-nowrap p-0 hover:bg-neutral-200 active:bg-neutral-300 data-[state=open]:bg-neutral-300"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
     </ProgramOverviewCard>
   );
 }
