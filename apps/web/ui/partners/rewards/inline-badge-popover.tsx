@@ -36,7 +36,12 @@ export function InlineBadgePopover({
   text,
   invalid,
   children,
-}: PropsWithChildren<{ text: ReactNode; invalid?: boolean }>) {
+  buttonClassName,
+}: PropsWithChildren<{
+  text: ReactNode;
+  invalid?: boolean;
+  buttonClassName?: string;
+}>) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -63,6 +68,7 @@ export function InlineBadgePopover({
           invalid
             ? "bg-orange-50 text-orange-500 hover:bg-orange-100 data-[state=open]:bg-orange-100"
             : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
+          buttonClassName,
         )}
       >
         {text}
