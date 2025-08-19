@@ -101,18 +101,12 @@ export const createPartnerCommission = async ({
       });
 
       if (firstCommission) {
-        // rewardId is null, meaning the original reward was deleted from the program
-        // in this case we can’t reliably match a reward, so skip commission creation
-        if (firstCommission.rewardId === null) {
-          console.log(
-            `Skipping commission creation for partner ${partnerId}: original sale reward was removed from the program.`,
-          );
-          return;
-        }
-
-        // partner's reward was updated after the first commission.
-        // make sure it wasn't changed from one-time to recurring so we don't create a new commission
-        if (firstCommission.rewardId !== reward.id) {
+        // if partner's reward was updated and different from the first commission's reward
+        // we need to make sure it wasn't changed from one-time to recurring so we don't create a new commission
+        if (
+          firstCommission.rewardId &&
+          firstCommission.rewardId !== reward.id
+        ) {
           const originalReward = await prisma.reward.findUnique({
             where: {
               id: firstCommission.rewardId,
@@ -123,7 +117,10 @@ export const createPartnerCommission = async ({
             },
           });
 
-          if (originalReward && originalReward.maxDuration === 0) {
+          if (
+            typeof originalReward?.maxDuration === "number" &&
+            originalReward.maxDuration === 0
+          ) {
             console.log(
               `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
             );
@@ -134,8 +131,8 @@ export const createPartnerCommission = async ({
         // for reward types with a max duration, we need to check if the first commission is within the max duration
         // if its beyond the max duration, we should not create a new commission
         if (typeof reward?.maxDuration === "number") {
-          // One-time sale reward
-          if (reward?.maxDuration === 0) {
+          // One-time sale reward (maxDuration === 0)
+          if (reward.maxDuration === 0) {
             console.log(
               `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
             );
