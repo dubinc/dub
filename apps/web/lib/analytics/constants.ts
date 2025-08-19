@@ -1,4 +1,4 @@
-import { THE_BEGINNING_OF_TIME } from "@dub/utils";
+import { DUB_FOUNDING_DATE } from "@dub/utils";
 
 export const DATE_RANGE_INTERVAL_PRESETS = [
   "24h",
@@ -107,7 +107,7 @@ export const INTERVAL_DATA: Record<
     granularity: "month",
   },
   all: {
-    startDate: THE_BEGINNING_OF_TIME,
+    startDate: DUB_FOUNDING_DATE,
     granularity: "month",
   },
 };

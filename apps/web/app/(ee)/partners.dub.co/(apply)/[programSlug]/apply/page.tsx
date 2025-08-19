@@ -4,7 +4,7 @@ import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
-import { Header } from "../header";
+import { ApplyHeader } from "../header";
 
 export default async function ApplicationPage({
   params: { programSlug, groupSlug },
@@ -12,7 +12,6 @@ export default async function ApplicationPage({
   params: { programSlug: string; groupSlug?: string };
 }) {
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
-  const isDefaultGroup = partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug;
 
   const program = await getProgram({
     slug: programSlug,
@@ -33,7 +32,7 @@ export default async function ApplicationPage({
         } as CSSProperties
       }
     >
-      <Header program={program} showApply={false} />
+      <ApplyHeader program={program} showApply={false} />
       <div className="p-6">
         {/* Hero section */}
         <div className="grid grid-cols-1 gap-5 sm:pt-20">

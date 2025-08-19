@@ -3,7 +3,7 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Button, ChevronRight, Table, useTable } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
-import { cn, OG_AVATAR_URL, pluralize } from "@dub/utils";
+import { cn, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -188,7 +188,9 @@ function PartnerPreviewOrCount({
           showAvatars && "pointer-events-none -translate-y-0.5 opacity-0",
         )}
       >
-        <strong className="font-semibold">{partnersCount}</strong>{" "}
+        <strong className="font-semibold">
+          {nFormatter(partnersCount, { full: true })}
+        </strong>{" "}
         {partnersCount && pluralize("partner", partnersCount)}
       </span>
 
@@ -209,7 +211,7 @@ function PartnerPreviewOrCount({
         ))}
         {partnersCount > 3 && (
           <span className="text-content-subtle ml-1 text-xs">
-            +{partnersCount - 3}
+            +{nFormatter(partnersCount - 3, { full: true })}
           </span>
         )}
       </span>
