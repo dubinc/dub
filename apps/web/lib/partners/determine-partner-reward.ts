@@ -64,11 +64,17 @@ export const determinePartnerReward = async ({
         partnerReward = {
           ...partnerReward,
           amount: matchedCondition.amount,
-          type: matchedCondition.type,
+          type: matchedCondition.type || partnerReward.type,
+          maxDuration:
+            matchedCondition.maxDuration !== undefined
+              ? matchedCondition.maxDuration
+              : partnerReward.maxDuration,
         };
       }
     }
   }
+
+  console.log(partnerReward);
 
   if (partnerReward.amount === 0) {
     return null;

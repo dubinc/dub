@@ -104,6 +104,7 @@ function RewardSheetContent({
       modifiers: defaultValuesSource?.modifiers?.map((m) => ({
         ...m,
         amount: m.type === "flat" ? m.amount / 100 : m.amount,
+        maxDuration: m.maxDuration === null ? Infinity : m.maxDuration,
       })),
     },
   });
@@ -180,16 +181,17 @@ function RewardSheetContent({
     }
 
     let modifiers: RewardConditionsArray | null = null;
+
     if (data.modifiers?.length) {
       try {
         modifiers = rewardConditionsArraySchema.parse(
           data.modifiers.map((m) => ({
             ...m,
             amount: m.type === "flat" ? m.amount * 100 : m.amount,
+            maxDuration: m.maxDuration === Infinity ? null : m.maxDuration,
           })),
         );
       } catch (error) {
-        console.error(error);
         setError("root.logic", { message: "Invalid reward condition" });
         toast.error(
           "Invalid reward condition. Please fix the errors and try again.",

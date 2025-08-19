@@ -1,4 +1,3 @@
-import { Reward } from "@prisma/client";
 import {
   RewardCondition,
   RewardConditionsArray,
@@ -11,7 +10,7 @@ export const evaluateRewardConditions = ({
 }: {
   conditions: RewardConditionsArray;
   context: RewardContext;
-}): Pick<Reward, "amount" | "type"> | null => {
+}) => {
   if (!conditions || !context) {
     return null;
   }
@@ -50,6 +49,7 @@ export const evaluateRewardConditions = ({
       return {
         amount: conditionGroup.amount,
         type: conditionGroup.type,
+        maxDuration: conditionGroup.maxDuration,
       };
     }
   }

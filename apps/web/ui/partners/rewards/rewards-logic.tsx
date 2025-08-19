@@ -4,6 +4,7 @@ import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   CONDITION_ATTRIBUTES,
   CONDITION_CUSTOMER_ATTRIBUTES,
@@ -104,6 +105,7 @@ export function RewardsLogic({
             conditions: [{}],
             amount: getValues("amount") || 0,
             type: getValues("type"),
+            maxDuration: getValues("maxDuration"),
           })
         }
         variant={isDefaultReward ? "primary" : "secondary"}
@@ -497,15 +499,23 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
   const modifierKey = `modifiers.${modifierIndex}` as const;
 
   const { control, setValue } = useAddEditRewardForm();
-  const [amount, type, maxDuration, event] = useWatch({
-    control,
-    name: [
-      `${modifierKey}.amount`,
-      `${modifierKey}.type`,
-      "maxDuration",
-      "event",
-    ],
-  });
+  const [amount, type, maxDuration, event, parentType, parentMaxDuration] =
+    useWatch({
+      control,
+      name: [
+        `${modifierKey}.amount`,
+        `${modifierKey}.type`,
+        `${modifierKey}.maxDuration`,
+        "event",
+        "type",
+        "maxDuration",
+      ],
+    });
+
+  // Use parent values as fallbacks if modifier doesn't have type or maxDuration
+  const displayType = type || parentType;
+  const displayMaxDuration =
+    maxDuration !== undefined ? maxDuration : parentMaxDuration;
 
   return (
     <span className="leading-relaxed">
@@ -513,7 +523,7 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
       {event === "sale" && (
         <>
           a{" "}
-          <InlineBadgePopover text={capitalize(type)}>
+          <InlineBadgePopover text={capitalize(displayType)}>
             <InlineBadgePopoverMenu
               selectedValue={type}
               onSelect={(value) =>
@@ -524,15 +534,15 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
               items={REWARD_TYPES}
             />
           </InlineBadgePopover>{" "}
-          {type === "percentage" && "of "}
+          {displayType === "percentage" && "of "}
         </>
       )}
       <InlineBadgePopover
         text={
           amount
             ? constructRewardAmount({
-                amount: type === "flat" ? amount * 100 : amount,
-                type,
+                amount: displayType === "flat" ? amount * 100 : amount,
+                type: displayType || "flat",
               })
             : "amount"
         }
@@ -544,11 +554,46 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
       {event === "sale" && (
         <>
           {" "}
-          {maxDuration === 0
-            ? "one time"
-            : maxDuration === Infinity
-              ? "for the customer's lifetime"
-              : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`}
+          <InlineBadgePopover
+            text={
+              displayMaxDuration === 0
+                ? "one time"
+                : displayMaxDuration === Infinity
+                  ? "for the customer's lifetime"
+                  : `for ${displayMaxDuration} ${pluralize("month", Number(displayMaxDuration))}`
+            }
+          >
+            <InlineBadgePopoverMenu
+              selectedValue={
+                displayMaxDuration === Infinity
+                  ? "Infinity"
+                  : displayMaxDuration?.toString()
+              }
+              onSelect={(value) =>
+                setValue(
+                  `${modifierKey}.maxDuration`,
+                  value === "Infinity" ? Infinity : Number(value),
+                  {
+                    shouldDirty: true,
+                  },
+                )
+              }
+              items={[
+                {
+                  text: "one time",
+                  value: "0",
+                },
+                ...RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map((v) => ({
+                  text: `for ${v} ${pluralize("month", Number(v))}`,
+                  value: v.toString(),
+                })),
+                {
+                  text: "for the customer's lifetime",
+                  value: "Infinity",
+                },
+              ]}
+            />
+          </InlineBadgePopover>
         </>
       )}
     </span>
