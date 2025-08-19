@@ -29,9 +29,7 @@ type PartnerLinkArgs = {
   key?: string; // current key to use for the link
 };
 
-/**
- * Create a partner link
- */
+//  Create a partner link
 export const createPartnerLink = async (args: PartnerLinkArgs) => {
   const { workspace } = args;
 
@@ -53,9 +51,7 @@ export const createPartnerLink = async (args: PartnerLinkArgs) => {
   return partnerLink;
 };
 
-/**
- * Generates and processes a partner link without creating it
- */
+//  Generate and process a partner link without creating it
 export const generatePartnerLink = async ({
   workspace,
   program,

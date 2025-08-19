@@ -49,8 +49,8 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      link.couponCode &&
-        link.project &&
+      link.project &&
+        link.couponCode &&
         disableStripePromotionCode({
           couponCode: link.couponCode,
           stripeConnectId: link.project.stripeConnectId,

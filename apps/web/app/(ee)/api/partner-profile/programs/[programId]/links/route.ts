@@ -89,7 +89,6 @@ export const POST = withPartnerProfile(
 
     const partnerLink = await createLink({
       ...link,
-      program,
       discount,
     });
 

@@ -90,7 +90,6 @@ export const POST = withReferralsEmbedToken(
     const partnerLink = await createLink({
       ...link,
       workspace: workspaceOwner?.project,
-      program,
       discount,
     });
 

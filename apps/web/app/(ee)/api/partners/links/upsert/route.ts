@@ -155,7 +155,6 @@ export const PUT = withWorkspace(
             domain: link.domain,
             key: link.key,
             image: link.image,
-            couponCode: link.couponCode,
           },
           updatedLink: processedLink,
         });
@@ -206,7 +205,6 @@ export const PUT = withWorkspace(
       const partnerLink = await createLink({
         ...link,
         workspace,
-        program,
         discount: partner.discount,
       });
 

@@ -3,12 +3,7 @@ import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { createStripePromotionCode } from "@/lib/stripe/create-stripe-promotion-code";
 import { recordLink } from "@/lib/tinybird";
-import {
-  DiscountProps,
-  ProcessedLinkProps,
-  ProgramProps,
-  WorkspaceProps,
-} from "@/lib/types";
+import { DiscountProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -31,8 +26,10 @@ import { transformLink } from "./utils";
 
 type CreateLinkProps = ProcessedLinkProps & {
   workspace?: Pick<WorkspaceProps, "id" | "stripeConnectId">;
-  program?: Pick<ProgramProps, "id" | "couponCodeTrackingEnabledAt">;
-  discount?: Pick<DiscountProps, "id" | "couponId"> | null;
+  discount?: Pick<
+    DiscountProps,
+    "couponId" | "couponCodeTrackingEnabledAt"
+  > | null;
   skipCouponCreation?: boolean; // Skip Stripe promotion code creation for the link
 };
 
@@ -63,7 +60,6 @@ export async function createLink(link: CreateLinkProps) {
     tagNames,
     webhookIds,
     workspace,
-    program,
     discount,
     skipCouponCreation,
     ...rest
@@ -160,18 +156,12 @@ export async function createLink(link: CreateLinkProps) {
 
   waitUntil(
     (async () => {
-      // Fetch the workspace if:
-      // 1. Coupon creation isn’t skipped
-      // 2. Coupon code tracking is enabled
-      // 3. projectId exists
-      // 4. couponId exists
-      // 5. workspace is not provided
       if (
         !workspace &&
         link.projectId &&
         discount?.couponId &&
-        !skipCouponCreation &&
-        program?.couponCodeTrackingEnabledAt
+        discount?.couponCodeTrackingEnabledAt &&
+        !skipCouponCreation
       ) {
         workspace = await prisma.project.findUniqueOrThrow({
           where: {
@@ -184,16 +174,9 @@ export async function createLink(link: CreateLinkProps) {
         });
       }
 
-      // Fetch programEnrollment if:
-      // 1. link.partnerId exists
-      // 2. link.programId exists
-      // 3. program not provided
-      // 4. discount not provided
-      // 5. skipCouponCreation is false
       if (
         link.programId &&
         link.partnerId &&
-        !program &&
         !discount &&
         !skipCouponCreation
       ) {
@@ -205,31 +188,24 @@ export async function createLink(link: CreateLinkProps) {
                 programId: link.programId,
               },
             },
-            include: {
-              program: {
-                select: {
-                  id: true,
-                  couponCodeTrackingEnabledAt: true,
-                },
-              },
+            select: {
               discount: {
                 select: {
-                  id: true,
                   couponId: true,
+                  couponCodeTrackingEnabledAt: true,
                 },
               },
             },
           });
 
-        program = programEnrollment.program;
         discount = programEnrollment.discount;
       }
 
       const shouldCreateCouponCode = Boolean(
         !skipCouponCreation &&
           link.projectId &&
-          program?.couponCodeTrackingEnabledAt &&
           discount?.couponId &&
+          discount?.couponCodeTrackingEnabledAt &&
           workspace?.stripeConnectId,
       );
 

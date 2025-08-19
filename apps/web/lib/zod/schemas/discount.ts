@@ -11,6 +11,7 @@ export const DiscountSchema = z.object({
   couponTestId: z.string().nullable(),
   description: z.string().nullish(),
   partnersCount: z.number().nullish(),
+  couponCodeTrackingEnabledAt: z.date().nullish(),
 });
 
 export const DiscountSchemaWithDeprecatedFields = DiscountSchema.extend({
