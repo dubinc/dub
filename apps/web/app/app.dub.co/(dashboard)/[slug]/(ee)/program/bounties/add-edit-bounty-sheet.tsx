@@ -107,15 +107,21 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     formState: { errors },
   } = form;
 
-  const [startsAt, rewardAmount, type, name, description, performanceCondition] =
-    watch([
-      "startsAt",
-      "rewardAmount",
-      "type",
-      "name",
-      "description",
-      "performanceCondition",
-    ]);
+  const [
+    startsAt,
+    rewardAmount,
+    type,
+    name,
+    description,
+    performanceCondition,
+  ] = watch([
+    "startsAt",
+    "rewardAmount",
+    "type",
+    "name",
+    "description",
+    "performanceCondition",
+  ]);
 
   // Make sure endsAt is null if hasEndDate is false
   useEffect(() => {
@@ -181,7 +187,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
     // Parse performance logic
     if (data.type === "performance") {
-      const result = workflowConditionSchema.safeParse(data.performanceCondition);
+      const result = workflowConditionSchema.safeParse(
+        data.performanceCondition,
+      );
 
       if (!result.success) {
         toast.error(
@@ -450,51 +458,53 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                 </ProgramSheetAccordionContent>
               </ProgramSheetAccordionItem>
 
-              <ProgramSheetAccordionItem value="submission-requirements">
-                <ProgramSheetAccordionTrigger>
-                  Submission requirements
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="space-y-6">
-                    <p className="text-content-default text-sm">
-                      Set how partners should submit proof of their work. By
-                      default an open text field is provided.
-                    </p>
+              {type === "submission" && (
+                <ProgramSheetAccordionItem value="submission-requirements">
+                  <ProgramSheetAccordionTrigger>
+                    Submission requirements
+                  </ProgramSheetAccordionTrigger>
+                  <ProgramSheetAccordionContent>
+                    <div className="space-y-6">
+                      <p className="text-content-default text-sm">
+                        Set how partners should submit proof of their work. By
+                        default an open text field is provided.
+                      </p>
 
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <Switch
-                          fn={setRequireImage}
-                          checked={requireImage}
-                          trackDimensions="w-8 h-4"
-                          thumbDimensions="w-3 h-3"
-                          thumbTranslate="translate-x-4"
-                        />
-                        <div className="flex flex-col gap-1">
-                          <h3 className="text-sm font-medium text-neutral-700">
-                            Require at least one image
-                          </h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                          <Switch
+                            fn={setRequireImage}
+                            checked={requireImage}
+                            trackDimensions="w-8 h-4"
+                            thumbDimensions="w-3 h-3"
+                            thumbTranslate="translate-x-4"
+                          />
+                          <div className="flex flex-col gap-1">
+                            <h3 className="text-sm font-medium text-neutral-700">
+                              Require at least one image
+                            </h3>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-center gap-4">
-                        <Switch
-                          fn={setRequireUrl}
-                          checked={requireUrl}
-                          trackDimensions="w-8 h-4"
-                          thumbDimensions="w-3 h-3"
-                          thumbTranslate="translate-x-4"
-                        />
-                        <div className="flex flex-col gap-1">
-                          <h3 className="text-sm font-medium text-neutral-700">
-                            Require at least one URL
-                          </h3>
+                        <div className="flex items-center gap-4">
+                          <Switch
+                            fn={setRequireUrl}
+                            checked={requireUrl}
+                            trackDimensions="w-8 h-4"
+                            thumbDimensions="w-3 h-3"
+                            thumbTranslate="translate-x-4"
+                          />
+                          <div className="flex flex-col gap-1">
+                            <h3 className="text-sm font-medium text-neutral-700">
+                              Require at least one URL
+                            </h3>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
+                  </ProgramSheetAccordionContent>
+                </ProgramSheetAccordionItem>
+              )}
 
               <ProgramSheetAccordionItem value="groups">
                 <ProgramSheetAccordionTrigger>
