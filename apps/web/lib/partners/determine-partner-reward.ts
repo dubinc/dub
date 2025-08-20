@@ -74,8 +74,6 @@ export const determinePartnerReward = async ({
     }
   }
 
-  console.log(partnerReward);
-
   if (partnerReward.amount === 0) {
     return null;
   }
