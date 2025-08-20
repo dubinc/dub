@@ -81,7 +81,7 @@ export function BountySubmissionsTable() {
     if (submission) {
       setDetailsSheetState({ open: true, submission });
     }
-  }, [searchParams]);
+  }, [searchParams, submissions]);
 
   const { table, ...tableProps } = useTable({
     data: submissions || [],

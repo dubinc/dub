@@ -10,12 +10,12 @@ enum BountySubmissionStatus {
 }
 
 enum BountySubmissionRejectionReason {
-  notEligible
-  notQualified
+  invalidProof
+  duplicateSubmission
+  outOfTimeWindow
+  didNotMeetCriteria
   other
 }
-
-// Submission files
 
 model Bounty {
   id                     String     @id @default(cuid())

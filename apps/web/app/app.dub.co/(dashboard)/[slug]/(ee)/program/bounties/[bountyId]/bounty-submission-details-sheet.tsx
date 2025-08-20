@@ -1,23 +1,72 @@
 "use client";
 
+import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import useBounty from "@/lib/swr/use-bounty";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useRejectBountySubmissionModal } from "@/ui/partners/reject-bounty-submission-modal";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet, useRouterStuff } from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
+import { toast } from "sonner";
 
 type BountySubmissionDetailsSheetProps = {
   submission: BountySubmissionProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-function BountySubmissionDetailsSheetContent({ submission }: BountySubmissionDetailsSheetProps) {
+function BountySubmissionDetailsSheetContent({
+  submission,
+  setIsOpen,
+}: BountySubmissionDetailsSheetProps) {
+  const { bounty } = useBounty();
+  const { id: workspaceId } = useWorkspace();
+  const { setShowRejectModal, RejectBountySubmissionModal } =
+    useRejectBountySubmissionModal(submission);
+
+  const {
+    executeAsync: approveBountySubmission,
+    isPending: isApprovingBountySubmission,
+  } = useAction(approveBountySubmissionAction, {
+    onSuccess: async () => {
+      toast.success("Bounty submission approved successfully!");
+      setIsOpen(false);
+      await mutatePrefix(`/api/bounties/${bounty?.id}/submissions`);
+    },
+    onError({ error }) {
+      toast.error(error.serverError);
+    },
+  });
+
+  const {
+    setShowConfirmModal: setShowApproveBountySubmissionModal,
+    confirmModal: approveBountySubmissionModal,
+  } = useConfirmModal({
+    title: "Approve Bounty Submission",
+    description: "Are you sure you want to approve this bounty submission?",
+    confirmText: "Approve",
+    onConfirm: async () => {
+      if (!workspaceId || !submission.id) {
+        return;
+      }
+
+      await approveBountySubmission({
+        workspaceId,
+        submissionId: submission.id,
+      });
+    },
+  });
+
   return (
     <div className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            Bounty submission details
+            Review bounty submission
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -31,12 +80,14 @@ function BountySubmissionDetailsSheetContent({ submission }: BountySubmissionDet
 
       <div className="flex grow flex-col">
         <div className="border-b border-neutral-200 bg-neutral-50 p-6">
-          {/* Basic partner info */}
           <div className="flex items-start justify-between gap-6">
             <div>
               <div className="relative w-fit">
                 <img
-                  src={submission.partner.image || `${OG_AVATAR_URL}${submission.partner.name}`}
+                  src={
+                    submission.partner.image ||
+                    `${OG_AVATAR_URL}${submission.partner.name}`
+                  }
                   alt={submission.partner.name}
                   className="size-12 rounded-full"
                 />
@@ -58,12 +109,41 @@ function BountySubmissionDetailsSheetContent({ submission }: BountySubmissionDet
         <div className="grow overflow-y-auto p-6">
           {/* Content will be added later */}
         </div>
+
+        <div className="flex items-center justify-between gap-2 border-t border-neutral-200 p-5">
+          <Button
+            type="button"
+            variant="danger"
+            text="Reject"
+            disabledTooltip={
+              submission.status === "rejected"
+                ? "Bounty submission already rejected."
+                : undefined
+            }
+            disabled={isApprovingBountySubmission}
+            onClick={() => setShowRejectModal(true)}
+          />
+
+          <Button
+            type="submit"
+            variant="primary"
+            text="Approve"
+            disabledTooltip={
+              submission.status === "approved"
+                ? "Bounty submission already approved."
+                : undefined
+            }
+            loading={isApprovingBountySubmission}
+            onClick={() => setShowApproveBountySubmissionModal(true)}
+          />
+        </div>
       </div>
+
+      <RejectBountySubmissionModal />
+      {approveBountySubmissionModal}
     </div>
   );
 }
-
-
 
 export function BountySubmissionDetailsSheet({
   isOpen,
@@ -84,13 +164,20 @@ export function BountySubmissionDetailsSheet({
 }
 
 export function useBountySubmissionDetailsSheet(
-  props: { nested?: boolean } & Omit<BountySubmissionDetailsSheetProps, "setIsOpen">,
+  props: { nested?: boolean } & Omit<
+    BountySubmissionDetailsSheetProps,
+    "setIsOpen"
+  >,
 ) {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
     BountySubmissionDetailsSheet: (
-      <BountySubmissionDetailsSheet setIsOpen={setIsOpen} isOpen={isOpen} {...props} />
+      <BountySubmissionDetailsSheet
+        setIsOpen={setIsOpen}
+        isOpen={isOpen}
+        {...props}
+      />
     ),
     setShowBountySubmissionDetailsSheet: setIsOpen,
   };

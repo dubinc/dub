@@ -1,21 +1,13 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { rejectBountySubmissionSchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
 import { authActionClient } from "../safe-action";
-import { BountySubmissionRejectionReason } from "@dub/prisma/client";
-
-const schema = z.object({
-  workspaceId: z.string(),
-  submissionId: z.string(),
-  rejectionReason: z.nativeEnum(BountySubmissionRejectionReason),
-  rejectionNote: z.string().trim().max(500).optional(),
-});
 
 // Reject a bounty submission
 export const rejectBountySubmissionAction = authActionClient
-  .schema(schema)
+  .schema(rejectBountySubmissionSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { submissionId, rejectionReason, rejectionNote } = parsedInput;
@@ -36,17 +28,32 @@ export const rejectBountySubmissionAction = authActionClient
       throw new Error("Bounty submission already rejected.");
     }
 
-    await prisma.bountySubmission.update({
-      where: {
-        id: submissionId,
-      },
-      data: {
-        status: "rejected",
-        reviewedAt: new Date(),
-        userId: user.id,
-        rejectionReason,
-        rejectionNote,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.bountySubmission.update({
+        where: {
+          id: submissionId,
+        },
+        data: {
+          status: "rejected",
+          reviewedAt: new Date(),
+          userId: user.id,
+          rejectionReason,
+          rejectionNote,
+          commissionId: null,
+        },
+      });
+
+      if (bountySubmission.commissionId) {
+        await tx.commission.update({
+          where: {
+            id: bountySubmission.commissionId,
+          },
+          data: {
+            status: "canceled",
+            payoutId: null,
+          },
+        });
+      }
     });
 
     // TODO:
