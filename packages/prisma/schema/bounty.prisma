@@ -28,6 +28,7 @@ model Bounty {
   endsAt                 DateTime?
   rewardAmount           Int        @default(0)
   submissionRequirements Json?
+  archivedAt             DateTime?
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
 
