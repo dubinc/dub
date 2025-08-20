@@ -166,7 +166,6 @@ export const executeBountyWorkflow = async ({
     programId,
     amount: bounty.rewardAmount,
     quantity: 1,
-    description: `Awarded for meeting the requirements for "${bounty.name}" bounty.`,
   });
 
   if (!commission) {
