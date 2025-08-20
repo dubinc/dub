@@ -52,7 +52,7 @@ export const constructRewardAmount = (
 const formatCurrency = (amount: number) =>
   currencyFormatter(
     amount,
-    amount % 100 === 0
+    Number.isInteger(amount)
       ? undefined
       : {
           minimumFractionDigits: 2,
