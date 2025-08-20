@@ -1,38 +1,24 @@
-import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 // TODO:
 // Remove this
 async function main() {
-  // const bounty = await prisma.bounty.create({
-  //   data: {
-  //     id: createId({ prefix: "bounty_" }),
-  //     programId: "prog_1K21SX1XVES0B7PJCCSQ099ZF",
-  //     name: "Very long name for a bounty that will be truncated after certain length",
-  //     type: "submission",
-  //     startsAt: new Date(),
-  //     rewardAmount: 1000,
-  //   },
-  // });
-
-  // console.log(bounty);
-
-  const programId = "prog_1K21SX1XVES0B7PJCCSQ099ZF";
-  const bountyId = "bounty_1K290RBGA500N6DR92TW2QVSV"
+  const programId = "prog_1K2J9DRWPPJ2F1RX53N92TSGA";
+  const bountyId = "bounty_1K33NYERM0XZS1HK7C82C77K0";
 
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       programId,
     },
+    take: 5
   });
 
   // Create a submission for each partner
-  const submissions = programEnrollments.map((enrollment) => ({
+  const submissions = programEnrollments.map(({ partnerId }) => ({
     programId,
-    partnerId: enrollment.partnerId,
+    partnerId,
     bountyId,
-    evidenceUrl: ""
   }));
 
   await prisma.bountySubmission.createMany({
