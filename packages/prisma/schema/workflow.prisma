@@ -17,5 +17,5 @@ model Workflow {
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
   bounty  Bounty?
 
-  @@index(programId)
+  @@index([programId, trigger])
 }
