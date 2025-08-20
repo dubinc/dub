@@ -26,9 +26,7 @@ export function ProgramRewardDescription({
             <>
               Earn{" "}
               <strong className={cn("font-semibold", amountClassName)}>
-                {constructRewardAmount({
-                  reward,
-                })}{" "}
+                {constructRewardAmount(reward)}{" "}
               </strong>
               {reward.event === "sale" && reward.maxDuration === 0 ? (
                 <>for the first sale</>
@@ -70,9 +68,7 @@ export function ProgramRewardDescription({
           {" "}
           New users get{" "}
           <strong className={cn("font-semibold", amountClassName)}>
-            {constructRewardAmount({
-              reward: discount,
-            })}
+            {constructRewardAmount(discount)}
           </strong>{" "}
           off{" "}
           {discount.maxDuration === null ? (

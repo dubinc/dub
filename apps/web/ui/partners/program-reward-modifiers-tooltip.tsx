@@ -67,10 +67,8 @@ const RewardItem = ({
   >[number]["conditions"];
 }) => {
   const rewardAmount = constructRewardAmount({
-    reward: {
-      ...reward,
-      modifiers: undefined,
-    },
+    ...reward,
+    modifiers: undefined,
   });
 
   const durationText =

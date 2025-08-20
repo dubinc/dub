@@ -14,9 +14,7 @@ export function formatDiscountDescription({
     return discount.description;
   }
 
-  const discountAmount = constructRewardAmount({
-    reward: discount,
-  });
+  const discountAmount = constructRewardAmount(discount);
 
   const parts: string[] = [];
 

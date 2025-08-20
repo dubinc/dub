@@ -293,11 +293,9 @@ function RewardSheetContent({
                     text={
                       amount
                         ? constructRewardAmount({
-                            reward: {
-                              amount: type === "flat" ? amount * 100 : amount,
-                              type,
-                              maxDuration,
-                            },
+                            amount: type === "flat" ? amount * 100 : amount,
+                            type,
+                            maxDuration,
                           })
                         : "amount"
                     }

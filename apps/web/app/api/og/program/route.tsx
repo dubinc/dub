@@ -147,8 +147,7 @@ export async function GET(req: NextRequest) {
                   tw="font-semibold mr-1"
                   style={{ fontFamily: "Inter Semibold" }}
                 >
-                  {constructRewardAmount({ reward: rewards[0] })} per{" "}
-                  {rewards[0].event}
+                  {constructRewardAmount(rewards[0])} per {rewards[0].event}
                 </strong>
                 {rewards[0].maxDuration === null ? (
                   "for the customer's lifetime"

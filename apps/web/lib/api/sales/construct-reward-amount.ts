@@ -2,11 +2,9 @@ import { RewardProps } from "@/lib/types";
 import { rewardConditionsArraySchema } from "@/lib/zod/schemas/rewards";
 import { currencyFormatter } from "@dub/utils";
 
-export const constructRewardAmount = ({
-  reward,
-}: {
-  reward: Pick<RewardProps, "amount" | "type" | "maxDuration" | "modifiers">;
-}) => {
+export const constructRewardAmount = (
+  reward: Pick<RewardProps, "amount" | "type" | "maxDuration" | "modifiers">,
+) => {
   // If there are modifiers, we need to check if they match the primary reward
   if (reward.modifiers) {
     const parsedModifiers = rewardConditionsArraySchema.safeParse(
