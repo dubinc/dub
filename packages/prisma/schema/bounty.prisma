@@ -9,8 +9,12 @@ enum BountySubmissionStatus {
   rejected
 }
 
-// TODO:
-// Enum for rejectionReason
+enum BountySubmissionRejectionReason {
+  notEligible
+  notQualified
+  other
+}
+
 // Submission files
 
 model Bounty {
@@ -49,20 +53,20 @@ model BountyGroup {
 }
 
 model BountySubmission {
-  id              String                 @id @default(cuid())
+  id              String                           @id @default(cuid())
   programId       String
   partnerId       String
   bountyId        String
-  commissionId    String?                @unique
+  commissionId    String?                          @unique
   userId          String?
   evidenceUrl     String?
-  description     String?                @db.Text
-  status          BountySubmissionStatus @default(pending)
-  rejectionReason String?
-  rejectionNote   String?                @db.Text
+  description     String?                          @db.Text
+  status          BountySubmissionStatus           @default(pending)
+  rejectionReason BountySubmissionRejectionReason?
+  rejectionNote   String?                          @db.Text
   reviewedAt      DateTime?
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
+  createdAt       DateTime                         @default(now())
+  updatedAt       DateTime                         @updatedAt
 
   bounty            Bounty             @relation(fields: [bountyId], references: [id], onDelete: Cascade)
   partner           Partner            @relation(fields: [partnerId], references: [id], onDelete: Cascade)

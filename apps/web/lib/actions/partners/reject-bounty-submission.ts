@@ -4,14 +4,16 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
+import { BountySubmissionRejectionReason } from "@dub/prisma/client";
 
 const schema = z.object({
   workspaceId: z.string(),
   submissionId: z.string(),
-  rejectionReason: z.string(), // TODO: Add a list of reasons as enum
-  rejectionNote: z.string().max(500).optional(),
+  rejectionReason: z.nativeEnum(BountySubmissionRejectionReason),
+  rejectionNote: z.string().trim().max(500).optional(),
 });
 
+// Reject a bounty submission
 export const rejectBountySubmissionAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
