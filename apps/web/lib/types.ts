@@ -540,3 +540,5 @@ export type WorkflowComparisonOperator =
   (typeof WORKFLOW_COMPARISON_OPERATORS)[number];
 
 export type WorkflowAction = z.infer<typeof workflowActionSchema>;
+
+export type OperatorFn = (a: number, b: number) => boolean;

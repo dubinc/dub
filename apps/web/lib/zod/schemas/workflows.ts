@@ -1,4 +1,5 @@
 import {
+  OperatorFn,
   WorkflowComparisonOperator,
   WorkflowConditionAttribute,
 } from "@/lib/types";
@@ -33,6 +34,13 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER_MAP: Record<
 } as const;
 
 export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;
+
+export const OPERATOR_FUNCTIONS: Record<
+  WorkflowComparisonOperator,
+  OperatorFn
+> = {
+  gte: (a, b) => a >= b,
+};
 
 export const WORKFLOW_COMPARISON_OPERATOR_LABELS: Record<
   WorkflowComparisonOperator,

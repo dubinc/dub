@@ -17,8 +17,8 @@ model Workflow {
   name              String?
   trigger           WorkflowTrigger
   triggerType       WorkflowTriggerType @default(event)
-  triggerConditions Json?
-  actions           Json?
+  triggerConditions Json
+  actions           Json
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 

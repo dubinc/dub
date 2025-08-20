@@ -27,10 +27,10 @@ model Bounty {
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
 
-  program     Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
   submissions BountySubmission[]
   groups      BountyGroup[]
-  workflow    Workflow?        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  program     Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  workflow    Workflow?          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
   @@index(programId)
   @@index(workflowId)
