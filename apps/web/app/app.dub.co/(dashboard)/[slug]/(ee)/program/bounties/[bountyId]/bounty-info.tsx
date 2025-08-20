@@ -1,15 +1,13 @@
 "use client";
 
 import useBounty from "@/lib/swr/use-bounty";
+import useBountyStats from "@/lib/swr/use-bounty-stats";
 import { formatDate } from "@dub/utils";
 import { CalendarDays, Trophy, Users } from "lucide-react";
-import { useParams } from "next/navigation";
 
 export function BountyInfo() {
-  const { bountyId } = useParams<{ bountyId: string }>();
-  const { bounty } = useBounty({ bountyId });
-
-  const completed = 50;
+  const { bounty } = useBounty();
+  const { bountyStats } = useBountyStats();
 
   return (
     <div className="flex items-center gap-6">
@@ -37,10 +35,12 @@ export function BountyInfo() {
           <div className="flex items-center space-x-2">
             <Users className="size-4" />
             <div className="text-sm text-neutral-500">
-              <span className="font-medium text-neutral-700">{completed}</span>{" "}
+              <span className="font-medium text-neutral-700">
+                {bountyStats?.submissions}
+              </span>{" "}
               of{" "}
               <span className="font-medium text-neutral-700">
-                {/* {bounty.submissionsCount} */} X
+                {bountyStats?.partners}
               </span>{" "}
               partners completed
             </div>
