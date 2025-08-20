@@ -90,3 +90,10 @@ export const getBountiesQuerySchema = z
     includeExpandedFields: booleanQuerySchema.optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: BOUNTIES_MAX_PAGE_SIZE }));
+
+export const bountyStatsSchema = z.object({
+  id: z.string(),
+  submissions: z.number(),
+  pendingSubmissions: z.number(),
+  partners: z.number(),
+});

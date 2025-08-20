@@ -1,21 +1,26 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useBountiesStats from "@/lib/swr/use-bounties-stats";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import { Button, MenuItem, Popover, useRouterStuff } from "@dub/ui";
 import { CalendarDays, Dots, PenWriting, Trash, Users } from "@dub/ui/icons";
-import { formatDate } from "@dub/utils";
+import { formatDate, pluralize } from "@dub/utils";
 import { Command } from "cmdk";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
   const { id: workspaceId } = useWorkspace();
   const { queryParams } = useRouterStuff();
-
+  const { bountiesStats, isLoading: isLoadingStats } = useBountiesStats();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const stats = useMemo(() => {
+    return bountiesStats?.find(({ id }) => id === bounty.id);
+  }, [bountiesStats, bounty.id]);
 
   const { confirmModal: deleteModal, setShowConfirmModal: setShowDeleteModal } =
     useConfirmModal({
@@ -50,6 +55,7 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
   return (
     <ProgramOverviewCard className="relative cursor-pointer border-neutral-200 p-5 transition-all hover:border-neutral-300 hover:shadow-lg">
       {deleteModal}
+
       <Link
         href={`/program/bounties/${bounty.id}`}
         className="flex flex-col gap-5"
@@ -68,6 +74,10 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
                   })}
               className="size-full object-contain"
             />
+
+            {stats?.pendingSubmissions && stats.pendingSubmissions > 0 ? (
+              <PendingSubmissionsBadge count={stats.pendingSubmissions} />
+            ) : null}
           </div>
         </div>
 
@@ -91,12 +101,21 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
 
           <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
             <Users className="size-3.5" />
-            <div>
-              <span className="text-content-default">N</span> of{" "}
-              <span className="text-content-default">
-                {bounty.partnersCount}
-              </span>{" "}
-              partners completed
+            <div className="h-5">
+              {isLoadingStats || bountiesStats === undefined ? (
+                <div className="h-5 w-48 animate-pulse rounded bg-neutral-300" />
+              ) : stats ? (
+                <>
+                  <span className="text-content-default">
+                    {stats.submissions}
+                  </span>{" "}
+                  of{" "}
+                  <span className="text-content-default">{stats.partners}</span>{" "}
+                  partners completed
+                </>
+              ) : (
+                <span>Failed to load stats</span>
+              )}
             </div>
           </div>
         </div>
@@ -145,6 +164,16 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
     </ProgramOverviewCard>
   );
 }
+
+const PendingSubmissionsBadge = ({ count }: { count: number }) => {
+  return (
+    <div className="absolute left-2 top-2 z-10">
+      <div className="flex h-5 items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-600">
+        {count} {pluralize("submission", count)} for review
+      </div>
+    </div>
+  );
+};
 
 export const BountyCardSkeleton = () => {
   return (

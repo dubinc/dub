@@ -26,6 +26,7 @@ import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   BountySchema,
   BountySchemaExtended,
+  bountyStatsSchema,
   BountySubmissionSchema,
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
@@ -530,6 +531,8 @@ export type BountySubmissionProps = z.infer<typeof BountySubmissionSchema>;
 
 export type BountySubmissionRequirement =
   (typeof SUBMISSION_REQUIREMENTS)[number];
+
+export type BountyStats = z.infer<typeof bountyStatsSchema>;
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 
