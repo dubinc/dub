@@ -85,7 +85,5 @@ export const GET = withWorkspace(async ({ workspace }) => {
     };
   });
 
-  console.log(result);
-
   return NextResponse.json(z.array(bountyStatsSchema).parse(result));
 });

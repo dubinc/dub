@@ -1,9 +1,10 @@
 "use client";
 
+import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { UserRowItem } from "@/ui/users/user-row-item";
 import {
@@ -18,11 +19,12 @@ import { fetcher, formatDate } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
 
 export const BOUNTY_SUBMISSION_STATUS_BADGES = {
   pending: {
     label: "Pending",
-    variant: "new",
+    variant: "pending",
   },
   approved: {
     label: "Approved",
@@ -35,6 +37,7 @@ export const BOUNTY_SUBMISSION_STATUS_BADGES = {
 } as const;
 
 export function BountySubmissionsTable() {
+  const { groups } = useGroups();
   const { id: workspaceId } = useWorkspace();
   const { bountyId } = useParams<{ bountyId: string }>();
   const { pagination, setPagination } = usePagination();
@@ -93,6 +96,26 @@ export function BountySubmissionsTable() {
               partner={row.original.partner}
               showPermalink={false}
             />
+          );
+        },
+      },
+      {
+        id: "group",
+        header: "Group",
+        cell: ({ row }) => {
+          if (!groups) return "-";
+
+          const group = groups.find(
+            (g) => g.id === row.original.partner.groupId,
+          );
+
+          if (!group) return "-";
+
+          return (
+            <div className="flex items-center gap-2">
+              <GroupColorCircle group={group} />
+              <span className="truncate text-sm font-medium">{group.name}</span>
+            </div>
           );
         },
       },
@@ -179,7 +202,7 @@ export function BountySubmissionsTable() {
       )}
 
       <div className="flex flex-col gap-6">
-        {submissions && submissions.length > 0 ? (
+        {submissions?.length !== 0 || isLoading ? (
           <Table {...tableProps} table={table} />
         ) : (
           <AnimatedEmptyState
