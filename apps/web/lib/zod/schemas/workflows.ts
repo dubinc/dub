@@ -9,35 +9,31 @@ export const WORKFLOW_CONDITION_ATTRIBUTES = [
 ] as const;
 
 export const WORKFLOW_ACTION_TYPES = [
-  "sendEmail", // send an email to the partner
-  "updateGroup", // move the partner to a group
-  "createCommission", // create a commission for the partner via Bounty
+  "sendEmail",
+  "moveToGroup",
+  "awardBounty",
+  "triggerWebhook",
 ] as const;
 
-export const WORKFLOW_CONDITION_OPERATORS = ["gte"] as const;
+export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;
+
+export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
 
 // Individual condition
 const workflowConditionSchema = z.object({
   attribute: z.enum(WORKFLOW_CONDITION_ATTRIBUTES),
-  operator: z.enum(WORKFLOW_CONDITION_OPERATORS),
+  operator: z.enum(WORKFLOW_COMPARISON_OPERATORS),
   value: z.union([z.string(), z.number()]),
 });
 
 // Array of conditions with AND operator
 export const workflowConditionsSchema = z.object({
-  operator: z.enum(["AND"]).default("AND"),
+  operator: z.enum(WORKFLOW_LOGICAL_OPERATORS).default("AND"),
   conditions: z.array(workflowConditionSchema).min(1),
 });
 
 // Individual action
 const workflowActionSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("createCommission"),
-    data: z.object({
-      bountyId: z.string(),
-    }),
-  }),
-
   z.object({
     type: z.literal("sendEmail"),
     data: z.object({
@@ -46,9 +42,23 @@ const workflowActionSchema = z.discriminatedUnion("type", [
   }),
 
   z.object({
-    type: z.literal("updateGroup"),
+    type: z.literal("moveToGroup"),
     data: z.object({
       groupId: z.string(),
+    }),
+  }),
+
+  z.object({
+    type: z.literal("awardBounty"),
+    data: z.object({
+      bountyId: z.string(),
+    }),
+  }),
+
+  z.object({
+    type: z.literal("triggerWebhook"),
+    data: z.object({
+      webhookId: z.string(),
     }),
   }),
 ]);
