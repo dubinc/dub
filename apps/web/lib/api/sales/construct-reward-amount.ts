@@ -14,11 +14,14 @@ export const constructRewardAmount = (
     if (parsedModifiers.success) {
       const modifiers = parsedModifiers.data;
 
+      // if no type or maxDuration, it falls back to the primary reward type and maxDuration
       const matchPrimary = modifiers.every((m) => {
-        const typeMatches = m.type === undefined || m.type === reward.type;
+        const typeMatches =
+          m.type === undefined ? true : m.type === reward.type;
         const durationMatches =
-          m.maxDuration === undefined || m.maxDuration === reward.maxDuration;
-
+          m.maxDuration === undefined
+            ? true
+            : m.maxDuration === reward.maxDuration;
         return typeMatches && durationMatches;
       });
 

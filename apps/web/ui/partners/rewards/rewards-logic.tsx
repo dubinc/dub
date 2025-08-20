@@ -28,7 +28,7 @@ import { capitalize, cn, COUNTRIES, pluralize, truncate } from "@dub/utils";
 import { Command } from "cmdk";
 import { motion } from "framer-motion";
 import { Package } from "lucide-react";
-import { Fragment, useContext, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import {
@@ -679,14 +679,24 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
 }
 
 function AmountInput({ modifierKey }: { modifierKey: `modifiers.${number}` }) {
-  const { watch, register } = useAddEditRewardForm();
-  const type = watch(`${modifierKey}.type`);
-
+  const { watch, register, setValue } = useAddEditRewardForm();
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  const type = watch(`${modifierKey}.type`);
+  const parentType = watch("type");
+
+  const displayType = type || parentType;
+
+  // Set the modifier type to parent type if it's undefined (backward compatibility)
+  useEffect(() => {
+    if (type === undefined && parentType) {
+      setValue(`${modifierKey}.type`, parentType, { shouldDirty: true });
+    }
+  }, [type, parentType, setValue, modifierKey]);
 
   return (
     <div className="relative rounded-md shadow-sm">
-      {type === "flat" && (
+      {displayType === "flat" && (
         <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
           $
         </span>
@@ -694,13 +704,13 @@ function AmountInput({ modifierKey }: { modifierKey: `modifiers.${number}` }) {
       <input
         className={cn(
           "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
-          type === "flat" ? "pl-4 pr-12" : "pr-7",
+          displayType === "flat" ? "pl-4 pr-12" : "pr-7",
         )}
         {...register(`${modifierKey}.amount`, {
           required: true,
           setValueAs: (value: string) => (value === "" ? undefined : +value),
           min: 0,
-          max: type === "percentage" ? 100 : undefined,
+          max: displayType === "percentage" ? 100 : undefined,
           onChange: handleMoneyInputChange,
         })}
         onKeyDown={(e) => {
@@ -713,7 +723,7 @@ function AmountInput({ modifierKey }: { modifierKey: `modifiers.${number}` }) {
         }}
       />
       <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
-        {type === "flat" ? "USD" : "%"}
+        {displayType === "flat" ? "USD" : "%"}
       </span>
     </div>
   );

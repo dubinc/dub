@@ -102,11 +102,19 @@ function RewardSheetContent({
         defaultValuesSource?.type === "flat"
           ? defaultValuesSource.amount / 100
           : defaultValuesSource?.amount,
-      modifiers: defaultValuesSource?.modifiers?.map((m) => ({
-        ...m,
-        amount: m.type === "flat" ? m.amount / 100 : m.amount,
-        maxDuration: m.maxDuration === null ? Infinity : m.maxDuration,
-      })),
+      modifiers: defaultValuesSource?.modifiers?.map((m) => {
+        const type = m.type === undefined ? defaultValuesSource?.type : m.type;
+        const maxDuration =
+          m.maxDuration === undefined
+            ? defaultValuesSource?.maxDuration
+            : m.maxDuration;
+
+        return {
+          ...m,
+          amount: type === "flat" ? m.amount / 100 : m.amount,
+          maxDuration: m.maxDuration === null ? Infinity : maxDuration,
+        };
+      }),
     },
   });
 
@@ -186,11 +194,17 @@ function RewardSheetContent({
     if (data.modifiers?.length) {
       try {
         modifiers = rewardConditionsArraySchema.parse(
-          data.modifiers.map((m) => ({
-            ...m,
-            amount: m.type === "flat" ? m.amount * 100 : m.amount,
-            maxDuration: m.maxDuration === Infinity ? null : m.maxDuration,
-          })),
+          data.modifiers.map((m) => {
+            const type = m.type === undefined ? data.type : m.type;
+            const maxDuration =
+              m.maxDuration === undefined ? data.maxDuration : m.maxDuration;
+
+            return {
+              ...m,
+              amount: type === "flat" ? m.amount * 100 : m.amount,
+              maxDuration: maxDuration === Infinity ? null : maxDuration,
+            };
+          }),
         );
       } catch (error) {
         setError("root.logic", { message: "Invalid reward condition" });
