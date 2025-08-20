@@ -123,6 +123,7 @@ export * from "./grid-layout-rows";
 export * from "./grid-plus";
 export * from "./grip-dots-vertical";
 export * from "./headset";
+export * from "./heart";
 export * from "./heart-fill";
 export * from "./hexadecagon-star";
 export * from "./history";
