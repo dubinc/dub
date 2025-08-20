@@ -16,6 +16,7 @@ import {
   MoneyBills2,
   ShieldCheck,
   SquareUserSparkle2,
+  Trophy,
   UserCheck,
 } from "@dub/ui/icons";
 import { useParams, usePathname } from "next/navigation";
@@ -114,6 +115,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Links",
             icon: Hyperlink,
             href: `/programs/${programSlug}/links`,
+            locked: isUnapproved,
+          },
+          {
+            name: "Bounties",
+            icon: Trophy,
+            href: `/programs/${programSlug}/bounties`,
             locked: isUnapproved,
           },
           {

@@ -3,7 +3,7 @@ import useBountiesStats from "@/lib/swr/use-bounties-stats";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
+import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { Button, MenuItem, Popover, useRouterStuff } from "@dub/ui";
 import { CalendarDays, Dots, PenWriting, Trash, Users } from "@dub/ui/icons";
 import { formatDate, pluralize } from "@dub/utils";
@@ -13,7 +13,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { queryParams } = useRouterStuff();
   const { bountiesStats, isLoading: isLoadingStats } = useBountiesStats();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -53,27 +53,16 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
     });
 
   return (
-    <ProgramOverviewCard className="relative cursor-pointer border-neutral-200 p-5 transition-all hover:border-neutral-300 hover:shadow-lg">
+    <div className="border-border-subtle hover:border-border-default relative cursor-pointer rounded-xl border bg-white p-5 transition-all hover:shadow-lg">
       {deleteModal}
 
       <Link
-        href={`/program/bounties/${bounty.id}`}
+        href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
         className="flex flex-col gap-5"
       >
         <div className="relative flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
           <div className="relative size-full">
-            <img
-              {...(bounty.type === "performance"
-                ? {
-                    src: "https://assets.dub.co/icons/trophy.webp",
-                    alt: "Trophy thumbnail",
-                  }
-                : {
-                    src: "https://assets.dub.co/icons/heart.webp",
-                    alt: "Heart thumbnail",
-                  })}
-              className="size-full object-contain"
-            />
+            <BountyThumbnailImage bounty={bounty} />
           </div>
 
           {stats?.pendingSubmissions && stats.pendingSubmissions > 0 ? (
@@ -161,7 +150,7 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
           icon={<Dots className="h-4 w-4 shrink-0" />}
         />
       </Popover>
-    </ProgramOverviewCard>
+    </div>
   );
 }
 
@@ -177,7 +166,7 @@ const PendingSubmissionsBadge = ({ count }: { count: number }) => {
 
 export const BountyCardSkeleton = () => {
   return (
-    <ProgramOverviewCard className="cursor-pointer p-5">
+    <div className="border-border-subtle rounded-xl border bg-white p-5">
       <div className="flex flex-col gap-5">
         <div className="flex h-[132px] animate-pulse items-center justify-center rounded-lg bg-neutral-100 px-32 py-4" />
 
@@ -195,6 +184,6 @@ export const BountyCardSkeleton = () => {
           </div>
         </div>
       </div>
-    </ProgramOverviewCard>
+    </div>
   );
 };

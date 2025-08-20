@@ -32,7 +32,9 @@ export function GroupsMultiSelect({
   selectedGroupIds,
   setSelectedGroupIds,
 }: GroupSelectorProps) {
-  const [selectedMode, setSelectedMode] = useState<"all" | "select">("all");
+  const [selectedMode, setSelectedMode] = useState<"all" | "select">(
+    selectedGroupIds?.length ? "select" : "all",
+  );
 
   const [search, setSearch] = useState("");
   const [useAsync, setUseAsync] = useState(false);
