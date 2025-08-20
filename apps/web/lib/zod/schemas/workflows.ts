@@ -4,15 +4,16 @@ import { z } from "zod";
 // WIP(kiran)
 
 export const WORKFLOW_CONDITION_ATTRIBUTES = [
-  "clicks",
-  "leads",
-  "sales",
-  "clickEarnings",
-  "leadEarnings",
-  "saleEarnings",
-  "saleRevenue",
-  "earnings",
-  "revenue",
+  "totalClicks",
+  "totalLeads",
+  "totalSales",
+  "totalClickEarnings",
+  "totalLeadEarnings",
+  "totalSaleEarnings",
+  "totalSaleRevenue",
+  "totalEarnings",
+  "totalRevenue",
+  "programDuration",
 ] as const;
 
 export const WORKFLOW_CONDITION_OPERATORS = ["gt", "gte", "eq"] as const;
@@ -20,8 +21,8 @@ export const WORKFLOW_CONDITION_OPERATORS = ["gt", "gte", "eq"] as const;
 export const WORKFLOW_ACTION_TYPES = [
   "awardBounty",
   "moveToGroup",
-  // "sendEmail",
-  // "triggerWebhook",
+  "sendEmail",
+  "triggerWebhook",
 ] as const;
 
 // Individual condition
@@ -49,7 +50,14 @@ const workflowActionSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("moveToGroup"),
     data: z.object({
-      newGroupId: z.string(),
+      groupId: z.string(),
+    }),
+  }),
+
+  z.object({
+    type: z.literal("sendEmail"),
+    data: z.object({
+      emailId: z.string(),
     }),
   }),
 ]);
