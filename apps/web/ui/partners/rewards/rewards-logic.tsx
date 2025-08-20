@@ -448,7 +448,7 @@ function ConditionLogic({
                       )}
                     </InlineBadgePopover>
 
-                    {condition.attribute === "productId" && (
+                    {condition.attribute === "productId" && condition.value && (
                       <button
                         type="button"
                         className="ml-0.5 inline-flex h-5 items-center justify-center rounded rounded-l-none bg-blue-50 px-1.5 hover:bg-blue-100"
