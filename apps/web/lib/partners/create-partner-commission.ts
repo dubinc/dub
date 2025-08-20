@@ -129,7 +129,7 @@ export const createPartnerCommission = async ({
         }
 
         // for reward types with a max duration, we need to check if the first commission is within the max duration
-        // if its beyond the max duration, we should not create a new commission
+        // if it's beyond the max duration, we should not create a new commission
         if (typeof reward?.maxDuration === "number") {
           // One-time sale reward (maxDuration === 0)
           if (reward.maxDuration === 0) {
