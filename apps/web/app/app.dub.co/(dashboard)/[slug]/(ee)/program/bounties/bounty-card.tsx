@@ -74,11 +74,11 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
                   })}
               className="size-full object-contain"
             />
-
-            {stats?.pendingSubmissions && stats.pendingSubmissions > 0 ? (
-              <PendingSubmissionsBadge count={stats.pendingSubmissions} />
-            ) : null}
           </div>
+
+          {stats?.pendingSubmissions && stats.pendingSubmissions > 0 ? (
+            <PendingSubmissionsBadge count={stats.pendingSubmissions} />
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-1.5">
