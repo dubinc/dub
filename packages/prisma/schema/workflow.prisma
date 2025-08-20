@@ -1,7 +1,8 @@
 enum WorkflowTrigger {
-  clicks
-  leads
-  sales
+  clickRecorded
+  leadRecorded
+  saleRecorded
+  commissionEarned
 }
 
 model Workflow {
@@ -19,3 +20,4 @@ model Workflow {
 
   @@index([programId, trigger])
 }
+
