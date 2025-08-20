@@ -1,9 +1,7 @@
 enum WorkflowTrigger {
-  clickRecorded
   leadRecorded
   saleRecorded
   commissionEarned
-  partnerEnrolled
 }
 
 enum WorkflowTriggerType {
