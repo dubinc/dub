@@ -101,7 +101,7 @@ export const updateProgramAction = authActionClient
     });
 
     waitUntil(
-      Promise.all([
+      Promise.allSettled([
         // Delete old logo/wordmark if they were updated
         ...(logoUrl && program.logo
           ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
