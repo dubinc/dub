@@ -1,14 +1,20 @@
 import { BountyWithSubmissionsProps } from "@/lib/types";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
+import { useClaimBountyModal } from "@/ui/partners/bounties/claim-bounty-modal";
 import { Button } from "@dub/ui";
-import { CalendarDays, CircleCheckFill } from "@dub/ui/icons";
+import { Calendar6, CircleCheckFill } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
 
 export function BountyCard({ bounty }: { bounty: BountyWithSubmissionsProps }) {
   const submission = bounty.submissions?.[0];
 
+  const { claimBountyModal, setShowClaimBountyModal } = useClaimBountyModal({
+    bounty,
+  });
+
   return (
     <div className="border-border-subtle flex flex-col gap-5 rounded-xl border bg-white p-5">
+      {claimBountyModal}
       <div className="relative flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
         <div className="relative size-full">
           <BountyThumbnailImage bounty={bounty} />
@@ -21,7 +27,7 @@ export function BountyCard({ bounty }: { bounty: BountyWithSubmissionsProps }) {
         </h3>
 
         <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
-          <CalendarDays className="size-3.5" />
+          <Calendar6 className="size-3.5" />
           <span>
             {bounty.endsAt ? (
               <>
@@ -60,7 +66,7 @@ export function BountyCard({ bounty }: { bounty: BountyWithSubmissionsProps }) {
             variant="primary"
             text="Claim bounty"
             className="h-7 w-fit rounded-lg px-2.5"
-            onClick={() => {}}
+            onClick={() => setShowClaimBountyModal(true)}
           />
         )}
       </div>
