@@ -20,17 +20,7 @@ export function ReferralsEmbedFAQ({
   reward: RewardProps | null;
 }) {
   const rewardDescription = reward
-    ? `For each new customer you refer, you'll earn a ${constructRewardAmount({
-        ...(reward.modifiers
-          ? {
-              amounts: [
-                reward.amount,
-                ...reward.modifiers.map(({ amount }) => amount),
-              ],
-            }
-          : { amount: reward.amount }),
-        type: reward.type,
-      })} commission on their subscription${
+    ? `For each new customer you refer, you'll earn a ${constructRewardAmount(reward)} commission on their subscription${
         reward.maxDuration === null
           ? " for their lifetime"
           : reward.maxDuration && reward.maxDuration > 1

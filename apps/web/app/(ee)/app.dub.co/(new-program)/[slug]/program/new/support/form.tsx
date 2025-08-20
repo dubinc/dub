@@ -92,7 +92,7 @@ export function Form() {
           <Input
             type="url"
             {...register("termsUrl")}
-            placeholder="https://dub.co/legal/terms"
+            placeholder="https://dub.co/legal/affiliates"
             className="mt-2 w-full max-w-none"
           />
         </div>

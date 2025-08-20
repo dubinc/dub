@@ -14,6 +14,9 @@ const PROGRAM_REDIRECTS = {
   "/program/sales": "/program/commissions",
   "/program/communication": "/program/resources",
   "/program/branding/resources": "/program/resources",
+  "/program/rewards": "/program/groups/default/rewards",
+  "/program/discount": "/program/groups/default/discount",
+  "/program/discounts": "/program/groups/default/discount",
 };
 
 export const appRedirect = (path: string) => {
@@ -51,6 +54,11 @@ export const appRedirect = (path: string) => {
       (_match, slug, subPath) =>
         `/${slug}/program${subPath ? `/${subPath}` : ""}`,
     );
+
+  // Redirect "/[slug]/program/groups/:groupSlug" to "/[slug]/program/groups/:groupSlug/rewards"
+  const groupRegex = /^\/([^\/]+)\/program\/groups\/([^\/]+)$/;
+  if (groupRegex.test(path))
+    return path.replace(groupRegex, "/$1/program/groups/$2/rewards");
 
   // Handle additional simpler program redirects
   const programRedirect = Object.keys(PROGRAM_REDIRECTS).find((redirect) =>

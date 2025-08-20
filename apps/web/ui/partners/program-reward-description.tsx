@@ -26,17 +26,7 @@ export function ProgramRewardDescription({
             <>
               Earn{" "}
               <strong className={cn("font-semibold", amountClassName)}>
-                {constructRewardAmount({
-                  ...(reward.modifiers?.length
-                    ? {
-                        amounts: [
-                          reward.amount,
-                          ...reward.modifiers.map(({ amount }) => amount),
-                        ],
-                      }
-                    : { amount: reward.amount }),
-                  type: reward.type,
-                })}{" "}
+                {constructRewardAmount(reward)}{" "}
               </strong>
               {reward.event === "sale" && reward.maxDuration === 0 ? (
                 <>for the first sale</>
@@ -78,26 +68,26 @@ export function ProgramRewardDescription({
           {" "}
           New users get{" "}
           <strong className={cn("font-semibold", amountClassName)}>
-            {constructRewardAmount({
-              amount: discount.amount,
-              type: discount.type,
-            })}
+            {constructRewardAmount(discount)}
           </strong>{" "}
           off{" "}
-          <strong className={cn("font-semibold", periodClassName)}>
-            {discount.maxDuration === null ? (
-              <strong className={cn("font-semibold", periodClassName)}>
-                {" "}
-                for their lifetime
-              </strong>
-            ) : discount.maxDuration && discount.maxDuration > 1 ? (
-              <strong className={cn("font-semibold", periodClassName)}>
-                for {discount.maxDuration} months
-              </strong>
-            ) : (
-              " for their first month"
-            )}
-          </strong>
+          {discount.maxDuration === null ? (
+            <strong className={cn("font-semibold", periodClassName)}>
+              for their lifetime
+            </strong>
+          ) : discount.maxDuration === 0 ? (
+            <strong className={cn("font-semibold", periodClassName)}>
+              for their first purchase
+            </strong>
+          ) : discount.maxDuration === 1 ? (
+            <strong className={cn("font-semibold", periodClassName)}>
+              for their first month
+            </strong>
+          ) : discount.maxDuration && discount.maxDuration > 1 ? (
+            <strong className={cn("font-semibold", periodClassName)}>
+              for {discount.maxDuration} months
+            </strong>
+          ) : null}
         </>
       ) : null}
     </>

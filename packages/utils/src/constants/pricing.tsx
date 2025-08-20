@@ -48,6 +48,7 @@ export const PLANS = [
       domains: 3,
       tags: 5,
       folders: 0,
+      groups: 0,
       users: 1,
       ai: 10,
       api: 60,
@@ -76,6 +77,7 @@ export const PLANS = [
       domains: 10,
       tags: 25,
       folders: 3,
+      groups: 0,
       users: 3,
       ai: 1_000,
       api: 600,
@@ -156,6 +158,7 @@ export const PLANS = [
       domains: 100,
       tags: INFINITY_NUMBER,
       folders: 20,
+      groups: 3,
       users: 10,
       ai: 1_000,
       api: 1_200,
@@ -253,6 +256,7 @@ export const PLANS = [
       domains: 250,
       tags: INFINITY_NUMBER,
       folders: 50,
+      groups: 10,
       users: 20,
       ai: 1_000,
       api: 3_000,
@@ -325,6 +329,7 @@ export const PLANS = [
       domains: 250,
       tags: INFINITY_NUMBER,
       folders: INFINITY_NUMBER,
+      groups: INFINITY_NUMBER,
       users: 30,
       ai: 1_000,
       api: 3_000,
@@ -382,5 +387,10 @@ export const isDowngradePlan = (currentPlan: string, newPlan: string) => {
   return currentPlanIndex > newPlanIndex;
 };
 
-export const isLegacyBusinessPlan = (plan: string, payoutsLimit: number) =>
-  plan === "business" && payoutsLimit === 0;
+export const isLegacyBusinessPlan = ({
+  plan = "business",
+  payoutsLimit = 0,
+}: {
+  plan?: string;
+  payoutsLimit?: number;
+}) => plan === "business" && payoutsLimit === 0;

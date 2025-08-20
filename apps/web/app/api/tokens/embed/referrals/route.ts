@@ -51,6 +51,7 @@ export const POST = withWorkspace(
           defaultFolderId: true,
           domain: true,
           url: true,
+          defaultGroupId: true,
         },
       });
 
@@ -89,6 +90,7 @@ export const POST = withWorkspace(
             description: partnerProps.description,
           },
           tenantId: partnerProps.tenantId,
+          groupId: partnerProps.groupId,
         });
 
         programEnrollment = {

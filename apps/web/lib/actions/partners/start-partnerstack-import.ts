@@ -50,6 +50,6 @@ export const startPartnerStackImportAction = authActionClient
       importId: createId({ prefix: "import_" }),
       programId,
       userId: user.id,
-      action: "import-partners",
+      action: "import-groups",
     });
   });

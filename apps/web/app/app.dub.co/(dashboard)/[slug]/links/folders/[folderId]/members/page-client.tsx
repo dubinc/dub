@@ -22,12 +22,12 @@ import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
+export const FolderMembersPageClient = ({ folderId }: { folderId: string }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const workspace = useWorkspace();
   const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
@@ -94,20 +94,20 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
   };
 
   if (!isFolderLoading && !folder) {
-    notFound();
+    redirect(`/${workspace.slug}/links/folders`);
   }
 
   if (!canManageFolderPermissions) {
-    redirect(`/${workspace.slug}/settings/library/folders`);
+    redirect(`/${workspace.slug}/links/folders`);
   }
   return (
     <>
       <Link
-        href={`/${workspace.slug}/settings/library/folders`}
+        href={`/${workspace.slug}/links/folders`}
         className="flex items-center gap-x-1"
       >
         <ChevronLeft className="size-4" />
-        <p className="text-sm font-medium text-neutral-500">Folders</p>
+        <p className="text-sm font-medium text-neutral-500">View all folders</p>
       </Link>
 
       <div className="rounded-lg border border-neutral-200 bg-white">
@@ -123,7 +123,7 @@ export const FolderUsersPageClient = ({ folderId }: { folderId: string }) => {
                   <div className="flex items-center gap-1">
                     <Globe className="size-3.5 text-neutral-500" />
                     <span className="text-[13px] font-normal leading-[14.30px] text-neutral-500">
-                      {nFormatter(folderLinkCount, { full: true })}
+                      {nFormatter(folderLinkCount, { full: true })}{" "}
                       {pluralize("link", folderLinkCount)}
                     </span>
                   </div>

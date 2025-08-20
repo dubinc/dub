@@ -1,6 +1,6 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
-import { THE_BEGINNING_OF_TIME } from "@dub/utils";
+import { DUB_FOUNDING_DATE } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
 import { getCommissionsTimeseries } from "./get-commissions-timeseries";
@@ -13,7 +13,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
     interval,
     start: start ? startOfDay(new Date(start)) : undefined,
     end: end ? endOfDay(new Date(end)) : undefined,
-    dataAvailableFrom: THE_BEGINNING_OF_TIME,
+    dataAvailableFrom: DUB_FOUNDING_DATE,
   });
 
   const [programs, timeseries] = await Promise.all([

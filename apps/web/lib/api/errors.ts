@@ -241,7 +241,8 @@ export const exceededLimitError = ({
     | "tags"
     | "users"
     | "folders"
-    | "payouts";
+    | "payouts"
+    | "groups";
 }) => {
   return `You've reached your ${
     ["links", "AI", "payouts"].includes(type) ? "monthly" : ""

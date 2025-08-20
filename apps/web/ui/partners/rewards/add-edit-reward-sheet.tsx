@@ -6,21 +6,19 @@ import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
-import useRewardPartners from "@/lib/swr/use-reward-partners";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   createOrUpdateRewardSchema,
-  REWARD_EVENT_COLUMN_MAPPING,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
-import { EventType } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@dub/prisma/client";
 import {
   Button,
   MoneyBills2,
@@ -44,6 +42,7 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
@@ -51,14 +50,13 @@ import {
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
 import { RewardPartnersCard } from "./reward-partners-card";
-import { RewardsLogic } from "./rewards-logic";
-import { useRewardsUpgradeModal } from "./rewards-upgrade-modal";
+import { REWARD_TYPES, RewardsLogic } from "./rewards-logic";
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: EventType;
   reward?: RewardProps;
-  isDefault?: boolean;
+  defaultRewardValues?: RewardProps;
 }
 
 // Special form schema to allow for empty condition fields when adding a new condition
@@ -80,68 +78,55 @@ function RewardSheetContent({
   setIsOpen,
   event,
   reward,
-  isDefault,
+  defaultRewardValues,
 }: RewardSheetProps) {
+  const { group, mutateGroup } = useGroup();
   const { id: workspaceId, defaultProgramId, plan } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
+  const { queryParams } = useRouterStuff();
+
+  const defaultValuesSource = reward || defaultRewardValues;
 
   const form = useForm<FormData>({
     defaultValues: {
       event,
-      type: reward?.type || (event === "sale" ? "percentage" : "flat"),
-      maxDuration: reward
-        ? reward.maxDuration === null
+      type:
+        defaultValuesSource?.type || (event === "sale" ? "percentage" : "flat"),
+      maxDuration: defaultValuesSource
+        ? defaultValuesSource.maxDuration === null
           ? Infinity
-          : reward.maxDuration
+          : defaultValuesSource.maxDuration
         : Infinity,
-      amount: reward?.type === "flat" ? reward.amount / 100 : reward?.amount,
-      isDefault: isDefault || false,
-      includedPartnerIds: null,
-      excludedPartnerIds: null,
-      modifiers: reward?.modifiers?.map((m) => ({
-        ...m,
-        amount: reward?.type === "flat" ? m.amount / 100 : m.amount,
-      })),
+      amount:
+        defaultValuesSource?.type === "flat"
+          ? defaultValuesSource.amount / 100
+          : defaultValuesSource?.amount,
+      modifiers: defaultValuesSource?.modifiers?.map((m) => {
+        const type = m.type === undefined ? defaultValuesSource?.type : m.type;
+        const maxDuration =
+          m.maxDuration === undefined
+            ? defaultValuesSource?.maxDuration
+            : m.maxDuration;
+
+        return {
+          ...m,
+          amount: type === "flat" ? m.amount / 100 : m.amount,
+          maxDuration: m.maxDuration === null ? Infinity : maxDuration,
+        };
+      }),
     },
   });
 
-  const { handleSubmit, watch, getValues, setValue, setError } = form;
+  const { handleSubmit, watch, setValue, setError } = form;
 
-  const [
-    selectedEvent,
-    amount,
-    type,
-    maxDuration,
-    modifiers,
-    includedPartnerIds = [],
-    excludedPartnerIds = [],
-  ] = watch([
+  const [selectedEvent, amount, type, maxDuration, modifiers] = watch([
     "event",
     "amount",
     "type",
     "maxDuration",
     "modifiers",
-    "includedPartnerIds",
-    "excludedPartnerIds",
   ]);
-
-  const { data: rewardPartners, loading: isLoadingRewardPartners } =
-    useRewardPartners({
-      query: {
-        rewardId: reward?.id,
-      },
-      enabled: Boolean(reward?.id && defaultProgramId),
-    });
-
-  useEffect(() => {
-    if (rewardPartners && rewardPartners.length > 0) {
-      setValue(
-        isDefault ? "excludedPartnerIds" : "includedPartnerIds",
-        rewardPartners.map((partner) => partner.id),
-      );
-    }
-  }, [rewardPartners, setValue]);
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -150,7 +135,7 @@ function RewardSheetContent({
         setIsOpen(false);
         toast.success("Reward created!");
         await mutateProgram();
-        await mutatePrefix(`/api/programs/${defaultProgramId}/rewards`);
+        await mutateGroup();
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -162,13 +147,10 @@ function RewardSheetContent({
     updateRewardAction,
     {
       onSuccess: async () => {
-        setIsOpen(false);
+        queryParams({ del: "rewardId", scroll: false });
         toast.success("Reward updated!");
         await mutateProgram();
-        await mutatePrefix([
-          `/api/programs/${defaultProgramId}/rewards`,
-          `/api/partners/count?groupBy=${REWARD_EVENT_COLUMN_MAPPING[event]}&workspaceId=${workspaceId}`,
-        ]);
+        await mutateGroup();
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -183,7 +165,7 @@ function RewardSheetContent({
         setIsOpen(false);
         toast.success("Reward deleted!");
         await mutate(`/api/programs/${defaultProgramId}`);
-        await mutatePrefix(`/api/programs/${defaultProgramId}/rewards`);
+        await mutateGroup();
       },
       onError({ error }) {
         toast.error(error.serverError);
@@ -203,21 +185,28 @@ function RewardSheetContent({
   }, [modifiers, plan]);
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !defaultProgramId || showAdvancedUpsell) {
+    if (!workspaceId || !defaultProgramId || showAdvancedUpsell || !group) {
       return;
     }
 
     let modifiers: RewardConditionsArray | null = null;
+
     if (data.modifiers?.length) {
       try {
         modifiers = rewardConditionsArraySchema.parse(
-          data.modifiers.map((m) => ({
-            ...m,
-            amount: type === "flat" ? m.amount * 100 : m.amount,
-          })),
+          data.modifiers.map((m) => {
+            const type = m.type === undefined ? data.type : m.type;
+            const maxDuration =
+              m.maxDuration === undefined ? data.maxDuration : m.maxDuration;
+
+            return {
+              ...m,
+              amount: type === "flat" ? m.amount * 100 : m.amount,
+              maxDuration: maxDuration === Infinity ? null : maxDuration,
+            };
+          }),
         );
       } catch (error) {
-        console.error(error);
         setError("root.logic", { message: "Invalid reward condition" });
         toast.error(
           "Invalid reward condition. Please fix the errors and try again.",
@@ -229,8 +218,6 @@ function RewardSheetContent({
     const payload = {
       ...data,
       workspaceId,
-      includedPartnerIds: isDefault ? null : includedPartnerIds,
-      excludedPartnerIds: isDefault ? excludedPartnerIds : null,
       amount: type === "flat" ? data.amount * 100 : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
@@ -238,7 +225,10 @@ function RewardSheetContent({
     };
 
     if (!reward) {
-      await createReward(payload);
+      await createReward({
+        ...payload,
+        groupId: group.id,
+      });
     } else {
       await updateReward({
         ...payload,
@@ -262,14 +252,16 @@ function RewardSheetContent({
     });
   };
 
-  const canDeleteReward = reward && !reward.default;
-
-  const { rewardsUpgradeModal, setShowRewardsUpgradeModal } =
-    useRewardsUpgradeModal();
+  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
+    usePartnersUpgradeModal({
+      plan: "Advanced",
+      description:
+        "When you upgrade to Advanced, you'll get access to higher payout limits, advanced reward structures, white-labeling support, and more.",
+    });
 
   return (
     <FormProvider {...form}>
-      {rewardsUpgradeModal}
+      {partnersUpgradeModal}
       <form
         ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
@@ -277,8 +269,7 @@ function RewardSheetContent({
       >
         <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            {reward ? "Edit" : "Create"} {isDefault ? "default" : ""}{" "}
-            {selectedEvent} reward
+            {reward ? "Edit" : "Create"} {selectedEvent} reward
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -303,20 +294,11 @@ function RewardSheetContent({
                         <InlineBadgePopoverMenu
                           selectedValue={type}
                           onSelect={(value) =>
-                            setValue("type", value as "flat" | "percentage", {
+                            setValue("type", value as RewardStructure, {
                               shouldDirty: true,
                             })
                           }
-                          items={[
-                            {
-                              text: "Flat",
-                              value: "flat",
-                            },
-                            {
-                              text: "Percentage",
-                              value: "percentage",
-                            },
-                          ]}
+                          items={REWARD_TYPES}
                         />
                       </InlineBadgePopover>{" "}
                       {type === "percentage" && "of "}
@@ -328,6 +310,7 @@ function RewardSheetContent({
                         ? constructRewardAmount({
                             amount: type === "flat" ? amount * 100 : amount,
                             type,
+                            maxDuration,
                           })
                         : "amount"
                     }
@@ -361,7 +344,7 @@ function RewardSheetContent({
                               value: "0",
                             },
                             ...RECURRING_MAX_DURATIONS.filter(
-                              (v) => v !== 0,
+                              (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
                             ).map((v) => ({
                               text: `for ${v} ${pluralize("month", Number(v))}`,
                               value: v.toString(),
@@ -380,19 +363,14 @@ function RewardSheetContent({
             }
             content={
               selectedEvent === "click" ? undefined : (
-                <RewardsLogic isDefaultReward={!!isDefault} />
+                <RewardsLogic isDefaultReward={false} />
               )
             }
           />
 
           <VerticalLine />
 
-          <RewardPartnersCard
-            isDefault={isDefault}
-            rewardPartners={rewardPartners}
-            isLoadingRewardPartners={isLoadingRewardPartners}
-            reward={reward}
-          />
+          {group && <RewardPartnersCard groupId={group.id} />}
         </div>
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">
@@ -404,12 +382,7 @@ function RewardSheetContent({
                 text="Remove reward"
                 onClick={onDelete}
                 loading={isDeleting}
-                disabled={!canDeleteReward || isCreating || isUpdating}
-                disabledTooltip={
-                  canDeleteReward
-                    ? undefined
-                    : "This is a default reward and cannot be deleted."
-                }
+                disabled={isCreating || isUpdating}
               />
             )}
           </div>
@@ -438,7 +411,7 @@ function RewardSheetContent({
                   <TooltipContent
                     title="Advanced reward structures are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    onClick={() => setShowRewardsUpgradeModal(true)}
+                    onClick={() => setShowPartnersUpgradeModal(true)}
                   />
                 ) : undefined
               }

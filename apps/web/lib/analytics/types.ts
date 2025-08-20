@@ -40,6 +40,7 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   dataAvailableFrom?: Date;
   isDemo?: boolean;
   isDeprecatedClicksEndpoint?: boolean;
+  linkIds?: string[]; // TODO: remove this once it's been added to the public API
   folderIds?: string[];
   isMegaFolder?: boolean;
 };

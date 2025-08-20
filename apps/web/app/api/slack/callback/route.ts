@@ -25,10 +25,7 @@ const oAuthCallbackSchema = z.object({
 export const GET = async (req: Request) => {
   const env = getSlackEnv();
 
-  let workspace: Pick<
-    Project,
-    "id" | "slug" | "plan" | "partnersEnabled"
-  > | null = null;
+  let workspace: Pick<Project, "id" | "slug" | "plan"> | null = null;
 
   try {
     const session = await getSession();
@@ -60,7 +57,6 @@ export const GET = async (req: Request) => {
         id: true,
         slug: true,
         plan: true,
-        partnersEnabled: true,
       },
     });
 

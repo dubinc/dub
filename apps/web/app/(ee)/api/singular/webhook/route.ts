@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const singularToDubEvent = {
+  activated: "lead",
   sng_complete_registration: "lead",
   sng_subscribe: "sale",
   sng_ecommerce_purchase: "sale",

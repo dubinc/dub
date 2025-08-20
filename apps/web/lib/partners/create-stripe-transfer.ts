@@ -89,6 +89,10 @@ export const createStripeTransfer = async ({
     return;
   }
 
+  const allPayoutsPrograms = [
+    ...new Set(allPayouts.map((p) => p.program.name)), // deduplicate program names
+  ];
+
   // Create a transfer for the partner combined payouts and update it as sent
   const transfer = await stripe.transfers.create(
     {
@@ -98,7 +102,7 @@ export const createStripeTransfer = async ({
       // (even though the transfer could technically include payouts from multiple invoices)
       transfer_group: finalPayoutInvoiceId!,
       destination: partner.stripeConnectId,
-      description: `Dub Partners payout ${pluralize("transfer", allPayouts.length)} (${allPayouts.map((p) => p.program.name).join(", ")})`,
+      description: `Dub Partners payout ${pluralize("transfer", allPayoutsPrograms.length)} (${allPayoutsPrograms.join(", ")})`,
     },
     {
       idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,
