@@ -93,6 +93,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
         : undefined,
       type: bounty?.type || "performance",
       submissionRequirements: bounty?.submissionRequirements || null,
+      groupIds: null,
 
       // TODO: [bounties] Get existing performance logic from bounty/workflow
       performanceLogic: {
@@ -100,7 +101,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
         operator: "gte",
         value: undefined,
       },
-      groupIds: null,
     },
   });
 
