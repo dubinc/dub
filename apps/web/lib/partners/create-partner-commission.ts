@@ -95,14 +95,46 @@ export const createPartnerCommission = async ({
         orderBy: {
           createdAt: "asc",
         },
+        select: {
+          rewardId: true,
+          status: true,
+          createdAt: true,
+        },
       });
 
       if (firstCommission) {
+        // if partner's reward was updated and different from the first commission's reward
+        // we need to make sure it wasn't changed from one-time to recurring so we don't create a new commission
+        if (
+          firstCommission.rewardId &&
+          firstCommission.rewardId !== reward.id
+        ) {
+          const originalReward = await prisma.reward.findUnique({
+            where: {
+              id: firstCommission.rewardId,
+            },
+            select: {
+              id: true,
+              maxDuration: true,
+            },
+          });
+
+          if (
+            typeof originalReward?.maxDuration === "number" &&
+            originalReward.maxDuration === 0
+          ) {
+            console.log(
+              `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
+            );
+            return;
+          }
+        }
+
         // for reward types with a max duration, we need to check if the first commission is within the max duration
-        // if its beyond the max duration, we should not create a new commission
+        // if it's beyond the max duration, we should not create a new commission
         if (typeof reward?.maxDuration === "number") {
-          // One-time sale reward
-          if (reward?.maxDuration === 0) {
+          // One-time sale reward (maxDuration === 0)
+          if (reward.maxDuration === 0) {
             console.log(
               `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
             );
@@ -178,6 +210,7 @@ export const createPartnerCommission = async ({
         id: createId({ prefix: "cm_" }),
         programId,
         partnerId,
+        rewardId: reward?.id,
         customerId,
         linkId,
         eventId,
