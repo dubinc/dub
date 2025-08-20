@@ -11,12 +11,8 @@ import useSWR from "swr";
 import { BountySheet } from "./add-edit-bounty-sheet";
 import { BountyCard, BountyCardSkeleton } from "./bounty-card";
 
-// TODO:
-// Fix error state
-
 export function BountyList() {
   const { searchParams } = useRouterStuff();
-
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const [bountySheetState, setBountySheetState] = useState<
