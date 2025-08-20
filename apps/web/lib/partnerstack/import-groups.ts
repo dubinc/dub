@@ -1,4 +1,6 @@
+import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
+import { randomValue } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { PartnerStackApi } from "./api";
 import { partnerStackImporter } from "./importer";
@@ -46,6 +48,7 @@ export async function importGroups(payload: PartnerStackImportPayload) {
           programId,
           name: group.name,
           slug: group.slug,
+          color: randomValue(RESOURCE_COLORS),
         },
         update: {},
       });
