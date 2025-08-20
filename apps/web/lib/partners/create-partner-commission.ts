@@ -3,6 +3,7 @@ import {
   CommissionStatus,
   CommissionType,
   EventType,
+  WorkflowTrigger,
 } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -11,6 +12,7 @@ import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
+import { executeWorkflows } from "../api/workflows/execute-workflows";
 import { Session } from "../auth";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
@@ -246,6 +248,12 @@ export const createPartnerCommission = async ({
               })
             : Promise.resolve(),
         ]);
+
+        await executeWorkflows({
+          trigger: WorkflowTrigger.commissionEarned,
+          programId,
+          partnerId,
+        });
       })(),
     );
 
