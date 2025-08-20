@@ -424,17 +424,17 @@ const NewProgramForm = ({ register, watch, setValue }: FormProps) => {
                 })}
                 className="mt-2 block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
               >
-                {RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
-                  (duration) => (
-                    <option
-                      key={duration}
-                      value={duration}
-                      selected={duration === 12}
-                    >
-                      {duration} {duration === 1 ? "month" : "months"}
-                    </option>
-                  ),
-                )}
+                {RECURRING_MAX_DURATIONS.filter(
+                  (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
+                ).map((duration) => (
+                  <option
+                    key={duration}
+                    value={duration}
+                    selected={duration === 12}
+                  >
+                    {duration} {duration === 1 ? "month" : "months"}
+                  </option>
+                ))}
                 <option value="">Lifetime</option>
               </select>
             </div>
