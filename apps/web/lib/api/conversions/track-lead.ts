@@ -19,7 +19,7 @@ import { Customer, WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
-import { validatePerformanceBounty } from "../bounties/validate-performance-bounty";
+import { executeWorkflows } from "../workflows/execute-workflows";
 
 type TrackLeadParams = z.input<typeof trackLeadRequestSchema> & {
   rawBody: any;
@@ -263,10 +263,10 @@ export const trackLead = async ({
             },
           });
 
-          await validatePerformanceBounty({
+          await executeWorkflows({
+            trigger: WorkflowTrigger.leadRecorded,
             programId: link.programId,
             partnerId: link.partnerId,
-            workflowTrigger: WorkflowTrigger.leadRecorded,
           });
         }
 
