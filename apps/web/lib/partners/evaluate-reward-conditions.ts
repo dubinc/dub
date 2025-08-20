@@ -46,11 +46,7 @@ export const evaluateRewardConditions = ({
 
     // If this condition group matches, return it
     if (conditionsMet) {
-      return {
-        amount: conditionGroup.amount,
-        type: conditionGroup.type,
-        maxDuration: conditionGroup.maxDuration,
-      };
+      return conditionGroup;
     }
   }
 
