@@ -97,17 +97,13 @@ export function InlineBadgePopoverMenu<T extends any>({
 }) {
   const isMultiSelect = Array.isArray(selectedValue);
 
-  const { isOpen, setIsOpen } = useContext(InlineBadgePopoverContext);
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   const [sortedItems, setSortedItems] = useState<MenuItem<T>[]>(items);
 
-  // Sort items so that the selected values are always at the top, but only when the popover is closed
+  // Sort items so that the selected values are always at the top
   useEffect(() => {
-    if (isOpen) return;
-
     setSortedItems(
       items.sort((a, b) => {
         const aSelected = isMultiSelect
@@ -120,11 +116,11 @@ export function InlineBadgePopoverMenu<T extends any>({
         // First sort by whether the items are selected
         if (aSelected !== bSelected) return aSelected ? -1 : 1;
 
-        // Then sort alphabetically
-        return a.text.localeCompare(b.text);
+        // Then sort as per the original order of the items
+        return items.indexOf(a) - items.indexOf(b);
       }),
     );
-  }, [isOpen, items, isMultiSelect, selectedValue]);
+  }, [items, isMultiSelect, selectedValue]);
 
   return (
     <Command loop className="focus:outline-none">
@@ -151,7 +147,6 @@ export function InlineBadgePopoverMenu<T extends any>({
                   onSelect={() => {
                     itemOnSelect?.();
                     onSelect?.(value);
-                    !isMultiSelect && setIsOpen(false);
                   }}
                   className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100"
                 >
