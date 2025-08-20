@@ -58,7 +58,6 @@ export const BountySchemaExtended = BountySchema.extend({
 export const BountySubmissionSchema = z.object({
   id: z.string(),
   description: z.string().nullable(),
-  evidenceUrl: z.string().nullable(),
   status: z.nativeEnum(BountySubmissionStatus),
   createdAt: z.date(),
   updatedAt: z.date(),
