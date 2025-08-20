@@ -1,4 +1,8 @@
-import { BountySubmissionStatus, BountyType } from "@dub/prisma/client";
+import {
+  BountySubmissionRejectionReason,
+  BountySubmissionStatus,
+  BountyType,
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
@@ -54,7 +58,6 @@ export const BountySchemaExtended = BountySchema.extend({
 export const BountySubmissionSchema = z.object({
   id: z.string(),
   description: z.string().nullable(),
-  evidenceUrl: z.string().nullable(),
   status: z.nativeEnum(BountySubmissionStatus),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -108,3 +111,18 @@ export const bountyStatsSchema = z.object({
   pendingSubmissions: z.number(),
   partners: z.number(),
 });
+
+export const rejectBountySubmissionSchema = z.object({
+  workspaceId: z.string(),
+  submissionId: z.string(),
+  rejectionReason: z.nativeEnum(BountySubmissionRejectionReason),
+  rejectionNote: z.string().trim().max(500).optional(),
+});
+
+export const REJECT_BOUNTY_SUBMISSION_REASONS = {
+  invalidProof: "Invalid proof",
+  duplicateSubmission: "Duplicate submission",
+  outOfTimeWindow: "Out of time window",
+  didNotMeetCriteria: "Did not meet criteria",
+  other: "Other",
+} as const;

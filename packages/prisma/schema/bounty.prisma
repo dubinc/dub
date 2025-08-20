@@ -10,12 +10,12 @@ enum BountySubmissionStatus {
 }
 
 enum BountySubmissionRejectionReason {
-  notEligible
-  notQualified
+  invalidProof
+  duplicateSubmission
+  outOfTimeWindow
+  didNotMeetCriteria
   other
 }
-
-// Submission files
 
 model Bounty {
   id                     String     @id @default(cuid())
@@ -28,6 +28,7 @@ model Bounty {
   endsAt                 DateTime?
   rewardAmount           Int        @default(0)
   submissionRequirements Json?
+  archivedAt             DateTime?
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
 
@@ -59,11 +60,12 @@ model BountySubmission {
   bountyId        String
   commissionId    String?                          @unique
   userId          String?
-  evidenceUrl     String?
   description     String?                          @db.Text
   status          BountySubmissionStatus           @default(pending)
   rejectionReason BountySubmissionRejectionReason?
   rejectionNote   String?                          @db.Text
+  files           Json? // [{ fileName, storagePath, mimeType, size }]
+  urls            Json? // ["https://google.com", "https://github.com/..."]
   reviewedAt      DateTime?
   createdAt       DateTime                         @default(now())
   updatedAt       DateTime                         @updatedAt

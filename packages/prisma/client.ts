@@ -3,6 +3,7 @@ export * from "@prisma/client";
 export {
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
+  BountyType,
   CommissionStatus,
   CommissionType,
   EventType,
