@@ -2,7 +2,7 @@ import { BountySubmissionStatus, BountyType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
-import { PartnerSchema } from "./partners";
+import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 import { workflowConditionSchema } from "./workflows";
@@ -54,19 +54,20 @@ export const BountySchemaExtended = BountySchema.extend({
 export const BountySubmissionSchema = z.object({
   id: z.string(),
   description: z.string().nullable(),
-  evidenceUrl: z.string(),
+  evidenceUrl: z.string().nullable(),
   status: z.nativeEnum(BountySubmissionStatus),
   createdAt: z.date(),
   updatedAt: z.date(),
   reviewedAt: z.date().nullable(),
   rejectionReason: z.string().nullable(),
   rejectionNote: z.string().nullable(),
-  partner: PartnerSchema.pick({
+  partner: EnrolledPartnerSchema.pick({
     id: true,
     name: true,
     email: true,
     image: true,
     payoutsEnabledAt: true,
+    groupId: true,
   }),
   commission: CommissionSchema.pick({
     id: true,

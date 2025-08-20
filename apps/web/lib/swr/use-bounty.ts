@@ -1,10 +1,12 @@
 import { fetcher } from "@dub/utils";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { BountyExtendedProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useBounty({ bountyId }: { bountyId: string }) {
+export default function useBounty() {
   const { id: workspaceId } = useWorkspace();
+  const { bountyId } = useParams<{ bountyId: string }>();
 
   const {
     data: bounty,

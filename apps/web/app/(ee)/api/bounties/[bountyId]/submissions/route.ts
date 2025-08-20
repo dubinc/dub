@@ -25,13 +25,27 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     },
     include: {
       user: true,
-      partner: true,
       commission: true,
+      programEnrollment: {
+        include: {
+          partner: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
     },
   });
 
-  return NextResponse.json(z.array(BountySubmissionSchema).parse(submissions));
+  const results = submissions.map((submission) => {
+    return {
+      ...submission,
+      partner: {
+        ...submission.programEnrollment?.partner,
+        groupId: submission.programEnrollment?.groupId,
+      },
+    };
+  });
+
+  return NextResponse.json(z.array(BountySubmissionSchema).parse(results));
 });
