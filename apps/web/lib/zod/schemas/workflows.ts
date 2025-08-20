@@ -1,3 +1,7 @@
+import {
+  WorkflowComparisonOperator,
+  WorkflowConditionAttribute,
+} from "@/lib/types";
 import { WorkflowTrigger } from "@dub/prisma/client";
 import { z } from "zod";
 
@@ -8,22 +12,49 @@ export const WORKFLOW_CONDITION_ATTRIBUTES = [
   "totalCommission",
 ] as const;
 
-export const WORKFLOW_ACTION_TYPES = [
-  "sendEmail",
-  "moveToGroup",
-  "awardBounty",
-  "triggerWebhook",
-] as const;
+export const WORKFLOW_CONDITION_ATTRIBUTES_LABELS: Record<
+  WorkflowConditionAttribute,
+  string
+> = {
+  totalLeads: "total leads",
+  totalConversions: "total conversions",
+  totalSaleAmount: "total sale amount",
+  totalCommission: "total commission",
+} as const;
+
+export const WORKFLOW_ATTRIBUTE_TRIGGER_MAP: Record<
+  WorkflowConditionAttribute,
+  WorkflowTrigger
+> = {
+  totalLeads: WorkflowTrigger.leadRecorded,
+  totalConversions: WorkflowTrigger.saleRecorded,
+  totalSaleAmount: WorkflowTrigger.saleRecorded,
+  totalCommission: WorkflowTrigger.commissionEarned,
+} as const;
 
 export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;
+
+export const WORKFLOW_COMPARISON_OPERATOR_LABELS: Record<
+  WorkflowComparisonOperator,
+  string
+> = {
+  gte: "more than",
+} as const;
+
+export enum WORKFLOW_ACTION_TYPES {
+  SendEmail = "sendEmail",
+  MoveToGroup = "moveToGroup",
+  AwardBounty = "awardBounty",
+  TriggerWebhook = "triggerWebhook",
+}
 
 export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
 
 // Individual condition
-const workflowConditionSchema = z.object({
+export const workflowConditionSchema = z.object({
   attribute: z.enum(WORKFLOW_CONDITION_ATTRIBUTES),
   operator: z.enum(WORKFLOW_COMPARISON_OPERATORS),
-  value: z.union([z.string(), z.number()]),
+  value: z.number(),
 });
 
 // Array of conditions with AND operator
@@ -33,7 +64,7 @@ export const workflowConditionsSchema = z.object({
 });
 
 // Individual action
-const workflowActionSchema = z.discriminatedUnion("type", [
+export const workflowActionSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("sendEmail"),
     data: z.object({

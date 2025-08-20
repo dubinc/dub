@@ -21,4 +21,5 @@ export {
   Role,
   WebhookReceiver,
   WorkflowTrigger,
+  WorkflowTriggerType,
 } from "@prisma/client";

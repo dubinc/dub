@@ -1,8 +1,9 @@
+import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import {
-  PERFORMANCE_ACTIVITIES,
-  PERFORMANCE_CURRENCY_ACTIVITIES,
-} from "@/lib/zod/schemas/bounties";
+  WORKFLOW_CONDITION_ATTRIBUTES,
+  WORKFLOW_CONDITION_ATTRIBUTES_LABELS,
+} from "@/lib/zod/schemas/workflows";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
@@ -17,17 +18,15 @@ import { Controller } from "react-hook-form";
 export function BountyLogic({ className }: { className?: string }) {
   const { control, watch } = useAddEditBountyForm();
 
-  const [activity, value] = watch([
-    "performanceLogic.activity",
-    "performanceLogic.value",
+  const [attribute, value] = watch([
+    "performanceCondition.attribute",
+    "performanceCondition.value",
   ]);
-
-  const isCurrency = PERFORMANCE_CURRENCY_ACTIVITIES.includes(activity);
 
   return (
     <div
       className={cn(
-        "block flex w-full items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2",
+        "flex w-full items-center gap-1.5 rounded-md border border-neutral-300 px-3 py-2",
         className,
       )}
     >
@@ -38,31 +37,35 @@ export function BountyLogic({ className }: { className?: string }) {
         When partner{" "}
         <Controller
           control={control}
-          name="performanceLogic.activity"
+          name="performanceCondition.attribute"
           render={({ field }) => (
             <InlineBadgePopover
-              text={field.value ?? "activity"}
+              text={
+                field.value
+                  ? WORKFLOW_CONDITION_ATTRIBUTES_LABELS[field.value]
+                  : "activity"
+              }
               invalid={!field.value}
             >
               <InlineBadgePopoverMenu
                 selectedValue={field.value}
                 onSelect={field.onChange}
-                items={PERFORMANCE_ACTIVITIES.map((activity) => ({
-                  text: activity,
-                  value: activity,
+                items={WORKFLOW_CONDITION_ATTRIBUTES.map((attribute) => ({
+                  text: WORKFLOW_CONDITION_ATTRIBUTES_LABELS[attribute],
+                  value: attribute,
                 }))}
               />
             </InlineBadgePopover>
           )}
         />
-        {activity && (
+        {attribute && (
           <>
             {" "}
             is at least{" "}
             <InlineBadgePopover
               text={
                 value
-                  ? isCurrency
+                  ? isCurrencyAttribute(attribute)
                     ? currencyFormatter(value)
                     : value
                   : "amount"
@@ -80,12 +83,10 @@ export function BountyLogic({ className }: { className?: string }) {
 
 function ValueInput() {
   const { watch, register } = useAddEditBountyForm();
-
-  const activity = watch("performanceLogic.activity");
-
-  const isCurrency = PERFORMANCE_CURRENCY_ACTIVITIES.includes(activity);
-
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  const attribute = watch("performanceCondition.attribute");
+  const isCurrency = isCurrencyAttribute(attribute);
 
   return (
     <div className="relative rounded-md shadow-sm">
@@ -99,7 +100,7 @@ function ValueInput() {
           "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
           isCurrency ? "pl-4 pr-12" : "pr-7",
         )}
-        {...register("performanceLogic.value", {
+        {...register("performanceCondition.value", {
           required: true,
           setValueAs: (value: string) => (value === "" ? undefined : +value),
           min: 0,

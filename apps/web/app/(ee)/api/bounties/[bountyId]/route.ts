@@ -30,7 +30,7 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   // TODO: [bounties] Persist performance logic to workflow and groupIds to bountyGroup
-  const { performanceLogic, groupIds, ...data } = updateBountySchema.parse(
+  const { performanceCondition, groupIds, ...data } = updateBountySchema.parse(
     await parseRequestBody(req),
   );
 

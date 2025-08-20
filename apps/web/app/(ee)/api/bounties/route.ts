@@ -2,16 +2,20 @@ import { getBounties } from "@/lib/api/bounties/get-bounties";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { createWorkflow } from "@/lib/api/workflows/create-workflow";
 import { withWorkspace } from "@/lib/auth";
+import { WorkflowAction } from "@/lib/types";
 import {
   BountySchema,
   BountySchemaExtended,
   createBountySchema,
   getBountiesQuerySchema,
 } from "@/lib/zod/schemas/bounties";
+import {
+  WORKFLOW_ACTION_TYPES,
+  WORKFLOW_ATTRIBUTE_TRIGGER_MAP,
+} from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@prisma/client";
+import { Workflow } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -32,7 +36,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 export const POST = withWorkspace(async ({ workspace, req }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  // TODO: [bounties] Persist performance logic to workflow and groupIds to bountyGroup
   const {
     name,
     description,
@@ -42,20 +45,8 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     endsAt,
     submissionRequirements,
     groupIds,
+    performanceCondition: condition,
   } = createBountySchema.parse(await parseRequestBody(req));
-
-  const workflow = await createWorkflow({
-    program: {
-      id: programId,
-    },
-    workflow: {
-      trigger: "clicks",
-      triggerConditions: {
-        conditions: [],
-      },
-      actions: [],
-    },
-  });
 
   const groups = groupIds?.length
     ? await prisma.partnerGroup.findMany({
@@ -68,29 +59,56 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
       })
     : null;
 
-  const bounty = await prisma.bounty.create({
-    data: {
-      id: createId({ prefix: "bounty_" }),
-      programId,
-      workflowId: workflow.id,
-      name,
-      description,
-      type,
-      startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
-      endsAt,
-      rewardAmount,
-      submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
+  const bounty = await prisma.$transaction(async (tx) => {
+    let workflow: Workflow | null = null;
+    const bountyId = createId({ prefix: "bounty_" });
 
-      ...(groups?.length && {
-        groups: {
-          createMany: {
-            data: groups?.map((group) => ({
-              groupId: group.id,
-            })),
-          },
+    // Create a workflow if there is a performance condition
+    if (condition) {
+      const action: WorkflowAction = {
+        type: WORKFLOW_ACTION_TYPES.AwardBounty,
+        data: {
+          bountyId,
         },
-      }),
-    },
+      };
+
+      workflow = await tx.workflow.create({
+        data: {
+          id: createId({ prefix: "wf_" }),
+          programId,
+          trigger: WORKFLOW_ATTRIBUTE_TRIGGER_MAP[condition.attribute],
+          triggerConditions: [condition],
+          actions: [action],
+        },
+      });
+    }
+
+    // Create a bounty
+    return await tx.bounty.create({
+      data: {
+        id: bountyId,
+        programId,
+        workflowId: workflow?.id,
+        name,
+        description,
+        type,
+        startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
+        endsAt,
+        rewardAmount,
+        ...(submissionRequirements && {
+          submissionRequirements,
+        }),
+        ...(groups?.length && {
+          groups: {
+            createMany: {
+              data: groups.map(({ id }) => ({
+                groupId: id,
+              })),
+            },
+          },
+        }),
+      },
+    });
   });
 
   return NextResponse.json(BountySchema.parse(bounty));

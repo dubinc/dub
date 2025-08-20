@@ -5,33 +5,9 @@ import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
+import { workflowConditionSchema } from "./workflows";
 
 export const SUBMISSION_REQUIREMENTS = ["image", "url"] as const;
-
-export const PERFORMANCE_ACTIVITIES = [
-  "earnings",
-  "revenue",
-  "clicks",
-  "click earnings",
-  "leads",
-  "lead earnings",
-  "sales",
-  "sale earnings",
-] as const;
-
-export const PERFORMANCE_CURRENCY_ACTIVITIES = [
-  "click earnings",
-  "lead earnings",
-  "sale earnings",
-  "earnings",
-  "revenue",
-];
-
-export const bountyPerformanceLogicSchema = z.object({
-  activity: z.enum(PERFORMANCE_ACTIVITIES),
-  operator: z.enum(["gte"]).default("gte"),
-  value: z.number().min(0, "Logic value must be at least 0"),
-});
 
 const bountySubmissionRequirementsSchema = z
   .array(z.enum(SUBMISSION_REQUIREMENTS))
@@ -54,8 +30,8 @@ export const createBountySchema = z.object({
   endsAt: parseDateSchema.nullish(),
   rewardAmount: z.number().min(1, "Reward amount must be greater than 1"),
   submissionRequirements: bountySubmissionRequirementsSchema.nullish(),
-  performanceLogic: bountyPerformanceLogicSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
+  performanceCondition: workflowConditionSchema.nullish(),
 });
 
 export const updateBountySchema = createBountySchema;

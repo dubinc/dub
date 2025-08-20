@@ -24,10 +24,10 @@ import {
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
-  bountyPerformanceLogicSchema,
   BountySchema,
   BountySchemaExtended,
   BountySubmissionSchema,
+  SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
 import {
   clickEventResponseSchema,
@@ -94,6 +94,12 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
+import {
+  WORKFLOW_COMPARISON_OPERATORS,
+  WORKFLOW_CONDITION_ATTRIBUTES,
+  workflowActionSchema,
+  workflowConditionSchema,
+} from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 
 export type LinkProps = Link;
@@ -516,12 +522,21 @@ export type GroupProps = z.infer<typeof GroupSchema>;
 
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
 
-export type BountyPerformanceLogic = z.infer<
-  typeof bountyPerformanceLogicSchema
->;
-
 export type BountyProps = z.infer<typeof BountySchema>;
 
 export type BountyExtendedProps = z.infer<typeof BountySchemaExtended>;
 
 export type BountySubmissionProps = z.infer<typeof BountySubmissionSchema>;
+
+export type BountySubmissionRequirement =
+  (typeof SUBMISSION_REQUIREMENTS)[number];
+
+export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
+
+export type WorkflowConditionAttribute =
+  (typeof WORKFLOW_CONDITION_ATTRIBUTES)[number];
+
+export type WorkflowComparisonOperator =
+  (typeof WORKFLOW_COMPARISON_OPERATORS)[number];
+
+export type WorkflowAction = z.infer<typeof workflowActionSchema>;

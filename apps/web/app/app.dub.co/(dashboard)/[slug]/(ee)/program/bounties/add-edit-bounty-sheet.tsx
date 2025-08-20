@@ -1,16 +1,16 @@
+import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BountyExtendedProps,
-  BountyPerformanceLogic,
   BountyProps,
+  BountySubmissionRequirement,
 } from "@/lib/types";
+import { createBountySchema } from "@/lib/zod/schemas/bounties";
 import {
-  bountyPerformanceLogicSchema,
-  createBountySchema,
-  PERFORMANCE_CURRENCY_ACTIVITIES,
-  SUBMISSION_REQUIREMENTS,
-} from "@/lib/zod/schemas/bounties";
+  WORKFLOW_CONDITION_ATTRIBUTES_LABELS,
+  workflowConditionSchema,
+} from "@/lib/zod/schemas/workflows";
 import { BountyLogic } from "@/ui/partners/bounties/bounty-logic";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
@@ -52,8 +52,6 @@ type FormData = z.infer<typeof createBountySchema>;
 
 export const useAddEditBountyForm = () => useFormContext<FormData>();
 
-type SubmissionRequirement = (typeof SUBMISSION_REQUIREMENTS)[number];
-
 const BOUNTY_TYPES: CardSelectorOption[] = [
   {
     key: "performance",
@@ -94,12 +92,8 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       type: bounty?.type || "performance",
       submissionRequirements: bounty?.submissionRequirements || null,
       groupIds: null,
-
-      // TODO: [bounties] Get existing performance logic from bounty/workflow
-      performanceLogic: {
-        activity: undefined,
+      performanceCondition: {
         operator: "gte",
-        value: undefined,
       },
     },
   });
@@ -110,17 +104,18 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     setValue,
     control,
     register,
-    setError,
     formState: { errors },
   } = form;
 
-  const [startsAt, rewardAmount, type, name, description] = watch([
-    "startsAt",
-    "rewardAmount",
-    "type",
-    "name",
-    "description",
-  ]);
+  const [startsAt, rewardAmount, type, name, description, performanceCondition] =
+    watch([
+      "startsAt",
+      "rewardAmount",
+      "type",
+      "name",
+      "description",
+      "performanceCondition",
+    ]);
 
   // Make sure endsAt is null if hasEndDate is false
   useEffect(() => {
@@ -131,7 +126,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
   // Set submission requirements
   useEffect(() => {
-    const requirements: SubmissionRequirement[] = [];
+    const requirements: BountySubmissionRequirement[] = [];
 
     if (requireImage) {
       requirements.push("image");
@@ -158,8 +153,25 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       return true;
     }
 
+    if (
+      type === "performance" &&
+      ["attribute", "operator", "value"].some(
+        (key) => performanceCondition?.[key] === undefined,
+      )
+    ) {
+      return true;
+    }
+
     return false;
-  }, [startsAt, rewardAmount, type, name]);
+  }, [
+    startsAt,
+    rewardAmount,
+    type,
+    name,
+    performanceCondition?.attribute,
+    performanceCondition?.operator,
+    performanceCondition?.value,
+  ]);
 
   // Handle form submission
   const onSubmit = async (data: FormData) => {
@@ -167,41 +179,36 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
     data.rewardAmount = data.rewardAmount * 100;
 
+    // Parse performance logic
     if (data.type === "performance") {
-      data.submissionRequirements = null;
+      const result = workflowConditionSchema.safeParse(data.performanceCondition);
 
-      let performanceLogic: BountyPerformanceLogic | null = null;
-      if (data.performanceLogic) {
-        try {
-          const isCurrency = PERFORMANCE_CURRENCY_ACTIVITIES.includes(
-            data.performanceLogic.activity,
-          );
-
-          performanceLogic = bountyPerformanceLogicSchema.parse({
-            ...data.performanceLogic,
-            value: isCurrency
-              ? data.performanceLogic.value * 100
-              : data.performanceLogic.value,
-          });
-
-          data.name =
-            `Earn ${currencyFormatter(data.rewardAmount / 100)} after generating ` +
-            `${isCurrency ? `${currencyFormatter(performanceLogic.value)} in` : performanceLogic.value} ` +
-            performanceLogic.activity;
-        } catch (error) {
-          console.error(error);
-          setError("root.performanceLogic", {
-            message: "Invalid performance logic",
-          });
-          toast.error(
-            "Invalid performance logic. Please fix the errors and try again.",
-          );
-          return;
-        }
-
-        data.performanceLogic = performanceLogic;
+      if (!result.success) {
+        toast.error(
+          "Invalid performance logic. Please fix the errors and try again.",
+        );
+        return;
       }
-    } else data.performanceLogic = null;
+
+      let { data: condition } = result;
+      const isCurrency = isCurrencyAttribute(condition.attribute);
+
+      // Format the value to be in cents if it's a currency attribute
+      condition = {
+        ...condition,
+        value: isCurrency ? condition.value * 100 : condition.value,
+      };
+
+      data.performanceCondition = condition;
+
+      // Generate a name
+      data.name =
+        `Earn ${currencyFormatter(data.rewardAmount / 100)} after generating ` +
+        `${isCurrency ? `${currencyFormatter(condition.value / 100)} in` : condition.value} ` +
+        WORKFLOW_CONDITION_ATTRIBUTES_LABELS[condition.attribute];
+    } else if (type === "submission") {
+      data.performanceCondition = null;
+    }
 
     await makeRequest(bounty ? `/api/bounties/${bounty.id}` : "/api/bounties", {
       method: bounty ? "PATCH" : "POST",
