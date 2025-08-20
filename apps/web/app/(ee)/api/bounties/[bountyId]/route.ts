@@ -77,16 +77,32 @@ export const DELETE = withWorkspace(async ({ workspace, params }) => {
   const { bountyId } = params;
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const bounty = await getBountyOrThrow({
+  await getBountyOrThrow({
     bountyId,
     programId,
   });
 
-  await prisma.bounty.delete({
-    where: {
-      id: bounty.id,
-    },
+  await prisma.$transaction(async (tx) => {
+    const bounty = await tx.bounty.delete({
+      where: {
+        id: bountyId,
+      },
+    });
+
+    await tx.bountySubmission.deleteMany({
+      where: {
+        bountyId,
+      },
+    });
+
+    if (bounty.workflowId) {
+      await tx.workflow.delete({
+        where: {
+          id: bounty.workflowId,
+        },
+      });
+    }
   });
 
-  return NextResponse.json({ id: bounty.id });
+  return NextResponse.json({ id: bountyId });
 });
