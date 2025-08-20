@@ -33,6 +33,11 @@ export const CONDITION_OPERATORS = [
   "not_in",
 ] as const;
 
+export const ATTRIBUTE_LABELS = {
+  country: "country",
+  productId: "product",
+} as const;
+
 export const CONDITION_OPERATOR_LABELS = {
   equals_to: "is",
   not_equals: "is not",
@@ -52,12 +57,18 @@ export const rewardConditionSchema = z.object({
     z.array(z.string()),
     z.array(z.number()),
   ]),
+  label: z
+    .string()
+    .nullish()
+    .describe("Product name used for display purposes in the UI."),
 });
 
 export const rewardConditionsSchema = z.object({
   operator: z.enum(["AND", "OR"]).default("AND"),
   conditions: z.array(rewardConditionSchema).min(1),
   amount: z.number().int().min(0),
+  type: z.nativeEnum(RewardStructure).optional(),
+  maxDuration: maxDurationSchema,
 });
 
 export const rewardConditionsArraySchema = z

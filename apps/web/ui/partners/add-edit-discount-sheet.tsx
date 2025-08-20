@@ -296,7 +296,7 @@ function DiscountSheetContent({
                                     })}
                                   >
                                     {RECURRING_MAX_DURATIONS.filter(
-                                      (v) => v !== 0,
+                                      (v) => v !== 0, // filter out one-time discounts (already covered by the one-time discount type)
                                     ).map((v) => (
                                       <option value={v} key={v}>
                                         {v} {pluralize("month", Number(v))}

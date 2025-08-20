@@ -30,17 +30,7 @@ export function ProgramRewardList({
         <Item key={reward.id} icon={REWARD_EVENTS[reward.event].icon}>
           {reward.description || (
             <>
-              {constructRewardAmount({
-                ...(reward.modifiers
-                  ? {
-                      amounts: [
-                        reward.amount,
-                        ...reward.modifiers.map(({ amount }) => amount),
-                      ],
-                    }
-                  : { amount: reward.amount }),
-                type: reward.type,
-              })}{" "}
+              {constructRewardAmount(reward)}{" "}
               {reward.event === "sale" && reward.maxDuration === 0 ? (
                 <>for the first sale</>
               ) : (
@@ -80,12 +70,7 @@ export function ProgramRewardList({
           {discount.description || (
             <>
               {" "}
-              New users get{" "}
-              {constructRewardAmount({
-                amount: discount.amount,
-                type: discount.type,
-              })}{" "}
-              off{" "}
+              New users get {constructRewardAmount(discount)} off{" "}
               {discount.maxDuration === null ? (
                 <> for their lifetime</>
               ) : discount.maxDuration && discount.maxDuration > 1 ? (
