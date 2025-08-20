@@ -13,7 +13,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { queryParams } = useRouterStuff();
   const { bountiesStats, isLoading: isLoadingStats } = useBountiesStats();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -57,7 +57,7 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
       {deleteModal}
 
       <Link
-        href={`/program/bounties/${bounty.id}`}
+        href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
         className="flex flex-col gap-5"
       >
         <div className="relative flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
