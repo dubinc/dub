@@ -2,25 +2,19 @@ import { WorkflowTrigger } from "@dub/prisma/client";
 import { z } from "zod";
 
 export const WORKFLOW_CONDITION_ATTRIBUTES = [
-  "totalClicks",
   "totalLeads",
-  "totalSales",
-  "totalClickEarnings",
-  "totalLeadEarnings",
-  "totalSaleEarnings",
-  "totalSaleRevenue",
-  "totalEarnings",
-  "totalRevenue",
+  "totalConversions",
+  "totalSaleAmount",
+  "totalCommission",
+] as const;
+
+export const WORKFLOW_ACTION_TYPES = [
+  "sendEmail", // send an email to the partner
+  "updateGroup", // move the partner to a group
+  "createCommission", // create a commission for the partner via Bounty
 ] as const;
 
 export const WORKFLOW_CONDITION_OPERATORS = ["gte"] as const;
-
-export const WORKFLOW_ACTION_TYPES = [
-  "awardBounty",
-  // "moveToGroup",
-  // "sendEmail",
-  // "triggerWebhook",
-] as const;
 
 // Individual condition
 const workflowConditionSchema = z.object({
@@ -38,9 +32,23 @@ export const workflowConditionsSchema = z.object({
 // Individual action
 const workflowActionSchema = z.discriminatedUnion("type", [
   z.object({
-    type: z.literal("awardBounty"),
+    type: z.literal("createCommission"),
     data: z.object({
       bountyId: z.string(),
+    }),
+  }),
+
+  z.object({
+    type: z.literal("sendEmail"),
+    data: z.object({
+      emailId: z.string(),
+    }),
+  }),
+
+  z.object({
+    type: z.literal("updateGroup"),
+    data: z.object({
+      groupId: z.string(),
     }),
   }),
 ]);
