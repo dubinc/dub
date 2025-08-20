@@ -1,4 +1,5 @@
 import { storage } from "@/lib/storage";
+import { disableStripePromotionCode } from "@/lib/stripe/disable-stripe-promotion-code";
 import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
@@ -14,6 +15,11 @@ export async function deleteLink(linkId: string) {
     },
     include: {
       ...includeTags,
+      project: {
+        select: {
+          stripeConnectId: true,
+        },
+      },
     },
   });
 
@@ -41,6 +47,13 @@ export async function deleteLink(linkId: string) {
           data: {
             totalLinks: { decrement: 1 },
           },
+        }),
+
+      link.project &&
+        link.couponCode &&
+        disableStripePromotionCode({
+          promotionCode: link.couponCode,
+          stripeConnectId: link.project.stripeConnectId,
         }),
     ]),
   );

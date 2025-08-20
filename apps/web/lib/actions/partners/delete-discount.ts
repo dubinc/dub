@@ -65,6 +65,14 @@ export const deleteDiscountAction = authActionClient
           },
         }),
 
+        discount.couponCodeTrackingEnabledAt &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete-promotion-codes`,
+            body: {
+              groupId: group.id,
+            },
+          }),
+
         recordAuditLog({
           workspaceId: workspace.id,
           programId,

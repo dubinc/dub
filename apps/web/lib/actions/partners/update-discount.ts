@@ -6,7 +6,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { qstash } from "@/lib/cron";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -14,8 +14,7 @@ export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { discountId, amount, type, maxDuration, couponId, couponTestId } =
-      parsedInput;
+    let { discountId, enableCouponTracking, couponTestId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -29,42 +28,59 @@ export const updateDiscountAction = authActionClient
         id: discountId,
       },
       data: {
-        amount,
-        type,
-        maxDuration,
-        couponId,
-        couponTestId,
+        couponTestId: couponTestId || null,
+        couponCodeTrackingEnabledAt: enableCouponTracking ? new Date() : null,
       },
       include: {
-        partnerGroup: true,
+        partnerGroup: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
+    const couponTestIdChanged =
+      discount.couponTestId !== updatedDiscount.couponTestId;
+    const trackingEnabledChanged =
+      discount.couponCodeTrackingEnabledAt !==
+      updatedDiscount.couponCodeTrackingEnabledAt;
+
+    const shouldCreatePromotionCodes =
+      discount.couponCodeTrackingEnabledAt === null &&
+      updatedDiscount.couponCodeTrackingEnabledAt !== null;
+
+    const shouldDeletePromotionCodes =
+      discount.couponCodeTrackingEnabledAt !== null &&
+      updatedDiscount.couponCodeTrackingEnabledAt === null;
+
     waitUntil(
-      (async () => {
-        const shouldExpireCache = !deepEqual(
-          {
-            amount: discount.amount,
-            type: discount.type,
-            maxDuration: discount.maxDuration,
-          },
-          {
-            amount: updatedDiscount.amount,
-            type: updatedDiscount.type,
-            maxDuration: updatedDiscount.maxDuration,
-          },
-        );
+      Promise.allSettled([
+        couponTestIdChanged &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+            body: {
+              groupId: partnerGroup?.id,
+            },
+          }),
 
-        await Promise.allSettled([
-          shouldExpireCache
-            ? qstash.publishJSON({
-                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-                body: {
-                  groupId: partnerGroup?.id,
-                },
-              })
-            : Promise.resolve(),
+        shouldCreatePromotionCodes &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
+            body: {
+              groupId: partnerGroup?.id,
+            },
+          }),
 
+        shouldDeletePromotionCodes &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete-promotion-codes`,
+            body: {
+              groupId: partnerGroup?.id,
+            },
+          }),
+
+        (couponTestIdChanged || trackingEnabledChanged) &&
           recordAuditLog({
             workspaceId: workspace.id,
             programId,
@@ -79,7 +95,6 @@ export const updateDiscountAction = authActionClient
               },
             ],
           }),
-        ]);
-      })(),
+      ]),
     );
   });
