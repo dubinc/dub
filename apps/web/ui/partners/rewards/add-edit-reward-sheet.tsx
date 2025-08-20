@@ -84,6 +84,7 @@ function RewardSheetContent({
   const { id: workspaceId, defaultProgramId, plan } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
+  const { queryParams } = useRouterStuff();
 
   const defaultValuesSource = reward || defaultRewardValues;
 
@@ -138,7 +139,7 @@ function RewardSheetContent({
     updateRewardAction,
     {
       onSuccess: async () => {
-        setIsOpen(false);
+        queryParams({ del: "rewardId", scroll: false });
         toast.success("Reward updated!");
         await mutateProgram();
         await mutateGroup();
@@ -329,7 +330,7 @@ function RewardSheetContent({
                               value: "0",
                             },
                             ...RECURRING_MAX_DURATIONS.filter(
-                              (v) => v !== 0,
+                              (v) => v !== 0 && v !== 1,
                             ).map((v) => ({
                               text: `for ${v} ${pluralize("month", Number(v))}`,
                               value: v.toString(),
