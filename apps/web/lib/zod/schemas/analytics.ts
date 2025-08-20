@@ -10,8 +10,8 @@ import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,
+  DUB_FOUNDING_DATE,
   PAGINATION_LIMIT,
-  THE_BEGINNING_OF_TIME,
   capitalize,
   formatDate,
 } from "@dub/utils";
@@ -125,8 +125,8 @@ export const analyticsQuerySchema = z
         "The interval to retrieve analytics for. If undefined, defaults to 24h.",
       ),
     start: parseDateSchema
-      .refine((value: Date) => value >= THE_BEGINNING_OF_TIME, {
-        message: `The start date cannot be earlier than ${formatDate(THE_BEGINNING_OF_TIME)}.`,
+      .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
+        message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
       })
       .optional()
       .describe(

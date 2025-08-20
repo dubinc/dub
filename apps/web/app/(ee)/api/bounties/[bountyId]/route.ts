@@ -39,6 +39,17 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
     programId,
   });
 
+  const groups = groupIds?.length
+    ? await prisma.partnerGroup.findMany({
+        where: {
+          programId,
+          id: {
+            in: groupIds,
+          },
+        },
+      })
+    : [];
+
   await prisma.bounty.update({
     where: {
       id: bounty.id,
@@ -48,6 +59,13 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
       submissionRequirements: data.submissionRequirements ?? Prisma.JsonNull,
       startsAt: new Date(data.startsAt!),
       endsAt: data.endsAt ? new Date(data.endsAt) : null,
+
+      groups: {
+        deleteMany: {},
+        create: groups?.map((group) => ({
+          groupId: group.id,
+        })),
+      },
     },
   });
 

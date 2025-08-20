@@ -1,19 +1,55 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import { Button, MenuItem, Popover, useRouterStuff } from "@dub/ui";
-import { CalendarDays, Dots, PenWriting, Users } from "@dub/ui/icons";
+import { CalendarDays, Dots, PenWriting, Trash, Users } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
 import { Command } from "cmdk";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
+  const { id: workspaceId } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const { confirmModal: deleteModal, setShowConfirmModal: setShowDeleteModal } =
+    useConfirmModal({
+      title: "Delete bounty",
+      description: "Are you sure you want to delete this bounty?",
+      onConfirm: async () => {
+        toast.promise(
+          async () => {
+            const response = await fetch(
+              `/api/bounties/${bounty.id}?workspaceId=${workspaceId}`,
+              {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+
+            if (!response.ok) throw new Error("Failed to delete bounty");
+
+            mutatePrefix("/api/bounties");
+          },
+          {
+            loading: "Deleting bounty...",
+            success: "Bounty deleted successfully!",
+            error: (err) => err,
+          },
+        );
+      },
+    });
+
   return (
     <ProgramOverviewCard className="relative cursor-pointer border-neutral-200 p-5 transition-all hover:border-neutral-300 hover:shadow-lg">
+      {deleteModal}
       <Link
         href={`/program/bounties/${bounty.id}`}
         className="flex flex-col gap-5"
@@ -82,6 +118,17 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
                 }}
               >
                 Edit bounty
+              </MenuItem>
+              <MenuItem
+                as={Command.Item}
+                icon={Trash}
+                variant="danger"
+                onSelect={() => {
+                  setIsMenuOpen(false);
+                  setShowDeleteModal(true);
+                }}
+              >
+                Delete bounty
               </MenuItem>
             </Command.List>
           </Command>
