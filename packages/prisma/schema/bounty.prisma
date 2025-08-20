@@ -55,7 +55,7 @@ model BountySubmission {
   bountyId        String
   commissionId    String?                @unique
   userId          String?
-  evidenceUrl     String
+  evidenceUrl     String?
   description     String?                @db.Text
   status          BountySubmissionStatus @default(pending)
   rejectionReason String?

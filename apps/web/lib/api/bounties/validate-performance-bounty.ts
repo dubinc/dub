@@ -1,10 +1,12 @@
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
   OPERATOR_FUNCTIONS,
   workflowConditionSchema,
 } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
+import { BountySubmissionStatus, WorkflowTrigger } from "@dub/prisma/client";
 import { z } from "zod";
+import { createId } from "../create-id";
 
 export const validatePerformanceBounty = async ({
   programId,
@@ -117,7 +119,7 @@ export const validatePerformanceBounty = async ({
     }
 
     if (bounty.groups.length > 0) {
-      const allowedGroupIds = bounty.groups.map(({ id }) => id);
+      const allowedGroupIds = bounty.groups.map(({ groupId }) => groupId);
 
       if (!allowedGroupIds.includes(programEnrollment.groupId)) {
         console.log(
@@ -141,15 +143,6 @@ export const validatePerformanceBounty = async ({
         { totalLeads: 0, totalConversions: 0, totalSaleAmount: 0 },
       );
 
-    const context = {
-      totalCommission,
-      totalLeads,
-      totalConversions,
-      totalSaleAmount,
-    };
-
-    console.log(context);
-
     // Evaluate the workflow condition
     // Note: We only support one condition for now
     const { attribute, operator, value } = workflowConditions[0];
@@ -161,14 +154,52 @@ export const validatePerformanceBounty = async ({
       );
     }
 
+    const context = {
+      totalCommission,
+      totalLeads,
+      totalConversions,
+      totalSaleAmount,
+    };
+
     const isEligible = operatorFn(context[attribute], value);
 
     if (!isEligible) {
       console.log(
         `Partner ${partnerId} does not meet the requirements for bounty ${bounty.id}.`,
+        {
+          attribute,
+          value,
+          context,
+        },
       );
+      return;
     }
 
-    // TODO
+    const commission = await createPartnerCommission({
+      event: "custom",
+      partnerId,
+      programId,
+      amount: 0,
+      quantity: 1,
+      description: `Awarded for meeting the requirements for "${bounty.name}" bounty.`,
+    });
+
+    if (!commission) {
+      console.error(
+        `Failed to create commission for partner ${partnerId} in program ${programId} for bounty ${bounty.id}.`,
+      );
+      return;
+    }
+
+    await prisma.bountySubmission.create({
+      data: {
+        id: createId({ prefix: "bounty_submission_" }),
+        programId,
+        partnerId,
+        bountyId: bounty.id,
+        commissionId: commission.id,
+        status: BountySubmissionStatus.approved,
+      },
+    });
   }
 };
