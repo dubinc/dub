@@ -5,7 +5,7 @@ import { BountyExtendedProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { Button, MenuItem, Popover, useRouterStuff } from "@dub/ui";
-import { CalendarDays, Dots, PenWriting, Trash, Users } from "@dub/ui/icons";
+import { Calendar6, Dots, PenWriting, Trash, Users } from "@dub/ui/icons";
 import { formatDate, pluralize } from "@dub/utils";
 import { Command } from "cmdk";
 import Link from "next/link";
@@ -76,7 +76,7 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
           </h3>
 
           <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
-            <CalendarDays className="size-3.5" />
+            <Calendar6 className="size-3.5" />
             <span>
               {formatDate(bounty.startsAt, { month: "short" })}
               {bounty.endsAt && (

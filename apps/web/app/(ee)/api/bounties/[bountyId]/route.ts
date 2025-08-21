@@ -30,18 +30,15 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   const {
+    name,
+    description,
+    startsAt,
+    endsAt,
+    rewardAmount,
+    submissionRequirements,
     performanceCondition,
     groupIds,
-    rewardAmount,
-    startsAt,
-    description,
-    endsAt,
-    name,
-    submissionRequirements,
   } = updateBountySchema.parse(await parseRequestBody(req));
-
-  // TODO:
-  // Don't allow changing the type of the bounty
 
   const bounty = await getBountyOrThrow({
     bountyId,

@@ -72,41 +72,39 @@ export function BountyList() {
               ))}
         </div>
       ) : (
-        <>
-          <AnimatedEmptyState
-            title="No bounties active"
-            description={
-              <>
-                This program doesn't have any active bounties.{" "}
-                <a
-                  href="https://dub.co/help/article/bounties"
-                  target="_blank"
-                  className="hover:text-content-default underline sm:whitespace-nowrap"
-                >
-                  Learn more about bounties
-                </a>
-                .
-              </>
-            }
-            cardContent={() => (
-              <>
-                <Trophy className="size-4 text-neutral-700" />
-                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-              </>
-            )}
-            addButton={
-              <Button
-                text="Create bounty"
-                variant="primary"
-                onClick={() =>
-                  setBountySheetState(
-                    (s) => ({ bountyId: null, open: true }) as any,
-                  )
-                }
-              />
-            }
-          />
-        </>
+        <AnimatedEmptyState
+          title="No bounties active"
+          description={
+            <>
+              This program doesn't have any active bounties.{" "}
+              <a
+                href="https://dub.co/help/article/bounties"
+                target="_blank"
+                className="hover:text-content-default underline sm:whitespace-nowrap"
+              >
+                Learn more about bounties
+              </a>
+              .
+            </>
+          }
+          cardContent={() => (
+            <>
+              <Trophy className="size-4 text-neutral-700" />
+              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            </>
+          )}
+          addButton={
+            <Button
+              text="Create bounty"
+              variant="primary"
+              onClick={() =>
+                setBountySheetState(
+                  (s) => ({ bountyId: null, open: true }) as any,
+                )
+              }
+            />
+          }
+        />
       )}
     </>
   );
