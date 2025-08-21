@@ -122,7 +122,7 @@ const AddHostnameForm = () => {
         text="Add Hostname"
         variant="primary"
         onClick={addHostname}
-        disabled={!isValidHostname(hostname) || hostname.length === 0}
+        disabled={!isValidHostname(hostname)}
         loading={processing}
         className="w-fit"
         disabledTooltip={permissionsError || undefined}

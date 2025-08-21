@@ -1,6 +1,6 @@
-import { PublishableKeyForm } from "app/app.dub.co/(dashboard)/[slug]/(ee)/settings/analytics/publishable-key-form";
 import { AllowedHostnamesForm } from "./allowed-hostnames-form";
 import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
+import { PublishableKeyForm } from "./publishable-key-form";
 
 export default function WorkspaceAnalytics() {
   return (
