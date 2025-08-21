@@ -29,10 +29,19 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
   const { bountyId } = params;
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  // TODO: [bounties] Persist performance logic to workflow and groupIds to bountyGroup
-  const { performanceCondition, groupIds, ...data } = updateBountySchema.parse(
-    await parseRequestBody(req),
-  );
+  const {
+    performanceCondition,
+    groupIds,
+    rewardAmount,
+    startsAt,
+    description,
+    endsAt,
+    name,
+    submissionRequirements,
+  } = updateBountySchema.parse(await parseRequestBody(req));
+
+  // TODO:
+  // Don't allow changing the type of the bounty
 
   const bounty = await getBountyOrThrow({
     bountyId,
@@ -55,19 +64,22 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
       id: bounty.id,
     },
     data: {
-      ...data,
-      submissionRequirements: data.submissionRequirements ?? Prisma.JsonNull,
-      startsAt: new Date(data.startsAt!),
-      endsAt: data.endsAt ? new Date(data.endsAt) : null,
-
+      name,
+      description,
+      startsAt,
+      endsAt,
+      rewardAmount,
+      submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
       groups: {
         deleteMany: {},
-        create: groups?.map((group) => ({
+        create: groups.map((group) => ({
           groupId: group.id,
         })),
       },
     },
   });
+
+  // TODO: [bounties] Persist performance logic to workflow and groupIds to bountyGroupP
 
   return NextResponse.json(BountySchema.parse(bounty));
 });
@@ -81,6 +93,9 @@ export const DELETE = withWorkspace(async ({ workspace, params }) => {
     bountyId,
     programId,
   });
+
+  // TODO:
+  // What happens to the created commissions?
 
   await prisma.$transaction(async (tx) => {
     const bounty = await tx.bounty.delete({
