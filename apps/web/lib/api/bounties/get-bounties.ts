@@ -34,10 +34,24 @@ export async function getBounties(filters: BountyFilters) {
       ${
         includeExpandedFields
           ? Prisma.sql`
-            COUNT(DISTINCT pe.partnerId) as partnersCount
+            COUNT(DISTINCT pe.partnerId) as partnersCount,
+            COALESCE(
+              (
+                SELECT JSON_ARRAYAGG(
+                  JSON_OBJECT('id', bgSub.groupId)
+                )
+                FROM (
+                  SELECT bgSub.groupId
+                  FROM BountyGroup bgSub
+                  WHERE bgSub.bountyId = b.id
+                ) bgSub
+              ),
+              JSON_ARRAY()
+            ) as groups
           `
           : Prisma.sql`
-            0 as partnersCount
+            0 as partnersCount,
+            JSON_ARRAY() as groups
           `
       }
     FROM Bounty b
@@ -50,7 +64,7 @@ export async function getBounties(filters: BountyFilters) {
         : Prisma.sql``
     }
     WHERE b.programId = ${programId}
-    GROUP BY b.id
+    GROUP BY b.id, b.name, b.description, b.type, b.startsAt, b.endsAt, b.rewardAmount, b.submissionRequirements
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
   `) satisfies Array<any>;
@@ -58,5 +72,6 @@ export async function getBounties(filters: BountyFilters) {
   return bounties.map((bounty) => ({
     ...bounty,
     partnersCount: Number(bounty.partnersCount),
+    groups: bounty.groups.filter((group) => group !== null),
   }));
 }

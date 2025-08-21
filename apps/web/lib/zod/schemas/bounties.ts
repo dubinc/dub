@@ -5,6 +5,7 @@ import {
 } from "@dub/prisma/client";
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
+import { GroupSchema } from "./groups";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
@@ -55,6 +56,13 @@ export const BountySchema = z.object({
 
 export const BountySchemaExtended = BountySchema.extend({
   partnersCount: z.number().default(0),
+  groups: z
+    .array(
+      GroupSchema.pick({
+        id: true,
+      }),
+    )
+    .nullable(),
 });
 
 export const BountySubmissionFileSchema = z.object({
