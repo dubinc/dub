@@ -4,6 +4,7 @@ import { LucideIcon } from "lucide-react";
 import { ComponentType, SVGProps } from "react";
 
 // custom icons
+export * from "./arrow-up-right-2";
 export * from "./copy";
 export * from "./crown-small";
 export * from "./dub-analytics";
@@ -11,7 +12,9 @@ export * from "./dub-api";
 export * from "./dub-crafted-shield";
 export * from "./dub-links";
 export * from "./dub-partners";
+export * from "./dub-product-icon";
 export * from "./expanding-arrow";
+export * from "./ios-app-store";
 export * from "./magic";
 export * from "./markdown-icon";
 export * from "./matrix-lines";

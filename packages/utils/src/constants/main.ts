@@ -64,6 +64,7 @@ export const PARTNERS_DOMAIN_WITH_NGROK =
       : process.env.NEXT_PUBLIC_NGROK_URL || "http://partners.localhost:8888";
 
 export const DUB_LOGO = "https://assets.dub.co/logo.png";
+export const DUB_LOGO_SQUARE = "https://assets.dub.co/logo-square.png";
 export const DUB_QR_LOGO = "https://assets.dub.co/logo.png";
 export const DUB_WORDMARK = "https://assets.dub.co/wordmark.png";
 export const DUB_THUMBNAIL = "https://assets.dub.co/thumbnail.jpg";

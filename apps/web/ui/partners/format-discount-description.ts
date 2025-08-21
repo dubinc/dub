@@ -15,13 +15,16 @@ export function formatDiscountDescription({
   }
 
   const discountAmount = constructRewardAmount(discount);
+
   const parts: string[] = [];
 
   parts.push(`New users get ${discountAmount} off `);
 
   if (discount.maxDuration === null) {
-    parts.push("for the their lifetime");
+    parts.push("for their lifetime");
   } else if (discount.maxDuration === 0) {
+    parts.push("for their first purchase");
+  } else if (discount.maxDuration === 1) {
     parts.push("for their first month");
   } else if (discount.maxDuration && discount.maxDuration > 0) {
     parts.push(

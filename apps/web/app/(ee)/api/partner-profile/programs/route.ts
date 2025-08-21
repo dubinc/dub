@@ -24,37 +24,12 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           createdAt: "asc",
         },
       },
-      program: includeRewardsDiscounts
-        ? {
-            include: {
-              discounts: {
-                where: {
-                  OR: [
-                    // program-wide discounts
-                    {
-                      programEnrollments: {
-                        none: {},
-                      },
-                    },
-
-                    // partner-specific discounts
-                    {
-                      programEnrollments: {
-                        some: {
-                          partnerId: partner.id,
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-          }
-        : true,
+      program: true,
       ...(includeRewardsDiscounts && {
         clickReward: true,
         leadReward: true,
         saleReward: true,
+        discount: true,
       }),
     },
     orderBy: [

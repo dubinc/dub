@@ -1,4 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -139,6 +140,14 @@ export async function invoicePaid(event: Stripe.Event) {
         id: linkId,
       },
       data: {
+        ...(isFirstConversion({
+          customer,
+          linkId,
+        }) && {
+          conversions: {
+            increment: 1,
+          },
+        }),
         sales: {
           increment: 1,
         },

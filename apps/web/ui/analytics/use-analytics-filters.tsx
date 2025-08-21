@@ -1,8 +1,5 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
-import {
-  TRIGGER_DISPLAY,
-  VALID_ANALYTICS_FILTERS,
-} from "@/lib/analytics/constants";
+import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCustomer from "@/lib/swr/use-customer";
 import useCustomers from "@/lib/swr/use-customers";
@@ -86,6 +83,7 @@ import {
 import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
 import RefererIcon from "./referer-icon";
+import { TRIGGER_DISPLAY } from "./trigger-display";
 import { useAnalyticsFilterOption } from "./utils";
 
 export function useAnalyticsFilters({
@@ -764,12 +762,15 @@ export function useAnalyticsFilters({
               icon: CursorRays,
               label: "Trigger",
               options:
-                triggers?.map(({ trigger, ...rest }) => ({
-                  value: trigger,
-                  label: TRIGGER_DISPLAY[trigger],
-                  icon: trigger === "qr" ? QRCode : CursorRays,
-                  right: getFilterOptionTotal(rest),
-                })) ?? null,
+                triggers?.map(({ trigger, ...rest }) => {
+                  const { title, icon } = TRIGGER_DISPLAY[trigger];
+                  return {
+                    value: trigger,
+                    label: title,
+                    icon,
+                    right: getFilterOptionTotal(rest),
+                  };
+                }) ?? null,
               separatorAfter: true,
             },
           ]),

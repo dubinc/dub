@@ -10,6 +10,30 @@ export type PlanFeature = {
   };
 };
 
+export const LEGACY_PRO_PRICE_IDS = [
+  "price_1LodNLAlJJEpqkPVQSrt33Lc", // old monthly
+  "price_1LodNLAlJJEpqkPVRxUyCQgZ", // old yearly
+  "price_1OTcQBAlJJEpqkPViGtGEsbb", // new monthly (test)
+  "price_1OYJeBAlJJEpqkPVLjTsjX0E", // new monthly (prod)
+  "price_1OTcQBAlJJEpqkPVYlCMqdLL", // new yearly (test)
+  "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly (prod)
+];
+
+export const LEGACY_BUSINESS_PRICE_IDS = [
+  "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
+  "price_1LodLoAlJJEpqkPVJdwv5zrG", // oldest yearly
+  "price_1OZgmnAlJJEpqkPVOj4kV64R", // old yearly
+  "price_1OzNlmAlJJEpqkPV7s9HXNAC", // new monthly (test)
+  "price_1OzNmXAlJJEpqkPVYO89lTdx", // new yearly (test)
+  "price_1OzOFIAlJJEpqkPVJxzc9irl", // new monthly (prod)
+  "price_1OzOXMAlJJEpqkPV9ERrjjbw", // new yearly (prod)
+];
+
+export const LEGACY_PRICE_IDS = [
+  ...LEGACY_PRO_PRICE_IDS,
+  ...LEGACY_BUSINESS_PRICE_IDS,
+];
+
 export const PLANS = [
   {
     name: "Free",
@@ -19,11 +43,12 @@ export const PLANS = [
     },
     limits: {
       links: 25,
-      clicks: 1000,
+      clicks: 1_000,
       payouts: 0,
       domains: 3,
       tags: 5,
       folders: 0,
+      groups: 0,
       users: 1,
       ai: 10,
       api: 60,
@@ -37,13 +62,7 @@ export const PLANS = [
       monthly: 30,
       yearly: 25,
       ids: [
-        "price_1LodNLAlJJEpqkPVQSrt33Lc", // old monthly
-        "price_1LodNLAlJJEpqkPVRxUyCQgZ", // old yearly
-        "price_1OTcQBAlJJEpqkPViGtGEsbb", // new monthly (test)
-        "price_1OYJeBAlJJEpqkPVLjTsjX0E", // new monthly (prod)
-        "price_1OTcQBAlJJEpqkPVYlCMqdLL", // new yearly (test)
-        "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly (prod)
-
+        ...LEGACY_PRO_PRICE_IDS,
         // 2025 pricing
         "price_1R8XtyAlJJEpqkPV5WZ4c0jF", //  yearly
         "price_1R8XtEAlJJEpqkPV4opVvVPq", // monthly
@@ -58,8 +77,9 @@ export const PLANS = [
       domains: 10,
       tags: 25,
       folders: 3,
+      groups: 0,
       users: 3,
-      ai: 1000,
+      ai: 1_000,
       api: 600,
       retention: "1-year",
     },
@@ -112,7 +132,7 @@ export const PLANS = [
           title:
             "Redirect users to a specific page within your mobile application using deep links.",
           cta: "Learn more.",
-          href: "https://dub.co//help/article/custom-domain-deep-links",
+          href: "https://dub.co/docs/concepts/deep-links/quickstart",
         },
       },
     ] as PlanFeature[],
@@ -123,14 +143,7 @@ export const PLANS = [
       monthly: 90,
       yearly: 75,
       ids: [
-        "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
-        "price_1LodLoAlJJEpqkPVJdwv5zrG", // oldest yearly
-        "price_1OZgmnAlJJEpqkPVOj4kV64R", // old yearly
-        "price_1OzNlmAlJJEpqkPV7s9HXNAC", // new monthly (test)
-        "price_1OzNmXAlJJEpqkPVYO89lTdx", // new yearly (test)
-        "price_1OzOFIAlJJEpqkPVJxzc9irl", // new monthly (prod)
-        "price_1OzOXMAlJJEpqkPV9ERrjjbw", // new yearly (prod)
-
+        ...LEGACY_BUSINESS_PRICE_IDS,
         // 2025 pricing
         "price_1R3j01AlJJEpqkPVXuG1eNzm", //  yearly
         "price_1R6JedAlJJEpqkPVMUkfjch4", // monthly
@@ -145,9 +158,10 @@ export const PLANS = [
       domains: 100,
       tags: INFINITY_NUMBER,
       folders: 20,
+      groups: 3,
       users: 10,
-      ai: 1000,
-      api: 1200,
+      ai: 1_000,
+      api: 1_200,
       retention: "3-year",
     },
     featureTitle: "Everything in Pro, plus:",
@@ -242,9 +256,10 @@ export const PLANS = [
       domains: 250,
       tags: INFINITY_NUMBER,
       folders: 50,
+      groups: 10,
       users: 20,
-      ai: 1000,
-      api: 3000,
+      ai: 1_000,
+      api: 3_000,
       retention: "5-year",
     },
     featureTitle: "Everything in Business, plus:",
@@ -308,15 +323,16 @@ export const PLANS = [
       yearly: null,
     },
     limits: {
-      links: 250000,
-      clicks: 5000000,
+      links: 500_000,
+      clicks: 5_000_000,
       payouts: INFINITY_NUMBER,
-      domains: 1000,
+      domains: 250,
       tags: INFINITY_NUMBER,
       folders: INFINITY_NUMBER,
-      users: 500,
-      ai: 10000,
-      api: 10000,
+      groups: INFINITY_NUMBER,
+      users: 30,
+      ai: 1_000,
+      api: 3_000,
       retention: "Unlimited",
     },
   },
@@ -371,5 +387,10 @@ export const isDowngradePlan = (currentPlan: string, newPlan: string) => {
   return currentPlanIndex > newPlanIndex;
 };
 
-export const isLegacyBusinessPlan = (plan: string, payoutsLimit: number) =>
-  plan === "business" && payoutsLimit === 0;
+export const isLegacyBusinessPlan = ({
+  plan = "business",
+  payoutsLimit = 0,
+}: {
+  plan?: string;
+  payoutsLimit?: number;
+}) => plan === "business" && payoutsLimit === 0;

@@ -84,7 +84,7 @@ export const programLanderRewardsSchema = z.object({
 export const programLanderSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
-  rewards: programLanderRewardsSchema.optional(),
+  rewards: programLanderRewardsSchema.optional(), // TODO: Remove this after partner groups are merged and functional
   blocks: z.array(programLanderBlockSchema),
 });
 

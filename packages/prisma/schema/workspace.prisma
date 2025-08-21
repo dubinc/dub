@@ -25,24 +25,24 @@ model Project {
   payoutsUsage Int   @default(0)
   payoutsLimit Int   @default(0)
   payoutFee    Float @default(0.05) // processing fee (in decimals) for partner payouts
-
-  domainsLimit Int @default(3)
-  tagsLimit    Int @default(5)
-  foldersUsage Int @default(0)
-  foldersLimit Int @default(0)
-  usersLimit   Int @default(1)
-  aiUsage      Int @default(0)
-  aiLimit      Int @default(10)
+  domainsLimit Int   @default(3)
+  tagsLimit    Int   @default(5)
+  foldersUsage Int   @default(0)
+  foldersLimit Int   @default(0)
+  groupsLimit  Int   @default(0)
+  usersLimit   Int   @default(1)
+  aiUsage      Int   @default(0)
+  aiLimit      Int   @default(10)
 
   referralLinkId  String? @unique
   referredSignups Int     @default(0)
 
   store            Json? // General key-value store for things like persisting toggles, dismissing popups, etc.
   allowedHostnames Json?
+  publishableKey   String? @unique // for the client-side publishable key
 
   conversionEnabled Boolean @default(false) // Whether to enable conversion tracking for links by default
   webhookEnabled    Boolean @default(false)
-  partnersEnabled   Boolean @default(false)
   ssoEnabled        Boolean @default(false)
   dotLinkClaimed    Boolean @default(false)
 

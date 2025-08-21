@@ -38,7 +38,7 @@ export function OverviewChart() {
   >(
     viewType === "revenue"
       ? `/api/analytics?${editQueryString(queryString, {
-          event: "composite",
+          event: "sales",
           groupBy: "timeseries",
         })}`
       : null,

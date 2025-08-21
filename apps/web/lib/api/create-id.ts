@@ -27,6 +27,8 @@ const prefixes = [
   "disc_",
   "dub_embed_",
   "audit_",
+  "import_",
+  "grp_",
 ] as const;
 
 // ULID uses base32 encoding
@@ -56,7 +58,7 @@ export const createId = ({
   prefix,
 }: {
   prefix?: (typeof prefixes)[number];
-}) => {
+} = {}) => {
   const buf = createULIDBuffer();
   const id = base32.encode(buf);
 

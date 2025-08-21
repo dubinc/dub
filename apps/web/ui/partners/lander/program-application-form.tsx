@@ -1,7 +1,7 @@
 "use client";
 
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
-import { ProgramProps } from "@/lib/types";
+import { GroupProps, ProgramProps } from "@/lib/types";
 import { Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -24,12 +24,14 @@ type FormData = {
 
 export function ProgramApplicationForm({
   program,
+  group,
   preview = false,
 }: {
   program: Pick<
     ProgramProps,
     "id" | "slug" | "name" | "termsUrl" | "ageVerification"
   >;
+  group?: Pick<GroupProps, "id">;
   preview?: boolean;
 }) {
   const { isMobile } = useMediaQuery();
@@ -89,6 +91,7 @@ export function ProgramApplicationForm({
         const result = await executeAsync({
           ...data,
           programId: program.id,
+          groupId: group?.id!,
         });
 
         if (!result || result.serverError || result.validationErrors) {
@@ -109,7 +112,7 @@ export function ProgramApplicationForm({
               ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
           )}
-          placeholder="Acme, Inc."
+          placeholder="Brendon Urie"
           autoFocus={!isMobile}
           {...register("name", {
             required: true,
@@ -226,7 +229,7 @@ export function ProgramApplicationForm({
               rel="noopener noreferrer"
               className="text-[var(--brand)] underline hover:opacity-80"
             >
-              {program.name} Partner Program Terms ↗
+              {program.name} Affiliate Program Terms ↗
             </a>
           </label>
         </div>

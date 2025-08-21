@@ -2,13 +2,14 @@ import { getIntegrationGuideMarkdown } from "@/lib/get-integration-guide-markdow
 import { Guide } from "@/ui/guides/guide";
 import { GuideList } from "@/ui/guides/guide-list";
 import { guides, IntegrationGuide } from "@/ui/guides/integrations";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { StepPage } from "../../step-page";
 
 export default async function ConnectGuidesPage({
-  params: { guide },
+  params: { slug, guide },
 }: {
   params: {
+    slug: string;
     guide?: string[];
   };
 }) {
@@ -20,13 +21,13 @@ export default async function ConnectGuidesPage({
       guides.find((g) => g.key === guide[0].toLowerCase()) ?? null;
 
     if (!selectedGuide) {
-      notFound();
+      redirect(`/${slug}/program/new/connect`);
     }
 
     markdownContent = await getIntegrationGuideMarkdown(selectedGuide.key);
 
     if (!markdownContent) {
-      notFound();
+      redirect(`/${slug}/program/new/connect`);
     }
   }
 

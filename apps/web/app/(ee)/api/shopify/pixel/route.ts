@@ -1,3 +1,4 @@
+import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getClickEvent } from "@/lib/tinybird";
@@ -7,12 +8,6 @@ import { ipAddress, waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
-
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
 
 // POST /api/shopify/pixel – Handle the Shopify Pixel events
 export const POST = async (req: Request) => {
@@ -53,16 +48,16 @@ export const POST = async (req: Request) => {
     );
 
     return NextResponse.json("OK", {
-      headers: CORS_HEADERS,
+      headers: COMMON_CORS_HEADERS,
     });
   } catch (error) {
-    return handleAndReturnErrorResponse(error, CORS_HEADERS);
+    return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
   }
 };
 
 export const OPTIONS = () => {
   return new Response(null, {
     status: 204,
-    headers: CORS_HEADERS,
+    headers: COMMON_CORS_HEADERS,
   });
 };

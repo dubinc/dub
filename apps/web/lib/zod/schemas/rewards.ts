@@ -15,16 +15,74 @@ export const COMMISSION_TYPES = [
   },
 ] as const;
 
+export const CONDITION_ENTITIES = ["customer", "sale"] as const;
+
+export const CONDITION_CUSTOMER_ATTRIBUTES = ["country"] as const;
+export const CONDITION_SALE_ATTRIBUTES = ["productId"] as const;
+export const CONDITION_ATTRIBUTES = [
+  ...CONDITION_CUSTOMER_ATTRIBUTES,
+  ...CONDITION_SALE_ATTRIBUTES,
+] as const;
+
+export const CONDITION_OPERATORS = [
+  "equals_to",
+  "not_equals",
+  "starts_with",
+  "ends_with",
+  "in",
+  "not_in",
+] as const;
+
+export const ATTRIBUTE_LABELS = {
+  country: "country",
+  productId: "product",
+} as const;
+
+export const CONDITION_OPERATOR_LABELS = {
+  equals_to: "is",
+  not_equals: "is not",
+  starts_with: "starts with",
+  ends_with: "ends with",
+  in: "is one of",
+  not_in: "is not one of",
+} as const;
+
+export const rewardConditionSchema = z.object({
+  entity: z.enum(CONDITION_ENTITIES),
+  attribute: z.enum(CONDITION_ATTRIBUTES),
+  operator: z.enum(CONDITION_OPERATORS),
+  value: z.union([
+    z.string(),
+    z.number(),
+    z.array(z.string()),
+    z.array(z.number()),
+  ]),
+  label: z
+    .string()
+    .nullish()
+    .describe("Product name used for display purposes in the UI."),
+});
+
+export const rewardConditionsSchema = z.object({
+  operator: z.enum(["AND", "OR"]).default("AND"),
+  conditions: z.array(rewardConditionSchema).min(1),
+  amount: z.number().int().min(0),
+  type: z.nativeEnum(RewardStructure).optional(),
+  maxDuration: maxDurationSchema,
+});
+
+export const rewardConditionsArraySchema = z
+  .array(rewardConditionsSchema)
+  .min(1);
+
 export const RewardSchema = z.object({
   id: z.string(),
   event: z.nativeEnum(EventType),
-  name: z.string().nullish(),
   description: z.string().nullish(),
   type: z.nativeEnum(RewardStructure),
   amount: z.number(),
   maxDuration: z.number().nullish(),
   maxAmount: z.number().nullish(),
-  default: z.boolean(),
   modifiers: z.any().nullish(), // TODO: Fix this
 });
 
@@ -34,15 +92,8 @@ export const createOrUpdateRewardSchema = z.object({
   type: z.nativeEnum(RewardStructure).default(RewardStructure.flat),
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
-  isDefault: z.boolean(),
-  includedPartnerIds: z
-    .array(z.string())
-    .nullish()
-    .describe("Only applicable for non-default rewards"),
-  excludedPartnerIds: z
-    .array(z.string())
-    .nullish()
-    .describe("Only applicable for default rewards"),
+  modifiers: rewardConditionsArraySchema.nullish(),
+  groupId: z.string(),
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
@@ -57,7 +108,7 @@ export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
 export const updateRewardSchema = createOrUpdateRewardSchema
   .omit({
     event: true,
-    isDefault: true,
+    groupId: true,
   })
   .merge(
     z.object({
@@ -80,35 +131,6 @@ export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   lead: "leadRewardId",
   sale: "saleRewardId",
 });
-
-export const rewardConditionSchema = z.object({
-  entity: z.enum(["customer", "sale"]),
-  attribute: z.enum(["country", "productId"]),
-  operator: z.enum([
-    "equals_to",
-    "not_equals",
-    "starts_with",
-    "ends_with",
-    "in",
-    "not_in",
-  ]),
-  value: z.union([
-    z.string(),
-    z.number(),
-    z.array(z.string()),
-    z.array(z.number()),
-  ]),
-});
-
-export const rewardConditionsSchema = z.object({
-  operator: z.enum(["AND", "OR"]).default("AND"),
-  conditions: z.array(rewardConditionSchema).min(1),
-  amount: z.number().int().min(0),
-});
-
-export const rewardConditionsArraySchema = z
-  .array(rewardConditionsSchema)
-  .min(1);
 
 export const rewardContextSchema = z.object({
   customer: z

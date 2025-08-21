@@ -7,14 +7,20 @@ import {
   MIN_WITHDRAWAL_AMOUNT_CENTS,
 } from "./constants";
 
+type PayoutWithProgramName = Pick<Payout, "id" | "amount" | "invoiceId"> & {
+  program: {
+    name: string;
+  };
+};
+
 export const createStripeTransfer = async ({
   partner,
   previouslyProcessedPayouts,
   currentInvoicePayouts,
 }: {
   partner: Pick<Partner, "id" | "minWithdrawalAmount" | "stripeConnectId">;
-  previouslyProcessedPayouts: Pick<Payout, "id" | "amount" | "invoiceId">[];
-  currentInvoicePayouts?: Pick<Payout, "id" | "amount" | "invoiceId">[];
+  previouslyProcessedPayouts: PayoutWithProgramName[];
+  currentInvoicePayouts?: PayoutWithProgramName[];
 }) => {
   // this should never happen since we guard for it outside, but just in case
   if (!partner.stripeConnectId) {
@@ -83,6 +89,10 @@ export const createStripeTransfer = async ({
     return;
   }
 
+  const allPayoutsPrograms = [
+    ...new Set(allPayouts.map((p) => p.program.name)), // deduplicate program names
+  ];
+
   // Create a transfer for the partner combined payouts and update it as sent
   const transfer = await stripe.transfers.create(
     {
@@ -92,7 +102,7 @@ export const createStripeTransfer = async ({
       // (even though the transfer could technically include payouts from multiple invoices)
       transfer_group: finalPayoutInvoiceId!,
       destination: partner.stripeConnectId,
-      description: `Dub Partners payout for ${allPayouts.map((p) => p.id).join(", ")}`,
+      description: `Dub Partners payout ${pluralize("transfer", allPayoutsPrograms.length)} (${allPayoutsPrograms.join(", ")})`,
     },
     {
       idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,

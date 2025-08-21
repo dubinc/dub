@@ -17,6 +17,7 @@ import {
   UtmTemplate,
   Webhook,
 } from "@dub/prisma/client";
+import { RESOURCE_COLORS } from "../ui/colors";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
@@ -35,6 +36,7 @@ import {
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
+import { GroupSchema, GroupSchemaExtended } from "./zod/schemas/groups";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -137,13 +139,13 @@ export interface RedisLinkProps {
   testCompletedAt?: Date;
 }
 
+export type ResourceColorsEnum = (typeof RESOURCE_COLORS)[number];
+
 export interface TagProps {
   id: string;
   name: string;
-  color: TagColorProps;
+  color: ResourceColorsEnum;
 }
-
-export type TagColorProps = (typeof tagColors)[number];
 
 export type UtmTemplateProps = UtmTemplate;
 export type UtmTemplateWithUserProps = UtmTemplateProps & {
@@ -183,6 +185,7 @@ export interface ExtendedWorkspaceProps extends WorkspaceProps {
   users: (WorkspaceProps["users"][number] & {
     workspacePreferences?: z.infer<typeof workspacePreferencesSchema>;
   })[];
+  publishableKey: string | null;
 }
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
@@ -223,17 +226,19 @@ export interface DomainProps {
   expiredUrl?: string;
   notFoundUrl?: string;
   projectId: string;
-  link?: LinkProps;
-  registeredDomain?: RegisteredDomainProps;
   logo?: string;
   appleAppSiteAssociation?: string;
   assetLinks?: string;
+  link?: LinkProps;
+  registeredDomain?: RegisteredDomainProps;
 }
 
 export interface RegisteredDomainProps {
   id: string;
+  autoRenewalDisabledAt: Date | null;
   createdAt: Date;
   expiresAt: Date;
+  renewalFee: number;
 }
 
 export interface BitlyGroupProps {
@@ -283,16 +288,6 @@ export const plans = [
 export const roles = ["owner", "member"] as const;
 
 export type Role = (typeof roles)[number];
-
-export const tagColors = [
-  "red",
-  "yellow",
-  "green",
-  "blue",
-  "purple",
-  "pink",
-  "brown",
-] as const;
 
 export type DashboardProps = z.infer<typeof dashboardSchema>;
 
@@ -511,3 +506,7 @@ export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
 export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
+
+export type GroupProps = z.infer<typeof GroupSchema>;
+
+export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;

@@ -1,10 +1,10 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { processLink, updateLink } from "@/lib/api/links";
+import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
-import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/embed/referrals/links/[linkId] - update a link for a partner
@@ -38,12 +38,7 @@ export const PATCH = withReferralsEmbedToken(
       });
     }
 
-    if (url && getApexDomain(url) !== getApexDomain(program.url)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-      });
-    }
+    validatePartnerLinkUrl({ program, url });
 
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();

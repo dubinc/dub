@@ -14,13 +14,14 @@ SCHEMA >
     `device` LowCardinality(String),
     `browser` LowCardinality(String),
     `os` LowCardinality(String),
+    `trigger` String,
     `engine` LowCardinality(String),
     `ua` String,
     `identity_hash` String,
     `referer` String,
     `referer_url` String,
-    `qr` UInt8,
-    `ip` String
+    `ip` String,
+    `qr` UInt8
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

@@ -39,4 +39,23 @@ describe.runIf(env.CI).sequential("GET /analytics", async () => {
       expect(parsed.success).toBeTruthy();
     });
   });
+
+  test("filter events by metadata.productId", async () => {
+    const { status, data } = await http.get<any[]>({
+      path: `/events`,
+      query: {
+        event: "sales",
+        workspaceId,
+        interval: "30d",
+        query: "metadata['productId']:premiumProductId",
+      },
+    });
+
+    expect(status).toEqual(200);
+
+    // check to make sure all events have metadata.productId equal to premiumProductId
+    expect(
+      data.every((event) => event.metadata?.productId === "premiumProductId"),
+    ).toBe(true);
+  });
 });

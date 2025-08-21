@@ -18,17 +18,19 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 
-type FormProps = {
-  register: UseFormRegister<ProgramData>;
-  watch: UseFormWatch<ProgramData>;
-  setValue: UseFormSetValue<ProgramData>;
-};
-
 export const ImportRewardfulForm = ({
   register,
   watch,
   setValue,
-}: FormProps) => {
+  onSuccess,
+  isPending,
+}: {
+  register: UseFormRegister<ProgramData>;
+  watch: UseFormWatch<ProgramData>;
+  setValue: UseFormSetValue<ProgramData>;
+  onSuccess: () => void;
+  isPending: boolean;
+}) => {
   const { id: workspaceId } = useWorkspace();
   const [token, setToken] = useState("");
 
@@ -132,31 +134,41 @@ export const ImportRewardfulForm = ({
       )}
 
       {selectedCampaign && (
-        <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
-          <div>
-            <div className="text-sm text-neutral-500">Type</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {capitalize(selectedCampaign.reward_type)}
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-6 rounded-lg border border-neutral-300 bg-neutral-50 p-6">
+            <div>
+              <div className="text-sm text-neutral-500">Type</div>
+              <div className="text-sm font-medium text-neutral-800">
+                {capitalize(selectedCampaign.reward_type)}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-neutral-500">Duration</div>
+              <div className="text-sm font-medium text-neutral-800">
+                {selectedCampaign.max_commission_period_months} months
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-neutral-500">Commission</div>
+              <div className="text-sm font-medium text-neutral-800">
+                {formatCommission(selectedCampaign)}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-neutral-500">Affiliates</div>
+              <div className="text-sm font-medium text-neutral-800">
+                {selectedCampaign.affiliates}
+              </div>
             </div>
           </div>
-          <div>
-            <div className="text-sm text-neutral-500">Duration</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {selectedCampaign.max_commission_period_months} months
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-neutral-500">Commission</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {formatCommission(selectedCampaign)}
-            </div>
-          </div>
-          <div>
-            <div className="text-sm text-neutral-500">Affiliates</div>
-            <div className="text-sm font-medium text-neutral-800">
-              {selectedCampaign.affiliates}
-            </div>
-          </div>
+
+          <Button
+            type="button"
+            text="Continue"
+            className="w-full"
+            onClick={onSuccess}
+            loading={isPending}
+          />
         </div>
       )}
 

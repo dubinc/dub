@@ -1,7 +1,7 @@
 "use client";
 
-import { PartnerTable } from "./partner-table";
+import { PartnersTable } from "./partners-table";
 
 export function ProgramPartnersPageClient() {
-  return <PartnerTable />;
+  return <PartnersTable />;
 }

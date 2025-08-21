@@ -4,15 +4,18 @@ import { Gift, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren } from "react";
 import { REWARD_EVENTS } from "./constants";
+import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
 
 export function ProgramRewardList({
   rewards,
   discount,
   className,
+  showModifiersTooltip = true,
 }: {
   rewards: RewardProps[];
   discount?: DiscountProps | null;
   className?: string;
+  showModifiersTooltip?: boolean;
 }) {
   const sortedFilteredRewards = rewards.filter((r) => r.amount >= 0);
 
@@ -27,10 +30,7 @@ export function ProgramRewardList({
         <Item key={reward.id} icon={REWARD_EVENTS[reward.event].icon}>
           {reward.description || (
             <>
-              {constructRewardAmount({
-                amount: reward.amount,
-                type: reward.type,
-              })}{" "}
+              {constructRewardAmount(reward)}{" "}
               {reward.event === "sale" && reward.maxDuration === 0 ? (
                 <>for the first sale</>
               ) : (
@@ -55,6 +55,12 @@ export function ProgramRewardList({
                   </strong>
                 </>
               ) : null}
+              {showModifiersTooltip && !!reward.modifiers?.length && (
+                <>
+                  {" "}
+                  <ProgramRewardModifiersTooltip reward={reward} />
+                </>
+              )}
             </>
           )}
         </Item>
@@ -64,12 +70,7 @@ export function ProgramRewardList({
           {discount.description || (
             <>
               {" "}
-              New users get{" "}
-              {constructRewardAmount({
-                amount: discount.amount,
-                type: discount.type,
-              })}{" "}
-              off{" "}
+              New users get {constructRewardAmount(discount)} off{" "}
               {discount.maxDuration === null ? (
                 <> for their lifetime</>
               ) : discount.maxDuration && discount.maxDuration > 1 ? (

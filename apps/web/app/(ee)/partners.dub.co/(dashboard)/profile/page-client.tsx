@@ -205,8 +205,14 @@ function ProfileForm({
   const { handleKeyDown } = useEnterSubmit();
 
   const { executeAsync } = useAction(updatePartnerProfileAction, {
-    onSuccess: async () => {
-      toast.success("Profile updated successfully.");
+    onSuccess: async ({ data }) => {
+      if (data?.needsEmailVerification) {
+        toast.success(
+          "Please check your email to verify your new email address.",
+        );
+      } else {
+        toast.success("Your profile has been updated.");
+      }
     },
     onError({ error }) {
       setError("root.serverError", {
@@ -289,7 +295,7 @@ function ProfileForm({
                     ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                     : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                 )}
-                placeholder="Acme, Inc."
+                placeholder="Brendon Urie"
                 {...register("name", {
                   required: true,
                 })}

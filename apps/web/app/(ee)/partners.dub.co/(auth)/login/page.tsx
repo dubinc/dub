@@ -4,7 +4,7 @@ import { FramerButton } from "@/ui/auth/login/framer-button";
 import LoginForm from "@/ui/auth/login/login-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { PartnerBanner } from "../partner-banner";
 
 export default async function LoginPage({
@@ -14,7 +14,7 @@ export default async function LoginPage({
 }) {
   if (programSlug === "framer") {
     return (
-      <AuthLayout showTerms>
+      <AuthLayout showTerms="partners">
         <div className="mx-auto my-10 flex w-full max-w-sm flex-col gap-8">
           <div className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]">
             <img
@@ -50,40 +50,44 @@ export default async function LoginPage({
   const program = programSlug ? await getProgram({ slug: programSlug }) : null;
 
   if (programSlug && !program) {
-    notFound();
+    redirect("/login");
   }
 
   return (
-    <AuthLayout showTerms>
-      <div className="w-full max-w-sm">
-        {program && <PartnerBanner program={program} />}
-        <h1 className="text-center text-xl font-semibold">
-          Log in to your Dub Partner account
-        </h1>
-        <div className="mt-8">
-          <LoginForm
-            methods={["email", "password", "google"]}
-            next={programSlug ? `/programs/${programSlug}` : "/"}
-          />
-        </div>
-        <p className="mt-6 text-center text-sm font-medium text-neutral-500">
-          Don't have a partner account?&nbsp;
-          <Link
-            href={`${programSlug ? `/${programSlug}` : ""}/register`}
-            className="font-semibold text-neutral-700 transition-colors hover:text-neutral-900"
-          >
-            Sign up
-          </Link>
-        </p>
+    <div className="relative">
+      {program && <PartnerBanner program={program} />}
+      <AuthLayout showTerms="partners">
+        <div className="w-full max-w-sm">
+          <h1 className="text-center text-xl font-semibold">
+            Log in to your Dub Partner account
+          </h1>
+          <div className="mt-8">
+            <LoginForm
+              methods={["email", "password", "google"]}
+              next={programSlug ? `/programs/${programSlug}` : "/"}
+            />
+          </div>
+          <p className="mt-6 text-center text-sm font-medium text-neutral-500">
+            Don't have a partner account?&nbsp;
+            <Link
+              href={`${programSlug ? `/${programSlug}` : ""}/register`}
+              className="font-semibold text-neutral-700 transition-colors hover:text-neutral-900"
+            >
+              Sign up
+            </Link>
+          </p>
 
-        <div className="mt-12 w-full">
-          <AuthAlternativeBanner
-            text="Looking for your Dub workspace account?"
-            cta="Log in at app.dub.co"
-            href="https://app.dub.co/login"
-          />
+          {!programSlug && (
+            <div className="mt-12 w-full">
+              <AuthAlternativeBanner
+                text="Looking for your Dub workspace account?"
+                cta="Log in at app.dub.co"
+                href="https://app.dub.co/login"
+              />
+            </div>
+          )}
         </div>
-      </div>
-    </AuthLayout>
+      </AuthLayout>
+    </div>
   );
 }

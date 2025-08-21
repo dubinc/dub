@@ -1,6 +1,6 @@
 import { prismaEdge } from "@dub/prisma/edge";
 import { APP_DOMAIN } from "@dub/utils";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 export const runtime = "edge";
 
@@ -22,7 +22,7 @@ export default async function OldStatsPage({
   });
 
   if (!link?.dashboard) {
-    notFound();
+    redirect("/");
   }
 
   redirect(`${APP_DOMAIN}/share/${link.dashboard.id}`);

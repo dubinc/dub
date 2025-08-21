@@ -7,17 +7,16 @@ import {
   CreatePartnerProps,
   ProgramPartnerLinkProps,
   ProgramProps,
-  RewardProps,
   WorkspaceProps,
 } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
-import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
+import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { linkCache } from "../links/cache";
 import { includeTags } from "../links/include-tags";
 import { backfillLinkCommissions } from "./backfill-link-commissions";
@@ -27,23 +26,21 @@ export const createAndEnrollPartner = async ({
   workspace,
   link,
   partner,
-  reward,
-  discountId,
   tenantId,
+  groupId,
   status = "approved",
   skipEnrollmentCheck = false,
   enrolledAt,
 }: {
-  program: Pick<ProgramProps, "id" | "defaultFolderId">;
+  program: Pick<ProgramProps, "id" | "defaultFolderId" | "defaultGroupId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
   link: ProgramPartnerLinkProps;
   partner: Pick<
     CreatePartnerProps,
     "email" | "name" | "image" | "country" | "description"
   >;
-  reward?: Pick<RewardProps, "id" | "event">;
-  discountId?: string;
   tenantId?: string;
+  groupId?: string | null;
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
   enrolledAt?: Date;
@@ -85,38 +82,21 @@ export const createAndEnrollPartner = async ({
     }
   }
 
-  const [defaultRewards, allDiscounts] = await prisma.$transaction([
-    prisma.reward.findMany({
-      where: {
-        programId: program.id,
-        // if a specific reward is provided, exclude it from the default rewards because it'll be added below
-        ...(reward && {
-          event: {
-            not: reward.event,
-          },
-        }),
-        default: true,
-      },
-    }),
-    prisma.discount.findMany({
-      where: {
-        programId: program.id,
-      },
-    }),
-  ]);
+  const finalGroupId = groupId || program.defaultGroupId;
+  // this should never happen, but just in case
+  if (!finalGroupId) {
+    throw new DubApiError({
+      message:
+        "There was no group ID provided, and the program does not have a default group. Please contact support.",
+      code: "bad_request",
+    });
+  }
 
-  const finalAssignedRewards = {
-    ...Object.fromEntries(
-      defaultRewards.map((r) => [REWARD_EVENT_COLUMN_MAPPING[r.event], r.id]),
-    ),
-    ...(reward && {
-      [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
-    }),
-  };
-
-  const finalAssignedDiscount = discountId
-    ? allDiscounts.find((d) => d.id === discountId)?.id // we need to filter by this in case an invalid discountId is passed
-    : allDiscounts.find((d) => d.default)?.id;
+  const group = await getGroupOrThrow({
+    programId: program.id,
+    groupId: finalGroupId,
+    includeRewardsAndDiscount: true,
+  });
 
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
@@ -129,8 +109,11 @@ export const createAndEnrollPartner = async ({
             id: link.id,
           },
         },
-        ...finalAssignedRewards,
-        discountId: finalAssignedDiscount,
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        discountId: group.discountId,
         ...(enrolledAt && {
           createdAt: enrolledAt,
         }),

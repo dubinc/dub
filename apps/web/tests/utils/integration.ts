@@ -52,7 +52,11 @@ export class IntegrationHarness {
       workspace,
     };
 
-    return { ...this.resources, http: this.http };
+    return {
+      ...this.resources,
+      http: this.http,
+      env: this.env,
+    };
   }
 
   // Delete link

@@ -5,8 +5,8 @@ import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
+  Bell,
   Brush,
-  CircleInfo,
   ConnectedDots,
   CubeSettings,
   DiamondTurnRight,
@@ -18,16 +18,16 @@ import {
   Globe,
   InvoiceDollar,
   Key,
+  LifeRing,
   LinesY as LinesYStatic,
   MoneyBills2,
-  PaperPlane,
   Receipt2,
   ShieldCheck,
   ShieldKeyhole,
   Sliders,
   Tag,
   UserCheck,
-  Users2,
+  Users,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
@@ -206,7 +206,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "All Partners",
-            icon: Users2,
+            icon: Users,
             href: `/${slug}/program/partners`,
             exact: true,
           },
@@ -220,6 +220,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 : applicationsCount
               : undefined,
           },
+          {
+            name: "Groups",
+            icon: Users6,
+            href: `/${slug}/program/groups`,
+            badge: "New",
+          },
         ],
       },
       {
@@ -229,7 +235,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Analytics",
             icon: LinesYStatic,
             href: `/${slug}/program/analytics`,
-            badge: "New",
           },
           {
             name: "Commissions",
@@ -249,12 +254,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Rewards",
             icon: Gift,
-            href: `/${slug}/program/rewards`,
+            href: `/${slug}/program/groups/default/rewards`,
+            arrow: true,
+            isActive: () => false,
           },
           {
             name: "Discounts",
             icon: Discount,
-            href: `/${slug}/program/discounts`,
+            href: `/${slug}/program/groups/default/discount`,
+            arrow: true,
+            isActive: () => false,
           },
           {
             name: "Branding",
@@ -262,14 +271,14 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/branding`,
           },
           {
+            name: "Resources",
+            icon: LifeRing,
+            href: `/${slug}/program/resources`,
+          },
+          {
             name: "Link Settings",
             icon: Sliders,
             href: `/${slug}/program/link-settings`,
-          },
-          {
-            name: "Communication",
-            icon: PaperPlane,
-            href: `/${slug}/program/communication`,
           },
         ],
       },
@@ -347,7 +356,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "Notifications",
-            icon: CircleInfo,
+            icon: Bell,
             href: `/${slug}/settings/notifications`,
           },
         ],
@@ -407,7 +416,10 @@ export function AppSidebarNav({
         ? "workspaceSettings"
         : // hacky fix for guides because slug is undefined at render time
           // TODO: remove when we migrate to Next.js 15 + PPR
-          pathname.endsWith("/guides") || pathname.includes("/guides/")
+          pathname.endsWith("/guides") ||
+            pathname.includes("/guides/") ||
+            // this one is for the payout success page
+            pathname.endsWith("/program/payouts/success")
           ? null
           : pathname.startsWith(`/${slug}/program`)
             ? "program"

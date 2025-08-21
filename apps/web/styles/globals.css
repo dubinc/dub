@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide the react-medium-image-zoom unzoom button */
+[data-rmiz-btn-unzoom] {
+  visibility: hidden;
+}
+
 code {
   counter-reset: step;
   counter-increment: step 0;

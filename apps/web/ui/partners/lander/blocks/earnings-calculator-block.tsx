@@ -1,6 +1,6 @@
 "use client";
 
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { ProgramWithLanderDataProps } from "@/lib/types";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { InvoiceDollar } from "@dub/ui";
@@ -23,15 +23,13 @@ export function EarningsCalculatorBlock({
   const id = useId();
   const [value, setValue] = useState(10);
 
-  const { rewards } = getProgramApplicationRewardsAndDiscount({
-    rewards: program.rewards ?? [],
-    discounts: program.discounts ?? [],
-    landerData: program.landerData ?? {},
-  });
+  if (!program.rewards?.length) return null;
 
-  if (!rewards.length) return null;
-
-  const reward = rewards[0];
+  const reward = sortRewardsByEventOrder(program.rewards, [
+    "sale",
+    "lead",
+    "click",
+  ])[0];
   const rewardAmount = reward.amount ?? 0;
   const revenue = value * ((block.data.productPrice || 30_00) / 100);
 
@@ -52,7 +50,7 @@ export function EarningsCalculatorBlock({
             htmlFor={`${id}-slider`}
             className="text-base font-semibold text-neutral-700"
           >
-            Customer sales
+            Customer referrals
           </label>
           <div className="mt-1.5">
             <NumberFlow

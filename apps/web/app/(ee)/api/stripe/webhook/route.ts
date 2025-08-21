@@ -3,6 +3,7 @@ import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { chargeFailed } from "./charge-failed";
+import { chargeRefunded } from "./charge-refunded";
 import { chargeSucceeded } from "./charge-succeeded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
@@ -12,6 +13,7 @@ import { invoicePaymentFailed } from "./invoice-payment-failed";
 const relevantEvents = new Set([
   "charge.succeeded",
   "charge.failed",
+  "charge.refunded",
   "checkout.session.completed",
   "customer.subscription.updated",
   "customer.subscription.deleted",
@@ -48,6 +50,9 @@ export const POST = async (req: Request) => {
         break;
       case "charge.failed":
         await chargeFailed(event);
+        break;
+      case "charge.refunded":
+        await chargeRefunded(event);
         break;
       case "checkout.session.completed":
         await checkoutSessionCompleted(event);

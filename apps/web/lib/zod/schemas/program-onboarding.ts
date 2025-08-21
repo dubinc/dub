@@ -1,5 +1,5 @@
 import { ToltProgramSchema } from "@/lib/tolt/schemas";
-import { LinkStructure, RewardStructure } from "@dub/prisma/client";
+import { PartnerLinkStructure, RewardStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
 import { updateProgramSchema } from "./programs";
@@ -11,7 +11,7 @@ export const programInfoSchema = z.object({
   logo: z.string(),
   domain: z.string(),
   url: parseUrlSchema.nullable(),
-  linkStructure: z.nativeEnum(LinkStructure).default("short"),
+  linkStructure: z.nativeEnum(PartnerLinkStructure).default("short"),
   linkParameter: z.string().nullish(),
 });
 
@@ -19,6 +19,7 @@ export const programInfoSchema = z.object({
 export const programRewardSchema = z
   .object({
     programType: z.enum(["new", "import"]),
+    importSource: z.enum(["rewardful", "tolt", "partnerstack"]).nullish(),
     rewardful: z
       .object({
         maskedToken: z.string().nullish(),
@@ -31,7 +32,7 @@ export const programRewardSchema = z
       })
       .nullish(),
     tolt: ToltProgramSchema.extend({
-      maskedToken: z.string(),
+      id: z.string(),
       affiliates: z.number(),
     }).nullish(),
   })

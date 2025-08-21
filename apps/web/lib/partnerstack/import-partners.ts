@@ -1,9 +1,10 @@
 import { prisma } from "@dub/prisma";
-import { Program, Reward } from "@dub/prisma/client";
-import { COUNTRIES } from "@dub/utils";
+import { PartnerGroup, Program } from "@dub/prisma/client";
+import { COUNTRIES, COUNTRY_CODES } from "@dub/utils";
 import { createId } from "../api/create-id";
+import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
-import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { PartnerStackApi } from "./api";
 import {
   MAX_BATCHES,
@@ -12,21 +13,25 @@ import {
 } from "./importer";
 import { PartnerStackImportPayload, PartnerStackPartner } from "./types";
 
+const COUNTRY_NAME_TO_CODE = new Map(
+  Object.entries(COUNTRIES).map(([code, name]) => [name, code]),
+);
+
 export async function importPartners(payload: PartnerStackImportPayload) {
-  const { programId, startingAfter } = payload;
+  const { importId, programId, startingAfter } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
     include: {
-      rewards: {
-        where: {
-          default: true,
-        },
-      },
+      groups: true,
     },
   });
+
+  const groupMap = Object.fromEntries(
+    program.groups.map((group) => [group.slug, group]),
+  );
 
   const { publicKey, secretKey } = await partnerStackImporter.getCredentials(
     program.workspaceId,
@@ -36,11 +41,6 @@ export async function importPartners(payload: PartnerStackImportPayload) {
     publicKey,
     secretKey,
   });
-
-  const saleReward = program.rewards.find((r) => r.event === "sale");
-  const leadReward = program.rewards.find((r) => r.event === "lead");
-  const clickReward = program.rewards.find((r) => r.event === "click");
-  const reward = saleReward || leadReward || clickReward;
 
   let hasMore = true;
   let processedBatches = 0;
@@ -61,7 +61,8 @@ export async function importPartners(payload: PartnerStackImportPayload) {
         createPartner({
           program,
           partner,
-          reward,
+          group: groupMap[partner.group?.slug ?? DEFAULT_PARTNER_GROUP.slug],
+          importId,
         }),
       ),
     );
@@ -72,11 +73,41 @@ export async function importPartners(payload: PartnerStackImportPayload) {
     currentStartingAfter = partners[partners.length - 1].key;
   }
 
-  delete payload?.startingAfter;
+  // After importing partners, clean up by deleting any groups that have no assigned partners
+  if (!hasMore) {
+    const groups = await prisma.partnerGroup.findMany({
+      where: {
+        programId,
+        slug: {
+          not: DEFAULT_PARTNER_GROUP.slug,
+        },
+        partners: {
+          none: {},
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (groups.length > 0) {
+      console.log(
+        `Found ${groups.length} groups with no partners, deleting...`,
+      );
+
+      await prisma.partnerGroup.deleteMany({
+        where: {
+          id: {
+            in: groups.map(({ id }) => id),
+          },
+        },
+      });
+    }
+  }
 
   await partnerStackImporter.queue({
     ...payload,
-    ...(hasMore && { startingAfter: currentStartingAfter }),
+    startingAfter: hasMore ? currentStartingAfter : undefined,
     action: hasMore ? "import-partners" : "import-links",
   });
 }
@@ -84,27 +115,43 @@ export async function importPartners(payload: PartnerStackImportPayload) {
 async function createPartner({
   program,
   partner,
-  reward,
+  group,
+  importId,
 }: {
   program: Program;
   partner: PartnerStackPartner;
-  reward?: Pick<Reward, "id" | "event">;
+  group: PartnerGroup;
+  importId: string;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: program.workspaceId,
+    import_id: importId,
+    source: "partnerstack",
+    entity: "partner",
+    entity_id: partner.key,
+  } as const;
+
   if (partner.stats.CUSTOMER_COUNT === 0) {
-    console.log(`No leads found for partner ${partner.email}`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "INACTIVE_PARTNER",
+      message: `No leads found for partner ${partner.email}`,
+    });
+
     return;
   }
 
-  const countryCode = partner.address?.country
-    ? Object.keys(COUNTRIES).find(
-        (key) => COUNTRIES[key] === partner.address?.country,
-      )
+  // Resolve partner's country: check if it's a valid code first,
+  // otherwise fall back to lookup by country name because PS returns the name in some cases
+  const country = partner.address?.country;
+  const countryCode = country
+    ? COUNTRY_CODES.includes(country)
+      ? country
+      : COUNTRY_NAME_TO_CODE.get(country) ?? null
     : null;
 
-  if (!countryCode && partner.address?.country) {
-    console.log(
-      `Country code not found for country ${partner.address.country}`,
-    );
+  if (country && !countryCode) {
+    console.log(`Country code not found for country ${country}`);
   }
 
   const { id: partnerId } = await prisma.partner.upsert({
@@ -133,7 +180,11 @@ async function createPartner({
       programId: program.id,
       partnerId,
       status: "approved",
-      ...(reward && { [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id }),
+      groupId: group.id,
+      clickRewardId: group.clickRewardId,
+      leadRewardId: group.leadRewardId,
+      saleRewardId: group.saleRewardId,
+      discountId: group.discountId,
     },
     update: {
       status: "approved",

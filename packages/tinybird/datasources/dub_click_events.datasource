@@ -3,6 +3,7 @@ SCHEMA >
     `timestamp` DateTime64(3) `json:$.timestamp`,
     `click_id` String `json:$.click_id`,
     `link_id` String `json:$.link_id`,
+    `alias_link_id` Nullable(String) `json:$.alias_link_id`,
     `url` String `json:$.url`,
     `country` LowCardinality(String) `json:$.country`,
     `city` String `json:$.city`,
@@ -23,10 +24,13 @@ SCHEMA >
     `bot` UInt8 `json:$.bot`,
     `referer` String `json:$.referer`,
     `referer_url` String `json:$.referer_url`,
+    `user_id` Nullable(Int64) `json:$.user_id`,
     `identity_hash` Nullable(String) `json:$.identity_hash`,
     `ip` String `json:$.ip`,
     `qr` UInt8 `json:$.qr`,
-    `continent` LowCardinality(String) `json:$.continent`
+    `continent` LowCardinality(String) `json:$.continent`,
+    `vercel_region` Nullable(String) `json:$.vercel_region`,
+    `trigger` String `json:$.trigger`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

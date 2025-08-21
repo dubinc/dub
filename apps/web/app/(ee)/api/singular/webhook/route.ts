@@ -1,4 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import { trackSingularLeadEvent } from "@/lib/integrations/singular/track-lead";
 import { trackSingularSaleEvent } from "@/lib/integrations/singular/track-sale";
 import { prisma } from "@dub/prisma";
@@ -7,6 +8,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const singularToDubEvent = {
+  activated: "lead",
   sng_complete_registration: "lead",
   sng_subscribe: "sale",
   sng_ecommerce_purchase: "sale",
@@ -20,12 +22,15 @@ const supportedEvents = Object.keys(singularToDubEvent);
 const authSchema = z.object({
   dub_token: z
     .string()
-    .min(1)
+    .min(1, "dub_token is required")
     .describe("Global token to identify Singular events."),
   dub_workspace_id: z
     .string()
-    .min(1)
-    .describe(" Unique to identify the advertiser."),
+    .min(1, "dub_workspace_id is required")
+    .describe(
+      "The Singular advertiser's workspace ID on Dub (see https://d.to/id).",
+    )
+    .transform((v) => normalizeWorkspaceId(v)),
 });
 
 const singularWebhookToken = process.env.SINGULAR_WEBHOOK_TOKEN;
@@ -42,8 +47,6 @@ export const GET = async (req: Request) => {
     }
 
     const queryParams = getSearchParams(req.url);
-
-    console.log(queryParams);
 
     const { dub_token: token, dub_workspace_id: workspaceId } =
       authSchema.parse(queryParams);
@@ -65,10 +68,11 @@ export const GET = async (req: Request) => {
     }
 
     if (!supportedEvents.includes(eventName)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Event ${eventName} is not supported by Singular <> Dub integration.`,
-      });
+      console.error(
+        `Event ${eventName} is not supported by Singular <> Dub integration.`,
+      );
+
+      return NextResponse.json("OK");
     }
 
     const workspace = await prisma.project.findUnique({
@@ -91,6 +95,9 @@ export const GET = async (req: Request) => {
 
     const dubEvent = singularToDubEvent[eventName];
 
+    delete queryParams.dub_token;
+    delete queryParams.dub_workspace_id;
+
     if (dubEvent === "lead") {
       await trackSingularLeadEvent({
         queryParams,
@@ -109,6 +116,6 @@ export const GET = async (req: Request) => {
   }
 };
 
-export const HEAD = async (req: Request) => {
+export const HEAD = async () => {
   return new Response("OK");
 };

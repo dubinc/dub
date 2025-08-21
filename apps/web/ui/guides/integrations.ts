@@ -1,18 +1,18 @@
-import { Appwrite } from "@/ui/layout/sidebar/conversions/icons/appwrite";
-import { Auth0 } from "@/ui/layout/sidebar/conversions/icons/auth0";
-import { BetterAuth } from "@/ui/layout/sidebar/conversions/icons/better-auth";
-import { Clerk } from "@/ui/layout/sidebar/conversions/icons/clerk";
-import { CodeEditor } from "@/ui/layout/sidebar/conversions/icons/code-editor";
-import { Framer } from "@/ui/layout/sidebar/conversions/icons/framer";
-import { GoogleTagManager } from "@/ui/layout/sidebar/conversions/icons/gtm";
-import { NextAuth } from "@/ui/layout/sidebar/conversions/icons/next-auth";
-import { React } from "@/ui/layout/sidebar/conversions/icons/react";
-import { Segment } from "@/ui/layout/sidebar/conversions/icons/segment";
-import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
-import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
-import { Supabase } from "@/ui/layout/sidebar/conversions/icons/supabase";
-import { Webflow } from "@/ui/layout/sidebar/conversions/icons/webflow";
-import { Wordpress } from "@/ui/layout/sidebar/conversions/icons/wordpress";
+import { Appwrite } from "@/ui/guides/icons/appwrite";
+import { Auth0 } from "@/ui/guides/icons/auth0";
+import { BetterAuth } from "@/ui/guides/icons/better-auth";
+import { Clerk } from "@/ui/guides/icons/clerk";
+import { CodeEditor } from "@/ui/guides/icons/code-editor";
+import { Framer } from "@/ui/guides/icons/framer";
+import { GoogleTagManager } from "@/ui/guides/icons/gtm";
+import { NextAuth } from "@/ui/guides/icons/next-auth";
+import { React } from "@/ui/guides/icons/react";
+import { Segment } from "@/ui/guides/icons/segment";
+import { Shopify } from "@/ui/guides/icons/shopify";
+import { Stripe } from "@/ui/guides/icons/stripe";
+import { Supabase } from "@/ui/guides/icons/supabase";
+import { Webflow } from "@/ui/guides/icons/webflow";
+import { Wordpress } from "@/ui/guides/icons/wordpress";
 
 export type IntegrationType = "client-sdk" | "track-lead" | "track-sale";
 

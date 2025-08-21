@@ -1,4 +1,4 @@
-import { THE_BEGINNING_OF_TIME } from "@dub/utils";
+import { DUB_FOUNDING_DATE } from "@dub/utils";
 
 export const DATE_RANGE_INTERVAL_PRESETS = [
   "24h",
@@ -107,7 +107,7 @@ export const INTERVAL_DATA: Record<
     granularity: "month",
   },
   all: {
-    startDate: THE_BEGINNING_OF_TIME,
+    startDate: DUB_FOUNDING_DATE,
     granularity: "month",
   },
 };
@@ -199,6 +199,7 @@ export const DIMENSIONAL_ANALYTICS_FILTERS = [
   "referer",
   "refererUrl",
   "url",
+  "saleType",
   "qr", // deprecated, but keeping for now for backwards compatibility
   "utm_source",
   "utm_medium",
@@ -207,12 +208,6 @@ export const DIMENSIONAL_ANALYTICS_FILTERS = [
   "utm_content",
 ];
 
-export const TRIGGER_DISPLAY = {
-  qr: "QR Code Scan",
-  link: "Link Click",
-  pageview: "Page View",
-  deeplink: "Deep Link",
-};
 export const TRIGGER_TYPES = ["qr", "link", "pageview", "deeplink"] as const;
 
 export const EVENT_TYPES = ["clicks", "leads", "sales"] as const;

@@ -184,6 +184,9 @@ importers:
       buffer-crc32:
         specifier: 0.2.13
         version: 0.2.13
+      canvas-confetti:
+        specifier: ^1.9.3
+        version: 1.9.3
       cmdk:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@18.2.14)(@types/react@18.2.48)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -194,8 +197,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       dub:
-        specifier: ^0.64.1
-        version: 0.64.1(zod@3.22.4)
+        specifier: ^0.65.1
+        version: 0.65.1
       fast-xml-parser:
         specifier: ^5.0.6
         version: 5.0.6
@@ -289,6 +292,9 @@ importers:
       react-markdown:
         specifier: ^9.0.3
         version: 9.0.3(@types/react@18.2.48)(react@18.2.0)
+      react-medium-image-zoom:
+        specifier: ^5.3.0
+        version: 5.3.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react-pdf-tailwind:
         specifier: ^2.3.0
         version: 2.3.0(encoding@0.1.13)(react@18.2.0)(ts-node@10.9.2(@swc/core@1.3.101(@swc/helpers@0.5.12))(@types/node@18.11.9)(typescript@5.4.4))
@@ -635,6 +641,9 @@ importers:
 
   packages/tailwind-config:
     dependencies:
+      '@tailwindcss/container-queries':
+        specifier: ^0.1.1
+        version: 0.1.1(tailwindcss@3.4.4(ts-node@10.9.2(@swc/core@1.3.101(@swc/helpers@0.5.12))(@types/node@18.11.9)(typescript@5.6.2)))
       '@tailwindcss/forms':
         specifier: ^0.5.6
         version: 0.5.6(tailwindcss@3.4.4(ts-node@10.9.2(@swc/core@1.3.101(@swc/helpers@0.5.12))(@types/node@18.11.9)(typescript@5.6.2)))
@@ -648,9 +657,6 @@ importers:
         specifier: ^2.8.0
         version: 2.8.0
     devDependencies:
-      '@tailwindcss/container-queries':
-        specifier: ^0.1.1
-        version: 0.1.1(tailwindcss@3.4.4(ts-node@10.9.2(@swc/core@1.3.101(@swc/helpers@0.5.12))(@types/node@18.11.9)(typescript@5.6.2)))
       tailwindcss:
         specifier: ^3.4.4
         version: 3.4.4(ts-node@10.9.2(@swc/core@1.3.101(@swc/helpers@0.5.12))(@types/node@18.11.9)(typescript@5.6.2))
@@ -5414,6 +5420,9 @@ packages:
   caniuse-lite@1.0.30001651:
     resolution: {integrity: sha512-9Cf+Xv1jJNe1xPZLGuUXLNkE1BoDkqRqYyFJ9TDYSqhduqA4hu4oR9HluGoWYQC/aj8WHjsGVV+bwkh0+tegRg==}
 
+  canvas-confetti@1.9.3:
+    resolution: {integrity: sha512-rFfTURMvmVEX1gyXFgn5QMn81bYk70qa0HLzcIOSVEyl57n6o9ItHeBtUSWdvKAPY0xlvBHno4/v3QPrT83q9g==}
+
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
 
@@ -6022,15 +6031,8 @@ packages:
     peerDependencies:
       zod: '>= 3'
 
-  dub@0.64.1:
-    resolution: {integrity: sha512-IXeoWN3lPBwMASvH+b/J8HQgQZI1dUfH/4pbLwvOXIioMVBBS2X+YwsX6c1MkZoUk0PsF6PoZNjahiNRMKpIyQ==}
-    hasBin: true
-    peerDependencies:
-      '@modelcontextprotocol/sdk': '>=1.5.0 <1.10.0'
-      zod: ^3
-    peerDependenciesMeta:
-      '@modelcontextprotocol/sdk':
-        optional: true
+  dub@0.65.1:
+    resolution: {integrity: sha512-ePXPCZh+EbKUwnXi2vjZ8U78jUU9SlGNiXiLDWJZnyKo/2vwFwjFej4HHKDrw2kn2IpW4JOQ1Qp0b6Uy1/Bmmw==}
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
@@ -8827,6 +8829,12 @@ packages:
       '@types/react': '>=18'
       react: '>=18'
 
+  react-medium-image-zoom@5.3.0:
+    resolution: {integrity: sha512-RCIzVlsKqy3BYgGgYbolUfuvx0aSKC7YhX/IJGEp+WJxsqdIVYJHkBdj++FAj6VD7RiWj6VVmdCfa/9vJE9hZg==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   react-pdf-tailwind@2.3.0:
     resolution: {integrity: sha512-RREimnynuF0WAsATdYWhJATY5oNAUp9Ib07JE3Pl5oQW07R5T002xjfXk06e9BPh50DvMm9qZkDglZ7u4xzySQ==}
 
@@ -9308,6 +9316,7 @@ packages:
   source-map@0.8.0-beta.0:
     resolution: {integrity: sha512-2ymg6oRBpebeZi9UUNsgQ89bhx01TcTkmNTGnNO88imTmbSgy4nfujrgVEFKWpMTEGA11EDkTt7mqObTPdigIA==}
     engines: {node: '>= 8'}
+    deprecated: The work that was done in this beta branch won't be included in future versions
 
   space-separated-tokens@2.0.2:
     resolution: {integrity: sha512-PEGlAwrG8yXGXRjW32fGbg66JAlOAwbObuqVoJpv/mRgoWDQfgH1wDPvtzWyUSNAXBGSk8h755YDbbcEy3SH2Q==}
@@ -16179,6 +16188,8 @@ snapshots:
 
   caniuse-lite@1.0.30001651: {}
 
+  canvas-confetti@1.9.3: {}
+
   ccount@2.0.1: {}
 
   chai@5.1.2:
@@ -16735,9 +16746,9 @@ snapshots:
     dependencies:
       zod: 3.23.8
 
-  dub@0.64.1(zod@3.22.4):
+  dub@0.65.1:
     dependencies:
-      zod: 3.22.4
+      zod: 3.23.8
 
   eastasianwidth@0.2.0: {}
 
@@ -20363,6 +20374,11 @@ snapshots:
       vfile: 6.0.2
     transitivePeerDependencies:
       - supports-color
+
+  react-medium-image-zoom@5.3.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
 
   react-pdf-tailwind@2.3.0(encoding@0.1.13)(react@18.2.0)(ts-node@10.9.2(@swc/core@1.3.101(@swc/helpers@0.5.12))(@types/node@18.11.9)(typescript@5.4.4)):
     dependencies:

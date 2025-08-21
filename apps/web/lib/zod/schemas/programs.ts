@@ -4,8 +4,9 @@ import {
 } from "@/lib/analytics/constants";
 import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
 import {
-  LinkStructure,
   PartnerBannedReason,
+  PartnerLinkStructure,
+  PartnerUrlValidationMode,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
 import { z } from "zod";
@@ -28,13 +29,16 @@ export const ProgramSchema = z.object({
   cookieLength: z.number(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
-  linkStructure: z.nativeEnum(LinkStructure),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
   linkParameter: z.string().nullish(),
+  urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
+  maxPartnerLinks: z.number(),
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
-  defaultFolderId: z.string().nullable(),
+  defaultFolderId: z.string(),
+  defaultGroupId: z.string(),
   wordmark: z.string().nullable(),
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
@@ -54,7 +58,6 @@ export const updateProgramSchema = z.object({
   cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  defaultFolderId: z.string().nullable(),
   holdingPeriodDays: z.coerce
     .number()
     .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
@@ -65,7 +68,9 @@ export const updateProgramSchema = z.object({
     .refine((val) => ALLOWED_MIN_PAYOUT_AMOUNTS.includes(val), {
       message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
     }),
-  linkStructure: z.nativeEnum(LinkStructure),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
+  urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
+  maxPartnerLinks: z.number().min(1).max(999),
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),
@@ -84,6 +89,8 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
 });
 
 export const ProgramEnrollmentSchema = z.object({
+  programId: z.string().describe("The program's unique ID on Dub."),
+  groupId: z.string().nullish().describe("The partner's group ID on Dub."), // TODO update to required after migration complete
   partnerId: z.string().describe("The partner's unique ID on Dub."),
   tenantId: z
     .string()
@@ -91,7 +98,6 @@ export const ProgramEnrollmentSchema = z.object({
     .describe(
       "The partner's unique ID within your database. Can be useful for associating the partner with a user in your database and retrieving/update their data in the future.",
     ),
-  programId: z.string().describe("The program's unique ID on Dub."),
   program: ProgramSchema,
   createdAt: z.date(),
   status: z
@@ -163,6 +169,7 @@ export const ProgramMetricsSchema = z.object({
 
 export const createProgramApplicationSchema = z.object({
   programId: z.string(),
+  groupId: z.string().optional(),
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   website: z.string().trim().max(100).optional(),

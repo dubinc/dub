@@ -1,5 +1,6 @@
 "use server";
 
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -13,6 +14,7 @@ import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
+import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -32,6 +34,7 @@ export const createCommissionAction = authActionClient
       saleEventDate,
       leadEventDate,
       leadEventName,
+      description,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -61,6 +64,7 @@ export const createCommissionAction = authActionClient
         quantity: 1,
         createdAt: date ?? new Date(),
         user,
+        description,
       });
 
       return;
@@ -122,14 +126,22 @@ export const createCommissionAction = authActionClient
       leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
     } else {
       // else, if there's no existing lead event and there is also no custom leadEventName/Date
-      // we need to create a dummy click + lead event
+      // we need to create a dummy click + lead event (using the customer's country if available)
       const dummyRequest = new Request(link.url, {
         headers: new Headers({
           "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
           "x-forwarded-for": "127.0.0.1",
-          "x-vercel-ip-country": "US",
-          "x-vercel-ip-country-region": "CA",
-          "x-vercel-ip-continent": "NA",
+          ...(customer.country
+            ? {
+                "x-vercel-ip-country": customer.country.toUpperCase(),
+                "x-vercel-ip-continent":
+                  COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()],
+              }
+            : {
+                "x-vercel-ip-country": "US",
+                "x-vercel-ip-country-region": "CA",
+                "x-vercel-ip-continent": "NA",
+              }),
         }),
       });
 
@@ -190,10 +202,7 @@ export const createCommissionAction = authActionClient
       ]);
     }
 
-    // Record sale
-    const shouldRecordSale = saleAmount;
-
-    if (shouldRecordSale && leadEvent) {
+    if (saleAmount && leadEvent) {
       const saleEventId = nanoid(16);
       const saleDate = new Date(saleEventDate ?? Date.now());
 
@@ -240,10 +249,18 @@ export const createCommissionAction = authActionClient
             id: linkId,
           },
           data: {
-            leads: {
-              increment: 1,
-            },
-            ...(shouldRecordSale && {
+            ...(isFirstConversion({
+              customer,
+              linkId,
+            }) && {
+              leads: {
+                increment: 1,
+              },
+              conversions: {
+                increment: 1,
+              },
+            }),
+            ...(saleAmount && {
               sales: {
                 increment: 1,
               },
@@ -255,7 +272,7 @@ export const createCommissionAction = authActionClient
         }),
 
         // Update customer details / stats
-        (shouldUpdateCustomer || shouldRecordSale) &&
+        (shouldUpdateCustomer || saleAmount) &&
           prisma.customer.update({
             where: {
               id: customerId,
@@ -266,7 +283,7 @@ export const createCommissionAction = authActionClient
                 clickId: clickEvent?.click_id,
                 clickedAt: clickEvent?.timestamp,
               }),
-              ...(shouldRecordSale && {
+              ...(saleAmount && {
                 sales: {
                   increment: 1,
                 },

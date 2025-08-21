@@ -1,65 +1,79 @@
 import { qstash } from "@/lib/cron";
+import { setRenewOption } from "@/lib/dynadot/set-renew-option";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import DomainRenewed from "@dub/email/templates/domain-renewed";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Invoice } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
+import { addDays } from "date-fns";
 import Stripe from "stripe";
 
 export async function chargeSucceeded(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Charge;
 
-  const { id: chargeId, receipt_url, transfer_group, payment_intent } = charge;
+  const { transfer_group: invoiceId } = charge;
 
-  if (!transfer_group) {
+  if (!invoiceId) {
     console.log("No transfer group found, skipping...");
     return;
   }
 
-  console.log({ chargeId, receipt_url, transfer_group });
-
-  const invoice = await prisma.invoice.findUnique({
+  let invoice = await prisma.invoice.findUnique({
     where: {
-      id: transfer_group,
-    },
-    include: {
-      payouts: {
-        where: {
-          status: {
-            not: "completed",
-          },
-        },
-        include: {
-          program: true,
-          partner: true,
-        },
-      },
+      id: invoiceId,
     },
   });
 
   if (!invoice) {
-    console.log(`Invoice with transfer group ${transfer_group} not found.`);
+    console.log(`Invoice with transfer group ${invoiceId} not found.`);
     return;
   }
 
   if (invoice.status === "completed") {
-    console.log("Invoice already completed, skipping...");
+    console.log(`Invoice ${invoice.id} already completed, skipping...`);
     return;
   }
 
-  if (invoice.payouts.length === 0) {
-    console.log("No payouts found with status not completed, skipping...");
-    return;
-  }
-
-  await prisma.invoice.update({
+  invoice = await prisma.invoice.update({
     where: {
       id: invoice.id,
     },
     data: {
-      receiptUrl: receipt_url,
+      receiptUrl: charge.receipt_url,
       status: "completed",
       paidAt: new Date(),
       stripeChargeMetadata: JSON.parse(JSON.stringify(charge)),
     },
   });
+
+  if (invoice.type === "partnerPayout") {
+    await processPayoutInvoice({ invoice });
+  } else if (invoice.type === "domainRenewal") {
+    await processDomainRenewalInvoice({ invoice });
+  }
+}
+
+async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
+  const payouts = await prisma.payout.findMany({
+    where: {
+      invoiceId: invoice.id,
+      status: {
+        not: "completed",
+      },
+    },
+    include: {
+      program: true,
+      partner: true,
+    },
+  });
+
+  if (payouts.length === 0) {
+    console.log(
+      `No payouts found with status not completed for invoice ${invoice.id}, skipping...`,
+    );
+    return;
+  }
 
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
@@ -73,4 +87,84 @@ export async function chargeSucceeded(event: Stripe.Event) {
   } else {
     console.error("Error sending message to Qstash", qstashResponse);
   }
+}
+
+async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
+  const domains = await prisma.registeredDomain.findMany({
+    where: {
+      slug: {
+        in: invoice.registeredDomains as string[],
+      },
+    },
+    orderBy: {
+      expiresAt: "asc",
+    },
+  });
+
+  if (domains.length === 0) {
+    console.log(`No domains found for invoice ${invoice.id}, skipping...`);
+    return;
+  }
+
+  const newExpiresAt = addDays(domains[0].expiresAt, 365);
+
+  await prisma.registeredDomain.updateMany({
+    where: {
+      id: {
+        in: domains.map(({ id }) => id),
+      },
+    },
+    data: {
+      expiresAt: newExpiresAt,
+      autoRenewalDisabledAt: null,
+    },
+  });
+
+  await Promise.allSettled(
+    domains.map((domain) =>
+      setRenewOption({
+        domain: domain.slug,
+        autoRenew: true,
+      }),
+    ),
+  );
+
+  const workspace = await prisma.project.findUniqueOrThrow({
+    where: {
+      id: invoice.workspaceId,
+    },
+    include: {
+      users: {
+        where: {
+          role: "owner",
+        },
+        select: {
+          user: true,
+        },
+      },
+    },
+  });
+
+  const workspaceOwners = workspace.users.filter(({ user }) => user.email);
+
+  if (workspaceOwners.length === 0) {
+    console.log("No users found to send domain renewal success email.");
+    return;
+  }
+
+  await resend?.batch.send(
+    workspaceOwners.map(({ user }) => ({
+      from: VARIANT_TO_FROM_MAP.notifications,
+      to: user.email!,
+      subject: `Your ${pluralize("domain", domains.length)} have been renewed`,
+      react: DomainRenewed({
+        email: user.email!,
+        workspace: {
+          slug: workspace.slug,
+        },
+        domains: domains.map(({ slug }) => ({ slug })),
+        expiresAt: newExpiresAt,
+      }),
+    })),
+  );
 }

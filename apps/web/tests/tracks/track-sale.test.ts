@@ -1,6 +1,5 @@
 import { TrackSaleResponse } from "@/lib/types";
-import { randomValue } from "@dub/utils";
-import { randomId } from "tests/utils/helpers";
+import { randomId, randomSaleAmount } from "tests/utils/helpers";
 import {
   E2E_CUSTOMER_EXTERNAL_ID,
   E2E_CUSTOMER_EXTERNAL_ID_2,
@@ -37,10 +36,6 @@ const expectValidSaleResponse = (
     metadata: null,
     invoiceId: sale.invoiceId,
   });
-};
-
-const randomSaleAmount = () => {
-  return randomValue([400, 900, 1900]);
 };
 
 // Helper function to verify commission details
