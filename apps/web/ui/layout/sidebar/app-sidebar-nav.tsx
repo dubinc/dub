@@ -1,6 +1,7 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useBountiesStats from "@/lib/swr/use-bounties-stats";
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
@@ -56,6 +57,7 @@ type SidebarNavData = {
   session?: Session | null;
   showNews?: boolean;
   applicationsCount?: number;
+  pendingBountySubmissionsCount?: number;
   showConversionGuides?: boolean;
 };
 
@@ -182,7 +184,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   }),
 
   // Program
-  program: ({ slug, showNews, applicationsCount }) => ({
+  program: ({
+    slug,
+    showNews,
+    applicationsCount,
+    pendingBountySubmissionsCount,
+  }) => ({
     title: "Partner Program",
     showNews,
     direction: "left",
@@ -256,7 +263,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Bounties",
             icon: Trophy,
             href: `/${slug}/program/bounties`,
-            badge: "New",
+            badge: pendingBountySubmissionsCount
+              ? pendingBountySubmissionsCount > 99
+                ? "99+"
+                : pendingBountySubmissionsCount
+              : "New",
           },
         ],
       },
@@ -442,6 +453,19 @@ export function AppSidebarNav({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
+  const { bountiesStats } = useBountiesStats({
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
+  const pendingBountySubmissionsCount = useMemo(
+    () =>
+      bountiesStats?.reduce(
+        (acc, { pendingSubmissions }) => acc + pendingSubmissions,
+        0,
+      ),
+    [bountiesStats],
+  );
+
   const { data: customersCount } = useCustomersCount({
     enabled: canTrackConversions === true,
   });
@@ -461,6 +485,7 @@ export function AppSidebarNav({
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
         applicationsCount,
+        pendingBountySubmissionsCount,
         showConversionGuides: canTrackConversions && customersCount === 0,
       }}
       toolContent={toolContent}

@@ -3,7 +3,11 @@ import useSWR from "swr";
 import { BountyStats } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useBountiesStats() {
+export default function useBountiesStats({
+  enabled = true,
+}: {
+  enabled?: boolean;
+} = {}) {
   const { id: workspaceId } = useWorkspace();
 
   const {
@@ -11,7 +15,9 @@ export default function useBountiesStats() {
     error,
     isLoading,
   } = useSWR<BountyStats[]>(
-    workspaceId ? `/api/bounties/stats?workspaceId=${workspaceId}` : undefined,
+    enabled && workspaceId
+      ? `/api/bounties/stats?workspaceId=${workspaceId}`
+      : undefined,
     fetcher,
   );
 
