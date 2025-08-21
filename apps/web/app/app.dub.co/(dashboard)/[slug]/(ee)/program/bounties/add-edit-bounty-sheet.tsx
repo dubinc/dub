@@ -91,7 +91,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
         : undefined,
       type: bounty?.type || "performance",
       submissionRequirements: bounty?.submissionRequirements || null,
-      groupIds: null,
+      groupIds: bounty?.groups?.map(({ id }) => id) || null,
       performanceCondition: {
         operator: "gte",
       },
