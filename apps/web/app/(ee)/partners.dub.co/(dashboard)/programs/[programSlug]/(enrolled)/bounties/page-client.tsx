@@ -28,12 +28,12 @@ export function BountiesPageClient() {
     <PageWidthWrapper className="pb-10">
       {bounties?.length !== 0 || isLoading ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {isLoading
-            ? Array.from({ length: 3 }, (_, index) => (
-                <BountyCardSkeleton key={index} />
-              ))
-            : bounties?.map((bounty) => (
+          {bounties?.length
+            ? bounties?.map((bounty) => (
                 <BountyCard key={bounty.id} bounty={bounty} />
+              ))
+            : Array.from({ length: 3 }, (_, index) => (
+                <BountyCardSkeleton key={index} />
               ))}
         </div>
       ) : (
