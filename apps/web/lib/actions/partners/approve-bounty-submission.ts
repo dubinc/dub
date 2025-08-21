@@ -2,7 +2,10 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { sendEmail } from "@dub/email";
+import BountyApproved from "@dub/email/templates/bounty-approved";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -20,18 +23,17 @@ export const approveBountySubmissionAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const bountySubmission = await prisma.bountySubmission.findUnique({
-      where: {
-        id: submissionId,
-      },
-      include: {
-        bounty: true,
-      },
-    });
-
-    if (!bountySubmission) {
-      throw new Error("Bounty submission not found.");
-    }
+    const { program, bounty, partner, ...bountySubmission } =
+      await prisma.bountySubmission.findUniqueOrThrow({
+        where: {
+          id: submissionId,
+        },
+        include: {
+          program: true,
+          bounty: true,
+          partner: true,
+        },
+      });
 
     if (bountySubmission.programId !== programId) {
       throw new Error("Bounty submission does not belong to this program.");
@@ -40,8 +42,6 @@ export const approveBountySubmissionAction = authActionClient
     if (bountySubmission.status === "approved") {
       throw new Error("Bounty submission already approved.");
     }
-
-    const { bounty } = bountySubmission;
 
     if (bounty.type === "performance") {
       throw new Error("Performance based bounties cannot be approved.");
@@ -74,6 +74,28 @@ export const approveBountySubmissionAction = authActionClient
         commissionId: commission.id,
       },
     });
+
+    if (partner.email) {
+      waitUntil(
+        sendEmail({
+          subject: "Bounty approved!",
+          email: partner.email,
+          variant: "notifications",
+          react: BountyApproved({
+            email: partner.email,
+            program: {
+              name: program.name,
+              slug: program.slug,
+              supportEmail: program.supportEmail || "support@dub.co",
+            },
+            bounty: {
+              name: bounty.name!,
+              type: bounty.type,
+            },
+          }),
+        }),
+      );
+    }
 
     // TODO:
     // Record audit log

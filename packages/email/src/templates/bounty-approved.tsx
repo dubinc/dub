@@ -16,25 +16,25 @@ import { BountyThumbnailImage } from "src/components/bounty-thumbnail";
 import { Footer } from "../components/footer";
 
 export default function BountyApproved({
-  bounty = {
-    name: "Promote Acme at your campus and earn $500 ",
-    type: "performance",
-  },
   program = {
     name: "Acme",
     slug: "acme",
     supportEmail: "support@example.com",
   },
+  bounty = {
+    name: "Promote Acme at your campus and earn $500 ",
+    type: "performance",
+  },
   email = "panic@thedis.co",
 }: {
-  bounty: {
-    name: string;
-    type: "performance" | "submission";
-  };
   program: {
     slug: string;
     name: string;
     supportEmail: string;
+  };
+  bounty: {
+    name: string;
+    type: "performance" | "submission";
   };
   email: string;
 }) {
