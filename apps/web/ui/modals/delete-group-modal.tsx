@@ -10,7 +10,10 @@ import { toast } from "sonner";
 import { GroupColorCircle } from "../partners/groups/group-color-circle";
 
 interface DeleteGroupModalProps {
-  group: Pick<GroupExtendedProps, "id" | "name" | "color" | "partners">;
+  group: Pick<
+    GroupExtendedProps,
+    "id" | "name" | "slug" | "color" | "partners"
+  >;
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   onDelete?: () => void;
@@ -99,7 +102,7 @@ const DeleteGroupModal = ({
                 <p className="block text-sm text-neutral-500">
                   To verify, type{" "}
                   <span className="font-medium text-neutral-700">
-                    Delete {group.name}
+                    delete {group.slug}
                   </span>{" "}
                   below
                 </p>
@@ -115,7 +118,7 @@ const DeleteGroupModal = ({
                       className="block w-full rounded-md border-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
                       aria-invalid="true"
                       autoFocus={!isMobile}
-                      pattern={`Delete ${group.name}`}
+                      pattern={`delete ${group.slug}`}
                     />
                   </div>
                 </div>
@@ -147,7 +150,10 @@ const DeleteGroupModal = ({
 };
 
 export function useDeleteGroupModal(
-  group: Pick<GroupExtendedProps, "id" | "name" | "color" | "partners">,
+  group: Pick<
+    GroupExtendedProps,
+    "id" | "name" | "slug" | "color" | "partners"
+  >,
   onDelete?: () => void,
 ) {
   const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false);
