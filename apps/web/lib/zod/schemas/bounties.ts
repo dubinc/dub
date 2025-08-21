@@ -57,9 +57,18 @@ export const BountySchemaExtended = BountySchema.extend({
   partnersCount: z.number().default(0),
 });
 
+export const BountySubmissionFileSchema = z.object({
+  fileName: z.string(),
+  storagePath: z.string(),
+  mimeType: z.string(),
+  size: z.number(),
+});
+
 export const BountySubmissionSchema = z.object({
   id: z.string(),
   description: z.string().nullable(),
+  urls: z.array(z.string()).nullable(),
+  files: z.array(BountySubmissionFileSchema).nullable(),
   status: z.nativeEnum(BountySubmissionStatus),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -71,8 +80,12 @@ export const BountySubmissionSchema = z.object({
     name: true,
     email: true,
     image: true,
+    country: true,
     payoutsEnabledAt: true,
     groupId: true,
+    status: true,
+    bannedAt: true,
+    bannedReason: true,
   }),
   commission: CommissionSchema.pick({
     id: true,

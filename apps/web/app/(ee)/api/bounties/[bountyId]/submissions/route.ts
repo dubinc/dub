@@ -42,7 +42,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       ...submission,
       partner: {
         ...submission.programEnrollment?.partner,
-        groupId: submission.programEnrollment?.groupId,
+        ...submission.programEnrollment,
       },
     };
   });

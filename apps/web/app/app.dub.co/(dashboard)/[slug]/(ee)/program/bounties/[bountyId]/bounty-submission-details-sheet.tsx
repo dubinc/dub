@@ -6,10 +6,12 @@ import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { useRejectBountySubmissionModal } from "@/ui/partners/reject-bounty-submission-modal";
+import { ButtonLink } from "@/ui/placeholders/button-link";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, useRouterStuff } from "@dub/ui";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { Button, CopyButton, Sheet, useRouterStuff } from "@dub/ui";
+import { currencyFormatter, formatDate } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
@@ -23,8 +25,11 @@ function BountySubmissionDetailsSheetContent({
   submission,
   setIsOpen,
 }: BountySubmissionDetailsSheetProps) {
+  console.log(submission);
+
   const { bounty } = useBounty();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+
   const { setShowRejectModal, RejectBountySubmissionModal } =
     useRejectBountySubmissionModal(submission);
 
@@ -80,34 +85,102 @@ function BountySubmissionDetailsSheetContent({
 
       <div className="flex grow flex-col">
         <div className="border-b border-neutral-200 bg-neutral-50 p-6">
-          <div className="flex items-start justify-between gap-6">
-            <div>
-              <div className="relative w-fit">
-                <img
-                  src={
-                    submission.partner.image ||
-                    `${OG_AVATAR_URL}${submission.partner.name}`
-                  }
-                  alt={submission.partner.name}
-                  className="size-12 rounded-full"
-                />
-              </div>
-              <div className="mt-4 flex items-start gap-2">
-                <span className="text-lg font-semibold leading-tight text-neutral-900">
-                  {submission.partner.name}
-                </span>
-              </div>
-              {submission.partner.email && (
-                <span className="text-sm text-neutral-500">
-                  {submission.partner.email}
-                </span>
-              )}
-            </div>
-          </div>
+          <PartnerInfoSection partner={submission.partner}>
+            <ButtonLink
+              href={`/${workspaceSlug}/program/partners?partnerId=${submission.partner.id}`}
+              variant="secondary"
+              className="h-8 w-fit px-3 py-2 text-sm font-medium"
+              target="_blank"
+            >
+              View profile
+            </ButtonLink>
+          </PartnerInfoSection>
         </div>
 
-        <div className="grow overflow-y-auto p-6">
-          {/* Content will be added later */}
+        <div className="flex grow flex-col gap-8 overflow-y-auto p-6">
+          <div>
+            <h2 className="text-base font-semibold text-neutral-900">
+              Bounty details
+            </h2>
+
+            <div className="mt-4 max-w-md space-y-3">
+              <div className="grid grid-cols-2 gap-6">
+                <span className="text-sm font-medium text-neutral-500">
+                  Submitted
+                </span>
+                <span className="text-sm font-medium text-neutral-800">
+                  {formatDate(submission.createdAt, {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
+                    timeZone: "UTC",
+                  })}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <span className="text-sm font-medium text-neutral-500">
+                  Reward
+                </span>
+                <span className="text-sm font-medium text-neutral-800">
+                  {submission.commission?.earnings
+                    ? currencyFormatter(submission.commission.earnings, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })
+                    : "-"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-base font-semibold text-neutral-900">
+              Bounty submission
+            </h2>
+
+            <div className="mt-6 flex flex-col gap-6">
+              <div>
+                <h2 className="text-content-emphasis">Files</h2>
+                {/* TODO: display files */}
+              </div>
+
+              {submission.urls?.length ? (
+                <div>
+                  <h2 className="text-content-emphasis font-medium">URLs</h2>
+                  <div className="mt-2.5 flex flex-col gap-2">
+                    {submission.urls?.map((url) => (
+                      <div className="relative">
+                        <input
+                          type="text"
+                          readOnly
+                          className="border-border-subtle block w-full rounded-lg border px-3 py-2 pr-12 text-sm font-normal text-neutral-800 focus:border-neutral-300 focus:ring-0"
+                          defaultValue={url}
+                        />
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
+                          <CopyButton
+                            value={url}
+                            onCopy={() => {
+                              toast.success("URL copied to clipboard!");
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <div>
+                <h2 className="text-content-emphasis font-medium">
+                  How did you complete this bounty?
+                </h2>
+                <span className="mt-2 text-sm font-normal text-neutral-600">
+                  {submission.description}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-between gap-2 border-t border-neutral-200 p-5">

@@ -14,7 +14,16 @@ export function PartnerInfoSection({
   partner,
   children,
 }: PropsWithChildren<{
-  partner: EnrolledPartnerProps;
+  partner: Pick<
+    EnrolledPartnerProps,
+    | "name"
+    | "image"
+    | "email"
+    | "status"
+    | "bannedAt"
+    | "bannedReason"
+    | "country"
+  >;
 }>) {
   const badge = PartnerStatusBadges[partner.status];
 
