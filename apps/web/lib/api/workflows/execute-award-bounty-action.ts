@@ -1,5 +1,7 @@
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { WorkflowAction, WorkflowContext } from "@/lib/types";
+import { sendEmail } from "@dub/email";
+import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { prisma } from "@dub/prisma";
 import { createId } from "../create-id";
 
@@ -23,6 +25,7 @@ export const executeAwardBountyAction = async ({
       id: bountyId,
     },
     include: {
+      program: true,
       groups: true,
       submissions: {
         where: {
@@ -48,8 +51,10 @@ export const executeAwardBountyAction = async ({
     return;
   }
 
+  const { groups, submissions } = bounty;
+
   // Check if the partner has already submitted a submission for this bounty
-  if (bounty.submissions.length > 0) {
+  if (submissions.length > 0) {
     console.log(
       `Partner ${partnerId} has an existing submission for bounty ${bounty.id}.`,
     );
@@ -57,8 +62,8 @@ export const executeAwardBountyAction = async ({
   }
 
   // If the bounty is part of a group, check if the partner is in the group
-  if (bounty.groups.length > 0) {
-    const groupIds = bounty.groups.map(({ groupId }) => groupId);
+  if (groups.length > 0) {
+    const groupIds = groups.map(({ groupId }) => groupId);
 
     if (!groupIds.includes(groupId)) {
       console.log(
@@ -68,7 +73,7 @@ export const executeAwardBountyAction = async ({
     }
   }
 
-  console.log(`Running the workflow with the context`, context);
+  console.log(context);
 
   const commission = await createPartnerCommission({
     event: "custom",
@@ -85,17 +90,41 @@ export const executeAwardBountyAction = async ({
     return;
   }
 
-  const bountySubmission = await prisma.bountySubmission.create({
-    data: {
-      id: createId({ prefix: "bnty_sub_" }),
-      programId: bounty.programId,
-      partnerId,
-      bountyId: bounty.id,
-      commissionId: commission.id,
-    },
-  });
+  const { id: bountySubmissionId, partner } =
+    await prisma.bountySubmission.create({
+      data: {
+        id: createId({ prefix: "bnty_sub_" }),
+        programId: bounty.programId,
+        partnerId,
+        bountyId: bounty.id,
+        commissionId: commission.id,
+      },
+      include: {
+        partner: true,
+      },
+    });
 
   console.log(
-    `A new bounty submission ${bountySubmission.id} is created for ${partnerId} for the bounty ${bounty.id}.`,
+    `A new bounty submission ${bountySubmissionId} is created for ${partnerId} for the bounty ${bounty.id}.`,
   );
+
+  if (partner.email) {
+    await sendEmail({
+      subject: "Bounty completed!",
+      email: partner.email,
+      variant: "notifications",
+      react: BountyCompleted({
+        email: partner.email,
+        bounty: {
+          name: bounty.name!,
+          type: bounty.type,
+        },
+        program: {
+          name: bounty.program.name,
+          slug: bounty.program.slug,
+          supportEmail: bounty.program.supportEmail || "support@dub.co",
+        },
+      }),
+    });
+  }
 };
