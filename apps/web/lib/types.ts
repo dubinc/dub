@@ -550,3 +550,12 @@ export type WorkflowComparisonOperator =
 export type WorkflowAction = z.infer<typeof workflowActionSchema>;
 
 export type OperatorFn = (a: number, b: number) => boolean;
+
+export interface WorkflowContext {
+  totalCommissions: number;
+  totalLeads: number;
+  totalConversions: number;
+  totalSaleAmount: number;
+  partnerId: string
+  groupId: string
+}

@@ -1,6 +1,17 @@
+import {
+  WorkflowAction,
+  WorkflowCondition,
+  WorkflowContext,
+} from "@/lib/types";
+import {
+  OPERATOR_FUNCTIONS,
+  workflowActionSchema,
+  workflowConditionSchema,
+} from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { WorkflowTrigger } from "@dub/prisma/client";
-import { executeBountyWorkflow } from "./execute-bounty-workflow";
+import { z } from "zod";
+import { executeAwardBountyAction } from "./execute-award-bounty-action";
 
 export async function executeWorkflows({
   programId,
@@ -16,9 +27,6 @@ export async function executeWorkflows({
       programId,
       trigger,
     },
-    include: {
-      bounty: true,
-    },
   });
 
   if (workflows.length === 0) {
@@ -26,16 +34,138 @@ export async function executeWorkflows({
     return;
   }
 
-  await Promise.allSettled(
-    workflows
-      .filter((wf) => wf.bounty)
-      .map((workflow) =>
-        executeBountyWorkflow({
-          programId,
-          partnerId,
-          workflow,
-          bounty: workflow.bounty!,
-        }),
-      ),
-  );
+  const programEnrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
+    },
+    select: {
+      groupId: true,
+      totalCommissions: true,
+      links: {
+        select: {
+          leads: true,
+          conversions: true,
+          saleAmount: true,
+        },
+      },
+    },
+  });
+
+  if (!programEnrollment) {
+    console.error(
+      `Partner ${partnerId} is not enrolled in program ${programId}.`,
+    );
+    return;
+  }
+
+  if (!programEnrollment.groupId) {
+    console.error(
+      `Partner ${partnerId} is not enrolled in a group in program ${programId}.`,
+    );
+    return;
+  }
+
+  const { totalLeads, totalConversions, totalSaleAmount } =
+    programEnrollment.links.reduce(
+      (acc, link) => {
+        acc.totalLeads += link.leads;
+        acc.totalConversions += link.conversions;
+        acc.totalSaleAmount += link.saleAmount;
+        return acc;
+      },
+      { totalLeads: 0, totalConversions: 0, totalSaleAmount: 0 },
+    );
+
+  const workflowContext: WorkflowContext = {
+    partnerId,
+    groupId: programEnrollment.groupId,
+    totalLeads,
+    totalConversions,
+    totalSaleAmount,
+    totalCommissions: programEnrollment.totalCommissions,
+  };
+
+  // Execute each workflow for the program
+  for (const workflow of workflows) {
+    const conditions = z
+      .array(workflowConditionSchema)
+      .parse(workflow.triggerConditions);
+
+    if (conditions.length === 0) {
+      console.log(`Workflow ${workflow.id} has no trigger conditions.`);
+      continue;
+    }
+
+    const actions = z.array(workflowActionSchema).parse(workflow.actions);
+
+    if (actions.length === 0) {
+      console.log(`Workflow ${workflow.id} has no actions.`);
+    }
+
+    // We only support one trigger and action for now
+    const condition = conditions[0];
+    const action = actions[0];
+
+    const shouldExecute = evaluateWorkflowCondition({
+      condition,
+      context: workflowContext,
+    });
+
+    if (!shouldExecute) {
+      console.log(
+        `Workflow ${workflow.id} is does not meet the trigger condition.`,
+      );
+      continue;
+    }
+
+    await executeWorkflowAction({
+      action,
+      context: workflowContext,
+    });
+  }
+}
+
+function evaluateWorkflowCondition({
+  condition,
+  context,
+}: {
+  condition: WorkflowCondition;
+  context: WorkflowContext;
+}) {
+  console.log("Evaluating workflow condition", condition, context);
+
+  const operatorFn = OPERATOR_FUNCTIONS[condition.operator];
+
+  if (!operatorFn) {
+    throw new Error(
+      `Operator ${condition.operator} is not supported in the workflow trigger condition.`,
+    );
+  }
+
+  return operatorFn(context[condition.attribute], condition.value);
+}
+
+async function executeWorkflowAction({
+  action,
+  context,
+}: {
+  action: WorkflowAction;
+  context: WorkflowContext;
+}) {
+  switch (action.type) {
+    case "awardBounty":
+      await executeAwardBountyAction({
+        action,
+        context,
+      });
+      break;
+    case "sendEmail":
+    case "moveToGroup":
+    case "triggerWebhook":
+      console.log(`Not implemented ${action.type}`);
+      break;
+  }
 }
