@@ -74,8 +74,7 @@ export const PublishableKeyForm = () => {
     confirmModal: generateModal,
   } = useConfirmModal({
     title: "Generate New Publishable Key",
-    description:
-      "Are you sure you want to generate a new publishable key? This will invalidate the existing key.",
+    description: `Are you sure you want to generate a new publishable key? ${publishableKey ? "This will invalidate the existing key." : "This key will provide access to your workspace's conversion tracking endpoints."}`,
     confirmText: "Generate Key",
     onConfirm: handleGenerateKey,
   });
@@ -97,9 +96,9 @@ export const PublishableKeyForm = () => {
             Publishable Key
           </h2>
           <p className="text-sm text-neutral-500">
-            Use this key for client-side tracking and analytics integration.{" "}
+            Use this key for client-side conversion tracking.{" "}
             <Link
-              href="https://dub.co/docs/api-reference/authentication#publishable-key"
+              href="https://dub.co/docs/sdks/client-side/features/conversion-tracking"
               target="_blank"
               className="underline transition-colors hover:text-neutral-800"
             >
