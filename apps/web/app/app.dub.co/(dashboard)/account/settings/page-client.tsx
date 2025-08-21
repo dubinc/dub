@@ -19,7 +19,7 @@ export function SettingsPageClient() {
     <PageWidthWrapper className="mb-8 grid gap-8">
       <Form
         title="Your Name"
-        description={`This is the display name on your  ${APP_NAME} account.`}
+        description={`This is your display name on ${APP_NAME}.`}
         inputAttrs={{
           name: "name",
           defaultValue:
