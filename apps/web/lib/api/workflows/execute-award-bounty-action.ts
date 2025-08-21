@@ -1,7 +1,6 @@
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { WorkflowAction, WorkflowContext } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { BountySubmissionStatus } from "@dub/prisma/client";
 import { createId } from "../create-id";
 
 export const executeAwardBountyAction = async ({
@@ -93,7 +92,6 @@ export const executeAwardBountyAction = async ({
       partnerId,
       bountyId: bounty.id,
       commissionId: commission.id,
-      status: BountySubmissionStatus.approved,
     },
   });
 
