@@ -1,3 +1,7 @@
+import {
+  getHostnameFromRequest,
+  verifyAnalyticsAllowedHostnames,
+} from "@/lib/analytics/verify-analytics-allowed-hostnames";
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { DubApiError } from "@/lib/api/errors";
@@ -10,6 +14,18 @@ import { NextResponse } from "next/server";
 export const POST = withPublishableKey(
   async ({ req, workspace }) => {
     const body = await parseRequestBody(req);
+
+    const allowRequest = verifyAnalyticsAllowedHostnames({
+      allowedHostnames: (workspace?.allowedHostnames ?? []) as string[],
+      req,
+    });
+
+    if (!allowRequest) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: `Request origin '${getHostnameFromRequest(req)}' is not included in the allowed hostnames for this workspace. Update your allowed hostnames here: https://app.dub.co/settings/analytics`,
+      });
+    }
 
     let {
       customerExternalId,
