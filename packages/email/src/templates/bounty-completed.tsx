@@ -17,9 +17,7 @@ import { Footer } from "../components/footer";
 
 export default function BountySubmitted({
   bounty = {
-    id: "bounty_1K33NYERM0XZS1HK7C82C77K0",
     name: "Promote Acme at your campus and earn $500 ",
-    rewardAmount: 50000,
     type: "performance",
   },
   program = {
@@ -30,9 +28,7 @@ export default function BountySubmitted({
   email = "panic@thedis.co",
 }: {
   bounty: {
-    id: string;
     name: string;
-    rewardAmount: number;
     type: "performance" | "submission";
   };
   program: {
@@ -45,7 +41,7 @@ export default function BountySubmitted({
   return (
     <Html>
       <Head />
-      <Preview>Bounty submitted</Preview>
+      <Preview>Bounty completed</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">
@@ -54,11 +50,11 @@ export default function BountySubmitted({
             </Section>
 
             <Heading className="mx-0 my-8 p-0 text-lg font-medium text-black">
-              Bounty submitted!
+              Bounty completed!
             </Heading>
 
             <Text className="text-sm leading-5 text-neutral-600">
-              Thanks for submitting proof for the <strong>{bounty.name}</strong>{" "}
+              Congratulations on completing the <strong>{bounty.name}</strong>{" "}
               bounty!
             </Text>
 
@@ -67,8 +63,8 @@ export default function BountySubmitted({
             </Section>
 
             <Text className="text-sm leading-5 text-neutral-600">
-              Once <strong>{program.name}</strong> has verified the submitted
-              proof, the reward will be added to your payouts.
+              Once <strong>{program.name}</strong> has confirmed your bounty,
+              the reward will be added to your payouts.
             </Text>
 
             <Text className="text-sm leading-5 text-neutral-600">
