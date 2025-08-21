@@ -1,8 +1,8 @@
 import { BountyWithSubmissionsProps } from "@/lib/types";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { useClaimBountyModal } from "@/ui/partners/bounties/claim-bounty-modal";
-import { Button } from "@dub/ui";
-import { Calendar6, CircleCheckFill } from "@dub/ui/icons";
+import { Button, StatusBadge } from "@dub/ui";
+import { Calendar6 } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
 
 export function BountyCard({ bounty }: { bounty: BountyWithSubmissionsProps }) {
@@ -10,6 +10,7 @@ export function BountyCard({ bounty }: { bounty: BountyWithSubmissionsProps }) {
 
   const { claimBountyModal, setShowClaimBountyModal } = useClaimBountyModal({
     bounty,
+    submission,
   });
 
   return (
@@ -43,24 +44,29 @@ export function BountyCard({ bounty }: { bounty: BountyWithSubmissionsProps }) {
 
       <div className="flex grow flex-col justify-end">
         {submission ? (
-          submission.status === "pending" ? (
-            <div className="flex h-7 w-fit items-center gap-1 rounded-lg bg-orange-100 px-2.5">
-              <span className="text-xs font-medium text-orange-600">
+          <button
+            type="button"
+            onClick={() => setShowClaimBountyModal(true)}
+            className="w-fit"
+          >
+            {submission.status === "pending" ? (
+              <StatusBadge variant="pending" icon={null}>
                 Submitted{" "}
                 {submission.createdAt &&
                   formatDate(submission.createdAt, { month: "short" })}
-              </span>
-            </div>
-          ) : (
-            <div className="flex h-7 w-fit items-center gap-1 rounded-lg bg-neutral-100 px-2.5">
-              <CircleCheckFill className="size-3 text-green-600" />
-              <span className="text-content-default text-xs font-medium">
-                Completed{" "}
+              </StatusBadge>
+            ) : submission.status === "rejected" ? (
+              <StatusBadge variant="error" icon={null}>
+                Rejected
+              </StatusBadge>
+            ) : (
+              <StatusBadge variant="success">
+                Confirmed{" "}
                 {submission.reviewedAt &&
                   formatDate(submission.reviewedAt, { month: "short" })}
-              </span>
-            </div>
-          )
+              </StatusBadge>
+            )}
+          </button>
         ) : (
           <Button
             variant="primary"

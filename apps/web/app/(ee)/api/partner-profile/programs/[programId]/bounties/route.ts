@@ -33,9 +33,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       submissions: {
         where: {
           partnerId: partner.id,
-          status: {
-            not: "rejected",
-          },
         },
       },
     },

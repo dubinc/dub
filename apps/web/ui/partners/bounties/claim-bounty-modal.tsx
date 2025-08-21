@@ -2,7 +2,7 @@ import { createBountySubmissionAction } from "@/lib/actions/partners/create-boun
 import { uploadBountySubmissionFileAction } from "@/lib/actions/partners/upload-bounty-submission-file";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { BountyProps } from "@/lib/types";
+import { BountyProps, BountySubmissionProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -11,6 +11,7 @@ import {
   FileUpload,
   LoadingSpinner,
   Modal,
+  StatusBadge,
   Trash,
   useEnterSubmit,
   useRouterStuff,
@@ -30,11 +31,15 @@ const MAX_URLS = 4;
 type ClaimBountyModalProps = {
   setShowModal: Dispatch<SetStateAction<boolean>>;
   bounty: BountyProps;
+  submission?: Pick<
+    BountySubmissionProps,
+    "status" | "createdAt" | "reviewedAt"
+  >;
 };
 
 function ClaimBountyModalContent({
-  setShowModal,
   bounty,
+  submission,
 }: ClaimBountyModalProps) {
   const { programEnrollment } = useProgramEnrollment();
 
@@ -134,7 +139,6 @@ function ClaimBountyModalContent({
           mutatePrefix(
             `/api/partner-profile/programs/${programEnrollment.program.slug}/bounties`,
           );
-          toast.success("Submission created successfully!");
           setSuccess(true);
         } catch (e) {
           toast.error("Failed to create submission. Please try again.");
@@ -181,6 +185,32 @@ function ClaimBountyModalContent({
                   )}
                 </span>
               </div>
+
+              {submission && (
+                <div className="mt-3">
+                  <StatusBadge
+                    variant={
+                      submission.status === "pending"
+                        ? "pending"
+                        : submission.status === "approved"
+                          ? "success"
+                          : "error"
+                    }
+                    icon={submission.status === "approved" ? undefined : null}
+                  >
+                    {submission.status === "pending"
+                      ? `Submitted ${formatDate(submission.createdAt, { month: "short" })}`
+                      : submission.status === "approved"
+                        ? `Confirmed ${
+                            submission.reviewedAt &&
+                            formatDate(submission.reviewedAt, {
+                              month: "short",
+                            })
+                          }`
+                        : "Rejected"}
+                  </StatusBadge>
+                </div>
+              )}
             </div>
 
             {bounty.description && (
@@ -342,40 +372,42 @@ function ClaimBountyModalContent({
             </motion.div>
 
             {/* Action buttons */}
-            <div className="border-border-subtle border-t p-5">
-              <div
-                className={cn(
-                  "flex items-center transition-all",
-                  isFormOpen ? "gap-4" : "gap-0",
-                )}
-              >
+            {!submission && (
+              <div className="border-border-subtle border-t p-5">
                 <div
                   className={cn(
-                    "shrink-0 overflow-hidden transition-[width]",
-                    isFormOpen ? "w-[calc(50%-1rem)]" : "w-0",
+                    "flex items-center transition-all",
+                    isFormOpen ? "gap-4" : "gap-0",
                   )}
                 >
+                  <div
+                    className={cn(
+                      "shrink-0 overflow-hidden transition-[width]",
+                      isFormOpen ? "w-[calc(50%-1rem)]" : "w-0",
+                    )}
+                  >
+                    <Button
+                      variant="secondary"
+                      text="Cancel"
+                      className="rounded-lg"
+                      onClick={() => setIsFormOpen(false)}
+                    />
+                  </div>
                   <Button
-                    variant="secondary"
-                    text="Cancel"
-                    className="rounded-lg"
-                    onClick={() => setIsFormOpen(false)}
+                    variant="primary"
+                    text={isFormOpen ? "Submit proof" : "Claim bounty"}
+                    className="grow rounded-lg"
+                    onClick={isFormOpen ? undefined : () => setIsFormOpen(true)}
+                    loading={isPending}
+                    disabled={
+                      isFormOpen &&
+                      ((imageRequired && !files.length) ||
+                        (urlRequired && !urls.filter(({ url }) => url).length))
+                    }
                   />
                 </div>
-                <Button
-                  variant="primary"
-                  text={isFormOpen ? "Submit proof" : "Claim bounty"}
-                  className="grow rounded-lg"
-                  onClick={isFormOpen ? undefined : () => setIsFormOpen(true)}
-                  loading={isPending}
-                  disabled={
-                    isFormOpen &&
-                    ((imageRequired && !files.length) ||
-                      (urlRequired && !urls.filter(({ url }) => url).length))
-                  }
-                />
               </div>
-            </div>
+            )}
           </>
         )}
       </AnimatedSizeContainer>
