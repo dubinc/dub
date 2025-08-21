@@ -27,6 +27,7 @@ describe("POST /track/lead/client", async () => {
     const response = await fetch(`${env.E2E_BASE_URL}/api/track/lead/client`, {
       method: "POST",
       headers: {
+        ...E2E_TRACK_CLICK_HEADERS,
         "Content-Type": "application/json",
         Authorization: `Bearer ${env.E2E_PUBLISHABLE_KEY}`,
       },
