@@ -18,7 +18,7 @@ import {
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
-import { EventType } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@dub/prisma/client";
 import {
   Button,
   MoneyBills2,
@@ -50,7 +50,7 @@ import {
 import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
 import { RewardIconSquare } from "./reward-icon-square";
 import { RewardPartnersCard } from "./reward-partners-card";
-import { RewardsLogic } from "./rewards-logic";
+import { REWARD_TYPES, RewardsLogic } from "./rewards-logic";
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -102,11 +102,19 @@ function RewardSheetContent({
         defaultValuesSource?.type === "flat"
           ? defaultValuesSource.amount / 100
           : defaultValuesSource?.amount,
-      modifiers: defaultValuesSource?.modifiers?.map((m) => ({
-        ...m,
-        amount:
-          defaultValuesSource?.type === "flat" ? m.amount / 100 : m.amount,
-      })),
+      modifiers: defaultValuesSource?.modifiers?.map((m) => {
+        const type = m.type === undefined ? defaultValuesSource?.type : m.type;
+        const maxDuration =
+          m.maxDuration === undefined
+            ? defaultValuesSource?.maxDuration
+            : m.maxDuration;
+
+        return {
+          ...m,
+          amount: type === "flat" ? m.amount / 100 : m.amount,
+          maxDuration: m.maxDuration === null ? Infinity : maxDuration,
+        };
+      }),
     },
   });
 
@@ -182,16 +190,23 @@ function RewardSheetContent({
     }
 
     let modifiers: RewardConditionsArray | null = null;
+
     if (data.modifiers?.length) {
       try {
         modifiers = rewardConditionsArraySchema.parse(
-          data.modifiers.map((m) => ({
-            ...m,
-            amount: type === "flat" ? m.amount * 100 : m.amount,
-          })),
+          data.modifiers.map((m) => {
+            const type = m.type === undefined ? data.type : m.type;
+            const maxDuration =
+              m.maxDuration === undefined ? data.maxDuration : m.maxDuration;
+
+            return {
+              ...m,
+              amount: type === "flat" ? m.amount * 100 : m.amount,
+              maxDuration: maxDuration === Infinity ? null : maxDuration,
+            };
+          }),
         );
       } catch (error) {
-        console.error(error);
         setError("root.logic", { message: "Invalid reward condition" });
         toast.error(
           "Invalid reward condition. Please fix the errors and try again.",
@@ -279,20 +294,11 @@ function RewardSheetContent({
                         <InlineBadgePopoverMenu
                           selectedValue={type}
                           onSelect={(value) =>
-                            setValue("type", value as "flat" | "percentage", {
+                            setValue("type", value as RewardStructure, {
                               shouldDirty: true,
                             })
                           }
-                          items={[
-                            {
-                              text: "Flat",
-                              value: "flat",
-                            },
-                            {
-                              text: "Percentage",
-                              value: "percentage",
-                            },
-                          ]}
+                          items={REWARD_TYPES}
                         />
                       </InlineBadgePopover>{" "}
                       {type === "percentage" && "of "}
@@ -304,6 +310,7 @@ function RewardSheetContent({
                         ? constructRewardAmount({
                             amount: type === "flat" ? amount * 100 : amount,
                             type,
+                            maxDuration,
                           })
                         : "amount"
                     }
@@ -337,7 +344,7 @@ function RewardSheetContent({
                               value: "0",
                             },
                             ...RECURRING_MAX_DURATIONS.filter(
-                              (v) => v !== 0 && v !== 1,
+                              (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
                             ).map((v) => ({
                               text: `for ${v} ${pluralize("month", Number(v))}`,
                               value: v.toString(),

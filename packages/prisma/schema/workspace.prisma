@@ -39,6 +39,7 @@ model Project {
 
   store            Json? // General key-value store for things like persisting toggles, dismissing popups, etc.
   allowedHostnames Json?
+  publishableKey   String? @unique // for the client-side publishable key
 
   conversionEnabled Boolean @default(false) // Whether to enable conversion tracking for links by default
   webhookEnabled    Boolean @default(false)

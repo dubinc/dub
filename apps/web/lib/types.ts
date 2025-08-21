@@ -199,6 +199,7 @@ export interface ExtendedWorkspaceProps extends WorkspaceProps {
   users: (WorkspaceProps["users"][number] & {
     workspacePreferences?: z.infer<typeof workspacePreferencesSchema>;
   })[];
+  publishableKey: string | null;
 }
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
