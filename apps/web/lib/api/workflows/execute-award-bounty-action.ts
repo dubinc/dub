@@ -12,7 +12,6 @@ export const executeAwardBountyAction = async ({
   context: WorkflowContext;
 }) => {
   if (action.type !== "awardBounty") {
-    console.error(`Skipping workflow action ${action.type}`);
     return;
   }
 
@@ -34,8 +33,6 @@ export const executeAwardBountyAction = async ({
     },
   });
 
-  console.log(bounty);
-
   if (!bounty) {
     console.error(`Bounty ${bountyId} not found.`);
     return;
@@ -45,12 +42,10 @@ export const executeAwardBountyAction = async ({
 
   // Check bounty validity
   if (bounty.startsAt && bounty.startsAt > now) {
-    console.log(`Bounty ${bounty.id} has not started yet.`);
     return;
   }
 
   if (bounty.endsAt && bounty.endsAt < now) {
-    console.log(`Bounty ${bounty.id} has already ended on ${bounty.endsAt}.`);
     return;
   }
 

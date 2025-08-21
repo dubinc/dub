@@ -30,7 +30,6 @@ export async function executeWorkflows({
   });
 
   if (workflows.length === 0) {
-    console.log(`Program ${programId} has no workflows to execute.`);
     return;
   }
 
@@ -95,14 +94,13 @@ export async function executeWorkflows({
       .parse(workflow.triggerConditions);
 
     if (conditions.length === 0) {
-      console.log(`Workflow ${workflow.id} has no trigger conditions.`);
       continue;
     }
 
     const actions = z.array(workflowActionSchema).parse(workflow.actions);
 
     if (actions.length === 0) {
-      console.log(`Workflow ${workflow.id} has no actions.`);
+      continue;
     }
 
     // We only support one trigger and action for now
@@ -116,7 +114,7 @@ export async function executeWorkflows({
 
     if (!shouldExecute) {
       console.log(
-        `Workflow ${workflow.id} is does not meet the trigger condition.`,
+        `Workflow ${workflow.id} does not meet the trigger condition.`,
       );
       continue;
     }
