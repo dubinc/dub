@@ -1,4 +1,6 @@
+import { createBountySubmissionAction } from "@/lib/actions/partners/create-bounty-submission";
 import { uploadBountySubmissionFileAction } from "@/lib/actions/partners/upload-bounty-submission-file";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { BountyProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
@@ -95,14 +97,45 @@ function ClaimBountyModalContent({
     );
   };
 
+  const { executeAsync: createSubmission, isPending } = useAction(
+    createBountySubmissionAction,
+  );
+
   const imageRequired = bounty.submissionRequirements?.includes("image");
   const urlRequired = bounty.submissionRequirements?.includes("url");
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        toast.info("WIP");
+        if (!programEnrollment) return;
+
+        try {
+          const result = await createSubmission({
+            programId: programEnrollment.programId,
+            bountyId: bounty.id,
+            files: files
+              .filter(({ file, url }) => file && url)
+              .map(({ file, url }) => ({
+                url: url!,
+                fileName: file?.name || "File",
+                size: file?.size || 0,
+              })),
+            urls: urls.map(({ url }) => url).filter(Boolean),
+            description,
+          });
+
+          if (!result?.data?.success)
+            throw new Error("Failed to create submission");
+
+          mutatePrefix(
+            `/api/partner-profile/programs/${programEnrollment.program.slug}/bounties`,
+          );
+          toast.success("Submission created successfully!");
+          setShowModal(false);
+        } catch (e) {
+          toast.error("Failed to create submission. Please try again.");
+        }
       }}
       className="scrollbar-hide max-h-[calc(100dvh-50px)] overflow-y-auto"
     >
@@ -310,6 +343,7 @@ function ClaimBountyModalContent({
             text={isFormOpen ? "Submit proof" : "Claim bounty"}
             className="grow rounded-lg"
             onClick={isFormOpen ? undefined : () => setIsFormOpen(true)}
+            loading={isPending}
             disabled={
               isFormOpen &&
               ((imageRequired && !files.length) ||

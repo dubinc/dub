@@ -58,9 +58,8 @@ export const BountySchemaExtended = BountySchema.extend({
 });
 
 export const BountySubmissionFileSchema = z.object({
+  url: z.string(),
   fileName: z.string(),
-  storagePath: z.string(),
-  mimeType: z.string(),
   size: z.number(),
 });
 

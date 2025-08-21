@@ -44,20 +44,20 @@ export function BountyCard({ bounty }: { bounty: BountyWithSubmissionsProps }) {
       <div className="flex grow flex-col justify-end">
         {submission ? (
           submission.status === "pending" ? (
+            <div className="flex h-7 w-fit items-center gap-1 rounded-lg bg-orange-100 px-2.5">
+              <span className="text-xs font-medium text-orange-600">
+                Submitted{" "}
+                {submission.createdAt &&
+                  formatDate(submission.createdAt, { month: "short" })}
+              </span>
+            </div>
+          ) : (
             <div className="flex h-7 w-fit items-center gap-1 rounded-lg bg-neutral-100 px-2.5">
               <CircleCheckFill className="size-3 text-green-600" />
               <span className="text-content-default text-xs font-medium">
                 Completed{" "}
                 {submission.reviewedAt &&
                   formatDate(submission.reviewedAt, { month: "short" })}
-              </span>
-            </div>
-          ) : (
-            <div className="flex h-7 w-fit items-center gap-1 rounded-lg bg-orange-100 px-2.5">
-              <span className="text-xs font-medium text-orange-600">
-                Submitted{" "}
-                {submission.createdAt &&
-                  formatDate(submission.createdAt, { month: "short" })}
               </span>
             </div>
           )
