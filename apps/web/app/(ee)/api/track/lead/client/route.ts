@@ -1,4 +1,5 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
+import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPublishableKey } from "@/lib/auth/publishable-key";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
@@ -12,24 +13,30 @@ export const POST = withPublishableKey(
     const {
       clickId,
       eventName,
+      eventQuantity,
       customerExternalId,
       customerName,
       customerEmail,
       customerAvatar,
+      mode,
+      metadata,
     } = trackLeadRequestSchema.parse(body);
 
     const response = await trackLead({
       clickId,
       eventName,
+      eventQuantity,
       customerExternalId,
       customerName,
       customerEmail,
       customerAvatar,
+      mode,
+      metadata,
       rawBody: body,
       workspace,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });
   },
   {
     requiredPlan: [
@@ -42,3 +49,10 @@ export const POST = withPublishableKey(
     ],
   },
 );
+
+export const OPTIONS = () => {
+  return new Response(null, {
+    status: 204,
+    headers: COMMON_CORS_HEADERS,
+  });
+};

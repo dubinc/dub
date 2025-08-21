@@ -1,4 +1,5 @@
 import { trackSale } from "@/lib/api/conversions/track-sale";
+import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPublishableKey } from "@/lib/auth/publishable-key";
@@ -41,7 +42,7 @@ export const POST = withPublishableKey(
       rawBody: body,
     });
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });
   },
   {
     requiredPlan: [
@@ -54,3 +55,10 @@ export const POST = withPublishableKey(
     ],
   },
 );
+
+export const OPTIONS = () => {
+  return new Response(null, {
+    status: 204,
+    headers: COMMON_CORS_HEADERS,
+  });
+};
