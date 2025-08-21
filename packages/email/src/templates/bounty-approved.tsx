@@ -12,7 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { BountyThumbnailImage } from "src/components/bounty-thumbnail";
+import { BountyThumbnailImage } from "../components/bounty-thumbnail";
 import { Footer } from "../components/footer";
 
 export default function BountyApproved({
