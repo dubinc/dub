@@ -73,8 +73,6 @@ export const executeAwardBountyAction = async ({
     }
   }
 
-  console.log(context);
-
   const commission = await createPartnerCommission({
     event: "custom",
     partnerId,
