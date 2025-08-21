@@ -88,7 +88,7 @@ export const executeAwardBountyAction = async ({
 
   const bountySubmission = await prisma.bountySubmission.create({
     data: {
-      id: createId({ prefix: "bounty_submission_" }),
+      id: createId({ prefix: "bnty_sub_" }),
       programId: bounty.programId,
       partnerId,
       bountyId: bounty.id,

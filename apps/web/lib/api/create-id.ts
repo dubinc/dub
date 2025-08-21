@@ -29,8 +29,8 @@ const prefixes = [
   "audit_",
   "import_",
   "grp_",
-  "bounty_", // TODO: [bounties] Finalize this
-  "bounty_submission_", // TODO: [bounties] Finalize this
+  "bnty_",
+  "bnty_sub_",
   "wf_",
 ] as const;
 

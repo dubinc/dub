@@ -61,7 +61,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
 
   const bounty = await prisma.$transaction(async (tx) => {
     let workflow: Workflow | null = null;
-    const bountyId = createId({ prefix: "bounty_" });
+    const bountyId = createId({ prefix: "bnty_" });
 
     // Create a workflow if there is a performance condition
     if (condition) {
