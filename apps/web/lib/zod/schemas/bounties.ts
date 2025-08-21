@@ -38,7 +38,9 @@ export const createBountySchema = z.object({
   performanceCondition: workflowConditionSchema.nullish(),
 });
 
-export const updateBountySchema = createBountySchema;
+export const updateBountySchema = createBountySchema.omit({
+  type: true,
+});
 
 export const BountySchema = z.object({
   id: z.string(),
