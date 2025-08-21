@@ -40,11 +40,8 @@ export async function getBounties(filters: BountyFilters) {
                 SELECT JSON_ARRAYAGG(
                   JSON_OBJECT('id', bgSub.groupId)
                 )
-                FROM (
-                  SELECT bgSub.groupId
-                  FROM BountyGroup bgSub
-                  WHERE bgSub.bountyId = b.id
-                ) bgSub
+                FROM BountyGroup bgSub
+                WHERE bgSub.bountyId = b.id
               ),
               JSON_ARRAY()
             ) as groups
