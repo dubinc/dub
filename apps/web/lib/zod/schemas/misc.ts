@@ -3,7 +3,7 @@ import z from "@/lib/zod";
 import { GOOGLE_FAVICON_URL, R2_URL } from "@dub/utils";
 import { fileTypeFromBuffer } from "file-type";
 
-export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24, 36];
+export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 18, 24, 36];
 
 export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 

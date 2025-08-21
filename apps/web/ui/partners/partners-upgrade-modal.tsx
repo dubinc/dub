@@ -35,7 +35,7 @@ export function PartnersUpgradeModal({
 }: PartnersUpgradeModalProps) {
   const plan = PLANS.find(({ name }) => name === planName)!;
 
-  const [isAnnual, setIsAnnual] = useState(true);
+  const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
 
   const features = useMemo(
     () => [
@@ -77,6 +77,12 @@ export function PartnersUpgradeModal({
           {
             id: "groups",
             text: `${plan.limits.groups} partner groups`,
+            tooltip: {
+              title:
+                "Learn how you can create partner groups to segment partners by rewards, discounts, performance, location, and more.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/partner-groups",
+            },
           },
           {
             id: "api",
@@ -158,14 +164,16 @@ export function PartnersUpgradeModal({
                 <span
                   className={cn(
                     "text-xs font-semibold text-neutral-500 transition-colors",
-                    isAnnual && "text-neutral-600",
+                    period === "yearly" && "text-neutral-600",
                   )}
                 >
                   Yearly
                 </span>
                 <Switch
-                  checked={isAnnual}
-                  fn={setIsAnnual}
+                  checked={period === "yearly"}
+                  fn={() =>
+                    setPeriod(period === "yearly" ? "monthly" : "yearly")
+                  }
                   trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20 w-7 h-4"
                   thumbDimensions="size-3"
                   thumbTranslate="translate-x-3"
@@ -177,7 +185,7 @@ export function PartnersUpgradeModal({
           <div className="text-content-default mt-0.5 text-base font-medium tabular-nums">
             {plan.name !== "Enterprise" ? (
               <NumberFlow
-                value={plan.price[isAnnual ? "yearly" : "monthly"]!}
+                value={plan.price[period]!}
                 format={{
                   style: "currency",
                   currency: "USD",
@@ -191,7 +199,7 @@ export function PartnersUpgradeModal({
           </div>
           {plan.name !== "Enterprise" && (
             <span className="text-content-muted text-sm font-medium">
-              per month{isAnnual && ", billed yearly"}
+              per month{period === "yearly" && ", billed yearly"}
             </span>
           )}
 
@@ -217,7 +225,7 @@ export function PartnersUpgradeModal({
           {plan.name !== "Enterprise" ? (
             <UpgradePlanButton
               plan={plan.name.toLowerCase()}
-              period={isAnnual ? "yearly" : "monthly"}
+              period={period}
               text={`Continue with ${plan.name}`}
               variant="primary"
             />

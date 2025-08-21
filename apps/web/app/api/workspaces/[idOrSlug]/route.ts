@@ -58,8 +58,14 @@ export const GET = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    const { name, slug, logo, conversionEnabled, allowedHostnames } =
-      await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
+    const {
+      name,
+      slug,
+      logo,
+      conversionEnabled,
+      allowedHostnames,
+      publishableKey,
+    } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
       throw new DubApiError({
@@ -92,6 +98,7 @@ export const PATCH = withWorkspace(
           ...(validHostnames !== undefined && {
             allowedHostnames: validHostnames,
           }),
+          ...(publishableKey !== undefined && { publishableKey }),
         },
         include: {
           domains: {
