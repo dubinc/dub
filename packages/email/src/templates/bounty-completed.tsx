@@ -15,7 +15,7 @@ import {
 import { BountyThumbnailImage } from "src/components/bounty-thumbnail";
 import { Footer } from "../components/footer";
 
-export default function BountySubmitted({
+export default function BountyCompleted({
   bounty = {
     name: "Promote Acme at your campus and earn $500 ",
     type: "performance",
