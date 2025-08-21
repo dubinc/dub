@@ -8,7 +8,6 @@ import {
   FileUpload,
   LoadingSpinner,
   Modal,
-  Plus,
   Trash,
   useEnterSubmit,
   useRouterStuff,
@@ -96,6 +95,9 @@ function ClaimBountyModalContent({
     );
   };
 
+  const imageRequired = bounty.submissionRequirements?.includes("image");
+  const urlRequired = bounty.submissionRequirements?.includes("url");
+
   return (
     <form
       onSubmit={(e) => {
@@ -155,8 +157,7 @@ function ClaimBountyModalContent({
             <label htmlFor="slug" className="flex items-center space-x-2">
               <h2 className="text-sm font-medium text-neutral-900">
                 Files
-                {bounty.submissionRequirements?.includes("image") &&
-                  " (at least 1 required)"}
+                {imageRequired && " (at least 1 required)"}
               </h2>
             </label>
             <div
@@ -218,8 +219,7 @@ function ClaimBountyModalContent({
             <label htmlFor="slug" className="flex items-center space-x-2">
               <h2 className="text-sm font-medium text-neutral-900">
                 URLs
-                {bounty.submissionRequirements?.includes("url") &&
-                  " (at least 1 required)"}
+                {urlRequired && " (at least 1 required)"}
               </h2>
             </label>
             <div className={cn("mt-2 flex flex-col gap-2")}>
@@ -236,30 +236,30 @@ function ClaimBountyModalContent({
                         ),
                       )
                     }
-                    className="block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                    className="block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                   />
                   {urls.length > 1 && (
                     <Button
                       variant="outline"
                       icon={<Trash className="size-4" />}
-                      className={cn("w-10 shrink-0 p-0")}
+                      className="w-10 shrink-0 bg-red-50 p-0 text-red-700 hover:bg-red-100"
                       onClick={() =>
                         setUrls((prev) => prev.filter((s) => s.id !== id))
                       }
                     />
                   )}
-                  {urls.length < MAX_URLS && idx === urls.length - 1 && (
-                    <Button
-                      variant="outline"
-                      icon={<Plus className="size-4" />}
-                      className={cn("w-10 shrink-0 p-0")}
-                      onClick={() =>
-                        setUrls((prev) => [...prev, { id: uuid(), url: "" }])
-                      }
-                    />
-                  )}
                 </div>
               ))}
+              {urls.length < MAX_URLS && (
+                <Button
+                  variant="secondary"
+                  text="Add URL"
+                  className="h-8 rounded-lg"
+                  onClick={() =>
+                    setUrls((prev) => [...prev, { id: uuid(), url: "" }])
+                  }
+                />
+              )}
             </div>
           </div>
 
@@ -310,6 +310,11 @@ function ClaimBountyModalContent({
             text={isFormOpen ? "Submit proof" : "Claim bounty"}
             className="grow rounded-lg"
             onClick={isFormOpen ? undefined : () => setIsFormOpen(true)}
+            disabled={
+              isFormOpen &&
+              ((imageRequired && !files.length) ||
+                (urlRequired && !urls.filter(({ url }) => url).length))
+            }
           />
         </div>
       </div>
