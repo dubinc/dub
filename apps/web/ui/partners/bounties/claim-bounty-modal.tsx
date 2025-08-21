@@ -8,15 +8,22 @@ import {
   FileUpload,
   LoadingSpinner,
   Modal,
+  Plus,
+  Trash,
+  useEnterSubmit,
   useRouterStuff,
 } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import { motion } from "framer-motion";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
+import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { BountyThumbnailImage } from "./bounty-thumbnail-image";
+
+const MAX_FILES = 4;
+const MAX_URLS = 4;
 
 type ClaimBountyModalProps = {
   setShowModal: Dispatch<SetStateAction<boolean>>;
@@ -30,6 +37,7 @@ function ClaimBountyModalContent({
   const { programEnrollment } = useProgramEnrollment();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { handleKeyDown } = useEnterSubmit();
 
   const [files, setFiles] = useState<
     {
@@ -40,7 +48,15 @@ function ClaimBountyModalContent({
     }[]
   >([]);
 
-  const { executeAsync } = useAction(uploadBountySubmissionFileAction);
+  const [urls, setUrls] = useState<{ id: string; url: string }[]>([
+    { id: uuid(), url: "" },
+  ]);
+
+  const [description, setDescription] = useState("");
+
+  const { executeAsync: uploadFile } = useAction(
+    uploadBountySubmissionFileAction,
+  );
 
   const handleUpload = async (file: File) => {
     if (!programEnrollment) return;
@@ -48,7 +64,7 @@ function ClaimBountyModalContent({
     setFiles((prev) => [...prev, { id: uuid(), file, uploading: true }]);
 
     // TODO: Partners upload URL
-    const result = await executeAsync({
+    const result = await uploadFile({
       programId: programEnrollment.programId,
       bountyId: bounty.id,
     });
@@ -81,7 +97,13 @@ function ClaimBountyModalContent({
   };
 
   return (
-    <div className="scrollbar-hide max-h-[calc(100dvh-50px)] overflow-y-auto">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        toast.info("WIP");
+      }}
+      className="scrollbar-hide max-h-[calc(100dvh-50px)] overflow-y-auto"
+    >
       <div className="flex h-[132px] items-center justify-center bg-neutral-100 py-3">
         <div className="relative size-full">
           <BountyThumbnailImage bounty={bounty} />
@@ -127,10 +149,15 @@ function ClaimBountyModalContent({
           !isFormOpen && "opacity-0",
         )}
       >
-        <div className="border-border-subtle border-t p-6 max-sm:px-4">
+        <div className="border-border-subtle flex flex-col gap-5 border-t p-6 max-sm:px-4">
+          {/* Files */}
           <div>
             <label htmlFor="slug" className="flex items-center space-x-2">
-              <h2 className="text-sm font-medium text-neutral-900">Files</h2>
+              <h2 className="text-sm font-medium text-neutral-900">
+                Files
+                {bounty.submissionRequirements?.includes("image") &&
+                  " (at least 1 required)"}
+              </h2>
             </label>
             <div
               className={cn(
@@ -181,9 +208,78 @@ function ClaimBountyModalContent({
                   files.length > 0 ? null : "JPG or PNG, max size of 5MB"
                 }
                 onChange={async ({ file }) => await handleUpload(file)}
-                disabled={files.length >= 4}
+                disabled={files.length >= MAX_FILES}
               />
             </div>
+          </div>
+
+          {/* URLs */}
+          <div>
+            <label htmlFor="slug" className="flex items-center space-x-2">
+              <h2 className="text-sm font-medium text-neutral-900">
+                URLs
+                {bounty.submissionRequirements?.includes("url") &&
+                  " (at least 1 required)"}
+              </h2>
+            </label>
+            <div className={cn("mt-2 flex flex-col gap-2")}>
+              {urls.map(({ id, url }, idx) => (
+                <div key={id} className="flex items-center gap-2">
+                  <input
+                    type="url"
+                    placeholder="https://"
+                    value={url}
+                    onChange={(e) =>
+                      setUrls((prev) =>
+                        prev.map((u) =>
+                          u.id === id ? { ...u, url: e.target.value } : u,
+                        ),
+                      )
+                    }
+                    className="block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  />
+                  {urls.length > 1 && (
+                    <Button
+                      variant="outline"
+                      icon={<Trash className="size-4" />}
+                      className={cn("w-10 shrink-0 p-0")}
+                      onClick={() =>
+                        setUrls((prev) => prev.filter((s) => s.id !== id))
+                      }
+                    />
+                  )}
+                  {urls.length < MAX_URLS && idx === urls.length - 1 && (
+                    <Button
+                      variant="outline"
+                      icon={<Plus className="size-4" />}
+                      className={cn("w-10 shrink-0 p-0")}
+                      onClick={() =>
+                        setUrls((prev) => [...prev, { id: uuid(), url: "" }])
+                      }
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label htmlFor="slug" className="flex items-center space-x-2">
+              <h2 className="text-sm font-medium text-neutral-900">
+                How did you complete this bounty?
+              </h2>
+            </label>
+            <ReactTextareaAutosize
+              className={cn(
+                "mt-2 block w-full resize-none rounded-md focus:outline-none sm:text-sm",
+                "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+              )}
+              minRows={2}
+              onKeyDown={handleKeyDown}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </div>
         </div>
       </motion.div>
@@ -213,13 +309,11 @@ function ClaimBountyModalContent({
             variant="primary"
             text={isFormOpen ? "Submit proof" : "Claim bounty"}
             className="grow rounded-lg"
-            onClick={
-              isFormOpen ? () => toast.info("WIP") : () => setIsFormOpen(true)
-            }
+            onClick={isFormOpen ? undefined : () => setIsFormOpen(true)}
           />
         </div>
       </div>
-    </div>
+    </form>
   );
 }
 
