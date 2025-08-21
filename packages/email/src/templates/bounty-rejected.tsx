@@ -15,26 +15,26 @@ import {
 import { Footer } from "../components/footer";
 
 export default function BountyRejected({
-  bounty = {
-    name: "Promote Acme at your campus and earn $500 ",
-  },
   program = {
     name: "Acme",
     slug: "acme",
     supportEmail: "support@example.com",
+  },
+  bounty = {
+    name: "Promote Acme at your campus and earn $500 ",
   },
   submission = {
     rejectionReason: "Not a valid URL",
   },
   email = "panic@thedis.co",
 }: {
-  bounty: {
-    name: string;
-  };
   program: {
     slug: string;
     name: string;
     supportEmail: string;
+  };
+  bounty: {
+    name: string;
   };
   submission: {
     rejectionReason: string;
