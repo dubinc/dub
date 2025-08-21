@@ -4,6 +4,7 @@ import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { Project } from "@prisma/client";
 import { AxiomRequest, withAxiom } from "next-axiom";
+import { COMMON_CORS_HEADERS } from "../api/cors";
 
 interface WithPublishableKeyHandler {
   ({
@@ -39,9 +40,9 @@ export const withPublishableKey = (
       req: AxiomRequest,
       { params = {} }: { params: Record<string, string> | undefined },
     ) => {
-      try {
-        let headers = {};
+      let headers = {};
 
+      try {
         const authorizationHeader = req.headers.get("Authorization");
         if (authorizationHeader) {
           if (!authorizationHeader.includes("Bearer ")) {
@@ -50,6 +51,7 @@ export const withPublishableKey = (
               message: "Invalid or missing publishable key.",
             });
           }
+
           const publishableKey = authorizationHeader.replace("Bearer ", "");
           if (!publishableKey.startsWith("dub_pk_")) {
             throw new DubApiError({
@@ -64,6 +66,7 @@ export const withPublishableKey = (
           ).limit(publishableKey);
 
           headers = {
+            ...COMMON_CORS_HEADERS,
             "Retry-After": reset.toString(),
             "X-RateLimit-Limit": limit.toString(),
             "X-RateLimit-Remaining": remaining.toString(),
@@ -107,7 +110,7 @@ export const withPublishableKey = (
         }
       } catch (error) {
         req.log.error(error);
-        return handleAndReturnErrorResponse(error);
+        return handleAndReturnErrorResponse(error, headers);
       }
     },
   );
