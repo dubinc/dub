@@ -50,6 +50,7 @@ function ClaimBountyModalContent({
     // TODO: Partners upload URL
     const result = await executeAsync({
       programId: programEnrollment.programId,
+      bountyId: bounty.id,
     });
 
     if (!result?.data) throw new Error("Failed to get signed upload URL");
