@@ -85,7 +85,10 @@ function BountySubmissionDetailsSheetContent({
 
       <div className="flex grow flex-col">
         <div className="border-b border-neutral-200 bg-neutral-50 p-6">
-          <PartnerInfoSection partner={submission.partner}>
+          <PartnerInfoSection
+            partner={submission.partner}
+            showPartnerStatus={false}
+          >
             <ButtonLink
               href={`/${workspaceSlug}/program/partners?partnerId=${submission.partner.id}`}
               variant="secondary"
@@ -140,15 +143,38 @@ function BountySubmissionDetailsSheetContent({
             </h2>
 
             <div className="mt-6 flex flex-col gap-6">
-              <div>
-                <h2 className="text-content-emphasis">Files</h2>
-                {/* TODO: display files */}
-              </div>
-
-              {submission.urls?.length ? (
+              {Boolean(submission.files?.length) && (
                 <div>
-                  <h2 className="text-content-emphasis font-medium">URLs</h2>
-                  <div className="mt-2.5 flex flex-col gap-2">
+                  <h2 className="text-content-emphasis text-sm font-medium">
+                    Files
+                  </h2>
+                  <div className="mt-2 flex flex-wrap gap-4">
+                    {submission.files!.map((file, idx) => (
+                      <a
+                        key={idx}
+                        className="border-border-subtle hover:border-border-default group relative flex size-14 items-center justify-center rounded-md border bg-white"
+                        target="_blank"
+                        href={file.url}
+                        rel="noopener noreferrer"
+                      >
+                        <div className="relative size-full overflow-hidden rounded-md">
+                          <img src={file.url} alt="object-cover" />
+                        </div>
+                        <span className="sr-only">
+                          {file.fileName || `File ${idx + 1}`}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {Boolean(submission.urls?.length) && (
+                <div>
+                  <h2 className="text-content-emphasis text-sm font-medium">
+                    URLs
+                  </h2>
+                  <div className="mt-2 flex flex-col gap-2">
                     {submission.urls?.map((url) => (
                       <div className="relative">
                         <input
@@ -169,16 +195,18 @@ function BountySubmissionDetailsSheetContent({
                     ))}
                   </div>
                 </div>
-              ) : null}
+              )}
 
-              <div>
-                <h2 className="text-content-emphasis font-medium">
-                  How did you complete this bounty?
-                </h2>
-                <span className="mt-2 text-sm font-normal text-neutral-600">
-                  {submission.description}
-                </span>
-              </div>
+              {submission.description && (
+                <div>
+                  <h2 className="text-content-emphasis text-sm font-medium">
+                    How did you complete this bounty?
+                  </h2>
+                  <span className="mt-2 text-sm font-normal text-neutral-600">
+                    {submission.description}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

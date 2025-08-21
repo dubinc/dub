@@ -12,8 +12,10 @@ import { PartnerStatusBadges } from "./partner-status-badges";
 
 export function PartnerInfoSection({
   partner,
+  showPartnerStatus = true,
   children,
 }: PropsWithChildren<{
+  showPartnerStatus?: boolean;
   partner: Pick<
     EnrolledPartnerProps,
     | "name"
@@ -25,7 +27,7 @@ export function PartnerInfoSection({
     | "country"
   >;
 }>) {
-  const badge = PartnerStatusBadges[partner.status];
+  const badge = showPartnerStatus ? PartnerStatusBadges[partner.status] : null;
 
   return (
     <div className="flex items-start justify-between gap-6">
