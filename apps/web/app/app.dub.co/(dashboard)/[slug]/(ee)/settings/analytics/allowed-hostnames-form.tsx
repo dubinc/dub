@@ -2,6 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Button, CardList, CircleCheck, LoadingSpinner, Trash } from "@dub/ui";
 import { cn, validDomainRegex } from "@dub/utils";
 import Link from "next/link";
@@ -140,11 +141,7 @@ const AllowedHostnameCard = ({ hostname }: { hostname: string }) => {
     customPermissionDescription: "delete hostnames",
   });
 
-  const deleteHostname = async () => {
-    if (!confirm("Are you sure you want to delete this hostname?")) {
-      return;
-    }
-
+  const handleDeleteHostname = async () => {
     setProcessing(true);
 
     const response = await fetch(`/api/workspaces/${id}`, {
@@ -167,6 +164,13 @@ const AllowedHostnameCard = ({ hostname }: { hostname: string }) => {
     mutate();
     setProcessing(false);
   };
+
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Delete Hostname",
+    description: `Are you sure you want to delete "${hostname}"? This action cannot be undone.`,
+    confirmText: "Delete Hostname",
+    onConfirm: handleDeleteHostname,
+  });
 
   return (
     <CardList.Card
@@ -198,10 +202,11 @@ const AllowedHostnameCard = ({ hostname }: { hostname: string }) => {
               <Trash className="size-4" />
             )
           }
-          onClick={deleteHostname}
+          onClick={() => setShowConfirmModal(true)}
           disabledTooltip={permissionsError || undefined}
         />
       </div>
+      {confirmModal}
     </CardList.Card>
   );
 };
