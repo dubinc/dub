@@ -8,7 +8,6 @@ export const APP_HOSTNAMES = new Set([
   `preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "localhost:8888",
   "localhost",
-  "app.localhost",
 ]);
 
 export const APP_DOMAIN =
