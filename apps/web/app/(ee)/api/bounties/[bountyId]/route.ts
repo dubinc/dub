@@ -76,7 +76,7 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
     },
   });
 
-  // TODO: [bounties] Persist performance logic to workflow and groupIds to bountyGroupP
+  // TODO: [bounties] Persist performance logic to workflow
 
   return NextResponse.json(BountySchema.parse(bounty));
 });
