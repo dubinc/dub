@@ -27,7 +27,7 @@ export const POST = withPublishableKey(
       });
     }
 
-    let {
+    const {
       customerExternalId,
       paymentProcessor,
       invoiceId,
