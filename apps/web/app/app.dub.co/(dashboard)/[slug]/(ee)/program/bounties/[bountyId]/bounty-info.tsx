@@ -2,27 +2,28 @@
 
 import useBounty from "@/lib/swr/use-bounty";
 import useBountyStats from "@/lib/swr/use-bounty-stats";
-import { formatDate } from "@dub/utils";
-import { CalendarDays, Trophy, Users } from "lucide-react";
+import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
+import { formatDate, pluralize } from "@dub/utils";
+import { CalendarDays, Users } from "lucide-react";
 
 export function BountyInfo() {
   const { bounty } = useBounty();
   const { bountyStats } = useBountyStats();
 
   return (
-    <div className="flex items-center gap-6">
-      <div className="flex h-[90px] w-[90px] shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-5">
-        <Trophy className="size-12" />
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+      <div className="relative flex size-16 shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-3 sm:size-[90px]">
+        {bounty && <BountyThumbnailImage bounty={bounty} />}
       </div>
 
       {bounty && (
-        <div className="flex flex-1 flex-col gap-1.5">
-          <h3 className="text-base font-semibold leading-6 text-neutral-900">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <h3 className="truncate text-base font-semibold leading-6 text-neutral-900">
             {bounty.name}
           </h3>
 
           <div className="flex items-center space-x-2">
-            <CalendarDays className="size-4" />
+            <CalendarDays className="size-4 shrink-0" />
             <span className="text-sm font-medium text-neutral-500">
               {formatDate(bounty.startsAt, { month: "short" })}
               {" → "}
@@ -33,7 +34,7 @@ export function BountyInfo() {
           </div>
 
           <div className="flex items-center space-x-2">
-            <Users className="size-4" />
+            <Users className="size-4 shrink-0" />
             <div className="text-sm text-neutral-500">
               <span className="font-medium text-neutral-700">
                 {bountyStats?.submissions}
@@ -42,7 +43,7 @@ export function BountyInfo() {
               <span className="font-medium text-neutral-700">
                 {bountyStats?.partners}
               </span>{" "}
-              partners completed
+              {pluralize("partner", bountyStats?.partners ?? 0)} completed
             </div>
           </div>
         </div>
