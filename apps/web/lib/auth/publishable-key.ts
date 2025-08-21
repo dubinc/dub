@@ -47,11 +47,16 @@ export const withPublishableKey = (
           if (!authorizationHeader.includes("Bearer ")) {
             throw new DubApiError({
               code: "bad_request",
-              message:
-                "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://d.to/auth",
+              message: "Invalid or missing publishable key.",
             });
           }
           const publishableKey = authorizationHeader.replace("Bearer ", "");
+          if (!publishableKey.startsWith("dub_pk_")) {
+            throw new DubApiError({
+              code: "bad_request",
+              message: "Invalid or missing publishable key.",
+            });
+          }
 
           const { success, limit, reset, remaining } = await ratelimit(
             600,
@@ -72,7 +77,7 @@ export const withPublishableKey = (
             });
           }
 
-          const workspace = await prisma.project.findFirst({
+          const workspace = await prisma.project.findUnique({
             where: {
               publishableKey,
             },
@@ -81,7 +86,8 @@ export const withPublishableKey = (
           if (!workspace) {
             throw new DubApiError({
               code: "unauthorized",
-              message: "Unauthorized: Invalid Dub publishable key.",
+              message:
+                "Unauthorized: Workspace does not have a publishable key configured.",
             });
           }
 

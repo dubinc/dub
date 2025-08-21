@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const AllowedHostnames = () => {
+export const AllowedHostnamesForm = () => {
   const { allowedHostnames, loading } = useWorkspace();
 
   return (
@@ -123,7 +123,7 @@ const AddHostnameForm = () => {
         onClick={addHostname}
         disabled={!isValidHostname(hostname) || hostname.length === 0}
         loading={processing}
-        className="w-40"
+        className="w-fit"
         disabledTooltip={permissionsError || undefined}
       />
     </form>

@@ -147,6 +147,7 @@ export const createWorkspaceSchema = z.object({
 
 export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
   allowedHostnames: z.array(z.string()).optional(),
+  publishableKey: z.string().nullish(),
 });
 
 export const notificationTypes = z.enum([
@@ -168,6 +169,7 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
       workspacePreferences: z.record(z.any()).nullish(),
     }),
   ),
+  publishableKey: z.string().nullable(),
 });
 
 export const OnboardingUsageSchema = z.object({
