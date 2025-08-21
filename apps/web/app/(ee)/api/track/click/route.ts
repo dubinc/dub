@@ -3,6 +3,7 @@ import {
   getHostnameFromRequest,
   verifyAnalyticsAllowedHostnames,
 } from "@/lib/analytics/verify-analytics-allowed-hostnames";
+import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
@@ -19,12 +20,6 @@ import { ipAddress, waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
 
 const trackClickSchema = z.object({
   domain: z.string({ required_error: "domain is required." }),
@@ -166,15 +161,15 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       }),
     });
 
-    return NextResponse.json(response, { headers: CORS_HEADERS });
+    return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });
   } catch (error) {
-    return handleAndReturnErrorResponse(error, CORS_HEADERS);
+    return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
   }
 });
 
 export const OPTIONS = () => {
   return new Response(null, {
     status: 204,
-    headers: CORS_HEADERS,
+    headers: COMMON_CORS_HEADERS,
   });
 };

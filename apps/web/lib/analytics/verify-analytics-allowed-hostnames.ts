@@ -25,7 +25,7 @@ export const verifyAnalyticsAllowedHostnames = ({
   const hostname = getHostnameFromRequest(req);
 
   if (!hostname) {
-    console.log("Click not recorded ❌ – No hostname found in request.", {
+    console.log("Event not recorded ❌ – No hostname found in request.", {
       allowedHostnames,
     });
     return false;
@@ -49,7 +49,7 @@ export const verifyAnalyticsAllowedHostnames = ({
   }
 
   console.log(
-    `Click not recorded ❌ – Hostname ${hostname} does not match any allowed patterns.`,
+    `Event not recorded ❌ – Hostname ${hostname} does not match any allowed patterns.`,
     {
       allowedHostnames,
     },
