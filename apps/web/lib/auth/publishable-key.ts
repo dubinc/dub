@@ -86,8 +86,7 @@ export const withPublishableKey = (
           if (!workspace) {
             throw new DubApiError({
               code: "unauthorized",
-              message:
-                "Unauthorized: Workspace does not have a publishable key configured.",
+              message: "Invalid publishable key.",
             });
           }
 
@@ -103,7 +102,7 @@ export const withPublishableKey = (
         } else {
           throw new DubApiError({
             code: "unauthorized",
-            message: "Unauthorized: No publishable key provided.",
+            message: "Missing publishable key.",
           });
         }
       } catch (error) {
