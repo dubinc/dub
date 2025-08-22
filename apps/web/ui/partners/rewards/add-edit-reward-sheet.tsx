@@ -323,7 +323,7 @@ function RewardSheetContent({
                   )}
                   <InlineBadgePopover
                     text={
-                      amount
+                      !isNaN(amount)
                         ? constructRewardAmount({
                             amount: type === "flat" ? amount * 100 : amount,
                             type,
@@ -331,7 +331,7 @@ function RewardSheetContent({
                           })
                         : "amount"
                     }
-                    invalid={!amount}
+                    invalid={isNaN(amount)}
                   >
                     <AmountInput />
                   </InlineBadgePopover>{" "}
