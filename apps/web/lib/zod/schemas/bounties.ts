@@ -72,21 +72,21 @@ export const BountySubmissionFileSchema = z.object({
   size: z.number(),
 });
 
-export const BountySubmissionSchema = z.object({
-  submission: z
-    .object({
-      id: z.string(),
-      description: z.string().nullable(),
-      urls: z.array(z.string()).nullable(),
-      files: z.array(BountySubmissionFileSchema).nullable(),
-      status: z.nativeEnum(BountySubmissionStatus),
-      createdAt: z.date(),
-      updatedAt: z.date(),
-      reviewedAt: z.date().nullable(),
-      rejectionReason: z.string().nullable(),
-      rejectionNote: z.string().nullable(),
-    })
-    .nullable(),
+const BountySubmissionSchema = z.object({
+  id: z.string(),
+  description: z.string().nullable(),
+  urls: z.array(z.string()).nullable(),
+  files: z.array(BountySubmissionFileSchema).nullable(),
+  status: z.nativeEnum(BountySubmissionStatus),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  reviewedAt: z.date().nullable(),
+  rejectionReason: z.string().nullable(),
+  rejectionNote: z.string().nullable(),
+});
+
+export const BountySubmissionExtendedSchema = z.object({
+  submission: BountySubmissionSchema.nullable(),
   partner: EnrolledPartnerSchema.pick({
     id: true,
     name: true,
@@ -117,13 +117,7 @@ export const BountySubmissionSchema = z.object({
 });
 
 export const BountyWithSubmissionsSchema = BountySchema.extend({
-  submissions: z.array(
-    BountySubmissionSchema.omit({
-      partner: true,
-      commission: true,
-      user: true,
-    }),
-  ),
+  submissions: z.array(BountySubmissionSchema).nullable(),
 });
 
 export const BOUNTIES_MAX_PAGE_SIZE = 100;

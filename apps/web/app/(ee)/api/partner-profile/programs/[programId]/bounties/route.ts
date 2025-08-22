@@ -38,6 +38,8 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     },
   });
 
+  console.log(bounties)
+
   return NextResponse.json(
     z.array(BountyWithSubmissionsSchema).parse(bounties),
   );

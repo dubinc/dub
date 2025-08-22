@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { BountySubmissionSchema } from "@/lib/zod/schemas/bounties";
+import { BountySubmissionExtendedSchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { Bounty, BountyGroup, BountyType } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
@@ -36,7 +36,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       ? await getSubmissions(bounty)
       : await getActivePartners(bounty);
 
-  return NextResponse.json(z.array(BountySubmissionSchema).parse(results));
+  return NextResponse.json(z.array(BountySubmissionExtendedSchema).parse(results));
 });
 
 // Get the submissions for a bounty of the type `submission`
