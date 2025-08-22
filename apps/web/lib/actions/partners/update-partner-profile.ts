@@ -170,6 +170,7 @@ const deleteStripeAccountIfRequired = async ({
     partner.profileType.toLowerCase() !== input.profileType.toLowerCase();
 
   const companyNameChanged =
+    input.profileType === "company" &&
     partner.companyName?.toLowerCase() !== input.companyName?.toLowerCase();
 
   const deleteExpressAccount =
