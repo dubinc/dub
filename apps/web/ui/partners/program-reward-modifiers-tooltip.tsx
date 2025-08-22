@@ -7,7 +7,12 @@ import {
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
 import { InfoTooltip } from "@dub/ui";
-import { capitalize, currencyFormatter, pluralize } from "@dub/utils";
+import {
+  COUNTRIES,
+  capitalize,
+  currencyFormatter,
+  pluralize,
+} from "@dub/utils";
 import { z } from "zod";
 
 export const ATTRIBUTE_LABELS = {
@@ -32,19 +37,23 @@ export function ProgramRewardModifiersTooltip({
     return null;
   }
 
+  const showBaseReward = reward.amount !== 0;
+
   return (
     <div className="inline-block align-text-top">
       <InfoTooltip
         content={
           <div className="max-w-sm space-y-2 p-3">
-            <RewardItem reward={reward} />
+            {showBaseReward && <RewardItem reward={reward} />}
             {(
               reward.modifiers as z.infer<typeof rewardConditionsArraySchema>
             ).map((modifier, idx) => (
               <div key={idx} className="space-y-2">
-                <span className="flex w-full items-center justify-center rounded bg-neutral-100 px-2 py-1 text-xs font-semibold text-neutral-600">
-                  OR
-                </span>
+                {(showBaseReward || idx > 0) && (
+                  <span className="flex w-full items-center justify-center rounded bg-neutral-100 px-2 py-1 text-xs font-semibold text-neutral-600">
+                    OR
+                  </span>
+                )}
 
                 <RewardItem
                   reward={{
@@ -118,18 +127,31 @@ const RewardItem = ({
                   {ATTRIBUTE_LABELS[condition.attribute].toLowerCase()}{" "}
                   {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
                   {condition.value &&
-                    (Array.isArray(condition.value)
-                      ? condition.value.join(", ")
-                      : condition.attribute === "productId" && condition.label
-                        ? condition.label
-                        : ENTITY_ATTRIBUTE_TYPES[condition.entity]?.[
-                              condition.attribute
-                            ] === "currency"
-                          ? currencyFormatter(Number(condition.value) / 100, {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })
-                          : condition.value.toString())}
+                    (condition.attribute === "country"
+                      ? // Country names
+                        Array.isArray(condition.value)
+                        ? (condition.value as any[])
+                            .map((v) => COUNTRIES[v?.toString()] ?? v)
+                            .join(", ")
+                        : COUNTRIES[condition.value?.toString()] ??
+                          condition.value
+                      : // Non-country value(s)
+                        Array.isArray(condition.value)
+                        ? // Basic array
+                          condition.value.join(", ")
+                        : condition.attribute === "productId" && condition.label
+                          ? // Product label
+                            condition.label
+                          : ENTITY_ATTRIBUTE_TYPES[condition.entity]?.[
+                                condition.attribute
+                              ] === "currency"
+                            ? // Currency value
+                              currencyFormatter(Number(condition.value) / 100, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })
+                            : // Everything else
+                              condition.value.toString())}
                 </span>
               </li>
             );

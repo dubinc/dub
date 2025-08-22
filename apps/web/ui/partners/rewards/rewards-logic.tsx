@@ -666,7 +666,7 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
       )}
       <InlineBadgePopover
         text={
-          amount
+          !isNaN(amount)
             ? constructRewardAmount({
                 amount: displayType === "flat" ? amount * 100 : amount,
                 type: displayType,
@@ -674,7 +674,7 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
               })
             : "amount"
         }
-        invalid={!amount}
+        invalid={isNaN(amount)}
       >
         <ResultAmountInput modifierKey={modifierKey} />
       </InlineBadgePopover>{" "}
