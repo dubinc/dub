@@ -126,14 +126,14 @@ export const PublishableKeyForm = () => {
               </code>
               <CopyButton value={publishableKey} className="shrink-0" />
             </div>
-            <div className="flex items-center gap-2 sm:shrink-0">
+            <div className="flex w-fit items-center gap-2 sm:shrink-0">
               <Button
                 text="Regenerate"
                 variant="secondary"
                 onClick={() => setShowGenerateModal(true)}
                 loading={processing}
                 disabledTooltip={permissionsError || undefined}
-                className="h-7 flex-1 px-2 text-xs sm:flex-none"
+                className="h-7 w-fit flex-1 px-2 text-xs sm:flex-none"
               />
               <Button
                 text="Revoke"
@@ -141,7 +141,7 @@ export const PublishableKeyForm = () => {
                 onClick={() => setShowRevokeModal(true)}
                 loading={processing}
                 disabledTooltip={permissionsError || undefined}
-                className="h-7 flex-1 px-2 text-xs sm:flex-none"
+                className="h-7 w-fit flex-1 px-2 text-xs sm:flex-none"
               />
             </div>
           </div>
