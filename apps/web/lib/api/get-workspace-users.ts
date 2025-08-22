@@ -39,6 +39,13 @@ export async function getWorkspaceUsers({
       id: true,
       slug: true,
       name: true,
+      programs: {
+        select: {
+          name: true,
+          slug: true,
+          supportEmail: true,
+        },
+      },
       users: {
         where: {
           role,
@@ -60,10 +67,13 @@ export async function getWorkspaceUsers({
     throw new Error(`Workspace ${workspaceId} not found.`);
   }
 
+  const program = workspace.programs.length > 0 ? workspace.programs[0] : null;
+
   return {
     id: workspace.id,
     slug: workspace.slug,
     name: workspace.name,
+    program,
     users: workspace.users
       .map(({ user }) => user)
       .filter((user) => user.email)

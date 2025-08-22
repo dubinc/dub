@@ -16,29 +16,23 @@ import { BountyThumbnailImage } from "../components/bounty-thumbnail";
 import { Footer } from "../components/footer";
 
 export default function BountySubmitted({
-  bounty = {
-    id: "bounty_1K33NYERM0XZS1HK7C82C77K0",
-    name: "Promote Acme at your campus and earn $500 ",
-    rewardAmount: 50000,
-    type: "performance",
-  },
   program = {
     name: "Acme",
     slug: "acme",
     supportEmail: "support@example.com",
   },
+  bounty = {
+    name: "Promote Acme at your campus and earn $500 ",
+  },
   email = "panic@thedis.co",
 }: {
-  bounty: {
-    id: string;
-    name: string;
-    rewardAmount: number;
-    type: "performance" | "submission";
-  };
   program: {
     slug: string;
     name: string;
     supportEmail: string;
+  };
+  bounty: {
+    name: string;
   };
   email: string;
 }) {
@@ -63,7 +57,7 @@ export default function BountySubmitted({
             </Text>
 
             <Section className="flex h-[140px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
-              <BountyThumbnailImage type={bounty.type} />
+              <BountyThumbnailImage type="submission" />
             </Section>
 
             <Text className="text-sm leading-5 text-neutral-600">

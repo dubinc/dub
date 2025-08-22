@@ -4,9 +4,11 @@ import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { BountySubmissionFileSchema } from "@/lib/zod/schemas/bounties";
+import { sendEmail } from "@dub/email";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import BountyPendingReview from "@dub/email/templates/bounty-pending-review";
+import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
 import { Role } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -27,15 +29,16 @@ export const createBountySubmissionAction = authPartnerActionClient
     const { partner } = ctx;
     const { programId, bountyId, files, urls, description } = parsedInput;
 
-    const [programEnrollment, bounty] = await Promise.all([
-      getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId,
-      }),
-
+    const [bounty, _] = await Promise.all([
       await getBountyOrThrow({
         bountyId,
         programId,
+      }),
+
+      getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId,
+        includePartner: true,
       }),
     ]);
 
@@ -61,40 +64,58 @@ export const createBountySubmissionAction = authPartnerActionClient
 
     waitUntil(
       (async () => {
-        const { users, ...workspace } = await getWorkspaceUsers({
+        // Send email to the program owners
+        const { users, program, ...workspace } = await getWorkspaceUsers({
           programId,
           role: Role.owner,
         });
 
-        if (users.length === 0) {
-          return;
+        if (users.length > 0) {
+          await resend?.batch.send(
+            users.map((user) => ({
+              from: VARIANT_TO_FROM_MAP.notifications,
+              to: user.email,
+              subject: "Pending bounty review",
+              react: BountyPendingReview({
+                email: user.email,
+                workspace: {
+                  slug: workspace.slug,
+                },
+                bounty: {
+                  id: bounty.id,
+                  name: bounty.name,
+                },
+                partner: {
+                  name: partner.name,
+                  image: partner.image,
+                  email: partner.email!,
+                },
+                submission: {
+                  id: submission.id,
+                },
+              }),
+            })),
+          );
         }
 
-        await resend?.batch.send(
-          users.map((user) => ({
-            from: VARIANT_TO_FROM_MAP.notifications,
-            to: user.email,
-            subject: "Pending bounty review",
-            react: BountyPendingReview({
-              email: user.email,
-              workspace: {
-                slug: workspace.slug,
-              },
+        // Send email to the partner
+        if (partner.email && program) {
+          await sendEmail({
+            subject: "Bounty submitted!",
+            email: partner.email,
+            react: BountySubmitted({
+              email: partner.email,
               bounty: {
-                id: bounty.id,
                 name: bounty.name,
               },
-              partner: {
-                name: partner.name,
-                image: partner.image,
-                email: partner.email!,
-              },
-              submission: {
-                id: submission.id,
+              program: {
+                name: program.name,
+                slug: program.slug,
+                supportEmail: program.supportEmail || "support@dub.co",
               },
             }),
-          })),
-        );
+          });
+        }
       })(),
     );
 
