@@ -6,7 +6,7 @@ import {
   rewardConditionsArraySchema,
 } from "@/lib/zod/schemas/rewards";
 import { InfoTooltip } from "@dub/ui";
-import { pluralize } from "@dub/utils";
+import { currencyFormatter, pluralize } from "@dub/utils";
 import { z } from "zod";
 
 export function ProgramRewardModifiersTooltip({
@@ -94,22 +94,30 @@ const RewardItem = ({
 
       {conditions && conditions.length > 0 && (
         <ul className="ml-1 text-xs font-medium text-neutral-600">
-          {conditions.map((condition, idx) => (
-            <li key={idx} className="flex items-start gap-1">
-              <span className="shrink-0 text-lg leading-none">&bull;</span>
-              <span className="min-w-0 truncate">
-                {idx === 0 ? "If" : "Or"} {condition.entity}{" "}
-                {ATTRIBUTE_LABELS[condition.attribute]}{" "}
-                {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
-                {condition.value &&
-                  (Array.isArray(condition.value)
-                    ? condition.value.join(", ")
-                    : condition.attribute === "productId" && condition.label
-                      ? condition.label
-                      : condition.value.toString())}
-              </span>
-            </li>
-          ))}
+          {conditions.map((condition, idx) => {
+            return (
+              <li key={idx} className="flex items-start gap-1">
+                <span className="shrink-0 text-lg leading-none">&bull;</span>
+                <span className="min-w-0">
+                  {idx === 0 ? "If" : "Or"} {condition.entity}{" "}
+                  {ATTRIBUTE_LABELS[condition.attribute].toLowerCase()}{" "}
+                  {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
+                  {condition.value &&
+                    (Array.isArray(condition.value)
+                      ? condition.value.join(", ")
+                      : condition.attribute === "productId" && condition.label
+                        ? condition.label
+                        : condition.attribute === "totalCommissions" ||
+                            condition.attribute === "totalSaleAmount"
+                          ? currencyFormatter(Number(condition.value) / 100, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })
+                          : condition.value.toString())}
+                </span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
