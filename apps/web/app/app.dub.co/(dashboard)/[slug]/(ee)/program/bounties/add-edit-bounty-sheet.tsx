@@ -8,7 +8,7 @@ import {
 } from "@/lib/types";
 import { createBountySchema } from "@/lib/zod/schemas/bounties";
 import {
-  WORKFLOW_CONDITION_ATTRIBUTES_LABELS,
+  WORKFLOW_ATTRIBUTE_LABELS,
   workflowConditionSchema,
 } from "@/lib/zod/schemas/workflows";
 import { BountyLogic } from "@/ui/partners/bounties/bounty-logic";
@@ -213,7 +213,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       data.name =
         `Earn ${currencyFormatter(data.rewardAmount / 100)} after generating ` +
         `${isCurrency ? `${currencyFormatter(condition.value / 100)} in` : condition.value} ` +
-        WORKFLOW_CONDITION_ATTRIBUTES_LABELS[condition.attribute];
+        WORKFLOW_ATTRIBUTE_LABELS[condition.attribute];
     } else if (type === "submission") {
       data.performanceCondition = null;
     }

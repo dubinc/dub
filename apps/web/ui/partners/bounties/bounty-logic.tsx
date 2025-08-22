@@ -1,8 +1,8 @@
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import {
-  WORKFLOW_CONDITION_ATTRIBUTES,
-  WORKFLOW_CONDITION_ATTRIBUTES_LABELS,
+  WORKFLOW_ATTRIBUTES,
+  WORKFLOW_ATTRIBUTE_LABELS,
 } from "@/lib/zod/schemas/workflows";
 import {
   InlineBadgePopover,
@@ -42,7 +42,7 @@ export function BountyLogic({ className }: { className?: string }) {
             <InlineBadgePopover
               text={
                 field.value
-                  ? WORKFLOW_CONDITION_ATTRIBUTES_LABELS[field.value]
+                  ? WORKFLOW_ATTRIBUTE_LABELS[field.value]
                   : "activity"
               }
               invalid={!field.value}
@@ -50,8 +50,8 @@ export function BountyLogic({ className }: { className?: string }) {
               <InlineBadgePopoverMenu
                 selectedValue={field.value}
                 onSelect={field.onChange}
-                items={WORKFLOW_CONDITION_ATTRIBUTES.map((attribute) => ({
-                  text: WORKFLOW_CONDITION_ATTRIBUTES_LABELS[attribute],
+                items={WORKFLOW_ATTRIBUTES.map((attribute) => ({
+                  text: WORKFLOW_ATTRIBUTE_LABELS[attribute],
                   value: attribute,
                 }))}
               />

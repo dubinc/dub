@@ -6,14 +6,14 @@ import {
 import { WorkflowTrigger } from "@dub/prisma/client";
 import { z } from "zod";
 
-export const WORKFLOW_CONDITION_ATTRIBUTES = [
+export const WORKFLOW_ATTRIBUTES = [
   "totalLeads",
   "totalConversions",
   "totalSaleAmount",
   "totalCommission",
 ] as const;
 
-export const WORKFLOW_CONDITION_ATTRIBUTES_LABELS: Record<
+export const WORKFLOW_ATTRIBUTE_LABELS: Record<
   WorkflowConditionAttribute,
   string
 > = {
@@ -60,7 +60,7 @@ export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
 
 // Individual condition
 export const workflowConditionSchema = z.object({
-  attribute: z.enum(WORKFLOW_CONDITION_ATTRIBUTES),
+  attribute: z.enum(WORKFLOW_ATTRIBUTES),
   operator: z.enum(WORKFLOW_COMPARISON_OPERATORS),
   value: z.number(),
 });

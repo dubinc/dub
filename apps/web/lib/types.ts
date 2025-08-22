@@ -98,7 +98,7 @@ import {
 } from "./zod/schemas/webhooks";
 import {
   WORKFLOW_COMPARISON_OPERATORS,
-  WORKFLOW_CONDITION_ATTRIBUTES,
+  WORKFLOW_ATTRIBUTES,
   workflowActionSchema,
   workflowConditionSchema,
 } from "./zod/schemas/workflows";
@@ -543,7 +543,7 @@ export type BountyStats = z.infer<typeof bountyStatsSchema>;
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 
 export type WorkflowConditionAttribute =
-  (typeof WORKFLOW_CONDITION_ATTRIBUTES)[number];
+  (typeof WORKFLOW_ATTRIBUTES)[number];
 
 export type WorkflowComparisonOperator =
   (typeof WORKFLOW_COMPARISON_OPERATORS)[number];
