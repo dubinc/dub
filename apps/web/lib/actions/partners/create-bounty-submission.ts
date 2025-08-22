@@ -1,9 +1,15 @@
 "use server";
 
 import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
+import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { BountySubmissionFileSchema } from "@/lib/zod/schemas/bounties";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import BountyPendingReview from "@dub/email/templates/bounty-pending-review";
 import { prisma } from "@dub/prisma";
+import { Role } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -21,7 +27,7 @@ export const createBountySubmissionAction = authPartnerActionClient
     const { partner } = ctx;
     const { programId, bountyId, files, urls, description } = parsedInput;
 
-    await Promise.all([
+    const [programEnrollment, bounty] = await Promise.all([
       getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId,
@@ -42,7 +48,7 @@ export const createBountySubmissionAction = authPartnerActionClient
     // Validate submission requirements if specified (max number of files/URLs)
     // Validate file types and sizes if specified
 
-    await prisma.bountySubmission.create({
+    const submission = await prisma.bountySubmission.create({
       data: {
         programId,
         bountyId,
@@ -52,6 +58,45 @@ export const createBountySubmissionAction = authPartnerActionClient
         description,
       },
     });
+
+    waitUntil(
+      (async () => {
+        const { users, ...workspace } = await getWorkspaceUsers({
+          programId,
+          role: Role.owner,
+        });
+
+        if (users.length === 0) {
+          return;
+        }
+
+        await resend?.batch.send(
+          users.map((user) => ({
+            from: VARIANT_TO_FROM_MAP.notifications,
+            to: user.email,
+            subject: "Pending bounty review",
+            react: BountyPendingReview({
+              email: user.email,
+              workspace: {
+                slug: workspace.slug,
+              },
+              bounty: {
+                id: bounty.id,
+                name: bounty.name,
+              },
+              partner: {
+                name: partner.name,
+                image: partner.image,
+                email: partner.email!,
+              },
+              submission: {
+                id: submission.id,
+              },
+            }),
+          })),
+        );
+      })(),
+    );
 
     return {
       success: true,
