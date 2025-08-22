@@ -10,6 +10,7 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { UserRowItem } from "@/ui/users/user-row-item";
 import {
+  ProgressCircle,
   StatusBadge,
   Table,
   usePagination,
@@ -244,9 +245,12 @@ export function BountySubmissionsTable() {
                   : nFormatter(target);
 
                 return (
-                  <span className="text-sm font-medium leading-5 text-neutral-600">
-                    {formattedValue} / {formattedTarget}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <ProgressCircle progress={value / target} />
+                    <span className="min-w-0 text-sm font-medium leading-5 text-neutral-600">
+                      {formattedValue} / {formattedTarget}
+                    </span>
+                  </div>
                 );
               },
             },

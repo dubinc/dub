@@ -29,6 +29,7 @@ export * from "./modal";
 export * from "./number-stepper";
 export * from "./pagination-controls";
 export * from "./popover";
+export * from "./progress-circle";
 export * from "./radio-group";
 export * from "./sheet";
 export * from "./shimmer-dots";
