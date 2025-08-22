@@ -51,7 +51,8 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   rewardAmount: z.number(),
-  submissionRequirements: bountySubmissionRequirementsSchema.nullish(),
+  submissionRequirements: bountySubmissionRequirementsSchema.nullable(),
+  performanceCondition: workflowConditionSchema.nullable().default(null),
 });
 
 export const BountySchemaExtended = BountySchema.extend({
@@ -72,16 +73,20 @@ export const BountySubmissionFileSchema = z.object({
 });
 
 export const BountySubmissionSchema = z.object({
-  id: z.string(),
-  description: z.string().nullable(),
-  urls: z.array(z.string()).nullable(),
-  files: z.array(BountySubmissionFileSchema).nullable(),
-  status: z.nativeEnum(BountySubmissionStatus),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  reviewedAt: z.date().nullable(),
-  rejectionReason: z.string().nullable(),
-  rejectionNote: z.string().nullable(),
+  submission: z
+    .object({
+      id: z.string(),
+      description: z.string().nullable(),
+      urls: z.array(z.string()).nullable(),
+      files: z.array(BountySubmissionFileSchema).nullable(),
+      status: z.nativeEnum(BountySubmissionStatus),
+      createdAt: z.date(),
+      updatedAt: z.date(),
+      reviewedAt: z.date().nullable(),
+      rejectionReason: z.string().nullable(),
+      rejectionNote: z.string().nullable(),
+    })
+    .nullable(),
   partner: EnrolledPartnerSchema.pick({
     id: true,
     name: true,
@@ -93,6 +98,10 @@ export const BountySubmissionSchema = z.object({
     status: true,
     bannedAt: true,
     bannedReason: true,
+    leads: true,
+    conversions: true,
+    saleAmount: true,
+    totalCommissions: true,
   }),
   commission: CommissionSchema.pick({
     id: true,

@@ -18,7 +18,7 @@ import { z } from "zod";
 type FormData = z.infer<typeof rejectBountySubmissionSchema>;
 
 interface RejectBountySubmissionModalProps {
-  submission: Pick<BountySubmissionProps, "id">;
+  submission: BountySubmissionProps["submission"];
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
 }
@@ -144,7 +144,7 @@ const RejectBountySubmissionModal = ({
             className="h-9 w-fit"
             loading={isPending}
             onClick={async () => {
-              if (!workspace.id || !submission.id) {
+              if (!workspace.id || !submission?.id) {
                 return;
               }
 
@@ -164,7 +164,7 @@ const RejectBountySubmissionModal = ({
 };
 
 export function useRejectBountySubmissionModal(
-  submission: Pick<BountySubmissionProps, "id">,
+  submission: BountySubmissionProps["submission"],
   onReject?: () => void,
 ) {
   const [showRejectModal, setShowRejectModal] = useState(false);

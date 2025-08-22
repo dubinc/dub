@@ -31,6 +31,7 @@ export async function getBounties(filters: BountyFilters) {
       b.endsAt,
       b.rewardAmount,
       b.submissionRequirements,
+      wf.triggerConditions,
       ${
         includeExpandedFields
           ? Prisma.sql`
@@ -60,6 +61,7 @@ export async function getBounties(filters: BountyFilters) {
         `
         : Prisma.sql``
     }
+    LEFT JOIN Workflow wf ON wf.id = b.workflowId
     WHERE b.programId = ${programId}
     GROUP BY b.id, b.name, b.description, b.type, b.startsAt, b.endsAt, b.rewardAmount, b.submissionRequirements
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
@@ -70,5 +72,7 @@ export async function getBounties(filters: BountyFilters) {
     ...bounty,
     partnersCount: Number(bounty.partnersCount),
     groups: bounty.groups.filter((group) => group !== null),
+    performanceCondition:
+      bounty.triggerConditions?.length > 0 ? bounty.triggerConditions[0] : null,
   }));
 }

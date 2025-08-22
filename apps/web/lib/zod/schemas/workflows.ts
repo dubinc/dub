@@ -50,10 +50,7 @@ export const WORKFLOW_COMPARISON_OPERATOR_LABELS: Record<
 } as const;
 
 export enum WORKFLOW_ACTION_TYPES {
-  SendEmail = "sendEmail",
-  MoveToGroup = "moveToGroup",
   AwardBounty = "awardBounty",
-  TriggerWebhook = "triggerWebhook",
 }
 
 export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
@@ -74,30 +71,9 @@ export const workflowConditionsSchema = z.object({
 // Individual action
 export const workflowActionSchema = z.discriminatedUnion("type", [
   z.object({
-    type: z.literal("sendEmail"),
-    data: z.object({
-      emailId: z.string(),
-    }),
-  }),
-
-  z.object({
-    type: z.literal("moveToGroup"),
-    data: z.object({
-      groupId: z.string(),
-    }),
-  }),
-
-  z.object({
     type: z.literal("awardBounty"),
     data: z.object({
       bountyId: z.string(),
-    }),
-  }),
-
-  z.object({
-    type: z.literal("triggerWebhook"),
-    data: z.object({
-      webhookId: z.string(),
     }),
   }),
 ]);

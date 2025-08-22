@@ -160,10 +160,5 @@ async function executeWorkflowAction({
         context,
       });
       break;
-    case "sendEmail":
-    case "moveToGroup":
-    case "triggerWebhook":
-      console.log(`Not implemented ${action.type}`);
-      break;
   }
 }

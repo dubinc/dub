@@ -1,8 +1,11 @@
 "use client";
 
+import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
+import useBounty from "@/lib/swr/use-bounty";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
+import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -15,9 +18,16 @@ import {
   useTable,
 } from "@dub/ui";
 import { User } from "@dub/ui/icons";
-import { fetcher, formatDate } from "@dub/utils";
+import {
+  capitalize,
+  currencyFormatter,
+  fetcher,
+  formatDate,
+  nFormatter,
+} from "@dub/utils";
+import { Row } from "@tanstack/react-table";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
 
@@ -37,6 +47,7 @@ export const BOUNTY_SUBMISSION_STATUS_BADGES = {
 } as const;
 
 export function BountySubmissionsTable() {
+  const { bounty, isLoading: isBountyLoading } = useBounty();
   const { groups } = useGroups();
   const { id: workspaceId } = useWorkspace();
   const { bountyId } = useParams<{ bountyId: string }>();
@@ -76,12 +87,35 @@ export function BountySubmissionsTable() {
       setDetailsSheetState({ open: false, submission: null });
     }
 
-    const submission = submissions?.find((s) => s.id === submissionId);
+    const submission = submissions?.find(
+      (s) => s.submission?.id === submissionId,
+    );
 
-    if (submission) {
+    if (submission?.submission) {
       setDetailsSheetState({ open: true, submission });
     }
   }, [searchParams, submissions]);
+
+  const columns = useMemo(() => {
+    const columns = ["partner", "group", "createdAt"];
+
+    if (!bounty) {
+      return columns;
+    }
+
+    if (bounty.type === "submission") {
+      columns.push(...["status", "reviewedAt"]);
+    } else if (bounty.type === "performance") {
+      columns.push(...["performanceMetrics"]);
+    }
+
+    return columns;
+  }, [bounty]);
+
+  const performanceCondition = bounty?.performanceCondition;
+  const metricLabel = performanceCondition?.attribute
+    ? WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute]
+    : "Progress";
 
   const { table, ...tableProps } = useTable({
     data: submissions || [],
@@ -119,50 +153,119 @@ export function BountySubmissionsTable() {
           );
         },
       },
-      {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const badge = BOUNTY_SUBMISSION_STATUS_BADGES[row.original.status];
 
-          return badge ? (
-            <StatusBadge icon={null} variant={badge.variant}>
-              {badge.label}
-            </StatusBadge>
-          ) : (
-            "-"
-          );
-        },
-      },
+      ...(columns.includes("status")
+        ? [
+            {
+              id: "status",
+              header: "Status",
+              cell: ({ row }) => {
+                const badge = row.original.submission
+                  ? BOUNTY_SUBMISSION_STATUS_BADGES[
+                      row.original.submission.status
+                    ]
+                  : null;
+
+                return badge ? (
+                  <StatusBadge icon={null} variant={badge.variant}>
+                    {badge.label}
+                  </StatusBadge>
+                ) : (
+                  "-"
+                );
+              },
+            },
+          ]
+        : []),
+
       {
         id: "createdAt",
-        header: "Submitted",
-        accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+        header: bounty?.type === "submission" ? "Submitted" : "Completed",
+        accessorFn: (d) =>
+          d.submission
+            ? formatDate(d.submission.createdAt, { month: "short" })
+            : "-",
       },
-      {
-        id: "reviewedAt",
-        header: "Reviewed",
-        cell: ({ row }) => {
-          return row.original.reviewedAt ? (
-            <UserRowItem
-              user={row.original.user!}
-              date={row.original.reviewedAt}
-              label={
-                row.original.status === "approved"
-                  ? "Approved at"
-                  : "Rejected at"
-              }
-            />
-          ) : (
-            "-"
-          );
-        },
-      },
+
+      // TODO: fix this
+      ...(columns.includes("performanceMetrics")
+        ? [
+            {
+              id: "performanceMetrics",
+              header: capitalize(metricLabel)!,
+              cell: ({ row }: { row: Row<BountySubmissionProps> }) => {
+                if (!performanceCondition) {
+                  return "-";
+                }
+
+                const attribute = performanceCondition.attribute;
+                const target = performanceCondition.value;
+                let value: number | undefined = undefined;
+
+                if (attribute === "totalLeads") {
+                  value = row.original.partner.leads;
+                } else if (attribute === "totalConversions") {
+                  value = row.original.partner.conversions;
+                } else if (attribute === "totalSaleAmount") {
+                  value = row.original.partner.saleAmount;
+                } else if (attribute === "totalCommission") {
+                  value = row.original.partner.totalCommissions;
+                }
+
+                if (value === undefined) {
+                  return "-";
+                }
+
+                const formattedValue = isCurrencyAttribute(attribute)
+                  ? currencyFormatter(value / 100)
+                  : nFormatter(value);
+
+                const formattedTarget = isCurrencyAttribute(attribute)
+                  ? currencyFormatter(target / 100)
+                  : nFormatter(target);
+
+                return (
+                  <span className="text-sm font-medium leading-5 text-neutral-600">
+                    {formattedValue} / {formattedTarget}
+                  </span>
+                );
+              },
+            },
+          ]
+        : []),
+
+      ...(columns.includes("reviewedAt")
+        ? [
+            {
+              id: "reviewedAt",
+              header: "Reviewed",
+              cell: ({ row }) => {
+                return row.original.submission?.reviewedAt ? (
+                  <UserRowItem
+                    user={row.original.user!}
+                    date={row.original.submission?.reviewedAt}
+                    label={
+                      row.original.submission?.status === "approved"
+                        ? "Approved at"
+                        : "Rejected at"
+                    }
+                  />
+                ) : (
+                  "-"
+                );
+              },
+            },
+          ]
+        : []),
     ],
     onRowClick: (row) => {
+      if (!row.original.submission) {
+        return;
+      }
+
       queryParams({
         set: {
-          submissionId: row.original.id,
+          submissionId: row.original.submission.id,
         },
         scroll: false,
       });
@@ -185,7 +288,7 @@ export function BountySubmissionsTable() {
     tdClassName: "border-l-0",
     resourceName: (p) => `submission${p ? "s" : ""}`,
     rowCount: submissions?.length || 0,
-    loading: isLoading,
+    loading: isLoading || isBountyLoading,
     error: error ? "Failed to load bounty submissions" : undefined,
   });
 

@@ -96,16 +96,16 @@ model ProgramEnrollment {
   bannedAt         DateTime?
   bannedReason     PartnerBannedReason?
 
-  partner          Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program          Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  links            Link[]
-  partnerGroup     PartnerGroup?       @relation(fields: [groupId], references: [id])
-  application      ProgramApplication? @relation(fields: [applicationId], references: [id])
-  clickReward      Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
-  leadReward       Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
-  saleReward       Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
-  discount         Discount?           @relation(fields: [discountId], references: [id])
-  bountySubmission BountySubmission[]
+  partner           Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program           Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  links             Link[]
+  partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
+  application       ProgramApplication? @relation(fields: [applicationId], references: [id])
+  clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward        Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  discount          Discount?           @relation(fields: [discountId], references: [id])
+  bountySubmissions BountySubmission[]
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])

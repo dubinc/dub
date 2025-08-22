@@ -20,6 +20,8 @@ export const getBountyOrThrow = async ({
       b.startsAt,
       b.endsAt,
       b.rewardAmount,
+      b.submissionRequirements,
+      wf.triggerConditions,
       ${
         includeExpandedFields
           ? Prisma.sql`
@@ -49,6 +51,7 @@ export const getBountyOrThrow = async ({
         `
         : Prisma.sql``
     }
+    LEFT JOIN Workflow wf ON wf.id = b.workflowId
     WHERE b.programId = ${programId}
     AND b.id = ${bountyId}
     GROUP BY b.id
@@ -62,9 +65,13 @@ export const getBountyOrThrow = async ({
     });
   }
 
+  const bounty = bounties[0];
+
   return {
-    ...bounties[0],
-    partnersCount: Number(bounties[0].partnersCount),
-    groups: bounties[0].groups.filter((group) => group !== null),
+    ...bounty,
+    performanceCondition:
+      bounty.triggerConditions?.length > 0 ? bounty.triggerConditions[0] : null,
+    partnersCount: Number(bounty.partnersCount),
+    groups: bounty.groups.filter((group) => group !== null),
   };
 };

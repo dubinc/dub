@@ -22,11 +22,9 @@ type BountySubmissionDetailsSheetProps = {
 };
 
 function BountySubmissionDetailsSheetContent({
-  submission,
+  submission: { submission, partner, commission, user },
   setIsOpen,
 }: BountySubmissionDetailsSheetProps) {
-  console.log(submission);
-
   const { bounty } = useBounty();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
@@ -55,7 +53,7 @@ function BountySubmissionDetailsSheetContent({
     description: "Are you sure you want to approve this bounty submission?",
     confirmText: "Approve",
     onConfirm: async () => {
-      if (!workspaceId || !submission.id) {
+      if (!workspaceId || !submission?.id) {
         return;
       }
 
@@ -65,6 +63,10 @@ function BountySubmissionDetailsSheetContent({
       });
     },
   });
+
+  if (!submission || !partner || !commission) {
+    return null;
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -85,12 +87,9 @@ function BountySubmissionDetailsSheetContent({
 
       <div className="flex grow flex-col">
         <div className="border-b border-neutral-200 bg-neutral-50 p-6">
-          <PartnerInfoSection
-            partner={submission.partner}
-            showPartnerStatus={false}
-          >
+          <PartnerInfoSection partner={partner} showPartnerStatus={false}>
             <ButtonLink
-              href={`/${workspaceSlug}/program/partners?partnerId=${submission.partner.id}`}
+              href={`/${workspaceSlug}/program/partners?partnerId=${partner.id}`}
               variant="secondary"
               className="h-8 w-fit px-3 py-2 text-sm font-medium"
               target="_blank"
@@ -126,8 +125,8 @@ function BountySubmissionDetailsSheetContent({
                   Reward
                 </span>
                 <span className="text-sm font-medium text-neutral-800">
-                  {submission.commission?.earnings
-                    ? currencyFormatter(submission.commission.earnings, {
+                  {commission?.earnings
+                    ? currencyFormatter(commission.earnings, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })
