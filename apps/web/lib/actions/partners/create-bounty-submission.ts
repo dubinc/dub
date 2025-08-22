@@ -53,5 +53,7 @@ export const createBountySubmissionAction = authPartnerActionClient
       },
     });
 
-    return { success: true };
+    return {
+      success: true,
+    };
   });
