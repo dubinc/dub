@@ -5,10 +5,10 @@ import { z } from "zod";
 
 const sortColumnsMap = {
   createdAt: "bs.createdAt",
-  totalLeads: "totalLeads",
-  totalConversions: "totalConversions",
-  totalSaleAmount: "totalSaleAmount",
-  totalCommissions: "totalCommissions",
+  leads: "totalLeads",
+  conversions: "totalConversions",
+  saleAmount: "totalSaleAmount",
+  commissions: "totalCommissions",
 };
 
 type SubmissionFilters = z.infer<typeof getBountySubmissionsQuerySchema> & {

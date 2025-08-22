@@ -5,7 +5,6 @@ import useBounty from "@/lib/swr/use-bounty";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
-import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -44,6 +43,20 @@ export const BOUNTY_SUBMISSION_STATUS_BADGES = {
     label: "Rejected",
     variant: "error",
   },
+} as const;
+
+const PERFORMANCE_ATTRIBUTE_TO_SORTABLE_COLUMNS = {
+  totalLeads: "leads",
+  totalConversions: "conversions",
+  totalSaleAmount: "saleAmount",
+  totalCommissions: "commissions",
+} as const;
+
+const PERFORMANCE_ATTRIBUTE_LABELS = {
+  totalLeads: "Leads",
+  totalConversions: "Conversions",
+  totalSaleAmount: "Revenue",
+  totalCommission: "Commissions",
 } as const;
 
 export function BountySubmissionsTable() {
@@ -112,9 +125,15 @@ export function BountySubmissionsTable() {
     return columns;
   }, [bounty]);
 
+  // Performance based bounty columns
   const performanceCondition = bounty?.performanceCondition;
-  const metricLabel = performanceCondition?.attribute
-    ? WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute]
+
+  const metricColumnId = performanceCondition?.attribute
+    ? PERFORMANCE_ATTRIBUTE_TO_SORTABLE_COLUMNS[performanceCondition.attribute]
+    : "leads";
+
+  const metricColumnLabel = performanceCondition?.attribute
+    ? PERFORMANCE_ATTRIBUTE_LABELS[performanceCondition.attribute]
     : "Progress";
 
   const { table, ...tableProps } = useTable({
@@ -191,8 +210,8 @@ export function BountySubmissionsTable() {
       ...(columns.includes("performanceMetrics")
         ? [
             {
-              id: performanceCondition?.attribute,
-              header: capitalize(metricLabel)!,
+              id: metricColumnId,
+              header: capitalize(metricColumnLabel)!,
               cell: ({ row }: { row: Row<BountySubmissionProps> }) => {
                 if (!performanceCondition) {
                   return "-";
@@ -273,13 +292,7 @@ export function BountySubmissionsTable() {
     sortableColumns:
       bounty?.type === "submission"
         ? ["createdAt"]
-        : [
-            "createdAt",
-            "totalLeads",
-            "totalConversions",
-            "totalSaleAmount",
-            "totalCommission",
-          ],
+        : ["createdAt", "leads", "conversions", "saleAmount", "commissions"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>

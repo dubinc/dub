@@ -155,13 +155,7 @@ export const REJECT_BOUNTY_SUBMISSION_REASONS = {
 export const getBountySubmissionsQuerySchema = z
   .object({
     sortBy: z
-      .enum([
-        "createdAt",
-        "totalLeads",
-        "totalConversions",
-        "totalSaleAmount",
-        "totalCommissions",
-      ])
+      .enum(["createdAt", "leads", "conversions", "saleAmount", "commissions"])
       .default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })
