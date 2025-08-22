@@ -735,8 +735,7 @@ function ResultAmountInput({
 }: {
   modifierKey: `modifiers.${number}`;
 }) {
-  const { watch, register, setValue } = useAddEditRewardForm();
-  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+  const { watch, setValue } = useAddEditRewardForm();
 
   const type = watch(`${modifierKey}.type`);
   const parentType = watch("type");
