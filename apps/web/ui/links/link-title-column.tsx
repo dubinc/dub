@@ -88,10 +88,7 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 
   const showFolderIcon = useMemo(() => {
     return Boolean(
-      !loading &&
-        link.folderId &&
-        currentFolderId &&
-        currentFolderId.includes(link.folderId),
+      !loading && link.folderId && currentFolderId !== link.folderId,
     );
   }, [loading, link.folderId, currentFolderId]);
 

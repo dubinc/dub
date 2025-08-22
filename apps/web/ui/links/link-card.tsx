@@ -52,17 +52,18 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
-  const { folderId: selectedFolderId } = useCurrentFolderId();
-  const { slug, defaultFolderId } = useWorkspace();
+  const { folderId: currentFolderId } = useCurrentFolderId();
+  const { slug } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
+  // only show the folder icon if:
+  // - loading is complete
+  // - the link has a folder id AND the currentFolderId is not the same as the link's folder id
   const showFolderIcon = useMemo(() => {
     return Boolean(
-      !loading &&
-        link.folderId &&
-        ![defaultFolderId, selectedFolderId].includes(link.folderId),
+      !loading && link.folderId && currentFolderId !== link.folderId,
     );
-  }, [loading, link.folderId, defaultFolderId, selectedFolderId]);
+  }, [loading, link.folderId, currentFolderId]);
 
   const { folder } = useFolder({
     folderId: link.folderId,
