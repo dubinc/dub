@@ -97,8 +97,8 @@ import {
   WebhookSchema,
 } from "./zod/schemas/webhooks";
 import {
-  WORKFLOW_COMPARISON_OPERATORS,
   WORKFLOW_ATTRIBUTES,
+  WORKFLOW_COMPARISON_OPERATORS,
   workflowActionSchema,
   workflowConditionSchema,
 } from "./zod/schemas/workflows";
@@ -533,7 +533,9 @@ export type BountyWithSubmissionsProps = z.infer<
   typeof BountyWithSubmissionsSchema
 >;
 
-export type BountySubmissionProps = z.infer<typeof BountySubmissionExtendedSchema>;
+export type BountySubmissionProps = z.infer<
+  typeof BountySubmissionExtendedSchema
+>;
 
 export type BountySubmissionRequirement =
   (typeof SUBMISSION_REQUIREMENTS)[number];
@@ -542,8 +544,7 @@ export type BountyStats = z.infer<typeof bountyStatsSchema>;
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 
-export type WorkflowConditionAttribute =
-  (typeof WORKFLOW_ATTRIBUTES)[number];
+export type WorkflowConditionAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
 export type WorkflowComparisonOperator =
   (typeof WORKFLOW_COMPARISON_OPERATORS)[number];
@@ -557,6 +558,6 @@ export interface WorkflowContext {
   totalLeads: number;
   totalConversions: number;
   totalSaleAmount: number;
-  partnerId: string
-  groupId: string
+  partnerId: string;
+  groupId: string;
 }
