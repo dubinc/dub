@@ -7,7 +7,7 @@ import { z } from "zod";
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
-import { EnrolledPartnerSchema } from "./partners";
+import { EnrolledPartnerSchema, PARTNERS_MAX_PAGE_SIZE } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 import { workflowConditionSchema } from "./workflows";
@@ -151,3 +151,12 @@ export const REJECT_BOUNTY_SUBMISSION_REASONS = {
   didNotMeetCriteria: "Did not meet criteria",
   other: "Other",
 } as const;
+
+export const getBountySubmissionsQuerySchema = z
+  .object({
+    sortBy: z
+      .enum(["createdAt", "leads", "conversions", "saleAmount", "commissions"])
+      .default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
