@@ -28,7 +28,7 @@ import {
   BountySchemaExtended,
   bountyStatsSchema,
   BountySubmissionExtendedSchema,
-  BountyWithSubmissionsSchema,
+  BountyWithPartnerDataSchema,
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
 import {
@@ -529,8 +529,8 @@ export type BountyProps = z.infer<typeof BountySchema>;
 
 export type BountyExtendedProps = z.infer<typeof BountySchemaExtended>;
 
-export type BountyWithSubmissionsProps = z.infer<
-  typeof BountyWithSubmissionsSchema
+export type BountyWithPartnerDataProps = z.infer<
+  typeof BountyWithPartnerDataSchema
 >;
 
 export type BountySubmissionProps = z.infer<

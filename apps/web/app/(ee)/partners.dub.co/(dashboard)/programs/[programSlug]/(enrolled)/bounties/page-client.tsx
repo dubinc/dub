@@ -1,6 +1,6 @@
 "use client";
 
-import { BountyWithSubmissionsProps } from "@/lib/types";
+import { BountyWithPartnerDataProps } from "@/lib/types";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Heart, Trophy } from "@dub/ui/icons";
@@ -16,7 +16,7 @@ export function BountiesPageClient() {
     data: bounties,
     isLoading,
     error,
-  } = useSWR<BountyWithSubmissionsProps[]>(
+  } = useSWR<BountyWithPartnerDataProps[]>(
     `/api/partner-profile/programs/${programSlug}/bounties`,
     fetcher,
     {

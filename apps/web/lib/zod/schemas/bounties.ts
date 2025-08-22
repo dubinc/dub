@@ -116,8 +116,14 @@ export const BountySubmissionExtendedSchema = z.object({
   }).nullable(),
 });
 
-export const BountyWithSubmissionsSchema = BountySchema.extend({
+export const BountyWithPartnerDataSchema = BountySchema.extend({
   submissions: z.array(BountySubmissionSchema).nullable(),
+  partner: EnrolledPartnerSchema.pick({
+    leads: true,
+    conversions: true,
+    saleAmount: true,
+    totalCommissions: true,
+  }),
 });
 
 export const BOUNTIES_MAX_PAGE_SIZE = 100;

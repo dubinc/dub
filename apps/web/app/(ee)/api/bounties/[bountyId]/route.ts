@@ -66,7 +66,7 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
       data: {
         name,
         description,
-        startsAt,
+        startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
         endsAt,
         rewardAmount,
         ...(bounty.type === "submission" && {

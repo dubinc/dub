@@ -1,6 +1,9 @@
 "use client";
 
-import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
+import {
+  WORKFLOW_TRIGGER_ATTRIBUTE_LABELS,
+  isCurrencyAttribute,
+} from "@/lib/api/workflows/utils";
 import useBounty from "@/lib/swr/use-bounty";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -51,13 +54,6 @@ const PERFORMANCE_ATTRIBUTE_TO_SORTABLE_COLUMNS = {
   totalConversions: "conversions",
   totalSaleAmount: "saleAmount",
   totalCommissions: "commissions",
-} as const;
-
-const PERFORMANCE_ATTRIBUTE_LABELS = {
-  totalLeads: "Leads",
-  totalConversions: "Conversions",
-  totalSaleAmount: "Revenue",
-  totalCommission: "Commissions",
 } as const;
 
 export function BountySubmissionsTable() {
@@ -134,7 +130,7 @@ export function BountySubmissionsTable() {
     : "leads";
 
   const metricColumnLabel = performanceCondition?.attribute
-    ? PERFORMANCE_ATTRIBUTE_LABELS[performanceCondition.attribute]
+    ? WORKFLOW_TRIGGER_ATTRIBUTE_LABELS[performanceCondition.attribute]
     : "Progress";
 
   const { table, ...tableProps } = useTable({

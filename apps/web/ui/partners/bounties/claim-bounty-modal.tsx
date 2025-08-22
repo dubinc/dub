@@ -2,7 +2,7 @@ import { createBountySubmissionAction } from "@/lib/actions/partners/create-boun
 import { uploadBountySubmissionFileAction } from "@/lib/actions/partners/upload-bounty-submission-file";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { BountyProps, BountySubmissionProps } from "@/lib/types";
+import { BountySubmissionProps, BountyWithPartnerDataProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -23,6 +23,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
+import { BountyPerformance } from "./bounty-performance";
 import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 
 const MAX_FILES = 4;
@@ -30,11 +31,8 @@ const MAX_URLS = 4;
 
 type ClaimBountyModalProps = {
   setShowModal: Dispatch<SetStateAction<boolean>>;
-  bounty: BountyProps;
-  submission?: Pick<
-    BountySubmissionProps,
-    "status" | "createdAt" | "reviewedAt"
-  >;
+  bounty: BountyWithPartnerDataProps;
+  submission?: BountySubmissionProps["submission"];
 };
 
 function ClaimBountyModalContent({
@@ -176,17 +174,14 @@ function ClaimBountyModalContent({
                 <Calendar6 className="size-3.5" />
                 <span>
                   {bounty.endsAt ? (
-                    <>
-                      Ends
-                      {formatDate(bounty.endsAt, { month: "short" })}
-                    </>
+                    <>Ends {formatDate(bounty.endsAt, { month: "short" })}</>
                   ) : (
                     "No end date"
                   )}
                 </span>
               </div>
 
-              {submission && (
+              {submission ? (
                 <div className="mt-3">
                   <StatusBadge
                     variant={
@@ -210,6 +205,12 @@ function ClaimBountyModalContent({
                         : "Rejected"}
                   </StatusBadge>
                 </div>
+              ) : (
+                bounty.type === "performance" && (
+                  <div className="mt-5">
+                    <BountyPerformance bounty={bounty} />
+                  </div>
+                )
               )}
             </div>
 
@@ -372,7 +373,7 @@ function ClaimBountyModalContent({
             </motion.div>
 
             {/* Action buttons */}
-            {!submission && (
+            {bounty.type !== "performance" && !submission && (
               <div className="border-border-subtle border-t p-5">
                 <div
                   className={cn(
