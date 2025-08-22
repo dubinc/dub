@@ -1,13 +1,22 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { RewardProps } from "@/lib/types";
 import {
-  ATTRIBUTE_LABELS,
   CONDITION_OPERATOR_LABELS,
   rewardConditionsArraySchema,
 } from "@/lib/zod/schemas/rewards";
 import { InfoTooltip } from "@dub/ui";
 import { currencyFormatter, pluralize } from "@dub/utils";
 import { z } from "zod";
+
+export const ATTRIBUTE_LABELS = {
+  country: "Country",
+  productId: "Product",
+  totalClicks: "Total Clicks",
+  totalLeads: "Total Leads",
+  totalConversions: "Total Conversions",
+  totalSaleAmount: "Total Sale Amount",
+  totalCommissions: "Total Commissions",
+} as const;
 
 export function ProgramRewardModifiersTooltip({
   reward,
