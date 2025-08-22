@@ -22,7 +22,7 @@ type BountySubmissionDetailsSheetProps = {
 };
 
 function BountySubmissionDetailsSheetContent({
-  submission: { submission, partner, commission, user },
+  submission: { submission, partner, commission },
   setIsOpen,
 }: BountySubmissionDetailsSheetProps) {
   const { bounty } = useBounty();
