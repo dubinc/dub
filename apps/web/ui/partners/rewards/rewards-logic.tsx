@@ -6,10 +6,12 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
+  ATTRIBUTE_LABELS,
   CONDITION_ATTRIBUTES,
   CONDITION_CUSTOMER_ATTRIBUTES,
   CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
+  CONDITION_PARTNER_ATTRIBUTES,
   CONDITION_SALE_ATTRIBUTES,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
@@ -23,6 +25,7 @@ import {
   MoneyBills2,
   Popover,
   User,
+  Users,
 } from "@dub/ui";
 import { capitalize, cn, COUNTRIES, pluralize, truncate } from "@dub/utils";
 import { Command } from "cmdk";
@@ -115,6 +118,7 @@ export function RewardsLogic({
     </div>
   );
 }
+
 function ConditionalGroup({
   index,
   groupCount,
@@ -201,16 +205,15 @@ const ENTITIES = {
   sale: {
     attributes: CONDITION_SALE_ATTRIBUTES,
   },
+  partner: {
+    attributes: CONDITION_PARTNER_ATTRIBUTES,
+  },
 } as const;
 
 const EVENT_ENTITIES: Record<EventType, (keyof typeof ENTITIES)[]> = {
-  sale: ["sale", "customer"],
-  lead: ["customer"],
+  sale: ["sale", "customer", "partner"],
+  lead: ["customer", "partner"],
   click: [],
-};
-
-const ATTRIBUTE_LABELS = {
-  productId: "Product ID",
 };
 
 const formatValue = (
@@ -229,6 +232,11 @@ const formatValue = (
         .slice(0, 2)
         .join(", ") + (filtered.length > 2 ? ` +${filtered.length - 2}` : "")
     );
+  }
+
+  // For numeric values, show the number as is
+  if (typeof value === "number") {
+    return value.toString();
   }
 
   return truncate(value.toString(), 20);
@@ -253,7 +261,7 @@ function ConditionLogic({
   });
 
   const icon = condition.entity
-    ? { customer: User, sale: InvoiceDollar }[condition.entity]
+    ? { customer: User, sale: InvoiceDollar, partner: Users }[condition.entity]
     : ArrowTurnRight2;
 
   const isArrayValue =
@@ -347,14 +355,23 @@ function ConditionLogic({
                           ...condition,
                           operator:
                             value as (typeof CONDITION_OPERATORS)[number],
-                          // Update value to array / string if needed
+                          // Update value to array / string / number if needed
                           ...(["in", "not_in"].includes(value)
                             ? !Array.isArray(condition.value)
                               ? { value: [] }
                               : null
-                            : typeof condition.value !== "string"
-                              ? { value: "" }
-                              : null),
+                            : [
+                                  "greater_than",
+                                  "greater_than_or_equal",
+                                  "less_than",
+                                  "less_than_or_equal",
+                                ].includes(value)
+                              ? typeof condition.value !== "number"
+                                ? { value: undefined }
+                                : null
+                              : typeof condition.value !== "string"
+                                ? { value: "" }
+                                : null),
                         },
                         {
                           shouldDirty: true,
@@ -374,7 +391,9 @@ function ConditionLogic({
                       invalid={
                         Array.isArray(condition.value)
                           ? condition.value.filter(Boolean).length === 0
-                          : !condition.value
+                          : typeof condition.value === "number"
+                            ? isNaN(condition.value)
+                            : !condition.value
                       }
                       buttonClassName={cn(
                         condition.attribute === "productId" && "rounded-r-none",
