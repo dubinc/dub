@@ -26,7 +26,7 @@ export function ProgressCircle({
         cx="50"
         cy="50"
         r={radius}
-        stroke="#ddd"
+        stroke="#e5e5e5"
         strokeWidth={`${strokeWidth}px`}
         fill="none"
         strokeLinecap="round"
