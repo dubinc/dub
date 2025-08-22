@@ -64,7 +64,7 @@ function BountySubmissionDetailsSheetContent({
     },
   });
 
-  if (!submission || !partner || !commission) {
+  if (!submission || !partner) {
     return null;
   }
 
