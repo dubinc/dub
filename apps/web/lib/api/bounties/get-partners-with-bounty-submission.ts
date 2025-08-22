@@ -4,11 +4,11 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 const sortColumnsMap = {
-  createdAt: "pe.createdAt",
-  leads: "totalLeads",
-  conversions: "totalConversions",
-  saleAmount: "totalSaleAmount",
-  commissions: "totalCommissions",
+  createdAt: "bs.createdAt",
+  totalLeads: "totalLeads",
+  totalConversions: "totalConversions",
+  totalSaleAmount: "totalSaleAmount",
+  totalCommissions: "totalCommissions",
 };
 
 type SubmissionFilters = z.infer<typeof getBountySubmissionsQuerySchema> & {
@@ -67,8 +67,6 @@ export async function getPartnersWithBountySubmission({
       p.id, pe.partnerId, pe.groupId, pe.totalCommissions, pe.status, bountySubmissionId, bountySubmissionStatus, bountySubmissionCreatedAt, bountySubmissionUpdatedAt, metrics.totalLeads, metrics.totalConversions, metrics.totalSaleAmount
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`;
-
-  // return partners;
 
   return rows.map((row) => {
     const partner = {

@@ -52,7 +52,10 @@ export function BountySubmissionsTable() {
   const { id: workspaceId } = useWorkspace();
   const { bountyId } = useParams<{ bountyId: string }>();
   const { pagination, setPagination } = usePagination();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+
+  const sortBy = searchParams.get("sortBy") || "createdAt";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
     error,
@@ -60,9 +63,9 @@ export function BountySubmissionsTable() {
     data: submissions,
   } = useSWR<BountySubmissionProps[]>(
     workspaceId && bountyId
-      ? `/api/bounties/${bountyId}/submissions?${new URLSearchParams({
+      ? `/api/bounties/${bountyId}/submissions${getQueryString({
           workspaceId,
-        }).toString()}`
+        })}`
       : null,
     fetcher,
     {
@@ -70,9 +73,6 @@ export function BountySubmissionsTable() {
       dedupingInterval: 30000,
     },
   );
-
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; submission: BountySubmissionProps | null }
@@ -191,7 +191,7 @@ export function BountySubmissionsTable() {
       ...(columns.includes("performanceMetrics")
         ? [
             {
-              id: "performanceMetrics",
+              id: performanceCondition?.attribute,
               header: capitalize(metricLabel)!,
               cell: ({ row }: { row: Row<BountySubmissionProps> }) => {
                 if (!performanceCondition) {
@@ -270,7 +270,16 @@ export function BountySubmissionsTable() {
         scroll: false,
       });
     },
-    sortableColumns: ["createdAt"],
+    sortableColumns:
+      bounty?.type === "submission"
+        ? ["createdAt"]
+        : [
+            "createdAt",
+            "totalLeads",
+            "totalConversions",
+            "totalSaleAmount",
+            "totalCommission",
+          ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>

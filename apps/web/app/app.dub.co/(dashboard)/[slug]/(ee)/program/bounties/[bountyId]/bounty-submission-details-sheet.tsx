@@ -136,78 +136,80 @@ function BountySubmissionDetailsSheetContent({
             </div>
           </div>
 
-          <div>
-            <h2 className="text-base font-semibold text-neutral-900">
-              Bounty submission
-            </h2>
+          {bounty?.type === "submission" && (
+            <div>
+              <h2 className="text-base font-semibold text-neutral-900">
+                Bounty submission
+              </h2>
 
-            <div className="mt-6 flex flex-col gap-6">
-              {Boolean(submission.files?.length) && (
-                <div>
-                  <h2 className="text-content-emphasis text-sm font-medium">
-                    Files
-                  </h2>
-                  <div className="mt-2 flex flex-wrap gap-4">
-                    {submission.files!.map((file, idx) => (
-                      <a
-                        key={idx}
-                        className="border-border-subtle hover:border-border-default group relative flex size-14 items-center justify-center rounded-md border bg-white"
-                        target="_blank"
-                        href={file.url}
-                        rel="noopener noreferrer"
-                      >
-                        <div className="relative size-full overflow-hidden rounded-md">
-                          <img src={file.url} alt="object-cover" />
-                        </div>
-                        <span className="sr-only">
-                          {file.fileName || `File ${idx + 1}`}
-                        </span>
-                      </a>
-                    ))}
+              <div className="mt-6 flex flex-col gap-6">
+                {Boolean(submission.files?.length) && (
+                  <div>
+                    <h2 className="text-content-emphasis text-sm font-medium">
+                      Files
+                    </h2>
+                    <div className="mt-2 flex flex-wrap gap-4">
+                      {submission.files!.map((file, idx) => (
+                        <a
+                          key={idx}
+                          className="border-border-subtle hover:border-border-default group relative flex size-14 items-center justify-center rounded-md border bg-white"
+                          target="_blank"
+                          href={file.url}
+                          rel="noopener noreferrer"
+                        >
+                          <div className="relative size-full overflow-hidden rounded-md">
+                            <img src={file.url} alt="object-cover" />
+                          </div>
+                          <span className="sr-only">
+                            {file.fileName || `File ${idx + 1}`}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {Boolean(submission.urls?.length) && (
-                <div>
-                  <h2 className="text-content-emphasis text-sm font-medium">
-                    URLs
-                  </h2>
-                  <div className="mt-2 flex flex-col gap-2">
-                    {submission.urls?.map((url) => (
-                      <div className="relative">
-                        <input
-                          type="text"
-                          readOnly
-                          className="border-border-subtle block w-full rounded-lg border px-3 py-2 pr-12 text-sm font-normal text-neutral-800 focus:border-neutral-300 focus:ring-0"
-                          defaultValue={url}
-                        />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
-                          <CopyButton
-                            value={url}
-                            onCopy={() => {
-                              toast.success("URL copied to clipboard!");
-                            }}
+                {Boolean(submission.urls?.length) && (
+                  <div>
+                    <h2 className="text-content-emphasis text-sm font-medium">
+                      URLs
+                    </h2>
+                    <div className="mt-2 flex flex-col gap-2">
+                      {submission.urls?.map((url) => (
+                        <div className="relative">
+                          <input
+                            type="text"
+                            readOnly
+                            className="border-border-subtle block w-full rounded-lg border px-3 py-2 pr-12 text-sm font-normal text-neutral-800 focus:border-neutral-300 focus:ring-0"
+                            defaultValue={url}
                           />
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
+                            <CopyButton
+                              value={url}
+                              onCopy={() => {
+                                toast.success("URL copied to clipboard!");
+                              }}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {submission.description && (
-                <div>
-                  <h2 className="text-content-emphasis text-sm font-medium">
-                    How did you complete this bounty?
-                  </h2>
-                  <span className="mt-2 text-sm font-normal text-neutral-600">
-                    {submission.description}
-                  </span>
-                </div>
-              )}
+                {submission.description && (
+                  <div>
+                    <h2 className="text-content-emphasis text-sm font-medium">
+                      How did you complete this bounty?
+                    </h2>
+                    <span className="mt-2 text-sm font-normal text-neutral-600">
+                      {submission.description}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-2 border-t border-neutral-200 p-5">

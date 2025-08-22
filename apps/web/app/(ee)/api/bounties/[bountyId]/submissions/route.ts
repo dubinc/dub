@@ -40,7 +40,7 @@ export const GET = withWorkspace(
 
     const results =
       bounty.type === BountyType.submission
-        ? await getSubmissions(bounty)
+        ? await getSubmissions(bounty, filters)
         : await getPartnersWithBountySubmission({
             ...filters,
             programId: bounty.programId,
@@ -55,7 +55,10 @@ export const GET = withWorkspace(
 );
 
 // Get the submissions for a bounty of the type `submission`
-async function getSubmissions(bounty: Pick<Bounty, "id">) {
+async function getSubmissions(bounty: Pick<Bounty, "id">, filters: any) {
+  // For submission-type bounties, only allow sorting by createdAt
+  const sortBy = filters.sortBy === "createdAt" ? "createdAt" : "createdAt";
+  
   const submissions = await prisma.bountySubmission.findMany({
     where: {
       bountyId: bounty.id,
@@ -70,7 +73,7 @@ async function getSubmissions(bounty: Pick<Bounty, "id">) {
       },
     },
     orderBy: {
-      createdAt: "desc",
+      [sortBy]: filters.sortOrder,
     },
   });
 
