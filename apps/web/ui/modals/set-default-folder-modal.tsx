@@ -23,14 +23,14 @@ function SetDefaultFolderModal({
   setShowDefaultFolderModal: Dispatch<SetStateAction<boolean>>;
   folder: FolderSummary;
 }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
 
   const { executeAsync, isPending } = useAction(setDefaultFolderAction, {
     onSuccess: async () => {
       setShowDefaultFolderModal(false);
       await Promise.all([
         mutate("/api/workspaces"),
-        mutate(`/api/workspaces/${workspaceId}`),
+        mutate(`/api/workspaces/${slug}`),
         mutate(`/api/folders?workspaceId=${workspaceId}`),
       ]);
     },
