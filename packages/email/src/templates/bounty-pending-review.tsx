@@ -42,7 +42,7 @@ export default function BountyPendingReview({
   };
   partner: {
     name: string;
-    image: string;
+    image: string | null;
     email: string;
   };
   submission: {
