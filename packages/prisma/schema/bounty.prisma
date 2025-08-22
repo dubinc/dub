@@ -64,8 +64,8 @@ model BountySubmission {
   status          BountySubmissionStatus           @default(pending)
   rejectionReason BountySubmissionRejectionReason?
   rejectionNote   String?                          @db.Text
-  files           Json? // [{ fileName, storagePath, mimeType, size }]
-  urls            Json? // ["https://google.com", "https://github.com/..."]
+  files           Json?
+  urls            Json?
   reviewedAt      DateTime?
   createdAt       DateTime                         @default(now())
   updatedAt       DateTime                         @updatedAt
