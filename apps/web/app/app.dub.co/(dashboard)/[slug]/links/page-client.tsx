@@ -1,5 +1,6 @@
 "use client";
 
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
@@ -85,7 +86,7 @@ function WorkspaceLinks() {
     setSelectedFilter,
   } = useLinkFilters();
 
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
   const { isMegaFolder } = useIsMegaFolder();
 
   const { isLoading } = useFolderPermissions();

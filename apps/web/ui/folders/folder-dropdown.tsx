@@ -2,6 +2,7 @@
 
 import { unsortedLinks } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useFolder from "@/lib/swr/use-folder";
 import useFolders from "@/lib/swr/use-folders";
 import useLinksCount from "@/lib/swr/use-links-count";
@@ -79,8 +80,8 @@ export const FolderDropdown = ({
     unsortedLinks,
   );
 
-  const folderId =
-    selectedFolderId || searchParams.get("folderId") || defaultFolderId;
+  const { folderId: currentFolderId } = useCurrentFolderId();
+  const folderId = selectedFolderId || currentFolderId;
 
   const { folder: selectedFolderData } = useFolder({
     folderId,
@@ -123,7 +124,7 @@ export const FolderDropdown = ({
         ? [selectedFolderData]
         : []),
     ];
-    if (folderId && folderId !== "unsorted") {
+    if (folderId) {
       router.prefetch(`/${slug}/links?folderId=${folderId}`);
     }
 
@@ -177,7 +178,6 @@ export const FolderDropdown = ({
   }, [selectedFolder]);
 
   if (folderId && folderId !== "unsorted" && !selectedFolderData) {
-    // if (true) {
     return loadingPlaceholder ?? <FolderDropdownPlaceholder />;
   }
 
@@ -198,7 +198,7 @@ export const FolderDropdown = ({
             onFolderSelect
               ? onFolderSelect(folder)
               : queryParams({
-                  ...(folder.id === "unsorted"
+                  ...(folder.id === "unsorted" && !defaultFolderId
                     ? { del: "folderId" }
                     : { set: { folderId: folder.id } }),
                 });

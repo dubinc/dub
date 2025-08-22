@@ -1,4 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import { ExpandedLinkProps } from "@/lib/types";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -21,7 +22,7 @@ import {
 } from "@dub/ui/icons";
 import { cn, isDubDomain, nanoid } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useLinkBuilder } from "../modals/link-builder";
@@ -67,7 +68,6 @@ export function LinkControls({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };
-  const searchParams = useSearchParams();
 
   const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
@@ -100,7 +100,8 @@ export function LinkControls({
 
   const isRootLink = link.key === "_root";
   const isProgramLinkWithLeads = link.programId !== null && link.leads > 0;
-  const folderId = link.folderId || searchParams.get("folderId");
+  const { folderId: currentFolderId } = useCurrentFolderId();
+  const folderId = link.folderId || currentFolderId;
 
   // Duplicate link Modal
   const {
