@@ -12,7 +12,7 @@ const schema = z.object({
   bountyId: z.string(),
   files: z.array(BountySubmissionFileSchema),
   urls: z.array(z.string().url()),
-  description: z.string().optional(),
+  description: z.string().trim().max(1000).optional(),
 });
 
 export const createBountySubmissionAction = authPartnerActionClient
@@ -26,11 +26,21 @@ export const createBountySubmissionAction = authPartnerActionClient
         partnerId: partner.id,
         programId,
       }),
+
       await getBountyOrThrow({
         bountyId,
         programId,
       }),
     ]);
+
+    // TODO: We need to check the following
+    // if the partner has already submitted a bounty for this program
+    // if the partner is in allowed bounty groups
+    // bounty start and end date
+    // archivedAt bounty can't be submitted
+    // Partner enrollment status
+    // Validate submission requirements if specified (max number of files/URLs)
+    // Validate file types and sizes if specified
 
     await prisma.bountySubmission.create({
       data: {
