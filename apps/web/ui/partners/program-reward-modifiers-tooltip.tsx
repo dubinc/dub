@@ -2,10 +2,12 @@ import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { RewardProps } from "@/lib/types";
 import {
   CONDITION_OPERATOR_LABELS,
+  ENTITY_ATTRIBUTE_TYPES,
   rewardConditionsArraySchema,
+  rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
 import { InfoTooltip } from "@dub/ui";
-import { currencyFormatter, pluralize } from "@dub/utils";
+import { capitalize, currencyFormatter, pluralize } from "@dub/utils";
 import { z } from "zod";
 
 export const ATTRIBUTE_LABELS = {
@@ -56,6 +58,7 @@ export function ProgramRewardModifiersTooltip({
                         : modifier.maxDuration, // fallback to primary
                   }}
                   conditions={modifier.conditions}
+                  operator={modifier.operator}
                 />
               </div>
             ))}
@@ -69,11 +72,13 @@ export function ProgramRewardModifiersTooltip({
 const RewardItem = ({
   reward,
   conditions,
+  operator = "AND",
 }: {
   reward: Pick<RewardProps, "amount" | "type" | "event" | "maxDuration">;
   conditions?: z.infer<
     typeof rewardConditionsArraySchema
   >[number]["conditions"];
+  operator?: z.infer<typeof rewardConditionsSchema>["operator"];
 }) => {
   const rewardAmount = constructRewardAmount({
     ...reward,
@@ -108,7 +113,8 @@ const RewardItem = ({
               <li key={idx} className="flex items-start gap-1">
                 <span className="shrink-0 text-lg leading-none">&bull;</span>
                 <span className="min-w-0">
-                  {idx === 0 ? "If" : "Or"} {condition.entity}{" "}
+                  {idx === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
+                  {condition.entity}{" "}
                   {ATTRIBUTE_LABELS[condition.attribute].toLowerCase()}{" "}
                   {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
                   {condition.value &&
@@ -116,8 +122,9 @@ const RewardItem = ({
                       ? condition.value.join(", ")
                       : condition.attribute === "productId" && condition.label
                         ? condition.label
-                        : condition.attribute === "totalCommissions" ||
-                            condition.attribute === "totalSaleAmount"
+                        : ENTITY_ATTRIBUTE_TYPES[condition.entity]?.[
+                              condition.attribute
+                            ] === "currency"
                           ? currencyFormatter(Number(condition.value) / 100, {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,

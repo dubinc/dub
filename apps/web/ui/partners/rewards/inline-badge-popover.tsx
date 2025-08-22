@@ -135,7 +135,7 @@ export function InlineBadgePopoverMenu<T extends any>({
       <AnimatedSizeContainer height>
         <div className="relative">
           <Command.List
-            className="scrollbar-hide flex max-h-64 max-w-48 flex-col gap-1 overflow-y-auto transition-all"
+            className="scrollbar-hide flex max-h-64 max-w-52 flex-col gap-1 overflow-y-auto transition-all"
             ref={scrollRef}
             onScroll={updateScrollProgress}
           >

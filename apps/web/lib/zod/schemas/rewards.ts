@@ -35,6 +35,26 @@ export const CONDITION_ATTRIBUTES = [
   ...CONDITION_PARTNER_ATTRIBUTES,
 ] as const;
 
+export const ENTITY_ATTRIBUTE_TYPES: Partial<
+  Record<
+    (typeof CONDITION_ENTITIES)[number],
+    Partial<
+      Record<
+        (typeof CONDITION_ATTRIBUTES)[number],
+        "string" | "number" | "currency"
+      >
+    >
+  >
+> = {
+  partner: {
+    totalClicks: "number",
+    totalLeads: "number",
+    totalConversions: "number",
+    totalSaleAmount: "currency",
+    totalCommissions: "currency",
+  },
+};
+
 export const CONDITION_OPERATORS = [
   "equals_to",
   "not_equals",
@@ -47,6 +67,19 @@ export const CONDITION_OPERATORS = [
   "less_than",
   "less_than_or_equal",
 ] as const;
+
+export const STRING_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  ["equals_to", "not_equals", "starts_with", "ends_with", "in", "not_in"];
+
+export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  [
+    "equals_to",
+    "not_equals",
+    "greater_than",
+    "greater_than_or_equal",
+    "less_than",
+    "less_than_or_equal",
+  ];
 
 export const ATTRIBUTE_LABELS = {
   country: "Country",

@@ -13,6 +13,7 @@ import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   createOrUpdateRewardSchema,
+  ENTITY_ATTRIBUTE_TYPES,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -111,6 +112,13 @@ function RewardSheetContent({
 
         return {
           ...m,
+          conditions: m.conditions.map((c) => ({
+            ...c,
+            value:
+              ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency"
+                ? Number(c.value) / 100
+                : c.value,
+          })),
           amount: type === "flat" ? m.amount / 100 : m.amount,
           maxDuration: m.maxDuration === null ? Infinity : maxDuration,
         };
@@ -201,6 +209,15 @@ function RewardSheetContent({
 
             return {
               ...m,
+              conditions: m.conditions.map((c) => ({
+                ...c,
+                value:
+                  c.entity &&
+                  c.attribute &&
+                  ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency"
+                    ? Number(c.value) * 100
+                    : c.value,
+              })),
               amount: type === "flat" ? m.amount * 100 : m.amount,
               maxDuration: maxDuration === Infinity ? null : maxDuration,
             };
