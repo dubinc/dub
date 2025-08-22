@@ -126,7 +126,7 @@ function BountySubmissionDetailsSheetContent({
                 </span>
                 <span className="text-sm font-medium text-neutral-800">
                   {commission?.earnings
-                    ? currencyFormatter(commission.earnings, {
+                    ? currencyFormatter(commission.earnings / 100, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })
