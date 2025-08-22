@@ -1,3 +1,4 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -7,7 +8,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   Dispatch,
@@ -51,8 +52,7 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const selectedFolderId = searchParams.get("folderId");
+  const { folderId: selectedFolderId } = useCurrentFolderId();
   const { slug, defaultFolderId } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
