@@ -56,29 +56,47 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
       })
     : [];
 
-  await prisma.bounty.update({
-    where: {
-      id: bounty.id,
-    },
-    data: {
-      name,
-      description,
-      startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
-      endsAt,
-      rewardAmount,
-      submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
-      groups: {
-        deleteMany: {},
-        create: groups.map((group) => ({
-          groupId: group.id,
-        })),
+  const updatedBounty = await prisma.$transaction(async (tx) => {
+    const updatedBounty = await tx.bounty.update({
+      where: {
+        id: bounty.id,
       },
-    },
+      data: {
+        name,
+        description,
+        startsAt,
+        endsAt,
+        rewardAmount,
+        ...(bounty.type === "submission" && {
+          submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
+        }),
+        groups: {
+          deleteMany: {},
+          create: groups.map((group) => ({
+            groupId: group.id,
+          })),
+        },
+      },
+    });
+
+    if (updatedBounty.workflowId && performanceCondition) {
+      await tx.workflow.update({
+        where: {
+          id: updatedBounty.workflowId,
+        },
+        data: {
+          triggerConditions: [performanceCondition],
+        },
+      });
+    }
+
+    return {
+      ...updatedBounty,
+      performanceCondition,
+    };
   });
 
-  // TODO: [bounties] Persist performance logic to workflow
-
-  return NextResponse.json(BountySchema.parse(bounty));
+  return NextResponse.json(BountySchema.parse(updatedBounty));
 });
 
 // DELETE /api/bounties/[bountyId] - delete a bounty

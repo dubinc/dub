@@ -74,9 +74,16 @@ const ACCORDION_ITEMS = [
 
 function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const { id: workspaceId } = useWorkspace();
-  const [hasEndDate, setHasEndDate] = useState(false);
-  const [requireImage, setRequireImage] = useState(false);
-  const [requireUrl, setRequireUrl] = useState(false);
+  const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
+
+  const [requireImage, setRequireImage] = useState(
+    bounty?.submissionRequirements?.includes("image") || false,
+  );
+
+  const [requireUrl, setRequireUrl] = useState(
+    bounty?.submissionRequirements?.includes("url") || false,
+  );
+
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
   const { makeRequest, isSubmitting } = useApiMutation<BountyProps>();
 
@@ -92,7 +99,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       type: bounty?.type || "performance",
       submissionRequirements: bounty?.submissionRequirements || null,
       groupIds: bounty?.groups?.map(({ id }) => id) || null,
-      performanceCondition: {
+      performanceCondition: bounty?.performanceCondition || {
         operator: "gte",
       },
     },

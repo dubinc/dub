@@ -45,7 +45,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     endsAt,
     submissionRequirements,
     groupIds,
-    performanceCondition: condition,
+    performanceCondition,
   } = createBountySchema.parse(await parseRequestBody(req));
 
   const groups = groupIds?.length
@@ -64,7 +64,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     const bountyId = createId({ prefix: "bnty_" });
 
     // Create a workflow if there is a performance condition
-    if (condition) {
+    if (performanceCondition && type === "performance") {
       const action: WorkflowAction = {
         type: WORKFLOW_ACTION_TYPES.AwardBounty,
         data: {
@@ -76,8 +76,9 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
         data: {
           id: createId({ prefix: "wf_" }),
           programId,
-          trigger: WORKFLOW_ATTRIBUTE_TRIGGER_MAP[condition.attribute],
-          triggerConditions: [condition],
+          trigger:
+            WORKFLOW_ATTRIBUTE_TRIGGER_MAP[performanceCondition.attribute],
+          triggerConditions: [performanceCondition],
           actions: [action],
         },
       });
@@ -95,9 +96,10 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
         startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
         endsAt,
         rewardAmount,
-        ...(submissionRequirements && {
-          submissionRequirements,
-        }),
+        ...(submissionRequirements &&
+          type === "submission" && {
+            submissionRequirements,
+          }),
         ...(groups?.length && {
           groups: {
             createMany: {
