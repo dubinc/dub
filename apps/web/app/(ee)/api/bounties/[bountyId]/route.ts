@@ -2,6 +2,7 @@ import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   BountySchema,
   BountySchemaExtended,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/bounties/[bountyId] - get a bounty
@@ -95,6 +97,14 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
       performanceCondition,
     };
   });
+
+  waitUntil(
+    sendWorkspaceWebhook({
+      workspace,
+      trigger: "bounty.updated",
+      data: BountySchema.parse(updatedBounty),
+    }),
+  );
 
   return NextResponse.json(BountySchema.parse(updatedBounty));
 });

@@ -4,6 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { WorkflowAction } from "@/lib/types";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   BountySchema,
   BountySchemaExtended,
@@ -16,6 +17,7 @@ import {
 } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Workflow } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -85,7 +87,7 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
     }
 
     // Create a bounty
-    return await tx.bounty.create({
+    const bounty = await tx.bounty.create({
       data: {
         id: bountyId,
         programId,
@@ -111,7 +113,20 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
         }),
       },
     });
+
+    return {
+      ...bounty,
+      performanceCondition,
+    };
   });
+
+  waitUntil(
+    sendWorkspaceWebhook({
+      workspace,
+      trigger: "bounty.created",
+      data: BountySchema.parse(bounty),
+    }),
+  );
 
   return NextResponse.json(BountySchema.parse(bounty));
 });

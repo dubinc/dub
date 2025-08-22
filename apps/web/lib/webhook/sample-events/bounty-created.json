@@ -1,0 +1,15 @@
+{
+  "id": "bnty_1K39DGZG3MHY9RP4PD0AS2C5P",
+  "name": "Earn $100 after generating 20 total conversions",
+  "description": "Earn $100 after generating 20 total conversions. This is a test bounty.",
+  "type": "performance",
+  "startsAt": "2025-08-01T17:34:00.000Z",
+  "endsAt": "2025-09-01T17:34:00.000Z",
+  "rewardAmount": 50000,
+  "submissionRequirements": null,
+  "performanceCondition": {
+    "attribute": "totalConversions",
+    "operator": "gte",
+    "value": 20
+  }
+}
