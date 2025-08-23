@@ -1,6 +1,7 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { RewardProps } from "@/lib/types";
 import {
+  ATTRIBUTE_LABELS,
   CONDITION_OPERATOR_LABELS,
   ENTITY_ATTRIBUTE_TYPES,
   rewardConditionsArraySchema,
@@ -15,15 +16,10 @@ import {
 } from "@dub/utils";
 import { z } from "zod";
 
-export const ATTRIBUTE_LABELS = {
-  country: "Country",
+const REWARD_MODIFIER_LABELS = {
+  ...ATTRIBUTE_LABELS,
   productId: "Product",
-  totalClicks: "Total Clicks",
-  totalLeads: "Total Leads",
-  totalConversions: "Total Conversions",
-  totalSaleAmount: "Total Sale Amount",
-  totalCommissions: "Total Commissions",
-} as const;
+};
 
 export function ProgramRewardModifiersTooltip({
   reward,
@@ -124,7 +120,7 @@ const RewardItem = ({
                 <span className="min-w-0">
                   {idx === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
                   {condition.entity}{" "}
-                  {ATTRIBUTE_LABELS[condition.attribute].toLowerCase()}{" "}
+                  {REWARD_MODIFIER_LABELS[condition.attribute].toLowerCase()}{" "}
                   {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
                   {condition.value &&
                     (condition.attribute === "country"

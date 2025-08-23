@@ -84,11 +84,11 @@ export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] 
 export const ATTRIBUTE_LABELS = {
   country: "Country",
   productId: "Product ID",
-  totalClicks: "Total Clicks",
-  totalLeads: "Total Leads",
-  totalConversions: "Total Conversions",
-  totalSaleAmount: "Total Sale Amount",
-  totalCommissions: "Total Commissions",
+  totalClicks: "Total clicks",
+  totalLeads: "Total leads",
+  totalConversions: "Total conversions",
+  totalSaleAmount: "Total revenue",
+  totalCommissions: "Total commissions",
 } as const;
 
 export const CONDITION_OPERATOR_LABELS = {
