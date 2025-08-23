@@ -1,8 +1,10 @@
 "use server";
 
-import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { storage } from "@/lib/storage";
+import { ratelimit } from "@/lib/upstash";
+import { bountySubmissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
+import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
@@ -12,30 +14,105 @@ const schema = z.object({
   bountyId: z.string(),
 });
 
+const MAX_ATTEMPTS = 5;
+const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
+
 export const uploadBountySubmissionFileAction = authPartnerActionClient
   .schema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { programId, bountyId } = parsedInput;
 
-    // TODO:
-    // Limit the number of file a partner can upload for a bounty
-    // Allow upload only if there is a submissionRequirements exists for the given bounty (AND type submissions only)
-    // Rate limit the number of uploads per partner per bounty
-    // Prevent submission if there is an existing submission for the partner
+    const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
+      `${CACHE_KEY_PREFIX}:${bountyId}:${partner.id}`,
+    );
 
-    const { program } = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId,
-    });
+    if (!success) {
+      throw new Error(
+        "You've reached the maximum number of attempts to upload a file for this bounty.",
+      );
+    }
 
-    const bounty = await getBountyOrThrow({
-      bountyId,
-      programId,
-    });
+    const [programEnrollment, bounty] = await Promise.all([
+      getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId,
+      }),
+
+      prisma.bounty.findUniqueOrThrow({
+        where: {
+          id: bountyId,
+        },
+        include: {
+          groups: true,
+          submissions: {
+            where: {
+              partnerId: partner.id,
+            },
+          },
+        },
+      }),
+    ]);
+
+    if (!["approved", "pending"].includes(programEnrollment.status)) {
+      throw new Error(
+        "You are not allowed to submit a bounty for this program.",
+      );
+    }
+
+    if (bounty.programId !== programId) {
+      throw new Error("This bounty is not for this program.");
+    }
+
+    // Validate the partner has not already submitted a bounty for this program
+    if (bounty.submissions.length > 0) {
+      throw new Error("You have already submitted a bounty for this program.");
+    }
+
+    if (bounty.groups.length > 0) {
+      const isInGroup = bounty.groups.find(
+        ({ groupId }) => groupId === programEnrollment.groupId,
+      );
+
+      if (!isInGroup) {
+        throw new Error("You are not allowed to submit this bounty.");
+      }
+    }
+
+    // Validate the bounty dates
+    const now = new Date();
+
+    if (bounty.startsAt && bounty.startsAt > now) {
+      throw new Error("This bounty is not yet available.");
+    }
+
+    if (bounty.endsAt && bounty.endsAt < now) {
+      throw new Error("This bounty is no longer available.");
+    }
+
+    if (bounty.archivedAt) {
+      throw new Error("This bounty is archived.");
+    }
+
+    if (bounty.type === "performance") {
+      throw new Error("You are not allowed to submit a performance bounty.");
+    }
+
+    // Validate the submission requirements
+    const submissionRequirements = bountySubmissionRequirementsSchema.parse(
+      bounty.submissionRequirements,
+    );
+
+    const requireImage = submissionRequirements.includes("image");
+
+    if (!requireImage) {
+      throw new Error(
+        "The submission requirements for this bounty do not allow for file uploads.",
+      );
+    }
 
     try {
-      const key = `programs/${program.id}/bounties/${bounty.id}/submissions/${partner.id}/${nanoid(7)}`;
+      const key = `programs/${bounty.programId}/bounties/${bounty.id}/submissions/${partner.id}/${nanoid(7)}`;
       const signedUrl = await storage.getSignedUrl(key);
 
       return {
