@@ -25,7 +25,9 @@ export function ProgramRewardDescription({
         ? reward.description || (
             <>
               Earn{" "}
-              <strong className={cn("font-semibold", amountClassName)}>
+              <strong
+                className={cn("font-semibold lowercase", amountClassName)}
+              >
                 {constructRewardAmount(reward)}{" "}
               </strong>
               {reward.event === "sale" && reward.maxDuration === 0 ? (
