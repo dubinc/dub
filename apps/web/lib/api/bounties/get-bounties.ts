@@ -21,7 +21,7 @@ export async function getBounties(filters: BountyFilters) {
     includeExpandedFields,
   } = filters;
 
-  const bounties = (await prisma.$queryRaw`
+  const bounties: any[] = await prisma.$queryRaw`
     SELECT
       b.id,
       b.name,
@@ -66,7 +66,7 @@ export async function getBounties(filters: BountyFilters) {
     GROUP BY b.id, b.name, b.description, b.type, b.startsAt, b.endsAt, b.rewardAmount, b.submissionRequirements
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
-  `) satisfies Array<any>;
+  `;
 
   return bounties.map((bounty) => ({
     ...bounty,
