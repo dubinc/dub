@@ -56,7 +56,7 @@ export default function BountySubmitted({
               bounty!
             </Text>
 
-            <Section className="flex h-[140px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
+            <Section className="h-[140px] rounded-lg bg-neutral-100 py-1.5 text-center">
               <BountyThumbnailImage type="submission" />
             </Section>
 

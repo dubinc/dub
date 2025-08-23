@@ -33,7 +33,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           },
         },
       ],
-      // If bounty has no groups (empty BountyGroup entries), it's available to all partners
+      // If bounty has no groups, it's available to all partners
       // If bounty has groups, only partners in those groups can see it
       AND: [
         {

@@ -3,6 +3,10 @@ import { uploadBountySubmissionFileAction } from "@/lib/actions/partners/upload-
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { BountySubmissionProps, BountyWithPartnerDataProps } from "@/lib/types";
+import {
+  MAX_SUBMISSION_FILES,
+  MAX_SUBMISSION_URLS,
+} from "@/lib/zod/schemas/bounties";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -26,14 +30,23 @@ import { v4 as uuid } from "uuid";
 import { BountyPerformance } from "./bounty-performance";
 import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 
-const MAX_FILES = 4;
-const MAX_URLS = 4;
-
 type ClaimBountyModalProps = {
   setShowModal: Dispatch<SetStateAction<boolean>>;
   bounty: BountyWithPartnerDataProps;
   submission?: BountySubmissionProps["submission"];
 };
+
+interface FileInput {
+  id: string;
+  file?: File;
+  url?: string;
+  uploading: boolean;
+}
+
+interface Url {
+  id: string;
+  url: string;
+}
 
 function ClaimBountyModalContent({
   bounty,
@@ -41,23 +54,13 @@ function ClaimBountyModalContent({
 }: ClaimBountyModalProps) {
   const { programEnrollment } = useProgramEnrollment();
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const { handleKeyDown } = useEnterSubmit();
-
-  const [files, setFiles] = useState<
-    {
-      id: string;
-      file?: File;
-      url?: string;
-      uploading: boolean;
-    }[]
-  >([]);
-
-  const [urls, setUrls] = useState<{ id: string; url: string }[]>([
-    { id: uuid(), url: "" },
-  ]);
+  const [success, setSuccess] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const [description, setDescription] = useState("");
+  const [files, setFiles] = useState<FileInput[]>([]);
+  const [urls, setUrls] = useState<Url[]>([{ id: uuid(), url: "" }]);
 
   const { executeAsync: uploadFile } = useAction(
     uploadBountySubmissionFileAction,
@@ -105,10 +108,9 @@ function ClaimBountyModalContent({
     createBountySubmissionAction,
   );
 
-  const [success, setSuccess] = useState(false);
-
   const imageRequired = bounty.submissionRequirements?.includes("image");
   const urlRequired = bounty.submissionRequirements?.includes("url");
+  const fileUploading = files.some(({ uploading }) => uploading);
 
   return (
     <form
@@ -237,119 +239,138 @@ function ClaimBountyModalContent({
             >
               <div className="border-border-subtle flex flex-col gap-5 border-t p-6 max-sm:px-4">
                 {/* Files */}
-                <div>
-                  <label htmlFor="slug" className="flex items-center space-x-2">
-                    <h2 className="text-sm font-medium text-neutral-900">
-                      Files
-                      {imageRequired && " (at least 1 required)"}
-                    </h2>
-                  </label>
-                  <div
-                    className={cn(
-                      "mt-2 flex h-12 items-center gap-2 transition-[height]",
-                      files.length === 0 && "h-24",
-                    )}
-                  >
-                    {files.map((file, idx) => (
-                      <div
-                        key={file.id}
-                        className="border-border-subtle group relative flex aspect-square h-full items-center justify-center rounded-md border bg-white"
-                      >
-                        {file.uploading ? (
-                          <LoadingSpinner className="size-4" />
-                        ) : (
-                          <div className="relative size-full overflow-hidden rounded-md">
-                            <img src={file.url} alt="object-cover" />
-                          </div>
-                        )}
-                        <span className="sr-only">
-                          {file.file?.name || `File ${idx + 1}`}
-                        </span>
-                        <button
-                          type="button"
-                          className={cn(
-                            "absolute right-0 top-0 flex size-[1.125rem] -translate-y-1/2 translate-x-1/2 items-center justify-center",
-                            "rounded-full border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 active:scale-95",
-                            "scale-50 opacity-0 transition-[background-color,transform,opacity] group-hover:scale-100 group-hover:opacity-100",
-                          )}
-                          onClick={() => {
-                            setFiles((prev) =>
-                              prev.filter((s) => s.id !== file.id),
-                            );
-                          }}
-                        >
-                          <X className="size-2.5 text-neutral-400" />
-                        </button>
-                      </div>
-                    ))}
-
-                    <FileUpload
-                      accept="images"
+                {imageRequired && (
+                  <div>
+                    <label
+                      htmlFor="slug"
+                      className="flex items-center space-x-2"
+                    >
+                      <h2 className="text-sm font-medium text-neutral-900">
+                        Files
+                        {imageRequired && " (at least 1 required)"}
+                      </h2>
+                    </label>
+                    <div
                       className={cn(
-                        "border-border-subtle h-full w-auto rounded-md border",
-                        files.length > 0
-                          ? "aspect-square"
-                          : "aspect-[unset] w-full",
+                        "mt-2 flex h-12 items-center gap-2 transition-[height]",
+                        files.length === 0 && "h-24",
                       )}
-                      iconClassName="size-5 shrink-0"
-                      variant="plain"
-                      content={
-                        files.length > 0 ? null : "JPG or PNG, max size of 5MB"
-                      }
-                      onChange={async ({ file }) => await handleUpload(file)}
-                      disabled={files.length >= MAX_FILES}
-                    />
+                    >
+                      {files.map((file, idx) => (
+                        <div
+                          key={file.id}
+                          className="border-border-subtle group relative flex aspect-square h-full items-center justify-center rounded-md border bg-white"
+                        >
+                          {file.uploading ? (
+                            <LoadingSpinner className="size-4" />
+                          ) : (
+                            <div className="relative size-full overflow-hidden rounded-md">
+                              <img src={file.url} alt="object-cover" />
+                            </div>
+                          )}
+                          <span className="sr-only">
+                            {file.file?.name || `File ${idx + 1}`}
+                          </span>
+                          <button
+                            type="button"
+                            className={cn(
+                              "absolute right-0 top-0 flex size-[1.125rem] -translate-y-1/2 translate-x-1/2 items-center justify-center",
+                              "rounded-full border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 active:scale-95",
+                              "scale-50 opacity-0 transition-[background-color,transform,opacity] group-hover:scale-100 group-hover:opacity-100",
+                            )}
+                            onClick={() => {
+                              setFiles((prev) =>
+                                prev.filter((s) => s.id !== file.id),
+                              );
+                            }}
+                          >
+                            <X className="size-2.5 text-neutral-400" />
+                          </button>
+                        </div>
+                      ))}
+
+                      <FileUpload
+                        accept="images"
+                        className={cn(
+                          "border-border-subtle h-full w-auto rounded-md border",
+                          files.length > 0
+                            ? "aspect-square"
+                            : "aspect-[unset] w-full",
+                        )}
+                        iconClassName="size-5 shrink-0"
+                        variant="plain"
+                        content={
+                          files.length > 0
+                            ? null
+                            : "JPG or PNG, max size of 5MB"
+                        }
+                        onChange={async ({ file }) => await handleUpload(file)}
+                        disabled={files.length >= MAX_SUBMISSION_FILES}
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* URLs */}
-                <div>
-                  <label htmlFor="slug" className="flex items-center space-x-2">
-                    <h2 className="text-sm font-medium text-neutral-900">
-                      URLs
-                      {urlRequired && " (at least 1 required)"}
-                    </h2>
-                  </label>
-                  <div className={cn("mt-2 flex flex-col gap-2")}>
-                    {urls.map(({ id, url }, idx) => (
-                      <div key={id} className="flex items-center gap-2">
-                        <input
-                          type="url"
-                          placeholder="https://"
-                          value={url}
-                          onChange={(e) =>
-                            setUrls((prev) =>
-                              prev.map((u) =>
-                                u.id === id ? { ...u, url: e.target.value } : u,
-                              ),
-                            )
-                          }
-                          className="block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                        />
-                        {urls.length > 1 && (
-                          <Button
-                            variant="outline"
-                            icon={<Trash className="size-4" />}
-                            className="w-10 shrink-0 bg-red-50 p-0 text-red-700 hover:bg-red-100"
-                            onClick={() =>
-                              setUrls((prev) => prev.filter((s) => s.id !== id))
+                {urlRequired && (
+                  <div>
+                    <label
+                      htmlFor="slug"
+                      className="flex items-center space-x-2"
+                    >
+                      <h2 className="text-sm font-medium text-neutral-900">
+                        URLs
+                        {urlRequired && " (at least 1 required)"}
+                      </h2>
+                    </label>
+                    <div className={cn("mt-2 flex flex-col gap-2")}>
+                      {urls.map(({ id, url }, idx) => (
+                        <div key={id} className="flex items-center gap-2">
+                          <input
+                            type="url"
+                            placeholder="https://"
+                            value={url}
+                            onChange={(e) =>
+                              setUrls((prev) =>
+                                prev.map((u) =>
+                                  u.id === id
+                                    ? { ...u, url: e.target.value }
+                                    : u,
+                                ),
+                              )
                             }
+                            className="block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                           />
-                        )}
-                      </div>
-                    ))}
-                    {urls.length < MAX_URLS && (
-                      <Button
-                        variant="secondary"
-                        text="Add URL"
-                        className="h-8 rounded-lg"
-                        onClick={() =>
-                          setUrls((prev) => [...prev, { id: uuid(), url: "" }])
-                        }
-                      />
-                    )}
+                          {urls.length > 1 && (
+                            <Button
+                              variant="outline"
+                              icon={<Trash className="size-4" />}
+                              className="w-10 shrink-0 bg-red-50 p-0 text-red-700 hover:bg-red-100"
+                              onClick={() =>
+                                setUrls((prev) =>
+                                  prev.filter((s) => s.id !== id),
+                                )
+                              }
+                            />
+                          )}
+                        </div>
+                      ))}
+                      {urls.length < MAX_SUBMISSION_URLS && (
+                        <Button
+                          variant="secondary"
+                          text="Add URL"
+                          className="h-8 rounded-lg"
+                          onClick={() =>
+                            setUrls((prev) => [
+                              ...prev,
+                              { id: uuid(), url: "" },
+                            ])
+                          }
+                        />
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Description */}
                 <div>
@@ -403,7 +424,9 @@ function ClaimBountyModalContent({
                     disabled={
                       isFormOpen &&
                       ((imageRequired && !files.length) ||
-                        (urlRequired && !urls.filter(({ url }) => url).length))
+                        (urlRequired &&
+                          !urls.filter(({ url }) => url).length) ||
+                        fileUploading)
                     }
                   />
                 </div>

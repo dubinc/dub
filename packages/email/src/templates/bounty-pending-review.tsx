@@ -71,7 +71,7 @@ export default function BountyPendingReview({
             </Text>
 
             <Section className="mb-8 mt-6 rounded-xl border border-solid border-neutral-200 bg-neutral-50 p-5">
-              <div className="flex h-10 items-center gap-4">
+              <div className="flex h-10 items-center">
                 <div className="relative w-fit">
                   <Img
                     src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
@@ -81,7 +81,7 @@ export default function BountyPendingReview({
                     className="rounded-full border border-solid border-neutral-100"
                   />
                 </div>
-                <div className="flex-1">
+                <div className="ml-4 flex-1">
                   <Text className="m-0 p-0 text-sm font-semibold text-neutral-800">
                     {partner.name}
                   </Text>
@@ -95,7 +95,7 @@ export default function BountyPendingReview({
             <Section className="mt-6 text-center">
               <Link
                 href={`https://app.dub.co/${workspace.slug}/program/bounties/${bounty.id}?submissionId=${submission.id}`}
-                className="box-border block flex h-9 w-full items-center justify-center rounded-lg bg-black px-0 py-4 text-center text-sm leading-none text-white no-underline"
+                className="box-border block w-full rounded-md bg-black px-2 py-4 text-center text-sm font-medium leading-none text-white no-underline"
               >
                 Review bounty
               </Link>

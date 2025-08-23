@@ -14,6 +14,10 @@ import { workflowConditionSchema } from "./workflows";
 
 export const SUBMISSION_REQUIREMENTS = ["image", "url"] as const;
 
+export const MAX_SUBMISSION_FILES = 4;
+
+export const MAX_SUBMISSION_URLS = 4;
+
 export const bountySubmissionRequirementsSchema = z
   .array(z.enum(SUBMISSION_REQUIREMENTS))
   .min(0)
