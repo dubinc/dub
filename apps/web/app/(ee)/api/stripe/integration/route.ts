@@ -14,15 +14,15 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-const updateWorkspaceSchema = z.object({
-  stripeAccountId: z.string().nullable(),
-});
-
 // PATCH /api/stripe/integration - update a workspace with a stripe connect account id
 export const PATCH = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);
-    const { stripeAccountId } = updateWorkspaceSchema.parse(body);
+    const { stripeAccountId } = z
+      .object({
+        stripeAccountId: z.string().nullable(),
+      })
+      .parse(body);
 
     try {
       const response = await prisma.project.update({
