@@ -17,7 +17,7 @@ import { Footer } from "../components/footer";
 
 export default function NewBountyPublished({
   bounty = {
-    name: "Promote Acme at your campus and earn $500 ",
+    name: "Promote Acme at your campus and earn $500",
     type: "performance",
     endsAt: new Date(),
     description:
@@ -55,7 +55,7 @@ export default function NewBountyPublished({
             </Heading>
 
             <Section className="rounded-xl border border-solid border-neutral-200 bg-white">
-              <Section className="flex h-[140px] items-center justify-center rounded-none rounded-t-xl bg-neutral-100 py-1.5">
+              <Section className="h-[140px] rounded-none rounded-t-xl bg-gray-50 py-1.5 text-center">
                 <BountyThumbnailImage type={bounty.type} />
               </Section>
 
@@ -81,10 +81,10 @@ export default function NewBountyPublished({
                 </Section>
               )}
 
-              <Section className="px-6 pb-6">
+              <Section className="px-6 pb-6 text-center">
                 <Link
                   href={`https://partners.dub.co/programs/${program.slug}/bounties`}
-                  className="box-border block flex h-9 w-full items-center justify-center rounded-lg bg-black px-0 py-4 text-center text-sm leading-none text-white no-underline"
+                  className="box-border block w-full rounded-md bg-black px-2 py-4 text-center text-sm font-medium leading-none text-white no-underline"
                 >
                   View bounty
                 </Link>

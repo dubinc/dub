@@ -20,7 +20,13 @@ export function BountyThumbnailImage({
           })}
       width={118}
       height={118}
-      className={cn("size-full object-contain", className)}
+      className={cn("mx-auto my-auto object-contain", className)}
+      style={{
+        display: "block",
+        margin: "0 auto",
+        maxWidth: "118px",
+        maxHeight: "118px",
+      }}
     />
   );
 }

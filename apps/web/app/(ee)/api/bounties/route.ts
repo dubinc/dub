@@ -3,6 +3,7 @@ import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { WorkflowAction } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -17,6 +18,7 @@ import {
 } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Workflow } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -121,11 +123,21 @@ export const POST = withWorkspace(async ({ workspace, req }) => {
   });
 
   waitUntil(
-    sendWorkspaceWebhook({
-      workspace,
-      trigger: "bounty.created",
-      data: BountySchema.parse(bounty),
-    }),
+    Promise.allSettled([
+      sendWorkspaceWebhook({
+        workspace,
+        trigger: "bounty.created",
+        data: BountySchema.parse(bounty),
+      }),
+
+      qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/published`,
+        body: {
+          bountyId: bounty.id,
+          page: 1,
+        },
+      }),
+    ]),
   );
 
   return NextResponse.json(BountySchema.parse(bounty));
