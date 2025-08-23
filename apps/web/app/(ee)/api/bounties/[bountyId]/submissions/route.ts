@@ -2,17 +2,15 @@ import { getPartnersWithBountySubmission } from "@/lib/api/bounties/get-partners
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { BountySubmissionsQueryFilters } from "@/lib/types";
 import {
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
 } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
-import { Bounty, BountyType } from "@dub/prisma/client";
+import { BountyType } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-// TODO:
-// Add filter, pagination
 
 // GET /api/bounties/[bountyId]/submissions - get all submissions for a bounty
 export const GET = withWorkspace(
@@ -40,7 +38,10 @@ export const GET = withWorkspace(
 
     const results =
       bounty.type === BountyType.submission
-        ? await getSubmissions(bounty, filters)
+        ? await getSubmissions({
+            ...filters,
+            bountyId: bounty.id,
+          })
         : await getPartnersWithBountySubmission({
             ...filters,
             programId: bounty.programId,
@@ -55,13 +56,17 @@ export const GET = withWorkspace(
 );
 
 // Get the submissions for a bounty of the type `submission`
-async function getSubmissions(bounty: Pick<Bounty, "id">, filters: any) {
-  // For submission-type bounties, only allow sorting by createdAt
-  const sortBy = filters.sortBy === "createdAt" ? "createdAt" : "createdAt";
-  
+async function getSubmissions({
+  bountyId,
+  sortOrder,
+  page,
+  pageSize,
+}: BountySubmissionsQueryFilters & {
+  bountyId: string;
+}) {
   const submissions = await prisma.bountySubmission.findMany({
     where: {
-      bountyId: bounty.id,
+      bountyId,
     },
     include: {
       user: true,
@@ -73,11 +78,13 @@ async function getSubmissions(bounty: Pick<Bounty, "id">, filters: any) {
       },
     },
     orderBy: {
-      [sortBy]: filters.sortOrder,
+      createdAt: sortOrder,
     },
+    skip: (page - 1) * pageSize,
+    take: pageSize,
   });
 
-  const results = submissions.map((submission) => {
+  return submissions.map((submission) => {
     return {
       partner: {
         ...submission.programEnrollment?.partner,
@@ -88,6 +95,4 @@ async function getSubmissions(bounty: Pick<Bounty, "id">, filters: any) {
       user: submission.user,
     };
   });
-
-  return results;
 }
