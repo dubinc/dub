@@ -14,7 +14,7 @@ import { workflowConditionSchema } from "./workflows";
 
 export const SUBMISSION_REQUIREMENTS = ["image", "url"] as const;
 
-const bountySubmissionRequirementsSchema = z
+export const bountySubmissionRequirementsSchema = z
   .array(z.enum(SUBMISSION_REQUIREMENTS))
   .min(0)
   .max(2);

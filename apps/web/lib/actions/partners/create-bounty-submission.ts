@@ -1,9 +1,11 @@
 "use server";
 
-import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { BountySubmissionFileSchema } from "@/lib/zod/schemas/bounties";
+import {
+  BountySubmissionFileSchema,
+  bountySubmissionRequirementsSchema,
+} from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
@@ -18,8 +20,8 @@ import { authPartnerActionClient } from "../safe-action";
 const schema = z.object({
   programId: z.string(),
   bountyId: z.string(),
-  files: z.array(BountySubmissionFileSchema),
-  urls: z.array(z.string().url()),
+  files: z.array(BountySubmissionFileSchema).default([]),
+  urls: z.array(z.string().url()).default([]),
   description: z.string().trim().max(1000).optional(),
 });
 
@@ -29,36 +31,96 @@ export const createBountySubmissionAction = authPartnerActionClient
     const { partner } = ctx;
     const { programId, bountyId, files, urls, description } = parsedInput;
 
-    const [bounty, _] = await Promise.all([
-      await getBountyOrThrow({
-        bountyId,
-        programId,
-      }),
-
+    const [programEnrollment, bounty] = await Promise.all([
       getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId,
-        includePartner: true,
+      }),
+
+      prisma.bounty.findUniqueOrThrow({
+        where: {
+          id: bountyId,
+        },
+        include: {
+          groups: true,
+          submissions: {
+            where: {
+              partnerId: partner.id,
+            },
+          },
+        },
       }),
     ]);
 
-    // TODO: We need to check the following
-    // if the partner has already submitted a bounty for this program
-    // if the partner is in allowed bounty groups
-    // bounty start and end date
-    // archivedAt bounty can't be submitted
-    // Partner enrollment status
-    // Validate submission requirements if specified (max number of files/URLs)
-    // Validate file types and sizes if specified
+    if (!["approved", "pending"].includes(programEnrollment.status)) {
+      throw new Error(
+        "You are not allowed to submit a bounty for this program.",
+      );
+    }
 
+    if (bounty.programId !== programId) {
+      throw new Error("This bounty is not for this program.");
+    }
+
+    // Validate the partner has not already submitted a bounty for this program
+    if (bounty.submissions.length > 0) {
+      throw new Error("You have already submitted a bounty for this program.");
+    }
+
+    if (bounty.groups.length > 0) {
+      const isInGroup = bounty.groups.find(
+        ({ groupId }) => groupId === programEnrollment.groupId,
+      );
+
+      if (!isInGroup) {
+        throw new Error("You are not allowed to submit this bounty.");
+      }
+    }
+
+    // Validate the bounty dates
+    const now = new Date();
+
+    if (bounty.startsAt && bounty.startsAt > now) {
+      throw new Error("This bounty is not yet available.");
+    }
+
+    if (bounty.endsAt && bounty.endsAt < now) {
+      throw new Error("This bounty is no longer available.");
+    }
+
+    if (bounty.archivedAt) {
+      throw new Error("This bounty is archived.");
+    }
+
+    if (bounty.type === "performance") {
+      throw new Error("You are not allowed to submit a performance bounty.");
+    }
+
+    // Validate the submission requirements
+    const submissionRequirements = bountySubmissionRequirementsSchema.parse(
+      bounty.submissionRequirements,
+    );
+
+    const requireImage = submissionRequirements.includes("image");
+    const requireUrl = submissionRequirements.includes("url");
+
+    if (requireImage && files.length === 0) {
+      throw new Error("You must submit an image.");
+    }
+
+    if (requireUrl && urls.length === 0) {
+      throw new Error("You must submit a URL.");
+    }
+
+    // Create the submission
     const submission = await prisma.bountySubmission.create({
       data: {
-        programId,
-        bountyId,
+        programId: bounty.programId,
+        bountyId: bounty.id,
         partnerId: partner.id,
-        files,
-        urls,
         description,
+        ...(requireImage && { files }),
+        ...(requireUrl && { urls }),
       },
     });
 
@@ -83,7 +145,7 @@ export const createBountySubmissionAction = authPartnerActionClient
                 },
                 bounty: {
                   id: bounty.id,
-                  name: bounty.name,
+                  name: bounty.name!,
                 },
                 partner: {
                   name: partner.name,
@@ -106,7 +168,7 @@ export const createBountySubmissionAction = authPartnerActionClient
             react: BountySubmitted({
               email: partner.email,
               bounty: {
-                name: bounty.name,
+                name: bounty.name!,
               },
               program: {
                 name: program.name,
