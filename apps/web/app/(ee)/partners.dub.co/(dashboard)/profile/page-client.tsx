@@ -132,7 +132,7 @@ function Controls({ formRef }: { formRef: RefObject<HTMLFormElement> }) {
     useMergePartnerAccountsModal();
 
   const {
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty, dirtyFields },
   } = useFormContext();
 
   const {
@@ -162,8 +162,15 @@ function Controls({ formRef }: { formRef: RefObject<HTMLFormElement> }) {
         text="Save changes"
         className="h-8 w-fit px-2.5"
         loading={isSubmitting}
+        disabled={!isDirty}
         onClick={() => {
-          if (partner?.stripeConnectId) {
+          if (
+            partner?.stripeConnectId &&
+            (dirtyFields.email ||
+              dirtyFields.country ||
+              dirtyFields.profileType ||
+              dirtyFields.companyName)
+          ) {
             setShowStripeConfirmModal(true);
           } else {
             formRef.current?.requestSubmit();

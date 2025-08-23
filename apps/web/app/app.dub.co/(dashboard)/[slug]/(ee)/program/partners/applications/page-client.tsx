@@ -85,6 +85,7 @@ export function ProgramPartnersApplicationsPageClient() {
       {
         workspaceId,
         status: "pending",
+        sortBy: "createdAt",
       },
       { exclude: ["partnerId"] },
     )}`,
