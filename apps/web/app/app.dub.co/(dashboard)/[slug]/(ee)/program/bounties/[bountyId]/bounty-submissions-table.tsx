@@ -57,7 +57,7 @@ const PERFORMANCE_ATTRIBUTE_TO_SORTABLE_COLUMNS = {
 } as const;
 
 export function BountySubmissionsTable() {
-  const { bounty, isLoading: isBountyLoading } = useBounty();
+  const { bounty, loading: isBountyLoading } = useBounty();
   const { groups } = useGroups();
   const { id: workspaceId } = useWorkspace();
   const { bountyId } = useParams<{ bountyId: string }>();

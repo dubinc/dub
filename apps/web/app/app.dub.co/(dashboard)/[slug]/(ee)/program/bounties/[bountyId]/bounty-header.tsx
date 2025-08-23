@@ -7,14 +7,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export function BountyHeaderTitle() {
-  const { bounty, isLoading } = useBounty();
+  const { bounty, loading } = useBounty();
   const { slug: workspaceSlug } = useWorkspace();
 
-  if (isLoading) {
+  if (loading) {
     return <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-200" />;
   }
 
-  if (!bounty) {
+  if (!bounty && !loading) {
     redirect(`/${workspaceSlug}/program/bounties`);
   }
 

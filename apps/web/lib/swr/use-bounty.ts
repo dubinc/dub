@@ -8,11 +8,7 @@ export default function useBounty() {
   const { id: workspaceId } = useWorkspace();
   const { bountyId } = useParams<{ bountyId: string }>();
 
-  const {
-    data: bounty,
-    error,
-    isLoading,
-  } = useSWR<BountyExtendedProps>(
+  const { data: bounty, error } = useSWR<BountyExtendedProps>(
     workspaceId && bountyId
       ? `/api/bounties/${bountyId}?workspaceId=${workspaceId}&includeExpandedFields=true`
       : undefined,
@@ -21,7 +17,7 @@ export default function useBounty() {
 
   return {
     bounty,
-    isLoading,
+    loading: !bounty && !error,
     error,
   };
 }
