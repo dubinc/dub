@@ -1,18 +1,20 @@
 import { prisma } from "@dub/prisma";
-import { NotificationPreference, Role } from "@prisma/client";
+import { Role } from "@prisma/client";
+import { z } from "zod";
+import { notificationTypes } from "../zod/schemas/workspaces";
 
 type GetWorkspaceUsersParams =
   | {
       workspaceId: string;
       programId?: never;
       role: Role;
-      notificationPreference?: NotificationPreference;
+      notificationPreference?: z.infer<typeof notificationTypes>;
     }
   | {
       programId: string;
       workspaceId?: never;
       role: Role;
-      notificationPreference?: NotificationPreference;
+      notificationPreference?: z.infer<typeof notificationTypes>;
     };
 
 export async function getWorkspaceUsers({
@@ -49,7 +51,11 @@ export async function getWorkspaceUsers({
       users: {
         where: {
           role,
-          ...(notificationPreference && { notificationPreference }),
+          ...(notificationPreference && {
+            notificationPreference: {
+              [notificationPreference]: true,
+            },
+          }),
         },
         select: {
           user: {

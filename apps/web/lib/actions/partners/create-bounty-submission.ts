@@ -130,6 +130,7 @@ export const createBountySubmissionAction = authPartnerActionClient
         const { users, program, ...workspace } = await getWorkspaceUsers({
           programId,
           role: Role.owner,
+          notificationPreference: "newBountySubmitted",
         });
 
         if (users.length > 0) {
