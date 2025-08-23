@@ -7,50 +7,76 @@ import { z } from "zod";
 
 // GET /api/partner-profile/programs/[programId]/bounties – get available bounties for an enrolled program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
-  const { program, totalCommissions } = await getProgramEnrollmentOrThrow({
-    partnerId: partner.id,
-    programId: params.programId,
+  const { program, totalCommissions, groupId, links } =
+    await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: params.programId,
+    });
+
+  const now = new Date();
+  const partnerGroupId = groupId || program.defaultGroupId;
+
+  const bounties = await prisma.bounty.findMany({
+    where: {
+      programId: program.id,
+      startsAt: {
+        lte: now,
+      },
+      // Check if the bounty is active
+      OR: [
+        {
+          endsAt: null,
+        },
+        {
+          endsAt: {
+            gt: now,
+          },
+        },
+      ],
+      // If bounty has no groups (empty BountyGroup entries), it's available to all partners
+      // If bounty has groups, only partners in those groups can see it
+      AND: [
+        {
+          OR: [
+            {
+              groups: {
+                none: {},
+              },
+            },
+            {
+              groups: {
+                some: {
+                  groupId: partnerGroupId,
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+    include: {
+      workflow: {
+        select: {
+          triggerConditions: true,
+        },
+      },
+      submissions: {
+        where: {
+          partnerId: partner.id,
+        },
+      },
+    },
   });
 
-  const [bounties, linkMetrics] = await Promise.all([
-    prisma.bounty.findMany({
-      where: {
-        programId: program.id,
-        startsAt: {
-          lte: new Date(),
-        },
-        OR: [
-          {
-            endsAt: null,
-          },
-          {
-            endsAt: {
-              gt: new Date(),
-            },
-          },
-        ],
-      },
-      include: {
-        submissions: {
-          where: {
-            partnerId: partner.id,
-          },
-        },
-        workflow: true,
-      },
-    }),
-    prisma.link.aggregate({
-      _sum: {
-        leads: true,
-        conversions: true,
-        saleAmount: true,
-      },
-      where: {
-        programId: program.id,
-        partnerId: partner.id,
-      },
-    }),
-  ]);
+  const linkMetrics = links.reduce(
+    (acc, link) => {
+      acc.leads += link.leads;
+      acc.conversions += link.conversions;
+      acc.saleAmount += link.saleAmount;
+      return acc;
+    },
+    { leads: 0, conversions: 0, saleAmount: 0 },
+  );
 
   return NextResponse.json(
     z.array(BountyWithPartnerDataSchema).parse(
@@ -65,11 +91,10 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           ...bounty,
           performanceCondition:
             triggerConditions.length > 0 ? triggerConditions[0] : null,
-
           partner: {
-            leads: linkMetrics._sum.leads ?? 0,
-            conversions: linkMetrics._sum.conversions ?? 0,
-            saleAmount: linkMetrics._sum.saleAmount ?? 0,
+            leads: linkMetrics.leads,
+            conversions: linkMetrics.conversions,
+            saleAmount: linkMetrics.saleAmount,
             totalCommissions,
           },
         };
