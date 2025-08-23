@@ -1,7 +1,6 @@
-import { getBountySubmissionsQuerySchema } from "@/lib/zod/schemas/bounties";
+import { BountySubmissionsQueryFilters } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
-import { z } from "zod";
 
 const sortColumnsMap = {
   createdAt: "bs.createdAt",
@@ -9,12 +8,6 @@ const sortColumnsMap = {
   conversions: "totalConversions",
   saleAmount: "totalSaleAmount",
   commissions: "totalCommissions",
-};
-
-type SubmissionFilters = z.infer<typeof getBountySubmissionsQuerySchema> & {
-  programId: string;
-  bountyId: string;
-  groupIds: string[];
 };
 
 export async function getPartnersWithBountySubmission({
@@ -25,7 +18,11 @@ export async function getPartnersWithBountySubmission({
   programId,
   bountyId,
   groupIds,
-}: SubmissionFilters) {
+}: BountySubmissionsQueryFilters & {
+  programId: string;
+  bountyId: string;
+  groupIds: string[];
+}) {
   const rows: any[] = await prisma.$queryRaw`
     SELECT 
       p.*, 
