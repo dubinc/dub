@@ -95,7 +95,7 @@ export default function BountyPendingReview({
             <Section className="mt-6 text-center">
               <Link
                 href={`https://app.dub.co/${workspace.slug}/program/bounties/${bounty.id}?submissionId=${submission.id}`}
-                className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm leading-none text-white no-underline"
+                className="box-border block flex h-9 w-full items-center justify-center rounded-lg bg-black px-0 py-4 text-center text-sm leading-none text-white no-underline"
               >
                 Review bounty
               </Link>
