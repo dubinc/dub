@@ -18,20 +18,22 @@ import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-const updateWorkspaceSchema = createWorkspaceSchema.extend({
-  allowedHostnames: z.array(z.string()).optional(),
-  publishableKey: z
-    .union([
-      z
-        .string()
-        .regex(
-          /^dub_pk_[A-Za-z0-9_-]{16,64}$/,
-          "Invalid publishable key format",
-        ),
-      z.null(),
-    ])
-    .optional(),
-});
+const updateWorkspaceSchema = createWorkspaceSchema
+  .extend({
+    allowedHostnames: z.array(z.string()).optional(),
+    publishableKey: z
+      .union([
+        z
+          .string()
+          .regex(
+            /^dub_pk_[A-Za-z0-9_-]{16,64}$/,
+            "Invalid publishable key format",
+          ),
+        z.null(),
+      ])
+      .optional(),
+  })
+  .partial();
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(
