@@ -29,6 +29,7 @@ import {
   bountyStatsSchema,
   BountySubmissionExtendedSchema,
   BountyWithPartnerDataSchema,
+  getBountySubmissionsQuerySchema,
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
 import {
@@ -561,3 +562,7 @@ export interface WorkflowContext {
   partnerId: string;
   groupId: string;
 }
+
+export type BountySubmissionsQueryFilters = z.infer<
+  typeof getBountySubmissionsQuerySchema
+>;
