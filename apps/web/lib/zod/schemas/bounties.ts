@@ -6,7 +6,7 @@ import {
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema, PARTNERS_MAX_PAGE_SIZE } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
@@ -60,14 +60,9 @@ export const BountySchema = z.object({
 });
 
 export const BountySchemaExtended = BountySchema.extend({
+  groups: z.array(GroupSchema.pick({ id: true })).nullable(),
   partnersCount: z.number().default(0),
-  groups: z
-    .array(
-      GroupSchema.pick({
-        id: true,
-      }),
-    )
-    .nullable(),
+  submissionsCount: z.number().default(0),
 });
 
 export const BountySubmissionFileSchema = z.object({
@@ -136,7 +131,6 @@ export const getBountiesQuerySchema = z
   .object({
     sortBy: z.enum(["createdAt"]).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
-    includeExpandedFields: booleanQuerySchema.optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: BOUNTIES_MAX_PAGE_SIZE }));
 

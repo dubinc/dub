@@ -8,7 +8,6 @@ import { WorkflowAction } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   BountySchema,
-  BountySchemaExtended,
   createBountySchema,
   getBountiesQuerySchema,
 } from "@/lib/zod/schemas/bounties";
@@ -21,7 +20,6 @@ import { Workflow } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 // GET /api/bounties - get all bounties for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
@@ -33,7 +31,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     programId,
   });
 
-  return NextResponse.json(z.array(BountySchemaExtended).parse(bounties));
+  return NextResponse.json(bounties);
 });
 
 // POST /api/bounties - create a bounty

@@ -1,5 +1,4 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useBountiesStats from "@/lib/swr/use-bounties-stats";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
@@ -9,18 +8,13 @@ import { Calendar6, Dots, PenWriting, Trash, Users } from "@dub/ui/icons";
 import { formatDate, pluralize } from "@dub/utils";
 import { Command } from "cmdk";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { queryParams } = useRouterStuff();
-  const { bountiesStats, isLoading: isLoadingStats } = useBountiesStats();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const stats = useMemo(() => {
-    return bountiesStats?.find(({ id }) => id === bounty.id);
-  }, [bountiesStats, bounty.id]);
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { confirmModal: deleteModal, setShowConfirmModal: setShowDeleteModal } =
     useConfirmModal({
@@ -41,7 +35,7 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
 
             if (!response.ok) throw new Error("Failed to delete bounty");
 
-            mutatePrefix("/api/bounties");
+            await mutatePrefix("/api/bounties");
           },
           {
             loading: "Deleting bounty...",
@@ -65,9 +59,7 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
             <BountyThumbnailImage bounty={bounty} />
           </div>
 
-          {stats?.pendingSubmissions && stats.pendingSubmissions > 0 ? (
-            <PendingSubmissionsBadge count={stats.pendingSubmissions} />
-          ) : null}
+          <PendingSubmissionsBadge count={bounty.submissionsCount} />
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -91,20 +83,14 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
           <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
             <Users className="size-3.5" />
             <div className="h-5">
-              {isLoadingStats || bountiesStats === undefined ? (
-                <div className="h-5 w-48 animate-pulse rounded bg-neutral-300" />
-              ) : stats ? (
-                <>
-                  <span className="text-content-default">
-                    {stats.submissions}
-                  </span>{" "}
-                  of{" "}
-                  <span className="text-content-default">{stats.partners}</span>{" "}
-                  partners completed
-                </>
-              ) : (
-                <span>Failed to load stats</span>
-              )}
+              <span className="text-content-default">
+                {bounty.submissionsCount}
+              </span>{" "}
+              of{" "}
+              <span className="text-content-default">
+                {bounty.partnersCount}
+              </span>{" "}
+              partners completed
             </div>
           </div>
         </div>

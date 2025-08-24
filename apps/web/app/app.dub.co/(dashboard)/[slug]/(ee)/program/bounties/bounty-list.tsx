@@ -13,7 +13,7 @@ import { BountyCard, BountyCardSkeleton } from "./bounty-card";
 
 export function BountyList() {
   const { searchParams } = useRouterStuff();
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const [bountySheetState, setBountySheetState] = useState<
     { open: false; bountyId: string | null } | { open: true; bountyId: string }
@@ -27,23 +27,13 @@ export function BountyList() {
     );
   }, [searchParams.get("bountyId")]);
 
-  const {
-    data: bounties,
-    isLoading,
-    error,
-  } = useSWR<BountyExtendedProps[]>(
-    workspaceId && defaultProgramId
-      ? `/api/bounties?workspaceId=${workspaceId}&programId=${defaultProgramId}&includeExpandedFields=true`
-      : null,
+  const { data: bounties, isLoading } = useSWR<BountyExtendedProps[]>(
+    workspaceId ? `/api/bounties?workspaceId=${workspaceId}` : null,
     fetcher,
     {
       keepPreviousData: true,
     },
   );
-
-  if (error) {
-    return <></>;
-  }
 
   const currentBounty = bountySheetState.bountyId
     ? bounties?.find((b) => b?.id === bountySheetState.bountyId)

@@ -6,6 +6,7 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
+  BountySubmissionStatus,
   CommissionStatus,
   FolderUserRole,
   Link,
@@ -566,3 +567,12 @@ export interface WorkflowContext {
 export type BountySubmissionsQueryFilters = z.infer<
   typeof getBountySubmissionsQuerySchema
 >;
+
+// export type BountySubmissionsCount = Record<
+//   BountySubmissionStatus,
+//   {
+//     count: number;
+//     amount: number;
+//     earnings: number;
+//   }
+// >;

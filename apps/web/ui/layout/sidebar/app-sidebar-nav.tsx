@@ -1,7 +1,10 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import useBountiesStats from "@/lib/swr/use-bounties-stats";
+import {
+  SubmissionsCountByStatus,
+  useBountySubmissionsCount,
+} from "@/lib/swr/use-bounty-submissions-count";
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
@@ -453,18 +456,14 @@ export function AppSidebarNav({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
-  const { bountiesStats } = useBountiesStats({
+  const { submissionsCount } = useBountySubmissionsCount<
+    SubmissionsCountByStatus[]
+  >({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
-  const pendingBountySubmissionsCount = useMemo(
-    () =>
-      bountiesStats?.reduce(
-        (acc, { pendingSubmissions }) => acc + pendingSubmissions,
-        0,
-      ),
-    [bountiesStats],
-  );
+  const pendingBountySubmissionsCount =
+    submissionsCount?.find(({ status }) => status === "pending")?.count || 0;
 
   const { data: customersCount } = useCustomersCount({
     enabled: canTrackConversions === true,
