@@ -314,7 +314,13 @@ function ConditionLogic({
                 onSelect={(value) =>
                   setValue(
                     conditionKey,
-                    { entity: value as keyof typeof ENTITIES },
+                    {
+                      entity: value as keyof typeof ENTITIES,
+                      // Clear dependent fields when entity changes
+                      attribute: undefined,
+                      operator: undefined,
+                      value: undefined,
+                    },
                     {
                       shouldDirty: true,
                     },
