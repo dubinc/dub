@@ -52,7 +52,7 @@ export async function getBounties(filters: BountyFilters) {
           )
         ),
         0
-      ) as partnersCount,
+      ) AS partners,
 
       --  Bounty groups
       COALESCE(
@@ -62,17 +62,22 @@ export async function getBounties(filters: BountyFilters) {
           WHERE bountyId = b.id
         ),
         JSON_ARRAY()
-      ) as groups,
+      ) AS groups,
 
-      --  Bounty submissions count
+      --  Bounty submissions count by status
       COALESCE(
         (
-			    SELECT COUNT(bs.id)
-			    FROM BountySubmission bs
-			    WHERE bs.bountyId = b.id
-		    ),
-		    0
-	    ) AS submissions
+          SELECT JSON_OBJECT(
+            'pending', COALESCE(SUM(status = 'pending'), 0),
+            'approved', COALESCE(SUM(status = 'approved'), 0),
+            'rejected', COALESCE(SUM(status = 'rejected'), 0)
+          )
+          FROM BountySubmission
+          WHERE bountyId = b.id
+        ),
+        JSON_OBJECT('pending', 0, 'approved', 0, 'rejected', 0)
+      ) AS submissions
+
     FROM Bounty b
     LEFT JOIN BountyGroup bg ON bg.bountyId = b.id
     LEFT JOIN ProgramEnrollment pe ON pe.groupId = bg.groupId AND pe.status IN ('approved', 'invited')
@@ -97,9 +102,9 @@ export async function getBounties(filters: BountyFilters) {
       rewardAmount: bounty.rewardAmount,
       submissionRequirements: bounty.submissionRequirements,
       performanceCondition,
-      partnersCount: Number(bounty.partnersCount),
-      submissionsCount: Number(bounty.submissions),
       groups: bounty.groups.filter((group) => group !== null),
+      partners: Number(bounty.partners),
+      submissions: bounty.submissions,
     };
   });
 

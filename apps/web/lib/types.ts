@@ -6,7 +6,6 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
-  BountySubmissionStatus,
   CommissionStatus,
   FolderUserRole,
   Link,

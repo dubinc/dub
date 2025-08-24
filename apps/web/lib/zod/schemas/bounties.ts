@@ -47,6 +47,12 @@ export const updateBountySchema = createBountySchema.omit({
   type: true,
 });
 
+export const BountySubmissionFileSchema = z.object({
+  url: z.string(),
+  fileName: z.string(),
+  size: z.number(),
+});
+
 export const BountySchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
@@ -57,18 +63,6 @@ export const BountySchema = z.object({
   rewardAmount: z.number(),
   submissionRequirements: bountySubmissionRequirementsSchema.nullable(),
   performanceCondition: workflowConditionSchema.nullable().default(null),
-});
-
-export const BountySchemaExtended = BountySchema.extend({
-  groups: z.array(GroupSchema.pick({ id: true })).nullable(),
-  partnersCount: z.number().default(0),
-  submissionsCount: z.number().default(0),
-});
-
-export const BountySubmissionFileSchema = z.object({
-  url: z.string(),
-  fileName: z.string(),
-  size: z.number(),
 });
 
 const BountySubmissionSchema = z.object({
@@ -82,6 +76,12 @@ const BountySubmissionSchema = z.object({
   reviewedAt: z.date().nullable(),
   rejectionReason: z.string().nullable(),
   rejectionNote: z.string().nullable(),
+});
+
+export const BountySchemaExtended = BountySchema.extend({
+  groups: z.array(GroupSchema.pick({ id: true })).nullable(),
+  partners: z.number().default(0),
+  submissions: z.record(z.nativeEnum(BountySubmissionStatus), z.number()),
 });
 
 export const BountySubmissionExtendedSchema = z.object({

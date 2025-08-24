@@ -16,6 +16,9 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
+  const { pending = 0, approved = 0, rejected = 0 } = bounty.submissions;
+  const totalSubmissions = pending + approved + rejected;
+
   const { confirmModal: deleteModal, setShowConfirmModal: setShowDeleteModal } =
     useConfirmModal({
       title: "Delete bounty",
@@ -59,7 +62,7 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
             <BountyThumbnailImage bounty={bounty} />
           </div>
 
-          <PendingSubmissionsBadge count={bounty.submissionsCount} />
+          {pending > 0 && <PendingSubmissionsBadge count={pending} />}
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -83,13 +86,8 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
           <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
             <Users className="size-3.5" />
             <div className="h-5">
-              <span className="text-content-default">
-                {bounty.submissionsCount}
-              </span>{" "}
-              of{" "}
-              <span className="text-content-default">
-                {bounty.partnersCount}
-              </span>{" "}
+              <span className="text-content-default">{totalSubmissions}</span>{" "}
+              of <span className="text-content-default">{bounty.partners}</span>{" "}
               partners completed
             </div>
           </div>
