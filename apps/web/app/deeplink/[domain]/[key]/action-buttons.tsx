@@ -11,13 +11,13 @@ export function DeepLinkActionButtons({ link }: { link: EdgeLinkProps }) {
       copyToClipboard(link.shortLink);
     }
 
-    window.location.href = link.ios || link.url;
+    window.location.href = link.shortLink;
   };
 
   return (
     <div className="flex flex-col items-center gap-4">
       <Button
-        text="Get the App"
+        text="Open in the app"
         className="h-12 w-full rounded-xl bg-neutral-900 text-white"
         variant="primary"
         onClick={() => handleClick({ withCopy: true })}
@@ -28,7 +28,7 @@ export function DeepLinkActionButtons({ link }: { link: EdgeLinkProps }) {
         onClick={() => handleClick()}
         className="text-sm text-neutral-500"
       >
-        Get the App without copying
+        Open in the app without copying
       </button>
     </div>
   );
