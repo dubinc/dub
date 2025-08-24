@@ -15,7 +15,7 @@ export function DeepLinkActionButtons({
       await copyToClipboard(link.shortLink);
     }
 
-    window.location.href = `${link.shortLink}?skip_deeplink_preview=1`;
+    window.location.href = link.shortLink;
   };
 
   return (
