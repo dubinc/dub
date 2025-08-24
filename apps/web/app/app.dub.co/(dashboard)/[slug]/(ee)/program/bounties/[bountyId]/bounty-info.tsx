@@ -6,7 +6,18 @@ import { formatDate, pluralize } from "@dub/utils";
 import { CalendarDays, Users } from "lucide-react";
 
 export function BountyInfo() {
-  const { bounty } = useBounty();
+  const { bounty, loading } = useBounty();
+
+  if (loading) {
+    return null;
+  }
+
+  if (!bounty) {
+    return null;
+  }
+
+  const { pending = 0, approved = 0, rejected = 0 } = bounty.submissions;
+  const totalSubmissions = pending + approved + rejected;
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
@@ -31,19 +42,19 @@ export function BountyInfo() {
             </span>
           </div>
 
-          {/* <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
             <Users className="size-4 shrink-0" />
             <div className="text-sm text-neutral-500">
               <span className="font-medium text-neutral-700">
-                {bountyStats?.submissions}
+                {totalSubmissions}
               </span>{" "}
               of{" "}
               <span className="font-medium text-neutral-700">
-                {bountyStats?.partners}
+                {bounty.partners}
               </span>{" "}
-              {pluralize("partner", bountyStats?.partners ?? 0)} completed
+              {pluralize("partner", bounty.partners ?? 0)} completed
             </div>
-          </div> */}
+          </div>
         </div>
       )}
     </div>
