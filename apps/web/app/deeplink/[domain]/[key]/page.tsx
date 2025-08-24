@@ -1,10 +1,11 @@
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { Grid, Wordmark } from "@dub/ui";
 import { ArrowRight, Copy, IOSAppStore, MobilePhone } from "@dub/ui/icons";
-import { cn, getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
+import { cn } from "@dub/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeepLinkActionButtons } from "./action-buttons";
+import { BrandLogoBadge } from "./brand-logo-badge";
 
 export const runtime = "edge";
 
@@ -72,20 +73,11 @@ export default async function DeepLinkPage({
 
         <div className="flex flex-1 flex-col justify-center gap-12">
           <div className="flex flex-col items-center gap-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white p-1.5 shadow-lg shadow-black/10 ring-1 ring-neutral-200">
-              <img
-                src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
-                className="size-8 shrink-0 overflow-visible rounded-full p-px"
-              />
-              <div className="pr-1.5 text-lg font-semibold text-neutral-900">
-                {getApexDomain(link.url)}
-              </div>
-            </div>
+            <BrandLogoBadge link={link} />
 
             <div className="flex h-40 w-full max-w-xs flex-col gap-6 rounded-xl border border-neutral-300 px-10 py-8">
               <p className="text-center text-sm font-normal leading-5 text-neutral-700">
-                Clicking below will copy this page and open it after you install
-                the app.
+                Clicking below will copy this page and open it in the app.
               </p>
 
               <div className="flex items-center justify-center gap-3">
