@@ -4,14 +4,18 @@ import { useCopyToClipboard } from "@dub/ui";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link } from "@prisma/client";
 
-export function BrandLogoBadge({ link }: { link: Link }) {
+export function BrandLogoBadge({
+  link,
+}: {
+  link: Pick<Link, "shortLink" | "url">;
+}) {
   const [_copied, copyToClipboard] = useCopyToClipboard();
 
   return (
     <button
       onClick={async () => {
         await copyToClipboard(link.shortLink);
-        window.location.href = link.shortLink;
+        window.location.href = `${link.shortLink}?skip_deeplink_preview=1`;
       }}
       className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-lg shadow-black/10 ring-1 ring-neutral-200"
     >

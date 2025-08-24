@@ -21,6 +21,10 @@ export default async function DeepLinkPreviewPage({
         key,
       },
     },
+    select: {
+      shortLink: true,
+      url: true,
+    },
   });
 
   if (!link) {

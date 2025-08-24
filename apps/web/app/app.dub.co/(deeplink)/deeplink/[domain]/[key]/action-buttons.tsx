@@ -3,7 +3,11 @@
 import { Button, IOSAppStore, useCopyToClipboard } from "@dub/ui";
 import { Link } from "@prisma/client";
 
-export function DeepLinkActionButtons({ link }: { link: Link }) {
+export function DeepLinkActionButtons({
+  link,
+}: {
+  link: Pick<Link, "shortLink">;
+}) {
   const [_copied, copyToClipboard] = useCopyToClipboard();
 
   const handleClick = async ({ withCopy }: { withCopy?: boolean } = {}) => {
@@ -11,7 +15,7 @@ export function DeepLinkActionButtons({ link }: { link: Link }) {
       await copyToClipboard(link.shortLink);
     }
 
-    window.location.href = link.shortLink;
+    window.location.href = `${link.shortLink}?skip_deeplink_preview=1`;
   };
 
   return (

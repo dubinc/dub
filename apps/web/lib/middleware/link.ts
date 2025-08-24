@@ -411,8 +411,12 @@ export default async function LinkMiddleware(
       }),
     );
 
-    // if it's an iOS app store URL, we need to show the interstitial page + cache deep link click data
-    if (isIosAppStoreUrl(ios)) {
+    // if it's an iOS app store URL (and skip_deeplink_preview is not set)
+    // we need to show the interstitial page + cache deep link click data
+    if (
+      isIosAppStoreUrl(ios) &&
+      !req.nextUrl.searchParams.get("skip_deeplink_preview")
+    ) {
       ev.waitUntil(
         cacheDeepLinkClickData({
           req,
