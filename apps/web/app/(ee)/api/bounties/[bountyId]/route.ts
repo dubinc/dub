@@ -8,23 +8,34 @@ import {
   BountySchemaExtended,
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
+import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const schema = z.object({
+  includeExpandedFields: booleanQuerySchema.optional().default("false"),
+});
 
 // GET /api/bounties/[bountyId] - get a bounty
-export const GET = withWorkspace(async ({ workspace, params }) => {
-  const { bountyId } = params;
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const GET = withWorkspace(
+  async ({ workspace, params, searchParams }) => {
+    const { bountyId } = params;
 
-  const bounty = await getBountyOrThrow({
-    bountyId,
-    programId,
-  });
+    const programId = getDefaultProgramIdOrThrow(workspace);
+    const { includeExpandedFields } = schema.parse(searchParams);
 
-  return NextResponse.json(BountySchemaExtended.parse(bounty));
-});
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId,
+      includeExpandedFields,
+    });
+
+    return NextResponse.json(BountySchemaExtended.parse(bounty));
+  },
+);
 
 // PATCH /api/bounties/[bountyId] - update a bounty
 export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
