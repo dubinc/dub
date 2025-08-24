@@ -1,9 +1,13 @@
 "use client";
 
-import { EdgeLinkProps } from "@/lib/planetscale";
 import { Button, IOSAppStore, useCopyToClipboard } from "@dub/ui";
+import { Link } from "@prisma/client";
 
-export function DeepLinkActionButtons({ link }: { link: EdgeLinkProps }) {
+export function DeepLinkActionButtons({
+  link,
+}: {
+  link: Pick<Link, "shortLink">;
+}) {
   const [_copied, copyToClipboard] = useCopyToClipboard();
 
   const handleClick = async ({ withCopy }: { withCopy?: boolean } = {}) => {
@@ -11,7 +15,7 @@ export function DeepLinkActionButtons({ link }: { link: EdgeLinkProps }) {
       await copyToClipboard(link.shortLink);
     }
 
-    window.location.href = link.ios || link.url;
+    window.location.href = `${link.shortLink}?skip_deeplink_preview=1`;
   };
 
   return (

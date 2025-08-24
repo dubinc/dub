@@ -1,13 +1,13 @@
 "use server";
 
-import { prismaEdge } from "@dub/prisma/edge";
+import { prisma } from "@dub/prisma";
 import { cookies } from "next/headers";
 
 export async function verifyPassword(_prevState: any, data: FormData) {
   const dashboardId = data.get("dashboardId") as string;
   const password = data.get("password") as string;
 
-  const dashboard = await prismaEdge.dashboard.findUnique({
+  const dashboard = await prisma.dashboard.findUnique({
     where: { id: dashboardId },
   });
 
