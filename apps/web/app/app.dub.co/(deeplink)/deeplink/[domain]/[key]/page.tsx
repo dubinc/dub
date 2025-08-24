@@ -28,7 +28,7 @@ export default async function DeepLinkPreviewPage({
   }
 
   return (
-    <main className="flex h-dvh w-full flex-col bg-white">
+    <main className="mx-auto flex h-dvh w-full max-w-md flex-col bg-white">
       <div className="absolute inset-0 isolate overflow-hidden bg-white">
         <div
           className={cn(
