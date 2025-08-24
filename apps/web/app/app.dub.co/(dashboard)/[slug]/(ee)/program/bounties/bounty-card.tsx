@@ -138,7 +138,7 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
   );
 }
 
-const PendingSubmissionsBadge = ({ count }: { count: number }) => {
+function PendingSubmissionsBadge({ count }: { count: number }) {
   return (
     <div className="absolute left-2 top-2 z-10">
       <div className="flex h-5 items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-600">
@@ -146,22 +146,19 @@ const PendingSubmissionsBadge = ({ count }: { count: number }) => {
       </div>
     </div>
   );
-};
+}
 
-export const BountyCardSkeleton = () => {
+export function BountyCardSkeleton() {
   return (
     <div className="border-border-subtle rounded-xl border bg-white p-5">
       <div className="flex flex-col gap-5">
         <div className="flex h-[132px] animate-pulse items-center justify-center rounded-lg bg-neutral-100 px-32 py-4" />
-
         <div className="flex flex-col gap-1.5">
           <div className="h-5 w-48 animate-pulse rounded-md bg-neutral-200" />
-
           <div className="flex h-5 items-center space-x-2">
             <div className="size-4 animate-pulse rounded bg-neutral-200" />
             <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
           </div>
-
           <div className="flex h-5 items-center space-x-2">
             <div className="size-4 animate-pulse rounded bg-neutral-200" />
             <div className="h-4 w-48 animate-pulse rounded bg-neutral-200" />
@@ -170,4 +167,4 @@ export const BountyCardSkeleton = () => {
       </div>
     </div>
   );
-};
+}
