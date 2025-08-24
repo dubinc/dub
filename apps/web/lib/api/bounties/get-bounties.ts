@@ -32,7 +32,7 @@ export async function getBounties(filters: BountyFilters) {
       -- Partners count
       COALESCE(
         (
-          SELECT COUNT(DISTINCT pe.partnerId)
+          SELECT COUNT(pe.partnerId)
           FROM ProgramEnrollment pe
           WHERE pe.status IN ('approved', 'invited')
           AND (
