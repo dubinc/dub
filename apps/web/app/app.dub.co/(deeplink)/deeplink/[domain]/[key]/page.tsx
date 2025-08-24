@@ -3,24 +3,23 @@ import { Grid, Wordmark } from "@dub/ui";
 import { ArrowRight, Copy, IOSAppStore, MobilePhone } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { DeepLinkActionButtons } from "./action-buttons";
 import { BrandLogoBadge } from "./brand-logo-badge";
 
 export const runtime = "edge";
 
-export default async function DeepLinkPage({
+export default async function DeepLinkPreviewPage({
   params,
 }: {
   params: { domain: string; key: string };
 }) {
   const domain = params.domain;
   const key = decodeURIComponent(params.key);
-
   const link = await getLinkViaEdge({ domain, key });
 
   if (!link) {
-    notFound();
+    redirect("/");
   }
 
   return (

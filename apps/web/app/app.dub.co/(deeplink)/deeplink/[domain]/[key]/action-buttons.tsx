@@ -11,7 +11,7 @@ export function DeepLinkActionButtons({ link }: { link: EdgeLinkProps }) {
       await copyToClipboard(link.shortLink);
     }
 
-    window.location.href = link.ios || link.url;
+    window.location.href = link.shortLink;
   };
 
   return (

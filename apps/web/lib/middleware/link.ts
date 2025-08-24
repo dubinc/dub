@@ -8,6 +8,7 @@ import {
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink } from "@/lib/upstash";
 import {
+  APP_DOMAIN,
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
@@ -316,7 +317,7 @@ export default async function LinkMiddleware(
       cookieData,
     );
 
-    // rewrite to deeplink page if the link is a mailto: or tel:
+    // rewrite to custom-uri-scheme page if the link is a custom URI scheme
   } else if (isSupportedCustomURIScheme(url)) {
     ev.waitUntil(
       recordClick({
@@ -424,10 +425,13 @@ export default async function LinkMiddleware(
           },
         }),
       );
-      // rewrite to the deeplink interstitial page
+
+      // redirect to the deeplink interstitial splash page "DeepLinkPreviewPage"
+      // we're doing this because the interstitial page needs to be on a different domain than the actual deep link domain
+      // @see: https://stackoverflow.com/a/78189982/10639526
       return createResponseWithCookies(
-        NextResponse.rewrite(
-          new URL(`/deeplink/${domain}/${encodeURIComponent(key)}`, req.url),
+        NextResponse.redirect(
+          new URL(`/deeplink/${domain}/${encodeURIComponent(key)}`, APP_DOMAIN),
           {
             headers: {
               ...DUB_HEADERS,

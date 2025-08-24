@@ -11,7 +11,7 @@ export function BrandLogoBadge({ link }: { link: EdgeLinkProps }) {
     <button
       onClick={async () => {
         await copyToClipboard(link.shortLink);
-        window.location.href = link.ios || link.url;
+        window.location.href = link.shortLink;
       }}
       className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-lg shadow-black/10 ring-1 ring-neutral-200"
     >
