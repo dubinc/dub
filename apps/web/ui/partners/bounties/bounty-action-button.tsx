@@ -1,0 +1,105 @@
+"use client";
+
+import { mutatePrefix } from "@/lib/swr/mutate";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { BountyExtendedProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { ThreeDots } from "@/ui/shared/icons";
+import { Button, MenuItem, Popover, useRouterStuff } from "@dub/ui";
+import { PenWriting, Trash } from "@dub/ui/icons";
+import { Command } from "cmdk";
+import { useState } from "react";
+import { toast } from "sonner";
+
+interface BountyActionButtonProps {
+  bounty: BountyExtendedProps;
+  className?: string;
+  buttonClassName?: string;
+}
+
+export function BountyActionButton({
+  bounty,
+  className,
+  buttonClassName,
+}: BountyActionButtonProps) {
+  const { queryParams } = useRouterStuff();
+  const [isOpen, setIsOpen] = useState(false);
+  const { id: workspaceId } = useWorkspace();
+
+  const { confirmModal: deleteModal, setShowConfirmModal: setShowDeleteModal } =
+    useConfirmModal({
+      title: "Delete bounty",
+      description: "Are you sure you want to delete this bounty?",
+      onConfirm: async () => {
+        toast.promise(
+          async () => {
+            const response = await fetch(
+              `/api/bounties/${bounty.id}?workspaceId=${workspaceId}`,
+              {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+
+            if (!response.ok) throw new Error("Failed to delete bounty");
+
+            await mutatePrefix("/api/bounties");
+          },
+          {
+            loading: "Deleting bounty...",
+            success: "Bounty deleted successfully!",
+            error: (err) => err,
+          },
+        );
+      },
+    });
+
+  return (
+    <div className={className}>
+      {deleteModal}
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+              <MenuItem
+                as={Command.Item}
+                icon={PenWriting}
+                variant="default"
+                onSelect={() => {
+                  queryParams({ set: { bountyId: bounty.id } });
+                  setIsOpen(false);
+                }}
+              >
+                Edit bounty
+              </MenuItem>
+
+              <MenuItem
+                as={Command.Item}
+                icon={Trash}
+                variant="danger"
+                onSelect={() => {
+                  setIsOpen(false);
+                  setShowDeleteModal(true);
+                }}
+              >
+                Delete bounty
+              </MenuItem>
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className={buttonClassName || "w-auto px-1.5"}
+          variant="secondary"
+          icon={<ThreeDots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
+    </div>
+  );
+}

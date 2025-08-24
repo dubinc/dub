@@ -2,6 +2,7 @@
 
 import useBounty from "@/lib/swr/use-bounty";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
+import { BountyActionButton } from "@/ui/partners/bounties/bounty-action-button";
 import { formatDate, pluralize } from "@dub/utils";
 import { CalendarDays, Users } from "lucide-react";
 
@@ -20,7 +21,7 @@ export function BountyInfo() {
   const totalSubmissions = pending + approved + rejected;
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
       <div className="relative flex size-20 shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-3">
         <BountyThumbnailImage bounty={bounty} />
       </div>
@@ -54,6 +55,10 @@ export function BountyInfo() {
             {pluralize("partner", bounty.partners ?? 0)} completed
           </div>
         </div>
+      </div>
+
+      <div className="flex items-start">
+        <BountyActionButton bounty={bounty} />
       </div>
     </div>
   );

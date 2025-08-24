@@ -1,58 +1,19 @@
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { BountyActionButton } from "@/ui/partners/bounties/bounty-action-button";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { Button, MenuItem, Popover, useRouterStuff } from "@dub/ui";
-import { Calendar6, Dots, PenWriting, Trash, Users } from "@dub/ui/icons";
+import { Calendar6, Users } from "@dub/ui/icons";
 import { formatDate, pluralize } from "@dub/utils";
-import { Command } from "cmdk";
 import Link from "next/link";
-import { useState } from "react";
-import { toast } from "sonner";
 
 export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
-  const { queryParams } = useRouterStuff();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug } = useWorkspace();
 
   const { pending = 0, approved = 0, rejected = 0 } = bounty.submissions;
   const totalSubmissions = pending + approved + rejected;
 
-  const { confirmModal: deleteModal, setShowConfirmModal: setShowDeleteModal } =
-    useConfirmModal({
-      title: "Delete bounty",
-      description: "Are you sure you want to delete this bounty?",
-      onConfirm: async () => {
-        toast.promise(
-          async () => {
-            const response = await fetch(
-              `/api/bounties/${bounty.id}?workspaceId=${workspaceId}`,
-              {
-                method: "DELETE",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              },
-            );
-
-            if (!response.ok) throw new Error("Failed to delete bounty");
-
-            await mutatePrefix("/api/bounties");
-          },
-          {
-            loading: "Deleting bounty...",
-            success: "Bounty deleted successfully!",
-            error: (err) => err,
-          },
-        );
-      },
-    });
-
   return (
     <div className="border-border-subtle hover:border-border-default relative cursor-pointer rounded-xl border bg-white p-5 transition-all hover:shadow-lg">
-      {deleteModal}
-
       <Link
         href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
         className="flex flex-col gap-5"
@@ -94,46 +55,11 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
         </div>
       </Link>
 
-      <Popover
-        openPopover={isMenuOpen}
-        setOpenPopover={setIsMenuOpen}
-        content={
-          <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-              <MenuItem
-                as={Command.Item}
-                icon={PenWriting}
-                variant="default"
-                onSelect={() => {
-                  queryParams({ set: { bountyId: bounty.id } });
-                  setIsMenuOpen(false);
-                }}
-              >
-                Edit bounty
-              </MenuItem>
-              <MenuItem
-                as={Command.Item}
-                icon={Trash}
-                variant="danger"
-                onSelect={() => {
-                  setIsMenuOpen(false);
-                  setShowDeleteModal(true);
-                }}
-              >
-                Delete bounty
-              </MenuItem>
-            </Command.List>
-          </Command>
-        }
-        align="end"
-      >
-        <Button
-          type="button"
-          className="absolute right-7 top-7 size-7 whitespace-nowrap p-0 hover:bg-neutral-200 active:bg-neutral-300 data-[state=open]:bg-neutral-300"
-          variant="outline"
-          icon={<Dots className="h-4 w-4 shrink-0" />}
-        />
-      </Popover>
+      <BountyActionButton
+        bounty={bounty}
+        className="absolute right-7 top-7"
+        buttonClassName="size-7 whitespace-nowrap p-0 hover:bg-neutral-200 active:bg-neutral-300 data-[state=open]:bg-neutral-300"
+      />
     </div>
   );
 }
