@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
-import { BountyActionButton } from "@/ui/partners/bounties/bounty-action-button";
+import { BountyActionButton } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/bounties/bounty-action-button";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { Calendar6, Users } from "@dub/ui/icons";
 import { formatDate, pluralize } from "@dub/utils";

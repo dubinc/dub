@@ -2,9 +2,9 @@
 
 import useBounty from "@/lib/swr/use-bounty";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { BountyActionButton } from "@/ui/partners/bounties/bounty-action-button";
 import { formatDate, pluralize } from "@dub/utils";
 import { CalendarDays, Users } from "lucide-react";
+import { BountyActionButton } from "../bounty-action-button";
 
 export function BountyInfo() {
   const { bounty, loading } = useBounty();

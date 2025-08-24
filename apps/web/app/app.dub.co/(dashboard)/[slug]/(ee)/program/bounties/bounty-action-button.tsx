@@ -5,11 +5,12 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, MenuItem, Popover, useRouterStuff } from "@dub/ui";
+import { Button, MenuItem, Popover } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
 import { Command } from "cmdk";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useBountySheet } from "./add-edit-bounty-sheet";
 
 interface BountyActionButtonProps {
   bounty: BountyExtendedProps;
@@ -22,9 +23,9 @@ export function BountyActionButton({
   className,
   buttonClassName,
 }: BountyActionButtonProps) {
-  const { queryParams } = useRouterStuff();
   const [isOpen, setIsOpen] = useState(false);
   const { id: workspaceId } = useWorkspace();
+  const { setShowCreateBountySheet, BountySheet } = useBountySheet({ bounty });
 
   const { confirmModal: deleteModal, setShowConfirmModal: setShowDeleteModal } =
     useConfirmModal({
@@ -57,49 +58,52 @@ export function BountyActionButton({
     });
 
   return (
-    <div className={className}>
+    <>
+      {BountySheet}
       {deleteModal}
-      <Popover
-        openPopover={isOpen}
-        setOpenPopover={setIsOpen}
-        content={
-          <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-              <MenuItem
-                as={Command.Item}
-                icon={PenWriting}
-                variant="default"
-                onSelect={() => {
-                  queryParams({ set: { bountyId: bounty.id } });
-                  setIsOpen(false);
-                }}
-              >
-                Edit bounty
-              </MenuItem>
+      <div className={className}>
+        <Popover
+          openPopover={isOpen}
+          setOpenPopover={setIsOpen}
+          content={
+            <Command tabIndex={0} loop className="focus:outline-none">
+              <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+                <MenuItem
+                  as={Command.Item}
+                  icon={PenWriting}
+                  variant="default"
+                  onSelect={() => {
+                    setShowCreateBountySheet(true);
+                    setIsOpen(false);
+                  }}
+                >
+                  Edit bounty
+                </MenuItem>
 
-              <MenuItem
-                as={Command.Item}
-                icon={Trash}
-                variant="danger"
-                onSelect={() => {
-                  setIsOpen(false);
-                  setShowDeleteModal(true);
-                }}
-              >
-                Delete bounty
-              </MenuItem>
-            </Command.List>
-          </Command>
-        }
-        align="end"
-      >
-        <Button
-          type="button"
-          className={buttonClassName || "w-auto px-1.5"}
-          variant="secondary"
-          icon={<ThreeDots className="h-4 w-4 shrink-0" />}
-        />
-      </Popover>
-    </div>
+                <MenuItem
+                  as={Command.Item}
+                  icon={Trash}
+                  variant="danger"
+                  onSelect={() => {
+                    setIsOpen(false);
+                    setShowDeleteModal(true);
+                  }}
+                >
+                  Delete bounty
+                </MenuItem>
+              </Command.List>
+            </Command>
+          }
+          align="end"
+        >
+          <Button
+            type="button"
+            className={buttonClassName || "w-auto px-1.5"}
+            variant="secondary"
+            icon={<ThreeDots className="h-4 w-4 shrink-0" />}
+          />
+        </Popover>
+      </div>
+    </>
   );
 }

@@ -588,7 +588,7 @@ export function BountySheet({
 }
 
 export function useBountySheet(
-  props: { nested?: boolean } & Omit<BountySheetProps, "setIsOpen">,
+  props: { nested?: boolean } & Omit<BountySheetProps, "setIsOpen"> = {},
 ) {
   const [isOpen, setIsOpen] = useState(false);
 

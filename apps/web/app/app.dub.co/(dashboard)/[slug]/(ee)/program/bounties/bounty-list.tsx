@@ -3,29 +3,16 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Button, useRouterStuff } from "@dub/ui";
+import { Button } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Trophy } from "lucide-react";
-import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { BountySheet } from "./add-edit-bounty-sheet";
+import { useBountySheet } from "./add-edit-bounty-sheet";
 import { BountyCard, BountyCardSkeleton } from "./bounty-card";
 
 export function BountyList() {
-  const { searchParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
-
-  const [bountySheetState, setBountySheetState] = useState<
-    { open: false; bountyId: string | null } | { open: true; bountyId: string }
-  >({ open: false, bountyId: null });
-
-  // Open/close edit bounty sheet
-  useEffect(() => {
-    const bountyId = searchParams.get("bountyId");
-    setBountySheetState(
-      bountyId ? { open: true, bountyId } : { open: false, bountyId: null },
-    );
-  }, [searchParams.get("bountyId")]);
+  const { setShowCreateBountySheet, BountySheet } = useBountySheet();
 
   const { data: bounties, isLoading } = useSWR<BountyExtendedProps[]>(
     workspaceId ? `/api/bounties?workspaceId=${workspaceId}` : null,
@@ -35,22 +22,9 @@ export function BountyList() {
     },
   );
 
-  const currentBounty = bountySheetState.bountyId
-    ? bounties?.find((b) => b?.id === bountySheetState.bountyId)
-    : undefined;
-
   return (
     <>
-      {bountySheetState.open &&
-        (!bountySheetState.bountyId || currentBounty) && (
-          <BountySheet
-            isOpen={bountySheetState.open}
-            setIsOpen={(open) =>
-              setBountySheetState((s) => ({ ...s, open }) as any)
-            }
-            bounty={currentBounty}
-          />
-        )}
+      {BountySheet}
       {bounties?.length !== 0 || isLoading ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {isLoading
@@ -87,11 +61,7 @@ export function BountyList() {
             <Button
               text="Create bounty"
               variant="primary"
-              onClick={() =>
-                setBountySheetState(
-                  (s) => ({ bountyId: null, open: true }) as any,
-                )
-              }
+              onClick={() => setShowCreateBountySheet(true)}
             />
           }
         />
