@@ -1,3 +1,4 @@
+import { getUrlObjFromString } from "@dub/utils";
 import { ProgramProps } from "../types";
 
 export function constructPartnerLink({
@@ -16,12 +17,14 @@ export function constructPartnerLink({
 
   const { domain, url, linkStructure, linkParameter } = program;
 
-  if (linkStructure === "query") {
-    return `${url}?${linkParameter ?? "via"}=${linkKey}`;
+  const urlObj = url ? getUrlObjFromString(url) : null;
+
+  if (linkStructure === "query" && urlObj) {
+    return `https://${urlObj.hostname}?${linkParameter ?? "via"}=${linkKey}`;
   }
 
-  if (linkStructure === "path") {
-    return `${url}/${linkParameter ?? "refer"}/${linkKey}`;
+  if (linkStructure === "path" && urlObj) {
+    return `https://${urlObj.hostname}/${linkParameter ?? "refer"}/${linkKey}`;
   }
 
   return `https://${domain}/${linkKey}`;
