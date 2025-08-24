@@ -8,10 +8,10 @@ export function DeepLinkActionButtons({ link }: { link: EdgeLinkProps }) {
 
   const handleClick = async ({ withCopy }: { withCopy?: boolean } = {}) => {
     if (withCopy) {
-      copyToClipboard(link.shortLink);
+      await copyToClipboard(link.shortLink);
     }
 
-    window.location.href = link.shortLink;
+    window.location.href = link.ios || link.url;
   };
 
   return (
