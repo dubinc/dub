@@ -1,3 +1,4 @@
+import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import {
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
@@ -7,7 +8,7 @@ import { z } from "zod";
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
-import { EnrolledPartnerSchema, PARTNERS_MAX_PAGE_SIZE } from "./partners";
+import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 import { workflowConditionSchema } from "./workflows";
@@ -18,7 +19,7 @@ export const MAX_SUBMISSION_FILES = 4;
 
 export const MAX_SUBMISSION_URLS = 4;
 
-export const bountySubmissionRequirementsSchema = z
+export const submissionRequirementsSchema = z
   .array(z.enum(SUBMISSION_REQUIREMENTS))
   .min(0)
   .max(2);
@@ -38,7 +39,7 @@ export const createBountySchema = z.object({
   startsAt: parseDateSchema,
   endsAt: parseDateSchema.nullish(),
   rewardAmount: z.number().min(1, "Reward amount must be greater than 1"),
-  submissionRequirements: bountySubmissionRequirementsSchema.nullish(),
+  submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
   performanceCondition: workflowConditionSchema.nullish(),
 });
@@ -61,7 +62,7 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   rewardAmount: z.number(),
-  submissionRequirements: bountySubmissionRequirementsSchema.nullable(),
+  submissionRequirements: submissionRequirementsSchema.nullable(),
   performanceCondition: workflowConditionSchema.nullable().default(null),
 });
 
@@ -162,5 +163,10 @@ export const getBountySubmissionsQuerySchema = z
       .enum(["createdAt", "leads", "conversions", "saleAmount", "commissions"])
       .default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    status: z.nativeEnum(BountySubmissionStatus).optional(),
+    interval: z.enum(DATE_RANGE_INTERVAL_PRESETS).default("all"),
+    start: parseDateSchema.optional(),
+    end: parseDateSchema.optional(),
+    groupId: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
+  .merge(getPaginationQuerySchema({ pageSize: 100 }));

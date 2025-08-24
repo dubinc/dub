@@ -4,7 +4,7 @@ import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
   BountySubmissionFileSchema,
-  bountySubmissionRequirementsSchema,
+  submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import { resend } from "@dub/email/resend";
@@ -97,7 +97,7 @@ export const createBountySubmissionAction = authPartnerActionClient
     }
 
     // Validate the submission requirements
-    const submissionRequirements = bountySubmissionRequirementsSchema.parse(
+    const submissionRequirements = submissionRequirementsSchema.parse(
       bounty.submissionRequirements,
     );
 
