@@ -1,10 +1,10 @@
 "use client";
 
-import { EdgeLinkProps } from "@/lib/planetscale";
 import { useCopyToClipboard } from "@dub/ui";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
+import { Link } from "@prisma/client";
 
-export function BrandLogoBadge({ link }: { link: EdgeLinkProps }) {
+export function BrandLogoBadge({ link }: { link: Link }) {
   const [_copied, copyToClipboard] = useCopyToClipboard();
 
   return (

@@ -1,4 +1,4 @@
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { prisma } from "@dub/prisma";
 import { Grid, Wordmark } from "@dub/ui";
 import { ArrowRight, Copy, IOSAppStore, MobilePhone } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
@@ -7,8 +7,6 @@ import { redirect } from "next/navigation";
 import { DeepLinkActionButtons } from "./action-buttons";
 import { BrandLogoBadge } from "./brand-logo-badge";
 
-export const runtime = "edge";
-
 export default async function DeepLinkPreviewPage({
   params,
 }: {
@@ -16,7 +14,14 @@ export default async function DeepLinkPreviewPage({
 }) {
   const domain = params.domain;
   const key = decodeURIComponent(params.key);
-  const link = await getLinkViaEdge({ domain, key });
+  const link = await prisma.link.findUnique({
+    where: {
+      domain_key: {
+        domain,
+        key,
+      },
+    },
+  });
 
   if (!link) {
     redirect("/");
