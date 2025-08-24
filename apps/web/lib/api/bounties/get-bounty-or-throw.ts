@@ -25,36 +25,66 @@ export const getBountyOrThrow = async ({
       ${
         includeExpandedFields
           ? Prisma.sql`
-            COUNT(DISTINCT pe.partnerId) as partnersCount,
+            -- Partners count
+            COALESCE(
+              (
+                SELECT COUNT(pe.partnerId)
+                FROM ProgramEnrollment pe
+                WHERE pe.status IN ('approved', 'invited')
+                AND (
+                  -- If bounty has specific groups, count only partners in those groups
+                  EXISTS (
+                    SELECT 1
+                    FROM BountyGroup bg 
+                    WHERE bg.bountyId = b.id AND bg.groupId = pe.groupId
+                  )
+                  OR
+                  -- If bounty has no groups, count all approved/invited partners
+                  NOT EXISTS (
+                    SELECT 1 
+                    FROM BountyGroup bg 
+                    WHERE bg.bountyId = b.id
+                  )
+                )
+              ),
+              0
+            ) AS partners,
+
+            --  Bounty groups
             COALESCE(
               (
                 SELECT JSON_ARRAYAGG(
-                  JSON_OBJECT('id', bgSub.groupId)
+                  JSON_OBJECT('id', groupId)
                 )
-                FROM BountyGroup bgSub
-                WHERE bgSub.bountyId = b.id
+                FROM BountyGroup
+                WHERE bountyId = b.id
               ),
               JSON_ARRAY()
-            ) as groups
+            ) AS groups,
+
+            --  Bounty submissions count by status
+            COALESCE(
+              (
+                SELECT JSON_OBJECT(
+                  'pending', COALESCE(SUM(status = 'pending'), 0),
+                  'approved', COALESCE(SUM(status = 'approved'), 0),
+                  'rejected', COALESCE(SUM(status = 'rejected'), 0)
+                )
+                FROM BountySubmission
+                WHERE bountyId = b.id
+              ),
+              JSON_OBJECT('pending', 0, 'approved', 0, 'rejected', 0)
+            ) AS submissions
           `
           : Prisma.sql`
-            0 as partnersCount,
-            JSON_ARRAY() as groups
+            0 AS partners,
+            JSON_ARRAY() AS groups,
+            JSON_OBJECT('pending', 0, 'approved', 0, 'rejected', 0) AS submissions
           `
       }
     FROM Bounty b
-    ${
-      includeExpandedFields
-        ? Prisma.sql`
-          LEFT JOIN BountyGroup bg ON bg.bountyId = b.id
-          LEFT JOIN ProgramEnrollment pe ON pe.groupId = bg.groupId AND pe.status IN ('approved', 'invited')
-        `
-        : Prisma.sql``
-    }
     LEFT JOIN Workflow wf ON wf.id = b.workflowId
-    WHERE b.programId = ${programId}
-    AND b.id = ${bountyId}
-    GROUP BY b.id
+    WHERE b.id = ${bountyId} AND b.programId = ${programId}
     LIMIT 1
   `) satisfies Array<any>;
 
@@ -66,12 +96,21 @@ export const getBountyOrThrow = async ({
   }
 
   const bounty = bounties[0];
+  const performanceCondition =
+    bounty.triggerConditions?.length > 0 ? bounty.triggerConditions[0] : null;
 
   return {
-    ...bounty,
-    performanceCondition:
-      bounty.triggerConditions?.length > 0 ? bounty.triggerConditions[0] : null,
-    partnersCount: Number(bounty.partnersCount),
+    id: bounty.id,
+    name: bounty.name,
+    description: bounty.description,
+    type: bounty.type,
+    startsAt: bounty.startsAt,
+    endsAt: bounty.endsAt,
+    rewardAmount: bounty.rewardAmount,
+    submissionRequirements: bounty.submissionRequirements,
+    performanceCondition,
     groups: bounty.groups.filter((group) => group !== null),
+    partners: Number(bounty.partners),
+    submissions: bounty.submissions,
   };
 };
