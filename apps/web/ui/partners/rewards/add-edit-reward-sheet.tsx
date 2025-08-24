@@ -115,7 +115,10 @@ function RewardSheetContent({
           conditions: m.conditions.map((c) => ({
             ...c,
             value:
-              ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency"
+              ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency" &&
+              c.value !== "" &&
+              c.value != null &&
+              !Number.isNaN(Number(c.value))
                 ? Number(c.value) / 100
                 : c.value,
           })),
@@ -215,15 +218,20 @@ function RewardSheetContent({
                   c.entity &&
                   c.attribute &&
                   ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency"
-                    ? Number(c.value) * 100
+                    ? c.value === "" ||
+                      c.value == null ||
+                      Number.isNaN(Number(c.value))
+                      ? c.value
+                      : Math.round(Number(c.value) * 100)
                     : c.value,
               })),
-              amount: type === "flat" ? m.amount * 100 : m.amount,
+              amount: type === "flat" ? Math.round(m.amount * 100) : m.amount,
               maxDuration: maxDuration === Infinity ? null : maxDuration,
             };
           }),
         );
       } catch (error) {
+        console.log("parse error", error);
         setError("root.logic", { message: "Invalid reward condition" });
         toast.error(
           "Invalid reward condition. Please fix the errors and try again.",
@@ -235,7 +243,7 @@ function RewardSheetContent({
     const payload = {
       ...data,
       workspaceId,
-      amount: type === "flat" ? data.amount * 100 : data.amount,
+      amount: type === "flat" ? Math.round(data.amount * 100) : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
       modifiers,
