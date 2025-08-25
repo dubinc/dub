@@ -55,14 +55,11 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
                 <>All</>
               ) : (
                 <>
-                  <span className="text-content-default">
-                    {totalSubmissions}
-                  </span>{" "}
-                  of
+                  <span className="text-content-default">{approved}</span> of
                 </>
               )}{" "}
               <span className="text-content-default">{bounty.partners}</span>{" "}
-              partners completed
+              {pluralize("partner", bounty.partners)} completed
             </div>
           </div>
         </div>
