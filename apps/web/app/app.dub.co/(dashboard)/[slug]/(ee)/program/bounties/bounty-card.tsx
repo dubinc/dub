@@ -3,8 +3,8 @@ import { BountyExtendedProps } from "@/lib/types";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { Calendar6, CircleCheckFill, Users } from "@dub/ui/icons";
 import { formatDate, pluralize } from "@dub/utils";
-import { BountyActionButton } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/bounties/bounty-action-button";
 import Link from "next/link";
+import { BountyActionButton } from "./bounty-action-button";
 
 export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
   const { slug: workspaceSlug } = useWorkspace();
