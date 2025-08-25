@@ -96,6 +96,7 @@ export const executeAwardBountyAction = async ({
         partnerId,
         bountyId: bounty.id,
         commissionId: commission.id,
+        status: "approved",
       },
       include: {
         partner: true,
