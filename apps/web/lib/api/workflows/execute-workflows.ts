@@ -84,7 +84,7 @@ export async function executeWorkflows({
     totalLeads,
     totalConversions,
     totalSaleAmount,
-    totalCommissions: programEnrollment.totalCommissions,
+    totalCommission: programEnrollment.totalCommissions,
   };
 
   // Execute each workflow for the program
