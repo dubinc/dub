@@ -5,7 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
 import { Globe, Hyperlink, UserPlus } from "@dub/ui/icons";
-import { DollarSign } from "lucide-react";
+import { DollarSign, Trophy } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { z } from "zod";
 
@@ -42,6 +42,13 @@ export default function NotificationsSettingsPageClient() {
       icon: DollarSign,
       title: "New partner sale",
       description: "Alert when a new sale is made in your partner program.",
+    },
+    {
+      type: "newBountySubmitted",
+      icon: Trophy,
+      title: "New bounty submitted",
+      description:
+        "Alert when a new bounty is submitted in your partner program.",
     },
   ];
 
