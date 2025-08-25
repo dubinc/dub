@@ -251,12 +251,13 @@ export const createPartnerCommission = async ({
 
         const isClawback = earnings < 0;
 
-        await Promise.allSettled([
-          syncTotalCommissions({
-            partnerId,
-            programId,
-          }),
+        // Make sure totalCommissions is up to date before firing the webhook
+        const { totalCommissions } = await syncTotalCommissions({
+          partnerId,
+          programId,
+        });
 
+        await Promise.allSettled([
           sendWorkspaceWebhook({
             workspace,
             trigger: "commission.created",
@@ -265,7 +266,7 @@ export const createPartnerCommission = async ({
               partner: {
                 ...programEnrollment.partner,
                 ...aggregatePartnerLinksStats(programEnrollment.links),
-                totalCommissions: programEnrollment.totalCommissions,
+                totalCommissions,
               },
             }),
           }),
