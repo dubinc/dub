@@ -15,7 +15,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type FormData = z.infer<typeof rejectBountySubmissionSchema>;
+type FormData = Pick<
+  z.infer<typeof rejectBountySubmissionSchema>,
+  "rejectionReason" | "rejectionNote"
+>;
 
 interface RejectBountySubmissionModalProps {
   submission: BountySubmissionProps["submission"];
