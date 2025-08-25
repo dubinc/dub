@@ -8,7 +8,7 @@ import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Program } from "@dub/prisma/client";
+import { Partner, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -37,6 +37,7 @@ import { ReferralsEmbedLink } from "./types";
 
 export function ReferralsEmbedPageClient({
   program,
+  partner,
   links,
   rewards,
   discount,
@@ -46,6 +47,7 @@ export function ReferralsEmbedPageClient({
   dynamicHeight,
 }: {
   program: Program;
+  partner: Pick<Partner, "id" | "name" | "email">;
   links: ReferralsEmbedLink[];
   rewards: RewardProps[];
   discount?: DiscountProps | null;
@@ -214,6 +216,7 @@ export function ReferralsEmbedPageClient({
           <ReferralsEmbedEarningsSummary
             earnings={earnings}
             programSlug={program.slug}
+            partnerEmail={partner.email}
           />
         </div>
         <div className="mt-4">
