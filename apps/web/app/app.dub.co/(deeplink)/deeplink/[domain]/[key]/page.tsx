@@ -14,6 +14,7 @@ export default async function DeepLinkPreviewPage({
 }) {
   const domain = params.domain;
   const key = decodeURIComponent(params.key);
+
   const link = await prisma.link.findUnique({
     where: {
       domain_key: {
