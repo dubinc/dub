@@ -221,7 +221,7 @@ function ClaimBountyModalContent({
                 <span className="text-content-emphasis font-semibold">
                   Details
                 </span>
-                <p className="text-content-subtle font-medium">
+                <p className="text-content-subtle whitespace-pre-wrap font-medium">
                   {bounty.description}
                 </p>
               </div>
