@@ -15,7 +15,7 @@ import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { Session } from "../auth";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
-import { CommissionEnrichedSchema } from "../zod/schemas/commissions";
+import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { determinePartnerReward } from "./determine-partner-reward";
 
@@ -260,7 +260,7 @@ export const createPartnerCommission = async ({
           sendWorkspaceWebhook({
             workspace,
             trigger: "commission.created",
-            data: CommissionEnrichedSchema.parse({
+            data: CommissionWebhookSchema.parse({
               ...commission,
               partner: {
                 ...programEnrollment.partner,
