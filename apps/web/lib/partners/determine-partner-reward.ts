@@ -38,10 +38,13 @@ export const determinePartnerReward = async ({
   }
 
   // Add the links metrics to the context
+  const partnerLinksStats = aggregatePartnerLinksStats(programEnrollment.links);
+
   context = {
     ...context,
     partner: {
-      ...aggregatePartnerLinksStats(programEnrollment.links),
+      ...context?.partner,
+      ...partnerLinksStats,
       totalCommissions: programEnrollment.totalCommissions,
     },
   };
