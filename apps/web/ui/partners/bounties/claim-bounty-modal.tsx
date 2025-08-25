@@ -17,12 +17,14 @@ import {
   Modal,
   StatusBadge,
   Trash,
+  buttonVariants,
   useEnterSubmit,
   useRouterStuff,
 } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import { motion } from "framer-motion";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -184,8 +186,21 @@ function ClaimBountyModalContent({
               </div>
 
               {submission ? (
-                <div className="mt-3">
+                <div className="mt-3 flex items-center gap-2">
+                  {submission.status === "approved" && (
+                    <Link
+                      href={`/programs/${programEnrollment?.program.slug}/earnings?type=custom`}
+                      target="_blank"
+                      className={cn(
+                        buttonVariants({ variant: "primary" }),
+                        "flex h-7 w-fit items-center whitespace-nowrap rounded-lg border px-2.5 text-sm",
+                      )}
+                    >
+                      View earnings
+                    </Link>
+                  )}
                   <StatusBadge
+                    className="rounded-lg py-1.5"
                     variant={
                       submission.status === "pending"
                         ? "pending"
@@ -195,16 +210,26 @@ function ClaimBountyModalContent({
                     }
                     icon={submission.status === "approved" ? undefined : null}
                   >
-                    {submission.status === "pending"
-                      ? `Submitted ${formatDate(submission.createdAt, { month: "short" })}`
-                      : submission.status === "approved"
-                        ? `Confirmed ${
-                            submission.reviewedAt &&
+                    {submission.status === "pending" ? (
+                      `Submitted ${formatDate(submission.createdAt, { month: "short" })}`
+                    ) : submission.status === "approved" ? (
+                      bounty.type === "performance" ? (
+                        <>
+                          Completed{" "}
+                          {formatDate(submission.createdAt, { month: "short" })}
+                        </>
+                      ) : (
+                        <>
+                          Confirmed{" "}
+                          {submission.reviewedAt &&
                             formatDate(submission.reviewedAt, {
                               month: "short",
-                            })
-                          }`
-                        : "Rejected"}
+                            })}
+                        </>
+                      )
+                    ) : (
+                      "Rejected"
+                    )}
                   </StatusBadge>
                 </div>
               ) : (
