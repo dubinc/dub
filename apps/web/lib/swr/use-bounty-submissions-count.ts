@@ -17,8 +17,10 @@ export function useBountySubmissionsCount<T>({
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
+  const shouldFetch = Boolean(enabled && workspaceId);
+
   const { data: submissionsCount, error } = useSWR<T>(
-    enabled
+    shouldFetch
       ? `/api/bounties/count${getQueryString({
           workspaceId,
         })}`
