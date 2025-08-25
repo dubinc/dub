@@ -1,4 +1,3 @@
-import { prisma } from "@dub/prisma";
 import { EventType, Link, ProgramEnrollment, Reward } from "@dub/prisma/client";
 import { RewardContext } from "../types";
 import {
@@ -24,50 +23,24 @@ interface ProgramEnrollmentWithReward extends ProgramEnrollment {
 
 export const determinePartnerReward = async ({
   event,
-  partnerId,
-  programId,
   context,
+  programEnrollment,
 }: {
   event: EventType;
-  partnerId: string;
-  programId: string;
   context?: RewardContext;
+  programEnrollment: ProgramEnrollmentWithReward;
 }) => {
-  const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
+  let partnerReward: Reward =
+    programEnrollment[REWARD_EVENT_COLUMN_MAPPING[event]];
 
-  const partnerEnrollment: ProgramEnrollmentWithReward | null =
-    await prisma.programEnrollment.findUnique({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
-      },
-      include: {
-        [rewardIdColumn]: true,
-        links: {
-          select: {
-            clicks: true,
-            leads: true,
-            conversions: true,
-            saleAmount: true,
-          },
-        },
-      },
-    });
-
-  if (!partnerEnrollment) {
-    return null;
-  }
-
-  let partnerReward = partnerEnrollment[rewardIdColumn];
+  console.log("partnerReward", partnerReward)
 
   if (!partnerReward) {
     return null;
   }
 
   // Aggregate the links metrics
-  const partnerLinksStats = partnerEnrollment.links?.reduce(
+  const partnerLinksStats = programEnrollment.links?.reduce(
     (acc, link) => {
       acc.totalClicks += link.clicks;
       acc.totalLeads += link.leads;
@@ -88,7 +61,7 @@ export const determinePartnerReward = async ({
     ...context,
     partner: {
       ...partnerLinksStats,
-      totalCommissions: partnerEnrollment.totalCommissions,
+      totalCommissions: programEnrollment.totalCommissions,
     },
   };
 

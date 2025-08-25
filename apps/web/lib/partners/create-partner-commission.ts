@@ -10,6 +10,7 @@ import { differenceInMonths } from "date-fns";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
+import { getProgramEnrollmentOrThrow } from "../api/programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { Session } from "../auth";
 import { RewardContext, RewardProps } from "../types";
@@ -55,6 +56,14 @@ export const createPartnerCommission = async ({
   let earnings = 0;
   let status: CommissionStatus = "pending";
 
+  const programEnrollment = await getProgramEnrollmentOrThrow({
+    partnerId,
+    programId,
+    ...(event === "click" && { includeClickReward: true }),
+    ...(event === "lead" && { includeLeadReward: true }),
+    ...(event === "sale" && { includeSaleReward: true }),
+  });
+
   if (event === "custom") {
     earnings = amount;
     amount = 0;
@@ -62,9 +71,8 @@ export const createPartnerCommission = async ({
     if (!reward) {
       reward = await determinePartnerReward({
         event: event as EventType,
-        partnerId,
-        programId,
         context,
+        programEnrollment,
       });
     }
 
