@@ -1,30 +1,38 @@
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { prisma } from "@dub/prisma";
 import { Grid, Wordmark } from "@dub/ui";
 import { ArrowRight, Copy, IOSAppStore, MobilePhone } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { DeepLinkActionButtons } from "./action-buttons";
 import { BrandLogoBadge } from "./brand-logo-badge";
 
-export const runtime = "edge";
-
-export default async function DeepLinkPage({
+export default async function DeepLinkPreviewPage({
   params,
 }: {
   params: { domain: string; key: string };
 }) {
   const domain = params.domain;
   const key = decodeURIComponent(params.key);
-
-  const link = await getLinkViaEdge({ domain, key });
+  const link = await prisma.link.findUnique({
+    where: {
+      domain_key: {
+        domain,
+        key,
+      },
+    },
+    select: {
+      shortLink: true,
+      url: true,
+    },
+  });
 
   if (!link) {
-    notFound();
+    redirect("/");
   }
 
   return (
-    <main className="flex h-dvh w-full flex-col bg-white">
+    <main className="mx-auto flex h-dvh w-full max-w-md flex-col bg-white">
       <div className="absolute inset-0 isolate overflow-hidden bg-white">
         <div
           className={cn(
