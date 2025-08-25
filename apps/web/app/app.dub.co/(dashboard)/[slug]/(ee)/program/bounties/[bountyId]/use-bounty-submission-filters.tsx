@@ -2,30 +2,10 @@ import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import {
-  CircleCheck,
-  CircleHalfDottedCheck,
-  CircleXmark,
-  Users6,
-} from "@dub/ui/icons";
+import { Users6 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
-
-const statusIcons = {
-  pending: {
-    icon: CircleHalfDottedCheck,
-    className: "text-orange-600",
-  },
-  approved: {
-    icon: CircleCheck,
-    className: "text-green-600",
-  },
-  rejected: {
-    icon: CircleXmark,
-    className: "text-red-600",
-  },
-};
 
 export function useBountySubmissionFilters() {
   const { slug } = useWorkspace();
@@ -40,15 +20,13 @@ export function useBountySubmissionFilters() {
         icon: CircleDotted,
         label: "Status",
         options: Object.entries(BOUNTY_SUBMISSION_STATUS_BADGES).map(
-          ([value, { label }]) => {
-            const { icon: Icon, className } = statusIcons[value];
-
-            return {
-              value,
-              label,
-              icon: <Icon className={cn("size-4 bg-transparent", className)} />,
-            };
-          },
+          ([value, { label, icon: Icon, iconClassName }]) => ({
+            value,
+            label,
+            icon: (
+              <Icon className={cn("size-4 bg-transparent", iconClassName)} />
+            ),
+          }),
         ),
       },
       {
