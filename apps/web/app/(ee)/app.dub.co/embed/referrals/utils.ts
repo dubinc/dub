@@ -17,6 +17,7 @@ export const getReferralsEmbedData = async (token: string) => {
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
+    includePartner: true,
     includeRewards: true,
     includeDiscount: true,
   });
@@ -39,11 +40,23 @@ export const getReferralsEmbedData = async (token: string) => {
     },
   });
 
-  const { program, links, discount, clickReward, leadReward, saleReward } =
-    programEnrollment;
+  const {
+    program,
+    partner,
+    links,
+    discount,
+    clickReward,
+    leadReward,
+    saleReward,
+  } = programEnrollment;
 
   return {
     program,
+    partner: {
+      id: partner.id,
+      name: partner.name,
+      email: partner.email,
+    },
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
     rewards: sortRewardsByEventOrder(
       [clickReward, leadReward, saleReward].filter(
