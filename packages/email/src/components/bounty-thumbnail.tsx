@@ -11,11 +11,11 @@ export function BountyThumbnailImage({
     <img
       {...(type === "performance"
         ? {
-            src: "https://assets.dub.co/icons/trophy.webp",
+            src: "https://assets.dub.co/icons/trophy.png",
             alt: "Trophy thumbnail",
           }
         : {
-            src: "https://assets.dub.co/icons/heart.webp",
+            src: "https://assets.dub.co/icons/heart.png",
             alt: "Heart thumbnail",
           })}
       width={118}
