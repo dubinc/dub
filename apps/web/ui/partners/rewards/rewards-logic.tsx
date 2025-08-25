@@ -6,11 +6,16 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
+  ATTRIBUTE_LABELS,
   CONDITION_ATTRIBUTES,
   CONDITION_CUSTOMER_ATTRIBUTES,
   CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
+  CONDITION_PARTNER_ATTRIBUTES,
   CONDITION_SALE_ATTRIBUTES,
+  ENTITY_ATTRIBUTE_TYPES,
+  NUMBER_CONDITION_OPERATORS,
+  STRING_CONDITION_OPERATORS,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
 import { EventType, RewardStructure } from "@dub/prisma/client";
@@ -23,8 +28,16 @@ import {
   MoneyBills2,
   Popover,
   User,
+  Users,
 } from "@dub/ui";
-import { capitalize, cn, COUNTRIES, pluralize, truncate } from "@dub/utils";
+import {
+  capitalize,
+  cn,
+  COUNTRIES,
+  currencyFormatter,
+  pluralize,
+  truncate,
+} from "@dub/utils";
 import { Command } from "cmdk";
 import { motion } from "framer-motion";
 import { Package } from "lucide-react";
@@ -115,6 +128,7 @@ export function RewardsLogic({
     </div>
   );
 }
+
 function ConditionalGroup({
   index,
   groupCount,
@@ -201,22 +215,27 @@ const ENTITIES = {
   sale: {
     attributes: CONDITION_SALE_ATTRIBUTES,
   },
+  partner: {
+    attributes: CONDITION_PARTNER_ATTRIBUTES,
+  },
 } as const;
 
 const EVENT_ENTITIES: Record<EventType, (keyof typeof ENTITIES)[]> = {
-  sale: ["sale", "customer"],
-  lead: ["customer"],
+  sale: ["sale", "customer", "partner"],
+  lead: ["customer", "partner"],
   click: [],
-};
-
-const ATTRIBUTE_LABELS = {
-  productId: "Product ID",
 };
 
 const formatValue = (
   value: string | number | string[] | number[] | undefined,
+  type: "number" | "currency" | "string" = "string",
 ) => {
-  if (!value) return "Value";
+  if (
+    ["number", "currency"].includes(type)
+      ? value === "" || isNaN(Number(value))
+      : !value
+  )
+    return "Value";
 
   if (Array.isArray(value)) {
     if (!value.filter(Boolean).length) return "Value";
@@ -231,7 +250,19 @@ const formatValue = (
     );
   }
 
-  return truncate(value.toString(), 20);
+  // For numeric values, show the number as is
+  if (["number", "currency"].includes(type)) {
+    return type === "number"
+      ? value!.toString()
+      : currencyFormatter(
+          Number(value),
+          Number(value) % 1 !== 0
+            ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+            : undefined,
+        );
+  }
+
+  return truncate(value!.toString(), 20);
 };
 
 function ConditionLogic({
@@ -252,8 +283,14 @@ function ConditionLogic({
     name: ["event", conditionKey, `${modifierKey}.operator`],
   });
 
+  const attributeType =
+    condition.entity && condition.attribute
+      ? ENTITY_ATTRIBUTE_TYPES[condition.entity]?.[condition.attribute] ??
+        "string"
+      : "string";
+
   const icon = condition.entity
-    ? { customer: User, sale: InvoiceDollar }[condition.entity]
+    ? { customer: User, sale: InvoiceDollar, partner: Users }[condition.entity]
     : ArrowTurnRight2;
 
   const isArrayValue =
@@ -277,7 +314,13 @@ function ConditionLogic({
                 onSelect={(value) =>
                   setValue(
                     conditionKey,
-                    { entity: value as keyof typeof ENTITIES },
+                    {
+                      entity: value as keyof typeof ENTITIES,
+                      // Clear dependent fields when entity changes
+                      attribute: undefined,
+                      operator: undefined,
+                      value: undefined,
+                    },
                     {
                       shouldDirty: true,
                     },
@@ -347,21 +390,28 @@ function ConditionLogic({
                           ...condition,
                           operator:
                             value as (typeof CONDITION_OPERATORS)[number],
-                          // Update value to array / string if needed
+                          // Update value to array / string / number if needed
                           ...(["in", "not_in"].includes(value)
                             ? !Array.isArray(condition.value)
                               ? { value: [] }
                               : null
-                            : typeof condition.value !== "string"
-                              ? { value: "" }
-                              : null),
+                            : ["number", "currency"].includes(attributeType)
+                              ? typeof condition.value !== "number"
+                                ? { value: "" }
+                                : null
+                              : typeof condition.value !== "string"
+                                ? { value: "" }
+                                : null),
                         },
                         {
                           shouldDirty: true,
                         },
                       )
                     }
-                    items={CONDITION_OPERATORS.map((operator) => ({
+                    items={(["number", "currency"].includes(attributeType)
+                      ? NUMBER_CONDITION_OPERATORS
+                      : STRING_CONDITION_OPERATORS
+                    ).map((operator) => ({
                       text: CONDITION_OPERATOR_LABELS[operator],
                       value: operator,
                     }))}
@@ -370,11 +420,14 @@ function ConditionLogic({
                 {condition.operator && (
                   <>
                     <InlineBadgePopover
-                      text={formatValue(condition.value)}
+                      text={formatValue(condition.value, attributeType)}
                       invalid={
                         Array.isArray(condition.value)
                           ? condition.value.filter(Boolean).length === 0
-                          : !condition.value
+                          : ["number", "currency"].includes(attributeType)
+                            ? condition.value === "" ||
+                              isNaN(Number(condition.value))
+                            : !condition.value
                       }
                       buttonClassName={cn(
                         condition.attribute === "productId" && "rounded-r-none",
@@ -437,6 +490,11 @@ function ConditionLogic({
                               value: values,
                             });
                           }}
+                        />
+                      ) : ["number", "currency"].includes(attributeType) ? (
+                        <AmountInput
+                          fieldKey={`${conditionKey}.value`}
+                          type={attributeType as "number" | "currency"}
                         />
                       ) : (
                         // String input
@@ -614,7 +672,7 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
       )}
       <InlineBadgePopover
         text={
-          amount
+          !isNaN(amount)
             ? constructRewardAmount({
                 amount: displayType === "flat" ? amount * 100 : amount,
                 type: displayType,
@@ -622,9 +680,9 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
               })
             : "amount"
         }
-        invalid={!amount}
+        invalid={isNaN(amount)}
       >
-        <AmountInput modifierKey={modifierKey} />
+        <ResultAmountInput modifierKey={modifierKey} />
       </InlineBadgePopover>{" "}
       per {event}
       {event === "sale" && (
@@ -678,9 +736,12 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
   );
 }
 
-function AmountInput({ modifierKey }: { modifierKey: `modifiers.${number}` }) {
-  const { watch, register, setValue } = useAddEditRewardForm();
-  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+function ResultAmountInput({
+  modifierKey,
+}: {
+  modifierKey: `modifiers.${number}`;
+}) {
+  const { watch, setValue } = useAddEditRewardForm();
 
   const type = watch(`${modifierKey}.type`);
   const parentType = watch("type");
@@ -695,8 +756,28 @@ function AmountInput({ modifierKey }: { modifierKey: `modifiers.${number}` }) {
   }, [type, parentType, setValue, modifierKey]);
 
   return (
+    <AmountInput
+      fieldKey={`${modifierKey}.amount`}
+      type={displayType === "flat" ? "currency" : "percentage"}
+    />
+  );
+}
+
+function AmountInput({
+  fieldKey,
+  type,
+}: {
+  fieldKey:
+    | `modifiers.${number}.amount`
+    | `modifiers.${number}.conditions.${number}.value`;
+  type: "currency" | "percentage" | "number";
+}) {
+  const { register } = useAddEditRewardForm();
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  return (
     <div className="relative rounded-md shadow-sm">
-      {displayType === "flat" && (
+      {type === "currency" && (
         <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
           $
         </span>
@@ -704,13 +785,14 @@ function AmountInput({ modifierKey }: { modifierKey: `modifiers.${number}` }) {
       <input
         className={cn(
           "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
-          displayType === "flat" ? "pl-4 pr-12" : "pr-7",
+          type === "currency" && "pl-4 pr-12",
+          type === "percentage" && "pr-7",
         )}
-        {...register(`${modifierKey}.amount`, {
+        {...register(fieldKey, {
           required: true,
           setValueAs: (value: string) => (value === "" ? undefined : +value),
           min: 0,
-          max: displayType === "percentage" ? 100 : undefined,
+          max: type === "percentage" ? 100 : undefined,
           onChange: handleMoneyInputChange,
         })}
         onKeyDown={(e) => {
@@ -722,9 +804,11 @@ function AmountInput({ modifierKey }: { modifierKey: `modifiers.${number}` }) {
           handleMoneyKeyDown(e);
         }}
       />
-      <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
-        {displayType === "flat" ? "USD" : "%"}
-      </span>
+      {["currency", "percentage"].includes(type) && (
+        <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
+          {type === "currency" ? "USD" : "%"}
+        </span>
+      )}
     </div>
   );
 }

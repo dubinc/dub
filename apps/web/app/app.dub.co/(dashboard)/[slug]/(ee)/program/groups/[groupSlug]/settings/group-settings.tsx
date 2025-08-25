@@ -56,14 +56,12 @@ function GroupSettingsForm({ group }: { group: GroupProps }) {
       method: "PATCH",
       body: data,
       onSuccess: async () => {
-        toast.success("Group updated successfully!");
-
+        await mutatePrefix("/api/groups");
         // If slug changed, redirect to new URL
         if (data.slug !== group.slug) {
           router.push(`/${slug}/program/groups/${data.slug}/settings`);
         }
-
-        await mutatePrefix("/api/groups");
+        toast.success("Group updated successfully!");
       },
     });
   };

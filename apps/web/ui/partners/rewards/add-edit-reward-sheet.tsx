@@ -13,6 +13,7 @@ import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   createOrUpdateRewardSchema,
+  ENTITY_ATTRIBUTE_TYPES,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
@@ -111,6 +112,16 @@ function RewardSheetContent({
 
         return {
           ...m,
+          conditions: m.conditions.map((c) => ({
+            ...c,
+            value:
+              ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency" &&
+              c.value !== "" &&
+              c.value != null &&
+              !Number.isNaN(Number(c.value))
+                ? Number(c.value) / 100
+                : c.value,
+          })),
           amount: type === "flat" ? m.amount / 100 : m.amount,
           maxDuration: m.maxDuration === null ? Infinity : maxDuration,
         };
@@ -201,12 +212,26 @@ function RewardSheetContent({
 
             return {
               ...m,
-              amount: type === "flat" ? m.amount * 100 : m.amount,
+              conditions: m.conditions.map((c) => ({
+                ...c,
+                value:
+                  c.entity &&
+                  c.attribute &&
+                  ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency"
+                    ? c.value === "" ||
+                      c.value == null ||
+                      Number.isNaN(Number(c.value))
+                      ? c.value
+                      : Math.round(Number(c.value) * 100)
+                    : c.value,
+              })),
+              amount: type === "flat" ? Math.round(m.amount * 100) : m.amount,
               maxDuration: maxDuration === Infinity ? null : maxDuration,
             };
           }),
         );
       } catch (error) {
+        console.log("parse error", error);
         setError("root.logic", { message: "Invalid reward condition" });
         toast.error(
           "Invalid reward condition. Please fix the errors and try again.",
@@ -218,7 +243,7 @@ function RewardSheetContent({
     const payload = {
       ...data,
       workspaceId,
-      amount: type === "flat" ? data.amount * 100 : data.amount,
+      amount: type === "flat" ? Math.round(data.amount * 100) : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
       modifiers,
@@ -306,7 +331,7 @@ function RewardSheetContent({
                   )}
                   <InlineBadgePopover
                     text={
-                      amount
+                      !isNaN(amount)
                         ? constructRewardAmount({
                             amount: type === "flat" ? amount * 100 : amount,
                             type,
@@ -314,7 +339,7 @@ function RewardSheetContent({
                           })
                         : "amount"
                     }
-                    invalid={!amount}
+                    invalid={isNaN(amount)}
                   >
                     <AmountInput />
                   </InlineBadgePopover>{" "}

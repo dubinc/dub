@@ -57,18 +57,12 @@ export const updateRewardAction = authActionClient
       salePartnerGroup,
       ...rewardMetadata
     } = updatedReward;
+
     const isDefaultGroup = [
       clickPartnerGroup,
       leadPartnerGroup,
       salePartnerGroup,
     ].some((group) => group?.slug === "default");
-
-    console.log({
-      isDefaultGroup,
-      clickPartnerGroup,
-      leadPartnerGroup,
-      salePartnerGroup,
-    });
 
     waitUntil(
       Promise.allSettled([
@@ -86,6 +80,7 @@ export const updateRewardAction = authActionClient
             },
           ],
         }),
+
         // we only cache default group pages for now so we need to invalidate them
         ...(isDefaultGroup
           ? [
