@@ -202,7 +202,7 @@ function BountySubmissionDetailsSheetContent({
                     <h2 className="text-content-emphasis text-sm font-medium">
                       How did you complete this bounty?
                     </h2>
-                    <span className="mt-2 text-sm font-normal text-neutral-600">
+                    <span className="mt-2 whitespace-pre-wrap text-sm font-normal text-neutral-600">
                       {submission.description}
                     </span>
                   </div>
