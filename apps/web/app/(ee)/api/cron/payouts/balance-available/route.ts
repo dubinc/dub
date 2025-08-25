@@ -13,7 +13,7 @@ const payloadSchema = z.object({
   stripeAccount: z.string(),
 });
 
-// POST /api/cron/partners/balance-available
+// POST /api/cron/payouts/balance-available
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -25,13 +25,18 @@ export async function POST(req: Request) {
       where: {
         stripeConnectId: stripeAccount,
       },
+      select: {
+        email: true,
+      },
     });
 
     if (!partner) {
-      return logAndRespond({
-        message: `Partner not found with Stripe connect account ${stripeAccount}. Skipping...`,
-        logLevel: "error",
-      });
+      return logAndRespond(
+        `Partner not found with Stripe connect account ${stripeAccount}. Skipping...`,
+        {
+          logLevel: "error",
+        },
+      );
     }
 
     // Get the partner's current balance
@@ -41,9 +46,9 @@ export async function POST(req: Request) {
 
     // Check if there's any available balance
     if (balance.available.length === 0 || balance.available[0].amount === 0) {
-      return logAndRespond({
-        message: `No available balance found for partner ${partner.email} (${stripeAccount}). Skipping...`,
-      });
+      return logAndRespond(
+        `No available balance found for partner ${partner.email} (${stripeAccount}). Skipping...`,
+      );
     }
 
     const { amount, currency } = balance.available[0];
@@ -74,9 +79,9 @@ export async function POST(req: Request) {
     }
 
     if (availableBalance <= 0) {
-      return logAndRespond({
-        message: `The available balance (${currencyFormatter(availableBalance / 100, { maximumFractionDigits: 2, currency })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
-      });
+      return logAndRespond(
+        `The available balance (${currencyFormatter(availableBalance / 100, { maximumFractionDigits: 2, currency })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
+      );
     }
 
     if (["huf", "twd"].includes(currency)) {
@@ -148,9 +153,9 @@ export async function POST(req: Request) {
       );
     }
 
-    return logAndRespond({
-      message: `Processed "balance.available" for partner ${partner.email} (${stripeAccount})`,
-    });
+    return logAndRespond(
+      `Processed "balance.available" for partner ${partner.email} (${stripeAccount})`,
+    );
   } catch (error) {
     await log({
       message: `Error handling "balance.available" ${error.message}.`,

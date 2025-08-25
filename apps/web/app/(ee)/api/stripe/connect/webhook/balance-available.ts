@@ -20,11 +20,14 @@ export async function balanceAvailable(event: Stripe.Event) {
     parallelism: 10,
   });
 
-  await queue.enqueueJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/balance-available`,
+  const response = await queue.enqueueJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
+    deduplicationId: event.id,
     method: "POST",
     body: {
       stripeAccount,
     },
   });
+
+  console.log(response);
 }
