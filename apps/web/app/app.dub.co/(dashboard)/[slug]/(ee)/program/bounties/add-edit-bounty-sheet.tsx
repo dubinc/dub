@@ -7,11 +7,11 @@ import {
   BountySubmissionRequirement,
 } from "@/lib/types";
 import { createBountySchema } from "@/lib/zod/schemas/bounties";
+import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
 import {
-  WORKFLOW_ATTRIBUTE_LABELS,
-  workflowConditionSchema,
-} from "@/lib/zod/schemas/workflows";
-import { BountyLogic } from "@/ui/partners/bounties/bounty-logic";
+  BountyLogic,
+  generateBountyName,
+} from "@/ui/partners/bounties/bounty-logic";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
   ProgramSheetAccordion,
@@ -32,7 +32,7 @@ import {
   Switch,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, currencyFormatter } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
   Controller,
@@ -216,11 +216,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
       data.performanceCondition = condition;
 
-      // Generate a name
-      data.name =
-        `Earn ${currencyFormatter(data.rewardAmount / 100)} after generating ` +
-        `${isCurrency ? `${currencyFormatter(condition.value / 100)} in` : condition.value} ` +
-        WORKFLOW_ATTRIBUTE_LABELS[condition.attribute];
+      data.name = generateBountyName({
+        rewardAmount: data.rewardAmount,
+        condition,
+      });
     } else if (type === "submission") {
       data.performanceCondition = null;
     }

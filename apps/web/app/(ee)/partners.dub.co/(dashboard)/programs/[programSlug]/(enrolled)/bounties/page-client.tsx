@@ -12,11 +12,7 @@ import { BountyCard, BountyCardSkeleton } from "./bounty-card";
 export function BountiesPageClient() {
   const { programSlug } = useParams();
 
-  const {
-    data: bounties,
-    isLoading,
-    error,
-  } = useSWR<BountyWithPartnerDataProps[]>(
+  const { data: bounties, isLoading } = useSWR<BountyWithPartnerDataProps[]>(
     `/api/partner-profile/programs/${programSlug}/bounties`,
     fetcher,
     {
@@ -45,6 +41,7 @@ export function BountiesPageClient() {
               <a
                 href="https://dub.co/help/article/bounties"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="hover:text-content-default underline sm:whitespace-nowrap"
               >
                 Learn more about bounties

@@ -17,10 +17,10 @@ export const WORKFLOW_ATTRIBUTE_LABELS: Record<
   WorkflowConditionAttribute,
   string
 > = {
-  totalLeads: "total leads",
-  totalConversions: "total conversions",
-  totalSaleAmount: "total sale amount",
-  totalCommission: "total commission",
+  totalLeads: "Leads",
+  totalConversions: "Conversions",
+  totalSaleAmount: "Revenue",
+  totalCommission: "Commissions",
 } as const;
 
 export const WORKFLOW_ATTRIBUTE_TRIGGER_MAP: Record<

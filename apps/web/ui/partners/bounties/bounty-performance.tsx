@@ -1,8 +1,6 @@
-import {
-  WORKFLOW_TRIGGER_ATTRIBUTE_LABELS,
-  isCurrencyAttribute,
-} from "@/lib/api/workflows/utils";
+import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { BountyWithPartnerDataProps } from "@/lib/types";
+import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 
 export function BountyPerformance({
@@ -36,9 +34,7 @@ export function BountyPerformance({
     : nFormatter(target);
 
   const metricLabel =
-    WORKFLOW_TRIGGER_ATTRIBUTE_LABELS[
-      performanceCondition.attribute
-    ].toLowerCase();
+    WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute].toLowerCase();
 
   return (
     <div className="flex flex-col gap-2">

@@ -1,15 +1,13 @@
 "use client";
 
 import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
-import {
-  WORKFLOW_TRIGGER_ATTRIBUTE_LABELS,
-  isCurrencyAttribute,
-} from "@/lib/api/workflows/utils";
+import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useBounty from "@/lib/swr/use-bounty";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
+import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -143,7 +141,7 @@ export function BountySubmissionsTable() {
     : "leads";
 
   const metricColumnLabel = performanceCondition?.attribute
-    ? WORKFLOW_TRIGGER_ATTRIBUTE_LABELS[performanceCondition.attribute]
+    ? WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute]
     : "Progress";
 
   const { table, ...tableProps } = useTable({

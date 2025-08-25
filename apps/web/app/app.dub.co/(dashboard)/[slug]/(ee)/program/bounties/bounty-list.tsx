@@ -44,6 +44,7 @@ export function BountyList() {
               <a
                 href="https://dub.co/help/article/bounties"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="hover:text-content-default underline sm:whitespace-nowrap"
               >
                 Learn more about bounties

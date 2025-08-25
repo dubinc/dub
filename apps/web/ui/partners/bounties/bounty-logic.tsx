@@ -1,9 +1,7 @@
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
-import {
-  WORKFLOW_ATTRIBUTES,
-  WORKFLOW_ATTRIBUTE_LABELS,
-} from "@/lib/zod/schemas/workflows";
+import { WorkflowCondition, WorkflowConditionAttribute } from "@/lib/types";
+import { WORKFLOW_ATTRIBUTES } from "@/lib/zod/schemas/workflows";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
@@ -14,6 +12,30 @@ import { cn, currencyFormatter } from "@dub/utils";
 import { useAddEditBountyForm } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/bounties/add-edit-bounty-sheet";
 import { useContext } from "react";
 import { Controller } from "react-hook-form";
+
+const WORKFLOW_ATTRIBUTE_LABELS: Record<WorkflowConditionAttribute, string> = {
+  totalLeads: "total leads",
+  totalConversions: "total conversions",
+  totalSaleAmount: "total sale amount",
+  totalCommission: "total commission",
+} as const;
+
+export const generateBountyName = ({
+  rewardAmount,
+  condition,
+}: {
+  rewardAmount: number;
+  condition: WorkflowCondition;
+}) => {
+  const isCurrency = isCurrencyAttribute(condition.attribute);
+  const rewardAmountFormatted = currencyFormatter(rewardAmount / 100);
+  const attributeLabel = WORKFLOW_ATTRIBUTE_LABELS[condition.attribute];
+  const valueFormatted = isCurrency
+    ? `${currencyFormatter(condition.value / 100)} in`
+    : `${condition.value}`;
+
+  return `Earn ${rewardAmountFormatted} after generating ${valueFormatted} ${attributeLabel}`;
+};
 
 export function BountyLogic({ className }: { className?: string }) {
   const { control, watch } = useAddEditBountyForm();
