@@ -59,9 +59,18 @@ export function BountyCard({ bounty }: { bounty: BountyWithPartnerDataProps }) {
               </StatusBadge>
             ) : (
               <StatusBadge variant="success">
-                Confirmed{" "}
-                {submission.reviewedAt &&
-                  formatDate(submission.reviewedAt, { month: "short" })}
+                {bounty.type === "performance" ? (
+                  <>
+                    Completed{" "}
+                    {formatDate(submission.createdAt, { month: "short" })}
+                  </>
+                ) : (
+                  <>
+                    Confirmed{" "}
+                    {submission.reviewedAt &&
+                      formatDate(submission.reviewedAt, { month: "short" })}
+                  </>
+                )}
               </StatusBadge>
             )
           ) : bounty.type === "performance" ? (
