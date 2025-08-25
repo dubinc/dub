@@ -14,9 +14,12 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { useRejectBountySubmissionModal } from "@/ui/partners/reject-bounty-submission-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { X } from "@/ui/shared/icons";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { UserRowItem } from "@/ui/users/user-row-item";
 import {
+  AnimatedSizeContainer,
   Button,
+  Filter,
   Popover,
   ProgressCircle,
   StatusBadge,
@@ -43,6 +46,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
+import { useBountySubmissionFilters } from "./use-bounty-submission-filters";
 
 export const BOUNTY_SUBMISSION_STATUS_BADGES = {
   pending: {
@@ -76,6 +80,15 @@ export function BountySubmissionsTable() {
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    isFiltered,
+  } = useBountySubmissionFilters();
 
   const {
     error,
@@ -117,7 +130,7 @@ export function BountySubmissionsTable() {
   }, [searchParams, submissions]);
 
   // Decide the columns to show based on the bounty type
-  const columns = useMemo(() => {
+  const showColumns = useMemo(() => {
     const columns = ["partner", "group", "createdAt"];
 
     if (!bounty) {
@@ -144,9 +157,8 @@ export function BountySubmissionsTable() {
     ? WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute]
     : "Progress";
 
-  const { table, ...tableProps } = useTable({
-    data: submissions || [],
-    columns: [
+  const columns = useMemo(
+    () => [
       {
         id: "partner",
         header: "Partner",
@@ -181,7 +193,7 @@ export function BountySubmissionsTable() {
         },
       },
 
-      ...(columns.includes("status")
+      ...(showColumns.includes("status")
         ? [
             {
               id: "status",
@@ -215,7 +227,7 @@ export function BountySubmissionsTable() {
       },
 
       // TODO: fix this
-      ...(columns.includes("performanceMetrics")
+      ...(showColumns.includes("performanceMetrics")
         ? [
             {
               id: metricColumnId,
@@ -264,7 +276,7 @@ export function BountySubmissionsTable() {
           ]
         : []),
 
-      ...(columns.includes("reviewedAt")
+      ...(showColumns.includes("reviewedAt")
         ? [
             {
               id: "reviewedAt",
@@ -298,6 +310,20 @@ export function BountySubmissionsTable() {
         ),
       },
     ],
+    [
+      groups,
+      bounty,
+      showColumns,
+      metricColumnId,
+      metricColumnLabel,
+      performanceCondition,
+      workspaceId,
+    ],
+  );
+
+  const { table, ...tableProps } = useTable({
+    data: submissions || [],
+    columns,
     onRowClick: (row) => {
       if (!row.original.submission) {
         return;
@@ -348,6 +374,43 @@ export function BountySubmissionsTable() {
       )}
 
       <div className="flex flex-col gap-6">
+        <div>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+            <SimpleDateRangePicker
+              className="w-full sm:min-w-[200px] md:w-fit"
+              defaultInterval="all"
+            />
+          </div>
+          <AnimatedSizeContainer height>
+            <div>
+              {activeFilters.length > 0 && (
+                <div className="pt-3">
+                  <Filter.List
+                    filters={[
+                      ...filters,
+                      {
+                        key: "payoutId",
+                        icon: MoneyBill2,
+                        label: "Payout",
+                        options: [],
+                      },
+                    ]}
+                    activeFilters={activeFilters}
+                    onRemove={onRemove}
+                    onRemoveAll={onRemoveAll}
+                  />
+                </div>
+              )}
+            </div>
+          </AnimatedSizeContainer>
+        </div>
         {submissions?.length !== 0 || isLoading ? (
           <Table {...tableProps} table={table} />
         ) : (

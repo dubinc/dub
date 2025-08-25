@@ -13,7 +13,7 @@ export function useBountySubmissionsCount<T>({
   enabled,
 }: {
   enabled?: boolean;
-}) {
+} = {}) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 

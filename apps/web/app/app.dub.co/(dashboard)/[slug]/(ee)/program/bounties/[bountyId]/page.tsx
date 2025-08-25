@@ -8,7 +8,7 @@ export default function Page() {
   return (
     <PageContent title={<BountyHeaderTitle />}>
       <PageWidthWrapper>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           <BountyInfo />
           <BountySubmissionsTable />
         </div>
