@@ -36,7 +36,17 @@ export const CommissionEnrichedSchema = CommissionSchema.merge(
       image: true,
       payoutsEnabledAt: true,
       country: true,
-    }),
+    })
+      // We send this stats to the webhook only
+      .merge(
+        z.object({
+          totalClicks: z.number().nullish(),
+          totalLeads: z.number().nullish(),
+          totalConversions: z.number().nullish(),
+          totalSales: z.number().nullish(),
+          totalCommissions: z.number().nullish(),
+        }),
+      ),
     customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
   }),
 );

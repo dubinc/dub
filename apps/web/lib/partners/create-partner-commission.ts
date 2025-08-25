@@ -16,10 +16,10 @@ import { Session } from "../auth";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionEnrichedSchema } from "../zod/schemas/commissions";
+import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { determinePartnerReward } from "./determine-partner-reward";
 
 export const createPartnerCommission = async ({
-  reward,
   event,
   partnerId,
   programId,
@@ -35,9 +35,6 @@ export const createPartnerCommission = async ({
   user,
   context,
 }: {
-  // we optionally let the caller pass in a reward to avoid a db call
-  // (e.g. in aggregate-clicks route)
-  reward?: RewardProps | null;
   event: CommissionType;
   partnerId: string;
   programId: string;
@@ -54,6 +51,7 @@ export const createPartnerCommission = async ({
   context?: RewardContext;
 }) => {
   let earnings = 0;
+  let reward: RewardProps | null = null;
   let status: CommissionStatus = "pending";
 
   const programEnrollment = await getProgramEnrollmentOrThrow({
@@ -62,21 +60,20 @@ export const createPartnerCommission = async ({
     ...(event === "click" && { includeClickReward: true }),
     ...(event === "lead" && { includeLeadReward: true }),
     ...(event === "sale" && { includeSaleReward: true }),
+    includePartner: true,
   });
 
   if (event === "custom") {
     earnings = amount;
     amount = 0;
   } else {
-    if (!reward) {
-      reward = await determinePartnerReward({
-        event: event as EventType,
-        context,
-        programEnrollment,
-      });
-    }
+    reward = await determinePartnerReward({
+      event: event as EventType,
+      context,
+      programEnrollment,
+    });
 
-    // if there's still no reward, skip commission creation
+    // if there is no reward, skip commission creation
     if (!reward) {
       console.log(
         `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
@@ -232,7 +229,6 @@ export const createPartnerCommission = async ({
         createdAt,
       },
       include: {
-        partner: true,
         customer: true,
       },
     });
@@ -264,7 +260,14 @@ export const createPartnerCommission = async ({
           sendWorkspaceWebhook({
             workspace,
             trigger: "commission.created",
-            data: CommissionEnrichedSchema.parse(commission),
+            data: CommissionEnrichedSchema.parse({
+              ...commission,
+              partner: {
+                ...programEnrollment.partner,
+                ...aggregatePartnerLinksStats(programEnrollment.links),
+                totalCommissions: programEnrollment.totalCommissions,
+              },
+            }),
           }),
 
           // We only capture audit logs for manual commissions

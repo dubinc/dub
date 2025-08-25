@@ -81,7 +81,5 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  console.log(programEnrollment);
-
   return programEnrollment;
 }

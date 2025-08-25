@@ -1,9 +1,10 @@
-import { EventType, Link, ProgramEnrollment, Reward } from "@dub/prisma/client";
+import { EventType, Link, Reward } from "@dub/prisma/client";
 import { RewardContext } from "../types";
 import {
   rewardConditionsArraySchema,
   RewardSchema,
 } from "../zod/schemas/rewards";
+import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { evaluateRewardConditions } from "./evaluate-reward-conditions";
 
 const REWARD_EVENT_COLUMN_MAPPING = {
@@ -12,13 +13,12 @@ const REWARD_EVENT_COLUMN_MAPPING = {
   [EventType.sale]: "saleReward",
 };
 
-interface ProgramEnrollmentWithReward extends ProgramEnrollment {
+interface ProgramEnrollmentWithReward {
+  totalCommissions: number;
   clickReward?: Reward | null;
   leadReward?: Reward | null;
   saleReward?: Reward | null;
-  links?:
-    | Pick<Link, "clicks" | "leads" | "conversions" | "saleAmount">[]
-    | null;
+  links?: Link[] | null;
 }
 
 export const determinePartnerReward = async ({
@@ -37,28 +37,11 @@ export const determinePartnerReward = async ({
     return null;
   }
 
-  // Aggregate the links metrics
-  const partnerLinksStats = programEnrollment.links?.reduce(
-    (acc, link) => {
-      acc.totalClicks += link.clicks;
-      acc.totalLeads += link.leads;
-      acc.totalConversions += link.conversions;
-      acc.totalSaleAmount += link.saleAmount;
-      return acc;
-    },
-    {
-      totalClicks: 0,
-      totalLeads: 0,
-      totalConversions: 0,
-      totalSaleAmount: 0,
-    },
-  );
-
   // Add the links metrics to the context
   context = {
     ...context,
     partner: {
-      ...partnerLinksStats,
+      ...aggregatePartnerLinksStats(programEnrollment.links),
       totalCommissions: programEnrollment.totalCommissions,
     },
   };
