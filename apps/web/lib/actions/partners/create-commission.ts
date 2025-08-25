@@ -43,6 +43,7 @@ export const createCommissionAction = authActionClient
       getProgramEnrollmentOrThrow({
         programId,
         partnerId,
+        includePartner: true,
       }),
 
       customerId

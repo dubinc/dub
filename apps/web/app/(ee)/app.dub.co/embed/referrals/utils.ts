@@ -17,7 +17,9 @@ export const getReferralsEmbedData = async (token: string) => {
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
-    includeRewards: true,
+    includeClickReward: true,
+    includeLeadReward: true,
+    includeSaleReward: true,
     includeDiscount: true,
   });
 
