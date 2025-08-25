@@ -22,7 +22,7 @@ export default function BountySubmitted({
     supportEmail: "support@example.com",
   },
   bounty = {
-    name: "Promote Acme at your campus and earn $500 ",
+    name: "Promote Acme at your campus and earn $500",
   },
   email = "panic@thedis.co",
 }: {
