@@ -44,7 +44,7 @@
     "@types/base-x": "^3.0.10",
     "@types/bcryptjs": "^2.4.6",
     "@types/buffer-crc32": "0.2.0",
-    "@upstash/qstash": "^2.3.0",
+    "@upstash/qstash": "^2.8.2",
     "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.25.1",
     "@vercel/edge-config": "^0.4.1",
