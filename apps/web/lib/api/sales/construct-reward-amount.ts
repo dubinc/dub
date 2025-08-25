@@ -38,9 +38,9 @@ export const constructRewardAmount = (
         );
 
         if (min !== max) {
-          return reward.type === "percentage"
-            ? `${min}% - ${max}%`
-            : `${formatCurrency(min / 100)} - ${formatCurrency(max / 100)}`;
+          return `Up to ${
+            reward.type === "percentage" ? `${max}%` : formatCurrency(max / 100)
+          }`;
         }
       }
     }
