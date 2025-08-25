@@ -51,6 +51,10 @@ export const executeAwardBountyAction = async ({
     return;
   }
 
+  if (bounty.archivedAt) {
+    return;
+  }
+
   const { groups, submissions } = bounty;
 
   // Check if the partner has already submitted a submission for this bounty
