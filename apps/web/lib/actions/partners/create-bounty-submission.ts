@@ -5,6 +5,8 @@ import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
   BountySubmissionFileSchema,
+  MAX_SUBMISSION_FILES,
+  MAX_SUBMISSION_URLS,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
@@ -21,8 +23,11 @@ import { authPartnerActionClient } from "../safe-action";
 const schema = z.object({
   programId: z.string(),
   bountyId: z.string(),
-  files: z.array(BountySubmissionFileSchema).default([]),
-  urls: z.array(z.string().url()).default([]),
+  files: z
+    .array(BountySubmissionFileSchema)
+    .max(MAX_SUBMISSION_FILES)
+    .default([]),
+  urls: z.array(z.string().url()).max(MAX_SUBMISSION_URLS).default([]),
   description: z.string().trim().max(1000).optional(),
 });
 
