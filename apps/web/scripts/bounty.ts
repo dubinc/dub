@@ -9,7 +9,7 @@ async function main() {
   const partnerIds = [
     "pn_1K33CAFZV1207H5XBR720XAK6",
     "pn_1K33CAFZV2NSRHVY098A0DSPP",
-    "pn_1K33CAFZV9XKMBJFW23V1VEXP"
+    "pn_1K33CAFZV9XKMBJFW23V1VEXP",
   ];
 
   await prisma.bountySubmission.createMany({
