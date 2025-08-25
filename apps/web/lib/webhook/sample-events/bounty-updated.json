@@ -5,7 +5,7 @@
   "type": "performance",
   "startsAt": "2025-08-01T17:34:00.000Z",
   "endsAt": "2025-09-01T17:34:00.000Z",
-  "rewardAmount": 50000,
+  "rewardAmount": 10000,
   "submissionRequirements": null,
   "performanceCondition": {
     "attribute": "totalConversions",
