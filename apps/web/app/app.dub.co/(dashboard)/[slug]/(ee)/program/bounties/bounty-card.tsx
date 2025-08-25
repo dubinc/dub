@@ -1,9 +1,9 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
-import { BountyActionButton } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/bounties/bounty-action-button";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { Calendar6, Users } from "@dub/ui/icons";
+import { Calendar6, CircleCheckFill, Users } from "@dub/ui/icons";
 import { formatDate, pluralize } from "@dub/utils";
+import { BountyActionButton } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/bounties/bounty-action-button";
 import Link from "next/link";
 
 export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
@@ -23,7 +23,11 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
             <BountyThumbnailImage bounty={bounty} />
           </div>
 
-          {pending > 0 && <PendingSubmissionsBadge count={pending} />}
+          {pending > 0 ? (
+            <PendingSubmissionsBadge count={pending} />
+          ) : approved === bounty.partners ? (
+            <CircleCheckFill className="absolute left-2 top-2 size-4 text-green-600" />
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -47,8 +51,17 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
           <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
             <Users className="size-3.5" />
             <div className="h-5">
-              <span className="text-content-default">{totalSubmissions}</span>{" "}
-              of <span className="text-content-default">{bounty.partners}</span>{" "}
+              {approved === bounty.partners ? (
+                <>All</>
+              ) : (
+                <>
+                  <span className="text-content-default">
+                    {totalSubmissions}
+                  </span>{" "}
+                  of
+                </>
+              )}{" "}
+              <span className="text-content-default">{bounty.partners}</span>{" "}
               partners completed
             </div>
           </div>
