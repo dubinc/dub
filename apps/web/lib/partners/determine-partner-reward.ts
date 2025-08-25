@@ -33,8 +33,6 @@ export const determinePartnerReward = async ({
   let partnerReward: Reward =
     programEnrollment[REWARD_EVENT_COLUMN_MAPPING[event]];
 
-  console.log("partnerReward", partnerReward)
-
   if (!partnerReward) {
     return null;
   }
