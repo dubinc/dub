@@ -116,6 +116,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
   const [
     startsAt,
+    endsAt,
     rewardAmount,
     type,
     name,
@@ -123,6 +124,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     performanceCondition,
   ] = watch([
     "startsAt",
+    "endsAt",
     "rewardAmount",
     "type",
     "name",
@@ -162,6 +164,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       return true;
     }
 
+    if (endsAt && endsAt <= startsAt) {
+      return true;
+    }
+
     if (type === "submission" && !name?.trim()) {
       return true;
     }
@@ -178,6 +184,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     return false;
   }, [
     startsAt,
+    endsAt,
     rewardAmount,
     type,
     name,
@@ -292,20 +299,27 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                 <ProgramSheetAccordionContent>
                   <div className="space-y-6">
                     <p className="text-content-default text-sm">
-                      Set the schedule, reward and additional details
+                      Set the schedule, reward, and additional details. Partners
+                      who already met the goal before the start date will
+                      auto-qualify and be rewarded.
                     </p>
 
                     <div>
-                      <SmartDateTimePicker
-                        value={watch("startsAt")}
-                        onChange={(date) => {
-                          setValue("startsAt", date as Date, {
-                            shouldDirty: true,
-                          });
-                        }}
-                        label="Start date"
-                        placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                      <Controller
+                        control={control}
+                        name="startsAt"
+                        render={({ field }) => (
+                          <SmartDateTimePicker
+                            value={field.value}
+                            onChange={(date) =>
+                              field.onChange(date ?? undefined)
+                            }
+                            label="Start date"
+                            placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                          />
+                        )}
                       />
+                      {errors.startsAt && "test"}
                     </div>
 
                     <AnimatedSizeContainer
@@ -331,15 +345,19 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
                       {hasEndDate && (
                         <div className="mt-6 p-px">
-                          <SmartDateTimePicker
-                            value={watch("endsAt")}
-                            onChange={(date) => {
-                              setValue("endsAt", date, {
-                                shouldDirty: true,
-                              });
-                            }}
-                            label="End date"
-                            placeholder='E.g. "in 3 months"'
+                          <Controller
+                            control={control}
+                            name="endsAt"
+                            render={({ field }) => (
+                              <SmartDateTimePicker
+                                value={field.value}
+                                onChange={(date) =>
+                                  field.onChange(date ?? undefined)
+                                }
+                                label="End date"
+                                placeholder='E.g. "in 3 months"'
+                              />
+                            )}
                           />
                         </div>
                       )}
