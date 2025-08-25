@@ -9,6 +9,7 @@ export const RESERVED_SLUGS = [
   "static",
   "stats",
   "share",
+  "deeplink",
   "robots.txt",
   "proxy",
   "account",

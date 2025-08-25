@@ -15,14 +15,45 @@ export const COMMISSION_TYPES = [
   },
 ] as const;
 
-export const CONDITION_ENTITIES = ["customer", "sale"] as const;
+export const CONDITION_ENTITIES = ["customer", "sale", "partner"] as const;
 
 export const CONDITION_CUSTOMER_ATTRIBUTES = ["country"] as const;
+
 export const CONDITION_SALE_ATTRIBUTES = ["productId"] as const;
+
+export const CONDITION_PARTNER_ATTRIBUTES = [
+  "totalClicks",
+  "totalLeads",
+  "totalConversions",
+  "totalSaleAmount",
+  "totalCommissions",
+] as const;
+
 export const CONDITION_ATTRIBUTES = [
   ...CONDITION_CUSTOMER_ATTRIBUTES,
   ...CONDITION_SALE_ATTRIBUTES,
+  ...CONDITION_PARTNER_ATTRIBUTES,
 ] as const;
+
+export const ENTITY_ATTRIBUTE_TYPES: Partial<
+  Record<
+    (typeof CONDITION_ENTITIES)[number],
+    Partial<
+      Record<
+        (typeof CONDITION_ATTRIBUTES)[number],
+        "string" | "number" | "currency"
+      >
+    >
+  >
+> = {
+  partner: {
+    totalClicks: "number",
+    totalLeads: "number",
+    totalConversions: "number",
+    totalSaleAmount: "currency",
+    totalCommissions: "currency",
+  },
+};
 
 export const CONDITION_OPERATORS = [
   "equals_to",
@@ -31,11 +62,33 @@ export const CONDITION_OPERATORS = [
   "ends_with",
   "in",
   "not_in",
+  "greater_than",
+  "greater_than_or_equal",
+  "less_than",
+  "less_than_or_equal",
 ] as const;
 
+export const STRING_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  ["equals_to", "not_equals", "starts_with", "ends_with", "in", "not_in"];
+
+export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  [
+    "equals_to",
+    "not_equals",
+    "greater_than",
+    "greater_than_or_equal",
+    "less_than",
+    "less_than_or_equal",
+  ];
+
 export const ATTRIBUTE_LABELS = {
-  country: "country",
-  productId: "product",
+  country: "Country",
+  productId: "Product ID",
+  totalClicks: "Total clicks",
+  totalLeads: "Total leads",
+  totalConversions: "Total conversions",
+  totalSaleAmount: "Total revenue",
+  totalCommissions: "Total commissions",
 } as const;
 
 export const CONDITION_OPERATOR_LABELS = {
@@ -45,6 +98,10 @@ export const CONDITION_OPERATOR_LABELS = {
   ends_with: "ends with",
   in: "is one of",
   not_in: "is not one of",
+  greater_than: "is greater than",
+  greater_than_or_equal: "is greater than or equal to",
+  less_than: "is less than",
+  less_than_or_equal: "is less than or equal to",
 } as const;
 
 export const rewardConditionSchema = z.object({
@@ -142,6 +199,16 @@ export const rewardContextSchema = z.object({
   sale: z
     .object({
       productId: z.string().nullish(),
+    })
+    .optional(),
+
+  partner: z
+    .object({
+      totalClicks: z.number().nullish(),
+      totalLeads: z.number().nullish(),
+      totalConversions: z.number().nullish(),
+      totalSaleAmount: z.number().nullish(),
+      totalCommissions: z.number().nullish(),
     })
     .optional(),
 });

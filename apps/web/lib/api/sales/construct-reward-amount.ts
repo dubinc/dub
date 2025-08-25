@@ -37,9 +37,11 @@ export const constructRewardAmount = (
           ...modifiers.map((modifier) => modifier.amount),
         );
 
-        return reward.type === "percentage"
-          ? `${min}% - ${max}%`
-          : `${formatCurrency(min / 100)} - ${formatCurrency(max / 100)}`;
+        if (min !== max) {
+          return `Up to ${
+            reward.type === "percentage" ? `${max}%` : formatCurrency(max / 100)
+          }`;
+        }
       }
     }
   }

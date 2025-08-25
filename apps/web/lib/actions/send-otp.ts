@@ -67,13 +67,21 @@ export const sendOtpAction = actionClient
         (blacklistedEmailDomainTermsRegex &&
           blacklistedEmailDomainTermsRegex.test(domain))
       ) {
-        // edge case: the user already has a partner account on Dub with this email address, we can allow them to continue
-        const isPartnerAccount = await prisma.partner.findUnique({
-          where: {
-            email,
-          },
-        });
-        if (!isPartnerAccount) {
+        // edge case: the user already has a partner account on Dub with this email address,
+        // or they have an existing application for a program, we can allow them to continue
+        const [isPartnerAccount, hasExistingApplicaitons] = await Promise.all([
+          prisma.partner.findUnique({
+            where: {
+              email,
+            },
+          }),
+          prisma.programApplication.findFirst({
+            where: {
+              email,
+            },
+          }),
+        ]);
+        if (!isPartnerAccount && !hasExistingApplicaitons) {
           throw new Error(
             "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
           );
