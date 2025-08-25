@@ -46,22 +46,8 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 import { useBountySubmissionFilters } from "./use-bounty-submission-filters";
-
-export const BOUNTY_SUBMISSION_STATUS_BADGES = {
-  pending: {
-    label: "Pending",
-    variant: "pending",
-  },
-  approved: {
-    label: "Approved",
-    variant: "success",
-  },
-  rejected: {
-    label: "Rejected",
-    variant: "error",
-  },
-} as const;
 
 const PERFORMANCE_ATTRIBUTE_TO_SORTABLE_COLUMNS = {
   totalLeads: "leads",

@@ -10,7 +10,7 @@ import {
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useCallback, useMemo } from "react";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submissions-table";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 
 const statusIcons = {
   pending: {
