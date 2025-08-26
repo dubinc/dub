@@ -42,7 +42,7 @@ model Commission {
   link             Link?             @relation(fields: [linkId], references: [id])
   customer         Customer?         @relation(fields: [customerId], references: [id])
   reward           Reward?           @relation(fields: [rewardId], references: [id])
-  BountySubmission BountySubmission?
+  bountySubmission BountySubmission?
 
   @@unique([invoiceId, programId])
   @@index([earnings, programId, partnerId, status])
