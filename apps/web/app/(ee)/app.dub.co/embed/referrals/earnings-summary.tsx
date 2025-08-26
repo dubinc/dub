@@ -4,9 +4,11 @@ import { currencyFormatter } from "@dub/utils";
 export function ReferralsEmbedEarningsSummary({
   earnings,
   programSlug,
+  partnerEmail,
 }: {
   earnings: { upcoming: number; paid: number };
   programSlug: string;
+  partnerEmail: string | null;
 }) {
   return (
     <div className="border-border-subtle bg-bg-default flex flex-col justify-between gap-4 rounded-lg border p-4">
@@ -16,7 +18,9 @@ export function ReferralsEmbedEarningsSummary({
           <InfoTooltip content="Summary of your commission earnings from your referrals." />
         </div>
         <a
-          href={`https://partners.dub.co/${programSlug}/register`}
+          href={`https://partners.dub.co/${programSlug}/register${
+            partnerEmail ? `?email=${partnerEmail}` : ""
+          }`}
           target="_blank"
         >
           <Button

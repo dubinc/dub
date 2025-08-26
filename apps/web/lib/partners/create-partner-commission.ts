@@ -11,16 +11,17 @@ import { differenceInMonths } from "date-fns";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
+import { getProgramEnrollmentOrThrow } from "../api/programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "../api/workflows/execute-workflows";
 import { Session } from "../auth";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
-import { CommissionEnrichedSchema } from "../zod/schemas/commissions";
+import { CommissionWebhookSchema } from "../zod/schemas/commissions";
+import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { determinePartnerReward } from "./determine-partner-reward";
 
 export const createPartnerCommission = async ({
-  reward,
   event,
   partnerId,
   programId,
@@ -36,9 +37,6 @@ export const createPartnerCommission = async ({
   user,
   context,
 }: {
-  // we optionally let the caller pass in a reward to avoid a db call
-  // (e.g. in aggregate-clicks route)
-  reward?: RewardProps | null;
   event: CommissionType;
   partnerId: string;
   programId: string;
@@ -55,22 +53,29 @@ export const createPartnerCommission = async ({
   context?: RewardContext;
 }) => {
   let earnings = 0;
+  let reward: RewardProps | null = null;
   let status: CommissionStatus = "pending";
+
+  const programEnrollment = await getProgramEnrollmentOrThrow({
+    partnerId,
+    programId,
+    ...(event === "click" && { includeClickReward: true }),
+    ...(event === "lead" && { includeLeadReward: true }),
+    ...(event === "sale" && { includeSaleReward: true }),
+    includePartner: true,
+  });
 
   if (event === "custom") {
     earnings = amount;
     amount = 0;
   } else {
-    if (!reward) {
-      reward = await determinePartnerReward({
-        event: event as EventType,
-        partnerId,
-        programId,
-        context,
-      });
-    }
+    reward = await determinePartnerReward({
+      event: event as EventType,
+      programEnrollment,
+      context,
+    });
 
-    // if there's still no reward, skip commission creation
+    // if there is no reward, skip commission creation
     if (!reward) {
       console.log(
         `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
@@ -226,7 +231,6 @@ export const createPartnerCommission = async ({
         createdAt,
       },
       include: {
-        partner: true,
         customer: true,
       },
     });
@@ -249,16 +253,24 @@ export const createPartnerCommission = async ({
 
         const isClawback = earnings < 0;
 
-        await Promise.allSettled([
-          syncTotalCommissions({
-            partnerId,
-            programId,
-          }),
+        // Make sure totalCommissions is up to date before firing the webhook
+        const { totalCommissions } = await syncTotalCommissions({
+          partnerId,
+          programId,
+        });
 
+        await Promise.allSettled([
           sendWorkspaceWebhook({
             workspace,
             trigger: "commission.created",
-            data: CommissionEnrichedSchema.parse(commission),
+            data: CommissionWebhookSchema.parse({
+              ...commission,
+              partner: {
+                ...programEnrollment.partner,
+                ...aggregatePartnerLinksStats(programEnrollment.links),
+                totalCommissions,
+              },
+            }),
           }),
 
           // We only capture audit logs for manual commissions

@@ -10,7 +10,7 @@ import {
 } from "@/lib/webhook/schemas";
 import z from "@/lib/zod";
 import { BountySchema } from "@/lib/zod/schemas/bounties";
-import { CommissionEnrichedSchema } from "@/lib/zod/schemas/commissions";
+import { CommissionWebhookSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -39,10 +39,10 @@ const enrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   createdAt: z.string(),
 });
 
-const commissionWebhookEventSchemaExtended = CommissionEnrichedSchema.extend({
+const commissionWebhookEventSchemaExtended = CommissionWebhookSchema.extend({
   createdAt: z.string().transform((str) => new Date(str)),
   updatedAt: z.string().transform((str) => new Date(str)),
-  partner: CommissionEnrichedSchema.shape.partner.extend({
+  partner: CommissionWebhookSchema.shape.partner.extend({
     payoutsEnabledAt: z
       .string()
       .transform((str) => (str ? new Date(str) : null))
