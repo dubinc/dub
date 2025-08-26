@@ -23,12 +23,12 @@ interface ProgramEnrollmentWithReward {
 
 export const determinePartnerReward = async ({
   event,
-  context,
   programEnrollment,
+  context,
 }: {
   event: EventType;
-  context?: RewardContext;
   programEnrollment: ProgramEnrollmentWithReward;
+  context?: RewardContext; // additional reward context (e.g. customer.country, sale.productId, etc.)
 }) => {
   let partnerReward: Reward =
     programEnrollment[REWARD_EVENT_COLUMN_MAPPING[event]];
