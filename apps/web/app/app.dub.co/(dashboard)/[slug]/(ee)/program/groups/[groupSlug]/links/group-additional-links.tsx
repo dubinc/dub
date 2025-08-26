@@ -3,13 +3,16 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
+import { AdditionalPartnerLink } from "@/lib/types";
 import {
   MAX_ADDITIONAL_PARTNER_LINKS,
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
-import { Button, LinkLogo, NumberStepper } from "@dub/ui";
-import { getApexDomain, getPrettyUrl } from "@dub/utils";
-import { PropsWithChildren } from "react";
+import { ThreeDots } from "@/ui/shared/icons";
+import { Button, LinkLogo, NumberStepper, Popover } from "@dub/ui";
+import { Trash } from "@dub/ui/icons";
+import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import { PropsWithChildren, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -18,7 +21,7 @@ import { useAddDestinationUrlModal } from "./add-edit-additional-partner-link-mo
 type FormData = Pick<z.input<typeof updateGroupSchema>, "maxPartnerLinks">;
 
 export function GroupAdditionalLinks() {
-  const { group } = useGroup();
+  const { group, loading } = useGroup();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
   const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({});
 
@@ -26,6 +29,7 @@ export function GroupAdditionalLinks() {
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { isDirty, isValid },
   } = useForm<FormData>({
     mode: "onBlur",
@@ -33,6 +37,15 @@ export function GroupAdditionalLinks() {
       maxPartnerLinks: group?.maxPartnerLinks,
     },
   });
+
+  // Reset form values when group data becomes available
+  useEffect(() => {
+    if (group) {
+      reset({
+        maxPartnerLinks: group.maxPartnerLinks,
+      });
+    }
+  }, [group, reset]);
 
   const onSubmit = async (data: FormData) => {
     if (!group) return;
@@ -74,7 +87,7 @@ export function GroupAdditionalLinks() {
               })
             }
             min={1}
-            max={999}
+            max={MAX_ADDITIONAL_PARTNER_LINKS}
             step={1}
             className="w-full"
           />
@@ -88,7 +101,7 @@ export function GroupAdditionalLinks() {
             <div className="flex flex-col gap-2">
               {additionalLinks.length > 0 &&
                 additionalLinks.map((link, index) => (
-                  <DestinationUrl key={index} link={link} linkIndex={index} />
+                  <DestinationUrl key={index} link={link} />
                 ))}
             </div>
 
@@ -145,44 +158,100 @@ function SettingsRow({
   );
 }
 
-function DestinationUrl({
-  link,
-  linkIndex,
-}: {
-  link: { url: string; urlValidationMode: string };
-  linkIndex: number;
-}) {
+function DestinationUrl({ link }: { link: AdditionalPartnerLink }) {
+  const { group } = useGroup();
+  const [openPopover, setOpenPopover] = useState(false);
+  const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
+
   const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({
-    linkIndex,
+    link,
   });
+
+  // Delete destination URL
+  const deleteDestinationUrl = async () => {
+    if (!group) return;
+
+    const currentAdditionalLinks = group.additionalLinks || [];
+    const updatedAdditionalLinks = currentAdditionalLinks.filter(
+      (existingLink) => existingLink.url !== link.url,
+    );
+
+    await updateGroup(`/api/groups/${group.id}`, {
+      method: "PATCH",
+      body: {
+        additionalLinks: updatedAdditionalLinks,
+      },
+      onSuccess: async () => {
+        await mutatePrefix("/api/groups");
+        setOpenPopover(false);
+        toast.success("Destination URL deleted successfully!");
+      },
+      onError: () => {
+        toast.error("Failed to delete destination URL. Please try again.");
+      },
+    });
+  };
 
   return (
     <>
-      <div
-        className="border-border-subtle group relative flex h-16 cursor-pointer items-center gap-3 rounded-xl border bg-white p-4 transition-all hover:border-neutral-300 hover:shadow-sm"
-        onClick={() => setIsOpen(true)}
-      >
-        <div className="relative flex shrink-0 items-center">
-          <div className="absolute inset-0 h-8 w-8 rounded-full border border-neutral-200 sm:h-10 sm:w-10">
-            <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
+      <div className="border-border-subtle group relative flex h-16 cursor-pointer items-center gap-3 rounded-xl border bg-white p-4 transition-all hover:border-neutral-300 hover:shadow-sm">
+        <div
+          className="flex flex-1 items-center gap-3"
+          onClick={() => setIsOpen(true)}
+        >
+          <div className="relative flex shrink-0 items-center">
+            <div className="absolute inset-0 h-8 w-8 rounded-full border border-neutral-200 sm:h-10 sm:w-10">
+              <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
+            </div>
+            <div className="relative z-10 p-2">
+              {link.url ? (
+                <LinkLogo
+                  apexDomain={getApexDomain(link.url)}
+                  className="size-4 sm:size-6"
+                  imageProps={{
+                    loading: "lazy",
+                  }}
+                />
+              ) : (
+                <div className="size-4 rounded-full bg-neutral-200 sm:size-6" />
+              )}
+            </div>
           </div>
-          <div className="relative z-10 p-2">
-            {link.url ? (
-              <LinkLogo
-                apexDomain={getApexDomain(link.url)}
-                className="size-4 sm:size-6"
-                imageProps={{
-                  loading: "lazy",
-                }}
-              />
-            ) : (
-              <div className="size-4 rounded-full bg-neutral-200 sm:size-6" />
-            )}
-          </div>
+          <span className="text-content-default truncate text-sm font-semibold">
+            {getPrettyUrl(link.url)}
+          </span>
         </div>
-        <span className="text-content-default truncate text-sm font-semibold">
-          {getPrettyUrl(link.url)}
-        </span>
+
+        <Popover
+          content={
+            <div className="grid w-48 grid-cols-1 gap-px p-2">
+              <Button
+                text="Delete destination URL"
+                variant="outline"
+                onClick={deleteDestinationUrl}
+                icon={<Trash className="size-4" />}
+                className="h-9 justify-start px-2 font-medium text-red-600 hover:text-red-700"
+                loading={isSubmitting}
+              />
+            </div>
+          }
+          align="end"
+          openPopover={openPopover}
+          setOpenPopover={setOpenPopover}
+        >
+          <Button
+            variant="secondary"
+            className={cn(
+              "h-8 w-8 shrink-0 p-0 outline-none transition-all duration-200",
+              "border-transparent group-hover:border-neutral-200 data-[state=open]:border-neutral-500",
+            )}
+            icon={<ThreeDots className="size-4" />}
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpenPopover(!openPopover);
+            }}
+          />
+        </Popover>
       </div>
 
       {addDestinationUrlModal}
