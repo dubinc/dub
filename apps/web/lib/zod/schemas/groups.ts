@@ -13,6 +13,12 @@ export const DEFAULT_PARTNER_GROUP = {
   color: null,
 } as const;
 
+export const defaultPartnerLinkSchema = z.object({
+  domain: z.string(),
+  url: z.string(),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
+});
+
 // This is the standard response we send for all /api/groups/** endpoints
 export const GroupSchema = z.object({
   id: z.string(),
@@ -23,6 +29,7 @@ export const GroupSchema = z.object({
   leadReward: RewardSchema.nullish(),
   saleReward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
+  defaultLinks: z.array(defaultPartnerLinkSchema).nullish(),
 });
 
 export const GroupSchemaExtended = GroupSchema.extend({
@@ -59,12 +66,6 @@ export const createGroupSchema = z.object({
     )
     .transform((val) => slugify(val)),
   color: z.enum(RESOURCE_COLORS).nullable(),
-});
-
-export const defaultPartnerLinkSchema = z.object({
-  domain: z.string(),
-  url: z.string(),
-  linkStructure: z.nativeEnum(PartnerLinkStructure),
 });
 
 export const updateGroupSchema = createGroupSchema.partial().extend({
