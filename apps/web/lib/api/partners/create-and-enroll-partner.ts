@@ -11,29 +11,31 @@ import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
+import { createDefaultPartnerLinks } from "./create-partner-link";
 
-export const createAndEnrollPartner = async ({
-  program,
-  workspace,
-  partner,
-  tenantId,
-  groupId,
-  status = "approved",
-  skipEnrollmentCheck = false,
-  enrolledAt,
-}: {
+interface CreateAndEnrollPartnerInput {
+  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled" | "plan">;
   program: Pick<ProgramProps, "id" | "defaultFolderId" | "defaultGroupId">;
-  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
-  partner: Pick<
-    CreatePartnerProps,
-    "email" | "name" | "image" | "country" | "description"
-  >;
-  tenantId?: string;
-  groupId?: string | null;
+  partner: Omit<CreatePartnerProps, "linkProps">;
+  link?: CreatePartnerProps["linkProps"];
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
   enrolledAt?: Date;
-}) => {
+  userId: string;
+}
+
+export const createAndEnrollPartner = async ({
+  workspace,
+  program,
+  partner,
+  link,
+  status = "approved",
+  skipEnrollmentCheck = false,
+  enrolledAt,
+  userId,
+}: CreateAndEnrollPartnerInput) => {
+  const { tenantId, groupId } = partner;
+
   if (!skipEnrollmentCheck && partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
@@ -129,8 +131,18 @@ export const createAndEnrollPartner = async ({
     },
   });
 
-  // TODO: [GROUP LINKS] Support creating links based on group defaults
-  const links = [];
+  // Create the partner links based on group defaults
+  const links = await createDefaultPartnerLinks({
+    workspace,
+    program,
+    partner: {
+      ...partner,
+      id: upsertedPartner.id,
+    },
+    group,
+    link,
+    userId,
+  });
 
   const enrolledPartner = EnrolledPartnerSchema.parse({
     ...upsertedPartner,

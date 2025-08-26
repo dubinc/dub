@@ -57,49 +57,48 @@ export const invitePartnerAction = authActionClient
     }
 
     const enrolledPartner = await createAndEnrollPartner({
-      program,
       workspace,
+      program,
       partner: {
         name,
         email,
+        ...(groupId && { groupId }),
       },
+      userId: user.id,
       skipEnrollmentCheck: true,
       status: "invited",
-      groupId,
     });
 
     waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          sendEmail({
-            subject: `${program.name} invited you to join Dub Partners`,
-            from: VARIANT_TO_FROM_MAP.notifications,
+      Promise.allSettled([
+        sendEmail({
+          subject: `${program.name} invited you to join Dub Partners`,
+          from: VARIANT_TO_FROM_MAP.notifications,
+          email,
+          react: PartnerInvite({
             email,
-            react: PartnerInvite({
-              email,
-              program: {
-                name: program.name,
-                slug: program.slug,
-                logo: program.logo,
-              },
-            }),
+            program: {
+              name: program.name,
+              slug: program.slug,
+              logo: program.logo,
+            },
           }),
+        }),
 
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "partner.invited",
-            description: `Partner ${enrolledPartner.id} invited`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: enrolledPartner.id,
-                metadata: enrolledPartner,
-              },
-            ],
-          }),
-        ]);
-      })(),
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "partner.invited",
+          description: `Partner ${enrolledPartner.id} invited`,
+          actor: user,
+          targets: [
+            {
+              type: "partner",
+              id: enrolledPartner.id,
+              metadata: enrolledPartner,
+            },
+          ],
+        }),
+      ]),
     );
   });

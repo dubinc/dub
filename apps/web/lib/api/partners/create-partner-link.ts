@@ -18,30 +18,47 @@ import { bulkCreateLinks } from "../links";
 import { createLink } from "../links/create-link";
 import { processLink } from "../links/process-link";
 
-interface PartnerLinkArgs {
+// TODO:
+// Simplify the interface
+
+interface CreatePartnerLinkInput {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: Pick<ProgramProps, "defaultFolderId" | "id">;
-  partner: Pick<
-    CreatePartnerProps,
-    "name" | "email" | "username" | "tenantId" | "linkProps"
-  >;
+  partner: Omit<CreatePartnerProps, "linkProps"> & { id?: string };
+  link: CreatePartnerProps["linkProps"] & {
+    domain: string;
+    url: string;
+    key?: string;
+  };
   userId: string;
-  partnerId?: string;
-  key?: string; // current key to use for the link
 }
 
-interface DefaultPartnerLinksInput extends PartnerLinkArgs {
-  group: Pick<PartnerGroup, "defaultLinks">;
+interface GeneratePartnerLinkInput {
+  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
+  program: Pick<ProgramProps, "defaultFolderId" | "id">;
+  partner: Omit<CreatePartnerProps, "linkProps"> & { id?: string };
+  link: CreatePartnerProps["linkProps"] & {
+    domain: string;
+    url: string;
+    key?: string;
+  };
+  userId: string;
 }
 
-/**
- * Create a partner link
- */
-export const createPartnerLink = async (args: PartnerLinkArgs) => {
-  const { workspace } = args;
+interface CreateDefaultPartnerLinksInput {
+  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
+  program: Pick<ProgramProps, "defaultFolderId" | "id">;
+  partner: Omit<CreatePartnerProps, "linkProps"> & { id?: string };
+  link?: CreatePartnerProps["linkProps"];
+  userId: string;
+  group: Pick<PartnerGroup, "id" | "defaultLinks">;
+}
 
-  const link = await generatePartnerLink(args);
+// Create a partner link
+export const createPartnerLink = async (input: CreatePartnerLinkInput) => {
+  const { workspace } = input;
 
+  const link = await generatePartnerLink(input);
   const partnerLink = await createLink(link);
 
   waitUntil(
@@ -55,27 +72,22 @@ export const createPartnerLink = async (args: PartnerLinkArgs) => {
   return partnerLink;
 };
 
-/**
- * Generates and processes a partner link without creating it
- */
+// Generates and processes a partner link without creating it
 export const generatePartnerLink = async ({
   workspace,
   program,
   partner,
+  link,
   userId,
-  partnerId,
-  key,
-  domain,
-  url,
-}: PartnerLinkArgs) => {
+}: GeneratePartnerLinkInput) => {
   const { name, email, username } = partner;
 
-  let link: ProcessedLinkProps;
+  let processedLink: ProcessedLinkProps;
   let error: string | null;
   let code: ErrorCodes | null;
 
   // generate a key for the link
-  let currentKey = key;
+  let currentKey = link.key;
   if (!currentKey) {
     if (username) {
       currentKey = username;
@@ -91,15 +103,13 @@ export const generatePartnerLink = async ({
       workspace,
       userId,
       payload: {
-        ...partner.linkProps,
-        tenantId: partner.tenantId,
-        domain,
+        ...link,
         key: currentKey,
-        url,
+        trackConversion: true,
         programId: program.id,
         folderId: program.defaultFolderId,
-        trackConversion: true,
-        partnerId,
+        partnerId: partner.id,
+        tenantId: partner.tenantId,
       },
     });
 
@@ -112,7 +122,7 @@ export const generatePartnerLink = async ({
     }
 
     // if we get here, either there was a different error or it succeeded
-    link = result.link as ProcessedLinkProps;
+    processedLink = result.link as ProcessedLinkProps;
     error = result.error;
     code = result.code as ErrorCodes;
     break;
@@ -125,32 +135,88 @@ export const generatePartnerLink = async ({
     });
   }
 
-  return link;
+  return processedLink;
 };
 
 // Create default partner links based on group defaults
-export const createDefaultPartnerLinks = async (
-  input: DefaultPartnerLinksInput,
-) => {
-  const defaultLinks = z
+export const createDefaultPartnerLinks = async ({
+  workspace,
+  program,
+  partner,
+  group,
+  link,
+  userId,
+}: CreateDefaultPartnerLinksInput) => {
+  const result = z
     .array(defaultPartnerLinkSchema)
-    .parse(input.group.defaultLinks);
+    .safeParse(group.defaultLinks);
 
-  const generatedLinks = (
+  if (!result.success) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Invalid defaultLinks settings for the group ${group.id}.`,
+    });
+  }
+
+  const defaultLinks = result.data;
+  const hasMoreThanOneLink = defaultLinks.length > 1;
+
+  const processedLinks = (
     await Promise.allSettled(
-      defaultLinks.map(({ domain, url }) =>
-        generatePartnerLink({
-          ...input,
-          domain,
-          url,
-        }),
-      ),
+      defaultLinks.map(({ domain, url }) => {
+        let key = deriveKey({
+          username: partner.username,
+          name: partner.name,
+          email: partner.email,
+        });
+
+        key = !hasMoreThanOneLink ? key : `${key}-${nanoid(4).toLowerCase()}`;
+
+        return generatePartnerLink({
+          workspace,
+          program,
+          partner,
+          link: {
+            ...link,
+            domain,
+            url,
+            key,
+          },
+          userId,
+        });
+      }),
     )
   )
     .filter(isFulfilled)
     .map(({ value }) => value);
 
   return await bulkCreateLinks({
-    links: generatedLinks,
+    links: processedLinks,
   });
+};
+
+const deriveKey = ({
+  key,
+  username,
+  name,
+  email,
+}: {
+  key?: string;
+  username?: string | null;
+  name?: string | null;
+  email: string;
+}) => {
+  if (key) {
+    return key;
+  }
+
+  if (username) {
+    return username;
+  }
+
+  if (name) {
+    return slugify(name);
+  }
+
+  return slugify(email.split("@")[0]);
 };
