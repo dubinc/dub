@@ -1,19 +1,22 @@
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { prisma } from "@dub/prisma";
-import { Prisma, Reward } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 
 export async function getProgramEnrollmentOrThrow({
   partnerId,
   programId,
   includePartner = false,
-  includeRewards = false,
+  includeClickReward = false,
+  includeLeadReward = false,
+  includeSaleReward = false,
   includeDiscount = false,
 }: {
   partnerId: string;
   programId: string;
   includePartner?: boolean;
-  includeRewards?: boolean;
+  includeClickReward?: boolean;
+  includeLeadReward?: boolean;
+  includeSaleReward?: boolean;
   includeDiscount?: boolean;
 }) {
   const include: Prisma.ProgramEnrollmentInclude = {
@@ -26,9 +29,13 @@ export async function getProgramEnrollmentOrThrow({
     ...(includePartner && {
       partner: true,
     }),
-    ...(includeRewards && {
+    ...(includeClickReward && {
       clickReward: true,
+    }),
+    ...(includeLeadReward && {
       leadReward: true,
+    }),
+    ...(includeSaleReward && {
       saleReward: true,
     }),
     ...(includeDiscount && {
@@ -64,27 +71,5 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  const { links } = programEnrollment;
-
-  if (!links) {
-    throw new DubApiError({
-      code: "not_found",
-      message:
-        "You don't have a link for this program yet. Contact your program admin to get one.",
-    });
-  }
-
-  return {
-    ...programEnrollment,
-    ...(includeRewards && {
-      rewards: sortRewardsByEventOrder(
-        [
-          programEnrollment.clickReward,
-          programEnrollment.leadReward,
-          programEnrollment.saleReward,
-        ].filter((r): r is Reward => r !== null),
-      ),
-    }),
-    links,
-  };
+  return programEnrollment;
 }
