@@ -2,12 +2,10 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
-import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { isStored, storage } from "@/lib/storage";
 import { toltImporter } from "@/lib/tolt/importer";
-import { WorkspaceProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
@@ -265,19 +263,8 @@ async function invitePartner({
   };
   userId: string;
 }) {
-  const partnerLink = await createPartnerLink({
-    workspace: workspace as WorkspaceProps,
-    program,
-    partner: {
-      name: partner.email.split("@")[0],
-      email: partner.email,
-    },
-    userId,
-  });
-
   await createAndEnrollPartner({
     program,
-    link: partnerLink,
     workspace,
     partner: {
       name: partner.email.split("@")[0],

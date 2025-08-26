@@ -2,13 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { isStored, storage } from "@/lib/storage";
-import { recordLink } from "@/lib/tinybird";
-import {
-  CreatePartnerProps,
-  ProgramPartnerLinkProps,
-  ProgramProps,
-  WorkspaceProps,
-} from "@/lib/types";
+import { CreatePartnerProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -17,14 +11,10 @@ import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
-import { linkCache } from "../links/cache";
-import { includeTags } from "../links/include-tags";
-import { backfillLinkCommissions } from "./backfill-link-commissions";
 
 export const createAndEnrollPartner = async ({
   program,
   workspace,
-  link,
   partner,
   tenantId,
   groupId,
@@ -34,7 +24,6 @@ export const createAndEnrollPartner = async ({
 }: {
   program: Pick<ProgramProps, "id" | "defaultFolderId" | "defaultGroupId">;
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
-  link: ProgramPartnerLinkProps;
   partner: Pick<
     CreatePartnerProps,
     "email" | "name" | "image" | "country" | "description"
@@ -104,11 +93,6 @@ export const createAndEnrollPartner = async ({
         programId: program.id,
         tenantId,
         status,
-        links: {
-          connect: {
-            id: link.id,
-          },
-        },
         groupId: group.id,
         clickRewardId: group.clickRewardId,
         leadRewardId: group.leadRewardId,
@@ -144,47 +128,18 @@ export const createAndEnrollPartner = async ({
     },
   });
 
+  // TODO: [GROUP LINKS] Support creating links based on group defaults
+  const links = [];
+
   const enrolledPartner = EnrolledPartnerSchema.parse({
     ...upsertedPartner,
     ...upsertedPartner.programs[0],
     id: upsertedPartner.id,
-    links: [link],
+    links,
   });
 
   waitUntil(
     Promise.all([
-      // update and record link
-      prisma.link
-        .update({
-          where: {
-            id: link.id,
-          },
-          data: {
-            programId: program.id,
-            partnerId: upsertedPartner.id,
-            folderId: program.defaultFolderId,
-            trackConversion: true,
-          },
-          include: includeTags,
-        })
-        .then((link) =>
-          Promise.allSettled([
-            linkCache.delete({
-              domain: link.domain,
-              key: link.key,
-            }),
-
-            recordLink(link),
-
-            link.saleAmount > 0 &&
-              backfillLinkCommissions({
-                id: link.id,
-                partnerId: upsertedPartner.id,
-                programId: program.id,
-              }),
-          ]),
-        ),
-
       // upload partner image to R2
       partner.image &&
         !isStored(partner.image) &&
