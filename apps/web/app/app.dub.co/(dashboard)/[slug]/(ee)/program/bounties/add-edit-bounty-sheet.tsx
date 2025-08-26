@@ -99,9 +99,14 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       type: bounty?.type || "performance",
       submissionRequirements: bounty?.submissionRequirements || null,
       groupIds: bounty?.groups?.map(({ id }) => id) || null,
-      performanceCondition: bounty?.performanceCondition || {
-        operator: "gte",
-      },
+      performanceCondition: bounty?.performanceCondition
+        ? {
+            ...bounty.performanceCondition,
+            value: bounty.performanceCondition.value / 100,
+          }
+        : {
+            operator: "gte",
+          },
     },
   });
 
