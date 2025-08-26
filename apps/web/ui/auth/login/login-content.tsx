@@ -57,7 +57,7 @@ export function LoginContent({
           />
         </motion.div>
       </motion.div>
-      {!authModal && (
+      {/* {!authModal && (
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -83,7 +83,7 @@ export function LoginContent({
             </Link>
           )}
         </motion.p>
-      )}
+      )} */}
     </>
   );
 }
