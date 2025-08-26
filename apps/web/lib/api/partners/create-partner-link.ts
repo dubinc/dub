@@ -6,17 +6,21 @@ import {
   WorkspaceProps,
 } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { defaultPartnerLinkSchema } from "@/lib/zod/schemas/groups";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
-import { nanoid } from "@dub/utils";
+import { isFulfilled, nanoid } from "@dub/utils";
+import { PartnerGroup } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
+import { z } from "zod";
 import { DubApiError } from "../errors";
+import { bulkCreateLinks } from "../links";
 import { createLink } from "../links/create-link";
 import { processLink } from "../links/process-link";
 
-type PartnerLinkArgs = {
+interface PartnerLinkArgs {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: Pick<ProgramProps, "defaultFolderId" | "domain" | "url" | "id">;
+  program: Pick<ProgramProps, "defaultFolderId" | "id">;
   partner: Pick<
     CreatePartnerProps,
     "name" | "email" | "username" | "tenantId" | "linkProps"
@@ -24,6 +28,41 @@ type PartnerLinkArgs = {
   userId: string;
   partnerId?: string;
   key?: string; // current key to use for the link
+  domain?: string;
+  url?: string;
+}
+
+interface DefaultPartnerLinksInput extends PartnerLinkArgs {
+  group: Pick<PartnerGroup, "defaultLinks">;
+}
+
+// Create default partner links based on group defaults
+export const createDefaultPartnerLinks = async (
+  input: DefaultPartnerLinksInput,
+) => {
+  const defaultLinks = z
+    .array(defaultPartnerLinkSchema)
+    .parse(input.group.defaultLinks);
+
+  const generatedLinks = (
+    await Promise.allSettled(
+      defaultLinks.map(({ domain, url }) =>
+        generatePartnerLink({
+          ...input,
+          domain,
+          url,
+        }),
+      ),
+    )
+  )
+    .filter(isFulfilled)
+    .map(({ value }) => value);
+
+  const partnerLinks = await bulkCreateLinks({
+    links: generatedLinks,
+  });
+
+  return partnerLinks;
 };
 
 /**
@@ -57,15 +96,9 @@ export const generatePartnerLink = async ({
   userId,
   partnerId,
   key,
+  domain,
+  url,
 }: PartnerLinkArgs) => {
-  if (!program.domain || !program.url) {
-    throw new DubApiError({
-      code: "bad_request",
-      message:
-        "You need to set a domain and url for this program before creating a partner.",
-    });
-  }
-
   const { name, email, username } = partner;
 
   let link: ProcessedLinkProps;
@@ -91,9 +124,9 @@ export const generatePartnerLink = async ({
       payload: {
         ...partner.linkProps,
         tenantId: partner.tenantId,
-        domain: program.domain,
+        domain,
         key: currentKey,
-        url: program.url,
+        url,
         programId: program.id,
         folderId: program.defaultFolderId,
         trackConversion: true,

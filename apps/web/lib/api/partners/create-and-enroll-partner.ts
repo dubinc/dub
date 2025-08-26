@@ -72,6 +72,7 @@ export const createAndEnrollPartner = async ({
   }
 
   const finalGroupId = groupId || program.defaultGroupId;
+
   // this should never happen, but just in case
   if (!finalGroupId) {
     throw new DubApiError({
