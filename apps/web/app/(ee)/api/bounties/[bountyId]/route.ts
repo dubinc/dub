@@ -58,6 +58,9 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
     programId,
   });
 
+  // TODO:
+  // When we do archive, make sure it disables the workflow
+
   const groups = groupIds?.length
     ? await prisma.partnerGroup.findMany({
         where: {

@@ -17,6 +17,7 @@ model Workflow {
   triggerType       WorkflowTriggerType @default(event)
   triggerConditions Json
   actions           Json
+  disabledAt        DateTime?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
