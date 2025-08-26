@@ -28,42 +28,11 @@ interface PartnerLinkArgs {
   userId: string;
   partnerId?: string;
   key?: string; // current key to use for the link
-  domain?: string;
-  url?: string;
 }
 
 interface DefaultPartnerLinksInput extends PartnerLinkArgs {
   group: Pick<PartnerGroup, "defaultLinks">;
 }
-
-// Create default partner links based on group defaults
-export const createDefaultPartnerLinks = async (
-  input: DefaultPartnerLinksInput,
-) => {
-  const defaultLinks = z
-    .array(defaultPartnerLinkSchema)
-    .parse(input.group.defaultLinks);
-
-  const generatedLinks = (
-    await Promise.allSettled(
-      defaultLinks.map(({ domain, url }) =>
-        generatePartnerLink({
-          ...input,
-          domain,
-          url,
-        }),
-      ),
-    )
-  )
-    .filter(isFulfilled)
-    .map(({ value }) => value);
-
-  const partnerLinks = await bulkCreateLinks({
-    links: generatedLinks,
-  });
-
-  return partnerLinks;
-};
 
 /**
  * Create a partner link
@@ -157,4 +126,31 @@ export const generatePartnerLink = async ({
   }
 
   return link;
+};
+
+// Create default partner links based on group defaults
+export const createDefaultPartnerLinks = async (
+  input: DefaultPartnerLinksInput,
+) => {
+  const defaultLinks = z
+    .array(defaultPartnerLinkSchema)
+    .parse(input.group.defaultLinks);
+
+  const generatedLinks = (
+    await Promise.allSettled(
+      defaultLinks.map(({ domain, url }) =>
+        generatePartnerLink({
+          ...input,
+          domain,
+          url,
+        }),
+      ),
+    )
+  )
+    .filter(isFulfilled)
+    .map(({ value }) => value);
+
+  return await bulkCreateLinks({
+    links: generatedLinks,
+  });
 };
