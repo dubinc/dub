@@ -11,7 +11,7 @@ import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
-import { createDefaultPartnerLinks } from "./create-partner-link";
+import { createDefaultPartnerLinks } from "./create-default-partner-links";
 
 interface CreateAndEnrollPartnerInput {
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled" | "plan">;

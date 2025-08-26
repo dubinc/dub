@@ -6,20 +6,13 @@ import {
   WorkspaceProps,
 } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { defaultPartnerLinkSchema } from "@/lib/zod/schemas/groups";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
-import { isFulfilled, nanoid } from "@dub/utils";
-import { PartnerGroup } from "@prisma/client";
+import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
 import { DubApiError } from "../errors";
-import { bulkCreateLinks } from "../links";
 import { createLink } from "../links/create-link";
 import { processLink } from "../links/process-link";
-
-// TODO:
-// Simplify the interface
 
 interface CreatePartnerLinkInput {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
@@ -33,26 +26,7 @@ interface CreatePartnerLinkInput {
   userId: string;
 }
 
-interface GeneratePartnerLinkInput {
-  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: Pick<ProgramProps, "defaultFolderId" | "id">;
-  partner: Omit<CreatePartnerProps, "linkProps"> & { id?: string };
-  link: CreatePartnerProps["linkProps"] & {
-    domain: string;
-    url: string;
-    key?: string;
-  };
-  userId: string;
-}
-
-interface CreateDefaultPartnerLinksInput {
-  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: Pick<ProgramProps, "defaultFolderId" | "id">;
-  partner: Pick<CreatePartnerProps, "name" | "email" | "username" | "tenantId"> & { id?: string };
-  link?: CreatePartnerProps["linkProps"];
-  userId: string;
-  group: Pick<PartnerGroup, "id" | "defaultLinks">;
-}
+interface GeneratePartnerLinkInput extends CreatePartnerLinkInput {}
 
 // Create a partner link
 export const createPartnerLink = async (input: CreatePartnerLinkInput) => {
@@ -87,16 +61,12 @@ export const generatePartnerLink = async ({
   let code: ErrorCodes | null;
 
   // generate a key for the link
-  let currentKey = link.key;
-  if (!currentKey) {
-    if (username) {
-      currentKey = username;
-    } else if (name) {
-      currentKey = slugify(name);
-    } else {
-      currentKey = slugify(email.split("@")[0]);
-    }
-  }
+  let currentKey = derivePartnerLinkKey({
+    key: link.key,
+    username,
+    name,
+    email,
+  });
 
   while (true) {
     const result = await processLink({
@@ -138,64 +108,7 @@ export const generatePartnerLink = async ({
   return processedLink;
 };
 
-// Create default partner links based on group defaults
-export const createDefaultPartnerLinks = async ({
-  workspace,
-  program,
-  partner,
-  group,
-  link,
-  userId,
-}: CreateDefaultPartnerLinksInput) => {
-  const result = z
-    .array(defaultPartnerLinkSchema)
-    .safeParse(group.defaultLinks);
-
-  if (!result.success) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: `Invalid defaultLinks settings for the group ${group.id}.`,
-    });
-  }
-
-  const defaultLinks = result.data;
-  const hasMoreThanOneLink = defaultLinks.length > 1;
-
-  const processedLinks = (
-    await Promise.allSettled(
-      defaultLinks.map(({ domain, url }) => {
-        let key = deriveKey({
-          username: partner.username,
-          name: partner.name,
-          email: partner.email,
-        });
-
-        key = !hasMoreThanOneLink ? key : `${key}-${nanoid(4).toLowerCase()}`;
-
-        return generatePartnerLink({
-          workspace,
-          program,
-          partner,
-          link: {
-            ...link,
-            domain,
-            url,
-            key,
-          },
-          userId,
-        });
-      }),
-    )
-  )
-    .filter(isFulfilled)
-    .map(({ value }) => value);
-
-  return await bulkCreateLinks({
-    links: processedLinks,
-  });
-};
-
-const deriveKey = ({
+export function derivePartnerLinkKey({
   key,
   username,
   name,
@@ -205,7 +118,7 @@ const deriveKey = ({
   username?: string | null;
   name?: string | null;
   email: string;
-}) => {
+}) {
   if (key) {
     return key;
   }
@@ -219,4 +132,4 @@ const deriveKey = ({
   }
 
   return slugify(email.split("@")[0]);
-};
+}

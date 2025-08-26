@@ -6,7 +6,7 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
-import { createDefaultPartnerLinks } from "../api/partners/create-partner-link";
+import { createDefaultPartnerLinks } from "../api/partners/create-default-partner-links";
 import { RewardProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
