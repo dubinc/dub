@@ -217,7 +217,7 @@ function TargetingModal({
                           />
                         </div>
                         <input
-                          type="text"
+                          type="url"
                           id={`${id}-${key}`}
                           placeholder="https://example.com"
                           className="z-0 h-full grow rounded-r-md border border-neutral-300 text-sm placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:ring-neutral-500"
@@ -306,6 +306,7 @@ function TargetingModal({
                   id={`${id}-ios-url`}
                   placeholder="https://apps.apple.com/app/1611158928"
                   className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  type="url"
                   {...register("ios", {
                     onBlur: (e) => {
                       const newParams = getNewParams(e.target.value);
@@ -346,6 +347,7 @@ function TargetingModal({
                   id={`${id}-android-url`}
                   placeholder="https://play.google.com/store/apps/details?id=com.disney.disneyplus"
                   className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  type="url"
                   {...register("android", {
                     onBlur: (e) => {
                       const newParams = getNewParams(e.target.value);
