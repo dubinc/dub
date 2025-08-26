@@ -48,7 +48,7 @@ interface GeneratePartnerLinkInput {
 interface CreateDefaultPartnerLinksInput {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: Pick<ProgramProps, "defaultFolderId" | "id">;
-  partner: Omit<CreatePartnerProps, "linkProps"> & { id?: string };
+  partner: Pick<CreatePartnerProps, "name" | "email" | "username" | "tenantId"> & { id?: string };
   link?: CreatePartnerProps["linkProps"];
   userId: string;
   group: Pick<PartnerGroup, "id" | "defaultLinks">;

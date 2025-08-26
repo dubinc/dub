@@ -4,13 +4,11 @@ import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
-import { createPartnerLink } from "../api/partners/create-partner-link";
+import { createDefaultPartnerLinks } from "../api/partners/create-partner-link";
 import { RewardProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
-import { defaultPartnerLinkSchema } from "../zod/schemas/groups";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 
 export async function approvePartnerEnrollment({
@@ -82,29 +80,22 @@ export async function approvePartnerEnrollment({
   const { partner, ...enrollment } = programEnrollment;
   const workspace = program.workspace as WorkspaceProps;
 
-  // Create partner links based on group defaults
-  const partnerLinks: Awaited<ReturnType<typeof createPartnerLink>>[] = [];
+  const partnerLinks = await createDefaultPartnerLinks({
+    workspace,
+    program,
+    partner: {
+      id: partner.id,
+      name: partner.name,
+      email: partner.email!,
+    },
+    group: {
+      id: group.id,
+      defaultLinks: group.defaultLinks,
+    },
+    userId,
+  });
 
-  const defaultLinks = z
-    .array(defaultPartnerLinkSchema)
-    .parse(group.defaultLinks || []);
-
-  for (const { domain, url } of defaultLinks) {
-    const partnerLink = await createPartnerLink({
-      workspace,
-      program,
-      partner: {
-        name: partner.name,
-        email: partner.email!,
-      },
-      userId,
-      partnerId,
-      domain,
-      url,
-    });
-
-    partnerLinks.push(partnerLink);
-  }
+  console.log(partnerLinks);
 
   waitUntil(
     (async () => {

@@ -70,6 +70,7 @@ export async function POST(req: Request) {
       programId,
       partnerId,
       userId: program.workspace.users[0].userId,
+      groupId: program.partners[0].groupId,
     });
 
     return new Response("Partner is auto-approved.");

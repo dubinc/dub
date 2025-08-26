@@ -139,7 +139,10 @@ export const createAndEnrollPartner = async ({
       ...partner,
       id: upsertedPartner.id,
     },
-    group,
+    group: {
+      id: group.id,
+      defaultLinks: group.defaultLinks,
+    },
     link,
     userId,
   });
