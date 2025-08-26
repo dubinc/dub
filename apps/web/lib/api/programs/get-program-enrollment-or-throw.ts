@@ -71,15 +71,5 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  const { links } = programEnrollment;
-
-  if (!links) {
-    throw new DubApiError({
-      code: "not_found",
-      message:
-        "You don't have a link for this program yet. Contact your program admin to get one.",
-    });
-  }
-
   return programEnrollment;
 }
