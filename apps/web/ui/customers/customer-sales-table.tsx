@@ -1,6 +1,6 @@
 import { CommissionResponse, SaleEvent } from "@/lib/types";
 import { StatusBadge } from "@dub/ui";
-import { currencyFormatter, formatDateTimeSmart } from "@dub/utils";
+import { currencyFormatter, formatDateTimeSmart, nFormatter } from "@dub/utils";
 import {
   flexRender,
   getCoreRowModel,
@@ -143,7 +143,9 @@ export function CustomerSalesTable({
               href={viewAllHref ?? "#"}
               className="flex items-center gap-1.5 font-medium text-neutral-700 hover:text-neutral-900"
             >
-              {totalSales ?? (
+              {totalSales ? (
+                nFormatter(totalSales, { full: true })
+              ) : (
                 <div className="size-3 animate-pulse rounded-md bg-neutral-100" />
               )}{" "}
               results
