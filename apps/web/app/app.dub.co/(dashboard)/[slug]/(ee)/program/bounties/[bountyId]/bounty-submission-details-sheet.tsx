@@ -222,7 +222,9 @@ function BountySubmissionDetailsSheetContent({
                 ? "Bounty submission already rejected."
                 : undefined
             }
-            disabled={isApprovingBountySubmission}
+            disabled={
+              isApprovingBountySubmission || submission.status === "approved"
+            }
             onClick={() => setShowRejectModal(true)}
           />
 
