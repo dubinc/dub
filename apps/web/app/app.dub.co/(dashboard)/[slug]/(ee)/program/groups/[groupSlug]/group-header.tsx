@@ -12,7 +12,7 @@ import {
   ChevronRight,
   Discount,
   Gift,
-  Link4,
+  Hyperlink,
   Post,
   Sliders,
   Users,
@@ -80,7 +80,7 @@ export function GroupHeaderTabs() {
     {
       id: "links",
       label: "Links",
-      icon: Link4,
+      icon: Hyperlink,
       external: false,
       getHref: (group: GroupProps) =>
         `/${slug}/program/groups/${group.slug}/links`,

@@ -36,7 +36,11 @@ import {
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
-import { GroupSchema, GroupSchemaExtended } from "./zod/schemas/groups";
+import {
+  defaultPartnerLinkSchema,
+  GroupSchema,
+  GroupSchemaExtended,
+} from "./zod/schemas/groups";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -510,3 +514,5 @@ export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 export type GroupProps = z.infer<typeof GroupSchema>;
 
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
+
+export type DefaultPartnerLink = z.infer<typeof defaultPartnerLinkSchema>;

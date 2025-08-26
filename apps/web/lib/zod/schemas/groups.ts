@@ -1,4 +1,5 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
+import { PartnerLinkStructure } from "@dub/prisma/client";
 import { validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
@@ -95,4 +96,10 @@ export const getGroupsQuerySchema = z
 
 export const getGroupsCountQuerySchema = z.object({
   search: z.string().optional(),
+});
+
+export const defaultPartnerLinkSchema = z.object({
+  domain: z.string(),
+  url: z.string(),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
 });
