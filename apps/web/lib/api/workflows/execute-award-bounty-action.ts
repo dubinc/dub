@@ -83,6 +83,7 @@ export const executeAwardBountyAction = async ({
     programId: bounty.programId,
     amount: bounty.rewardAmount,
     quantity: 1,
+    description: `Commission for successfully completed "${bounty.name}" bounty.`,
   });
 
   if (!commission) {
