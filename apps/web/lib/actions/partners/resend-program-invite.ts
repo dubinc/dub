@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { sendEmail } from "@dub/email";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerInvite from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import z from "../../zod";
@@ -52,6 +53,7 @@ export const resendProgramInviteAction = authActionClient
     await Promise.allSettled([
       sendEmail({
         subject: `${program.name} invited you to join Dub Partners`,
+        from: VARIANT_TO_FROM_MAP.notifications,
         email: partner.email!,
         react: PartnerInvite({
           email: partner.email!,
