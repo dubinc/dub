@@ -61,7 +61,15 @@ export const createGroupSchema = z.object({
   color: z.enum(RESOURCE_COLORS).nullable(),
 });
 
-export const updateGroupSchema = createGroupSchema.partial();
+export const defaultPartnerLinkSchema = z.object({
+  domain: z.string(),
+  url: z.string(),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
+});
+
+export const updateGroupSchema = createGroupSchema.partial().extend({
+  defaultPartnerLink: defaultPartnerLinkSchema.optional(),
+});
 
 export const changeGroupSchema = z.object({
   partnerIds: z.array(z.string()).min(1),
@@ -96,10 +104,4 @@ export const getGroupsQuerySchema = z
 
 export const getGroupsCountQuerySchema = z.object({
   search: z.string().optional(),
-});
-
-export const defaultPartnerLinkSchema = z.object({
-  domain: z.string(),
-  url: z.string(),
-  linkStructure: z.nativeEnum(PartnerLinkStructure),
 });
