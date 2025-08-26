@@ -75,7 +75,7 @@ export function QRCardAnalyticsBadge({
                 >
                   <Icon
                     icon="streamline:graph"
-                    className="text-secondary h-[14px] w-[14px]"
+                    className="text-secondary h-[14px] w-[14px] hidden lg:block"
                   />
                   <span>
                     {tab === "sales"
