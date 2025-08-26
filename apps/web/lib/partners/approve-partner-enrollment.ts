@@ -88,14 +88,9 @@ export async function approvePartnerEnrollment({
       name: partner.name,
       email: partner.email!,
     },
-    group: {
-      id: group.id,
-      defaultLinks: group.defaultLinks,
-    },
+    group,
     userId,
   });
-
-  console.log(partnerLinks);
 
   waitUntil(
     (async () => {
