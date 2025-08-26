@@ -6,6 +6,7 @@ import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { RewardSchema } from "./rewards";
+import { parseUrlSchema } from "./utils";
 
 export const DEFAULT_PARTNER_GROUP = {
   name: "Default Group",
@@ -13,9 +14,11 @@ export const DEFAULT_PARTNER_GROUP = {
   color: null,
 } as const;
 
+export const MAX_DEFAULT_PARTNER_LINKS = 5;
+
 export const defaultPartnerLinkSchema = z.object({
   domain: z.string(),
-  url: z.string(),
+  url: parseUrlSchema,
   linkStructure: z.nativeEnum(PartnerLinkStructure),
 });
 
@@ -69,7 +72,10 @@ export const createGroupSchema = z.object({
 });
 
 export const updateGroupSchema = createGroupSchema.partial().extend({
-  defaultPartnerLink: defaultPartnerLinkSchema.optional(),
+  defaultLinks: z
+    .array(defaultPartnerLinkSchema)
+    .max(MAX_DEFAULT_PARTNER_LINKS)
+    .optional(),
 });
 
 export const changeGroupSchema = z.object({

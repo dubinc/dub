@@ -1,8 +1,11 @@
 "use client";
 
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import { DefaultPartnerLink } from "@/lib/types";
+import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { DomainSelector } from "@/ui/domains/domain-selector";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
@@ -23,11 +26,12 @@ import {
   useState,
 } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { PartnerLinkPreview } from "./partner-link-preview";
 
 interface DefaultPartnerLinkSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  linkIndex?: number; // the index of link in the defaultLinks array
+  linkIndex?: number;
 }
 
 function DefaultPartnerLinkSheetContent({
@@ -35,9 +39,8 @@ function DefaultPartnerLinkSheetContent({
   linkIndex,
 }: DefaultPartnerLinkSheetProps) {
   const { group } = useGroup();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
-  // Find the link from group.defaultLinks using the linkIndex
   const link =
     linkIndex !== undefined && group?.defaultLinks
       ? group.defaultLinks[linkIndex]
@@ -62,15 +65,62 @@ function DefaultPartnerLinkSheetContent({
     url,
   });
 
+  // Save the default link
   const onSubmit = async (data: DefaultPartnerLink) => {
-    //
+    if (!group) {
+      return;
+    }
+
+    // Check if we're at the maximum number of default links
+    const hasReachedMaxLinks =
+      (group?.defaultLinks?.length || 0) >= MAX_DEFAULT_PARTNER_LINKS;
+
+    if (linkIndex === undefined && hasReachedMaxLinks) {
+      toast.error(
+        `You can only create up to ${MAX_DEFAULT_PARTNER_LINKS} default links.`,
+      );
+      return;
+    }
+
+    let updatedDefaultLinks: DefaultPartnerLink[];
+    const currentDefaultLinks = group.defaultLinks || [];
+
+    if (linkIndex !== undefined) {
+      // Editing existing link
+      updatedDefaultLinks = [...currentDefaultLinks];
+      updatedDefaultLinks[linkIndex] = data;
+    } else {
+      // Creating new link
+      updatedDefaultLinks = [...currentDefaultLinks, data];
+    }
+
+    await updateGroup(`/api/groups/${group.id}`, {
+      method: "PATCH",
+      body: {
+        defaultLinks: updatedDefaultLinks,
+      },
+      onSuccess: async () => {
+        await mutatePrefix("/api/groups");
+        setIsOpen(false);
+        toast.success(
+          linkIndex !== undefined
+            ? "Link updated successfully!"
+            : "Link created successfully!",
+        );
+      },
+      onError: () => {
+        toast.error("Failed to save link. Please try again.");
+      },
+    });
   };
+
+  const isEditing = linkIndex !== undefined && link;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
         <Sheet.Title className="text-lg font-semibold">
-          Create default link
+          {isEditing ? "Edit default link" : "Create default link"}
         </Sheet.Title>
         <Sheet.Close asChild>
           <Button
@@ -223,7 +273,7 @@ function DefaultPartnerLinkSheetContent({
           <Button
             type="submit"
             variant="primary"
-            text="Update link settings"
+            text={isEditing ? "Update link" : "Create link"}
             className="w-fit"
             loading={isSubmitting}
             disabled={!domain || !url || isSubmitting}
@@ -252,7 +302,7 @@ function LinkSettingsCard({
   );
 }
 
-export function DefaultPartnerLinkSheet({
+function DefaultPartnerLinkSheet({
   isOpen,
   ...rest
 }: DefaultPartnerLinkSheetProps & {

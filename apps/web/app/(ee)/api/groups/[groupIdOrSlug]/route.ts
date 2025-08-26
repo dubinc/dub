@@ -51,7 +51,7 @@ export const PATCH = withWorkspace(
       groupId: params.groupIdOrSlug,
     });
 
-    const { name, slug, color } = updateGroupSchema.parse(
+    const { name, slug, color, defaultLinks } = updateGroupSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -89,6 +89,7 @@ export const PATCH = withWorkspace(
         name,
         slug,
         color,
+        defaultLinks,
       },
       include: {
         clickReward: true,
