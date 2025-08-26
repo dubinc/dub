@@ -531,7 +531,6 @@ export default function Toggle({
       onOpenFilter={(key) =>
         setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
       }
-      askAI
     />
   );
 
