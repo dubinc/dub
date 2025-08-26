@@ -158,5 +158,8 @@ export const DELETE = withWorkspace(async ({ workspace, params }) => {
     }
   });
 
+  // TODO:
+  // We should also delete the files submitted for the bounty from R2.
+
   return NextResponse.json({ id: bountyId });
 });
