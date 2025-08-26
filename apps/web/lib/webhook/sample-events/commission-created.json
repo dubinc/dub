@@ -22,6 +22,7 @@
     "totalLeads": 15,
     "totalConversions": 10,
     "totalSales": 10,
+    "totalSaleAmount": 100000,
     "totalCommissions": 50000
   },
   "customer": {

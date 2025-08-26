@@ -57,6 +57,7 @@ export const CommissionWebhookSchema = CommissionSchema.merge(
         totalLeads: z.number(),
         totalConversions: z.number(),
         totalSales: z.number(),
+        totalSaleAmount: z.number(),
         totalCommissions: z.number(),
       }),
     ),
