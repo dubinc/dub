@@ -14,7 +14,11 @@ export function BountyList() {
   const { id: workspaceId } = useWorkspace();
   const { setShowCreateBountySheet, BountySheet } = useBountySheet();
 
-  const { data: bounties, isLoading } = useSWR<BountyExtendedProps[]>(
+  const {
+    data: bounties,
+    isLoading,
+    error,
+  } = useSWR<BountyExtendedProps[]>(
     workspaceId ? `/api/bounties?workspaceId=${workspaceId}` : null,
     fetcher,
     {
@@ -25,7 +29,7 @@ export function BountyList() {
   return (
     <>
       {BountySheet}
-      {bounties?.length !== 0 || isLoading ? (
+      {Boolean(bounties?.length) || isLoading ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {isLoading
             ? Array.from({ length: 3 }, (_, index) => (
@@ -34,6 +38,12 @@ export function BountyList() {
             : bounties?.map((bounty) => (
                 <BountyCard key={bounty.id} bounty={bounty} />
               ))}
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center px-4 py-8">
+          <p className="text-content-subtle text-sm">
+            Failed to load bounties.
+          </p>
         </div>
       ) : (
         <AnimatedEmptyState
