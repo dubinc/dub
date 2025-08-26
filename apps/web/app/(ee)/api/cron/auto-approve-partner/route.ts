@@ -69,7 +69,6 @@ export async function POST(req: Request) {
     await approvePartnerEnrollment({
       programId,
       partnerId,
-      linkId: null,
       userId: program.workspace.users[0].userId,
     });
 
