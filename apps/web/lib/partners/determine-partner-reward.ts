@@ -1,10 +1,10 @@
-import { prisma } from "@dub/prisma";
-import { EventType, Link, ProgramEnrollment, Reward } from "@dub/prisma/client";
+import { EventType, Link, Reward } from "@dub/prisma/client";
 import { RewardContext } from "../types";
 import {
   rewardConditionsArraySchema,
   RewardSchema,
 } from "../zod/schemas/rewards";
+import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { evaluateRewardConditions } from "./evaluate-reward-conditions";
 
 const REWARD_EVENT_COLUMN_MAPPING = {
@@ -13,82 +13,39 @@ const REWARD_EVENT_COLUMN_MAPPING = {
   [EventType.sale]: "saleReward",
 };
 
-interface ProgramEnrollmentWithReward extends ProgramEnrollment {
+interface ProgramEnrollmentWithReward {
+  totalCommissions: number;
   clickReward?: Reward | null;
   leadReward?: Reward | null;
   saleReward?: Reward | null;
-  links?:
-    | Pick<Link, "clicks" | "leads" | "conversions" | "saleAmount">[]
-    | null;
+  links?: Link[] | null;
 }
 
 export const determinePartnerReward = async ({
   event,
-  partnerId,
-  programId,
+  programEnrollment,
   context,
 }: {
   event: EventType;
-  partnerId: string;
-  programId: string;
-  context?: RewardContext;
+  programEnrollment: ProgramEnrollmentWithReward;
+  context?: RewardContext; // additional reward context (e.g. customer.country, sale.productId, etc.)
 }) => {
-  const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
-
-  const partnerEnrollment: ProgramEnrollmentWithReward | null =
-    await prisma.programEnrollment.findUnique({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
-      },
-      include: {
-        [rewardIdColumn]: true,
-        links: {
-          select: {
-            clicks: true,
-            leads: true,
-            conversions: true,
-            saleAmount: true,
-          },
-        },
-      },
-    });
-
-  if (!partnerEnrollment) {
-    return null;
-  }
-
-  let partnerReward = partnerEnrollment[rewardIdColumn];
+  let partnerReward: Reward =
+    programEnrollment[REWARD_EVENT_COLUMN_MAPPING[event]];
 
   if (!partnerReward) {
     return null;
   }
 
-  // Aggregate the links metrics
-  const partnerLinksStats = partnerEnrollment.links?.reduce(
-    (acc, link) => {
-      acc.totalClicks += link.clicks;
-      acc.totalLeads += link.leads;
-      acc.totalConversions += link.conversions;
-      acc.totalSaleAmount += link.saleAmount;
-      return acc;
-    },
-    {
-      totalClicks: 0,
-      totalLeads: 0,
-      totalConversions: 0,
-      totalSaleAmount: 0,
-    },
-  );
-
   // Add the links metrics to the context
+  const partnerLinksStats = aggregatePartnerLinksStats(programEnrollment.links);
+
   context = {
     ...context,
     partner: {
+      ...context?.partner,
       ...partnerLinksStats,
-      totalCommissions: partnerEnrollment.totalCommissions,
+      totalCommissions: programEnrollment.totalCommissions,
     },
   };
 

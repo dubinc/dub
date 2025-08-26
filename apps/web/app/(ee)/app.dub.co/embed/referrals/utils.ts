@@ -18,7 +18,9 @@ export const getReferralsEmbedData = async (token: string) => {
     partnerId,
     programId,
     includePartner: true,
-    includeRewards: true,
+    includeClickReward: true,
+    includeLeadReward: true,
+    includeSaleReward: true,
     includeDiscount: true,
   });
 

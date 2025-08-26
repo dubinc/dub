@@ -3,6 +3,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -84,10 +85,15 @@ export const PATCH = withWorkspace(
         0, // Ensure the amount is not negative
       );
 
-      const reward = await determinePartnerReward({
-        event: "sale",
+      const programEnrollment = await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId,
+        includeSaleReward: true,
+      });
+
+      const reward = await determinePartnerReward({
+        event: "sale",
+        programEnrollment,
       });
 
       if (!reward) {
