@@ -48,10 +48,10 @@ export function QRCardAnalyticsBadge({
           className="bg-secondary-100 text-secondary text-center flex w-full min-w-[91.5px] items-center justify-center gap-2 rounded-md border px-2 py-0.5 text-sm md:h-full md:gap-1"
         >
           {/*<CursorRays className="h-4 w-4 text-neutral-600" />*/}
-          <Icon
+          {/* <Icon
             icon="streamline:graph"
             className="text-secondary h-[14px] w-[14px]"
-          />
+          /> */}
           {nFormatter(qrCode.link.clicks)} scans
         </Link>
       ) : (
