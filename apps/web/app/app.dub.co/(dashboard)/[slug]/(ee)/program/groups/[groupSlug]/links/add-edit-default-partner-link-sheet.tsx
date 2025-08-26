@@ -25,15 +25,10 @@ import {
   useState,
 } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 interface DefaultPartnerLinkSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  link?: {
-    domain: string;
-    url: string;
-    linkStructure: PartnerLinkStructure;
-  };
+  link?: DefaultPartnerLink;
 }
 
 function DefaultPartnerLinkSheetContent({
@@ -61,25 +56,17 @@ function DefaultPartnerLinkSheetContent({
     url,
   });
 
-  const previewLink = useMemo(() => {
+  // Find the selected link structure option and return the example
+  const previewShortLink = useMemo(() => {
     const selectedOption = linkStructureOptions.find(
       (option) => option.id === linkStructure,
     );
+
     return selectedOption?.example || `${domain}/partner`;
   }, [linkStructureOptions, linkStructure, domain]);
 
   const onSubmit = async (data: DefaultPartnerLink) => {
-    setIsSubmitting(true);
-    try {
-      // TODO: API call will be implemented by user
-      console.log("Submitting data:", data);
-      toast.success("Default partner link updated!");
-      setIsOpen(false);
-    } catch (error) {
-      toast.error("Failed to update default partner link.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    //
   };
 
   return (
@@ -241,12 +228,7 @@ function DefaultPartnerLinkSheetContent({
 
                     <div className="min-w-0 flex-1 space-y-0.5">
                       <div className="truncate text-sm font-medium text-neutral-700">
-                        {(() => {
-                          const selectedOption = linkStructureOptions.find(
-                            (option) => option.id === linkStructure,
-                          );
-                          return selectedOption?.example || `${domain}/partner`;
-                        })()}
+                        {previewShortLink}
                       </div>
 
                       <div className="flex min-h-[20px] items-center gap-1 text-sm text-neutral-500">
