@@ -192,7 +192,7 @@ export function GroupsMultiSelect({
                             >
                               <div
                                 className={cn(
-                                  "border-border-emphasis flex size-4 items-center justify-center rounded border bg-white transition-colors duration-75",
+                                  "border-border-emphasis flex size-4 shrink-0 items-center justify-center rounded border bg-white transition-colors duration-75",
                                   checked &&
                                     "border-neutral-900 bg-neutral-900",
                                 )}
@@ -202,14 +202,16 @@ export function GroupsMultiSelect({
                                 )}
                                 <Check2
                                   className={cn(
-                                    "transition=[transform,opacity] size-2.5 text-white duration-75",
+                                    "size-2.5 text-white transition-[transform,opacity] duration-75",
                                     !checked && "scale-75 opacity-0",
                                   )}
                                 />
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex min-w-0 items-center gap-2">
                                 <GroupColorCircle group={group} />
-                                {group.name}
+                                <span className="min-w-0 truncate">
+                                  {group.name}
+                                </span>
                               </div>
                             </Command.Item>
                           );
@@ -249,9 +251,9 @@ const Scroll = ({ children }: PropsWithChildren) => {
   const { scrollProgress, updateScrollProgress } = useScrollProgress(ref);
 
   return (
-    <>
+    <div className="relative">
       <div
-        className="scrollbar-hide h-[180px] w-screen overflow-y-scroll sm:w-auto"
+        className="scrollbar-hide h-[190px] w-screen overflow-y-scroll sm:w-auto"
         ref={ref}
         onScroll={updateScrollProgress}
       >
@@ -259,9 +261,9 @@ const Scroll = ({ children }: PropsWithChildren) => {
       </div>
       {/* Bottom scroll fade */}
       <div
-        className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
+        className="pointer-events-none absolute bottom-0 left-0 hidden h-8 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
         style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
       />
-    </>
+    </div>
   );
 };
