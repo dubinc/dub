@@ -109,6 +109,7 @@ model PartnerGroup {
   discountId      String?  @unique
   defaultLinks    Json?    @db.Json
   additionalLinks Json?    @db.Json
+  maxPartnerLinks Int      @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

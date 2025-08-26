@@ -37,6 +37,7 @@ import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
 import {
+  additionalPartnerLinkSchema,
   defaultPartnerLinkSchema,
   GroupSchema,
   GroupSchemaExtended,
@@ -516,3 +517,5 @@ export type GroupProps = z.infer<typeof GroupSchema>;
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
 
 export type DefaultPartnerLink = z.infer<typeof defaultPartnerLinkSchema>;
+
+export type AdditionalPartnerLink = z.infer<typeof additionalPartnerLinkSchema>;

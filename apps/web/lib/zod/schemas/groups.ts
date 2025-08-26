@@ -1,5 +1,8 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { PartnerLinkStructure } from "@dub/prisma/client";
+import {
+  PartnerLinkStructure,
+  PartnerUrlValidationMode,
+} from "@dub/prisma/client";
 import { validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
@@ -14,12 +17,18 @@ export const DEFAULT_PARTNER_GROUP = {
   color: null,
 } as const;
 
-export const MAX_DEFAULT_PARTNER_LINKS = 5;
+export const MAX_DEFAULT_PARTNER_LINKS = 3;
+export const MAX_ADDITIONAL_PARTNER_LINKS = 10;
 
 export const defaultPartnerLinkSchema = z.object({
   domain: z.string(),
   url: parseUrlSchema,
   linkStructure: z.nativeEnum(PartnerLinkStructure),
+});
+
+export const additionalPartnerLinkSchema = z.object({
+  url: parseUrlSchema,
+  urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
 });
 
 // This is the standard response we send for all /api/groups/** endpoints
@@ -32,7 +41,9 @@ export const GroupSchema = z.object({
   leadReward: RewardSchema.nullish(),
   saleReward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
-  defaultLinks: z.array(defaultPartnerLinkSchema).nullish(),
+  defaultLinks: z.array(defaultPartnerLinkSchema).nullable(),
+  additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
+  maxPartnerLinks: z.number(),
 });
 
 export const GroupSchemaExtended = GroupSchema.extend({
@@ -76,6 +87,11 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
     .array(defaultPartnerLinkSchema)
     .max(MAX_DEFAULT_PARTNER_LINKS)
     .optional(),
+  additionalLinks: z
+    .array(additionalPartnerLinkSchema)
+    .max(MAX_ADDITIONAL_PARTNER_LINKS)
+    .optional(),
+  maxPartnerLinks: z.number().optional(),
 });
 
 export const changeGroupSchema = z.object({

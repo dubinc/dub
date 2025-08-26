@@ -51,9 +51,14 @@ export const PATCH = withWorkspace(
       groupId: params.groupIdOrSlug,
     });
 
-    const { name, slug, color, defaultLinks } = updateGroupSchema.parse(
-      await parseRequestBody(req),
-    );
+    const {
+      name,
+      slug,
+      color,
+      defaultLinks,
+      maxPartnerLinks,
+      additionalLinks,
+    } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
     if (slug && slug.toLowerCase() !== group.slug.toLowerCase()) {
@@ -90,6 +95,8 @@ export const PATCH = withWorkspace(
         slug,
         color,
         defaultLinks,
+        additionalLinks,
+        maxPartnerLinks,
       },
       include: {
         clickReward: true,
