@@ -44,7 +44,7 @@ export function useBountySubmissionFilters() {
           }) ?? null,
       },
     ],
-    [groups],
+    [groups, slug],
   );
 
   const activeFilters = useMemo(() => {
