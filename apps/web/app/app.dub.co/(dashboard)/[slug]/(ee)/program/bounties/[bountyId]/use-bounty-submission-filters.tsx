@@ -1,13 +1,18 @@
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { BountyExtendedProps } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { Users6 } from "@dub/ui/icons";
+import { CircleCheck, CircleHalfDottedCheck, Users6 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 
-export function useBountySubmissionFilters() {
+export function useBountySubmissionFilters({
+  bounty,
+}: {
+  bounty?: BountyExtendedProps;
+}) {
   const { slug } = useWorkspace();
   const { searchParamsObj, queryParams } = useRouterStuff();
 
@@ -19,15 +24,33 @@ export function useBountySubmissionFilters() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: Object.entries(BOUNTY_SUBMISSION_STATUS_BADGES).map(
-          ([value, { label, icon: Icon, iconClassName }]) => ({
-            value,
-            label,
-            icon: (
-              <Icon className={cn("size-4 bg-transparent", iconClassName)} />
-            ),
-          }),
-        ),
+        options:
+          bounty?.type === "submission"
+            ? Object.entries(BOUNTY_SUBMISSION_STATUS_BADGES).map(
+                ([value, { label, icon: Icon, iconClassName }]) => ({
+                  value,
+                  label,
+                  icon: (
+                    <Icon
+                      className={cn("size-4 bg-transparent", iconClassName)}
+                    />
+                  ),
+                }),
+              )
+            : [
+                {
+                  value: "approved",
+                  label: "Completed",
+                  icon: <CircleCheck className="size-4 text-green-600" />,
+                },
+                {
+                  value: "pending",
+                  label: "Incomplete",
+                  icon: (
+                    <CircleHalfDottedCheck className="size-4 text-orange-600" />
+                  ),
+                },
+              ],
       },
       {
         key: "groupId",
@@ -44,7 +67,7 @@ export function useBountySubmissionFilters() {
           }) ?? null,
       },
     ],
-    [groups, slug],
+    [bounty, groups, slug],
   );
 
   const activeFilters = useMemo(() => {

@@ -67,14 +67,8 @@ export function BountySubmissionsTable() {
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-  } = useBountySubmissionFilters();
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    useBountySubmissionFilters({ bounty });
 
   const {
     error,
@@ -369,10 +363,12 @@ export function BountySubmissionsTable() {
               onSelect={onSelect}
               onRemove={onRemove}
             />
-            <SimpleDateRangePicker
-              className="w-full sm:min-w-[200px] md:w-fit"
-              defaultInterval="all"
-            />
+            {bounty?.type === "submission" && (
+              <SimpleDateRangePicker
+                className="w-full sm:min-w-[200px] md:w-fit"
+                defaultInterval="all"
+              />
+            )}
           </div>
           <AnimatedSizeContainer height>
             <div>
