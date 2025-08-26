@@ -27,20 +27,15 @@ const URL_VALIDATION_MODES = [
 
 interface AddDestinationUrlModalProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  linkIndex?: number;
+  link?: AdditionalPartnerLink;
 }
 
 function AddDestinationUrlModalContent({
   setIsOpen,
-  linkIndex,
+  link,
 }: AddDestinationUrlModalProps) {
   const { group } = useGroup();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
-
-  const link =
-    linkIndex !== undefined && group?.additionalLinks
-      ? group.additionalLinks[linkIndex]
-      : undefined;
 
   const { register, handleSubmit, watch, setValue } =
     useForm<AdditionalPartnerLink>({
@@ -56,13 +51,12 @@ function AddDestinationUrlModalContent({
     if (!group) return;
 
     const currentAdditionalLinks = group.additionalLinks || [];
-    
+
     // Check for duplicate URLs (excluding the current link being edited)
     const existingUrls = currentAdditionalLinks
-      .map((link, index) => ({ url: link.url, index }))
-      .filter(({ index }) => linkIndex === undefined || index !== linkIndex)
-      .map(({ url }) => url.toLowerCase());
-    
+      .filter((existingLink) => !link || existingLink.url !== link.url)
+      .map((existingLink) => existingLink.url.toLowerCase());
+
     if (existingUrls.includes(data.url.toLowerCase())) {
       toast.error("This destination URL already exists.");
       return;
@@ -70,10 +64,11 @@ function AddDestinationUrlModalContent({
 
     let updatedAdditionalLinks: AdditionalPartnerLink[];
 
-    if (linkIndex !== undefined) {
-      // Editing existing link
-      updatedAdditionalLinks = [...currentAdditionalLinks];
-      updatedAdditionalLinks[linkIndex] = data;
+    if (link) {
+      // Editing existing link - find and replace the specific link
+      updatedAdditionalLinks = currentAdditionalLinks.map((existingLink) =>
+        existingLink.url === link.url ? data : existingLink,
+      );
     } else {
       // Check if we're at the maximum number of additional links
       if (currentAdditionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS) {
@@ -96,7 +91,7 @@ function AddDestinationUrlModalContent({
         await mutatePrefix("/api/groups");
         setIsOpen(false);
         toast.success(
-          linkIndex !== undefined
+          link
             ? "Destination URL updated successfully!"
             : "Destination URL added successfully!",
         );
@@ -107,7 +102,7 @@ function AddDestinationUrlModalContent({
     });
   };
 
-  const isEditing = linkIndex !== undefined && link;
+  const isEditing = !!link;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -179,7 +174,7 @@ function AddDestinationUrlModalContent({
             </div>
           </div>
 
-          {linkIndex === undefined && (
+          {!link && (
             <div className="flex items-start gap-2.5">
               <input
                 type="checkbox"
@@ -233,16 +228,13 @@ function AddDestinationUrlModalContent({
 export function AddDestinationUrlModal({
   isOpen,
   setIsOpen,
-  linkIndex,
+  link,
 }: AddDestinationUrlModalProps & {
   isOpen: boolean;
 }) {
   return (
     <Modal showModal={isOpen} setShowModal={setIsOpen}>
-      <AddDestinationUrlModalContent
-        setIsOpen={setIsOpen}
-        linkIndex={linkIndex}
-      />
+      <AddDestinationUrlModalContent setIsOpen={setIsOpen} link={link} />
     </Modal>
   );
 }
