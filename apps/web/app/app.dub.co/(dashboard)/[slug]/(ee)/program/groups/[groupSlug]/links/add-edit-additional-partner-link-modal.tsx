@@ -1,6 +1,10 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import useGroup from "@/lib/swr/use-group";
 import { AdditionalPartnerLink } from "@/lib/types";
+import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { Button, Input, Modal } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
@@ -23,38 +27,95 @@ const URL_VALIDATION_MODES = [
 
 interface AddDestinationUrlModalProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  linkIndex?: number;
 }
 
 function AddDestinationUrlModalContent({
   setIsOpen,
+  linkIndex,
 }: AddDestinationUrlModalProps) {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { isSubmitting },
-  } = useForm<AdditionalPartnerLink>({
-    defaultValues: {
-      url: "",
-      urlValidationMode: "domain",
-    },
-  });
+  const { group } = useGroup();
+  const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
-  const urlValidationMode = watch("urlValidationMode");
+  const link =
+    linkIndex !== undefined && group?.additionalLinks
+      ? group.additionalLinks[linkIndex]
+      : undefined;
+
+  const { register, handleSubmit, watch, setValue } =
+    useForm<AdditionalPartnerLink>({
+      defaultValues: {
+        url: link?.url || "",
+        urlValidationMode: link?.urlValidationMode || "domain",
+      },
+    });
+
+  const [url, urlValidationMode] = watch(["url", "urlValidationMode"]);
 
   const onSubmit = async (data: AdditionalPartnerLink) => {
-    // TODO: Add backend integration here
-    console.log("Form data:", data);
-    toast.success("Destination URL added successfully");
-    setIsOpen(false);
+    if (!group) return;
+
+    const currentAdditionalLinks = group.additionalLinks || [];
+    
+    // Check for duplicate URLs (excluding the current link being edited)
+    const existingUrls = currentAdditionalLinks
+      .map((link, index) => ({ url: link.url, index }))
+      .filter(({ index }) => linkIndex === undefined || index !== linkIndex)
+      .map(({ url }) => url.toLowerCase());
+    
+    if (existingUrls.includes(data.url.toLowerCase())) {
+      toast.error("This destination URL already exists.");
+      return;
+    }
+
+    let updatedAdditionalLinks: AdditionalPartnerLink[];
+
+    if (linkIndex !== undefined) {
+      // Editing existing link
+      updatedAdditionalLinks = [...currentAdditionalLinks];
+      updatedAdditionalLinks[linkIndex] = data;
+    } else {
+      // Check if we're at the maximum number of additional links
+      if (currentAdditionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS) {
+        toast.error(
+          `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional destination URLs.`,
+        );
+        return;
+      }
+
+      // Creating new link
+      updatedAdditionalLinks = [...currentAdditionalLinks, data];
+    }
+
+    await updateGroup(`/api/groups/${group.id}`, {
+      method: "PATCH",
+      body: {
+        additionalLinks: updatedAdditionalLinks,
+      },
+      onSuccess: async () => {
+        await mutatePrefix("/api/groups");
+        setIsOpen(false);
+        toast.success(
+          linkIndex !== undefined
+            ? "Destination URL updated successfully!"
+            : "Destination URL added successfully!",
+        );
+      },
+      onError: () => {
+        toast.error("Failed to save destination URL. Please try again.");
+      },
+    });
   };
+
+  const isEditing = linkIndex !== undefined && link;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
-          <h2 className="text-lg font-semibold">Add destination URL</h2>
+          <h2 className="text-lg font-semibold">
+            {isEditing ? "Edit destination URL" : "Add destination URL"}
+          </h2>
         </div>
       </div>
 
@@ -118,27 +179,29 @@ function AddDestinationUrlModalContent({
             </div>
           </div>
 
-          <div className="flex items-start gap-2.5">
-            <input
-              type="checkbox"
-              className="mt-1 h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
-              required
-            />
-            <label
-              htmlFor="conversionTracking"
-              className="text-sm text-neutral-600"
-            >
-              I confirm that conversion tracking has been set up on this URL.{" "}
-              <a
-                href="https://dub.co/docs/partners/quickstart"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="text-neutral-900 underline hover:text-neutral-700"
+          {linkIndex === undefined && (
+            <div className="flex items-start gap-2.5">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
+                required
+              />
+              <label
+                htmlFor="conversionTracking"
+                className="text-sm text-neutral-600"
               >
-                Learn more
-              </a>
-            </label>
-          </div>
+                I confirm that conversion tracking has been set up on this URL.{" "}
+                <a
+                  href="https://dub.co/docs/partners/quickstart"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-neutral-900 underline hover:text-neutral-700"
+                >
+                  Learn more
+                </a>
+              </label>
+            </div>
+          )}
         </div>
       </div>
 
@@ -156,8 +219,9 @@ function AddDestinationUrlModalContent({
           <Button
             type="submit"
             variant="primary"
-            text="Add destination URL"
+            text={isEditing ? "Update destination URL" : "Add destination URL"}
             className="w-fit"
+            disabled={!url || !urlValidationMode}
             loading={isSubmitting}
           />
         </div>
@@ -169,12 +233,16 @@ function AddDestinationUrlModalContent({
 export function AddDestinationUrlModal({
   isOpen,
   setIsOpen,
+  linkIndex,
 }: AddDestinationUrlModalProps & {
   isOpen: boolean;
 }) {
   return (
     <Modal showModal={isOpen} setShowModal={setIsOpen}>
-      <AddDestinationUrlModalContent setIsOpen={setIsOpen} />
+      <AddDestinationUrlModalContent
+        setIsOpen={setIsOpen}
+        linkIndex={linkIndex}
+      />
     </Modal>
   );
 }

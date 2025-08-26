@@ -18,6 +18,7 @@ export const DEFAULT_PARTNER_GROUP = {
 } as const;
 
 export const MAX_DEFAULT_PARTNER_LINKS = 3;
+
 export const MAX_ADDITIONAL_PARTNER_LINKS = 10;
 
 export const defaultPartnerLinkSchema = z.object({

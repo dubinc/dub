@@ -71,17 +71,6 @@ function DefaultPartnerLinkSheetContent({
       return;
     }
 
-    // Check if we're at the maximum number of default links
-    const hasReachedMaxLinks =
-      (group?.defaultLinks?.length || 0) >= MAX_DEFAULT_PARTNER_LINKS;
-
-    if (linkIndex === undefined && hasReachedMaxLinks) {
-      toast.error(
-        `You can only create up to ${MAX_DEFAULT_PARTNER_LINKS} default links.`,
-      );
-      return;
-    }
-
     let updatedDefaultLinks: DefaultPartnerLink[];
     const currentDefaultLinks = group.defaultLinks || [];
 
@@ -90,6 +79,14 @@ function DefaultPartnerLinkSheetContent({
       updatedDefaultLinks = [...currentDefaultLinks];
       updatedDefaultLinks[linkIndex] = data;
     } else {
+      // Check if we're at the maximum number of default links
+      if (currentDefaultLinks.length >= MAX_DEFAULT_PARTNER_LINKS) {
+        toast.error(
+          `You can only create up to ${MAX_DEFAULT_PARTNER_LINKS} default links.`,
+        );
+        return;
+      }
+
       // Creating new link
       updatedDefaultLinks = [...currentDefaultLinks, data];
     }
