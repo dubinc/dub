@@ -136,13 +136,13 @@ export const createAndEnrollPartner = async ({
     workspace,
     program,
     partner: {
-      ...partner,
       id: upsertedPartner.id,
+      name: partner.name,
+      email: partner.email,
+      username: partner.username,
+      tenantId: partner.tenantId,
     },
-    group: {
-      id: group.id,
-      defaultLinks: group.defaultLinks,
-    },
+    group,
     link,
     userId,
   });
