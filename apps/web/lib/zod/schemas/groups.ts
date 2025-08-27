@@ -17,11 +17,12 @@ export const DEFAULT_PARTNER_GROUP = {
   color: null,
 } as const;
 
-export const MAX_DEFAULT_PARTNER_LINKS = 3;
+export const MAX_DEFAULT_PARTNER_LINKS = 10;
 
 export const MAX_ADDITIONAL_PARTNER_LINKS = 10;
 
 export const defaultPartnerLinkSchema = z.object({
+  id: z.string(),
   domain: z.string(),
   url: parseUrlSchema,
   linkStructure: z.nativeEnum(PartnerLinkStructure),

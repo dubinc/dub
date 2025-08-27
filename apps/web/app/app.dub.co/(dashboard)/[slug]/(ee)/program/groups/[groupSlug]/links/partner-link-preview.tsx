@@ -9,12 +9,10 @@ export function PartnerLinkPreview({
   url,
   domain,
   linkStructure,
-  linkIndex,
 }: {
   url: string;
   domain: string;
   linkStructure: PartnerLinkStructure;
-  linkIndex?: number;
 }) {
   const linkStructureOptions = getLinkStructureOptions({
     domain,

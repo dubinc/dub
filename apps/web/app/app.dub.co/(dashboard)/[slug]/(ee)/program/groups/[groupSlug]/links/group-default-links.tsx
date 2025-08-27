@@ -30,8 +30,8 @@ export function GroupDefaultLinks() {
 
       {defaultLinks.length > 0 ? (
         <div className="flex flex-col gap-4">
-          {defaultLinks.map((link, index) => (
-            <DefaultLinkPreview key={index} link={link} linkIndex={index} />
+          {defaultLinks.map((link) => (
+            <DefaultLinkPreview key={link.id} link={link} />
           ))}
         </div>
       ) : (
@@ -67,15 +67,9 @@ function CreateDefaultLinkButton({
   );
 }
 
-function DefaultLinkPreview({
-  link,
-  linkIndex,
-}: {
-  link: DefaultPartnerLink;
-  linkIndex: number;
-}) {
+function DefaultLinkPreview({ link }: { link: DefaultPartnerLink }) {
   const { DefaultPartnerLinkSheet, setIsOpen } = useDefaultPartnerLinkSheet({
-    linkIndex,
+    linkId: link.id,
   });
 
   return (
@@ -85,7 +79,6 @@ function DefaultLinkPreview({
           url={link.url}
           domain={link.domain}
           linkStructure={link.linkStructure}
-          linkIndex={linkIndex}
         />
       </div>
       {DefaultPartnerLinkSheet}
@@ -102,7 +95,7 @@ function NoDefaultLinks() {
           Default partner links
         </h2>
         <p className="text-sm font-normal text-neutral-600">
-          No default partner links have been created yet
+          No default partner links have been created yet.
         </p>
       </div>
     </div>

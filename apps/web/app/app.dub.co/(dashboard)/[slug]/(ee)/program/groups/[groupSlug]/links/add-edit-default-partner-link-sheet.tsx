@@ -5,7 +5,6 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import { DefaultPartnerLink } from "@/lib/types";
-import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { DomainSelector } from "@/ui/domains/domain-selector";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
@@ -18,6 +17,7 @@ import {
   SimpleTooltipContent,
 } from "@dub/ui";
 import { Eye, Hyperlink } from "@dub/ui/icons";
+import { nanoid } from "@dub/utils";
 import {
   Dispatch,
   PropsWithChildren,
@@ -31,19 +31,19 @@ import { PartnerLinkPreview } from "./partner-link-preview";
 
 interface DefaultPartnerLinkSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  linkIndex?: number;
+  linkId?: string;
 }
 
 function DefaultPartnerLinkSheetContent({
   setIsOpen,
-  linkIndex,
+  linkId,
 }: DefaultPartnerLinkSheetProps) {
   const { group } = useGroup();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
   const link =
-    linkIndex !== undefined && group?.defaultLinks
-      ? group.defaultLinks[linkIndex]
+    linkId && group?.defaultLinks
+      ? group.defaultLinks.find((link) => link.id === linkId)
       : undefined;
 
   const { handleSubmit, watch, setValue } = useForm<DefaultPartnerLink>({
@@ -74,21 +74,30 @@ function DefaultPartnerLinkSheetContent({
     let updatedDefaultLinks: DefaultPartnerLink[];
     const currentDefaultLinks = group.defaultLinks || [];
 
-    if (linkIndex !== undefined) {
-      // Editing existing link
-      updatedDefaultLinks = [...currentDefaultLinks];
-      updatedDefaultLinks[linkIndex] = data;
-    } else {
-      // Check if we're at the maximum number of default links
-      if (currentDefaultLinks.length >= MAX_DEFAULT_PARTNER_LINKS) {
-        toast.error(
-          `You can only create up to ${MAX_DEFAULT_PARTNER_LINKS} default links.`,
-        );
-        return;
-      }
+    if (linkId && !link) {
+      toast.error("The default link you are trying to edit does not exist.");
+      return;
+    }
 
-      // Creating new link
-      updatedDefaultLinks = [...currentDefaultLinks, data];
+    // Editing existing link
+    if (link) {
+      updatedDefaultLinks = currentDefaultLinks.map((link) => {
+        if (link.id === linkId) {
+          return {
+            ...data,
+            id: linkId,
+          };
+        }
+
+        return link;
+      });
+    } else {
+      const newLink = {
+        ...data,
+        id: nanoid(10),
+      };
+
+      updatedDefaultLinks = [...currentDefaultLinks, newLink];
     }
 
     await updateGroup(`/api/groups/${group.id}`, {
@@ -100,9 +109,7 @@ function DefaultPartnerLinkSheetContent({
         await mutatePrefix("/api/groups");
         setIsOpen(false);
         toast.success(
-          linkIndex !== undefined
-            ? "Link updated successfully!"
-            : "Link created successfully!",
+          linkId ? "Link updated successfully!" : "Link created successfully!",
         );
       },
       onError: () => {
@@ -111,7 +118,7 @@ function DefaultPartnerLinkSheetContent({
     });
   };
 
-  const isEditing = linkIndex !== undefined && link;
+  const isEditing = linkId && link;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -312,7 +319,7 @@ function DefaultPartnerLinkSheet({
   );
 }
 
-export function useDefaultPartnerLinkSheet(props: { linkIndex?: number }) {
+export function useDefaultPartnerLinkSheet(props: { linkId?: string }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
