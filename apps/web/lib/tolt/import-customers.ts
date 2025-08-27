@@ -129,7 +129,7 @@ async function createReferral({
     import_id: importId,
     source: "tolt",
     entity: "customer",
-    entity_id: customer.customer_id ?? customer.email ?? customer.id,
+    entity_id: customer.customer_id || customer.email || customer.id,
   } as const;
 
   if (links.length === 0) {
@@ -144,7 +144,7 @@ async function createReferral({
 
   // if customer_id is null, use customer email or Tolt customer ID as the external ID
   const customerExternalId =
-    customer.customer_id ?? customer.email ?? customer.id;
+    customer.customer_id || customer.email || customer.id;
 
   const customerFound = await prisma.customer.findUnique({
     where: {
