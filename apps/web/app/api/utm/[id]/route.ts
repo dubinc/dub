@@ -1,7 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // PATCH /api/utm/[id] – update a UTM template
@@ -14,6 +17,9 @@ export const PATCH = withWorkspace(
       where: {
         id,
         projectId: workspace.id,
+      },
+      include: {
+        partnerGroup: true,
       },
     });
 
@@ -34,6 +40,18 @@ export const PATCH = withWorkspace(
           ...props,
         },
       });
+
+      if (template.partnerGroup) {
+        waitUntil(
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
+            body: {
+              groupId: template.partnerGroup.id,
+              utmTemplateId: template.id,
+            },
+          }),
+        );
+      }
 
       return NextResponse.json(response);
     } catch (error) {
