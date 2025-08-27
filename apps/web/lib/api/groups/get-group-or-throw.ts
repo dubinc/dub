@@ -50,7 +50,5 @@ export const getGroupOrThrow = async ({
     });
   }
 
-  console.log(group)
-
   return group;
 };
