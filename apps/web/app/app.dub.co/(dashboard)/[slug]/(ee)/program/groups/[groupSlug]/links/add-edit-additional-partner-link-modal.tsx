@@ -7,7 +7,7 @@ import { AdditionalPartnerLink } from "@/lib/types";
 import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { Button, Input, Modal } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, nanoid } from "@dub/utils";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -27,19 +27,25 @@ const URL_VALIDATION_MODES = [
 
 interface AddDestinationUrlModalProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  link?: AdditionalPartnerLink;
+  linkId?: string;
 }
 
 function AddDestinationUrlModalContent({
   setIsOpen,
-  link,
+  linkId,
 }: AddDestinationUrlModalProps) {
   const { group } = useGroup();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
+  const link =
+    linkId && group?.additionalLinks
+      ? group.additionalLinks.find((link) => link.id === linkId)
+      : undefined;
+
   const { register, handleSubmit, watch, setValue } =
     useForm<AdditionalPartnerLink>({
       defaultValues: {
+        id: link?.id || nanoid(),
         url: link?.url || "",
         urlValidationMode: link?.urlValidationMode || "domain",
       },
@@ -52,9 +58,14 @@ function AddDestinationUrlModalContent({
 
     const currentAdditionalLinks = group.additionalLinks || [];
 
+    if (linkId && !link) {
+      toast.error("The destination URL you are trying to edit does not exist.");
+      return;
+    }
+
     // Check for duplicate URLs (excluding the current link being edited)
     const existingUrls = currentAdditionalLinks
-      .filter((existingLink) => !link || existingLink.url !== link.url)
+      .filter((existingLink) => !link || existingLink.id !== link.id)
       .map((existingLink) => existingLink.url.toLowerCase());
 
     if (existingUrls.includes(data.url.toLowerCase())) {
@@ -65,10 +76,17 @@ function AddDestinationUrlModalContent({
     let updatedAdditionalLinks: AdditionalPartnerLink[];
 
     if (link) {
-      // Editing existing link - find and replace the specific link
-      updatedAdditionalLinks = currentAdditionalLinks.map((existingLink) =>
-        existingLink.url === link.url ? data : existingLink,
-      );
+      // Editing existing link - find and replace the specific link by ID
+      updatedAdditionalLinks = currentAdditionalLinks.map((existingLink) => {
+        if (existingLink.id === link.id) {
+          return {
+            ...data,
+            id: link.id,
+          };
+        }
+
+        return existingLink;
+      });
     } else {
       // Check if we're at the maximum number of additional links
       if (currentAdditionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS) {
@@ -228,13 +246,13 @@ function AddDestinationUrlModalContent({
 export function AddDestinationUrlModal({
   isOpen,
   setIsOpen,
-  link,
+  linkId,
 }: AddDestinationUrlModalProps & {
   isOpen: boolean;
 }) {
   return (
     <Modal showModal={isOpen} setShowModal={setIsOpen}>
-      <AddDestinationUrlModalContent setIsOpen={setIsOpen} link={link} />
+      <AddDestinationUrlModalContent setIsOpen={setIsOpen} linkId={linkId} />
     </Modal>
   );
 }
