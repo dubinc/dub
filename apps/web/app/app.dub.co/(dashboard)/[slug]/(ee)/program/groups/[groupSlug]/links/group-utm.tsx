@@ -68,9 +68,6 @@ export function GroupUTM() {
       ref,
     } = data;
 
-    setIsUpdatingTemplate(true);
-
-    // Check if we have UTM parameters to save
     const hasUtmParams =
       utm_source ||
       utm_medium ||
@@ -79,84 +76,58 @@ export function GroupUTM() {
       utm_content ||
       ref;
 
-    let finalTemplateId = utmTemplateId;
-
-    if (hasUtmParams) {
-      // If we have an existing template ID, update it
-      if (utmTemplateId) {
-        const updateResponse = await fetch(
-          `/api/utm/${utmTemplateId}?workspaceId=${workspaceId}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              utm_source,
-              utm_medium,
-              utm_campaign,
-              utm_term,
-              utm_content,
-              ref,
-            }),
-          },
-        );
-
-        if (!updateResponse.ok) {
-          const { error } = await updateResponse.json();
-          toast.error(error.message || "Failed to update UTM template");
-          setIsUpdatingTemplate(false);
-          return;
-        }
-
-        finalTemplateId = utmTemplateId;
-      } else {
-        // Create a new template
-        const createResponse = await fetch(
-          `/api/utm?workspaceId=${workspaceId}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              name: `${group.name} UTM Template`,
-              utm_source,
-              utm_medium,
-              utm_campaign,
-              utm_term,
-              utm_content,
-              ref,
-            }),
-          },
-        );
-
-        if (!createResponse.ok) {
-          const { error } = await createResponse.json();
-          toast.error(error.message || "Failed to create UTM template");
-          setIsUpdatingTemplate(false);
-          return;
-        }
-
-        const newTemplate = await createResponse.json();
-        finalTemplateId = newTemplate.id;
-
-        // Update the group with the template ID
-        await updateGroup(`/api/groups/${group.id}`, {
-          method: "PATCH",
-          body: {
-            utmTemplateId: finalTemplateId,
-          },
-          onSuccess: async () => {
-            await mutatePrefix("/api/groups");
-            await mutatePrefix("/api/utm");
-            toast.success("UTM settings saved successfully!");
-          },
-        });
-      }
+    if (!hasUtmParams) {
+      return;
     }
 
-    setIsUpdatingTemplate(false);
+    const templateData = {
+      name: `${group.name} UTM Template`,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      ref,
+    };
+
+    setIsUpdatingTemplate(true);
+
+    const endpoint = utmTemplateId
+      ? `/api/utm/${utmTemplateId}?workspaceId=${workspaceId}`
+      : `/api/utm?workspaceId=${workspaceId}`;
+
+    // Create or update the UTM template
+    const response = await fetch(endpoint, {
+      method: utmTemplateId ? "PATCH" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(templateData),
+    });
+
+    if (!response.ok) {
+      const { error } = await response.json();
+      toast.error(error.message);
+      setIsUpdatingTemplate(false);
+      return;
+    }
+
+    // Update the group to use the new utmTemplateId
+    if (!utmTemplateId) {
+      const { id: utmTemplateId } = await response.json();
+
+      await updateGroup(`/api/groups/${group.id}`, {
+        method: "PATCH",
+        body: {
+          utmTemplateId,
+        },
+        onSuccess: async () => {
+          await mutatePrefix(["/api/groups", "/api/utm"]);
+          toast.success("UTM settings saved successfully!");
+          setIsUpdatingTemplate(false);
+        },
+      });
+    }
   };
 
   const currentValues = watch();
