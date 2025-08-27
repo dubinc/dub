@@ -1,3 +1,4 @@
+import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 
 export const toltImportSteps = z.enum([
@@ -40,7 +41,7 @@ export const ToltAffiliateSchema = z.object({
 export const ToltLinkSchema = z.object({
   id: z.string(),
   param: z.string(),
-  value: z.string(),
+  value: z.string().transform((val) => slugify(val)), // need to slugify this cause Tolt can sometimes return "john doe"
   partner: ToltAffiliateSchema,
 });
 
@@ -48,7 +49,8 @@ export const ToltCustomerSchema = z.object({
   id: z.string(),
   customer_id: z
     .string()
-    .describe("Internal customer identifier in client's app."),
+    .describe("Internal customer identifier in client's app.")
+    .nullable(),
   email: z.string().nullable(),
   name: z.string().nullable(),
   status: z.string(),
