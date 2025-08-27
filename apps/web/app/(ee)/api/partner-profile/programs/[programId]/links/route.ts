@@ -27,7 +27,7 @@ export const POST = withPartnerProfile(
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
-    const { program, links, tenantId, status, partnerGroup } =
+    const { program, links, tenantId, status, group } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
@@ -49,7 +49,7 @@ export const POST = withPartnerProfile(
       });
     }
 
-    if (!partnerGroup) {
+    if (!group) {
       throw new DubApiError({
         code: "forbidden",
         message:
@@ -57,14 +57,14 @@ export const POST = withPartnerProfile(
       });
     }
 
-    if (links.length >= partnerGroup.maxPartnerLinks) {
+    if (links.length >= group.maxPartnerLinks) {
       throw new DubApiError({
         code: "bad_request",
-        message: `You have reached this program's limit of ${partnerGroup.maxPartnerLinks} partner links.`,
+        message: `You have reached this program's limit of ${group.maxPartnerLinks} partner links.`,
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
+    validatePartnerLinkUrl({ group, url });
 
     const { link, error, code } = await processLink({
       payload: {

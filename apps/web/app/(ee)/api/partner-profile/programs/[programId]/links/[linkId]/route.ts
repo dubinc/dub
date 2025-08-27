@@ -17,12 +17,13 @@ export const PATCH = withPartnerProfile(
 
     const { programId, linkId } = params;
 
-    const { program, links, status, partnerGroup } =
-      await getProgramEnrollmentOrThrow({
+    const { program, links, status, group } = await getProgramEnrollmentOrThrow(
+      {
         partnerId: partner.id,
         programId,
         includeGroup: true,
-      });
+      },
+    );
 
     if (status === "banned") {
       throw new DubApiError({
@@ -31,7 +32,7 @@ export const PATCH = withPartnerProfile(
       });
     }
 
-    if (partnerGroup === null) {
+    if (!group) {
       throw new DubApiError({
         code: "forbidden",
         message:
@@ -56,7 +57,7 @@ export const PATCH = withPartnerProfile(
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
+    validatePartnerLinkUrl({ group, url });
 
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();

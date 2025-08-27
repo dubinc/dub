@@ -51,7 +51,7 @@ export const getReferralsEmbedData = async (token: string) => {
     clickReward,
     leadReward,
     saleReward,
-    partnerGroup,
+    group,
   } = programEnrollment;
 
   return {
@@ -84,10 +84,10 @@ export const getReferralsEmbedData = async (token: string) => {
       saleAmount: links.reduce((acc, link) => acc + link.saleAmount, 0),
     },
     group: {
-      id: partnerGroup.id,
-      defaultLinks: partnerGroup.defaultLinks,
-      additionalLinks: partnerGroup.additionalLinks,
-      maxPartnerLinks: partnerGroup.maxPartnerLinks,
+      id: group.id,
+      defaultLinks: group.defaultLinks,
+      additionalLinks: group.additionalLinks,
+      maxPartnerLinks: group.maxPartnerLinks,
     },
   };
 };

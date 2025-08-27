@@ -1,3 +1,4 @@
+import { PartnerGroupProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
@@ -76,5 +77,8 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  return programEnrollment;
+  return {
+    ...programEnrollment,
+    group: programEnrollment.partnerGroup as PartnerGroupProps,
+  };
 }

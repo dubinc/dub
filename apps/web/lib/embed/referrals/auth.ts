@@ -1,12 +1,8 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { PartnerGroupProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import {
-  Link,
-  PartnerGroup,
-  Program,
-  ProgramEnrollment,
-} from "@dub/prisma/client";
+import { Link, Program, ProgramEnrollment } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { referralsEmbedToken } from "./token-class";
@@ -18,7 +14,7 @@ interface WithReferralsEmbedTokenHandler {
     searchParams,
     program,
     programEnrollment,
-    partnerGroup,
+    group,
     links,
     embedToken,
   }: {
@@ -27,7 +23,7 @@ interface WithReferralsEmbedTokenHandler {
     searchParams: Record<string, string>;
     program: Program;
     programEnrollment: ProgramEnrollment;
-    partnerGroup: PartnerGroup;
+    group: PartnerGroupProps;
     links: Link[];
     embedToken: string;
   }): Promise<Response>;
@@ -125,7 +121,7 @@ export const withReferralsEmbedToken = (
           searchParams,
           program,
           programEnrollment,
-          partnerGroup,
+          group: partnerGroup as PartnerGroupProps,
           links,
           embedToken,
         });

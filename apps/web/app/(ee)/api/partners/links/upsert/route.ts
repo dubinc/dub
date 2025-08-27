@@ -41,8 +41,6 @@ export const PUT = withWorkspace(
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
-
     if (!partnerId && !tenantId) {
       throw new DubApiError({
         code: "bad_request",
@@ -54,6 +52,9 @@ export const PUT = withWorkspace(
       where: partnerId
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
+      include: {
+        partnerGroup: true,
+      },
     });
 
     if (!partner) {
@@ -62,6 +63,11 @@ export const PUT = withWorkspace(
         message: "Partner not found.",
       });
     }
+
+    validatePartnerLinkUrl({
+      group: partner.partnerGroup,
+      url,
+    });
 
     const link = await prisma.link.findFirst({
       where: {

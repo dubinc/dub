@@ -9,6 +9,7 @@ import {
   CommissionStatus,
   FolderUserRole,
   Link,
+  PartnerGroup,
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
@@ -512,10 +513,18 @@ export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 
-export type GroupProps = z.infer<typeof GroupSchema>;
+export type GroupProps = z.infer<typeof GroupSchema> & {
+  defaultLinks: DefaultPartnerLink[];
+  additionalLinks: AdditionalPartnerLink[];
+};
 
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
 
 export type DefaultPartnerLink = z.infer<typeof defaultPartnerLinkSchema>;
 
 export type AdditionalPartnerLink = z.infer<typeof additionalPartnerLinkSchema>;
+
+export type PartnerGroupProps = PartnerGroup & {
+  defaultLinks: DefaultPartnerLink[];
+  additionalLinks: AdditionalPartnerLink[];
+};

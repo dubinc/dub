@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 
 // PATCH /api/embed/referrals/links/[linkId] - update a link for a partner
 export const PATCH = withReferralsEmbedToken(
-  async ({ req, params, programEnrollment, program, links }) => {
+  async ({ req, params, programEnrollment, program, links, group }) => {
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
@@ -38,7 +38,7 @@ export const PATCH = withReferralsEmbedToken(
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
+    validatePartnerLinkUrl({ group, url });
 
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();

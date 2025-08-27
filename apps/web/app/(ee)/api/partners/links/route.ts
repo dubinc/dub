@@ -81,8 +81,6 @@ export const POST = withWorkspace(
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
-
     if (!partnerId && !tenantId) {
       throw new DubApiError({
         code: "bad_request",
@@ -94,6 +92,9 @@ export const POST = withWorkspace(
       where: partnerId
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
+      include: {
+        partnerGroup: true,
+      },
     });
 
     if (!partner) {
@@ -102,6 +103,11 @@ export const POST = withWorkspace(
         message: "Partner not found.",
       });
     }
+
+    validatePartnerLinkUrl({
+      group: partner.partnerGroup,
+      url,
+    });
 
     const { link, error, code } = await processLink({
       payload: {

@@ -17,7 +17,7 @@ export const GET = withReferralsEmbedToken(async ({ links }) => {
 
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
-  async ({ req, programEnrollment, program, links, partnerGroup }) => {
+  async ({ req, programEnrollment, program, links, group }) => {
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
@@ -37,14 +37,14 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    if (links.length >= partnerGroup.maxPartnerLinks) {
+    if (links.length >= group.maxPartnerLinks) {
       throw new DubApiError({
         code: "bad_request",
-        message: `You have reached the limit of ${partnerGroup.maxPartnerLinks} program links.`,
+        message: `You have reached the limit of ${group.maxPartnerLinks} program links.`,
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
+    validatePartnerLinkUrl({ group, url });
 
     const workspaceOwner = await prisma.projectUsers.findFirst({
       where: {

@@ -29,7 +29,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     ProgramEnrollmentSchema.parse({
       ...programEnrollment,
       rewards,
-      group: programEnrollment.partnerGroup,
     }),
   );
 });
