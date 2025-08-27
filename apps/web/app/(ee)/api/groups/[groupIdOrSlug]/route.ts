@@ -2,9 +2,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import {
-  AdditionalLinksDiff,
   DefaultLinksDiff,
-  diffAdditionalPartnerLink,
   diffDefaultPartnerLink,
 } from "@/lib/api/groups/utils";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -133,15 +131,6 @@ export const PATCH = withWorkspace(
       );
     }
 
-    // Identify changes in additional links
-    let additionalLinksDiff: AdditionalLinksDiff | null = null;
-    if (additionalLinks) {
-      additionalLinksDiff = diffAdditionalPartnerLink(
-        group.additionalLinks as any,
-        additionalLinks,
-      );
-    }
-
     // Identify changes in UTM template
     let utmTemplateDiff = false;
     if (utmTemplateId) {
@@ -173,15 +162,6 @@ export const PATCH = withWorkspace(
               userId: session.user.id,
               added: defaultLinksDiff.added,
               updated: defaultLinksDiff.updated,
-            },
-          }),
-
-        additionalLinksDiff?.updated &&
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-additional-links`,
-            body: {
-              groupId: group.id,
-              updated: additionalLinksDiff.updated,
             },
           }),
 
