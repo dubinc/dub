@@ -71,10 +71,6 @@ export function GroupUTM() {
       utm_content ||
       ref;
 
-    if (!hasUtmParams) {
-      return;
-    }
-
     const templateData = {
       name: `${group.name} UTM Template`,
       utm_source,

@@ -17,7 +17,7 @@ export function diffDefaultPartnerLink(
     new: DefaultPartnerLink;
   } | null = null;
 
-  const oldMap = new Map(oldLinks.map((link) => [link.id, link]));
+  const oldMap = new Map((oldLinks || []).map((link) => [link.id, link]));
 
   for (const link of newLinks) {
     const old = oldMap.get(link.id);

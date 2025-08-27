@@ -91,6 +91,7 @@ export const PATCH = withWorkspace(
       }
     }
 
+    // Check if the UTM template exists
     if (utmTemplateId) {
       await prisma.utmTemplate.findUniqueOrThrow({
         where: {

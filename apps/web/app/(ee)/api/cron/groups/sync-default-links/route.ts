@@ -1,12 +1,14 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
+import { linkCache } from "@/lib/api/links/cache";
 import { generatePartnerLink } from "@/lib/api/partners/create-partner-link";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { recordLink } from "@/lib/tinybird";
 import { DefaultPartnerLink, WorkspaceProps } from "@/lib/types";
 import { defaultPartnerLinkSchema } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
-import { isFulfilled, log } from "@dub/utils";
-import { PartnerGroup } from "@prisma/client";
+import { chunk, isFulfilled, linkConstructorSimple, log } from "@dub/utils";
+import { Link, PartnerGroup } from "@prisma/client";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
@@ -35,6 +37,7 @@ export async function POST(req: Request) {
       JSON.parse(rawBody),
     );
 
+    // Find the group
     const group = await prisma.partnerGroup.findUnique({
       where: {
         id: groupId,
@@ -59,7 +62,8 @@ export async function POST(req: Request) {
     else if (updated) {
       await updateDefaultLink({
         group,
-        defaultLink: updated.new,
+        oldDefaultLink: updated.old,
+        newDefaultLink: updated.new,
         userId,
       });
     } else {
@@ -162,12 +166,95 @@ async function createDefaultLink({
 // Update the default link for each partner in the group
 async function updateDefaultLink({
   group,
-  defaultLink,
+  oldDefaultLink,
+  newDefaultLink,
   userId,
 }: {
   group: PartnerGroup;
-  defaultLink: DefaultPartnerLink;
+  oldDefaultLink: DefaultPartnerLink;
+  newDefaultLink: DefaultPartnerLink;
   userId: string;
 }) {
-  // Not implemented yet
+  let currentPage = 0;
+
+  while (true) {
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        groupId: group.id,
+      },
+      include: {
+        partner: true,
+        links: {
+          orderBy: {
+            id: "asc",
+          },
+        },
+      },
+      skip: currentPage * PAGE_SIZE,
+      take: PAGE_SIZE,
+      orderBy: {
+        id: "asc",
+      },
+    });
+
+    if (programEnrollments.length === 0) {
+      break;
+    }
+
+    currentPage = currentPage + 1;
+
+    let links = programEnrollments.flatMap(({ links }) => links);
+
+    // Find the links that match the OldDefaultLink
+    const defaultLinks = links.filter(
+      (link) =>
+        link.domain === oldDefaultLink.domain &&
+        link.url === oldDefaultLink.url,
+    );
+
+    const partnerLinkMap = new Map<string, Link>();
+
+    // Take the first matching link from each partner
+    // Because we assume the first matching link is the default link
+    for (const defaultLink of defaultLinks) {
+      if (!defaultLink.partnerId) {
+        continue;
+      }
+
+      if (!partnerLinkMap.has(defaultLink.partnerId)) {
+        partnerLinkMap.set(defaultLink.partnerId, defaultLink);
+      }
+    }
+
+    links = Array.from(partnerLinkMap.values());
+
+    // Split this into chunks of 100 links
+    const linkChunks = chunk(links, 100);
+
+    // Update the UTM for each partner links in the group
+    for (const linkChunk of linkChunks) {
+      const updatedLinks = await Promise.all(
+        linkChunk.map((link) =>
+          prisma.link.update({
+            where: {
+              id: link.id,
+            },
+            data: {
+              url: newDefaultLink.url,
+              domain: newDefaultLink.domain,
+              shortLink: linkConstructorSimple({
+                domain: newDefaultLink.domain,
+                key: link.key,
+              }),
+            },
+          }),
+        ),
+      );
+
+      await Promise.allSettled([
+        recordLink(updatedLinks),
+        linkCache.expireMany(updatedLinks),
+      ]);
+    }
+  }
 }
