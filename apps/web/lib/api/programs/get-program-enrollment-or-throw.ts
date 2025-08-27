@@ -10,6 +10,7 @@ export async function getProgramEnrollmentOrThrow({
   includeLeadReward = false,
   includeSaleReward = false,
   includeDiscount = false,
+  includeGroup = false,
 }: {
   partnerId: string;
   programId: string;
@@ -18,6 +19,7 @@ export async function getProgramEnrollmentOrThrow({
   includeLeadReward?: boolean;
   includeSaleReward?: boolean;
   includeDiscount?: boolean;
+  includeGroup?: boolean;
 }) {
   const include: Prisma.ProgramEnrollmentInclude = {
     program: true,
@@ -40,6 +42,9 @@ export async function getProgramEnrollmentOrThrow({
     }),
     ...(includeDiscount && {
       discount: true,
+    }),
+    ...(includeGroup && {
+      partnerGroup: true,
     }),
   };
 
