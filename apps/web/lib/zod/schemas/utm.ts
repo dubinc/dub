@@ -48,7 +48,9 @@ export const createUTMTemplateBodySchema = z.object({
 
 export const updateUTMTemplateBodySchema = createUTMTemplateBodySchema;
 
-export const utmTagsSchema = z.object({
+export const UTMTemplateSchema = z.object({
+  id: z.string(),
+  name: z.string(),
   utm_source: z
     .string()
     .trim()
@@ -79,6 +81,12 @@ export const utmTagsSchema = z.object({
     .max(190)
     .nullish()
     .describe("The UTM content of the short link."),
+  ref: z
+    .string()
+    .trim()
+    .max(190)
+    .nullish()
+    .describe("The ref of the short link."),
 });
 
 export const UTM_TAGS_PLURAL_LIST = [

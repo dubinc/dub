@@ -4,11 +4,11 @@ import { DubApiError } from "../errors";
 export const getGroupOrThrow = async ({
   programId,
   groupId,
-  includeRewardsAndDiscount = false,
+  includeExpandedFields = false,
 }: {
   programId: string;
   groupId: string;
-  includeRewardsAndDiscount?: boolean;
+  includeExpandedFields?: boolean;
 }) => {
   const group = await prisma.partnerGroup.findUnique({
     where: {
@@ -23,14 +23,17 @@ export const getGroupOrThrow = async ({
             },
           }),
     },
-    include: {
-      ...(includeRewardsAndDiscount && {
-        clickReward: true,
-        leadReward: true,
-        saleReward: true,
-        discount: true,
-      }),
-    },
+    ...(includeExpandedFields
+      ? {
+          include: {
+            clickReward: true,
+            leadReward: true,
+            saleReward: true,
+            discount: true,
+            utmTemplate: true,
+          },
+        }
+      : {}),
   });
 
   if (!group) {
@@ -46,6 +49,8 @@ export const getGroupOrThrow = async ({
       message: `Group with ID ${groupId} not found in your program.`,
     });
   }
+
+  console.log(group)
 
   return group;
 };

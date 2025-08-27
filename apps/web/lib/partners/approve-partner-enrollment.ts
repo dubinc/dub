@@ -40,7 +40,7 @@ export async function approvePartnerEnrollment({
   const group = await getGroupOrThrow({
     programId,
     groupId: groupId || program.defaultGroupId,
-    includeRewardsAndDiscount: true,
+    includeExpandedFields: true,
   });
 
   const programEnrollment = await prisma.programEnrollment.update({

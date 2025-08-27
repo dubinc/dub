@@ -87,7 +87,7 @@ export const createAndEnrollPartner = async ({
   const group = await getGroupOrThrow({
     programId: program.id,
     groupId: finalGroupId,
-    includeRewardsAndDiscount: true,
+    includeExpandedFields: true,
   });
 
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {

@@ -27,7 +27,7 @@ export const GET = withWorkspace(
     const group = await getGroupOrThrow({
       programId,
       groupId: params.groupIdOrSlug,
-      includeRewardsAndDiscount: true,
+      includeExpandedFields: true,
     });
 
     return NextResponse.json(GroupSchema.parse(group));
@@ -62,6 +62,7 @@ export const PATCH = withWorkspace(
       defaultLinks,
       maxPartnerLinks,
       additionalLinks,
+      utmTemplateId,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -90,6 +91,15 @@ export const PATCH = withWorkspace(
       }
     }
 
+    if (utmTemplateId) {
+      await prisma.utmTemplate.findUniqueOrThrow({
+        where: {
+          id: utmTemplateId,
+          projectId: workspace.id,
+        },
+      });
+    }
+
     const updatedGroup = await prisma.partnerGroup.update({
       where: {
         id: group.id,
@@ -101,6 +111,7 @@ export const PATCH = withWorkspace(
         defaultLinks,
         additionalLinks,
         maxPartnerLinks,
+        utmTemplateId,
       },
       include: {
         clickReward: true,

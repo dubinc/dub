@@ -10,6 +10,7 @@ import { DiscountSchema } from "./discount";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { RewardSchema } from "./rewards";
 import { parseUrlSchema } from "./utils";
+import { UTMTemplateSchema } from "./utm";
 
 export const DEFAULT_PARTNER_GROUP = {
   name: "Default Group",
@@ -43,6 +44,7 @@ export const GroupSchema = z.object({
   leadReward: RewardSchema.nullish(),
   saleReward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
+  utmTemplate: UTMTemplateSchema.nullish(),
   defaultLinks: z.array(defaultPartnerLinkSchema).nullable(),
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
@@ -94,6 +96,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
     .max(MAX_ADDITIONAL_PARTNER_LINKS)
     .optional(),
   maxPartnerLinks: z.number().optional(),
+  utmTemplateId: z.string().optional(),
 });
 
 export const changeGroupSchema = z.object({
