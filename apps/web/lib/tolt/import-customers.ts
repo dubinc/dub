@@ -7,7 +7,7 @@ import { logImportError } from "../tinybird/log-import-error";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
-import { ToltAffiliate, ToltCustomer, ToltImportPayload } from "./types";
+import { ToltCustomer, ToltImportPayload } from "./types";
 
 export async function importCustomers(payload: ToltImportPayload) {
   let { importId, programId, toltProgramId, startingAfter } = payload;
@@ -93,7 +93,6 @@ export async function importCustomers(payload: ToltImportPayload) {
         createReferral({
           workspace,
           customer,
-          partner,
           links: partnerEmailToLinks.get(partner.email) ?? [],
           importId,
         }),
@@ -118,11 +117,9 @@ async function createReferral({
   customer,
   workspace,
   links,
-  partner,
   importId,
 }: {
   customer: Omit<ToltCustomer, "partner">;
-  partner: ToltAffiliate;
   workspace: Pick<Project, "id" | "stripeConnectId">;
   links: Pick<Link, "id" | "key" | "domain" | "url">[];
   importId: string;
@@ -132,31 +129,35 @@ async function createReferral({
     import_id: importId,
     source: "tolt",
     entity: "customer",
-    entity_id: customer.customer_id,
+    entity_id: customer.customer_id ?? customer.email ?? customer.id,
   } as const;
 
   if (links.length === 0) {
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for customer ${customer.customer_id}`,
+      message: `Link not found for customer ${commonImportLogInputs.entity_id}`,
     });
 
     return;
   }
 
+  // if customer_id is null, use customer email or Tolt customer ID as the external ID
+  const customerExternalId =
+    customer.customer_id ?? customer.email ?? customer.id;
+
   const customerFound = await prisma.customer.findUnique({
     where: {
       projectId_externalId: {
         projectId: workspace.id,
-        externalId: customer.customer_id,
+        externalId: customerExternalId,
       },
     },
   });
 
   if (customerFound) {
     console.log(
-      `A customer already exists with customer_id ${customer.customer_id}`,
+      `A customer already exists with customerExternalId ${customerExternalId}`,
     );
     return;
   }
@@ -210,7 +211,7 @@ async function createReferral({
         country: clickEvent.country,
         clickedAt: new Date(customer.created_at),
         createdAt: new Date(customer.created_at),
-        externalId: customer.customer_id,
+        externalId: customerExternalId,
       },
     });
 
