@@ -21,6 +21,7 @@ import {
   LifeRing,
   LinesY as LinesYStatic,
   MoneyBills2,
+  Msgs,
   Receipt2,
   ShieldCheck,
   ShieldKeyhole,
@@ -199,6 +200,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: MoneyBills2,
             href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
           },
+          {
+            name: "Messages",
+            icon: Msgs,
+            href: `/${slug}/program/messages`,
+            badge: "New",
+          },
         ],
       },
       {
@@ -224,7 +231,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Groups",
             icon: Users6,
             href: `/${slug}/program/groups`,
-            badge: "New",
           },
         ],
       },
