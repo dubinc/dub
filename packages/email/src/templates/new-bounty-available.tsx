@@ -15,7 +15,7 @@ import {
 import { BountyThumbnailImage } from "../components/bounty-thumbnail";
 import { Footer } from "../components/footer";
 
-export default function NewBountyPublished({
+export default function NewBountyAvailable({
   bounty = {
     name: "Promote Acme at your campus and earn $500",
     type: "performance",
@@ -24,6 +24,7 @@ export default function NewBountyPublished({
       "How does it work? get a group together of at least 15 other people interested in trying out Acme. Then, during the event, take a photo of the group using Acme. When submitting, provide any links to the event or photos. Once confirmed, we'll create a one-time commission for you.",
   },
   program = {
+    name: "Acme",
     slug: "acme",
   },
   email = "panic@thedis.co",
@@ -35,6 +36,7 @@ export default function NewBountyPublished({
     description: string | null;
   };
   program: {
+    name: string;
     slug: string;
   };
   email: string;
@@ -42,7 +44,7 @@ export default function NewBountyPublished({
   return (
     <Html>
       <Head />
-      <Preview>New bounty available!</Preview>
+      <Preview>New bounty available for {program.name}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">
@@ -51,7 +53,7 @@ export default function NewBountyPublished({
             </Section>
 
             <Heading className="bt-5 mx-0 mt-10 p-0 text-lg font-medium text-black">
-              New bounty available!
+              New bounty available for {program.name}
             </Heading>
 
             <Section className="rounded-xl border border-solid border-neutral-200 bg-white">

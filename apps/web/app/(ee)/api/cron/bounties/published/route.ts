@@ -3,7 +3,7 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
-import BountyPublished from "@dub/email/templates/new-bounty-published";
+import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { z } from "zod";
@@ -85,8 +85,8 @@ export async function POST(req: Request) {
         .map(({ partner }) => ({
           from: VARIANT_TO_FROM_MAP.notifications,
           to: partner.email!,
-          subject: "New bounty published",
-          react: BountyPublished({
+          subject: `New bounty available for ${bounty.program.name}`,
+          react: NewBountyAvailable({
             email: partner.email!,
             bounty: {
               name: bounty.name!,
@@ -95,6 +95,7 @@ export async function POST(req: Request) {
               description: bounty.description,
             },
             program: {
+              name: bounty.program.name,
               slug: bounty.program.slug,
             },
           }),
