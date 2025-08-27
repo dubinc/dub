@@ -8,6 +8,7 @@ import {
   MAX_ADDITIONAL_PARTNER_LINKS,
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, LinkLogo, NumberStepper, Popover } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
@@ -192,8 +193,16 @@ function DestinationUrl({ link }: { link: AdditionalPartnerLink }) {
     });
   };
 
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Delete Destination URL",
+    description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This action cannot be undone.`,
+    confirmText: "Delete",
+    onConfirm: deleteDestinationUrl,
+  });
+
   return (
     <>
+      {confirmModal}
       <div className="border-border-subtle group relative flex h-16 cursor-pointer items-center gap-3 rounded-xl border bg-white p-4 transition-all hover:border-neutral-300 hover:shadow-sm">
         <div
           className="flex flex-1 items-center gap-3"
@@ -226,9 +235,12 @@ function DestinationUrl({ link }: { link: AdditionalPartnerLink }) {
           content={
             <div className="grid w-48 grid-cols-1 gap-px p-2">
               <Button
-                text="Delete destination URL"
+                text="Delete"
                 variant="outline"
-                onClick={deleteDestinationUrl}
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowConfirmModal(true);
+                }}
                 icon={<Trash className="size-4" />}
                 className="h-9 justify-start px-2 font-medium text-red-600 hover:text-red-700"
                 loading={isSubmitting}
