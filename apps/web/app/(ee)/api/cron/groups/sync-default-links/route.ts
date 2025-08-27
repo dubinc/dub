@@ -25,8 +25,6 @@ const payloadSchema = z.object({
     .nullable(),
 });
 
-type Payload = z.infer<typeof payloadSchema>;
-
 // POST /api/cron/groups/sync-default-links
 export async function POST(req: Request) {
   try {
@@ -56,19 +54,22 @@ export async function POST(req: Request) {
         defaultLink: added,
         userId,
       });
-
-      return logAndRespond("OK");
     }
-
     // Existing default link has been updated
-    if (updated) {
-      // TODO: Update the default link
+    else if (updated) {
+      await updateDefaultLink({
+        group,
+        defaultLink: updated.new,
+        userId,
+      });
+    } else {
+      return logAndRespond("No default link changes detected. Skipping...");
     }
 
-    return logAndRespond("OK");
+    return logAndRespond(`Synced default links for group ${groupId}.`);
   } catch (error) {
     await log({
-      message: `Error handling "groups.sync-default-links" ${error.message}.`,
+      message: `Error handling "groups/sync-default-links" ${error.message}.`,
       type: "errors",
     });
 
@@ -102,13 +103,16 @@ async function createDefaultLink({
   while (true) {
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
-        programId: group.programId,
+        groupId: group.id,
       },
       include: {
         partner: true,
       },
       skip: currentPage * PAGE_SIZE,
       take: PAGE_SIZE,
+      orderBy: {
+        id: "asc",
+      },
     });
 
     if (programEnrollments.length === 0) {
@@ -149,10 +153,21 @@ async function createDefaultLink({
       .filter(isFulfilled)
       .map(({ value }) => value);
 
-    const createdLinks = await bulkCreateLinks({
+    await bulkCreateLinks({
       links: processedLinks,
     });
-
-    console.log(`Created ${createdLinks.length} links for group ${group.id}`);
   }
+}
+
+// Update the default link for each partner in the group
+async function updateDefaultLink({
+  group,
+  defaultLink,
+  userId,
+}: {
+  group: PartnerGroup;
+  defaultLink: DefaultPartnerLink;
+  userId: string;
+}) {
+  // Not implemented yet
 }
