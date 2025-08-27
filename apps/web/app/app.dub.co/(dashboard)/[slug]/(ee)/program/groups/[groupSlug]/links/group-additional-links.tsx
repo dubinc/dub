@@ -25,7 +25,7 @@ type FormData = Pick<
 >;
 
 export function GroupAdditionalLinks() {
-  const { group, loading } = useGroup();
+  const { group } = useGroup();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
   const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({});
   const [enableAdditionalLinks, setEnableAdditionalLinks] = useState(false);
@@ -204,7 +204,7 @@ function DestinationUrl({ link }: { link: AdditionalPartnerLink }) {
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
   const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({
-    link,
+    linkId: link.id,
   });
 
   // Delete destination URL
@@ -213,7 +213,7 @@ function DestinationUrl({ link }: { link: AdditionalPartnerLink }) {
 
     const currentAdditionalLinks = group.additionalLinks || [];
     const updatedAdditionalLinks = currentAdditionalLinks.filter(
-      (existingLink) => existingLink.url !== link.url,
+      (existingLink) => existingLink.id !== link.id,
     );
 
     await updateGroup(`/api/groups/${group.id}`, {
