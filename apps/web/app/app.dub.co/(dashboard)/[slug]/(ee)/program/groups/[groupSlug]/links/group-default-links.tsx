@@ -1,9 +1,17 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import { DefaultPartnerLink } from "@/lib/types";
 import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
-import { Button, Hyperlink } from "@dub/ui";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { ThreeDots } from "@/ui/shared/icons";
+import { Button, Hyperlink, Popover } from "@dub/ui";
+import { Trash } from "@dub/ui/icons";
+import { cn, getPrettyUrl } from "@dub/utils";
+import { useState } from "react";
+import { toast } from "sonner";
 import { useDefaultPartnerLinkSheet } from "./add-edit-default-partner-link-sheet";
 import { PartnerLinkPreview } from "./partner-link-preview";
 
@@ -68,18 +76,92 @@ function CreateDefaultLinkButton({
 }
 
 function DefaultLinkPreview({ link }: { link: DefaultPartnerLink }) {
+  const { group } = useGroup();
+  const [openPopover, setOpenPopover] = useState(false);
+  const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
   const { DefaultPartnerLinkSheet, setIsOpen } = useDefaultPartnerLinkSheet({
     linkId: link.id,
   });
 
+  // Delete default link
+  const deleteDefaultLink = async () => {
+    if (!group) return;
+
+    const currentDefaultLinks = group.defaultLinks || [];
+    const updatedDefaultLinks = currentDefaultLinks.filter(
+      (existingLink) => existingLink.id !== link.id,
+    );
+
+    await updateGroup(`/api/groups/${group.id}`, {
+      method: "PATCH",
+      body: {
+        defaultLinks: updatedDefaultLinks,
+      },
+      onSuccess: async () => {
+        await mutatePrefix("/api/groups");
+        setOpenPopover(false);
+        toast.success("Default link deleted successfully!");
+      },
+      onError: () => {
+        toast.error("Failed to delete default link. Please try again.");
+      },
+    });
+  };
+
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Delete Default Link",
+    description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This action cannot be undone.`,
+    confirmText: "Delete",
+    onConfirm: deleteDefaultLink,
+  });
+
   return (
     <>
-      <div className="cursor-pointer" onClick={() => setIsOpen(true)}>
-        <PartnerLinkPreview
-          url={link.url}
-          domain={link.domain}
-          linkStructure={link.linkStructure}
-        />
+      {confirmModal}
+      <div className="group relative">
+        <div className="cursor-pointer" onClick={() => setIsOpen(true)}>
+          <PartnerLinkPreview
+            url={link.url}
+            domain={link.domain}
+            linkStructure={link.linkStructure}
+          />
+        </div>
+
+        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+          <Popover
+            content={
+              <div className="grid w-48 grid-cols-1 gap-px p-2">
+                <Button
+                  text="Delete"
+                  variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowConfirmModal(true);
+                  }}
+                  icon={<Trash className="size-4" />}
+                  className="h-9 justify-start px-2 font-medium text-red-600 hover:text-red-700"
+                  loading={isSubmitting}
+                />
+              </div>
+            }
+            align="end"
+            openPopover={openPopover}
+            setOpenPopover={setOpenPopover}
+          >
+            <Button
+              variant="secondary"
+              className={cn(
+                "h-8 w-8 shrink-0 p-0 outline-none transition-all duration-200",
+                "border-transparent group-hover:border-neutral-200 data-[state=open]:border-neutral-500",
+              )}
+              icon={<ThreeDots className="size-4" />}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenPopover(!openPopover);
+              }}
+            />
+          </Popover>
+        </div>
       </div>
       {DefaultPartnerLinkSheet}
     </>
