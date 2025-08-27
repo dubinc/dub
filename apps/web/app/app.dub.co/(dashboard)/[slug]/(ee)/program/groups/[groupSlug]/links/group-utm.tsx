@@ -16,27 +16,22 @@ type FormData = {
 } & z.infer<typeof UTMTemplateSchema>;
 
 export function GroupUTM() {
-  const { group, loading } = useGroup();
   const { id: workspaceId } = useWorkspace();
-  const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
+  const { group, loading: isLoadingGroup } = useGroup();
+  const { makeRequest: updateGroup, isSubmitting: isUpdatingGroup } =
+    useApiMutation();
   const [isUpdatingTemplate, setIsUpdatingTemplate] = useState(false);
 
-  const {
-    handleSubmit,
-    watch,
-    setValue,
-    reset,
-    formState: { isDirty },
-  } = useForm<FormData>({
+  const { handleSubmit, watch, setValue, reset } = useForm<FormData>({
     mode: "onBlur",
     defaultValues: {
       utmTemplateId: group?.utmTemplate?.id || null,
-      utm_source: (group?.utmTemplate as any)?.utm_source || "",
-      utm_medium: (group?.utmTemplate as any)?.utm_medium || "",
-      utm_campaign: (group?.utmTemplate as any)?.utm_campaign || "",
-      utm_term: (group?.utmTemplate as any)?.utm_term || "",
-      utm_content: (group?.utmTemplate as any)?.utm_content || "",
-      ref: (group?.utmTemplate as any)?.ref || "",
+      utm_source: group?.utmTemplate?.utm_source || "",
+      utm_medium: group?.utmTemplate?.utm_medium || "",
+      utm_campaign: group?.utmTemplate?.utm_campaign || "",
+      utm_term: group?.utmTemplate?.utm_term || "",
+      utm_content: group?.utmTemplate?.utm_content || "",
+      ref: group?.utmTemplate?.ref || "",
     },
   });
 
@@ -128,6 +123,8 @@ export function GroupUTM() {
         },
       });
     }
+
+    setIsUpdatingTemplate(false);
   };
 
   const currentValues = watch();
@@ -158,8 +155,8 @@ export function GroupUTM() {
           <Button
             text="Save changes"
             className="h-8 w-fit"
-            loading={isSubmitting || isUpdatingTemplate}
-            disabled={!isDirty}
+            loading={isUpdatingGroup || isUpdatingTemplate}
+            disabled={isLoadingGroup}
           />
         </div>
       </div>
