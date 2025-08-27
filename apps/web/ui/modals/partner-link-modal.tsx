@@ -7,6 +7,7 @@ import { X } from "@/ui/shared/icons";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
   Button,
+  Combobox,
   InfoTooltip,
   Modal,
   ShimmerDots,
@@ -22,12 +23,7 @@ import {
   PenWriting,
   QRCode as QRCodeIcon,
 } from "@dub/ui/icons";
-import {
-  cn,
-  getDomainWithoutWWW,
-  linkConstructor,
-  regexEscape,
-} from "@dub/utils";
+import { cn, getApexDomain, linkConstructor, regexEscape } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useParams } from "next/navigation";
 import {
@@ -166,16 +162,23 @@ function PartnerLinkModalContent({
 }) {
   const { programSlug } = useParams();
   const { programEnrollment } = useProgramEnrollment();
-  const destinationDomain =
-    getDomainWithoutWWW(programEnrollment?.program?.url || "https://dub.co") ??
-    "dub.co";
   const shortLinkDomain = programEnrollment?.program?.domain ?? "dub.sh";
+  const additionalLinks = programEnrollment?.group?.additionalLinks ?? [];
+
+  const destinationDomains = useMemo(
+    () => additionalLinks.map((link) => getApexDomain(link.url)),
+    [additionalLinks],
+  );
+
   const urlValidationMode =
     programEnrollment?.program?.urlValidationMode ?? "domain";
   const isExactMode = urlValidationMode === "exact";
 
   const [lockKey, setLockKey] = useState(Boolean(link));
   const [isLoading, setIsLoading] = useState(false);
+  const [destinationDomain, setDestinationDomain] = useState(
+    destinationDomains?.[0],
+  );
 
   const form = useForm<PartnerLinkFormData>({
     defaultValues: link
@@ -364,9 +367,34 @@ function PartnerLinkModalContent({
                 />
               </div>
               <div className="mt-2 flex rounded-md">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                  {destinationDomain}
-                </span>
+                <Combobox
+                  selected={
+                    destinationDomain
+                      ? {
+                          value: destinationDomain,
+                          label: destinationDomain,
+                        }
+                      : null
+                  }
+                  setSelected={(option) => {
+                    if (!option) return;
+                    setDestinationDomain(option.value);
+                  }}
+                  options={[destinationDomain, ...destinationDomains].map(
+                    (domain) => ({
+                      value: domain,
+                      label: domain,
+                    }),
+                  )}
+                  caret={true}
+                  buttonProps={{
+                    className: cn(
+                      "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
+                      "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                      "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                    ),
+                  }}
+                />
                 <input
                   {...register("url", { required: false })}
                   type="text"
