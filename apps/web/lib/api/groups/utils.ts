@@ -1,8 +1,12 @@
-import { DefaultPartnerLink } from "@/lib/types";
+import { AdditionalPartnerLink, DefaultPartnerLink } from "@/lib/types";
 
 export interface DefaultLinksDiff {
   added: DefaultPartnerLink | null;
   updated: { old: DefaultPartnerLink; new: DefaultPartnerLink } | null;
+}
+
+export interface AdditionalLinksDiff {
+  updated: { old: AdditionalPartnerLink; new: AdditionalPartnerLink } | null;
 }
 
 // Identifies the added and updated default links in a group
@@ -33,6 +37,32 @@ export function diffDefaultPartnerLink(
 
   return {
     added,
+    updated,
+  };
+}
+
+// Identifies the updated additional links in a group
+export function diffAdditionalPartnerLink(
+  oldLinks: AdditionalPartnerLink[],
+  newLinks: AdditionalPartnerLink[],
+): AdditionalLinksDiff {
+  let updated: {
+    old: AdditionalPartnerLink;
+    new: AdditionalPartnerLink;
+  } | null = null;
+
+  const oldMap = new Map((oldLinks || []).map((link) => [link.id, link]));
+
+  for (const link of newLinks) {
+    const old = oldMap.get(link.id);
+
+    if (old && old.url !== link.url) {
+      // existing link updated
+      updated = { old, new: link };
+    }
+  }
+
+  return {
     updated,
   };
 }
