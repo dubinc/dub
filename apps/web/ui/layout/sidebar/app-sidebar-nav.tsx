@@ -272,6 +272,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 : pendingBountySubmissionsCount
               : "New",
           },
+          {
+            name: "Resources",
+            icon: LifeRing,
+            href: `/${slug}/program/resources`,
+          },
         ],
       },
       {
@@ -295,11 +300,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Branding",
             icon: Brush,
             href: `/${slug}/program/branding`,
-          },
-          {
-            name: "Resources",
-            icon: LifeRing,
-            href: `/${slug}/program/resources`,
           },
           {
             name: "Link Settings",
