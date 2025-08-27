@@ -8,7 +8,7 @@ import {
   nFormatter,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
-import { Program } from "@prisma/client";
+import { PartnerGroup, Program } from "@prisma/client";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -21,6 +21,10 @@ interface Props {
     Program,
     "domain" | "url" | "urlValidationMode" | "maxPartnerLinks"
   >;
+  group: Pick<
+    PartnerGroup,
+    "id" | "defaultLinks" | "additionalLinks" | "maxPartnerLinks"
+  >;
   onCreateLink: () => void;
   onEditLink: (link: ReferralsEmbedLink) => void;
 }
@@ -28,6 +32,7 @@ interface Props {
 export function ReferralsEmbedLinksList({
   links,
   program,
+  group,
   onCreateLink,
   onEditLink,
 }: Props) {
@@ -53,7 +58,7 @@ export function ReferralsEmbedLinksList({
     }
   }, [refreshedLinks]);
 
-  const maxPartnerLinks = program.maxPartnerLinks;
+  const maxPartnerLinks = group.maxPartnerLinks;
   const linksLimitReached = partnerLinks.length >= maxPartnerLinks;
 
   const { table, ...tableProps } = useTable({

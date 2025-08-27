@@ -1,4 +1,4 @@
-import { Program } from "@prisma/client";
+import { PartnerGroup, Program } from "@prisma/client";
 import { useState } from "react";
 import { ReferralsEmbedCreateUpdateLink } from "./add-edit-link";
 import { ReferralsEmbedLinksList } from "./links-list";
@@ -10,9 +10,13 @@ interface Props {
     Program,
     "domain" | "url" | "urlValidationMode" | "maxPartnerLinks"
   >;
+  group: Pick<
+    PartnerGroup,
+    "id" | "defaultLinks" | "additionalLinks" | "maxPartnerLinks"
+  >;
 }
 
-export default function ReferralsEmbedLinks({ links, program }: Props) {
+export default function ReferralsEmbedLinks({ links, program, group }: Props) {
   const [createLink, setCreateLink] = useState(false);
   const [link, setLink] = useState<ReferralsEmbedLink | null>(null);
 
@@ -31,6 +35,7 @@ export default function ReferralsEmbedLinks({ links, program }: Props) {
         <ReferralsEmbedLinksList
           links={links}
           program={program}
+          group={group}
           onCreateLink={() => setCreateLink(true)}
           onEditLink={(link) => {
             setLink(link);

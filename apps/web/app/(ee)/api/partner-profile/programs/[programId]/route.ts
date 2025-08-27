@@ -14,6 +14,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     includeLeadReward: true,
     includeSaleReward: true,
     includeDiscount: true,
+    includeGroup: true,
   });
 
   const rewards = sortRewardsByEventOrder(
@@ -28,6 +29,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     ProgramEnrollmentSchema.parse({
       ...programEnrollment,
       rewards,
+      group: programEnrollment.partnerGroup,
     }),
   );
 });

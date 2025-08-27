@@ -13,7 +13,6 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Button, CardList, useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
-import { useParams } from "next/navigation";
 import { createContext, useContext } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
 
@@ -34,7 +33,6 @@ export function usePartnerLinksContext() {
 }
 
 export function ProgramLinksPageClient() {
-  const { programSlug } = useParams() as { programSlug: string };
   const { searchParamsObj } = useRouterStuff();
   const { links, error, loading, isValidating } = usePartnerLinks();
   const { programEnrollment } = useProgramEnrollment();
@@ -62,8 +60,7 @@ export function ProgramLinksPageClient() {
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
         {links &&
-          links.length <
-            (programEnrollment?.program?.maxPartnerLinks ?? 10) && (
+          links.length < (programEnrollment?.group?.maxPartnerLinks ?? 10) && (
             <Button
               text="Create Link"
               className="w-fit"

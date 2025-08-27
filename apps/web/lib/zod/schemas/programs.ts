@@ -11,6 +11,7 @@ import {
 } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
+import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
@@ -132,6 +133,11 @@ export const ProgramEnrollmentSchema = z.object({
     .describe(
       "If the partner was banned from the program, this is the reason for the ban.",
     ),
+  group: GroupSchema.pick({
+    defaultLinks: true,
+    additionalLinks: true,
+    maxPartnerLinks: true,
+  }).nullish(),
 });
 
 export const ProgramInviteSchema = z.object({

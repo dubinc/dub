@@ -10,7 +10,7 @@ import {
 } from "@/lib/zod/schemas/groups";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, LinkLogo, NumberStepper, Popover } from "@dub/ui";
+import { Button, LinkLogo, NumberStepper, Popover, Switch } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { PropsWithChildren, useEffect, useState } from "react";
@@ -19,12 +19,16 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useAddDestinationUrlModal } from "./add-edit-additional-partner-link-modal";
 
-type FormData = Pick<z.input<typeof updateGroupSchema>, "maxPartnerLinks">;
+type FormData = Pick<
+  z.input<typeof updateGroupSchema>,
+  "maxPartnerLinks" | "additionalLinks"
+>;
 
 export function GroupAdditionalLinks() {
   const { group, loading } = useGroup();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
   const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({});
+  const [enableAdditionalLinks, setEnableAdditionalLinks] = useState(false);
 
   const {
     handleSubmit,
@@ -36,14 +40,18 @@ export function GroupAdditionalLinks() {
     mode: "onBlur",
     defaultValues: {
       maxPartnerLinks: group?.maxPartnerLinks,
+      additionalLinks: group?.additionalLinks || [],
     },
   });
 
   // Reset form values when group data becomes available
   useEffect(() => {
     if (group) {
+      setEnableAdditionalLinks(group.maxPartnerLinks !== 0);
+
       reset({
         maxPartnerLinks: group.maxPartnerLinks,
+        additionalLinks: group.additionalLinks || [],
       });
     }
   }, [group, reset]);
@@ -62,6 +70,7 @@ export function GroupAdditionalLinks() {
   };
 
   const additionalLinks = group?.additionalLinks || [];
+  const maxPartnerLinks = watch("maxPartnerLinks") || 0;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -75,53 +84,83 @@ export function GroupAdditionalLinks() {
           </p>
         </div>
 
-        <SettingsRow
-          heading="Link limit"
-          description="Set how many extra links a partner can create"
-        >
-          <NumberStepper
-            value={watch("maxPartnerLinks") || 0}
-            onChange={(v) =>
-              setValue("maxPartnerLinks", v, {
-                shouldDirty: true,
-                shouldValidate: true,
-              })
-            }
-            min={1}
-            max={MAX_ADDITIONAL_PARTNER_LINKS}
-            step={1}
-            className="w-full"
-          />
-        </SettingsRow>
+        {enableAdditionalLinks && (
+          <>
+            <SettingsRow
+              heading="Link limit"
+              description="Set how many extra links a partner can create"
+            >
+              <NumberStepper
+                value={maxPartnerLinks}
+                onChange={(v) =>
+                  setValue("maxPartnerLinks", v, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                min={1}
+                max={MAX_ADDITIONAL_PARTNER_LINKS}
+                step={1}
+                className="w-full"
+              />
+            </SettingsRow>
 
-        <SettingsRow
-          heading="Destinations URLs"
-          description="Add additional destination URLs the partner can select"
-        >
-          <div>
-            <div className="flex flex-col gap-2">
-              {additionalLinks.length > 0 &&
-                additionalLinks.map((link, index) => (
-                  <DestinationUrl key={index} link={link} />
-                ))}
-            </div>
+            <SettingsRow
+              heading="Destinations URLs"
+              description="Add additional destination URLs the partner can select"
+            >
+              <div>
+                <div className="flex flex-col gap-2">
+                  {additionalLinks.length > 0 &&
+                    additionalLinks.map((link, index) => (
+                      <DestinationUrl key={index} link={link} />
+                    ))}
+                </div>
 
-            <Button
-              text="Add destination URL"
-              variant="primary"
-              className="mt-4 h-8 w-fit rounded-lg px-3"
-              onClick={() => setIsOpen(true)}
-              disabled={additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS}
-              disabledTooltip={
-                additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS
-                  ? `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional destination URLs.`
-                  : undefined
-              }
+                <Button
+                  text="Add destination URL"
+                  variant="primary"
+                  className="mt-4 h-8 w-fit rounded-lg px-3"
+                  onClick={() => setIsOpen(true)}
+                  disabled={
+                    additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS
+                  }
+                  disabledTooltip={
+                    additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS
+                      ? `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional destination URLs.`
+                      : undefined
+                  }
+                />
+              </div>
+            </SettingsRow>
+          </>
+        )}
+
+        <div className="flex items-center justify-between rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">
+          <div className="flex items-center gap-3">
+            <Switch
+              checked={enableAdditionalLinks}
+              fn={(checked: boolean) => {
+                setEnableAdditionalLinks(checked);
+                const newValue = checked ? MAX_ADDITIONAL_PARTNER_LINKS : 0;
+
+                setValue("maxPartnerLinks", newValue, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+
+                if (!checked) {
+                  setValue("additionalLinks", [], {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                }
+              }}
             />
+            <span className="text-sm font-medium text-neutral-800">
+              Enable additional partner links
+            </span>
           </div>
-        </SettingsRow>
-
-        <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">
           <div>
             <Button
               text="Save changes"

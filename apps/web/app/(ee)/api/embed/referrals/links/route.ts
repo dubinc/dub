@@ -17,7 +17,7 @@ export const GET = withReferralsEmbedToken(async ({ links }) => {
 
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
-  async ({ req, programEnrollment, program, links }) => {
+  async ({ req, programEnrollment, program, links, partnerGroup }) => {
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
@@ -37,10 +37,10 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    if (links.length >= program.maxPartnerLinks) {
+    if (links.length >= partnerGroup.maxPartnerLinks) {
       throw new DubApiError({
         code: "bad_request",
-        message: `You have reached the limit of ${program.maxPartnerLinks} program links.`,
+        message: `You have reached the limit of ${partnerGroup.maxPartnerLinks} program links.`,
       });
     }
 

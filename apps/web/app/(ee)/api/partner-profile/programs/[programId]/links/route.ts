@@ -27,10 +27,11 @@ export const POST = withPartnerProfile(
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
-    const { program, links, tenantId, status } =
+    const { program, links, tenantId, status, partnerGroup } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
+        includeGroup: true,
       });
 
     if (status === "banned") {
@@ -48,10 +49,18 @@ export const POST = withPartnerProfile(
       });
     }
 
-    if (links.length >= program.maxPartnerLinks) {
+    if (!partnerGroup) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You’re not part of any group yet. Please reach out to the program owner to be added.",
+      });
+    }
+
+    if (links.length >= partnerGroup.maxPartnerLinks) {
       throw new DubApiError({
         code: "bad_request",
-        message: `You have reached this program's limit of ${program.maxPartnerLinks} partner links.`,
+        message: `You have reached this program's limit of ${partnerGroup.maxPartnerLinks} partner links.`,
       });
     }
 
