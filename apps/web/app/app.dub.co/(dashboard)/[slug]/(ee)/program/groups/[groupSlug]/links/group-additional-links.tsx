@@ -3,7 +3,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
-import { AdditionalPartnerLink } from "@/lib/types";
+import { AdditionalPartnerLink, GroupProps } from "@/lib/types";
 import {
   MAX_ADDITIONAL_PARTNER_LINKS,
   updateGroupSchema,
@@ -13,19 +13,44 @@ import { ThreeDots } from "@/ui/shared/icons";
 import { Button, LinkLogo, NumberStepper, Popover, Switch } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
-import { PropsWithChildren, useEffect, useState } from "react";
+import { PropsWithChildren, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useAddDestinationUrlModal } from "./add-edit-additional-partner-link-modal";
+
+export function GroupAdditionalLinks() {
+  const { group, loading } = useGroup();
+
+  return (
+    <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+      <div className="px-6 py-6">
+        <h3 className="text-content-emphasis text-lg font-semibold leading-7">
+          Additional partner links
+        </h3>
+        <p className="text-content-subtle text-sm font-normal leading-5">
+          Allow and configure extra partner links
+        </p>
+      </div>
+      {group ? (
+        <GroupAdditionalLinksForm group={group} />
+      ) : loading ? (
+        <div className="flex h-[4.5rem] animate-pulse rounded-b-lg border-t border-neutral-200 bg-neutral-100" />
+      ) : (
+        <div className="text-content-subtle h-20 text-center">
+          Failed to load additional partner links settings
+        </div>
+      )}
+    </div>
+  );
+}
 
 type FormData = Pick<
   z.input<typeof updateGroupSchema>,
   "maxPartnerLinks" | "additionalLinks"
 >;
 
-export function GroupAdditionalLinks() {
-  const { group } = useGroup();
+export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
   const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({});
   const [enableAdditionalLinks, setEnableAdditionalLinks] = useState(false);
@@ -34,27 +59,14 @@ export function GroupAdditionalLinks() {
     handleSubmit,
     watch,
     setValue,
-    reset,
     formState: { isDirty, isValid },
   } = useForm<FormData>({
     mode: "onBlur",
     defaultValues: {
-      maxPartnerLinks: group?.maxPartnerLinks,
-      additionalLinks: group?.additionalLinks || [],
+      maxPartnerLinks: group.maxPartnerLinks,
+      additionalLinks: group.additionalLinks || [],
     },
   });
-
-  // Reset form values when group data becomes available
-  useEffect(() => {
-    if (group) {
-      setEnableAdditionalLinks(group.maxPartnerLinks !== 0);
-
-      reset({
-        maxPartnerLinks: group.maxPartnerLinks,
-        additionalLinks: group.additionalLinks || [],
-      });
-    }
-  }, [group, reset]);
 
   const onSubmit = async (data: FormData) => {
     if (!group) return;
@@ -73,102 +85,99 @@ export function GroupAdditionalLinks() {
   const maxPartnerLinks = watch("maxPartnerLinks") || 0;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="flex min-h-80 flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200">
-        <div className="px-6 py-6">
-          <h3 className="text-content-emphasis text-lg font-semibold leading-7">
-            Additional partner links
-          </h3>
-          <p className="text-content-subtle text-sm font-normal leading-5">
-            Allow and configure extra partner links
-          </p>
-        </div>
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col divide-y divide-neutral-200"
+    >
+      {enableAdditionalLinks && (
+        <>
+          <SettingsRow
+            heading="Link limit"
+            description="Set how many extra links a partner can create"
+          >
+            <NumberStepper
+              value={maxPartnerLinks}
+              onChange={(v) =>
+                setValue("maxPartnerLinks", v, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+              }
+              min={1}
+              max={MAX_ADDITIONAL_PARTNER_LINKS}
+              step={1}
+              className="w-full"
+            />
+          </SettingsRow>
 
-        {enableAdditionalLinks && (
-          <>
-            <SettingsRow
-              heading="Link limit"
-              description="Set how many extra links a partner can create"
-            >
-              <NumberStepper
-                value={maxPartnerLinks}
-                onChange={(v) =>
-                  setValue("maxPartnerLinks", v, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  })
-                }
-                min={1}
-                max={MAX_ADDITIONAL_PARTNER_LINKS}
-                step={1}
-                className="w-full"
-              />
-            </SettingsRow>
-
-            <SettingsRow
-              heading="Destinations URLs"
-              description="Add additional destination URLs the partner can select"
-            >
-              <div>
-                <div className="flex flex-col gap-2">
-                  {additionalLinks.length > 0 &&
-                    additionalLinks.map((link, index) => (
-                      <DestinationUrl key={index} link={link} />
-                    ))}
-                </div>
-
-                <Button
-                  text="Add destination URL"
-                  variant="primary"
-                  className="mt-4 h-8 w-fit rounded-lg px-3"
-                  onClick={() => setIsOpen(true)}
-                  disabled={
-                    additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS
-                  }
-                  disabledTooltip={
-                    additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS
-                      ? `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional destination URLs.`
-                      : undefined
-                  }
-                />
+          <SettingsRow
+            heading="Destinations URLs"
+            description="Add additional destination URLs the partner can select"
+          >
+            <div>
+              <div className="flex flex-col gap-2">
+                {additionalLinks.length > 0 ? (
+                  additionalLinks.map((link, index) => (
+                    <DestinationUrl key={index} link={link} />
+                  ))
+                ) : (
+                  <div className="border-border-subtle text-content-subtle flex h-16 items-center gap-3 rounded-xl border bg-white p-4 text-sm">
+                    No additional destination URLs
+                  </div>
+                )}
               </div>
-            </SettingsRow>
-          </>
-        )}
 
-        <div className="flex items-center justify-between rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-5">
-          <div className="flex items-center gap-3">
-            <Switch
-              checked={enableAdditionalLinks}
-              fn={(checked: boolean) => {
-                setEnableAdditionalLinks(checked);
-                const newValue = checked ? MAX_ADDITIONAL_PARTNER_LINKS : 0;
+              <Button
+                text="Add destination URL"
+                variant="primary"
+                className="mt-4 h-8 w-fit rounded-lg px-3"
+                onClick={() => setIsOpen(true)}
+                disabled={
+                  additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS
+                }
+                disabledTooltip={
+                  additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS
+                    ? `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional destination URLs.`
+                    : undefined
+                }
+              />
+            </div>
+          </SettingsRow>
+        </>
+      )}
 
-                setValue("maxPartnerLinks", newValue, {
+      <div className="flex items-center justify-between rounded-b-lg bg-neutral-50 px-6 py-5">
+        <div className="flex items-center gap-3">
+          <Switch
+            checked={enableAdditionalLinks}
+            fn={(checked: boolean) => {
+              setEnableAdditionalLinks(checked);
+              const newValue = checked ? MAX_ADDITIONAL_PARTNER_LINKS : 0;
+
+              setValue("maxPartnerLinks", newValue, {
+                shouldDirty: true,
+                shouldValidate: true,
+              });
+
+              if (!checked) {
+                setValue("additionalLinks", [], {
                   shouldDirty: true,
                   shouldValidate: true,
                 });
-
-                if (!checked) {
-                  setValue("additionalLinks", [], {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                }
-              }}
-            />
-            <span className="text-sm font-medium text-neutral-800">
-              Enable additional partner links
-            </span>
-          </div>
-          <div>
-            <Button
-              text="Save changes"
-              className="h-8"
-              loading={isSubmitting}
-              disabled={!isValid || !isDirty}
-            />
-          </div>
+              }
+            }}
+          />
+          <span className="text-sm font-medium text-neutral-800">
+            Enable additional partner links
+          </span>
+        </div>
+        <div>
+          <Button
+            text="Save changes"
+            className="h-8"
+            loading={isSubmitting}
+            disabled={!isValid || !isDirty}
+          />
         </div>
       </div>
       {addDestinationUrlModal}

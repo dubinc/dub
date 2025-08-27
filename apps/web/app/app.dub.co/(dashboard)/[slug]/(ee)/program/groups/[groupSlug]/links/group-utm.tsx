@@ -5,8 +5,9 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UTMTemplateSchema } from "@/lib/zod/schemas/utm";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Button, UTMBuilder } from "@dub/ui";
-import { PropsWithChildren, useEffect, useState } from "react";
+import { PropsWithChildren, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -18,9 +19,22 @@ type FormData = {
 export function GroupUTM() {
   const { id: workspaceId } = useWorkspace();
   const { group, loading: isLoadingGroup } = useGroup();
+
+  const formRef = useRef<HTMLFormElement>(null);
+
   const { makeRequest: updateGroup, isSubmitting: isUpdatingGroup } =
     useApiMutation();
   const [isUpdatingTemplate, setIsUpdatingTemplate] = useState(false);
+
+  const { confirmModal, setShowConfirmModal } = useConfirmModal({
+    title: "Save updated UTM parameters",
+    description:
+      "All existing and new partner links will automatically be updated with these UTM parameters.",
+    confirmText: "Save",
+    onConfirm: async () => {
+      formRef.current?.requestSubmit();
+    },
+  });
 
   const { handleSubmit, watch, setValue, reset } = useForm<FormData>({
     mode: "onBlur",
@@ -126,7 +140,8 @@ export function GroupUTM() {
   const currentValues = watch();
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
+      {confirmModal}
       <div className="flex min-h-80 flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200">
         <SettingsRow
           heading="UTM Parameters"
@@ -153,6 +168,7 @@ export function GroupUTM() {
             className="h-8 w-fit"
             loading={isUpdatingGroup || isUpdatingTemplate}
             disabled={isLoadingGroup}
+            onClick={() => setShowConfirmModal(true)}
           />
         </div>
       </div>

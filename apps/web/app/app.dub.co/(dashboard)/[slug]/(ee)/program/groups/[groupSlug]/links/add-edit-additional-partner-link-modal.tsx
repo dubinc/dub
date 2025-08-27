@@ -123,10 +123,12 @@ function AddDestinationUrlModalContent({
   const isEditing = !!link;
 
   return (
-    <form onSubmit={(e) => {
-      e.stopPropagation();
-      handleSubmit(onSubmit)(e);
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.stopPropagation();
+        handleSubmit(onSubmit)(e);
+      }}
+    >
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
           <h2 className="text-lg font-semibold">
@@ -199,6 +201,7 @@ function AddDestinationUrlModalContent({
             <div className="flex items-start gap-2.5">
               <input
                 type="checkbox"
+                id="conversionTracking"
                 className="mt-1 h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
                 required
               />

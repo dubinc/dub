@@ -73,7 +73,7 @@ export function DomainSelector({
         <Combobox
           options={loading ? undefined : domainOptions}
           setSelected={(option) => {
-            setSelectedDomain(option.value);
+            setSelectedDomain(option?.value || "");
           }}
           selected={selectedOption}
           icon={loading ? null : selectedOption?.icon}
