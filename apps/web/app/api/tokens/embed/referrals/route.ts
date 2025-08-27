@@ -17,11 +17,13 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const {
+    let {
       partnerId,
       tenantId,
       partner: partnerProps,
     } = createReferralsEmbedTokenSchema.parse(await parseRequestBody(req));
+
+    tenantId = tenantId ?? partnerProps?.tenantId;
 
     let programEnrollment: Pick<ProgramEnrollment, "partnerId"> | null = null;
 
