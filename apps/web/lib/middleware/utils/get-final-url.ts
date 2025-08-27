@@ -104,6 +104,11 @@ export const getFinalUrl = (
     urlObj.searchParams.delete("qr");
   }
 
+  // remove skip_deeplink_preview param from the final url (only used for internal redirection behavior)
+  if (urlObj.searchParams.get("skip_deeplink_preview") === "1") {
+    urlObj.searchParams.delete("skip_deeplink_preview");
+  }
+
   return urlObj.toString();
 };
 
