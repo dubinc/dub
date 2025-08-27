@@ -25,11 +25,24 @@ export default async function DeepLinkPreviewPage({
     select: {
       shortLink: true,
       url: true,
+      ios: true,
+      shortDomain: {
+        select: {
+          appleAppSiteAssociation: true,
+        },
+      },
     },
   });
 
+  // if the link doesn't exist, we redirect to the root domain link
   if (!link) {
-    redirect("/");
+    redirect(`https://${domain}`);
+  }
+
+  // if the link domain doesn't have an AASA file configured,
+  // we skip the deep link preview and redirect to the link's URL
+  if (!link.shortDomain?.appleAppSiteAssociation) {
+    redirect(link.ios ?? link.url);
   }
 
   return (
