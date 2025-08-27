@@ -67,7 +67,8 @@ export async function updateWorkspacePlan({
 
   const newPlanName = plan.name.toLowerCase();
   const shouldDisableWebhooks = newPlanName === "free" || newPlanName === "pro";
-  const shouldDeleteFolders = newPlanName === "free" && plan.limits.folders > 0;
+  const shouldDeleteFolders =
+    newPlanName === "free" && workspace.foldersUsage > 0;
 
   // If a workspace upgrades/downgrades their subscription
   // or if the payouts limit changes and the new plan is not a legacy plan
