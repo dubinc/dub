@@ -212,8 +212,6 @@ export default function EventsTable({
               <span>
                 {currencyFormatter(getValue() / 100, {
                   maximumFractionDigits: undefined,
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                  trailingZeroDisplay: "stripIfInteger",
                 })}
               </span>
               <span className="text-neutral-400">USD</span>

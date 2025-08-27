@@ -8,7 +8,7 @@ import {
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { Trophy } from "@dub/ui/icons";
-import { cn, currencyFormatter } from "@dub/utils";
+import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { useAddEditBountyForm } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/bounties/add-edit-bounty-sheet";
 import { useContext } from "react";
 import { Controller } from "react-hook-form";
@@ -16,8 +16,8 @@ import { Controller } from "react-hook-form";
 const WORKFLOW_ATTRIBUTE_LABELS: Record<WorkflowConditionAttribute, string> = {
   totalLeads: "total leads",
   totalConversions: "total conversions",
-  totalSaleAmount: "total sale amount",
-  totalCommission: "total commission",
+  totalSaleAmount: "total revenue",
+  totalCommission: "total commissions",
 } as const;
 
 export const generateBountyName = ({
@@ -32,7 +32,7 @@ export const generateBountyName = ({
   const attributeLabel = WORKFLOW_ATTRIBUTE_LABELS[condition.attribute];
   const valueFormatted = isCurrency
     ? `${currencyFormatter(condition.value / 100)} in`
-    : `${condition.value}`;
+    : `${nFormatter(condition.value, { full: true })}`;
 
   return `Earn ${rewardAmountFormatted} after generating ${valueFormatted} ${attributeLabel}`;
 };

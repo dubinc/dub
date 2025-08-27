@@ -236,12 +236,14 @@ export function BountySubmissionsTable() {
                 }
 
                 const formattedValue = isCurrencyAttribute(attribute)
-                  ? currencyFormatter(value / 100)
-                  : nFormatter(value);
+                  ? currencyFormatter(value / 100, {
+                      maximumFractionDigits: 2,
+                    })
+                  : nFormatter(value, { full: true });
 
                 const formattedTarget = isCurrencyAttribute(attribute)
                   ? currencyFormatter(target / 100)
-                  : nFormatter(target);
+                  : nFormatter(target, { full: true });
 
                 return (
                   <div className="flex items-center gap-2">
