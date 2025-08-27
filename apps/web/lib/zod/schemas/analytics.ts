@@ -251,7 +251,7 @@ export const analyticsQuerySchema = z
       )
       .openapi({ deprecated: true }),
   })
-  .merge(UTMTemplateSchema.omit({ id: true }));
+  .merge(UTMTemplateSchema.omit({ id: true, name: true }));
 
 // Analytics filter params for Tinybird endpoints
 export const analyticsFilterTB = z

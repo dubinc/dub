@@ -123,13 +123,17 @@ export const PATCH = withWorkspace(
 
     // Identify changes in default links
     let defaultLinksDiff: DefaultLinksDiff | null = null;
-
     if (defaultLinks) {
       defaultLinksDiff = diffDefaultPartnerLink(
-        // @ts-ignore
-        group.defaultLinks,
+        group.defaultLinks as any,
         defaultLinks,
       );
+    }
+
+    // Identify changes in UTM template
+    let utmTemplateDiff = false;
+    if (utmTemplateId) {
+      utmTemplateDiff = group.utmTemplateId !== utmTemplateId;
     }
 
     waitUntil(
@@ -157,6 +161,15 @@ export const PATCH = withWorkspace(
               userId: session.user.id,
               added: defaultLinksDiff.added,
               updated: defaultLinksDiff.updated,
+            },
+          }),
+
+        utmTemplateDiff &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
+            body: {
+              groupId: group.id,
+              utmTemplateId,
             },
           }),
       ]),
