@@ -17,15 +17,25 @@ export const PATCH = withPartnerProfile(
 
     const { programId, linkId } = params;
 
-    const { program, links, status } = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId,
-    });
+    const { program, links, status, partnerGroup } =
+      await getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId,
+        includeGroup: true,
+      });
 
     if (status === "banned") {
       throw new DubApiError({
         code: "forbidden",
         message: "You are banned from this program.",
+      });
+    }
+
+    if (partnerGroup === null) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You’re not part of any group yet. Please reach out to the program owner to be added.",
       });
     }
 
