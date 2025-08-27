@@ -51,14 +51,36 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const existingGroup = await prisma.partnerGroup.findUnique({
+    const program = await prisma.program.findUniqueOrThrow({
       where: {
-        programId_slug: {
-          programId,
-          slug,
-        },
+        id: programId,
+      },
+      select: {
+        defaultGroupId: true,
       },
     });
+
+    const [existingGroup, defaultGroup] = await Promise.all([
+      prisma.partnerGroup.findUnique({
+        where: {
+          programId_slug: {
+            programId,
+            slug,
+          },
+        },
+      }),
+
+      prisma.partnerGroup.findUniqueOrThrow({
+        where: {
+          id: program.defaultGroupId,
+        },
+        select: {
+          defaultLinks: true,
+          additionalLinks: true,
+          maxPartnerLinks: true,
+        },
+      }),
+    ]);
 
     if (existingGroup) {
       throw new DubApiError({
@@ -85,6 +107,9 @@ export const POST = withWorkspace(
         });
       }
 
+      // Copy over the default group’s link settings when creating a new group
+      const { defaultLinks, additionalLinks, maxPartnerLinks } = defaultGroup;
+
       return await tx.partnerGroup.create({
         data: {
           id: createId({ prefix: "grp_" }),
@@ -92,6 +117,9 @@ export const POST = withWorkspace(
           name,
           slug,
           color,
+          ...(defaultLinks && { defaultLinks }),
+          ...(additionalLinks && { additionalLinks }),
+          ...(maxPartnerLinks && { maxPartnerLinks }),
         },
         include: {
           clickReward: true,
