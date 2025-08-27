@@ -65,7 +65,7 @@ model Link {
   updatedAt   DateTime  @updatedAt
 
   // Link short domain
-  shortDomain Domain? @relation(fields: [domain], references: [slug])
+  shortDomain Domain @relation(fields: [domain], references: [slug])
 
   // Link tags
   tags LinkTag[]

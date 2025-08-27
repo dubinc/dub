@@ -15,9 +15,7 @@ import {
   LinkedIn,
   MicrophoneFill,
   Php,
-  ProductHunt,
   Python,
-  Raycast,
   Ruby,
   Toggle2Fill,
   Twitter,
@@ -26,7 +24,6 @@ import {
   YouTube,
 } from "./icons";
 import { DubApiIcon } from "./icons/dub-api";
-import { Elxo } from "./icons/elxo";
 import { Logo } from "./logo";
 
 export type NavItemChild = {
@@ -76,30 +73,6 @@ export const FEATURES_LIST = [
     description: "Connect Dub with your favorite tools",
     icon: Toggle2Fill,
     href: "/integrations",
-  },
-];
-
-export const CUSTOMER_STORIES = [
-  {
-    icon: Raycast,
-    iconClassName: "group-hover:text-[#FF6363]",
-    title: "Raycast",
-    description: "Programmatic link sharing",
-    href: "/customers/raycast",
-  },
-  {
-    icon: ProductHunt,
-    iconClassName: "group-hover:text-[#FF6154]",
-    title: "Product Hunt",
-    description: "Unlocking new growth",
-    href: "/customers/product-hunt",
-  },
-  {
-    icon: Elxo,
-    iconClassName: "group-hover:text-[#353D7C]",
-    title: "Elxo",
-    description: "Overcoming API latency",
-    href: "/customers/elxo",
   },
 ];
 

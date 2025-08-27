@@ -41,7 +41,7 @@ export default async function DeepLinkPreviewPage({
 
   // if the link domain doesn't have an AASA file configured,
   // we skip the deep link preview and redirect to the link's URL
-  if (!link.shortDomain?.appleAppSiteAssociation) {
+  if (!link.shortDomain.appleAppSiteAssociation) {
     redirect(link.ios ?? link.url);
   }
 
