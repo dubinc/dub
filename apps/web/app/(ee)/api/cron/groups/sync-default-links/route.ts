@@ -1,0 +1,158 @@
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { bulkCreateLinks } from "@/lib/api/links";
+import { generatePartnerLink } from "@/lib/api/partners/create-partner-link";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { DefaultPartnerLink, WorkspaceProps } from "@/lib/types";
+import { defaultPartnerLinkSchema } from "@/lib/zod/schemas/groups";
+import { prisma } from "@dub/prisma";
+import { isFulfilled, log } from "@dub/utils";
+import { PartnerGroup } from "@prisma/client";
+import { z } from "zod";
+import { logAndRespond } from "../../utils";
+export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 100;
+
+const payloadSchema = z.object({
+  groupId: z.string(),
+  userId: z.string(),
+  added: defaultPartnerLinkSchema.nullable(),
+  updated: z
+    .object({
+      old: defaultPartnerLinkSchema,
+      new: defaultPartnerLinkSchema,
+    })
+    .nullable(),
+});
+
+type Payload = z.infer<typeof payloadSchema>;
+
+// POST /api/cron/groups/sync-default-links
+export async function POST(req: Request) {
+  try {
+    const rawBody = await req.text();
+    await verifyQstashSignature({ req, rawBody });
+
+    const { groupId, userId, added, updated } = payloadSchema.parse(
+      JSON.parse(rawBody),
+    );
+
+    const group = await prisma.partnerGroup.findUnique({
+      where: {
+        id: groupId,
+      },
+    });
+
+    if (!group) {
+      return logAndRespond(`Group ${groupId} not found. Skipping...`, {
+        logLevel: "error",
+      });
+    }
+
+    // New default link has been added
+    if (added) {
+      await createDefaultLink({
+        group,
+        defaultLink: added,
+        userId,
+      });
+
+      return logAndRespond("OK");
+    }
+
+    // Existing default link has been updated
+    if (updated) {
+      // TODO: Update the default link
+    }
+
+    return logAndRespond("OK");
+  } catch (error) {
+    await log({
+      message: `Error handling "groups.sync-default-links" ${error.message}.`,
+      type: "errors",
+    });
+
+    console.error(error);
+
+    return handleAndReturnErrorResponse(error);
+  }
+}
+
+// Create a new default link for each partner in the group
+async function createDefaultLink({
+  group,
+  defaultLink,
+  userId,
+}: {
+  group: PartnerGroup;
+  defaultLink: DefaultPartnerLink;
+  userId: string;
+}) {
+  const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: group.programId,
+    },
+    include: {
+      workspace: true,
+    },
+  });
+
+  let currentPage = 0;
+
+  while (true) {
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        programId: group.programId,
+      },
+      include: {
+        partner: true,
+      },
+      skip: currentPage * PAGE_SIZE,
+      take: PAGE_SIZE,
+    });
+
+    if (programEnrollments.length === 0) {
+      break;
+    }
+
+    currentPage = currentPage + 1;
+
+    const processedLinks = (
+      await Promise.allSettled(
+        programEnrollments.map(({ partner, ...programEnrollment }) =>
+          generatePartnerLink({
+            workspace: {
+              id: workspace.id,
+              plan: workspace.plan as WorkspaceProps["plan"],
+              webhookEnabled: workspace.webhookEnabled,
+            },
+            program: {
+              id: program.id,
+              defaultFolderId: program.defaultFolderId,
+            },
+            partner: {
+              id: partner.id,
+              name: partner.name,
+              email: partner.email!,
+              tenantId: programEnrollment.tenantId ?? undefined,
+            },
+            link: {
+              domain: defaultLink.domain,
+              url: defaultLink.url,
+              tenantId: programEnrollment.tenantId ?? undefined,
+            },
+            userId,
+          }),
+        ),
+      )
+    )
+      .filter(isFulfilled)
+      .map(({ value }) => value);
+
+    const createdLinks = await bulkCreateLinks({
+      links: processedLinks,
+    });
+
+    console.log(`Created ${createdLinks.length} links for group ${group.id}`);
+  }
+}

@@ -1,6 +1,10 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
+import {
+  DefaultLinksDiff,
+  diffDefaultPartnerLink,
+} from "@/lib/api/groups/utils";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -106,21 +110,45 @@ export const PATCH = withWorkspace(
       },
     });
 
+    // Identify changes in default links
+    let defaultLinksDiff: DefaultLinksDiff | null = null;
+
+    if (defaultLinks) {
+      defaultLinksDiff = diffDefaultPartnerLink(
+        // @ts-ignore
+        group.defaultLinks,
+        defaultLinks,
+      );
+    }
+
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "group.updated",
-        description: `Group ${updatedGroup.name} (${group.id}) updated`,
-        actor: session.user,
-        targets: [
-          {
-            type: "group",
-            id: group.id,
-            metadata: updatedGroup,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "group.updated",
+          description: `Group ${updatedGroup.name} (${group.id}) updated`,
+          actor: session.user,
+          targets: [
+            {
+              type: "group",
+              id: group.id,
+              metadata: updatedGroup,
+            },
+          ],
+        }),
+
+        defaultLinksDiff &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-default-links`,
+            body: {
+              groupId: group.id,
+              userId: session.user.id,
+              added: defaultLinksDiff.added,
+              updated: defaultLinksDiff.updated,
+            },
+          }),
+      ]),
     );
 
     return NextResponse.json(GroupSchema.parse(updatedGroup));
