@@ -48,7 +48,7 @@ export function GroupDefaultLinks() {
         </div>
       ) : isLoadingGroup ? (
         <div className="flex flex-col gap-4">
-          <div className="h-[76px] animate-pulse rounded-xl bg-neutral-50" />
+          <div className="h-52 animate-pulse rounded-xl bg-neutral-50" />
         </div>
       ) : (
         <NoDefaultLinks />
