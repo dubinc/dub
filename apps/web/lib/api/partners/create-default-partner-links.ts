@@ -18,7 +18,7 @@ interface CreateDefaultPartnerLinksInput {
   partner: Pick<
     CreatePartnerProps,
     "name" | "email" | "username" | "tenantId"
-  > & { id?: string };
+  > & { id: string };
   group: Pick<PartnerGroup, "id" | "defaultLinks">;
   link?: CreatePartnerProps["linkProps"];
   userId: string;

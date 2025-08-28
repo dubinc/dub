@@ -208,7 +208,7 @@ function SettingsRow({
 }
 
 function DestinationUrl({ link }: { link: AdditionalPartnerLink }) {
-  const { group } = useGroup();
+  const { group, mutateGroup } = useGroup();
   const [openPopover, setOpenPopover] = useState(false);
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
@@ -219,6 +219,9 @@ function DestinationUrl({ link }: { link: AdditionalPartnerLink }) {
   // Delete destination URL
   const deleteDestinationUrl = async () => {
     if (!group) return;
+
+    // Refresh group data first to ensure we have the latest state
+    await mutateGroup();
 
     const currentAdditionalLinks = group.additionalLinks || [];
     const updatedAdditionalLinks = currentAdditionalLinks.filter(

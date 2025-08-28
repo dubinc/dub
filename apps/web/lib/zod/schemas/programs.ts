@@ -137,6 +137,7 @@ export const ProgramEnrollmentSchema = z.object({
     defaultLinks: true,
     additionalLinks: true,
     maxPartnerLinks: true,
+    linkStructure: true,
   }).nullish(),
 });
 
