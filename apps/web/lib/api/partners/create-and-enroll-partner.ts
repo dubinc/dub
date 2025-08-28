@@ -164,7 +164,7 @@ export const createAndEnrollPartner = async ({
 
   waitUntil(
     Promise.all([
-      links.map((link) =>
+      ...links.map((link) =>
         backfillLinkCommissions({
           id: link.id,
           partnerId: upsertedPartner.id,
