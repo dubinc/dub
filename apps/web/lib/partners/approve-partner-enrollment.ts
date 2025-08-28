@@ -81,14 +81,25 @@ export async function approvePartnerEnrollment({
   const workspace = program.workspace as WorkspaceProps;
 
   const partnerLinks = await createDefaultPartnerLinks({
-    workspace,
-    program,
+    workspace: {
+      id: workspace.id,
+      plan: workspace.plan,
+      webhookEnabled: workspace.webhookEnabled,
+    },
+    program: {
+      id: program.id,
+      defaultFolderId: program.defaultFolderId,
+    },
     partner: {
       id: partner.id,
       name: partner.name,
       email: partner.email!,
+      tenantId: programEnrollment.tenantId ?? undefined,
     },
-    group,
+    group: {
+      id: group.id,
+      defaultLinks: group.defaultLinks,
+    },
     userId,
   });
 
@@ -116,9 +127,9 @@ export async function approvePartnerEnrollment({
       });
 
       const rewards = [
-        group?.clickReward,
-        group?.leadReward,
-        group?.saleReward,
+        group.clickReward,
+        group.leadReward,
+        group.saleReward,
       ].filter(Boolean) as RewardProps[];
 
       await Promise.allSettled([

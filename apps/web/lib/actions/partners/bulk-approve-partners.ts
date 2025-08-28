@@ -156,14 +156,13 @@ export const bulkApprovePartnersAction = authActionClient
                 id: partner.id,
                 name: partner.name,
                 email: partner.email!,
-                ...(tenantId && { tenantId }),
+                tenantId: tenantId ?? undefined,
               },
               group: {
                 id: partnerGroup?.id!,
                 defaultLinks: partnerGroup?.defaultLinks!,
               },
               userId: user.id,
-              link: undefined,
             }),
           ),
         );

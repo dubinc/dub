@@ -34,8 +34,6 @@ export const createAndEnrollPartner = async ({
   enrolledAt,
   userId,
 }: CreateAndEnrollPartnerInput) => {
-  const { tenantId, groupId } = partner;
-
   if (!skipEnrollmentCheck && partner.email) {
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
@@ -55,11 +53,11 @@ export const createAndEnrollPartner = async ({
   }
 
   // Check if the tenantId is already enrolled in the program
-  if (tenantId) {
+  if (partner.tenantId) {
     const tenantEnrollment = await prisma.programEnrollment.findUnique({
       where: {
         tenantId_programId: {
-          tenantId,
+          tenantId: partner.tenantId,
           programId: program.id,
         },
       },
@@ -67,13 +65,13 @@ export const createAndEnrollPartner = async ({
 
     if (tenantEnrollment) {
       throw new DubApiError({
-        message: `Tenant ${tenantId} already enrolled in this program.`,
+        message: `Tenant ${partner.tenantId} already enrolled in this program.`,
         code: "conflict",
       });
     }
   }
 
-  const finalGroupId = groupId || program.defaultGroupId;
+  const finalGroupId = partner.groupId || program.defaultGroupId;
 
   // this should never happen, but just in case
   if (!finalGroupId) {
@@ -94,7 +92,7 @@ export const createAndEnrollPartner = async ({
     programs: {
       create: {
         programId: program.id,
-        tenantId,
+        tenantId: partner.tenantId,
         status,
         groupId: group.id,
         clickRewardId: group.clickRewardId,
@@ -133,8 +131,15 @@ export const createAndEnrollPartner = async ({
 
   // Create the partner links based on group defaults
   const links = await createDefaultPartnerLinks({
-    workspace,
-    program,
+    workspace: {
+      id: workspace.id,
+      plan: workspace.plan,
+      webhookEnabled: workspace.webhookEnabled,
+    },
+    program: {
+      id: program.id,
+      defaultFolderId: program.defaultFolderId,
+    },
     partner: {
       id: upsertedPartner.id,
       name: partner.name,
@@ -142,7 +147,10 @@ export const createAndEnrollPartner = async ({
       username: partner.username,
       tenantId: partner.tenantId,
     },
-    group,
+    group: {
+      id: group.id,
+      defaultLinks: group.defaultLinks,
+    },
     link,
     userId,
   });

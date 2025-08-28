@@ -23,17 +23,14 @@ export const getGroupOrThrow = async ({
             },
           }),
     },
-    ...(includeExpandedFields
-      ? {
-          include: {
-            clickReward: true,
-            leadReward: true,
-            saleReward: true,
-            discount: true,
-            utmTemplate: true,
-          },
-        }
-      : {}),
+
+    include: {
+      clickReward: includeExpandedFields,
+      leadReward: includeExpandedFields,
+      saleReward: includeExpandedFields,
+      discount: includeExpandedFields,
+      utmTemplate: includeExpandedFields,
+    },
   });
 
   if (!group) {

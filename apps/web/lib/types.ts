@@ -514,8 +514,8 @@ export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 
 export type GroupProps = z.infer<typeof GroupSchema> & {
-  defaultLinks: DefaultPartnerLink[];
-  additionalLinks: AdditionalPartnerLink[];
+  defaultLinks: DefaultPartnerLink[] | null;
+  additionalLinks: AdditionalPartnerLink[] | null;
 };
 
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
