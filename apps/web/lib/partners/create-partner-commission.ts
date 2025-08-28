@@ -252,8 +252,9 @@ export const createPartnerCommission = async ({
         });
 
         const isClawback = earnings < 0;
+        const shouldTriggerWorkflow = !isClawback;
 
-        // Make sure totalCommissions is up to date before firing the webhook
+        // Make sure totalCommissions is up to date before firing the webhook & executing workflows
         const { totalCommissions } = await syncTotalCommissions({
           partnerId,
           programId,
@@ -294,11 +295,12 @@ export const createPartnerCommission = async ({
             : Promise.resolve(),
         ]);
 
-        await executeWorkflows({
-          trigger: WorkflowTrigger.commissionEarned,
-          programId,
-          partnerId,
-        });
+        shouldTriggerWorkflow &&
+          executeWorkflows({
+            trigger: WorkflowTrigger.commissionEarned,
+            programId,
+            partnerId,
+          });
       })(),
     );
 
