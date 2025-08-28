@@ -42,7 +42,7 @@ export const validatePartnerLinkUrl = ({
   ) {
     throw new DubApiError({
       code: "bad_request",
-      message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(url)}).`,
+      message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(additionalLink.url)}).`,
     });
   }
 
