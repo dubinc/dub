@@ -32,7 +32,6 @@ export default async function AppMiddleware(
     !user &&
     path !== "/login"
     // path !== "/forgot-password" &&
-    // path !== "/register" &&
     // path !== "/auth/saml" &&
     // !path.startsWith("/auth/reset-password/") &&
     // !path.startsWith("/share/")
