@@ -161,11 +161,15 @@ async function createPartnerLink({
       workspace,
       program,
       partner: {
+        id: partner.id,
         name: partner.name,
         email: partner.email!,
       },
-      key,
-      partnerId: partner.id,
+      link: {
+        domain: program.domain!,
+        url: link.url,
+        key,
+      },
       userId,
     });
 
