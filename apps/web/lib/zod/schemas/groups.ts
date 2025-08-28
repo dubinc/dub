@@ -96,6 +96,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
     .optional(),
   maxPartnerLinks: z.number().optional(),
   utmTemplateId: z.string().optional(),
+  linkStructure: z.nativeEnum(PartnerLinkStructure).optional(),
 });
 
 export const changeGroupSchema = z.object({

@@ -62,6 +62,7 @@ export const PATCH = withWorkspace(
       maxPartnerLinks,
       additionalLinks,
       utmTemplateId,
+      linkStructure
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -124,6 +125,7 @@ export const PATCH = withWorkspace(
         ...(additionalLinksInput && { additionalLinks: additionalLinksInput }),
         maxPartnerLinks,
         utmTemplateId,
+        linkStructure
       },
       include: {
         clickReward: true,

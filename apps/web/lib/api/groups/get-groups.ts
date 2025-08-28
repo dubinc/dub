@@ -43,6 +43,7 @@ export async function getGroups(filters: GroupFilters) {
       pg.defaultLinks,
       pg.additionalLinks,
       pg.maxPartnerLinks,
+      pg.linkStructure,
       ${
         includeExpandedFields
           ? Prisma.sql`

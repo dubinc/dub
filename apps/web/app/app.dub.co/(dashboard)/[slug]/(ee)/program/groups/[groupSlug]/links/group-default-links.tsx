@@ -27,7 +27,7 @@ export function GroupDefaultLinks() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-content-emphasis text-lg font-semibold leading-7">
-            Default partner links
+            Default links
           </h3>
           <p className="text-content-subtle text-sm font-normal leading-5">
             Links that are automatically created for each partner in this group
@@ -69,7 +69,7 @@ function CreateDefaultLinkButton({
   return (
     <>
       <Button
-        text="Create default link"
+        text="Create link"
         variant="primary"
         className="h-8 w-fit rounded-lg px-3"
         onClick={() => setIsOpen(true)}
