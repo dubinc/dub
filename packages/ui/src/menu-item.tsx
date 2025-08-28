@@ -64,6 +64,7 @@ export function MenuItem<T extends ElementType>({
           menuItemVariants({ variant, disabled: !!disabledTooltip }),
           className,
         )}
+        disabled={disabledTooltip ? true : rest.disabled}
         {...rest}
       >
         <div className="flex grow items-center gap-2">
