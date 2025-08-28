@@ -75,17 +75,27 @@ export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
     const { id } = params;
     try {
-      const response = await prisma.utmTemplate.delete({
+      const template = await prisma.utmTemplate.delete({
         where: {
           id,
           projectId: workspace.id,
         },
+        include: {
+          partnerGroup: true,
+        },
       });
 
-      if (!response) {
+      if (!template) {
         throw new DubApiError({
           code: "not_found",
           message: "UTM template not found.",
+        });
+      }
+
+      if (template.partnerGroup) {
+        throw new DubApiError({
+          code: "conflict",
+          message: "Cannot delete a template that is associated with a group.",
         });
       }
 
