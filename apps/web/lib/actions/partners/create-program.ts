@@ -131,7 +131,6 @@ export const createProgram = async ({
       id: nanoid(10),
       domain: programData.domain!,
       url: programData.url!,
-      linkStructure: programData.linkStructure,
     };
 
     await tx.partnerGroup.upsert({

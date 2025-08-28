@@ -26,7 +26,6 @@ export const defaultPartnerLinkSchema = z.object({
   id: z.string(),
   domain: z.string(),
   url: parseUrlSchema,
-  linkStructure: z.nativeEnum(PartnerLinkStructure),
 });
 
 export const additionalPartnerLinkSchema = z.object({
@@ -48,6 +47,7 @@ export const GroupSchema = z.object({
   defaultLinks: z.array(defaultPartnerLinkSchema).nullable(),
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
 });
 
 export const GroupSchemaExtended = GroupSchema.extend({

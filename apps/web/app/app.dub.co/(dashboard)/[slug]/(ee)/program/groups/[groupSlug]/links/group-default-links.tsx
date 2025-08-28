@@ -133,7 +133,7 @@ function DefaultLinkPreview({ link }: { link: DefaultPartnerLink }) {
           <PartnerLinkPreview
             url={link.url}
             domain={link.domain}
-            linkStructure={link.linkStructure}
+            linkStructure={group?.linkStructure || "query"}
           />
         </div>
 

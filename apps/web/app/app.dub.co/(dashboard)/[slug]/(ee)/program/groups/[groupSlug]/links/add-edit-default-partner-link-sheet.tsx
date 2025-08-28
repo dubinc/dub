@@ -1,6 +1,5 @@
 "use client";
 
-import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
@@ -8,7 +7,6 @@ import { DefaultPartnerLink } from "@/lib/types";
 import { DomainSelector } from "@/ui/domains/domain-selector";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
-import { PartnerLinkStructure } from "@dub/prisma/client";
 import {
   Button,
   InfoTooltip,
@@ -50,20 +48,10 @@ function DefaultPartnerLinkSheetContent({
     defaultValues: {
       domain: link?.domain || "",
       url: link?.url || "",
-      linkStructure: link?.linkStructure || PartnerLinkStructure.short,
     },
   });
 
-  const [domain, url, linkStructure] = watch([
-    "domain",
-    "url",
-    "linkStructure",
-  ]);
-
-  const linkStructureOptions = getLinkStructureOptions({
-    domain,
-    url,
-  });
+  const [domain, url] = watch(["domain", "url"]);
 
   // Save the default link
   const onSubmit = async (data: DefaultPartnerLink) => {
@@ -201,47 +189,6 @@ function DefaultPartnerLinkSheetContent({
                   links
                 </p>
               </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-x-2">
-                  <label className="text-content-emphasis block text-sm font-medium">
-                    Link type
-                  </label>
-                  <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title="Choose how your referral links will be structured"
-                        cta="Learn more"
-                        href="https://dub.co/help/article/link-structures"
-                      />
-                    }
-                  />
-                </div>
-                <select
-                  value={linkStructure}
-                  onChange={(e) =>
-                    setValue(
-                      "linkStructure",
-                      e.target.value as PartnerLinkStructure,
-                      {
-                        shouldDirty: true,
-                      },
-                    )
-                  }
-                  className="block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                >
-                  {linkStructureOptions.map((type) => (
-                    <option
-                      key={type.id}
-                      value={type.id}
-                      disabled={type.comingSoon}
-                    >
-                      {type.label}
-                      {type.comingSoon && " (Coming soon)"}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
           }
         />
@@ -257,7 +204,7 @@ function DefaultPartnerLinkSheetContent({
             <PartnerLinkPreview
               url={url}
               domain={domain}
-              linkStructure={linkStructure}
+              linkStructure={group?.linkStructure || "query"}
             />
           }
         />
