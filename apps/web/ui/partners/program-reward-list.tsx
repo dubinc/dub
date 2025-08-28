@@ -71,13 +71,15 @@ export function ProgramRewardList({
             <>
               {" "}
               New users get {constructRewardAmount(discount)} off{" "}
-              {discount.maxDuration === null ? (
-                <> for their lifetime</>
-              ) : discount.maxDuration && discount.maxDuration > 1 ? (
-                <>for {discount.maxDuration} months</>
-              ) : (
-                <>for their first month</>
-              )}
+              {discount.maxDuration === null
+                ? "for their lifetime"
+                : discount.maxDuration === 0
+                  ? "for their first purchase"
+                  : discount.maxDuration === 1
+                    ? "for their first month"
+                    : discount.maxDuration && discount.maxDuration > 1
+                      ? `for ${discount.maxDuration} months`
+                      : null}
             </>
           )}
         </Item>
