@@ -16,9 +16,11 @@ import { useDefaultPartnerLinkSheet } from "./add-edit-default-partner-link-shee
 import { PartnerLinkPreview } from "./partner-link-preview";
 
 export function GroupDefaultLinks() {
-  const { group, loading } = useGroup();
+  const { group, loading: isLoadingGroup } = useGroup();
 
   const defaultLinks = group?.defaultLinks;
+  const hasReachedMaxLinks =
+    (defaultLinks?.length || 0) >= MAX_DEFAULT_PARTNER_LINKS;
 
   return (
     <div className="flex flex-col gap-6 rounded-lg border border-neutral-200 p-6">
@@ -32,13 +34,10 @@ export function GroupDefaultLinks() {
           </p>
         </div>
 
-        {defaultLinks && (
-          <CreateDefaultLinkButton
-            hasReachedMaxLinks={
-              defaultLinks.length >= MAX_DEFAULT_PARTNER_LINKS
-            }
-          />
-        )}
+        <CreateDefaultLinkButton
+          hasReachedMaxLinks={hasReachedMaxLinks}
+          isLoadingGroup={isLoadingGroup}
+        />
       </div>
 
       {defaultLinks && defaultLinks.length > 0 ? (
@@ -47,9 +46,9 @@ export function GroupDefaultLinks() {
             <DefaultLinkPreview key={link.id} link={link} />
           ))}
         </div>
-      ) : loading ? (
+      ) : isLoadingGroup ? (
         <div className="flex flex-col gap-4">
-          <div className="h-[76px] animate-pulse rounded-xl bg-neutral-200" />
+          <div className="h-[76px] animate-pulse rounded-xl bg-neutral-50" />
         </div>
       ) : (
         <NoDefaultLinks />
@@ -60,8 +59,10 @@ export function GroupDefaultLinks() {
 
 function CreateDefaultLinkButton({
   hasReachedMaxLinks,
+  isLoadingGroup,
 }: {
   hasReachedMaxLinks: boolean;
+  isLoadingGroup: boolean;
 }) {
   const { DefaultPartnerLinkSheet, setIsOpen } = useDefaultPartnerLinkSheet({});
 
@@ -72,7 +73,7 @@ function CreateDefaultLinkButton({
         variant="primary"
         className="h-8 w-fit rounded-lg px-3"
         onClick={() => setIsOpen(true)}
-        disabled={hasReachedMaxLinks}
+        disabled={hasReachedMaxLinks || isLoadingGroup}
         disabledTooltip={
           hasReachedMaxLinks
             ? `You can only create up to ${MAX_DEFAULT_PARTNER_LINKS} default links.`

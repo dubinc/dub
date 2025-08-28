@@ -1,14 +1,12 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
-import {
-  DefaultLinksDiff,
-  diffDefaultPartnerLink,
-} from "@/lib/api/groups/utils";
+import { findNewDefaultPartnerLink } from "@/lib/api/groups/utils";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { DefaultPartnerLink } from "@/lib/types";
 import {
   DEFAULT_PARTNER_GROUP,
   GroupSchema,
@@ -123,9 +121,9 @@ export const PATCH = withWorkspace(
     });
 
     // Identify changes in default links
-    let defaultLinksDiff: DefaultLinksDiff | null = null;
+    let newDefaultLink: DefaultPartnerLink | null = null;
     if (defaultLinks) {
-      defaultLinksDiff = diffDefaultPartnerLink(
+      newDefaultLink = findNewDefaultPartnerLink(
         group.defaultLinks as any,
         defaultLinks,
       );
@@ -136,6 +134,8 @@ export const PATCH = withWorkspace(
     if (utmTemplateId) {
       utmTemplateDiff = group.utmTemplateId !== utmTemplateId;
     }
+
+    console.log("newDefaultLink", newDefaultLink);
 
     waitUntil(
       Promise.allSettled([
@@ -154,14 +154,13 @@ export const PATCH = withWorkspace(
           ],
         }),
 
-        defaultLinksDiff &&
+        newDefaultLink &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-default-links`,
             body: {
               groupId: group.id,
               userId: session.user.id,
-              added: defaultLinksDiff.added,
-              updated: defaultLinksDiff.updated,
+              defaultLink: newDefaultLink,
             },
           }),
 
