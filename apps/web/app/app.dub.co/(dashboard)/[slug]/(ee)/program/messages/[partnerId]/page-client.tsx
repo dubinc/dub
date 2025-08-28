@@ -4,8 +4,12 @@ import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
+import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
+import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
+import { PartnerInfoStats } from "@/ui/partners/partner-info-stats";
 import { X } from "@/ui/shared/icons";
-import { ChevronLeft } from "@dub/ui/icons";
+import { Button } from "@dub/ui";
+import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { redirect, useParams } from "next/navigation";
 import { useState } from "react";
@@ -28,7 +32,7 @@ export function ProgramMessagesPartnerPageClient() {
         gridTemplateColumns: "minmax(340px, 1fr) minmax(0, min-content)",
       }}
     >
-      <div>
+      <div className="flex h-full flex-col">
         <div className="border-border-subtle flex h-12 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
           <div className="flex min-w-0 items-center gap-2">
             <button
@@ -63,7 +67,9 @@ export function ProgramMessagesPartnerPageClient() {
             onClick={() => setIsRightPanelOpen((o) => !o)}
           />
         </div>
-        [messages with partner]
+        <div className="text-content-subtle flex grow flex-col items-center justify-center text-sm">
+          [WIP]
+        </div>
       </div>
 
       {/* Right panel - Profile */}
@@ -80,6 +86,17 @@ export function ProgramMessagesPartnerPageClient() {
               Profile
             </h2>
             <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                text="View profile"
+                className="h-8 rounded-lg px-3"
+                onClick={() =>
+                  window.open(
+                    `/${workspaceSlug}/program/partners?partnerId=${partnerId}`,
+                    "_blank",
+                  )
+                }
+              />
               <button
                 type="button"
                 onClick={() => setIsRightPanelOpen(false)}
@@ -89,7 +106,22 @@ export function ProgramMessagesPartnerPageClient() {
               </button>
             </div>
           </div>
-          <div>[profile panel content]</div>
+          <div className="bg-bg-muted flex size-full flex-col gap-4 p-6">
+            {partner ? (
+              <>
+                <PartnerInfoSection partner={partner} />
+                <PartnerInfoGroup partner={partner} />
+                <PartnerInfoStats
+                  partner={partner}
+                  className="xs:grid-cols-2"
+                />
+              </>
+            ) : (
+              <div className="flex size-full items-center justify-center">
+                <LoadingSpinner />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
