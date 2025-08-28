@@ -76,6 +76,9 @@ export const POST = withWorkspace(
         },
         select: {
           defaultLinks: true,
+          additionalLinks: true,
+          maxPartnerLinks: true,
+          linkStructure: true,
         },
       }),
     ]);
@@ -106,7 +109,8 @@ export const POST = withWorkspace(
       }
 
       // Copy over the default group’s link settings when creating a new group
-      const { defaultLinks } = defaultGroup;
+      const { defaultLinks, additionalLinks, maxPartnerLinks, linkStructure } =
+        defaultGroup;
 
       return await tx.partnerGroup.create({
         data: {
@@ -116,6 +120,9 @@ export const POST = withWorkspace(
           slug,
           color,
           ...(defaultLinks && { defaultLinks }),
+          ...(additionalLinks && { additionalLinks }),
+          ...(maxPartnerLinks && { maxPartnerLinks }),
+          ...(linkStructure && { linkStructure }),
         },
         include: {
           clickReward: true,
