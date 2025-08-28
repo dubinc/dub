@@ -1,8 +1,8 @@
 import { LoginContent } from "@/ui/auth/login/login-content.tsx";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import { APP_DOMAIN, constructMetadata } from "@dub/utils";
+import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { NextPage } from "next";
-import { getUserCookieService } from "../../../../core/services/cookie/user-session.service.ts";
 
 export const metadata = constructMetadata({
   title: `Log in to ${process.env.NEXT_PUBLIC_APP_NAME}`,

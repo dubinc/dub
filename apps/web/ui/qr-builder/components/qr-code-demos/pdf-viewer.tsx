@@ -83,10 +83,13 @@ export default function PdfViewer({ file, url }: PdfViewerSVGProps) {
         <Image
           src={imageDataUrl}
           alt="PDF Preview"
-          fill
+          width={212}
+          height={263}
           className="object-contain"
           style={{
             display: "block",
+            width: "100%",
+            height: "100%",
           }}
         />
       ) : (
