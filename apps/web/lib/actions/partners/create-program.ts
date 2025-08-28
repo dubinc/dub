@@ -277,11 +277,7 @@ async function invitePartner({
       plan: workspace.plan as PlanProps,
       webhookEnabled: false,
     },
-    program: {
-      id: program.id,
-      defaultFolderId: program.defaultFolderId,
-      defaultGroupId: program.defaultGroupId,
-    },
+    program,
     partner: {
       name: partner.email.split("@")[0],
       email: partner.email,

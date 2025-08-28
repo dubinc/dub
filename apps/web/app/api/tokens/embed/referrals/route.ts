@@ -72,16 +72,16 @@ export const POST = withWorkspace(
       // partner does not exist, we need to create them OR
       // partner exists but is not enrolled in the program, we need to enroll them
       if (!partner || partner.programs.length === 0) {
-        const { linkProps, ...partner } = partnerProps;
+        const { linkProps: link, ...partner } = partnerProps;
 
         const enrolledPartner = await createAndEnrollPartner({
           workspace,
           program,
           partner: {
             ...partner,
-            tenantId: tenantId ?? partner.tenantId,
+            tenantId
           },
-          link: linkProps,
+          link,
           userId: session.user.id,
         });
 

@@ -5,16 +5,12 @@ import {
   ProgramProps,
   WorkspaceProps,
 } from "@/lib/types";
-import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
-import { createLink } from "../links/create-link";
 import { processLink } from "../links/process-link";
 
-interface CreatePartnerLinkInput {
+interface GeneratePartnerLinkInput {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
   program: Pick<ProgramProps, "defaultFolderId" | "id">;
   partner: Omit<CreatePartnerProps, "linkProps"> & { id?: string };
@@ -25,26 +21,6 @@ interface CreatePartnerLinkInput {
   };
   userId: string;
 }
-
-interface GeneratePartnerLinkInput extends CreatePartnerLinkInput {}
-
-// Create a partner link
-export const createPartnerLink = async (input: CreatePartnerLinkInput) => {
-  const { workspace } = input;
-
-  const link = await generatePartnerLink(input);
-  const partnerLink = await createLink(link);
-
-  waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "link.created",
-      workspace,
-      data: linkEventSchema.parse(partnerLink),
-    }),
-  );
-
-  return partnerLink;
-};
 
 // Generates and processes a partner link without creating it
 export const generatePartnerLink = async ({
