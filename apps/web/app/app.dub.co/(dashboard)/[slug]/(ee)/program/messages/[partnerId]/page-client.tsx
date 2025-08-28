@@ -1,16 +1,25 @@
 "use client";
 
+import usePartner from "@/lib/swr/use-partner";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { X } from "@/ui/shared/icons";
 import { ChevronLeft } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { redirect, useParams } from "next/navigation";
 import { useState } from "react";
 
 export function ProgramMessagesPartnerPageClient() {
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+  const { slug: workspaceSlug } = useWorkspace();
+
+  const { partnerId } = useParams() as { partnerId: string };
+  const { partner, loading, error } = usePartner({ partnerId });
 
   const { setCurrentPanel } = useMessagesContext();
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+
+  if (error) redirect(`/${workspaceSlug}/program/messages`);
 
   return (
     <div
@@ -21,17 +30,33 @@ export function ProgramMessagesPartnerPageClient() {
     >
       <div>
         <div className="border-border-subtle flex h-12 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <button
               type="button"
               onClick={() => setCurrentPanel("index")}
-              className="@[800px]/page:hidden rounded-lg p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+              className="@[800px]/page:hidden shrink-0 rounded-lg p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
             >
               <ChevronLeft className="size-3.5" />
             </button>
-            <h2 className="text-content-emphasis text-lg font-semibold leading-7">
-              [Partner Name]
-            </h2>
+            <div className="flex min-w-0 items-center gap-3">
+              {loading ? (
+                <>
+                  <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
+                  <div className="h-8 w-36 animate-pulse rounded-md bg-neutral-200" />
+                </>
+              ) : (
+                <>
+                  <img
+                    src={partner?.image || `${OG_AVATAR_URL}${partner?.id}`}
+                    alt={`${partner?.name} avatar`}
+                    className="size-8 shrink-0 rounded-full"
+                  />
+                  <h2 className="text-content-emphasis min-w-0 truncate text-lg font-semibold leading-7">
+                    {partner?.name ?? "Partner"}
+                  </h2>
+                </>
+              )}
+            </div>
           </div>
           <ToggleSidePanelButton
             isOpen={isRightPanelOpen}

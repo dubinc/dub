@@ -14,7 +14,7 @@ export function ToggleSidePanelButton({
     <Button
       onClick={onClick}
       variant="secondary"
-      className="size-9 rounded-lg p-0"
+      className="size-9 shrink-0 rounded-lg p-0"
       icon={
         <svg
           viewBox="0 0 18 18"

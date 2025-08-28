@@ -1,19 +1,21 @@
-import { OG_AVATAR_URL, timeAgo } from "@dub/utils";
+import { OG_AVATAR_URL, cn, timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useMessagesContext } from "./messages-context";
 
 export function MessagesList({
   groupedMessages,
+  activeId,
 }: {
   groupedMessages:
     | {
         id: string;
         name: string;
-        avatar: string | null;
+        image: string | null;
         messages: { text: string; createdAt: Date }[];
         href: string;
       }[]
     | undefined;
+  activeId?: string;
 }) {
   const { setCurrentPanel } = useMessagesContext();
 
@@ -28,10 +30,13 @@ export function MessagesList({
                 key={group.id}
                 href={group.href}
                 onClick={() => setCurrentPanel("main")}
-                className="hover:bg-bg-muted border-border-subtle flex w-full items-center gap-2.5 border-b bg-white px-6 py-4"
+                className={cn(
+                  "border-border-subtle flex w-full items-center gap-2.5 border-b bg-white px-6 py-4",
+                  group.id === activeId ? "bg-bg-subtle" : "hover:bg-bg-muted",
+                )}
               >
                 <img
-                  src={group.avatar || `${OG_AVATAR_URL}${group.id}`}
+                  src={group.image || `${OG_AVATAR_URL}${group.id}`}
                   alt={`${group.name} avatar`}
                   className="size-8 shrink-0 rounded-full"
                 />

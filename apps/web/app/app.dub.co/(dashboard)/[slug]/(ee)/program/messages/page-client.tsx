@@ -17,9 +17,9 @@ export function ProgramMessagesPageClient() {
           >
             <ChevronLeft className="size-3.5" />
           </button>
-          <h2 className="text-content-emphasis text-lg font-semibold leading-7">
+          {/* <h2 className="text-content-emphasis text-lg font-semibold leading-7">
             [Partner Name]
-          </h2>
+          </h2> */}
         </div>
       </div>
 

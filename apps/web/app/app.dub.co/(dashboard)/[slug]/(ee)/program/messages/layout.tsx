@@ -7,18 +7,20 @@ import { MessagesList } from "@/ui/messages/messages-list";
 import { Button } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { subMinutes } from "date-fns";
+import { useParams } from "next/navigation";
 import { CSSProperties, ReactNode, useState } from "react";
 import { toast } from "sonner";
 
 export default function MessagesLayout({ children }: { children: ReactNode }) {
   const { slug: workspaceSlug } = useWorkspace();
+  const { partnerId } = useParams() as { partnerId?: string };
 
   // TODO: [Messages] fetch real data
   const partnersWithMessages = [
     {
       id: "pn_1KcRT7do2foT1PZ9zZhLF0Cq",
       name: "Tim Wilson",
-      avatar: "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
+      image: "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
       messages: [
         {
           text: "Hello, how are you?",
@@ -35,7 +37,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
     {
       id: "pn_1JZ8GFVXAMTXEYF33QKWZAZ0Y",
       name: "Tim Partner11",
-      avatar:
+      image:
         "https://dev.dubassets.com/partners/pn_1JZ8GFVXAMTXEYF33QKWZAZ0Y/image_nMMv6kL",
       messages: [
         {
@@ -85,6 +87,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                     ...p,
                     href: `/${workspaceSlug}/program/messages/${p.id}`,
                   }))}
+                  activeId={partnerId}
                 />
               ) : error ? (
                 <div className="text-content-subtle flex size-full items-center justify-center text-sm">
