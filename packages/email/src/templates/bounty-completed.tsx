@@ -18,7 +18,7 @@ import { Footer } from "../components/footer";
 export default function BountyCompleted({
   bounty = {
     name: "Promote Acme at your campus and earn $500 ",
-    type: "performance",
+    type: "submission",
   },
   program = {
     name: "Acme",
@@ -50,26 +50,34 @@ export default function BountyCompleted({
             </Section>
 
             <Heading className="mx-0 my-8 p-0 text-lg font-medium text-black">
-              Bounty completed!
+              Bounty completed for <strong>{program.name}</strong>
             </Heading>
 
             <Text className="text-sm leading-5 text-neutral-600">
               Congratulations on completing the <strong>{bounty.name}</strong>{" "}
-              bounty!
+              bounty for <strong>{program.name}</strong>!
             </Text>
 
             <Section className="h-[140px] rounded-lg bg-neutral-100 py-1.5 text-center">
               <BountyThumbnailImage type={bounty.type} />
             </Section>
 
-            <Text className="text-sm leading-5 text-neutral-600">
-              Once <strong>{program.name}</strong> has confirmed your bounty,
-              the reward will be added to your payouts.
-            </Text>
+            {bounty.type === "submission" ? (
+              <Text className="text-sm leading-5 text-neutral-600">
+                Once <strong>{program.name}</strong> has confirmed your bounty,
+                you will receive an email with the commission details.
+              </Text>
+            ) : (
+              <Text className="text-sm leading-5 text-neutral-600">
+                The commission from the bounty has been added to your upcoming
+                payout, and will be sent to your bank account when{" "}
+                <strong>{program.name}</strong> processes their next payout.
+              </Text>
+            )}
 
             <Text className="text-sm leading-5 text-neutral-600">
-              If you have any questions about the program please don’t hesitate
-              to reach out to the <strong>{program.name}</strong> team{" "}
+              If you have any questions, please don't hesitate to reach out to
+              the <strong>{program.name}</strong> team{" "}
               <span className="font-semibold text-blue-600">
                 ({program.supportEmail})
               </span>

@@ -50,12 +50,12 @@ export default function BountyApproved({
             </Section>
 
             <Heading className="mx-0 my-8 p-0 text-lg font-medium text-black">
-              Bounty confirmed!
+              Bounty confirmed for <strong>{program.name}</strong>
             </Heading>
 
             <Text className="text-sm leading-5 text-neutral-600">
-              The bounty for <strong>{bounty.name}</strong> has been confirmed,
-              and the reward is on it’s way!
+              Good news: Your bounty submission for{" "}
+              <strong>{bounty.name}</strong> has been confirmed.
             </Text>
 
             <Section className="h-[140px] rounded-lg bg-neutral-100 py-1.5 text-center">
@@ -63,8 +63,9 @@ export default function BountyApproved({
             </Section>
 
             <Text className="text-sm leading-5 text-neutral-600">
-              The reward has been sent to your payouts, ready for Acme to
-              complete on their next payout day.
+              The commission from the bounty has been added to your upcoming
+              payout, and will be sent to your bank account when{" "}
+              <strong>{program.name}</strong> processes their next payout.
             </Text>
 
             <Text className="text-sm leading-5 text-neutral-600">

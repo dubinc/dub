@@ -144,12 +144,7 @@ export function BountySubmissionsTable() {
         header: "Partner",
         minSize: 250,
         cell: ({ row }) => {
-          return (
-            <PartnerRowItem
-              partner={row.original.partner}
-              showPermalink={false}
-            />
-          );
+          return <PartnerRowItem partner={row.original.partner} />;
         },
       },
       {

@@ -1,4 +1,5 @@
 import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -53,6 +54,12 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
     groupIds,
   } = updateBountySchema.parse(await parseRequestBody(req));
 
+  if (endsAt && endsAt < startsAt) {
+    throw new DubApiError({
+      message: "endsAt must be on or after startsAt.",
+      code: "bad_request",
+    });
+  }
   const bounty = await getBountyOrThrow({
     bountyId,
     programId,
@@ -132,9 +139,6 @@ export const DELETE = withWorkspace(async ({ workspace, params }) => {
     bountyId,
     programId,
   });
-
-  // TODO:
-  // What happens to the created commissions?
 
   await prisma.$transaction(async (tx) => {
     const bounty = await tx.bounty.delete({

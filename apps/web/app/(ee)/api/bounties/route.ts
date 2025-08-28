@@ -1,5 +1,6 @@
 import { getBounties } from "@/lib/api/bounties/get-bounties";
 import { createId } from "@/lib/api/create-id";
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -50,6 +51,13 @@ export const POST = withWorkspace(
       groupIds,
       performanceCondition,
     } = createBountySchema.parse(await parseRequestBody(req));
+
+    if (endsAt && endsAt < startsAt) {
+      throw new DubApiError({
+        message: "endsAt must be on or after startsAt.",
+        code: "bad_request",
+      });
+    }
 
     const groups = groupIds?.length
       ? await prisma.partnerGroup.findMany({
