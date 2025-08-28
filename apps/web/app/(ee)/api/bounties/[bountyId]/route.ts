@@ -36,134 +36,177 @@ export const GET = withWorkspace(
 
     return NextResponse.json(BountySchemaExtended.parse(bounty));
   },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+  },
 );
 
 // PATCH /api/bounties/[bountyId] - update a bounty
-export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
-  const { bountyId } = params;
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const PATCH = withWorkspace(
+  async ({ workspace, params, req }) => {
+    const { bountyId } = params;
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const {
-    name,
-    description,
-    startsAt,
-    endsAt,
-    rewardAmount,
-    submissionRequirements,
-    performanceCondition,
-    groupIds,
-  } = updateBountySchema.parse(await parseRequestBody(req));
+    const {
+      name,
+      description,
+      startsAt,
+      endsAt,
+      rewardAmount,
+      submissionRequirements,
+      performanceCondition,
+      groupIds,
+    } = updateBountySchema.parse(await parseRequestBody(req));
 
-  if (startsAt && endsAt && endsAt < startsAt) {
-    throw new DubApiError({
-      message: "endsAt must be on or after startsAt.",
-      code: "bad_request",
+    if (startsAt && endsAt && endsAt < startsAt) {
+      throw new DubApiError({
+        message: "endsAt must be on or after startsAt.",
+        code: "bad_request",
+      });
+    }
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId,
     });
-  }
-  const bounty = await getBountyOrThrow({
-    bountyId,
-    programId,
-  });
 
-  // TODO:
-  // When we do archive, make sure it disables the workflow
+    // TODO:
+    // When we do archive, make sure it disables the workflow
 
-  const groups = groupIds?.length
-    ? await prisma.partnerGroup.findMany({
-        where: {
-          programId,
-          id: {
-            in: groupIds,
+    const groups = groupIds?.length
+      ? await prisma.partnerGroup.findMany({
+          where: {
+            programId,
+            id: {
+              in: groupIds,
+            },
           },
-        },
-      })
-    : [];
+        })
+      : [];
 
-  const updatedBounty = await prisma.$transaction(async (tx) => {
-    const updatedBounty = await tx.bounty.update({
-      where: {
-        id: bounty.id,
-      },
-      data: {
-        name,
-        description,
-        startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
-        endsAt,
-        rewardAmount,
-        ...(bounty.type === "submission" && {
-          submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
-        }),
-        groups: {
-          deleteMany: {},
-          create: groups.map((group) => ({
-            groupId: group.id,
-          })),
-        },
-      },
-    });
-
-    if (updatedBounty.workflowId && performanceCondition) {
-      await tx.workflow.update({
+    const updatedBounty = await prisma.$transaction(async (tx) => {
+      const updatedBounty = await tx.bounty.update({
         where: {
-          id: updatedBounty.workflowId,
+          id: bounty.id,
         },
         data: {
-          triggerConditions: [performanceCondition],
+          name,
+          description,
+          startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
+          endsAt,
+          rewardAmount,
+          ...(bounty.type === "submission" && {
+            submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
+          }),
+          groups: {
+            deleteMany: {},
+            create: groups.map((group) => ({
+              groupId: group.id,
+            })),
+          },
         },
       });
-    }
 
-    return {
-      ...updatedBounty,
-      performanceCondition,
-    };
-  });
+      if (updatedBounty.workflowId && performanceCondition) {
+        await tx.workflow.update({
+          where: {
+            id: updatedBounty.workflowId,
+          },
+          data: {
+            triggerConditions: [performanceCondition],
+          },
+        });
+      }
 
-  waitUntil(
-    sendWorkspaceWebhook({
-      workspace,
-      trigger: "bounty.updated",
-      data: BountySchema.parse(updatedBounty),
-    }),
-  );
+      return {
+        ...updatedBounty,
+        performanceCondition,
+      };
+    });
 
-  return NextResponse.json(BountySchema.parse(updatedBounty));
-});
+    waitUntil(
+      sendWorkspaceWebhook({
+        workspace,
+        trigger: "bounty.updated",
+        data: BountySchema.parse(updatedBounty),
+      }),
+    );
+
+    return NextResponse.json(BountySchema.parse(updatedBounty));
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);
 
 // DELETE /api/bounties/[bountyId] - delete a bounty
-export const DELETE = withWorkspace(async ({ workspace, params }) => {
-  const { bountyId } = params;
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const DELETE = withWorkspace(
+  async ({ workspace, params }) => {
+    const { bountyId } = params;
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  await getBountyOrThrow({
-    bountyId,
-    programId,
-  });
-
-  await prisma.$transaction(async (tx) => {
-    const bounty = await tx.bounty.delete({
-      where: {
-        id: bountyId,
-      },
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId,
+      includeExpandedFields: true,
     });
 
-    await tx.bountySubmission.deleteMany({
-      where: {
-        bountyId,
-      },
-    });
-
-    if (bounty.workflowId) {
-      await tx.workflow.delete({
-        where: {
-          id: bounty.workflowId,
-        },
+    if (bounty.submissions.length > 0) {
+      throw new DubApiError({
+        message:
+          "Bounties with submissions cannot be deleted. You can archive them instead.",
+        code: "bad_request",
       });
     }
-  });
 
-  // TODO:
-  // We should also delete the files submitted for the bounty from R2.
+    await prisma.$transaction(async (tx) => {
+      const bounty = await tx.bounty.delete({
+        where: {
+          id: bountyId,
+        },
+      });
 
-  return NextResponse.json({ id: bountyId });
-});
+      await tx.bountySubmission.deleteMany({
+        where: {
+          bountyId,
+        },
+      });
+
+      if (bounty.workflowId) {
+        await tx.workflow.delete({
+          where: {
+            id: bounty.workflowId,
+          },
+        });
+      }
+    });
+
+    // TODO:
+    // We should also delete the files submitted for the bounty from R2.
+
+    return NextResponse.json({ id: bountyId });
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);

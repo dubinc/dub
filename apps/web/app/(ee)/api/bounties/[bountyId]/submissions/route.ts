@@ -54,6 +54,16 @@ export const GET = withWorkspace(
       z.array(BountySubmissionExtendedSchema).parse(results),
     );
   },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+  },
 );
 
 // Get the submissions for a bounty of the type `submission`

@@ -8,7 +8,7 @@ import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MenuItem, Popover } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
 import { Command } from "cmdk";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useBountySheet } from "./add-edit-bounty-sheet";
 
@@ -26,6 +26,15 @@ export function BountyActionButton({
   const [isOpen, setIsOpen] = useState(false);
   const { id: workspaceId } = useWorkspace();
   const { setShowCreateBountySheet, BountySheet } = useBountySheet({ bounty });
+  console.log("bounty.submissions", bounty.submissions);
+
+  const hasSubmissions = useMemo(
+    () =>
+      (bounty.submissions?.pending ?? 0) > 0 ||
+      (bounty.submissions?.approved ?? 0) > 0 ||
+      (bounty.submissions?.rejected ?? 0) > 0,
+    [bounty.submissions],
+  );
 
   const { confirmModal: deleteModal, setShowConfirmModal: setShowDeleteModal } =
     useConfirmModal({
@@ -88,6 +97,11 @@ export function BountyActionButton({
                     setIsOpen(false);
                     setShowDeleteModal(true);
                   }}
+                  disabledTooltip={
+                    hasSubmissions
+                      ? "Bounties with submissions cannot be deleted."
+                      : undefined
+                  }
                 >
                   Delete bounty
                 </MenuItem>

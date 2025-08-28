@@ -23,17 +23,29 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/bounties - get all bounties for a program
-export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const programId = getDefaultProgramIdOrThrow(workspace);
-  const parsedInput = getBountiesQuerySchema.parse(searchParams);
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+    const parsedInput = getBountiesQuerySchema.parse(searchParams);
 
-  const bounties = await getBounties({
-    ...parsedInput,
-    programId,
-  });
+    const bounties = await getBounties({
+      ...parsedInput,
+      programId,
+    });
 
-  return NextResponse.json(bounties);
-});
+    return NextResponse.json(bounties);
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);
 
 // POST /api/bounties - create a bounty
 export const POST = withWorkspace(
