@@ -23,7 +23,7 @@ export async function generateMetadata({
     return;
   }
 
-  return constructMetadata({
+  return await constructMetadata({
     title: `Analytics for ${data.link.domain}/${data.link.key} – ${process.env.NEXT_PUBLIC_APP_NAME}`,
     image: `${APP_DOMAIN}/api/og/analytics?domain=${data.link.domain}&key=${data.link.key}`,
     noIndex: !data.doIndex,

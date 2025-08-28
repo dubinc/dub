@@ -39,8 +39,6 @@ export function useQRContentForm({
 
   const inputValues = watch();
 
-  console.log("[FORM] inputValues", inputValues);
-
   const [isHiddenNetwork, setIsHiddenNetwork] = useState<boolean>(
     initialIsHiddenNetwork,
   );
