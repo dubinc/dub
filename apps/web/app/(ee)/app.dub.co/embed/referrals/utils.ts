@@ -88,6 +88,7 @@ export const getReferralsEmbedData = async (token: string) => {
       defaultLinks: group.defaultLinks,
       additionalLinks: group.additionalLinks,
       maxPartnerLinks: group.maxPartnerLinks,
+      linkStructure: group.linkStructure,
     },
   };
 };
