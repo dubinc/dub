@@ -89,7 +89,6 @@ export async function POST(req: Request) {
               workspace: {
                 id: workspace.id,
                 plan: workspace.plan as WorkspaceProps["plan"],
-                webhookEnabled: workspace.webhookEnabled,
               },
               program: {
                 id: program.id,
