@@ -15,7 +15,7 @@ import {
   SimpleTooltipContent,
 } from "@dub/ui";
 import { Eye, Hyperlink } from "@dub/ui/icons";
-import { nanoid } from "@dub/utils";
+
 import {
   Dispatch,
   PropsWithChildren,
@@ -29,20 +29,15 @@ import { PartnerLinkPreview } from "./partner-link-preview";
 
 interface DefaultPartnerLinkSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  linkId?: string;
+  link?: DefaultPartnerLink;
 }
 
 function DefaultPartnerLinkSheetContent({
   setIsOpen,
-  linkId,
+  link,
 }: DefaultPartnerLinkSheetProps) {
   const { group } = useGroup();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
-
-  const link =
-    linkId && group?.defaultLinks
-      ? group.defaultLinks.find((link) => link.id === linkId)
-      : undefined;
 
   const { handleSubmit, watch, setValue } = useForm<DefaultPartnerLink>({
     defaultValues: {
@@ -55,21 +50,14 @@ function DefaultPartnerLinkSheetContent({
 
   // Save the default link
   const onSubmit = async (data: DefaultPartnerLink) => {
-    if (!group) {
-      return;
-    }
+    if (!group) return;
 
     let updatedDefaultLinks: DefaultPartnerLink[];
     const currentDefaultLinks = group.defaultLinks || [];
 
-    if (linkId && !link) {
-      toast.error("The default link you are trying to edit does not exist.");
-      return;
-    }
-
     // Check for duplicate destination URL
     const isDuplicate = currentDefaultLinks.some((existingLink) => {
-      if (linkId && existingLink.id === linkId) {
+      if (link && existingLink.url === link.url) {
         return false;
       }
 
@@ -83,23 +71,11 @@ function DefaultPartnerLinkSheetContent({
 
     // Editing existing link
     if (link) {
-      updatedDefaultLinks = currentDefaultLinks.map((link) => {
-        if (link.id === linkId) {
-          return {
-            ...data,
-            id: linkId,
-          };
-        }
-
-        return link;
+      updatedDefaultLinks = currentDefaultLinks.map((existingLink) => {
+        return existingLink.url === link.url ? data : existingLink;
       });
     } else {
-      const newLink = {
-        ...data,
-        id: nanoid(10),
-      };
-
-      updatedDefaultLinks = [...currentDefaultLinks, newLink];
+      updatedDefaultLinks = [...currentDefaultLinks, data];
     }
 
     await updateGroup(`/api/groups/${group.id}`, {
@@ -111,7 +87,7 @@ function DefaultPartnerLinkSheetContent({
         await mutatePrefix("/api/groups");
         setIsOpen(false);
         toast.success(
-          linkId ? "Link updated successfully!" : "Link created successfully!",
+          link ? "Link updated successfully!" : "Link created successfully!",
         );
       },
       onError: () => {
@@ -120,7 +96,7 @@ function DefaultPartnerLinkSheetContent({
     });
   };
 
-  const isEditing = linkId && link;
+  const isEditing = !!link;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -280,7 +256,9 @@ function DefaultPartnerLinkSheet({
   );
 }
 
-export function useDefaultPartnerLinkSheet(props: { linkId?: string }) {
+export function useDefaultPartnerLinkSheet(props: {
+  link?: DefaultPartnerLink;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   return {

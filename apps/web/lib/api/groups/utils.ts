@@ -7,7 +7,7 @@ export function findNewDefaultPartnerLink(
 ): DefaultPartnerLink | null {
   return (
     newLinks.find(
-      (newLink) => !oldLinks?.some((old) => old.id === newLink.id),
+      (newLink) => !oldLinks?.some((old) => old.url === newLink.url),
     ) || null
   );
 }

@@ -128,7 +128,6 @@ export const createProgram = async ({
 
     // Default links for the default group
     const defaultLink: DefaultPartnerLink = {
-      id: nanoid(10),
       domain: programData.domain!,
       url: programData.url!,
     };

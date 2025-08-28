@@ -14,7 +14,6 @@ async function main() {
 
   for (const program of programs) {
     const defaultLink: DefaultPartnerLink = {
-      id: nanoid(10),
       domain: program.domain!,
       url: program.url!,
     };

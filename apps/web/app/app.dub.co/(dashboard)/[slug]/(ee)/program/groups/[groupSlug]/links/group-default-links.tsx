@@ -43,7 +43,7 @@ export function GroupDefaultLinks() {
       {defaultLinks && defaultLinks.length > 0 ? (
         <div className="flex flex-col gap-4">
           {defaultLinks.map((link) => (
-            <DefaultLinkPreview key={link.id} link={link} />
+            <DefaultLinkPreview key={link.url} link={link} />
           ))}
         </div>
       ) : isLoadingGroup ? (
@@ -90,7 +90,7 @@ function DefaultLinkPreview({ link }: { link: DefaultPartnerLink }) {
   const [openPopover, setOpenPopover] = useState(false);
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
   const { DefaultPartnerLinkSheet, setIsOpen } = useDefaultPartnerLinkSheet({
-    linkId: link.id,
+    link,
   });
 
   // Delete default link
@@ -99,7 +99,7 @@ function DefaultLinkPreview({ link }: { link: DefaultPartnerLink }) {
 
     const currentDefaultLinks = group.defaultLinks || [];
     const updatedDefaultLinks = currentDefaultLinks.filter(
-      (existingLink) => existingLink.id !== link.id,
+      (existingLink) => existingLink.url !== link.url,
     );
 
     await updateGroup(`/api/groups/${group.id}`, {
