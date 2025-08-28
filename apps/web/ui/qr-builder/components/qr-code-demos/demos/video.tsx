@@ -14,33 +14,172 @@ export const QRCodeDemoVideo: FC<IQRCodeDemoVideoProps> = ({
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const generateVideoPreview = (videoSrc: string, cleanup?: () => void) => {
+  const generateVideoPreview = (videoSrc: string, cleanup?: () => void, isLocalFile: boolean = false) => {
     const video = document.createElement("video");
     video.src = videoSrc;
-    video.crossOrigin = "anonymous";
-    video.currentTime = 1;
+    
+    // Only set crossOrigin for external URLs, not for local files
+    if (!isLocalFile) {
+      video.crossOrigin = "anonymous";
+    }
+    
+    video.muted = true; // Required for Safari autoplay
+    video.playsInline = true; // Prevent fullscreen on iOS
+    video.preload = "metadata"; // Load metadata but not entire video
 
     const canvas = document.createElement("canvas");
+    let isExtracted = false; // Prevent multiple extractions
+
+    const extractFrame = () => {
+      if (isExtracted) return;
+      
+      try {
+        console.log("Attempting frame extraction:", {
+          readyState: video.readyState,
+          currentTime: video.currentTime,
+          duration: video.duration,
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight,
+          paused: video.paused,
+          ended: video.ended
+        });
+
+        // Ensure video has valid dimensions
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          console.warn("Video dimensions not available yet, readyState:", video.readyState);
+          return;
+        }
+
+        // Ensure video has loaded enough data
+        if (video.readyState < 2) { // HAVE_CURRENT_DATA
+          console.warn("Video not ready for frame extraction, readyState:", video.readyState);
+          return;
+        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        
+        if (!ctx) {
+          console.warn("Cannot get canvas context");
+          return;
+        }
+        
+        // Clear canvas first
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Test if we can draw on canvas first
+        try {
+          // Draw a test rectangle to verify canvas is working
+          ctx.fillStyle = "red";
+          ctx.fillRect(0, 0, 10, 10);
+          console.log("Canvas test draw successful");
+          
+          // Clear and draw video frame
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(video, 0, 0);
+          console.log("Video drawImage successful at time:", video.currentTime);
+          
+          // Check if anything was actually drawn
+          const imageData = ctx.getImageData(0, 0, 50, 50);
+          const hasContent = imageData.data.some(pixel => pixel !== 0);
+          console.log("Canvas has content after drawImage:", hasContent);
+          
+          if (!hasContent) {
+            console.warn("Canvas is empty after drawImage - video may not be ready");
+            return;
+          }
+          
+        } catch (drawError) {
+          console.error("Canvas drawImage failed:", drawError);
+          return;
+        }
+        
+        // Try data URL first (better for Safari)
+        try {
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+          console.log("toDataURL result length:", dataUrl.length);
+          
+          if (dataUrl && dataUrl !== "data:," && dataUrl.length > 100) {
+            isExtracted = true;
+            setPreviewUrl(dataUrl);
+            console.log("Video preview extracted successfully as data URL");
+          } else {
+            console.warn("Canvas toDataURL produced invalid result:", dataUrl.substring(0, 50));
+            setPreviewUrl(null);
+          }
+        } catch (dataUrlError) {
+          console.warn("toDataURL failed:", dataUrlError);
+          // Fallback to blob URL
+          try {
+            canvas.toBlob((blob) => {
+              if (blob && blob.size > 0) {
+                isExtracted = true;
+                const imageUrl = URL.createObjectURL(blob);
+                setPreviewUrl(imageUrl);
+                console.log("Video preview extracted successfully as blob URL, size:", blob.size);
+              } else {
+                console.warn("Canvas toBlob produced invalid blob:", blob);
+                setPreviewUrl(null);
+              }
+            }, "image/jpeg", 0.8);
+          } catch (blobError) {
+            console.error("Both toDataURL and toBlob failed:", blobError);
+            setPreviewUrl(null);
+          }
+        }
+      } catch (error) {
+        console.warn("Video preview extraction failed:", error);
+        setPreviewUrl(null);
+      }
+    };
+
+    // Set up event handlers
+    video.addEventListener("loadedmetadata", () => {
+      console.log("Video metadata loaded, duration:", video.duration);
+      if (video.duration > 0) {
+        try {
+          video.currentTime = Math.min(1, video.duration * 0.1);
+        } catch (e) {
+          console.warn("Failed to set currentTime:", e);
+        }
+      }
+    });
+
+    video.addEventListener("seeked", () => {
+      if (!isExtracted) {
+        setTimeout(extractFrame, 100);
+      }
+    });
 
     video.addEventListener("loadeddata", () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const imageUrl = URL.createObjectURL(blob);
-          setPreviewUrl(imageUrl);
-        }
-      });
+      if (!isExtracted) {
+        extractFrame();
+      }
     });
+
+    video.addEventListener("canplay", () => {
+      if (!isExtracted) {
+        setTimeout(extractFrame, 200);
+      }
+    });
+
+    // Error handling
+    video.addEventListener("error", (e) => {
+      console.warn("Video loading error:", e);
+      setPreviewUrl(null);
+    });
+
+    // Start loading the video
+    video.load();
 
     return cleanup;
   };
 
   useEffect(() => {
     if (typeof filesVideo === "string") {
-      generateVideoPreview(filesVideo);
+      // External URL
+      generateVideoPreview(filesVideo, undefined, false);
       return;
     }
 
@@ -51,7 +190,8 @@ export const QRCodeDemoVideo: FC<IQRCodeDemoVideoProps> = ({
     }
 
     const url = URL.createObjectURL(file);
-    return generateVideoPreview(url, () => URL.revokeObjectURL(url));
+    // Local file - pass true for isLocalFile
+    return generateVideoPreview(url, () => URL.revokeObjectURL(url), true);
   }, [filesVideo]);
 
   const imageToShow = previewUrl || ImageDemoPlaceholder;
@@ -113,6 +253,7 @@ export const QRCodeDemoVideo: FC<IQRCodeDemoVideoProps> = ({
                 objectFit: "contain",
                 borderRadius: 12,
               }}
+              unoptimized={!!previewUrl} // Disable optimization for data URLs
             />
           </foreignObject>
           <path
