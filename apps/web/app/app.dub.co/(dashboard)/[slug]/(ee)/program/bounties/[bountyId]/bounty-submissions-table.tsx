@@ -14,7 +14,6 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { useRejectBountySubmissionModal } from "@/ui/partners/reject-bounty-submission-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { X } from "@/ui/shared/icons";
-import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { UserRowItem } from "@/ui/users/user-row-item";
 import {
   AnimatedSizeContainer,
@@ -352,21 +351,13 @@ export function BountySubmissionsTable() {
 
       <div className="flex flex-col gap-6">
         <div>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <Filter.Select
-              className="w-full md:w-fit"
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-            />
-            {bounty?.type === "submission" && (
-              <SimpleDateRangePicker
-                className="w-full sm:min-w-[200px] md:w-fit"
-                defaultInterval="all"
-              />
-            )}
-          </div>
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
           <AnimatedSizeContainer height>
             <div>
               {activeFilters.length > 0 && (

@@ -1,4 +1,3 @@
-import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import {
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
@@ -164,9 +163,6 @@ export const getBountySubmissionsQuerySchema = z
       .default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     status: z.nativeEnum(BountySubmissionStatus).optional(),
-    interval: z.enum(DATE_RANGE_INTERVAL_PRESETS).default("all"),
-    start: parseDateSchema.optional(),
-    end: parseDateSchema.optional(),
     groupId: z.string().optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));

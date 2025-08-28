@@ -1,4 +1,3 @@
-import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getPartnersWithBountySubmission } from "@/lib/api/bounties/get-partners-with-bounty-submission";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -73,19 +72,10 @@ async function getSubmissions({
   page,
   pageSize,
   status,
-  interval,
-  start,
-  end,
   groupId,
 }: BountySubmissionsQueryFilters & {
   bountyId: string;
 }) {
-  const { startDate, endDate } = getStartEndDates({
-    interval,
-    start,
-    end,
-  });
-
   const submissions = await prisma.bountySubmission.findMany({
     where: {
       bountyId,
@@ -95,10 +85,6 @@ async function getSubmissions({
           groupId,
         },
       }),
-      createdAt: {
-        gte: startDate.toISOString(),
-        lte: endDate.toISOString(),
-      },
     },
     include: {
       user: true,
