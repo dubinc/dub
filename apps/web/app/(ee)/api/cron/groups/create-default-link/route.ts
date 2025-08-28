@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
-import { generatePartnerLink } from "@/lib/api/partners/create-partner-link";
+import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { WorkspaceProps } from "@/lib/types";
 import { defaultPartnerLinkSchema } from "@/lib/zod/schemas/groups";

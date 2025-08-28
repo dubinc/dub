@@ -8,7 +8,7 @@ import { bulkCreateLinks } from "../links";
 import {
   derivePartnerLinkKey,
   generatePartnerLink,
-} from "./create-partner-link";
+} from "./generate-partner-link";
 
 interface CreateDefaultPartnerLinksInput {
   workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;

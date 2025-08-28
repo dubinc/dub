@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { createLink } from "../api/links";
-import { generatePartnerLink } from "../api/partners/create-partner-link";
+import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { PartnerProps, ProgramProps, WorkspaceProps } from "../types";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
