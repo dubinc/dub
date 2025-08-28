@@ -1,5 +1,6 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { BountyWithPartnerDataSchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -68,15 +69,8 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     },
   });
 
-  const linkMetrics = links.reduce(
-    (acc, link) => {
-      acc.leads += link.leads;
-      acc.conversions += link.conversions;
-      acc.saleAmount += link.saleAmount;
-      return acc;
-    },
-    { leads: 0, conversions: 0, saleAmount: 0 },
-  );
+  const { totalLeads, totalConversions, totalSaleAmount } =
+    aggregatePartnerLinksStats(links);
 
   return NextResponse.json(
     z.array(BountyWithPartnerDataSchema).parse(
@@ -92,9 +86,9 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           performanceCondition:
             triggerConditions.length > 0 ? triggerConditions[0] : null,
           partner: {
-            leads: linkMetrics.leads,
-            conversions: linkMetrics.conversions,
-            saleAmount: linkMetrics.saleAmount,
+            leads: totalLeads,
+            conversions: totalConversions,
+            saleAmount: totalSaleAmount,
             totalCommissions,
           },
         };

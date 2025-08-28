@@ -1,3 +1,4 @@
+import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import {
   WorkflowAction,
   WorkflowCondition,
@@ -45,6 +46,8 @@ export async function executeWorkflows({
       totalCommissions: true,
       links: {
         select: {
+          clicks: true,
+          sales: true,
           leads: true,
           conversions: true,
           saleAmount: true,
@@ -68,15 +71,7 @@ export async function executeWorkflows({
   }
 
   const { totalLeads, totalConversions, totalSaleAmount } =
-    programEnrollment.links.reduce(
-      (acc, link) => {
-        acc.totalLeads += link.leads;
-        acc.totalConversions += link.conversions;
-        acc.totalSaleAmount += link.saleAmount;
-        return acc;
-      },
-      { totalLeads: 0, totalConversions: 0, totalSaleAmount: 0 },
-    );
+    aggregatePartnerLinksStats(programEnrollment.links);
 
   const workflowContext: WorkflowContext = {
     partnerId,
