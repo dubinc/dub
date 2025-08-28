@@ -94,7 +94,7 @@ export const DELETE = withWorkspace(
       if (template.partnerGroup) {
         throw new DubApiError({
           code: "conflict",
-          message: "Cannot delete a template that is associated with a group.",
+          message: `This template is linked to the partner group "${template.partnerGroup.name}" and cannot be deleted.`,
         });
       }
 
