@@ -23,7 +23,13 @@ import {
   PenWriting,
   QRCode as QRCodeIcon,
 } from "@dub/ui/icons";
-import { cn, getApexDomain, linkConstructor, regexEscape } from "@dub/utils";
+import {
+  cn,
+  getApexDomain,
+  linkConstructor,
+  punycode,
+  regexEscape,
+} from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useParams } from "next/navigation";
 import {
@@ -37,6 +43,7 @@ import {
 import { useForm } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+import { useDebounce } from "use-debounce";
 import type { QRCodeDesign } from "./partner-link-qr-modal";
 import { usePartnerLinkQRModal } from "./partner-link-qr-modal";
 
@@ -209,8 +216,11 @@ function PartnerLinkModalContent({
   const [key, _url] = watch("key", "url");
 
   const saveDisabled = useMemo(
-    () => Boolean(isLoading || (link && !isDirty)),
-    [isLoading, link, isDirty],
+    () =>
+      Boolean(
+        isLoading || (link && !isDirty) || destinationDomains.length === 0,
+      ),
+    [isLoading, link, isDirty, destinationDomains, destinationDomain],
   );
 
   const shortLink = useMemo(
@@ -366,35 +376,14 @@ function PartnerLinkModalContent({
                   }
                 />
               </div>
-              <div className="mt-2 flex rounded-md">
-                <Combobox
-                  selected={
-                    destinationDomain
-                      ? {
-                          value: destinationDomain,
-                          label: destinationDomain,
-                        }
-                      : null
-                  }
-                  setSelected={(option) => {
-                    if (!option) return;
-                    setDestinationDomain(option.value);
-                  }}
-                  options={[destinationDomain, ...destinationDomains].map(
-                    (domain) => ({
-                      value: domain,
-                      label: domain,
-                    }),
-                  )}
-                  caret={true}
-                  buttonProps={{
-                    className: cn(
-                      "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
-                      "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
-                      "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
-                    ),
-                  }}
-                />
+              <div className="relative mt-1 flex rounded-md shadow-sm">
+                <div className="z-[1]">
+                  <DestinationDomainCombobox
+                    selectedDomain={destinationDomain}
+                    setSelectedDomain={setDestinationDomain}
+                    destinationDomains={destinationDomains}
+                  />
+                </div>
                 <input
                   {...register("url", { required: false })}
                   type="text"
@@ -411,7 +400,7 @@ function PartnerLinkModalContent({
                       e.currentTarget.value = text;
                     }
                   }}
-                  className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  className="z-0 block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 />
               </div>
             </div>
@@ -472,6 +461,78 @@ function PartnerLinkModalContent({
         />
       </div>
     </form>
+  );
+}
+
+function DestinationDomainCombobox({
+  selectedDomain,
+  setSelectedDomain,
+  destinationDomains,
+}: {
+  selectedDomain?: string;
+  setSelectedDomain: (domain: string) => void;
+  destinationDomains: string[];
+}) {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const options = useMemo(() => {
+    const allDomains = selectedDomain
+      ? [
+          selectedDomain,
+          ...destinationDomains.filter((d) => d !== selectedDomain),
+        ]
+      : destinationDomains;
+
+    if (!debouncedSearch) {
+      return allDomains.map((domain) => ({
+        value: domain,
+        label: punycode(domain),
+      }));
+    }
+
+    return allDomains
+      .filter((domain) =>
+        punycode(domain).toLowerCase().includes(debouncedSearch.toLowerCase()),
+      )
+      .map((domain) => ({
+        value: domain,
+        label: punycode(domain),
+      }));
+  }, [selectedDomain, destinationDomains, debouncedSearch]);
+
+  return (
+    <Combobox
+      selected={
+        selectedDomain
+          ? {
+              value: selectedDomain,
+              label: punycode(selectedDomain),
+            }
+          : null
+      }
+      setSelected={(option) => {
+        if (!option) return;
+        setSelectedDomain(option.value);
+      }}
+      options={options}
+      caret={true}
+      placeholder="Select domain..."
+      searchPlaceholder="Search domains..."
+      buttonProps={{
+        className: cn(
+          "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
+          "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+          "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+        ),
+      }}
+      optionClassName="sm:max-w-[225px]"
+      shouldFilter={false}
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      onSearchChange={setSearch}
+    />
   );
 }
 

@@ -10,7 +10,7 @@ import { z } from "zod";
 import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 100;
 
 const payloadSchema = z.object({
   groupId: z.string(),
@@ -63,6 +63,7 @@ export async function POST(req: Request) {
       const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           groupId: group.id,
+          status: "approved",
         },
         include: {
           partner: true,
