@@ -424,6 +424,7 @@ export function AppSidebarNav({
           // TODO: remove when we migrate to Next.js 15 + PPR
           pathname.endsWith("/guides") ||
             pathname.includes("/guides/") ||
+            pathname.includes("/program/messages/") ||
             // this one is for the payout success page
             pathname.endsWith("/program/payouts/success")
           ? null
