@@ -1,4 +1,4 @@
-import { markDomainAsDeleted } from "@/lib/api/domains";
+import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
