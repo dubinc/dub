@@ -30,7 +30,6 @@ export const defaultPartnerLinkSchema = z.object({
 });
 
 export const additionalPartnerLinkSchema = z.object({
-  id: z.string(),
   url: parseUrlSchema,
   urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
 });

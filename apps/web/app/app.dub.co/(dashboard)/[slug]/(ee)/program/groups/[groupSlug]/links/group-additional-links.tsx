@@ -55,7 +55,7 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
   const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({});
   const [enableAdditionalLinks, setEnableAdditionalLinks] = useState(
-    group.maxPartnerLinks > 0,
+    group.maxPartnerLinks > 0 || (group.additionalLinks?.length || 0) > 0,
   );
 
   const {
@@ -213,7 +213,7 @@ function DestinationUrl({ link }: { link: AdditionalPartnerLink }) {
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
   const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({
-    linkId: link.id,
+    link,
   });
 
   // Delete destination URL
@@ -222,7 +222,7 @@ function DestinationUrl({ link }: { link: AdditionalPartnerLink }) {
 
     const currentAdditionalLinks = group.additionalLinks || [];
     const updatedAdditionalLinks = currentAdditionalLinks.filter(
-      (existingLink) => existingLink.id !== link.id,
+      (existingLink) => existingLink.url !== link.url,
     );
 
     await updateGroup(`/api/groups/${group.id}`, {

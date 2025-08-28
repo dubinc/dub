@@ -7,7 +7,7 @@ import { AdditionalPartnerLink } from "@/lib/types";
 import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { Button, Input, Modal } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
-import { cn, nanoid } from "@dub/utils";
+import { cn, getDomainWithoutWWW } from "@dub/utils";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -27,25 +27,19 @@ const URL_VALIDATION_MODES = [
 
 interface AddDestinationUrlModalProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  linkId?: string;
+  link?: AdditionalPartnerLink;
 }
 
 function AddDestinationUrlModalContent({
   setIsOpen,
-  linkId,
+  link,
 }: AddDestinationUrlModalProps) {
   const { group } = useGroup();
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
-  const link =
-    linkId && group?.additionalLinks
-      ? group.additionalLinks.find((link) => link.id === linkId)
-      : undefined;
-
   const { register, handleSubmit, watch, setValue } =
     useForm<AdditionalPartnerLink>({
       defaultValues: {
-        id: link?.id || nanoid(),
         url: link?.url || "",
         urlValidationMode: link?.urlValidationMode || "domain",
       },
@@ -58,30 +52,32 @@ function AddDestinationUrlModalContent({
 
     const currentAdditionalLinks = group.additionalLinks || [];
 
-    if (linkId && !link) {
+    if (link && !currentAdditionalLinks.find((l) => l.url === link.url)) {
       toast.error("The destination URL you are trying to edit does not exist.");
       return;
     }
 
-    // Check for duplicate URLs (excluding the current link being edited)
-    const existingUrls = currentAdditionalLinks
-      .filter((existingLink) => !link || existingLink.id !== link.id)
-      .map((existingLink) => existingLink.url.toLowerCase());
+    const existingApexDomains = currentAdditionalLinks
+      .filter((existingLink) => !link || existingLink.url !== link.url)
+      .map((existingLink) =>
+        getDomainWithoutWWW(existingLink.url)?.toLowerCase(),
+      );
 
-    if (existingUrls.includes(data.url.toLowerCase())) {
-      toast.error("This destination URL already exists.");
+    if (
+      existingApexDomains.includes(getDomainWithoutWWW(data.url)?.toLowerCase())
+    ) {
+      toast.error("A similar destination URL already exists.");
       return;
     }
 
     let updatedAdditionalLinks: AdditionalPartnerLink[];
 
     if (link) {
-      // Editing existing link - find and replace the specific link by ID
+      // Editing existing link - find and replace the specific link by URL
       updatedAdditionalLinks = currentAdditionalLinks.map((existingLink) => {
-        if (existingLink.id === link.id) {
+        if (existingLink.url === link.url) {
           return {
             ...data,
-            id: link.id,
           };
         }
 
@@ -252,13 +248,13 @@ function AddDestinationUrlModalContent({
 export function AddDestinationUrlModal({
   isOpen,
   setIsOpen,
-  linkId,
+  link,
 }: AddDestinationUrlModalProps & {
   isOpen: boolean;
 }) {
   return (
     <Modal showModal={isOpen} setShowModal={setIsOpen}>
-      <AddDestinationUrlModalContent setIsOpen={setIsOpen} linkId={linkId} />
+      <AddDestinationUrlModalContent setIsOpen={setIsOpen} link={link} />
     </Modal>
   );
 }
