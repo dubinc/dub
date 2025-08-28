@@ -19,6 +19,11 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useAddDestinationUrlModal } from "./add-edit-additional-partner-link-modal";
 
+type FormData = Pick<
+  z.input<typeof updateGroupSchema>,
+  "maxPartnerLinks" | "additionalLinks"
+>;
+
 export function GroupAdditionalLinks() {
   const { group, loading } = useGroup();
 
@@ -32,6 +37,7 @@ export function GroupAdditionalLinks() {
           Allow and configure extra partner links
         </p>
       </div>
+
       {group ? (
         <GroupAdditionalLinksForm group={group} />
       ) : loading ? (
@@ -45,15 +51,12 @@ export function GroupAdditionalLinks() {
   );
 }
 
-type FormData = Pick<
-  z.input<typeof updateGroupSchema>,
-  "maxPartnerLinks" | "additionalLinks"
->;
-
 export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
   const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({});
-  const [enableAdditionalLinks, setEnableAdditionalLinks] = useState(false);
+  const [enableAdditionalLinks, setEnableAdditionalLinks] = useState(
+    group.maxPartnerLinks > 0,
+  );
 
   const {
     handleSubmit,
@@ -103,7 +106,7 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
                   shouldValidate: true,
                 })
               }
-              min={1}
+              min={0}
               max={MAX_ADDITIONAL_PARTNER_LINKS}
               step={1}
               className="w-full"
@@ -152,17 +155,14 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
             checked={enableAdditionalLinks}
             fn={(checked: boolean) => {
               setEnableAdditionalLinks(checked);
-              const newValue = checked ? MAX_ADDITIONAL_PARTNER_LINKS : 0;
-
-              setValue("maxPartnerLinks", newValue, {
-                shouldDirty: true,
-                shouldValidate: true,
-              });
 
               if (!checked) {
                 setValue("additionalLinks", [], {
                   shouldDirty: true,
-                  shouldValidate: true,
+                });
+
+                setValue("maxPartnerLinks", 0, {
+                  shouldDirty: true,
                 });
               }
             }}

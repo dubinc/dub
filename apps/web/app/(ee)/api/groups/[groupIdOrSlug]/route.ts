@@ -14,6 +14,7 @@ import {
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -99,6 +100,18 @@ export const PATCH = withWorkspace(
       });
     }
 
+    const defaultLinksInput = defaultLinks
+      ? defaultLinks.length > 0
+        ? defaultLinks
+        : Prisma.JsonNull
+      : undefined;
+
+    const additionalLinksInput = additionalLinks
+      ? additionalLinks.length > 0
+        ? additionalLinks
+        : Prisma.JsonNull
+      : undefined;
+
     const updatedGroup = await prisma.partnerGroup.update({
       where: {
         id: group.id,
@@ -107,8 +120,8 @@ export const PATCH = withWorkspace(
         name,
         slug,
         color,
-        defaultLinks,
-        additionalLinks,
+        ...(defaultLinksInput && { defaultLinks: defaultLinksInput }),
+        ...(additionalLinksInput && { additionalLinks: additionalLinksInput }),
         maxPartnerLinks,
         utmTemplateId,
       },
