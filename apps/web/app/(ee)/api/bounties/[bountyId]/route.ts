@@ -54,7 +54,7 @@ export const PATCH = withWorkspace(async ({ workspace, params, req }) => {
     groupIds,
   } = updateBountySchema.parse(await parseRequestBody(req));
 
-  if (endsAt && endsAt < startsAt) {
+  if (startsAt && endsAt && endsAt < startsAt) {
     throw new DubApiError({
       message: "endsAt must be on or after startsAt.",
       code: "bad_request",
