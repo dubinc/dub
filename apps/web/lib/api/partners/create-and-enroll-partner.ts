@@ -134,7 +134,6 @@ export const createAndEnrollPartner = async ({
     workspace: {
       id: workspace.id,
       plan: workspace.plan,
-      webhookEnabled: workspace.webhookEnabled,
     },
     program: {
       id: program.id,

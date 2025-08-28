@@ -84,7 +84,6 @@ export async function approvePartnerEnrollment({
     workspace: {
       id: workspace.id,
       plan: workspace.plan,
-      webhookEnabled: workspace.webhookEnabled,
     },
     program: {
       id: program.id,

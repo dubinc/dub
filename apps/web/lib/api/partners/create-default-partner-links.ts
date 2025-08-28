@@ -13,7 +13,7 @@ import {
 } from "./generate-partner-link";
 
 interface CreateDefaultPartnerLinksInput {
-  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
+  workspace: Pick<WorkspaceProps, "id" | "plan">;
   program: Pick<ProgramProps, "defaultFolderId" | "id">;
   partner: Pick<
     CreatePartnerProps,

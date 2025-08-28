@@ -146,7 +146,6 @@ export const bulkApprovePartnersAction = authActionClient
               workspace: {
                 id: workspace.id,
                 plan: workspace.plan as PlanProps,
-                webhookEnabled: false,
               },
               program: {
                 id: program.id,

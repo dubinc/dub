@@ -11,7 +11,7 @@ import { DubApiError } from "../errors";
 import { processLink } from "../links/process-link";
 
 interface GeneratePartnerLinkInput {
-  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
+  workspace: Pick<WorkspaceProps, "id" | "plan">;
   program: Pick<ProgramProps, "defaultFolderId" | "id">;
   partner: Omit<CreatePartnerProps, "linkProps"> & { id?: string };
   link: CreatePartnerProps["linkProps"] & {
