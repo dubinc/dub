@@ -23,38 +23,23 @@ export const validatePartnerLinkUrl = ({
 
   const additionalLinks = group.additionalLinks as AdditionalPartnerLink[];
 
-  // Matching additional link
-  const additionalLink = additionalLinks.find(
-    (additionalLink) =>
-      getApexDomain(additionalLink.url) === getApexDomain(url),
-  );
+  // Find matching additional link based on its validation mode
+  const matchFound = additionalLinks.find((additionalLink) => {
+    if (additionalLink.urlValidationMode === "exact") {
+      return additionalLink.url === url;
+    } else if (additionalLink.urlValidationMode === "domain") {
+      return getApexDomain(additionalLink.url) === getApexDomain(url);
+    }
 
-  if (!additionalLink) {
+    return false;
+  });
+
+  if (!matchFound) {
     throw new DubApiError({
       code: "bad_request",
-      message: `The provided URL (${url}) does not match any of the additional links.`,
+      message: `The provided URL (${url}) does not match any of the program's additional links.`,
     });
   }
 
-  if (
-    additionalLink.urlValidationMode === "domain" &&
-    getApexDomain(additionalLink.url) !== getApexDomain(url)
-  ) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(additionalLink.url)}).`,
-    });
-  }
-
-  if (
-    additionalLink.urlValidationMode === "exact" &&
-    additionalLink.url !== url
-  ) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: `The provided URL (${url}) does not match the program's URL (${additionalLink.url}).`,
-    });
-  }
-
-  return true;
+  return matchFound;
 };
