@@ -23,24 +23,38 @@ export const validatePartnerLinkUrl = ({
 
   const additionalLinks = group.additionalLinks as AdditionalPartnerLink[];
 
-  for (const additionalLink of additionalLinks) {
-    if (
-      additionalLink.urlValidationMode === "domain" &&
-      getApexDomain(additionalLink.url) === getApexDomain(url)
-    ) {
-      return;
-    }
+  // Matching additional link
+  const additionalLink = additionalLinks.find(
+    (additionalLink) =>
+      getApexDomain(additionalLink.url) === getApexDomain(url),
+  );
 
-    if (
-      additionalLink.urlValidationMode === "exact" &&
-      additionalLink.url === url
-    ) {
-      return;
-    }
+  if (!additionalLink) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `The provided URL (${url}) does not match any of the additional links.`,
+    });
   }
 
-  throw new DubApiError({
-    code: "bad_request",
-    message: `The provided URL (${url}) does not match any of the additional links.`,
-  });
+  if (
+    additionalLink.urlValidationMode === "domain" &&
+    getApexDomain(additionalLink.url) !== getApexDomain(url)
+  ) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(url)}).`,
+    });
+  }
+
+  if (
+    additionalLink.urlValidationMode === "exact" &&
+    additionalLink.url !== url
+  ) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `The provided URL (${url}) does not match the program's URL (${additionalLink.url}).`,
+    });
+  }
+
+  return true;
 };
