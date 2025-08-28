@@ -6,6 +6,7 @@ import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { isStored, storage } from "@/lib/storage";
 import { toltImporter } from "@/lib/tolt/importer";
+import { DefaultPartnerLink, PlanProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
@@ -125,6 +126,14 @@ export const createProgram = async ({
 
     const createdReward = programData.rewards?.[0];
 
+    // Default links for the default group
+    const defaultLink: DefaultPartnerLink = {
+      id: nanoid(10),
+      domain: programData.domain!,
+      url: programData.url!,
+      linkStructure: programData.linkStructure,
+    };
+
     await tx.partnerGroup.upsert({
       where: {
         programId_slug: {
@@ -141,6 +150,7 @@ export const createProgram = async ({
         ...(createdReward && {
           [REWARD_EVENT_COLUMN_MAPPING[createdReward.event]]: createdReward.id,
         }),
+        defaultLinks: [defaultLink],
       },
       update: {}, // noop
     });
@@ -264,12 +274,21 @@ async function invitePartner({
   userId: string;
 }) {
   await createAndEnrollPartner({
-    program,
-    workspace,
+    workspace: {
+      id: workspace.id,
+      plan: workspace.plan as PlanProps,
+      webhookEnabled: false,
+    },
+    program: {
+      id: program.id,
+      defaultFolderId: program.defaultFolderId,
+      defaultGroupId: program.defaultGroupId,
+    },
     partner: {
       name: partner.email.split("@")[0],
       email: partner.email,
     },
+    userId,
     skipEnrollmentCheck: true,
     status: "invited",
   });
