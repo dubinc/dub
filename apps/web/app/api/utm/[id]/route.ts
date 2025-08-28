@@ -73,42 +73,38 @@ export const PATCH = withWorkspace(
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
     const { id } = params;
-    try {
-      const template = await prisma.utmTemplate.delete({
-        where: {
-          id,
-          projectId: workspace.id,
-        },
-        include: {
-          partnerGroup: true,
-        },
+
+    const template = await prisma.utmTemplate.findUnique({
+      where: {
+        id,
+        projectId: workspace.id,
+      },
+      include: {
+        partnerGroup: true,
+      },
+    });
+
+    if (!template) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "UTM template not found.",
       });
-
-      if (!template) {
-        throw new DubApiError({
-          code: "not_found",
-          message: "UTM template not found.",
-        });
-      }
-
-      if (template.partnerGroup) {
-        throw new DubApiError({
-          code: "conflict",
-          message: `This template is linked to the partner group "${template.partnerGroup.name}" and cannot be deleted.`,
-        });
-      }
-
-      return NextResponse.json({ id });
-    } catch (error) {
-      if (error.code === "P2025") {
-        throw new DubApiError({
-          code: "not_found",
-          message: "UTM template not found.",
-        });
-      }
-
-      throw error;
     }
+
+    if (template.partnerGroup) {
+      throw new DubApiError({
+        code: "conflict",
+        message: `This template is linked to the partner group "${template.partnerGroup.name}" and cannot be deleted.`,
+      });
+    }
+
+    await prisma.utmTemplate.delete({
+      where: {
+        id: template.id,
+      },
+    });
+
+    return NextResponse.json({ id });
   },
   {
     requiredPermissions: ["links.write"],
