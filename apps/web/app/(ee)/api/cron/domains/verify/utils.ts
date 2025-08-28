@@ -1,4 +1,4 @@
-import { markDomainAsDeleted } from "@/lib/api/domains";
+import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
 import { limiter } from "@/lib/cron/limiter";
 import { sendEmail } from "@dub/email";
 import DomainDeleted from "@dub/email/templates/domain-deleted";

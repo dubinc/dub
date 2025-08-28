@@ -1,9 +1,7 @@
-import {
-  getConfigResponse,
-  getDomainResponse,
-  verifyDomain,
-} from "@/lib/api/domains";
+import { getConfigResponse } from "@/lib/api/domains/get-config-response";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
+import { verifyDomain } from "@/lib/api/domains/verify-domain";
 import { withWorkspace } from "@/lib/auth";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
