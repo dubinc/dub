@@ -2,9 +2,11 @@ import { CreatePartnerProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { defaultPartnerLinkSchema } from "@/lib/zod/schemas/groups";
 import { isFulfilled, nanoid } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { DubApiError } from "../errors";
 import { bulkCreateLinks } from "../links";
+import { linkCache } from "../links/cache";
 import {
   derivePartnerLinkKey,
   generatePartnerLink,
@@ -74,7 +76,12 @@ export async function createDefaultPartnerLinks({
     .filter(isFulfilled)
     .map(({ value }) => value);
 
-  return await bulkCreateLinks({
+  const createdLinks = await bulkCreateLinks({
     links: processedLinks,
+    skipRedisCache: true,
   });
+
+  waitUntil(linkCache.expireMany(createdLinks));
+
+  return createdLinks;
 }
