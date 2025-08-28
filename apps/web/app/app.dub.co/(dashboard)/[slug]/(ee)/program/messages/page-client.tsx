@@ -1,16 +1,55 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
+import { MessagesList } from "@/ui/messages/messages-list";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { Button } from "@dub/ui";
 import { ChevronLeft, Msgs } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { subMinutes } from "date-fns";
 import { CSSProperties, useState } from "react";
 import { toast } from "sonner";
 
 export function ProgramMessagesPageClient() {
-  const [currentPanel, setCurrentPanel] = useState<0 | 1 | 2>(0);
+  const { slug: workspaceSlug } = useWorkspace();
 
+  const partnersWithMessages = [
+    {
+      id: "pn_1KcRT7do2foT1PZ9zZhLF0Cq",
+      name: "Tim Wilson",
+      avatar: "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
+      messages: [
+        {
+          text: "Hello, how are you?",
+          createdAt: subMinutes(new Date(), 5),
+          readStatus: "read-app",
+        },
+        {
+          text: "Great, thanks! What about you?",
+          createdAt: subMinutes(new Date(), 5),
+          readStatus: "read-app",
+        },
+      ],
+    },
+    {
+      id: "pn_1JZ8GFVXAMTXEYF33QKWZAZ0Y",
+      name: "Tim Partner11",
+      avatar:
+        "https://dev.dubassets.com/partners/pn_1JZ8GFVXAMTXEYF33QKWZAZ0Y/image_nMMv6kL",
+      messages: [
+        {
+          text: "Thanks for approving my application!",
+          createdAt: subMinutes(new Date(), 5),
+          readStatus: "read-app",
+        },
+      ],
+    },
+  ];
+  const isLoading = false;
+  const error = null;
+
+  const [currentPanel, setCurrentPanel] = useState<0 | 1 | 2>(0);
   const isRightPanelOpen = currentPanel === 2;
 
   return (
@@ -36,29 +75,38 @@ export function ProgramMessagesPageClient() {
             </div>
           </div>
           <div className="grow">
-            <div className="flex size-full flex-col items-center justify-center px-4">
-              {/* TODO: Remove onClick (it's there for testing) */}
-              <Msgs
-                className="size-10 text-black"
-                onClick={() => setCurrentPanel(1)}
+            {partnersWithMessages?.length || isLoading ? (
+              <MessagesList
+                groupedMessages={partnersWithMessages.map((p) => ({
+                  ...p,
+                  href: `/${workspaceSlug}/program/messages/${p.id}`,
+                }))}
               />
-              <div className="mt-6 max-w-64 text-center">
-                <span className="text-content-emphasis text-base font-semibold">
-                  You don't have any messages
-                </span>
-                <p className="text-content-subtle text-sm font-medium">
-                  When you receive a new message, it will appear here. You can
-                  also start a conversation at any time.
-                </p>
+            ) : error ? (
+              <div className="text-content-subtle flex size-full items-center justify-center text-sm">
+                Failed to load messages
               </div>
+            ) : (
+              <div className="flex size-full flex-col items-center justify-center px-4">
+                <Msgs className="size-10 text-black" />
+                <div className="mt-6 max-w-64 text-center">
+                  <span className="text-content-emphasis text-base font-semibold">
+                    You don't have any messages
+                  </span>
+                  <p className="text-content-subtle text-sm font-medium">
+                    When you receive a new message, it will appear here. You can
+                    also start a conversation at any time.
+                  </p>
+                </div>
 
-              <Button
-                variant="primary"
-                className="mt-6 h-8 w-fit rounded-lg"
-                text="Compose message"
-                onClick={() => toast.info("WIP")}
-              />
-            </div>
+                <Button
+                  variant="primary"
+                  className="mt-6 h-8 w-fit rounded-lg"
+                  text="Compose message"
+                  onClick={() => toast.info("WIP")}
+                />
+              </div>
+            )}
           </div>
         </div>
 
