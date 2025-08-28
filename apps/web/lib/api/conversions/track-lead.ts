@@ -15,10 +15,11 @@ import {
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
+import { Customer, WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
-import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
+import { executeWorkflows } from "../workflows/execute-workflows";
 
 type TrackLeadParams = z.input<typeof trackLeadRequestSchema> & {
   rawBody: any;
@@ -260,6 +261,12 @@ export const trackLead = async ({
                 country: customer.country,
               },
             },
+          });
+
+          await executeWorkflows({
+            trigger: WorkflowTrigger.leadRecorded,
+            programId: link.programId,
+            partnerId: link.partnerId,
           });
         }
 

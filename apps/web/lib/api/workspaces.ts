@@ -11,7 +11,7 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { qstash } from "../cron";
 import { cancelSubscription } from "../stripe/cancel-subscription";
-import { markDomainAsDeleted } from "./domains";
+import { markDomainAsDeleted } from "./domains/mark-domain-deleted";
 import { linkCache } from "./links/cache";
 
 export async function deleteWorkspace(

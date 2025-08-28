@@ -14,7 +14,7 @@ const markCommissionDuplicateSchema = z.object({
   commissionId: z.string(),
 });
 
-// Mark a sale as duplicate or fraud or pending
+// Mark a commission as duplicate
 export const markCommissionDuplicateAction = authActionClient
   .schema(markCommissionDuplicateSchema)
   .action(async ({ parsedInput, ctx }) => {

@@ -3,6 +3,7 @@ import {
   CommissionStatus,
   CommissionType,
   EventType,
+  WorkflowTrigger,
 } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -12,6 +13,7 @@ import { createId } from "../api/create-id";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "../api/programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
+import { executeWorkflows } from "../api/workflows/execute-workflows";
 import { Session } from "../auth";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
@@ -250,8 +252,9 @@ export const createPartnerCommission = async ({
         });
 
         const isClawback = earnings < 0;
+        const shouldTriggerWorkflow = !isClawback;
 
-        // Make sure totalCommissions is up to date before firing the webhook
+        // Make sure totalCommissions is up to date before firing the webhook & executing workflows
         const { totalCommissions } = await syncTotalCommissions({
           partnerId,
           programId,
@@ -291,6 +294,13 @@ export const createPartnerCommission = async ({
               })
             : Promise.resolve(),
         ]);
+
+        shouldTriggerWorkflow &&
+          executeWorkflows({
+            trigger: WorkflowTrigger.commissionEarned,
+            programId,
+            partnerId,
+          });
       })(),
     );
 

@@ -1,4 +1,4 @@
-import { removeDomainFromVercel } from "@/lib/api/domains";
+import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { queueWorkspaceDeletion } from "@/lib/api/workspaces";

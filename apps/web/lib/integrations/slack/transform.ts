@@ -287,6 +287,25 @@ const commissionCreatedTemplate = ({
   };
 };
 
+// Minimal bounty templates (safe defaults)
+const bountyCreatedTemplate = ({ /* data */ }: { data: unknown }) => ({
+  blocks: [
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: "*New bounty created* :money_with_wings:" },
+    },
+  ],
+});
+
+const bountyUpdatedTemplate = ({ /* data */ }: { data: unknown }) => ({
+  blocks: [
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: "*Bounty updated* :memo:" },
+    },
+  ],
+});
+
 const slackTemplates: Record<WebhookTrigger, any> = {
   "link.created": createLinkTemplate,
   "link.updated": createLinkTemplate,
@@ -296,6 +315,8 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "sale.created": createSaleTemplate,
   "partner.enrolled": enrolledPartnerTemplate,
   "commission.created": commissionCreatedTemplate,
+  "bounty.created": bountyCreatedTemplate,
+  "bounty.updated": bountyUpdatedTemplate,
 };
 
 export const formatEventForSlack = (

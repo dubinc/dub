@@ -24,6 +24,15 @@ import {
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
+  BountySchema,
+  BountySchemaExtended,
+  bountyStatsSchema,
+  BountySubmissionExtendedSchema,
+  BountyWithPartnerDataSchema,
+  getBountySubmissionsQuerySchema,
+  SUBMISSION_REQUIREMENTS,
+} from "./zod/schemas/bounties";
+import {
   clickEventResponseSchema,
   clickEventSchemaTB,
 } from "./zod/schemas/clicks";
@@ -88,6 +97,12 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
+import {
+  WORKFLOW_ATTRIBUTES,
+  WORKFLOW_COMPARISON_OPERATORS,
+  workflowActionSchema,
+  workflowConditionSchema,
+} from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 
 export type LinkProps = Link;
@@ -510,3 +525,53 @@ export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 export type GroupProps = z.infer<typeof GroupSchema>;
 
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
+
+export type BountyProps = z.infer<typeof BountySchema>;
+
+export type BountyExtendedProps = z.infer<typeof BountySchemaExtended>;
+
+export type BountyWithPartnerDataProps = z.infer<
+  typeof BountyWithPartnerDataSchema
+>;
+
+export type BountySubmissionProps = z.infer<
+  typeof BountySubmissionExtendedSchema
+>;
+
+export type BountySubmissionRequirement =
+  (typeof SUBMISSION_REQUIREMENTS)[number];
+
+export type BountyStats = z.infer<typeof bountyStatsSchema>;
+
+export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
+
+export type WorkflowConditionAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
+
+export type WorkflowComparisonOperator =
+  (typeof WORKFLOW_COMPARISON_OPERATORS)[number];
+
+export type WorkflowAction = z.infer<typeof workflowActionSchema>;
+
+export type OperatorFn = (a: number, b: number) => boolean;
+
+export interface WorkflowContext {
+  totalCommission: number;
+  totalLeads: number;
+  totalConversions: number;
+  totalSaleAmount: number;
+  partnerId: string;
+  groupId: string;
+}
+
+export type BountySubmissionsQueryFilters = z.infer<
+  typeof getBountySubmissionsQuerySchema
+>;
+
+// export type BountySubmissionsCount = Record<
+//   BountySubmissionStatus,
+//   {
+//     count: number;
+//     amount: number;
+//     earnings: number;
+//   }
+// >;

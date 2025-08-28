@@ -1,8 +1,6 @@
-import {
-  getConfigResponse,
-  getDomainResponse,
-  verifyDomain,
-} from "@/lib/api/domains";
+import { getConfigResponse } from "@/lib/api/domains/get-config-response";
+import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
+import { verifyDomain } from "@/lib/api/domains/verify-domain";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
