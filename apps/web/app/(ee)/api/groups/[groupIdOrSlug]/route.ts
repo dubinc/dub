@@ -135,8 +135,6 @@ export const PATCH = withWorkspace(
       utmTemplateDiff = group.utmTemplateId !== utmTemplateId;
     }
 
-    console.log("newDefaultLink", newDefaultLink);
-
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
