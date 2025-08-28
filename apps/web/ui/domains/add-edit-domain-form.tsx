@@ -1,4 +1,4 @@
-import { isValidDomain } from "@/lib/api/domains";
+import { isValidDomain } from "@/lib/api/domains/is-valid-domain";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
