@@ -1,24 +1,13 @@
 "use client";
 
-import { BountyWithPartnerDataProps } from "@/lib/types";
+import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Heart, Trophy } from "@dub/ui/icons";
-import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
-import useSWR from "swr";
 import { BountyCard, BountyCardSkeleton } from "./bounty-card";
 
 export function BountiesPageClient() {
-  const { programSlug } = useParams();
-
-  const { data: bounties, isLoading } = useSWR<BountyWithPartnerDataProps[]>(
-    `/api/partner-profile/programs/${programSlug}/bounties`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { bounties, isLoading } = usePartnerProgramBounties();
 
   return (
     <PageWidthWrapper className="pb-10">
