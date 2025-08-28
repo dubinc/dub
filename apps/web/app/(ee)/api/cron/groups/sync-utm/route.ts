@@ -12,7 +12,6 @@ const PAGE_SIZE = 100;
 
 const payloadSchema = z.object({
   groupId: z.string(),
-  utmTemplateId: z.string(),
 });
 
 // POST /api/cron/groups/sync-utm
@@ -21,7 +20,7 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { groupId, utmTemplateId } = payloadSchema.parse(JSON.parse(rawBody));
+    const { groupId } = payloadSchema.parse(JSON.parse(rawBody));
 
     // Find the group
     const group = await prisma.partnerGroup.findUnique({
@@ -36,31 +35,28 @@ export async function POST(req: Request) {
       });
     }
 
+    if (!group.utmTemplateId) {
+      return logAndRespond(
+        `Group ${groupId} does not have a UTM template. Skipping...`,
+        { logLevel: "error" },
+      );
+    }
+
     // Find the UTM template
     const utmTemplate = await prisma.utmTemplate.findUnique({
       where: {
-        id: utmTemplateId,
+        id: group.utmTemplateId,
       },
     });
 
     if (!utmTemplate) {
       return logAndRespond(
-        `UTM template ${utmTemplateId} not found. Skipping...`,
+        `UTM template ${group.utmTemplateId} not found. Skipping...`,
         {
           logLevel: "error",
         },
       );
     }
-
-    // Find the program
-    const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
-      where: {
-        id: group.programId,
-      },
-      include: {
-        workspace: true,
-      },
-    });
 
     // UTM parameters
     const utmParams = {

@@ -1,6 +1,5 @@
 import { AdditionalPartnerLink, DefaultPartnerLink } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {

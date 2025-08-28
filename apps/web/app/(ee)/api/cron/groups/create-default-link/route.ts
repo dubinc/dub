@@ -18,7 +18,7 @@ const payloadSchema = z.object({
   defaultLink: defaultPartnerLinkSchema,
 });
 
-// POST /api/cron/groups/sync-default-links
+// POST /api/cron/groups/create-default-link
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();

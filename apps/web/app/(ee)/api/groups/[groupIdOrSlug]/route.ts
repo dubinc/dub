@@ -167,7 +167,7 @@ export const PATCH = withWorkspace(
 
         newDefaultLink &&
           qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-default-links`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/create-default-link`,
             body: {
               groupId: group.id,
               userId: session.user.id,
@@ -180,7 +180,6 @@ export const PATCH = withWorkspace(
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
             body: {
               groupId: group.id,
-              utmTemplateId,
             },
           }),
       ]),
