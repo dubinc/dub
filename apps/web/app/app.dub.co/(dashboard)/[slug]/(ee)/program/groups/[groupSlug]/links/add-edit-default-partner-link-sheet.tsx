@@ -67,6 +67,20 @@ function DefaultPartnerLinkSheetContent({
       return;
     }
 
+    // Check for duplicate destination URL
+    const isDuplicate = currentDefaultLinks.some((existingLink) => {
+      if (linkId && existingLink.id === linkId) {
+        return false;
+      }
+
+      return existingLink.url === data.url;
+    });
+
+    if (isDuplicate) {
+      toast.error("A default link with this destination URL already exists.");
+      return;
+    }
+
     // Editing existing link
     if (link) {
       updatedDefaultLinks = currentDefaultLinks.map((link) => {
