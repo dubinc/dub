@@ -128,7 +128,7 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     await log({
-      message: `Error handling "groups/sync-default-links" ${error.message}.`,
+      message: `Error handling "groups/create-default-link" ${error.message}.`,
       type: "errors",
     });
 
