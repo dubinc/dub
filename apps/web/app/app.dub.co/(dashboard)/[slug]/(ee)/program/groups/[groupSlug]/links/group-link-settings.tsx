@@ -7,20 +7,23 @@ import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
-import { UTMTemplateSchema } from "@/lib/zod/schemas/utm";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Badge, Button, UTMBuilder } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { PropsWithChildren, useEffect, useRef, useState } from "react";
+import { PropsWithChildren, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 type FormData = {
   utmTemplateId?: string | null;
   linkStructure?: string;
-} & z.infer<typeof UTMTemplateSchema>;
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
+  utm_term?: string | null;
+  utm_content?: string | null;
+  ref?: string | null;
+};
 
 export function GroupLinkSettings() {
   const { group, loading: isLoadingGroup } = useGroup();
@@ -50,58 +53,32 @@ export function GroupLinkSettings() {
 }
 
 function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
-  const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
-  const formRef = useRef<HTMLFormElement>(null);
+  const { id: workspaceId } = useWorkspace();
+
   const [isUpdatingTemplate, setIsUpdatingTemplate] = useState(false);
 
   const { makeRequest: updateGroup, isSubmitting: isUpdatingGroup } =
     useApiMutation();
 
-  const { confirmModal, setShowConfirmModal } = useConfirmModal({
-    title: "Save updated settings",
-    description:
-      "All existing and new partner links will automatically be updated with these settings.",
-    confirmText: "Save",
-    onConfirm: async () => {
-      formRef.current?.requestSubmit();
-    },
-  });
-
-  const { handleSubmit, watch, setValue, reset, register } = useForm<FormData>({
+  const { handleSubmit, watch, setValue, register } = useForm<FormData>({
     mode: "onBlur",
-    defaultValues: {
-      utmTemplateId: group?.utmTemplate?.id,
-      utm_source: group?.utmTemplate?.utm_source,
-      utm_medium: group?.utmTemplate?.utm_medium,
-      utm_campaign: group?.utmTemplate?.utm_campaign,
-      utm_term: group?.utmTemplate?.utm_term,
-      utm_content: group?.utmTemplate?.utm_content,
-      ref: group?.utmTemplate?.ref,
-      linkStructure: group?.linkStructure,
+    values: {
+      utmTemplateId: group?.utmTemplate?.id || "",
+      utm_source: group?.utmTemplate?.utm_source || "",
+      utm_medium: group?.utmTemplate?.utm_medium || "",
+      utm_campaign: group?.utmTemplate?.utm_campaign || "",
+      utm_term: group?.utmTemplate?.utm_term || "",
+      utm_content: group?.utmTemplate?.utm_content || "",
+      ref: group?.utmTemplate?.ref || "",
+      linkStructure: group?.linkStructure || "",
     },
   });
-
-  // Reset form values when group data becomes available
-  useEffect(() => {
-    if (group) {
-      reset({
-        utmTemplateId: group.utmTemplate?.id,
-        utm_source: group.utmTemplate?.utm_source,
-        utm_medium: group.utmTemplate?.utm_medium,
-        utm_campaign: group.utmTemplate?.utm_campaign,
-        utm_term: group.utmTemplate?.utm_term,
-        utm_content: group.utmTemplate?.utm_content,
-        ref: group.utmTemplate?.ref,
-        linkStructure: group.linkStructure,
-      });
-    }
-  }, [group, reset]);
 
   const onSubmit = async (data: FormData) => {
     if (!group || !workspaceId) return;
 
-    const {
+    let {
       utmTemplateId,
       utm_source,
       utm_medium,
@@ -112,62 +89,72 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
       linkStructure,
     } = data;
 
-    const templateData = {
-      name: `${group.name} UTM Template`,
-      utm_source,
-      utm_medium,
-      utm_campaign,
-      utm_term,
-      utm_content,
-      ref,
-    };
+    const shouldCreateOrUpdateUtmTemplate =
+      utm_source ||
+      utm_medium ||
+      utm_campaign ||
+      utm_term ||
+      utm_content ||
+      ref;
 
-    setIsUpdatingTemplate(true);
+    // Create a new UTM template if one doesn't exist
+    if (shouldCreateOrUpdateUtmTemplate) {
+      setIsUpdatingTemplate(true);
 
-    const endpoint = utmTemplateId
-      ? `/api/utm/${utmTemplateId}?workspaceId=${workspaceId}`
-      : `/api/utm?workspaceId=${workspaceId}`;
+      const endpoint = utmTemplateId
+        ? `/api/utm/${utmTemplateId}?workspaceId=${workspaceId}`
+        : `/api/utm?workspaceId=${workspaceId}`;
 
-    // Create or update the UTM template
-    const response = await fetch(endpoint, {
-      method: utmTemplateId ? "PATCH" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(templateData),
-    });
+      // Create or update the UTM template
+      const response = await fetch(endpoint, {
+        method: utmTemplateId ? "PATCH" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: group.name,
+          utm_source,
+          utm_medium,
+          utm_campaign,
+          utm_term,
+          utm_content,
+          ref,
+        }),
+      });
 
-    if (!response.ok) {
-      const { error } = await response.json();
-      toast.error(error.message);
       setIsUpdatingTemplate(false);
-      return;
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        toast.error(error.message);
+        return;
+      }
+
+      if (!utmTemplateId) {
+        const data = await response.json();
+        utmTemplateId = data.id;
+      }
+
+      await mutatePrefix("/api/utm");
     }
 
     // Update the group with UTM template and link structure
-    const updateData: any = {};
+    const shouldUpdateGroup =
+      linkStructure !== group.linkStructure ||
+      utmTemplateId !== group.utmTemplate?.id;
 
-    if (!utmTemplateId) {
-      const { id: newUtmTemplateId } = await response.json();
-      updateData.utmTemplateId = newUtmTemplateId;
-    }
-
-    if (linkStructure !== group.linkStructure) {
-      updateData.linkStructure = linkStructure;
-    }
-
-    if (Object.keys(updateData).length > 0) {
+    if (shouldUpdateGroup) {
       await updateGroup(`/api/groups/${group.id}`, {
         method: "PATCH",
-        body: updateData,
+        body: {
+          linkStructure,
+          utmTemplateId,
+        },
         onSuccess: async () => {
           await mutatePrefix(["/api/groups", "/api/utm"]);
           toast.success("Settings saved successfully!");
-          setIsUpdatingTemplate(false);
         },
       });
-    } else {
-      setIsUpdatingTemplate(false);
     }
   };
 
@@ -256,7 +243,7 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
           text="Save changes"
           className="h-8 w-fit"
           loading={isUpdatingGroup || isUpdatingTemplate}
-          onClick={() => setShowConfirmModal(true)}
+          // onClick={() => setShowConfirmModal(true)}
         />
       </div>
     </form>
