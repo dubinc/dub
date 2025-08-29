@@ -4,6 +4,7 @@ import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   BountySchema,
@@ -11,7 +12,7 @@ import {
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
-import { arrayEqual } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, arrayEqual } from "@dub/utils";
 import { PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -137,11 +138,24 @@ export const PATCH = withWorkspace(
     });
 
     waitUntil(
-      sendWorkspaceWebhook({
-        workspace,
-        trigger: "bounty.updated",
-        data: BountySchema.parse(updatedBounty),
-      }),
+      Promise.allSettled([
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "bounty.updated",
+          data: BountySchema.parse(updatedBounty),
+        }),
+
+        // if bounty.startsAt was updated, publish a new message to the queue
+        updatedBounty.startsAt &&
+          updatedBounty.startsAt !== bounty.startsAt &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/published`,
+            body: {
+              bountyId: updatedBounty.id,
+            },
+            notBefore: updatedBounty.startsAt.getTime(),
+          }),
+      ]),
     );
 
     return NextResponse.json(BountySchema.parse(updatedBounty));
