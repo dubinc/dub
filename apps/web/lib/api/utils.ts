@@ -9,30 +9,32 @@ import { DubApiError } from "./errors";
 export const parseRequestBody = async (req: Request) => {
   try {
     const contentType = req.headers.get("content-type");
-    
-    // Clone the request to read the body as text for debugging
-    const clonedReq = req.clone();
+
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error(
+        `Invalid content-type: ${contentType}. Expected application/json.`,
+      );
+    }
+
+    // Read the body as text first to avoid double consumption issues
+    const clonedReq = await req.clone();
     const rawBody = await clonedReq.text();
-    
+
     console.log("Debug - Content-Type:", contentType);
     console.log("Debug - Raw body length:", rawBody.length);
     console.log("Debug - Raw body preview:", rawBody.substring(0, 200));
-    
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new Error(`Invalid content-type: ${contentType}. Expected application/json.`);
-    }
-    
+
     if (!rawBody.trim()) {
       throw new Error("Empty request body");
     }
-    
-    return await req.json();
+
+    // Parse the text as JSON instead of using req.json()
+    return JSON.parse(rawBody);
   } catch (e) {
     console.error("JSON Parse Error:", e.message);
     throw new DubApiError({
       code: "bad_request",
-      message:
-        `Invalid JSON format in request body: ${e.message}. Please ensure the request body is a valid JSON object.`,
+      message: `Invalid JSON format in request body: ${e.message}. Please ensure the request body is a valid JSON object.`,
     });
   }
 };
