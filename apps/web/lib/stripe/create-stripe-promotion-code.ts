@@ -14,9 +14,19 @@ export async function createStripePromotionCode({
   link,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
-  discount: Pick<DiscountProps, "id" | "couponId" | "amount" | "type">;
+  discount: Pick<
+    DiscountProps,
+    "id" | "couponId" | "amount" | "type" | "couponCodeTrackingEnabledAt"
+  >;
   link: Pick<LinkProps, "id" | "key" | "couponCode">;
 }) {
+  if (!discount.couponCodeTrackingEnabledAt) {
+    console.log(
+      `Coupon code tracking is not enabled for discount ${discount.id}. Stripe promotion code creation skipped.`,
+    );
+    return;
+  }
+
   if (link.couponCode) {
     console.log(
       `Promotion code ${link.couponCode} already exists for link ${link.id}. Stripe promotion code creation skipped.`,
