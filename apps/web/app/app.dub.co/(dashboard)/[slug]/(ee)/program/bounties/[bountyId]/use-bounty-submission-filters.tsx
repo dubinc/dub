@@ -13,6 +13,7 @@ export function useBountySubmissionFilters({
 }: {
   bounty?: BountyExtendedProps;
 }) {
+  console.log("bounty?.groups", bounty?.groups);
   const { slug } = useWorkspace();
   const { searchParamsObj, queryParams } = useRouterStuff();
 
@@ -57,14 +58,20 @@ export function useBountySubmissionFilters({
         icon: Users6,
         label: "Partner Group",
         options:
-          groups?.map((group) => {
-            return {
-              value: group.id,
-              label: group.name,
-              icon: <GroupColorCircle group={group} />,
-              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
-            };
-          }) ?? null,
+          groups // only show groups that are associated with the bounty
+            ?.filter((group) =>
+              bounty?.groups && bounty?.groups.length > 0
+                ? bounty?.groups.map((g) => g.id).includes(group.id)
+                : true,
+            )
+            .map((group) => {
+              return {
+                value: group.id,
+                label: group.name,
+                icon: <GroupColorCircle group={group} />,
+                permalink: `/${slug}/program/groups/${group.slug}/rewards`,
+              };
+            }) ?? null,
       },
     ],
     [bounty, groups, slug],
