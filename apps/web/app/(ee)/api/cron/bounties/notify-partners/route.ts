@@ -1,10 +1,11 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
 import { prisma } from "@dub/prisma";
-import { chunk, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
@@ -15,6 +16,8 @@ const schema = z.object({
   bountyId: z.string(),
   page: z.number().optional().default(0),
 });
+
+const MAX_PAGE_SIZE = 5000;
 
 // POST /api/cron/bounties/notify-partners
 // Send emails to eligible partners about new bounty that is published
@@ -57,72 +60,83 @@ export async function POST(req: Request) {
     // Find groupIds
     const groupIds = bounty.groups.map(({ groupId }) => groupId);
 
-    let totalProgramEnrollments = 0;
-    while (true) {
-      // Find programEnrollments
-      const programEnrollments = await prisma.programEnrollment.findMany({
-        where: {
-          programId: bounty.programId,
-          ...(groupIds.length > 0 && {
-            groupId: {
-              in: groupIds,
-            },
-          }),
-          status: {
-            in: ["approved", "invited"],
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        programId: bounty.programId,
+        ...(groupIds.length > 0 && {
+          groupId: {
+            in: groupIds,
           },
+        }),
+        status: {
+          in: ["approved", "invited"],
         },
-        include: {
-          partner: true,
+      },
+      include: {
+        partner: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      skip: page * MAX_PAGE_SIZE,
+      take: MAX_PAGE_SIZE,
+    });
+
+    if (programEnrollments.length === 0) {
+      return logAndRespond(
+        `Finished sending emails to ~${page * MAX_PAGE_SIZE} partners for bounty ${bountyId}.`,
+      );
+    }
+
+    const programEnrollmentChunks = chunk(programEnrollments, 100);
+
+    for (const programEnrollmentChunk of programEnrollmentChunks) {
+      console.log(
+        `Sending emails to ${programEnrollmentChunk.length} partners: ${programEnrollmentChunk.map(({ partner }) => partner.email).join(", ")}`,
+      );
+      await resend?.batch.send(
+        programEnrollmentChunk
+          .filter(({ partner }) => partner.email)
+          .map(({ partner }) => ({
+            from: VARIANT_TO_FROM_MAP.notifications,
+            to: partner.email!,
+            subject: `New bounty available for ${bounty.program.name}`,
+            react: NewBountyAvailable({
+              email: partner.email!,
+              bounty: {
+                name: bounty.name!,
+                type: bounty.type,
+                endsAt: bounty.endsAt,
+                description: bounty.description,
+              },
+              program: {
+                name: bounty.program.name,
+                slug: bounty.program.slug,
+              },
+            }),
+            headers: {
+              "Idempotency-Key": `${bountyId}-${partner.id}`,
+            },
+          })),
+      );
+    }
+
+    if (programEnrollments.length === MAX_PAGE_SIZE) {
+      const res = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
+        body: {
+          bountyId,
+          page: page + 1,
         },
-        skip: totalProgramEnrollments,
-        take: 5000,
       });
 
-      if (programEnrollments.length === 0) {
-        break;
-      }
-
-      totalProgramEnrollments += programEnrollments.length;
-
-      const programEnrollmentChunks = chunk(programEnrollments, 100);
-
-      for (const programEnrollmentChunk of programEnrollmentChunks) {
-        console.log(
-          `Sending emails to ${programEnrollmentChunk.length} partners: ${programEnrollmentChunk.map(({ partner }) => partner.email).join(", ")}`,
-        );
-        await resend?.batch.send(
-          programEnrollmentChunk
-            .filter(({ partner }) => partner.email)
-            .map(({ partner }) => ({
-              from: VARIANT_TO_FROM_MAP.notifications,
-              to: partner.email!,
-              subject: `New bounty available for ${bounty.program.name}`,
-              react: NewBountyAvailable({
-                email: partner.email!,
-                bounty: {
-                  name: bounty.name!,
-                  type: bounty.type,
-                  endsAt: bounty.endsAt,
-                  description: bounty.description,
-                },
-                program: {
-                  name: bounty.program.name,
-                  slug: bounty.program.slug,
-                },
-              }),
-              headers: {
-                "Idempotency-Key": `${bountyId}-${partner.id}`,
-              },
-            })),
-        );
-
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
+      return logAndRespond(
+        `Enqueued next page (${page + 1}) for bounty ${bountyId}. ${JSON.stringify(res, null, 2)}`,
+      );
     }
 
     return logAndRespond(
-      `Successfully sent bounty notification emails to ${totalProgramEnrollments} partners.`,
+      `Finished sending emails to ${programEnrollments.length} partners for bounty ${bountyId}.`,
     );
   } catch (error) {
     await log({
