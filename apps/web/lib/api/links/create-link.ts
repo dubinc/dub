@@ -263,25 +263,16 @@ export async function createLink(link: CreateLinkProps) {
 
         // Create promotion code for the link
         !skipCouponCreation &&
-          link &&
           discount?.couponCodeTrackingEnabledAt &&
           workspace &&
           link.id &&
           createStripePromotionCode({
-            workspace: {
-              id: workspace.id,
-              stripeConnectId: workspace.stripeConnectId,
-            },
+            workspace,
             link: {
               id: link.id,
               key: link.key,
             },
-            discount: {
-              id: discount.id,
-              couponId: discount.couponId,
-              amount: discount.amount,
-              type: discount.type,
-            },
+            discount
           }),
       ]);
     })(),

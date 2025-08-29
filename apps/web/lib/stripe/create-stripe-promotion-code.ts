@@ -62,7 +62,7 @@ export async function createStripePromotionCode({
         });
 
         console.info(
-          `Promotion code ${promotionCode.code} created for link ${link.id} for the discount ${discount.id}.`,
+          `Created promotion code ${promotionCode.code} (discount=${discount.id}, link=${link.id})`,
         );
       }
 
