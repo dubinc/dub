@@ -4,7 +4,6 @@ import { processLink, updateLink } from "@/lib/api/links";
 import { deleteQr } from "@/lib/api/qrs/delete-qr";
 import { getQr } from "@/lib/api/qrs/get-qr";
 import { updateQr } from "@/lib/api/qrs/update-qr";
-import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { updateQrBodySchema } from "@/lib/zod/schemas/qrs";
 import {
@@ -46,8 +45,8 @@ export const PATCH = withWorkspace(
       qrId: params.qrId,
     });
 
-    const parseJson = await parseRequestBody(req);
-    const body = updateQrBodySchema.parse(parseJson) || {};
+    // const parseJson = await parseRequestBody(req);
+    const body = updateQrBodySchema.parse(req) || {};
     const fileQrType = FILE_QR_TYPES.includes(body.qrType as EQRType);
 
     try {
@@ -147,7 +146,7 @@ export const PUT = withWorkspace(
       });
     }
 
-    const body = (await parseRequestBody(req)) || {};
+    const body = updateQrBodySchema.parse(req) || {};
 
     await prisma.link.update({
       where: {

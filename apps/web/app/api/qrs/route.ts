@@ -3,7 +3,6 @@ import { DubApiError } from "@/lib/api/errors";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { createQrWithLinkUniversal } from "@/lib/api/qrs/create-qr-with-link-universal";
 import { getQrs } from "@/lib/api/qrs/get-qrs";
-import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -54,7 +53,8 @@ export const POST = withWorkspace(
       }
     }
 
-    const body = createQrBodySchema.parse(await parseRequestBody(req));
+    // const body = createQrBodySchema.parse(await parseRequestBody(req));
+    const body = createQrBodySchema.parse(req);
 
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;
