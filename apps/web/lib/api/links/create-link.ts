@@ -188,16 +188,8 @@ export async function createLink(link: CreateLinkProps) {
                 programId: link.programId,
               },
             },
-            select: {
-              discount: {
-                select: {
-                  id: true,
-                  couponId: true,
-                  couponCodeTrackingEnabledAt: true,
-                  amount: true,
-                  type: true,
-                },
-              },
+            include: {
+              discount: true,
             },
           });
 
@@ -261,11 +253,10 @@ export async function createLink(link: CreateLinkProps) {
 
         testVariants && testCompletedAt && scheduleABTestCompletion(response),
 
-        // Create promotion code for the link
+        // Create promotion code for the partner link
         !skipCouponCreation &&
-          discount?.couponCodeTrackingEnabledAt &&
           workspace &&
-          link.id &&
+          discount &&
           createStripePromotionCode({
             workspace,
             link: response,
