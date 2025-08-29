@@ -101,9 +101,10 @@ export const PATCH = withWorkspace(
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
           rewardAmount,
-          ...(bounty.type === "submission" && {
-            submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
-          }),
+          ...(bounty.type === "submission" &&
+            submissionRequirements !== undefined && {
+              submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
+            }),
           groups: {
             deleteMany: {},
             create: groups.map((group) => ({
