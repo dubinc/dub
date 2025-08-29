@@ -28,7 +28,7 @@ type CreateLinkProps = ProcessedLinkProps & {
   workspace?: Pick<WorkspaceProps, "id" | "stripeConnectId">;
   discount?: Pick<
     DiscountProps,
-    "couponId" | "couponCodeTrackingEnabledAt" | "amount" | "type"
+    "id" | "couponId" | "couponCodeTrackingEnabledAt" | "amount" | "type"
   > | null;
   skipCouponCreation?: boolean; // Skip Stripe promotion code creation for the link
 };
@@ -191,6 +191,7 @@ export async function createLink(link: CreateLinkProps) {
             select: {
               discount: {
                 select: {
+                  id: true,
                   couponId: true,
                   couponCodeTrackingEnabledAt: true,
                   amount: true,
@@ -262,12 +263,25 @@ export async function createLink(link: CreateLinkProps) {
 
         // Create promotion code for the link
         !skipCouponCreation &&
-          link.projectId &&
+          link &&
           discount?.couponCodeTrackingEnabledAt &&
+          workspace &&
+          link.id &&
           createStripePromotionCode({
-            link: response,
-            coupon: discount,
-            stripeConnectId: workspace?.stripeConnectId!,
+            workspace: {
+              id: workspace.id,
+              stripeConnectId: workspace.stripeConnectId,
+            },
+            link: {
+              id: link.id,
+              key: link.key,
+            },
+            discount: {
+              id: discount.id,
+              couponId: discount.couponId,
+              amount: discount.amount,
+              type: discount.type,
+            },
           }),
       ]);
     })(),

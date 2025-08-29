@@ -30,8 +30,7 @@ export async function POST(req: Request) {
     });
 
     if (!group) {
-      return logAndRespond({
-        message: `Partner group ${groupId} not found.`,
+      return logAndRespond(`Partner group ${groupId} not found.`, {
         logLevel: "error",
       });
     }
@@ -42,22 +41,27 @@ export async function POST(req: Request) {
         id: group.program.workspaceId,
       },
       select: {
+        id: true,
         stripeConnectId: true,
       },
     });
 
     if (!workspace) {
-      return logAndRespond({
-        message: `Workspace ${group.program.workspaceId} not found.`,
-        logLevel: "error",
-      });
+      return logAndRespond(
+        `Workspace ${group.program.workspaceId} not found.`,
+        {
+          logLevel: "error",
+        },
+      );
     }
 
     if (!workspace.stripeConnectId) {
-      return logAndRespond({
-        message: `Workspace ${group.program.workspaceId} does not have a stripeConnectId set.`,
-        logLevel: "error",
-      });
+      return logAndRespond(
+        `Workspace ${group.program.workspaceId} does not have a stripeConnectId set.`,
+        {
+          logLevel: "error",
+        },
+      );
     }
 
     let page = 0;
@@ -112,8 +116,11 @@ export async function POST(req: Request) {
         const results = await Promise.allSettled(
           linksChunk.map((link) =>
             disableStripePromotionCode({
+              workspace: {
+                id: workspace.id,
+                stripeConnectId: workspace.stripeConnectId,
+              },
               promotionCode: link.couponCode,
-              stripeConnectId: workspace.stripeConnectId,
             }),
           ),
         );
@@ -145,9 +152,7 @@ export async function POST(req: Request) {
       page++;
     }
 
-    return logAndRespond({
-      message: `Promotion codes deleted for group ${groupId}.`,
-    });
+    return logAndRespond(`Promotion codes deleted for group ${groupId}.`);
   } catch (error) {
     console.log(error);
 

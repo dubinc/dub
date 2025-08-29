@@ -8,11 +8,11 @@ const stripe = stripeAppClient({
 
 // Create a coupon on Stripe for connected accounts
 export async function createStripeCoupon({
-  coupon,
   workspace,
+  discount,
 }: {
-  coupon: Pick<Discount, "amount" | "type" | "maxDuration">;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
+  discount: Pick<Discount, "amount" | "type" | "maxDuration">;
 }) {
   if (!workspace.stripeConnectId) {
     console.error(
@@ -24,16 +24,16 @@ export async function createStripeCoupon({
   let duration: "once" | "repeating" | "forever" = "once";
   let durationInMonths: number | undefined = undefined;
 
-  if (coupon.maxDuration === null) {
+  if (discount.maxDuration === null) {
     duration = "forever";
-  } else if (coupon.maxDuration === 0) {
+  } else if (discount.maxDuration === 0) {
     duration = "once";
   } else {
     duration = "repeating";
   }
 
-  if (duration === "repeating" && coupon.maxDuration) {
-    durationInMonths = coupon.maxDuration;
+  if (duration === "repeating" && discount.maxDuration) {
+    durationInMonths = discount.maxDuration;
   }
 
   try {
@@ -44,9 +44,9 @@ export async function createStripeCoupon({
         ...(duration === "repeating" && {
           duration_in_months: durationInMonths,
         }),
-        ...(coupon.type === "percentage"
-          ? { percent_off: coupon.amount }
-          : { amount_off: coupon.amount }),
+        ...(discount.type === "percentage"
+          ? { percent_off: discount.amount }
+          : { amount_off: discount.amount }),
       },
       {
         stripeAccount: workspace.stripeConnectId,
@@ -61,7 +61,7 @@ export async function createStripeCoupon({
   } catch (error) {
     console.log(`Failed create Stripe coupon for workspace ${workspace.id}.`, {
       error,
-      coupon,
+      discount,
     });
 
     return null;

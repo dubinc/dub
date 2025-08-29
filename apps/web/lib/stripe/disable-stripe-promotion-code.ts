@@ -1,17 +1,25 @@
 import { stripeAppClient } from ".";
+import { WorkspaceProps } from "../types";
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
 });
 
 export async function disableStripePromotionCode({
+  workspace,
   promotionCode,
-  stripeConnectId,
 }: {
+  workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
   promotionCode: string | null;
-  stripeConnectId: string | null;
 }) {
-  if (!promotionCode || !stripeConnectId) {
+  if (!promotionCode) {
+    return;
+  }
+
+  if (!workspace.stripeConnectId) {
+    console.error(
+      `stripeConnectId not found for the workspace ${workspace.id}. Skipping Stripe coupon creation.`,
+    );
     return;
   }
 
@@ -21,13 +29,13 @@ export async function disableStripePromotionCode({
       limit: 1,
     },
     {
-      stripeAccount: stripeConnectId,
+      stripeAccount: workspace.stripeConnectId,
     },
   );
 
   if (promotionCodes.data.length === 0) {
     console.error(
-      `Stripe promotion code ${promotionCode} not found in the connected account ${stripeConnectId}.`,
+      `Stripe promotion code ${promotionCode} not found in the connected account ${workspace.stripeConnectId}.`,
     );
     return;
   }
@@ -41,18 +49,18 @@ export async function disableStripePromotionCode({
         active: false,
       },
       {
-        stripeAccount: stripeConnectId,
+        stripeAccount: workspace.stripeConnectId,
       },
     );
 
     console.info(
-      `Stripe promotion code ${promotionCode} in the connected account ${stripeConnectId} has been disabled.`,
+      `Stripe promotion code ${promotionCode} in the connected account ${workspace.stripeConnectId} has been disabled.`,
     );
 
     return promotionCode;
   } catch (error) {
     console.error(
-      `Failed to disable Stripe promotion code ${promotionCode} in the connected account ${stripeConnectId}.`,
+      `Failed to disable Stripe promotion code ${promotionCode} in the connected account ${workspace.stripeConnectId}.`,
       error,
     );
 

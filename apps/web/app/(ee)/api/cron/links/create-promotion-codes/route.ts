@@ -68,6 +68,7 @@ export async function POST(req: Request) {
         id: program.workspaceId,
       },
       select: {
+        id: true,
         stripeConnectId: true,
       },
     });
@@ -137,9 +138,20 @@ export async function POST(req: Request) {
         const results = await Promise.allSettled(
           linksChunk.map((link) =>
             createStripePromotionCode({
-              link,
-              coupon: discount,
-              stripeConnectId: workspace.stripeConnectId,
+              workspace: {
+                id: workspace.id,
+                stripeConnectId: workspace.stripeConnectId,
+              },
+              link: {
+                id: link.id,
+                key: link.key,
+              },
+              discount: {
+                id: discount.id,
+                couponId: discount.couponId,
+                amount: discount.amount,
+                type: discount.type,
+              },
             }),
           ),
         );

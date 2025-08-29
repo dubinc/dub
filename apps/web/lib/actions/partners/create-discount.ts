@@ -50,14 +50,14 @@ export const createDiscountAction = authActionClient
       }
 
       const stripeCoupon = await createStripeCoupon({
-        coupon: {
-          amount,
-          type,
-          maxDuration: maxDuration ?? null,
-        },
         workspace: {
           id: workspace.id,
           stripeConnectId: workspace.stripeConnectId,
+        },
+        discount: {
+          amount,
+          type,
+          maxDuration: maxDuration ?? null,
         },
       });
 

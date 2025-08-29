@@ -17,11 +17,14 @@ export async function deleteLink(linkId: string) {
       ...includeTags,
       project: {
         select: {
+          id: true,
           stripeConnectId: true,
         },
       },
     },
   });
+
+  const { project: workspace } = link;
 
   waitUntil(
     Promise.allSettled([
@@ -49,11 +52,13 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      link.project &&
-        link.couponCode &&
+      workspace &&
         disableStripePromotionCode({
+          workspace: {
+            id: workspace.id,
+            stripeConnectId: workspace.stripeConnectId,
+          },
           promotionCode: link.couponCode,
-          stripeConnectId: link.project.stripeConnectId,
         }),
     ]),
   );
