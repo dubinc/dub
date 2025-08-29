@@ -1,5 +1,6 @@
 import { Discount } from "@prisma/client";
 import { stripeAppClient } from ".";
+import { WorkspaceProps } from "../types";
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
@@ -8,14 +9,14 @@ const stripe = stripeAppClient({
 // Create a coupon on Stripe for connected accounts
 export async function createStripeCoupon({
   coupon,
-  stripeConnectId,
+  workspace,
 }: {
   coupon: Pick<Discount, "amount" | "type" | "maxDuration">;
-  stripeConnectId: string | null;
+  workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
 }) {
-  if (!stripeConnectId) {
+  if (!workspace.stripeConnectId) {
     console.error(
-      "stripeConnectId not found for the workspace. Stripe coupon creation skipped.",
+      `stripeConnectId not found for the workspace ${workspace.id}. Skipping Stripe coupon creation.`,
     );
     return;
   }
@@ -36,7 +37,7 @@ export async function createStripeCoupon({
   }
 
   try {
-    return await stripe.coupons.create(
+    const stripeCoupon = await stripe.coupons.create(
       {
         currency: "usd",
         duration,
@@ -48,14 +49,21 @@ export async function createStripeCoupon({
           : { amount_off: coupon.amount }),
       },
       {
-        stripeAccount: stripeConnectId,
+        stripeAccount: workspace.stripeConnectId,
       },
     );
-  } catch (error) {
-    console.error(
-      `Failed to create Stripe coupon for ${stripeConnectId}: ${error}`,
-      coupon,
+
+    console.info(
+      `Stripe coupon ${stripeCoupon.id} created for workspace ${workspace.id}.`,
     );
+
+    return stripeCoupon;
+  } catch (error) {
+    console.log(`Failed create Stripe coupon for workspace ${workspace.id}.`, {
+      error,
+      coupon,
+    });
+
     return null;
   }
 }
