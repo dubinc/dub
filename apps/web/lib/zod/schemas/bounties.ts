@@ -28,7 +28,7 @@ export const createBountySchema = z.object({
     .string()
     .trim()
     .max(100, "Name must be less than 100 characters")
-    .optional(),
+    .nullish(),
   description: z
     .string()
     .trim()
