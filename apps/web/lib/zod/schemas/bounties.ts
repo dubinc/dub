@@ -72,7 +72,7 @@ export const BountySchemaExtended = BountySchema.extend({
   submissions: z.record(z.nativeEnum(BountySubmissionStatus), z.number()),
 });
 
-const BountySubmissionSchema = z.object({
+export const BountySubmissionSchema = z.object({
   id: z.string(),
   description: z.string().nullable(),
   urls: z.array(z.string()).nullable(),
@@ -114,23 +114,6 @@ export const BountySubmissionExtendedSchema = z.object({
     name: true,
     image: true,
   }).nullable(),
-});
-
-export const BountyWithPartnerDataSchema = BountySchema.extend({
-  submissions: z.array(BountySubmissionSchema).nullable(),
-  partner: EnrolledPartnerSchema.pick({
-    leads: true,
-    conversions: true,
-    saleAmount: true,
-    totalCommissions: true,
-  }),
-});
-
-export const bountyStatsSchema = z.object({
-  id: z.string(),
-  submissions: z.number(),
-  pendingSubmissions: z.number(),
-  partners: z.number(),
 });
 
 export const rejectBountySubmissionSchema = z.object({

@@ -1,4 +1,4 @@
-import { BountyWithPartnerDataProps } from "@/lib/types";
+import { PartnerBountyProps } from "@/lib/types";
 import { BountyPerformance } from "@/ui/partners/bounties/bounty-performance";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { useClaimBountyModal } from "@/ui/partners/bounties/claim-bounty-modal";
@@ -6,7 +6,7 @@ import { StatusBadge } from "@dub/ui";
 import { Calendar6 } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
 
-export function BountyCard({ bounty }: { bounty: BountyWithPartnerDataProps }) {
+export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
   const submission = bounty.submissions?.[0];
 
   const { claimBountyModal, setShowClaimBountyModal } = useClaimBountyModal({
@@ -89,7 +89,7 @@ export function BountyCard({ bounty }: { bounty: BountyWithPartnerDataProps }) {
   );
 }
 
-export const BountyCardSkeleton = () => {
+export const PartnerBountyCardSkeleton = () => {
   return (
     <div className="border-border-subtle rounded-xl border bg-white p-5">
       <div className="flex flex-col gap-5">

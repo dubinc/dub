@@ -17,7 +17,7 @@ const WORKFLOW_ATTRIBUTE_LABELS: Record<WorkflowConditionAttribute, string> = {
   totalLeads: "total leads",
   totalConversions: "total conversions",
   totalSaleAmount: "total revenue",
-  totalCommission: "total commissions",
+  totalCommissions: "total commissions",
 } as const;
 
 export const generateBountyName = ({

@@ -2,7 +2,7 @@ import { createBountySubmissionAction } from "@/lib/actions/partners/create-boun
 import { uploadBountySubmissionFileAction } from "@/lib/actions/partners/upload-bounty-submission-file";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { BountySubmissionProps, BountyWithPartnerDataProps } from "@/lib/types";
+import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
 import {
   MAX_SUBMISSION_FILES,
   MAX_SUBMISSION_URLS,
@@ -34,7 +34,7 @@ import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 
 type ClaimBountyModalProps = {
   setShowModal: Dispatch<SetStateAction<boolean>>;
-  bounty: BountyWithPartnerDataProps;
+  bounty: PartnerBountyProps;
   submission?: BountySubmissionProps["submission"];
 };
 

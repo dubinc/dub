@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import {
+  PartnerBountySchema,
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
@@ -26,9 +27,7 @@ import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   BountySchema,
   BountySchemaExtended,
-  bountyStatsSchema,
   BountySubmissionExtendedSchema,
-  BountyWithPartnerDataSchema,
   getBountySubmissionsQuerySchema,
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
@@ -530,9 +529,7 @@ export type BountyProps = z.infer<typeof BountySchema>;
 
 export type BountyExtendedProps = z.infer<typeof BountySchemaExtended>;
 
-export type BountyWithPartnerDataProps = z.infer<
-  typeof BountyWithPartnerDataSchema
->;
+export type PartnerBountyProps = z.infer<typeof PartnerBountySchema>;
 
 export type BountySubmissionProps = z.infer<
   typeof BountySubmissionExtendedSchema
@@ -540,8 +537,6 @@ export type BountySubmissionProps = z.infer<
 
 export type BountySubmissionRequirement =
   (typeof SUBMISSION_REQUIREMENTS)[number];
-
-export type BountyStats = z.infer<typeof bountyStatsSchema>;
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 

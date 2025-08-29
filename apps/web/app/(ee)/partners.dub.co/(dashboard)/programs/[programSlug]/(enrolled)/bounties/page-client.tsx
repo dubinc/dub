@@ -4,7 +4,10 @@ import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Heart, Trophy } from "@dub/ui/icons";
-import { BountyCard, BountyCardSkeleton } from "./bounty-card";
+import {
+  PartnerBountyCard,
+  PartnerBountyCardSkeleton,
+} from "./partner-bounty-card";
 
 export function BountiesPageClient() {
   const { bounties, isLoading } = usePartnerProgramBounties();
@@ -15,10 +18,10 @@ export function BountiesPageClient() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {bounties?.length
             ? bounties?.map((bounty) => (
-                <BountyCard key={bounty.id} bounty={bounty} />
+                <PartnerBountyCard key={bounty.id} bounty={bounty} />
               ))
             : Array.from({ length: 3 }, (_, index) => (
-                <BountyCardSkeleton key={index} />
+                <PartnerBountyCardSkeleton key={index} />
               ))}
         </div>
       ) : (
