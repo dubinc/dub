@@ -134,10 +134,7 @@ export const partnerNotificationTypes = z.enum([
   "applicationApproved",
 ]);
 
-export const PartnerBountySchema = BountySchema.omit({
-  groups: true,
-  submissionsCount: true,
-}).extend({
+export const PartnerBountySchema = BountySchema.extend({
   submissions: z.array(BountySubmissionSchema).nullable(),
   performanceCondition: workflowConditionSchema.nullable().default(null),
   partner: z.object({

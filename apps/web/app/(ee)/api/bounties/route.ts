@@ -6,7 +6,11 @@ import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { WorkflowAction } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { BountySchema, createBountySchema } from "@/lib/zod/schemas/bounties";
+import {
+  BountyListSchema,
+  BountySchema,
+  createBountySchema,
+} from "@/lib/zod/schemas/bounties";
 import {
   WORKFLOW_ACTION_TYPES,
   WORKFLOW_ATTRIBUTE_TRIGGER_MAP,
@@ -41,7 +45,7 @@ export const GET = withWorkspace(
     });
 
     const data = bounties.map((bounty) =>
-      BountySchema.parse({
+      BountyListSchema.parse({
         ...bounty,
         groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
         submissionsCount: bounty._count.submissions,
@@ -123,7 +127,7 @@ export const POST = withWorkspace(
       }
 
       // Create a bounty
-      const bounty = await tx.bounty.create({
+      return await tx.bounty.create({
         data: {
           id: bountyId,
           programId,
@@ -149,11 +153,6 @@ export const POST = withWorkspace(
           }),
         },
       });
-
-      return {
-        ...bounty,
-        performanceCondition,
-      };
     });
 
     waitUntil(

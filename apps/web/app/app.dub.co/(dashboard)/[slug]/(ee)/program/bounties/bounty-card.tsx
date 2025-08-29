@@ -1,13 +1,13 @@
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyProps } from "@/lib/types";
+import { BountyListProps } from "@/lib/types";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { Calendar6, Users } from "@dub/ui/icons";
 import { formatDate, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { useMemo } from "react";
 
-export function BountyCard({ bounty }: { bounty: BountyProps }) {
+export function BountyCard({ bounty }: { bounty: BountyListProps }) {
   const { slug: workspaceSlug } = useWorkspace();
   const { partnersCount: groupCount } = usePartnersCount<
     | {

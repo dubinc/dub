@@ -1,4 +1,4 @@
-import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
+import { getBountyWithDetails } from "@/lib/api/bounties/get-bounty-with-details";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -22,16 +22,14 @@ const schema = z.object({
 
 // GET /api/bounties/[bountyId] - get a bounty
 export const GET = withWorkspace(
-  async ({ workspace, params, searchParams }) => {
+  async ({ workspace, params }) => {
     const { bountyId } = params;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { includeExpandedFields } = schema.parse(searchParams);
 
-    const bounty = await getBountyOrThrow({
+    const bounty = await getBountyWithDetails({
       bountyId,
       programId,
-      includeExpandedFields,
     });
 
     return NextResponse.json(BountySchemaExtended.parse(bounty));
@@ -71,9 +69,11 @@ export const PATCH = withWorkspace(
         code: "bad_request",
       });
     }
-    const bounty = await getBountyOrThrow({
-      bountyId,
-      programId,
+    const bounty = await prisma.bounty.findUniqueOrThrow({
+      where: {
+        id: bountyId,
+        programId,
+      },
     });
 
     // TODO:
@@ -158,13 +158,21 @@ export const DELETE = withWorkspace(
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const bounty = await getBountyOrThrow({
-      bountyId,
-      programId,
-      includeExpandedFields: true,
+    const bounty = await prisma.bounty.findUniqueOrThrow({
+      where: {
+        id: bountyId,
+        programId,
+      },
+      include: {
+        _count: {
+          select: {
+            submissions: true,
+          },
+        },
+      },
     });
 
-    if (bounty.submissions.length > 0) {
+    if (bounty._count.submissions > 0) {
       throw new DubApiError({
         message:
           "Bounties with submissions cannot be deleted. You can archive them instead.",

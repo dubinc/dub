@@ -53,6 +53,7 @@ export const BountySubmissionFileSchema = z.object({
   size: z.number(),
 });
 
+// used in POST, PATCH, DELETE /bounties + bounty.created, bounty.updated webhooks
 export const BountySchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
@@ -62,14 +63,18 @@ export const BountySchema = z.object({
   endsAt: z.date().nullable(),
   rewardAmount: z.number(),
   submissionRequirements: submissionRequirementsSchema.nullable(),
+});
+
+// used in GET /bounties
+export const BountyListSchema = BountySchema.extend({
   groups: z.array(GroupSchema.pick({ id: true })),
   submissionsCount: z.number().default(0),
 });
 
 export const BountySchemaExtended = BountySchema.extend({
-  performanceCondition: workflowConditionSchema.nullable().default(null),
   partners: z.number().default(0),
   submissions: z.record(z.nativeEnum(BountySubmissionStatus), z.number()),
+  performanceCondition: workflowConditionSchema.nullable().default(null),
 });
 
 export const BountySubmissionSchema = z.object({
