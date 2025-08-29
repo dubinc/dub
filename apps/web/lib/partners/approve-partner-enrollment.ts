@@ -9,7 +9,7 @@ import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { createPartnerLink } from "../api/partners/create-partner-link";
 import { createStripePromotionCode } from "../stripe/create-stripe-promotion-code";
 import { recordLink } from "../tinybird/record-link";
-import { ProgramPartnerLinkProps, RewardProps, WorkspaceProps } from "../types";
+import { LinkProps, RewardProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 
@@ -125,7 +125,7 @@ export async function approvePartnerEnrollment({
       : Promise.resolve(null),
   ]);
 
-  let partnerLink: ProgramPartnerLinkProps;
+  let partnerLink: LinkProps;
   const { partner, discount, ...enrollment } = programEnrollment;
   const workspace = program.workspace as WorkspaceProps;
 
