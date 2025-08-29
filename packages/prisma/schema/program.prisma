@@ -70,6 +70,7 @@ model Program {
   rewards       Reward[]
   discounts     Discount[]           @relation("ProgramDiscounts")
   groups        PartnerGroup[]
+  defaultLinks  PartnerDefaultLink[]
 
   @@index(workspaceId)
   @@index(domain)
