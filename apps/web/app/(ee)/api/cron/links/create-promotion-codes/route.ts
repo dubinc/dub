@@ -31,8 +31,7 @@ export async function POST(req: Request) {
     });
 
     if (!group) {
-      return logAndRespond({
-        message: `Partner group ${groupId} not found.`,
+      return logAndRespond(`Partner group ${groupId} not found.`, {
         logLevel: "error",
       });
     }
@@ -40,23 +39,27 @@ export async function POST(req: Request) {
     const { discount, program } = group;
 
     if (!discount) {
-      return logAndRespond({
-        message: `Partner group ${groupId} does not have a discount.`,
-        logLevel: "error",
-      });
+      return logAndRespond(
+        `Partner group ${groupId} does not have a discount.`,
+        {
+          logLevel: "error",
+        },
+      );
     }
 
     if (!discount.couponId) {
-      return logAndRespond({
-        message: `Discount ${discount.id} does not have a couponId set.`,
-        logLevel: "error",
-      });
+      return logAndRespond(
+        `Discount ${discount.id} does not have a couponId set.`,
+        {
+          logLevel: "error",
+        },
+      );
     }
 
     if (!discount.couponCodeTrackingEnabledAt) {
-      return logAndRespond({
-        message: `Discount ${discount.id} is not enabled for coupon code tracking.`,
-      });
+      return logAndRespond(
+        `Discount ${discount.id} is not enabled for coupon code tracking.`,
+      );
     }
 
     // Find the workspace for the program
@@ -70,17 +73,18 @@ export async function POST(req: Request) {
     });
 
     if (!workspace) {
-      return logAndRespond({
-        message: `Workspace ${program.workspaceId} not found.`,
+      return logAndRespond(`Workspace ${program.workspaceId} not found.`, {
         logLevel: "error",
       });
     }
 
     if (!workspace.stripeConnectId) {
-      return logAndRespond({
-        message: `Workspace ${program.workspaceId} does not have a stripeConnectId set.`,
-        logLevel: "error",
-      });
+      return logAndRespond(
+        `Workspace ${program.workspaceId} does not have a stripeConnectId set.`,
+        {
+          logLevel: "error",
+        },
+      );
     }
 
     let page = 0;
@@ -156,9 +160,9 @@ export async function POST(req: Request) {
       page++;
     }
 
-    return logAndRespond({
-      message: `Promotion codes created for discount ${discount.id} in group ${groupId}.`,
-    });
+    return logAndRespond(
+      `Promotion codes created for discount ${discount.id} in group ${groupId}.`,
+    );
   } catch (error) {
     console.log(error);
 
