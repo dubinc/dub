@@ -82,7 +82,7 @@ export const rejectBountySubmissionAction = authActionClient
               supportEmail: program.supportEmail || "support@dub.co",
             },
             bounty: {
-              name: bounty.name!,
+              name: bounty.name,
             },
             submission: {
               rejectionReason:

@@ -71,6 +71,11 @@ export async function POST(req: Request) {
         status: {
           in: ["approved", "invited"],
         },
+        partner: {
+          email: {
+            not: null,
+          },
+        },
       },
       include: {
         partner: true,
@@ -84,7 +89,7 @@ export async function POST(req: Request) {
 
     if (programEnrollments.length === 0) {
       return logAndRespond(
-        `Finished sending emails to ~${page * MAX_PAGE_SIZE} partners for bounty ${bountyId}.`,
+        `No program enrollments found for bounty ${bountyId}.`,
       );
     }
 
@@ -95,29 +100,27 @@ export async function POST(req: Request) {
         `Sending emails to ${programEnrollmentChunk.length} partners: ${programEnrollmentChunk.map(({ partner }) => partner.email).join(", ")}`,
       );
       await resend?.batch.send(
-        programEnrollmentChunk
-          .filter(({ partner }) => partner.email)
-          .map(({ partner }) => ({
-            from: VARIANT_TO_FROM_MAP.notifications,
-            to: partner.email!,
-            subject: `New bounty available for ${bounty.program.name}`,
-            react: NewBountyAvailable({
-              email: partner.email!,
-              bounty: {
-                name: bounty.name!,
-                type: bounty.type,
-                endsAt: bounty.endsAt,
-                description: bounty.description,
-              },
-              program: {
-                name: bounty.program.name,
-                slug: bounty.program.slug,
-              },
-            }),
-            headers: {
-              "Idempotency-Key": `${bountyId}-${partner.id}`,
+        programEnrollmentChunk.map(({ partner }) => ({
+          from: VARIANT_TO_FROM_MAP.notifications,
+          to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
+          subject: `New bounty available for ${bounty.program.name}`,
+          react: NewBountyAvailable({
+            email: partner.email!,
+            bounty: {
+              name: bounty.name,
+              type: bounty.type,
+              endsAt: bounty.endsAt,
+              description: bounty.description,
             },
-          })),
+            program: {
+              name: bounty.program.name,
+              slug: bounty.program.slug,
+            },
+          }),
+          headers: {
+            "Idempotency-Key": `${bountyId}-${partner.id}`,
+          },
+        })),
       );
     }
 

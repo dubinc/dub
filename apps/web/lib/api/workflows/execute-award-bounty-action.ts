@@ -121,7 +121,7 @@ export const executeAwardBountyAction = async ({
       react: BountyCompleted({
         email: partner.email,
         bounty: {
-          name: bounty.name!,
+          name: bounty.name,
           type: bounty.type,
         },
         program: {

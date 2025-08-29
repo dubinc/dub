@@ -10,10 +10,7 @@ import {
 import { createBountySchema } from "@/lib/zod/schemas/bounties";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import {
-  BountyLogic,
-  generateBountyName,
-} from "@/ui/partners/bounties/bounty-logic";
+import { BountyLogic } from "@/ui/partners/bounties/bounty-logic";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
   ProgramSheetAccordion,
@@ -244,11 +241,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       };
 
       data.performanceCondition = condition;
-
-      data.name = generateBountyName({
-        rewardAmount: data.rewardAmount,
-        condition,
-      });
     } else if (type === "submission") {
       data.performanceCondition = null;
     }

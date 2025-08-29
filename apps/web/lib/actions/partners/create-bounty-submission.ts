@@ -153,7 +153,7 @@ export const createBountySubmissionAction = authPartnerActionClient
                 },
                 bounty: {
                   id: bounty.id,
-                  name: bounty.name!,
+                  name: bounty.name,
                 },
                 partner: {
                   name: partner.name,
@@ -176,7 +176,7 @@ export const createBountySubmissionAction = authPartnerActionClient
             react: BountySubmitted({
               email: partner.email,
               bounty: {
-                name: bounty.name!,
+                name: bounty.name,
               },
               program: {
                 name: program.name,
