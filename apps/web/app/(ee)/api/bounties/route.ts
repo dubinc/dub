@@ -1,3 +1,4 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
@@ -69,7 +70,7 @@ export const GET = withWorkspace(
 
 // POST /api/bounties - create a bounty
 export const POST = withWorkspace(
-  async ({ workspace, req }) => {
+  async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const {
@@ -147,15 +148,40 @@ export const POST = withWorkspace(
             },
           }),
         },
+        include: {
+          workflow: true,
+          groups: true,
+        },
       });
+    });
+
+    const createdBounty = BountySchema.parse({
+      ...bounty,
+      groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+      performanceCondition: bounty.workflow?.triggerConditions?.[0],
     });
 
     waitUntil(
       Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "bounty.created",
+          description: `Bounty ${bounty.id} created`,
+          actor: session?.user,
+          targets: [
+            {
+              type: "bounty",
+              id: bounty.id,
+              metadata: createdBounty,
+            },
+          ],
+        }),
+
         sendWorkspaceWebhook({
           workspace,
           trigger: "bounty.created",
-          data: BountySchema.parse(bounty),
+          data: createdBounty,
         }),
 
         qstash.publishJSON({
@@ -168,7 +194,7 @@ export const POST = withWorkspace(
       ]),
     );
 
-    return NextResponse.json(BountySchema.parse(bounty));
+    return NextResponse.json(createdBounty);
   },
   {
     requiredPlan: [

@@ -57,18 +57,14 @@ export const getBountyWithDetails = async ({
         JSON_ARRAY()
       ) AS groups,
 
-      --  Bounty submissions count by status
+      --  Bounty submissions total count
       COALESCE(
         (
-          SELECT JSON_OBJECT(
-            'pending', COALESCE(SUM(status = 'pending'), 0),
-            'approved', COALESCE(SUM(status = 'approved'), 0),
-            'rejected', COALESCE(SUM(status = 'rejected'), 0)
-          )
+          SELECT COUNT(*)
           FROM BountySubmission
           WHERE bountyId = b.id
         ),
-        JSON_OBJECT('pending', 0, 'approved', 0, 'rejected', 0)
+        0
       ) AS submissions
 
     FROM Bounty b
@@ -99,7 +95,7 @@ export const getBountyWithDetails = async ({
     submissionRequirements: bounty.submissionRequirements,
     performanceCondition,
     groups: bounty.groups.filter((group) => group !== null) ?? [],
-    partners: Number(bounty.partners),
-    submissions: bounty.submissions,
+    partnersCount: Number(bounty.partners),
+    submissionsCount: Number(bounty.submissions),
   };
 };

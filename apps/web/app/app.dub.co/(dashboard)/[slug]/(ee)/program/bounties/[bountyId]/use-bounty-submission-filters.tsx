@@ -1,10 +1,14 @@
+import {
+  SubmissionsCountByStatus,
+  useBountySubmissionsCount,
+} from "@/lib/swr/use-bounty-submissions-count";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { CircleCheck, CircleHalfDottedCheck, Users6 } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { Users6 } from "@dub/ui/icons";
+import { cn, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 
@@ -13,11 +17,13 @@ export function useBountySubmissionFilters({
 }: {
   bounty?: BountyExtendedProps;
 }) {
-  console.log("bounty?.groups", bounty?.groups);
-  const { slug } = useWorkspace();
   const { searchParamsObj, queryParams } = useRouterStuff();
 
+  const { slug } = useWorkspace();
   const { groups } = useGroups();
+
+  const { submissionsCount } =
+    useBountySubmissionsCount<SubmissionsCountByStatus[]>();
 
   const filters = useMemo(
     () => [
@@ -26,32 +32,29 @@ export function useBountySubmissionFilters({
         icon: CircleDotted,
         label: "Status",
         options:
-          bounty?.type === "submission"
-            ? Object.entries(BOUNTY_SUBMISSION_STATUS_BADGES).map(
-                ([value, { label, icon: Icon, iconClassName }]) => ({
-                  value,
-                  label,
-                  icon: (
-                    <Icon
-                      className={cn("size-4 bg-transparent", iconClassName)}
-                    />
-                  ),
-                }),
-              )
-            : [
+          bounty?.type === "submission" && submissionsCount
+            ? submissionsCount.map(({ status, count }) => {
                 {
-                  value: "approved",
-                  label: "Completed",
-                  icon: <CircleCheck className="size-4 text-green-600" />,
-                },
-                {
-                  value: "pending",
-                  label: "Incomplete",
-                  icon: (
-                    <CircleHalfDottedCheck className="size-4 text-orange-600" />
-                  ),
-                },
-              ],
+                  const {
+                    label,
+                    icon: Icon,
+                    iconClassName,
+                  } = BOUNTY_SUBMISSION_STATUS_BADGES[status];
+                  return {
+                    value: status,
+                    label,
+                    icon: (
+                      <Icon
+                        className={cn("size-4 bg-transparent", iconClassName)}
+                      />
+                    ),
+                    right: nFormatter(count, {
+                      full: true,
+                    }),
+                  };
+                }
+              })
+            : null,
       },
       {
         key: "groupId",
@@ -74,7 +77,7 @@ export function useBountySubmissionFilters({
             }) ?? null,
       },
     ],
-    [bounty, groups, slug],
+    [bounty, submissionsCount, groups, slug],
   );
 
   const activeFilters = useMemo(() => {

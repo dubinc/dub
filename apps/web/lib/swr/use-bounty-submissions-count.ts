@@ -1,6 +1,7 @@
 import { BountySubmissionStatus } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
+import { useParams } from "next/navigation";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
@@ -10,21 +11,21 @@ export interface SubmissionsCountByStatus {
 }
 
 export function useBountySubmissionsCount<T>({
-  enabled,
+  enabled = true,
 }: {
   enabled?: boolean;
 } = {}) {
+  const { bountyId } = useParams();
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
-  const shouldFetch = Boolean(enabled && workspaceId);
-
   const { data: submissionsCount, error } = useSWR<T>(
-    shouldFetch
-      ? `/api/bounties/count${getQueryString({
-          workspaceId,
-        })}`
-      : null,
+    enabled &&
+      workspaceId &&
+      `/api/bounties/count/submissions${getQueryString({
+        workspaceId,
+        ...(bountyId ? { bountyId } : {}),
+      })}`,
     fetcher,
     {
       keepPreviousData: true,

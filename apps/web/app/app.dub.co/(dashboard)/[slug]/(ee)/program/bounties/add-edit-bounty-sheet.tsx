@@ -301,26 +301,28 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
               onValueChange={setOpenAccordions}
               className="space-y-6"
             >
-              <ProgramSheetAccordionItem value="bounty-type">
-                <ProgramSheetAccordionTrigger>
-                  Bounty type
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="space-y-4">
-                    <p className="text-content-default text-sm">
-                      Set how the bounty will be completed
-                    </p>
-                    <CardSelector
-                      options={BOUNTY_TYPES}
-                      value={watch("type")}
-                      onChange={(value: FormData["type"]) =>
-                        setValue("type", value)
-                      }
-                      name="bounty-type"
-                    />
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
+              {!bounty && ( // cannot change type for existing bounties
+                <ProgramSheetAccordionItem value="bounty-type">
+                  <ProgramSheetAccordionTrigger>
+                    Bounty type
+                  </ProgramSheetAccordionTrigger>
+                  <ProgramSheetAccordionContent>
+                    <div className="space-y-4">
+                      <p className="text-content-default text-sm">
+                        Set how the bounty will be completed
+                      </p>
+                      <CardSelector
+                        options={BOUNTY_TYPES}
+                        value={watch("type")}
+                        onChange={(value: FormData["type"]) =>
+                          setValue("type", value)
+                        }
+                        name="bounty-type"
+                      />
+                    </div>
+                  </ProgramSheetAccordionContent>
+                </ProgramSheetAccordionItem>
+              )}
 
               <ProgramSheetAccordionItem value="bounty-details">
                 <ProgramSheetAccordionTrigger>

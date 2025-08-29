@@ -1,3 +1,4 @@
+import { BountySchema } from "@/lib/zod/schemas/bounties";
 import { CommissionSchema } from "@/lib/zod/schemas/commissions";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { GroupSchema } from "@/lib/zod/schemas/groups";
@@ -73,6 +74,11 @@ const actionSchema = z.enum([
   "group.created",
   "group.updated",
   "group.deleted",
+
+  // Bounties
+  "bounty.created",
+  "bounty.updated",
+  "bounty.deleted",
 ]);
 
 export const auditLogTarget = z.union([
@@ -155,6 +161,12 @@ export const auditLogTarget = z.union([
       saleRewardId: z.string().nullish(),
       discountId: z.string().nullish(),
     }),
+  }),
+
+  z.object({
+    type: z.literal("bounty"),
+    id: z.string(),
+    metadata: BountySchema,
   }),
 ]);
 

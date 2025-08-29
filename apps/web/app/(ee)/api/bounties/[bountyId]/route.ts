@@ -1,3 +1,4 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getBountyWithDetails } from "@/lib/api/bounties/get-bounty-with-details";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
@@ -45,7 +46,7 @@ export const GET = withWorkspace(
 
 // PATCH /api/bounties/[bountyId] - update a bounty
 export const PATCH = withWorkspace(
-  async ({ workspace, params, req }) => {
+  async ({ workspace, params, req, session }) => {
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -94,7 +95,7 @@ export const PATCH = withWorkspace(
       });
     }
 
-    const updatedBounty = await prisma.$transaction(async (tx) => {
+    const data = await prisma.$transaction(async (tx) => {
       const updatedBounty = await tx.bounty.update({
         where: {
           id: bounty.id,
@@ -118,6 +119,10 @@ export const PATCH = withWorkspace(
             },
           }),
         },
+        include: {
+          workflow: true,
+          groups: true,
+        },
       });
 
       if (updatedBounty.workflowId && performanceCondition) {
@@ -137,17 +142,36 @@ export const PATCH = withWorkspace(
       };
     });
 
+    const updatedBounty = BountySchema.parse({
+      ...data,
+      groups: data.groups.map(({ groupId }) => ({ id: groupId })),
+      performanceCondition: data.workflow?.triggerConditions?.[0],
+    });
+
     waitUntil(
       Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "bounty.updated",
+          description: `Bounty ${bounty.id} updated`,
+          actor: session?.user,
+          targets: [
+            {
+              type: "bounty",
+              id: bounty.id,
+              metadata: updatedBounty,
+            },
+          ],
+        }),
         sendWorkspaceWebhook({
           workspace,
           trigger: "bounty.updated",
-          data: BountySchema.parse(updatedBounty),
+          data: updatedBounty,
         }),
 
         // if bounty.startsAt was updated, publish a new message to the queue
-        updatedBounty.startsAt &&
-          updatedBounty.startsAt !== bounty.startsAt &&
+        updatedBounty.startsAt.getTime() !== bounty.startsAt.getTime() &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
             body: {
@@ -158,7 +182,7 @@ export const PATCH = withWorkspace(
       ]),
     );
 
-    return NextResponse.json(BountySchema.parse(updatedBounty));
+    return NextResponse.json(updatedBounty);
   },
   {
     requiredPlan: [
