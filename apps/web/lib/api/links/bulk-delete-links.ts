@@ -45,18 +45,11 @@ export async function bulkDeleteLinks({
       },
     }),
 
-    workspace.stripeConnectId
-      ? links
-          .filter((link) => link.couponCode)
-          .map((link) =>
-            disableStripePromotionCode({
-              workspace: {
-                id: workspace.id,
-                stripeConnectId: workspace.stripeConnectId,
-              },
-              promotionCode: link.couponCode,
-            }),
-          )
-      : [],
+    ...links.map((link) =>
+      disableStripePromotionCode({
+        workspace,
+        promotionCode: link.couponCode,
+      }),
+    ),
   ]);
 }

@@ -54,10 +54,7 @@ export async function deleteLink(linkId: string) {
 
       workspace &&
         disableStripePromotionCode({
-          workspace: {
-            id: workspace.id,
-            stripeConnectId: workspace.stripeConnectId,
-          },
+          workspace,
           promotionCode: link.couponCode,
         }),
     ]),

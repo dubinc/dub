@@ -695,12 +695,6 @@ export const LinkSchema = z
       .number()
       .default(0)
       .describe("The number of leads that converted to paying customers."),
-    couponCode: z
-      .string()
-      .nullable()
-      .describe(
-        "The Stripe coupon code linked to this partner link, used for coupon code-based tracking.",
-      ),
     sales: z
       .number()
       .default(0)

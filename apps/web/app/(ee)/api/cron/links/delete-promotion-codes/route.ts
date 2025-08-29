@@ -116,10 +116,7 @@ export async function POST(req: Request) {
         const results = await Promise.allSettled(
           linksChunk.map((link) =>
             disableStripePromotionCode({
-              workspace: {
-                id: workspace.id,
-                stripeConnectId: workspace.stripeConnectId,
-              },
+              workspace,
               promotionCode: link.couponCode,
             }),
           ),
