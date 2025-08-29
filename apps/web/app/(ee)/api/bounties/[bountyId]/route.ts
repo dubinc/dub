@@ -149,11 +149,11 @@ export const PATCH = withWorkspace(
         updatedBounty.startsAt &&
           updatedBounty.startsAt !== bounty.startsAt &&
           qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/published`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
             body: {
               bountyId: updatedBounty.id,
             },
-            notBefore: updatedBounty.startsAt.getTime(),
+            notBefore: Math.floor(updatedBounty.startsAt.getTime() / 1000),
           }),
       ]),
     );

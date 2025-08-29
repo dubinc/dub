@@ -9,6 +9,7 @@ import {
 } from "@/lib/types";
 import { createBountySchema } from "@/lib/zod/schemas/bounties";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import {
   BountyLogic,
   generateBountyName,
@@ -129,6 +130,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     name,
     description,
     performanceCondition,
+    groupIds,
   ] = watch([
     "startsAt",
     "endsAt",
@@ -137,6 +139,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     "name",
     "description",
     "performanceCondition",
+    "groupIds",
   ]);
 
   // Make sure endsAt is null if hasEndDate is false
@@ -164,6 +167,17 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       setValue("submissionRequirements", null);
     }
   }, [requireImage, requireUrl, setValue]);
+
+  // Confirmation modal for bounty creation only
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Confirm bounty creation",
+    description:
+      "This will create the bounty and notify all partners in the selected partner groups. Are you sure you want to continue?",
+    confirmText: "Confirm",
+    onConfirm: async () => {
+      await performSubmit();
+    },
+  });
 
   // Decide if the submit button should be disabled
   const shouldDisableSubmit = useMemo(() => {
@@ -200,8 +214,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     performanceCondition?.value,
   ]);
 
-  // Handle form submission
-  const onSubmit = async (data: FormData) => {
+  // Handle actual form submission (called after confirmation)
+  const performSubmit = async () => {
+    const data = form.getValues();
     if (!workspaceId) return;
 
     data.rewardAmount = data.rewardAmount * 100;
@@ -249,8 +264,19 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     });
   };
 
+  // Handle form submission (shows confirmation modal for creation only)
+  const onSubmit = handleSubmit(async (data: FormData) => {
+    if (bounty) {
+      // For updates, submit directly without confirmation
+      await performSubmit();
+    } else {
+      // For creation, show confirmation modal
+      setShowConfirmModal(true);
+    }
+  });
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
+    <form onSubmit={onSubmit} className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
@@ -582,6 +608,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
           </div>
         </div>
       </FormProvider>
+      {!bounty && confirmModal}
     </form>
   );
 }

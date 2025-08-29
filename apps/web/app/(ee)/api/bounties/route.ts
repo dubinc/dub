@@ -159,12 +159,11 @@ export const POST = withWorkspace(
         }),
 
         qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/published`,
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
           body: {
             bountyId: bounty.id,
           },
-          // unix timestamp in milliseconds
-          notBefore: bounty.startsAt.getTime(),
+          notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
         }),
       ]),
     );
