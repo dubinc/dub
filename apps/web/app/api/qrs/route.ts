@@ -54,7 +54,8 @@ export const POST = withWorkspace(
       }
     }
 
-    const body = createQrBodySchema.parse(await parseRequestBody(req));
+    const parsedReq = await parseRequestBody(req);
+    const body = createQrBodySchema.parse(parsedReq);
 
     if (!session) {
       const ip = req.headers.get("x-forwarded-for") || LOCALHOST_IP;

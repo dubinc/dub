@@ -46,7 +46,8 @@ export const PATCH = withWorkspace(
       qrId: params.qrId,
     });
 
-    const body = updateQrBodySchema.parse(await parseRequestBody(req)) || {};
+    const parseJson = await parseRequestBody(req);
+    const body = updateQrBodySchema.parse(parseJson) || {};
     const fileQrType = FILE_QR_TYPES.includes(body.qrType as EQRType);
 
     try {
