@@ -21,9 +21,9 @@ const performanceBounty = {
   rewardAmount: 1000,
 };
 
-const BOUNTY_GROUP_ID = "grp_1K3TDVB6NS9PRARMTTXZSPQ2D";
+const BOUNTY_GROUP_ID = "grp_1K2E25381GVMG7HHM057TB92F";
 
-describe.sequential.skip("/bounties/**", async () => {
+describe.sequential("/bounties/**", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
