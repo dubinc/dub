@@ -67,7 +67,8 @@ export function Guide({ markdown }: { markdown: string }) {
   const handleOpenClaude = () => {
     const prompt = `Read from ${selectedGuide.url} so I can ask questions about it.`;
     const claudeUrl = `https://claude.ai/new?q=${encodeURIComponent(prompt)}`;
-    window.open(claudeUrl, '_blank');
+    const win = window.open(claudeUrl, "_blank", "noopener,noreferrer");
+    if (win) win.opener = null;
     setOpenDropdown(false);
   };
 
@@ -85,7 +86,7 @@ export function Guide({ markdown }: { markdown: string }) {
           </Link>
 
           <div className="flex items-center overflow-hidden rounded-lg border border-neutral-200">
-            <Link href={selectedGuide.url} target="_blank">
+            <Link href={selectedGuide.url} target="_blank" rel="noopener noreferrer">
               <Button
                 text="Read full guide"
                 variant="secondary"
