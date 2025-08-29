@@ -71,7 +71,7 @@ export const BountyListSchema = BountySchema.extend({
   submissionsCount: z.number().default(0),
 });
 
-export const BountySchemaExtended = BountySchema.extend({
+export const BountySchemaExtended = BountyListSchema.extend({
   partners: z.number().default(0),
   submissions: z.record(z.nativeEnum(BountySubmissionStatus), z.number()),
   performanceCondition: workflowConditionSchema.nullable().default(null),
