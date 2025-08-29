@@ -187,12 +187,6 @@ export const DELETE = withWorkspace(
         },
       });
 
-      await tx.bountySubmission.deleteMany({
-        where: {
-          bountyId,
-        },
-      });
-
       if (bounty.workflowId) {
         await tx.workflow.delete({
           where: {
@@ -201,9 +195,6 @@ export const DELETE = withWorkspace(
         });
       }
     });
-
-    // TODO:
-    // We should also delete the files submitted for the bounty from R2.
 
     return NextResponse.json({ id: bountyId });
   },

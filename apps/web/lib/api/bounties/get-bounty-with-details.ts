@@ -25,7 +25,7 @@ export const getBountyWithDetails = async ({
         (
           SELECT COUNT(pe.partnerId)
           FROM ProgramEnrollment pe
-          WHERE pe.status IN ('approved', 'invited')
+          WHERE pe.programId = ${programId} AND pe.status IN ('approved', 'invited')
           AND (
             -- If bounty has specific groups, count only partners in those groups
             EXISTS (

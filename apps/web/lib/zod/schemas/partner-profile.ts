@@ -143,5 +143,6 @@ export const PartnerBountySchema = BountySchema.extend({
     totalConversions: z.number(),
     totalSales: z.number(),
     totalSaleAmount: z.number(),
+    totalCommissions: z.number(),
   }),
 });
