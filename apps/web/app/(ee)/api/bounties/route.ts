@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
+import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -90,16 +91,10 @@ export const POST = withWorkspace(
       });
     }
 
-    const groups = groupIds?.length
-      ? await prisma.partnerGroup.findMany({
-          where: {
-            programId,
-            id: {
-              in: groupIds,
-            },
-          },
-        })
-      : null;
+    const partnerGroups = await throwIfInvalidGroupIds({
+      programId,
+      groupIds,
+    });
 
     const bounty = await prisma.$transaction(async (tx) => {
       let workflow: Workflow | null = null;
@@ -142,10 +137,10 @@ export const POST = withWorkspace(
             type === "submission" && {
               submissionRequirements,
             }),
-          ...(groups?.length && {
+          ...(partnerGroups.length && {
             groups: {
               createMany: {
-                data: groups.map(({ id }) => ({
+                data: partnerGroups.map(({ id }) => ({
                   groupId: id,
                 })),
               },

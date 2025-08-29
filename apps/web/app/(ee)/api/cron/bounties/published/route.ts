@@ -1,9 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
-import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { z } from "zod";
@@ -79,31 +76,34 @@ export async function POST(req: Request) {
       );
     }
 
-    await resend?.batch.send(
-      programEnrollments
-        .filter(({ partner }) => partner.email)
-        .map(({ partner }) => ({
-          from: VARIANT_TO_FROM_MAP.notifications,
-          to: partner.email!,
-          subject: `New bounty available for ${bounty.program.name}`,
-          react: NewBountyAvailable({
-            email: partner.email!,
-            bounty: {
-              name: bounty.name!,
-              type: bounty.type,
-              endsAt: bounty.endsAt,
-              description: bounty.description,
-            },
-            program: {
-              name: bounty.program.name,
-              slug: bounty.program.slug,
-            },
-          }),
-          headers: {
-            "Idempotency-Key": `${bountyId}-${partner.id}`,
-          },
-        })),
+    console.log(
+      `Sending emails to ${programEnrollments.length} partners: ${programEnrollments.map(({ partner }) => partner.email).join(", ")}`,
     );
+    // await resend?.batch.send(
+    //   programEnrollments
+    //     .filter(({ partner }) => partner.email)
+    //     .map(({ partner }) => ({
+    //       from: VARIANT_TO_FROM_MAP.notifications,
+    //       to: partner.email!,
+    //       subject: `New bounty available for ${bounty.program.name}`,
+    //       react: NewBountyAvailable({
+    //         email: partner.email!,
+    //         bounty: {
+    //           name: bounty.name!,
+    //           type: bounty.type,
+    //           endsAt: bounty.endsAt,
+    //           description: bounty.description,
+    //         },
+    //         program: {
+    //           name: bounty.program.name,
+    //           slug: bounty.program.slug,
+    //         },
+    //       }),
+    //       headers: {
+    //         "Idempotency-Key": `${bountyId}-${partner.id}`,
+    //       },
+    //     })),
+    // );
 
     // Trigger next page
     const nextPage = page + 1;

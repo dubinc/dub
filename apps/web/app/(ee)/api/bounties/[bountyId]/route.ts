@@ -1,5 +1,6 @@
 import { getBountyWithDetails } from "@/lib/api/bounties/get-bounty-with-details";
 import { DubApiError } from "@/lib/api/errors";
+import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -9,16 +10,11 @@ import {
   BountySchemaExtended,
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
-import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@prisma/client";
+import { arrayEqual } from "@dub/utils";
+import { PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-const schema = z.object({
-  includeExpandedFields: booleanQuerySchema.optional().default("false"),
-});
 
 // GET /api/bounties/[bountyId] - get a bounty
 export const GET = withWorkspace(
@@ -74,21 +70,28 @@ export const PATCH = withWorkspace(
         id: bountyId,
         programId,
       },
+      include: {
+        groups: true,
+      },
     });
 
     // TODO:
     // When we do archive, make sure it disables the workflow
 
-    const groups = groupIds?.length
-      ? await prisma.partnerGroup.findMany({
-          where: {
-            programId,
-            id: {
-              in: groupIds,
-            },
-          },
-        })
-      : [];
+    // if groupIds is provided and is different from the current groupIds, update the groups
+    let updatedPartnerGroups: PartnerGroup[] | undefined = undefined;
+    if (
+      groupIds &&
+      !arrayEqual(
+        bounty.groups.map((group) => group.groupId),
+        groupIds,
+      )
+    ) {
+      updatedPartnerGroups = await throwIfInvalidGroupIds({
+        programId,
+        groupIds,
+      });
+    }
 
     const updatedBounty = await prisma.$transaction(async (tx) => {
       const updatedBounty = await tx.bounty.update({
@@ -105,12 +108,14 @@ export const PATCH = withWorkspace(
             submissionRequirements !== undefined && {
               submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
             }),
-          groups: {
-            deleteMany: {},
-            create: groups.map((group) => ({
-              groupId: group.id,
-            })),
-          },
+          ...(updatedPartnerGroups && {
+            groups: {
+              deleteMany: {},
+              create: updatedPartnerGroups.map((group) => ({
+                groupId: group.id,
+              })),
+            },
+          }),
         },
       });
 
