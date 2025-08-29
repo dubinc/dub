@@ -3,6 +3,7 @@
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useMessagesContext } from "@/ui/messages/messages-context";
+import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
@@ -13,6 +14,7 @@ import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { redirect, useParams } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function ProgramMessagesPartnerPageClient() {
   const { slug: workspaceSlug } = useWorkspace();
@@ -67,8 +69,8 @@ export function ProgramMessagesPartnerPageClient() {
             onClick={() => setIsRightPanelOpen((o) => !o)}
           />
         </div>
-        <div className="text-content-subtle flex grow flex-col items-center justify-center text-sm">
-          [WIP]
+        <div className="grow">
+          <MessagesPanel onSendMessage={(message) => toast.info(message)} />
         </div>
       </div>
 
