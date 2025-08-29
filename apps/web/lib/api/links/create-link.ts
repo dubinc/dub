@@ -1,8 +1,9 @@
 import { qstash } from "@/lib/cron";
 import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
 import { isNotHostedImage, storage } from "@/lib/storage";
+import { createStripePromotionCode } from "@/lib/stripe/create-stripe-promotion-code";
 import { recordLink } from "@/lib/tinybird";
-import { ProcessedLinkProps } from "@/lib/types";
+import { DiscountProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -23,7 +24,16 @@ import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
 
-export async function createLink(link: ProcessedLinkProps) {
+type CreateLinkProps = ProcessedLinkProps & {
+  workspace?: Pick<WorkspaceProps, "id" | "stripeConnectId">;
+  discount?: Pick<
+    DiscountProps,
+    "id" | "couponId" | "couponCodeTrackingEnabledAt" | "amount" | "type"
+  > | null;
+  skipCouponCreation?: boolean; // Skip Stripe promotion code creation for the link
+};
+
+export async function createLink(link: CreateLinkProps) {
   let {
     key,
     url,
@@ -44,7 +54,16 @@ export async function createLink(link: ProcessedLinkProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  const { tagId, tagIds, tagNames, webhookIds, ...rest } = link;
+  let {
+    tagId,
+    tagIds,
+    tagNames,
+    webhookIds,
+    workspace,
+    discount,
+    skipCouponCreation,
+    ...rest
+  } = link;
 
   key = encodeKeyIfCaseSensitive({
     domain: link.domain,
@@ -136,63 +155,115 @@ export async function createLink(link: ProcessedLinkProps) {
   const uploadedImageUrl = `${R2_URL}/images/${response.id}`;
 
   waitUntil(
-    Promise.allSettled([
-      // cache link in Redis
-      linkCache.set({
-        ...response,
-        ...(response.programId &&
-          (await getPartnerAndDiscount({
-            programId: response.programId,
-            partnerId: response.partnerId,
-          }))),
-      }),
-
-      // record link in Tinybird
-      recordLink(response),
-      // Upload image to R2 and update the link with the uploaded image URL when
-      // proxy is enabled and image is set and is not a hosted image URL
-      ...(proxy && image && isNotHostedImage(image)
-        ? [
-            // upload image to R2
-            storage.upload(`images/${response.id}`, image, {
-              width: 1200,
-              height: 630,
-            }),
-            // update the null image we set earlier to the uploaded image URL
-            prisma.link.update({
-              where: {
-                id: response.id,
-              },
-              data: {
-                image: uploadedImageUrl,
-              },
-            }),
-          ]
-        : []),
-      // delete public links after 30 mins
-      !response.userId &&
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
-          // delete after 30 mins
-          delay: 30 * 60,
-          body: {
-            linkId: response.id,
+    (async () => {
+      if (
+        !workspace &&
+        link.projectId &&
+        discount?.couponId &&
+        discount?.couponCodeTrackingEnabledAt &&
+        !skipCouponCreation
+      ) {
+        workspace = await prisma.project.findUniqueOrThrow({
+          where: {
+            id: link.projectId,
           },
-        }),
-      // update links usage for workspace
-      link.projectId &&
-        updateLinksUsage({
-          workspaceId: link.projectId,
-          increment: 1,
+          select: {
+            id: true,
+            stripeConnectId: true,
+          },
+        });
+      }
+
+      if (
+        link.programId &&
+        link.partnerId &&
+        !discount &&
+        !skipCouponCreation
+      ) {
+        const programEnrollment =
+          await prisma.programEnrollment.findUniqueOrThrow({
+            where: {
+              partnerId_programId: {
+                partnerId: link.partnerId,
+                programId: link.programId,
+              },
+            },
+            include: {
+              discount: true,
+            },
+          });
+
+        discount = programEnrollment.discount;
+      }
+
+      Promise.allSettled([
+        // cache link in Redis
+        linkCache.set({
+          ...response,
+          ...(response.programId &&
+            (await getPartnerAndDiscount({
+              programId: response.programId,
+              partnerId: response.partnerId,
+            }))),
         }),
 
-      webhookIds &&
-        propagateWebhookTriggerChanges({
-          webhookIds,
-        }),
+        // record link in Tinybird
+        recordLink(response),
+        // Upload image to R2 and update the link with the uploaded image URL when
+        // proxy is enabled and image is set and is not a hosted image URL
+        ...(proxy && image && isNotHostedImage(image)
+          ? [
+              // upload image to R2
+              storage.upload(`images/${response.id}`, image, {
+                width: 1200,
+                height: 630,
+              }),
+              // update the null image we set earlier to the uploaded image URL
+              prisma.link.update({
+                where: {
+                  id: response.id,
+                },
+                data: {
+                  image: uploadedImageUrl,
+                },
+              }),
+            ]
+          : []),
+        // delete public links after 30 mins
+        !response.userId &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
+            // delete after 30 mins
+            delay: 30 * 60,
+            body: {
+              linkId: response.id,
+            },
+          }),
+        // update links usage for workspace
+        link.projectId &&
+          updateLinksUsage({
+            workspaceId: link.projectId,
+            increment: 1,
+          }),
 
-      testVariants && testCompletedAt && scheduleABTestCompletion(response),
-    ]),
+        webhookIds &&
+          propagateWebhookTriggerChanges({
+            webhookIds,
+          }),
+
+        testVariants && testCompletedAt && scheduleABTestCompletion(response),
+
+        // Create promotion code for the partner link
+        !skipCouponCreation &&
+          workspace &&
+          discount &&
+          createStripePromotionCode({
+            workspace,
+            link: response,
+            discount,
+          }),
+      ]);
+    })(),
   );
 
   return {

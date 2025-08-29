@@ -7,6 +7,7 @@ import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { createPartnerLink } from "../api/partners/create-partner-link";
+import { createStripePromotionCode } from "../stripe/create-stripe-promotion-code";
 import { recordLink } from "../tinybird/record-link";
 import { ProgramPartnerLinkProps, RewardProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
@@ -84,6 +85,7 @@ export async function approvePartnerEnrollment({
         discountId: group.discountId,
       },
       include: {
+        discount: true,
         partner: {
           include: {
             users: {
@@ -124,7 +126,7 @@ export async function approvePartnerEnrollment({
   ]);
 
   let partnerLink: ProgramPartnerLinkProps;
-  const { partner, ...enrollment } = programEnrollment;
+  const { partner, discount, ...enrollment } = programEnrollment;
   const workspace = program.workspace as WorkspaceProps;
 
   if (updatedLink) {
@@ -223,6 +225,13 @@ export async function approvePartnerEnrollment({
             },
           ],
         }),
+
+        discount?.couponCodeTrackingEnabledAt &&
+          createStripePromotionCode({
+            workspace,
+            link: partnerLink,
+            discount,
+          }),
       ]);
     })(),
   );

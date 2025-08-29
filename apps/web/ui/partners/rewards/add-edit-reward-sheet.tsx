@@ -43,6 +43,7 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { RewardDiscountPartnersCard } from "../groups/reward-discount-partners-card";
 import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
 import {
   InlineBadgePopover,
@@ -50,7 +51,6 @@ import {
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
-import { RewardPartnersCard } from "./reward-partners-card";
 import { REWARD_TYPES, RewardsLogic } from "./rewards-logic";
 
 interface RewardSheetProps {
@@ -395,7 +395,7 @@ function RewardSheetContent({
 
           <VerticalLine />
 
-          {group && <RewardPartnersCard groupId={group.id} />}
+          {group && <RewardDiscountPartnersCard groupId={group.id} />}
         </div>
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">

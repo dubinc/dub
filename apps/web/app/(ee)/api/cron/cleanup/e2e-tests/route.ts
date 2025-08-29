@@ -95,6 +95,12 @@ export async function GET(req: Request) {
       }),
     ]);
 
+    const workspace = await prisma.project.findUniqueOrThrow({
+      where: {
+        id: E2E_WORKSPACE_ID,
+      },
+    });
+
     // Delete the links
     if (links.length > 0) {
       await prisma.link.deleteMany({
@@ -106,7 +112,10 @@ export async function GET(req: Request) {
       });
 
       // Post delete cleanup
-      await bulkDeleteLinks(links);
+      await bulkDeleteLinks({
+        links,
+        workspace,
+      });
     }
 
     // Delete the domains
@@ -135,6 +144,7 @@ export async function GET(req: Request) {
     if (partners.length > 0) {
       await bulkDeletePartners({
         partnerIds: partners.map((partner) => partner.id),
+        workspace,
       });
     }
 

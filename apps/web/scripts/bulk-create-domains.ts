@@ -61,6 +61,7 @@ async function main() {
           trackConversion: false,
           proxy: false,
           rewrite: false,
+          skipCouponCreation: true,
         });
 
         console.log({ vercelResponse, prisma: response.id, effects });
