@@ -14,6 +14,17 @@ const schema = z.object({
   page: z.number().optional().default(0),
 });
 
+/**
+ * Cron job to create Stripe promotion codes for partner links
+ *
+ * This job processes partner links in batches to create unique Stripe promotion codes
+ * for each link associated with a specific discount. It paginates through program
+ * enrollments in a partner group, finds links that don't have coupon codes yet,
+ * and creates promotion codes in batches of 10 to respect Stripe's rate limits.
+ *
+ * It automatically schedules the next batch until all eligible links have been processed.
+ */
+
 // POST /api/cron/links/create-promotion-codes
 export async function POST(req: Request) {
   try {
