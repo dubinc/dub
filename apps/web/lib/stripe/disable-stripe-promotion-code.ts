@@ -26,13 +26,16 @@ export async function disableStripePromotionCode({
   );
 
   if (promotionCodes.data.length === 0) {
+    console.error(
+      `Stripe promotion code ${promotionCode} not found in the connected account ${stripeConnectId}.`,
+    );
     return;
   }
 
   try {
-    const promotionCode = promotionCodes.data[0];
+    let promotionCode = promotionCodes.data[0];
 
-    return await stripe.promotionCodes.update(
+    promotionCode = await stripe.promotionCodes.update(
       promotionCode.id,
       {
         active: false,
@@ -41,9 +44,16 @@ export async function disableStripePromotionCode({
         stripeAccount: stripeConnectId,
       },
     );
+
+    console.info(
+      `Stripe promotion code ${promotionCode} in the connected account ${stripeConnectId} has been disabled.`,
+    );
+
+    return promotionCode;
   } catch (error) {
     console.error(
-      `Failed to disable Stripe promotion code ${promotionCode} for ${stripeConnectId}: ${error}`,
+      `Failed to disable Stripe promotion code ${promotionCode} in the connected account ${stripeConnectId}.`,
+      error,
     );
 
     throw new Error(error instanceof Error ? error.message : "Unknown error");
