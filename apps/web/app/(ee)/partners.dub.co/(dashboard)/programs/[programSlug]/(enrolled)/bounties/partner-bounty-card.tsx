@@ -7,7 +7,7 @@ import { Calendar6 } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
 
 export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
-  const submission = bounty.submissions?.[0];
+  const { submission } = bounty;
 
   const { claimBountyModal, setShowClaimBountyModal } = useClaimBountyModal({
     bounty,
