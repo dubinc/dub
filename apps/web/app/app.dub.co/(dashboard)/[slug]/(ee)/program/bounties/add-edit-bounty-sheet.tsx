@@ -1,6 +1,7 @@
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BountyExtendedProps,
@@ -72,6 +73,7 @@ const ACCORDION_ITEMS = [
 
 function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const { id: workspaceId } = useWorkspace();
+  const { program } = useProgram();
   const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
 
   const [requireImage, setRequireImage] = useState(
@@ -127,7 +129,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     name,
     description,
     performanceCondition,
-    groupIds,
   ] = watch([
     "startsAt",
     "endsAt",
@@ -445,7 +446,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                               errors.name &&
                                 "border-red-600 focus:border-red-500 focus:ring-red-600",
                             )}
-                            placeholder="Create a YouTube video about..."
+                            placeholder={`Create a YouTube video about${program?.name ? ` ${program.name}` : ""}...`}
                             {...register("name", {
                               setValueAs: (value) =>
                                 value === "" ? null : value,
