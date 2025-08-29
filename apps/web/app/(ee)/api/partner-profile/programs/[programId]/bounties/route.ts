@@ -71,20 +71,15 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 
   return NextResponse.json(
     z.array(PartnerBountySchema).parse(
-      bounties.map((bounty) => {
-        const triggerConditions = Array.isArray(
-          bounty.workflow?.triggerConditions,
-        )
-          ? bounty.workflow?.triggerConditions
-          : [];
-
-        return {
-          ...bounty,
-          performanceCondition:
-            triggerConditions.length > 0 ? triggerConditions[0] : null,
-          partner: aggregatePartnerLinksStats(links),
-        };
-      }),
+      bounties.map((bounty) => ({
+        ...bounty,
+        submission: bounty.submissions?.[0] || null,
+        performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
+        partner: {
+          ...aggregatePartnerLinksStats(links),
+          totalCommissions,
+        },
+      })),
     ),
   );
 });

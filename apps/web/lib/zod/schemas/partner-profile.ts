@@ -135,7 +135,7 @@ export const partnerNotificationTypes = z.enum([
 ]);
 
 export const PartnerBountySchema = BountySchema.extend({
-  submissions: z.array(BountySubmissionSchema).nullable(),
+  submission: BountySubmissionSchema.nullable(),
   performanceCondition: workflowConditionSchema.nullable().default(null),
   partner: z.object({
     totalClicks: z.number(),

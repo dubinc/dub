@@ -1,5 +1,6 @@
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BountyExtendedProps,
@@ -21,7 +22,6 @@ import {
 } from "@/ui/partners/program-sheet-accordion";
 import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
-import { useApiMutation } from "@/ui/shared/use-api-mutation";
 import {
   AnimatedSizeContainer,
   Button,
@@ -102,7 +102,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       performanceCondition: bounty?.performanceCondition
         ? {
             ...bounty.performanceCondition,
-            value: bounty.performanceCondition.value / 100,
+            value: isCurrencyAttribute(bounty.performanceCondition.attribute)
+              ? bounty.performanceCondition.value / 100
+              : bounty.performanceCondition.value,
           }
         : {
             operator: "gte",
@@ -243,9 +245,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
         mutatePrefix("/api/bounties");
         setIsOpen(false);
         toast.success(`Bounty ${bounty ? "updated" : "created"} successfully!`);
-      },
-      onError: (message) => {
-        toast.error(message);
       },
     });
   };

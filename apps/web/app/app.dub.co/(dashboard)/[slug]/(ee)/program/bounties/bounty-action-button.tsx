@@ -44,14 +44,17 @@ export function BountyActionButton({
               },
             );
 
-            if (!response.ok) throw new Error("Failed to delete bounty");
+            if (!response.ok) {
+              const { error } = await response.json();
+              throw new Error(error.message);
+            }
 
             await mutatePrefix("/api/bounties");
           },
           {
             loading: "Deleting bounty...",
             success: "Bounty deleted successfully!",
-            error: (err) => err,
+            error: (error) => error,
           },
         );
       },

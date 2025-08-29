@@ -43,9 +43,11 @@ export const createBountySchema = z.object({
   performanceCondition: workflowConditionSchema.nullish(),
 });
 
-export const updateBountySchema = createBountySchema.omit({
-  type: true,
-});
+export const updateBountySchema = createBountySchema
+  .omit({
+    type: true,
+  })
+  .partial();
 
 export const BountySubmissionFileSchema = z.object({
   url: z.string(),
