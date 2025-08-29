@@ -102,7 +102,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       performanceCondition: bounty?.performanceCondition
         ? {
             ...bounty.performanceCondition,
-            value: bounty.performanceCondition.value / 100,
+            value: isCurrencyAttribute(bounty.performanceCondition.attribute)
+              ? bounty.performanceCondition.value / 100
+              : bounty.performanceCondition.value,
           }
         : {
             operator: "gte",
