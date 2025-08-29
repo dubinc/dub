@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   bountyId: z.string(),
-  page: z.number().optional().default(1),
+  page: z.number().optional().default(0),
 });
 
 const PAGE_SIZE = 100;
@@ -43,6 +43,24 @@ export async function POST(req: Request) {
       return logAndRespond(`Bounty ${bountyId} not found.`, {
         logLevel: "error",
       });
+    }
+
+    // Check if bounty start date is at least 10 minutes in the past
+    const diffMs = Date.now() - bounty.startsAt.getTime();
+    const diffMinutes = diffMs / (1000 * 60);
+
+    if (diffMinutes >= 10) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/published`,
+        body: {
+          bountyId,
+        },
+        delay: "5m",
+      });
+
+      return logAndRespond(
+        `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
+      );
     }
 
     // Find groupIds
