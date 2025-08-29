@@ -35,7 +35,7 @@ export async function disableStripePromotionCode({
 
   if (promotionCodes.data.length === 0) {
     console.error(
-      `Stripe promotion code ${promotionCode} not found in the connected account ${workspace.stripeConnectId}.`,
+      `Stripe promotion code ${promotionCode} not found (stripeConnectId=${workspace.stripeConnectId}).`,
     );
     return;
   }
@@ -54,13 +54,13 @@ export async function disableStripePromotionCode({
     );
 
     console.info(
-      `Stripe promotion code ${promotionCode} in the connected account ${workspace.stripeConnectId} has been disabled.`,
+      `Disabled Stripe promotion code ${promotionCode.code} (id=${promotionCode.id}, stripeConnectId=${workspace.stripeConnectId}).`,
     );
 
     return promotionCode;
   } catch (error) {
     console.error(
-      `Failed to disable Stripe promotion code ${promotionCode} in the connected account ${workspace.stripeConnectId}.`,
+      `Failed to disable Stripe promotion code ${promotionCode} (stripeConnectId=${workspace.stripeConnectId}).`,
       error,
     );
 
