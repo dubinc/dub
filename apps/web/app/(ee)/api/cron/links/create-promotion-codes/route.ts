@@ -1,15 +1,17 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { createStripePromotionCode } from "@/lib/stripe/create-stripe-promotion-code";
 import { prisma } from "@dub/prisma";
-import { chunk } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
-  groupId: z.string(),
+  discountId: z.string(),
+  page: z.number().optional().default(0),
 });
 
 // POST /api/cron/links/create-promotion-codes
@@ -18,33 +20,23 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { groupId } = schema.parse(JSON.parse(rawBody));
+    let { discountId, page } = schema.parse(JSON.parse(rawBody));
 
-    const group = await prisma.partnerGroup.findUnique({
+    // Find the discount
+    const discount = await prisma.discount.findUnique({
       where: {
-        id: groupId,
+        id: discountId,
       },
       include: {
         program: true,
-        discount: true,
+        partnerGroup: true,
       },
     });
 
-    if (!group) {
-      return logAndRespond(`Partner group ${groupId} not found.`, {
+    if (!discount) {
+      return logAndRespond(`Discount ${discountId} not found.`, {
         logLevel: "error",
       });
-    }
-
-    const { discount, program } = group;
-
-    if (!discount) {
-      return logAndRespond(
-        `Partner group ${groupId} does not have a discount.`,
-        {
-          logLevel: "error",
-        },
-      );
     }
 
     if (!discount.couponId) {
@@ -59,6 +51,17 @@ export async function POST(req: Request) {
     if (!discount.couponCodeTrackingEnabledAt) {
       return logAndRespond(
         `Discount ${discount.id} is not enabled for coupon code tracking.`,
+      );
+    }
+
+    const { program, partnerGroup: group } = discount;
+
+    if (!group) {
+      return logAndRespond(
+        `Discount ${discountId} does not associate with a partner group.`,
+        {
+          logLevel: "error",
+        },
       );
     }
 
@@ -88,88 +91,116 @@ export async function POST(req: Request) {
       );
     }
 
-    let page = 0;
-    let hasMore = true;
-    const pageSize = 50;
+    const PAGE_SIZE = 50;
+    const STRIPE_PROMO_BATCH_SIZE = 10;
 
-    while (hasMore) {
-      // Find all enrollments for the partner group
-      const enrollments = await prisma.programEnrollment.findMany({
-        where: {
-          groupId: group.id,
-          status: {
-            in: ["approved"],
-          },
+    // Find the program enrollments for the partner group
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        groupId: group.id,
+        status: {
+          in: ["approved"],
         },
-        orderBy: {
-          id: "desc",
-        },
-        take: pageSize,
-        skip: page * pageSize,
-      });
+      },
+      orderBy: {
+        id: "desc",
+      },
+      take: PAGE_SIZE,
+      skip: page * PAGE_SIZE,
+    });
 
-      if (enrollments.length === 0) {
-        hasMore = false;
-        break;
-      }
-
-      // Find all links for the enrollments
-      const links = await prisma.link.findMany({
-        where: {
-          programId: program.id,
-          partnerId: {
-            in: enrollments.map(({ partnerId }) => partnerId),
-          },
-          couponCode: null,
-        },
-        select: {
-          id: true,
-          key: true,
-          couponCode: true,
-        },
-      });
-
-      if (links.length === 0) {
-        page++;
-        continue;
-      }
-
-      const linksChunks = chunk(links, 50);
-      const failedRequests: Error[] = [];
-
-      // Create promotion codes in batches for the partner links
-      for (const linksChunk of linksChunks) {
-        const results = await Promise.allSettled(
-          linksChunk.map((link) =>
-            createStripePromotionCode({
-              workspace,
-              link,
-              discount,
-            }),
-          ),
-        );
-
-        results.forEach((result) => {
-          if (result.status === "rejected") {
-            failedRequests.push(result.reason);
-          }
-        });
-
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-
-      if (failedRequests.length > 0) {
-        console.error(failedRequests);
-      }
-
-      page++;
+    // Finished processing all the program enrollments
+    if (programEnrollments.length === 0) {
+      return logAndRespond(
+        `No more program enrollments found in the partner group ${group.id}.`,
+      );
     }
 
-    return logAndRespond(
-      `Promotion codes created for discount ${discount.id} in group ${groupId}.`,
-    );
+    page++;
+
+    // Find the partner links for the enrollments
+    const links = await prisma.link.findMany({
+      where: {
+        programId: program.id,
+        partnerId: {
+          in: programEnrollments.map(({ partnerId }) => partnerId),
+        },
+        couponCode: null,
+      },
+      select: {
+        id: true,
+        key: true,
+        couponCode: true,
+      },
+      orderBy: {
+        id: "desc",
+      },
+    });
+
+    // If no links are found, schedule the next batch
+    if (links.length === 0) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
+        body: {
+          discountId: discount.id,
+          page,
+        },
+      });
+
+      return logAndRespond(`Scheduled the next batch (page=${page}).`);
+    }
+
+    const linksChunks = chunk(links, STRIPE_PROMO_BATCH_SIZE);
+    const failedRequests: Error[] = [];
+
+    // Create promotion codes in batches for the partner links
+    for (const linksChunk of linksChunks) {
+      const results = await Promise.allSettled(
+        linksChunk.map((link) =>
+          createStripePromotionCode({
+            workspace,
+            link,
+            discount,
+          }),
+        ),
+      );
+
+      results.forEach((result) => {
+        if (result.status === "rejected") {
+          failedRequests.push(result.reason);
+        }
+      });
+
+      // Wait for 2 second before the next batch
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+
+    if (failedRequests.length > 0) {
+      await log({
+        message: `Error creating promotion codes for discount ${discount.id}  - ${failedRequests.map((error) => error.message).join(", ")}`,
+        type: "alerts",
+      });
+
+      console.error(failedRequests);
+    }
+
+    // Schedule the next batch
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
+      body: {
+        discountId: discount.id,
+        page,
+      },
+    });
+
+    return logAndRespond(`Scheduled the next batch (page=${page}).`);
   } catch (error) {
-    console.log(error);
+    await log({
+      message: `Error creating promotion codes for discount - ${error.message}`,
+      type: "alerts",
+    });
+
+    console.error(error);
 
     return handleAndReturnErrorResponse(error);
   }
