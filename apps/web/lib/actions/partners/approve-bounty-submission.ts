@@ -1,7 +1,9 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { BountySubmissionSchema } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
 import { prisma } from "@dub/prisma";
@@ -77,26 +79,40 @@ export const approveBountySubmissionAction = authActionClient
 
     if (partner.email) {
       waitUntil(
-        sendEmail({
-          subject: "Bounty approved!",
-          email: partner.email,
-          variant: "notifications",
-          react: BountyApproved({
-            email: partner.email,
-            program: {
-              name: program.name,
-              slug: program.slug,
-              supportEmail: program.supportEmail || "support@dub.co",
-            },
-            bounty: {
-              name: bounty.name,
-              type: bounty.type,
-            },
+        Promise.allSettled([
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId: program.id,
+            action: "bounty_submission.approved",
+            description: `Bounty submission approved for ${partner.id}`,
+            actor: user,
+            targets: [
+              {
+                type: "bounty_submission",
+                id: submissionId,
+                metadata: BountySubmissionSchema.parse(bountySubmission),
+              },
+            ],
           }),
-        }),
+
+          sendEmail({
+            subject: "Bounty approved!",
+            email: partner.email,
+            variant: "notifications",
+            react: BountyApproved({
+              email: partner.email,
+              program: {
+                name: program.name,
+                slug: program.slug,
+                supportEmail: program.supportEmail || "support@dub.co",
+              },
+              bounty: {
+                name: bounty.name,
+                type: bounty.type,
+              },
+            }),
+          }),
+        ]),
       );
     }
-
-    // TODO:
-    // Record audit log
   });

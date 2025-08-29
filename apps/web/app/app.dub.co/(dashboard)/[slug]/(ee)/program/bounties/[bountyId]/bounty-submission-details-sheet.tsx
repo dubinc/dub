@@ -213,33 +213,38 @@ function BountySubmissionDetailsSheetContent({
         </div>
 
         <div className="flex items-center justify-between gap-2 border-t border-neutral-200 p-5">
-          <Button
-            type="button"
-            variant="danger"
-            text="Reject"
-            disabledTooltip={
-              submission.status === "rejected"
-                ? "Bounty submission already rejected."
-                : undefined
-            }
-            disabled={
-              isApprovingBountySubmission || submission.status === "approved"
-            }
-            onClick={() => setShowRejectModal(true)}
-          />
+          {submission.status === "approved" ? (
+            <a
+              href={`/${workspaceSlug}/program/commissions?partnerId=${partner.id}&type=custom`}
+              target="_blank"
+              className="w-full"
+            >
+              <Button variant="secondary" text="View commissions" />
+            </a>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="danger"
+                text="Reject"
+                disabledTooltip={
+                  submission.status === "rejected"
+                    ? "Bounty submission already rejected."
+                    : undefined
+                }
+                disabled={isApprovingBountySubmission}
+                onClick={() => setShowRejectModal(true)}
+              />
 
-          <Button
-            type="submit"
-            variant="primary"
-            text="Approve"
-            disabledTooltip={
-              submission.status === "approved"
-                ? "Bounty submission already approved."
-                : undefined
-            }
-            loading={isApprovingBountySubmission}
-            onClick={() => setShowApproveBountySubmissionModal(true)}
-          />
+              <Button
+                type="submit"
+                variant="primary"
+                text="Approve"
+                loading={isApprovingBountySubmission}
+                onClick={() => setShowApproveBountySubmissionModal(true)}
+              />
+            </>
+          )}
         </div>
       </div>
 
