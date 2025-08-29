@@ -30,33 +30,27 @@ export function BountyActionButton({
   const { confirmModal: deleteModal, setShowConfirmModal: setShowDeleteModal } =
     useConfirmModal({
       title: "Delete bounty",
-      description: "Are you sure you want to delete this bounty?",
+      description:
+        "Are you sure you want to delete this bounty? This action is irreversible – please proceed with caution.",
       onConfirm: async () => {
-        toast.promise(
-          async () => {
-            const response = await fetch(
-              `/api/bounties/${bounty.id}?workspaceId=${workspaceId}`,
-              {
-                method: "DELETE",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              },
-            );
-
-            if (!response.ok) {
-              const { error } = await response.json();
-              throw new Error(error.message);
-            }
-
-            await mutatePrefix("/api/bounties");
-          },
+        const response = await fetch(
+          `/api/bounties/${bounty.id}?workspaceId=${workspaceId}`,
           {
-            loading: "Deleting bounty...",
-            success: "Bounty deleted successfully!",
-            error: (error) => error,
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
         );
+
+        if (!response.ok) {
+          const { error } = await response.json();
+          toast.error(error.message);
+          return;
+        }
+
+        await mutatePrefix("/api/bounties");
+        toast.success("Bounty deleted successfully!");
       },
     });
 
