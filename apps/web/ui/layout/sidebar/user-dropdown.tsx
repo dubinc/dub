@@ -67,9 +67,9 @@ export default function UserDropdown() {
     resetAnalyticSession();
     handleUserOptionClick("logout");
     await resetUserCookieSession();
-    signOut({
+    await signOut({
       callbackUrl: "/",
-    });
+    }).then(resetUserCookieSession);
   };
 
   return (
