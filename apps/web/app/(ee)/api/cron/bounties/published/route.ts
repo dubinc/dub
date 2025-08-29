@@ -3,6 +3,7 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { differenceInMinutes } from "date-fns";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
@@ -45,9 +46,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // Check if bounty start date is at least 10 minutes in the past
-    const diffMs = Date.now() - bounty.startsAt.getTime();
-    const diffMinutes = diffMs / (1000 * 60);
+    let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
 
     if (diffMinutes >= 10) {
       await qstash.publishJSON({
@@ -55,7 +54,7 @@ export async function POST(req: Request) {
         body: {
           bountyId,
         },
-        delay: "5m",
+        delay: (diffMinutes - 10) * 60,
       });
 
       return logAndRespond(

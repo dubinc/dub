@@ -20,7 +20,7 @@ import { prisma } from "@dub/prisma";
 import { Workflow } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { differenceInMilliseconds } from "date-fns";
+import { differenceInMinutes } from "date-fns";
 import { NextResponse } from "next/server";
 
 // GET /api/bounties - get all bounties for a program
@@ -152,9 +152,8 @@ export const POST = withWorkspace(
     });
 
     // Calculate when the bounty will start (in seconds, minus 10 minutes for early trigger)
-    const diffMs = differenceInMilliseconds(bounty.startsAt, new Date());
-    let totalSeconds = Math.ceil(diffMs / 1000) - 10 * 60;
-    totalSeconds = Math.max(totalSeconds, 0);
+    let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
+    diffMinutes = Math.max(diffMinutes - 10, 0);
 
     waitUntil(
       Promise.allSettled([
@@ -169,7 +168,7 @@ export const POST = withWorkspace(
           body: {
             bountyId: bounty.id,
           },
-          delay: totalSeconds,
+          delay: diffMinutes * 60,
         }),
       ]),
     );
