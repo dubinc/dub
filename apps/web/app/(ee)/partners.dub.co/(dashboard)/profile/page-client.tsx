@@ -141,7 +141,7 @@ function Controls({ formRef }: { formRef: RefObject<HTMLFormElement> }) {
   } = useConfirmModal({
     title: "Confirm profile update",
     description:
-      "Updating your email, country, or profile type will reset your Stripe account, which will require you to restart the payout connection process. Are you sure you want to continue?",
+      "Updating your country or profile type will reset your Stripe account, which will require you to restart the payout connection process. Are you sure you want to continue?",
     confirmText: "Continue",
     onConfirm: () => {
       formRef.current?.requestSubmit();
@@ -166,8 +166,7 @@ function Controls({ formRef }: { formRef: RefObject<HTMLFormElement> }) {
         onClick={() => {
           if (
             partner?.stripeConnectId &&
-            (dirtyFields.email ||
-              dirtyFields.country ||
+            (dirtyFields.country ||
               dirtyFields.profileType ||
               dirtyFields.companyName)
           ) {
@@ -311,33 +310,19 @@ function ProfileForm({
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-neutral-800">Email</span>
-            <DynamicTooltipWrapper
-              tooltipProps={
-                completedPayoutsCount > 0
-                  ? {
-                      content:
-                        "Since you've already received payouts on Dub, you cannot change your email. If you need to update your email, please contact support.",
-                    }
-                  : undefined
-              }
-            >
-              <input
-                type="email"
-                className={cn(
-                  "block w-full rounded-md focus:outline-none sm:text-sm",
-                  errors.email
-                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                  completedPayoutsCount > 0 &&
-                    "cursor-not-allowed bg-neutral-100 text-neutral-400",
-                )}
-                placeholder="panic@thedis.co"
-                disabled={completedPayoutsCount > 0}
-                {...register("email", {
-                  required: true,
-                })}
-              />
-            </DynamicTooltipWrapper>
+            <input
+              type="email"
+              className={cn(
+                "block w-full rounded-md focus:outline-none sm:text-sm",
+                errors.email
+                  ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+              )}
+              placeholder="panic@thedis.co"
+              {...register("email", {
+                required: true,
+              })}
+            />
           </label>
           <label className="flex flex-col">
             <span className="text-sm font-medium text-neutral-800">

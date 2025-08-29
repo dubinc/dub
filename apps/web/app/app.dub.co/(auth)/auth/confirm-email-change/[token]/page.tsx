@@ -156,6 +156,7 @@ const VerifyEmailChange = async ({
         react: EmailUpdated({
           oldEmail: data.email,
           newEmail: data.newEmail,
+          isPartnerProfile: !!data.isPartnerProfile,
         }),
       }),
     ]),
