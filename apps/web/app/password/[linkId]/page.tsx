@@ -40,7 +40,7 @@ export async function generateMetadata({
     notFound();
   }
 
-  return await constructMetadata({
+  return constructMetadata({
     title:
       isDubDomain(link.domain) || link.project?.plan === "free"
         ? `${title} - Dub.co`
