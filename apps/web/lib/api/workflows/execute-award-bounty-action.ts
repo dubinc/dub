@@ -84,6 +84,7 @@ export const executeAwardBountyAction = async ({
     amount: bounty.rewardAmount,
     quantity: 1,
     description: `Commission for successfully completed "${bounty.name}" bounty.`,
+    skipWorkflow: true,
   });
 
   if (!commission) {

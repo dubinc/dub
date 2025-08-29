@@ -36,6 +36,7 @@ export const createPartnerCommission = async ({
   createdAt,
   user,
   context,
+  skipWorkflow = false,
 }: {
   event: CommissionType;
   partnerId: string;
@@ -51,6 +52,7 @@ export const createPartnerCommission = async ({
   createdAt?: Date;
   user?: Session["user"]; // user who created the manual commission
   context?: RewardContext;
+  skipWorkflow?: boolean;
 }) => {
   let earnings = 0;
   let reward: RewardProps | null = null;
@@ -252,7 +254,7 @@ export const createPartnerCommission = async ({
         });
 
         const isClawback = earnings < 0;
-        const shouldTriggerWorkflow = !isClawback;
+        const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
 
         // Make sure totalCommissions is up to date before firing the webhook & executing workflows
         const { totalCommissions } = await syncTotalCommissions({
