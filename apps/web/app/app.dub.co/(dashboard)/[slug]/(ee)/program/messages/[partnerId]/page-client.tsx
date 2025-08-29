@@ -14,13 +14,53 @@ import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { redirect, useParams } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
+
+const DEMO_MESSAGES: {
+  id: string;
+  text: string;
+  createdAt: Date;
+  sender: {
+    type: "partner" | "user";
+    id: string;
+    name: string;
+    avatar: string | null;
+    groupAvatar?: string;
+  };
+}[] = [
+  {
+    id: "1",
+    text: "Checking to see if I'm applicable for that new product?",
+    sender: {
+      type: "partner",
+      id: "pn_1",
+      name: "Tim Wilson",
+      avatar: "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
+    },
+    createdAt: new Date("2025-08-26T12:00:00Z"),
+  },
+  {
+    id: "2",
+    text: "You are for sure eligible. We'll most likely make those changes within the next day or two. Stay tuned.",
+    sender: {
+      type: "user",
+      id: "user_1",
+      name: "Tim Wilson",
+      avatar: "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
+      groupAvatar:
+        "https://dev.dubassets.com/programs/pg_cm1ze1d510001ekktgfxnj76j/logo_zYzinxG",
+    },
+    createdAt: new Date("2025-08-26T12:00:00Z"),
+  },
+];
 
 export function ProgramMessagesPartnerPageClient() {
   const { slug: workspaceSlug } = useWorkspace();
 
   const { partnerId } = useParams() as { partnerId: string };
   const { partner, loading, error } = usePartner({ partnerId });
+
+  // TODO: [Messages] fetch+persist real data from/to API
+  const [messages, setMessages] = useState(DEMO_MESSAGES);
 
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
@@ -34,7 +74,7 @@ export function ProgramMessagesPartnerPageClient() {
         gridTemplateColumns: "minmax(340px, 1fr) minmax(0, min-content)",
       }}
     >
-      <div className="flex h-full flex-col">
+      <div className="flex h-full min-h-0 flex-col">
         <div className="border-border-subtle flex h-12 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
           <div className="flex min-w-0 items-center gap-2">
             <button
@@ -69,8 +109,29 @@ export function ProgramMessagesPartnerPageClient() {
             onClick={() => setIsRightPanelOpen((o) => !o)}
           />
         </div>
-        <div className="grow">
-          <MessagesPanel onSendMessage={(message) => toast.info(message)} />
+        <div className="min-h-0 grow">
+          <MessagesPanel
+            messages={messages}
+            currentUserType="user"
+            currentUserId="user_1"
+            onSendMessage={(message) =>
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: `msg_${prev.length + 1}`,
+                  text: message,
+                  createdAt: new Date(),
+                  sender: {
+                    type: "user",
+                    id: "user_1",
+                    name: "Tim Wilson",
+                    avatar:
+                      "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
+                  },
+                },
+              ])
+            }
+          />
         </div>
       </div>
 

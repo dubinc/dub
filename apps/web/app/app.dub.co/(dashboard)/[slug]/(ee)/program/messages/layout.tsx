@@ -117,7 +117,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="border-border-subtle @[800px]/page:border-l size-full">
+          <div className="border-border-subtle @[800px]/page:border-l size-full min-h-0">
             {children}
           </div>
         </div>
