@@ -1,12 +1,10 @@
-import {
-  addDomainToVercel,
-  markDomainAsDeleted,
-  removeDomainFromVercel,
-  validateDomain,
-} from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
 import { queueDomainUpdate } from "@/lib/api/domains/queue";
+import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
+import { validateDomain } from "@/lib/api/domains/utils";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
