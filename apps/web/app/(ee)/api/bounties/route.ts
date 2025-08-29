@@ -1,4 +1,3 @@
-import { getBounties } from "@/lib/api/bounties/get-bounties";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -7,11 +6,7 @@ import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { WorkflowAction } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import {
-  BountySchema,
-  createBountySchema,
-  getBountiesQuerySchema,
-} from "@/lib/zod/schemas/bounties";
+import { BountySchema, createBountySchema } from "@/lib/zod/schemas/bounties";
 import {
   WORKFLOW_ACTION_TYPES,
   WORKFLOW_ATTRIBUTE_TRIGGER_MAP,
@@ -24,16 +19,35 @@ import { NextResponse } from "next/server";
 
 // GET /api/bounties - get all bounties for a program
 export const GET = withWorkspace(
-  async ({ workspace, searchParams }) => {
+  async ({ workspace }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const parsedInput = getBountiesQuerySchema.parse(searchParams);
 
-    const bounties = await getBounties({
-      ...parsedInput,
-      programId,
+    const bounties = await prisma.bounty.findMany({
+      where: {
+        programId,
+      },
+      include: {
+        groups: {
+          select: {
+            id: true,
+          },
+        },
+        _count: {
+          select: {
+            submissions: true,
+          },
+        },
+      },
     });
 
-    return NextResponse.json(bounties);
+    return NextResponse.json(
+      bounties.map((bounty) =>
+        BountySchema.parse({
+          ...bounty,
+          submissionsCount: bounty._count.submissions,
+        }),
+      ),
+    );
   },
   {
     requiredPlan: [

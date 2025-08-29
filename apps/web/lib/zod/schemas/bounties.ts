@@ -63,6 +63,14 @@ export const BountySchema = z.object({
   rewardAmount: z.number(),
   submissionRequirements: submissionRequirementsSchema.nullable(),
   performanceCondition: workflowConditionSchema.nullable().default(null),
+  groups: z.array(GroupSchema.pick({ id: true })),
+  submissionsCount: z.number().default(0),
+});
+
+export const BountySchemaExtended = BountySchema.extend({
+  groups: z.array(GroupSchema.pick({ id: true })).nullable(),
+  partners: z.number().default(0),
+  submissions: z.record(z.nativeEnum(BountySubmissionStatus), z.number()),
 });
 
 const BountySubmissionSchema = z.object({
@@ -76,12 +84,6 @@ const BountySubmissionSchema = z.object({
   reviewedAt: z.date().nullable(),
   rejectionReason: z.string().nullable(),
   rejectionNote: z.string().nullable(),
-});
-
-export const BountySchemaExtended = BountySchema.extend({
-  groups: z.array(GroupSchema.pick({ id: true })).nullable(),
-  partners: z.number().default(0),
-  submissions: z.record(z.nativeEnum(BountySubmissionStatus), z.number()),
 });
 
 export const BountySubmissionExtendedSchema = z.object({
@@ -124,15 +126,6 @@ export const BountyWithPartnerDataSchema = BountySchema.extend({
     totalCommissions: true,
   }),
 });
-
-export const BOUNTIES_MAX_PAGE_SIZE = 100;
-
-export const getBountiesQuerySchema = z
-  .object({
-    sortBy: z.enum(["createdAt"]).default("createdAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
-  })
-  .merge(getPaginationQuerySchema({ pageSize: BOUNTIES_MAX_PAGE_SIZE }));
 
 export const bountyStatsSchema = z.object({
   id: z.string(),

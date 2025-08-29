@@ -1,16 +1,13 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyExtendedProps } from "@/lib/types";
+import { BountyProps } from "@/lib/types";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { Calendar6, CircleCheckFill, Users } from "@dub/ui/icons";
+import { Calendar6, Users } from "@dub/ui/icons";
 import { formatDate, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { BountyActionButton } from "./bounty-action-button";
 
-export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
+export function BountyCard({ bounty }: { bounty: BountyProps }) {
   const { slug: workspaceSlug } = useWorkspace();
-
-  const { pending = 0, approved = 0, rejected = 0 } = bounty.submissions;
-  const totalSubmissions = pending + approved + rejected;
 
   return (
     <div className="border-border-subtle hover:border-border-default relative cursor-pointer rounded-xl border bg-white p-5 transition-all hover:shadow-lg">
@@ -23,10 +20,8 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
             <BountyThumbnailImage bounty={bounty} />
           </div>
 
-          {pending > 0 ? (
-            <PendingSubmissionsBadge count={pending} />
-          ) : approved === bounty.partners ? (
-            <CircleCheckFill className="absolute left-2 top-2 size-4 text-green-600" />
+          {bounty.submissionsCount > 0 ? (
+            <SubmissionsCountBadge count={bounty.submissionsCount} />
           ) : null}
         </div>
 
@@ -51,15 +46,8 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
           <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
             <Users className="size-3.5" />
             <div className="h-5">
-              {approved === bounty.partners ? (
-                <>All</>
-              ) : (
-                <>
-                  <span className="text-content-default">{approved}</span> of
-                </>
-              )}{" "}
-              <span className="text-content-default">{bounty.partners}</span>{" "}
-              {pluralize("partner", bounty.partners)} completed
+              Applied to {bounty.groups?.length ?? 0}{" "}
+              {pluralize("group", bounty.groups?.length ?? 0)}
             </div>
           </div>
         </div>
@@ -74,11 +62,11 @@ export function BountyCard({ bounty }: { bounty: BountyExtendedProps }) {
   );
 }
 
-function PendingSubmissionsBadge({ count }: { count: number }) {
+function SubmissionsCountBadge({ count }: { count: number }) {
   return (
     <div className="absolute left-2 top-2 z-10">
       <div className="flex h-5 items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-600">
-        {count} {pluralize("submission", count)} for review
+        {count} {pluralize("submission", count)}
       </div>
     </div>
   );
