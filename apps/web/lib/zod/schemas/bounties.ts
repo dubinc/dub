@@ -62,13 +62,12 @@ export const BountySchema = z.object({
   endsAt: z.date().nullable(),
   rewardAmount: z.number(),
   submissionRequirements: submissionRequirementsSchema.nullable(),
-  performanceCondition: workflowConditionSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
   submissionsCount: z.number().default(0),
 });
 
 export const BountySchemaExtended = BountySchema.extend({
-  groups: z.array(GroupSchema.pick({ id: true })).nullable(),
+  performanceCondition: workflowConditionSchema.nullable().default(null),
   partners: z.number().default(0),
   submissions: z.record(z.nativeEnum(BountySubmissionStatus), z.number()),
 });

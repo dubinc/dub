@@ -109,7 +109,7 @@ export const getBountyOrThrow = async ({
     rewardAmount: bounty.rewardAmount,
     submissionRequirements: bounty.submissionRequirements,
     performanceCondition,
-    groups: bounty.groups.filter((group) => group !== null),
+    groups: bounty.groups.filter((group) => group !== null) ?? [],
     partners: Number(bounty.partners),
     submissions: bounty.submissions,
   };

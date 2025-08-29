@@ -1,13 +1,40 @@
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { Calendar6, Users } from "@dub/ui/icons";
 import { formatDate, pluralize } from "@dub/utils";
 import Link from "next/link";
-import { BountyActionButton } from "./bounty-action-button";
+import { useMemo } from "react";
 
 export function BountyCard({ bounty }: { bounty: BountyProps }) {
   const { slug: workspaceSlug } = useWorkspace();
+  const { partnersCount: groupCount } = usePartnersCount<
+    | {
+        groupId: string;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    groupBy: "groupId",
+  });
+
+  const totalPartnersForBounty = useMemo(() => {
+    if (bounty.groups.length === 0) {
+      // if no groups set, return all partners
+      return groupCount?.reduce((acc, curr) => acc + curr._count, 0) ?? 0;
+    }
+
+    return (
+      groupCount?.reduce((acc, curr) => {
+        if (bounty.groups.some((group) => group.id === curr.groupId)) {
+          return acc + curr._count;
+        }
+
+        return acc;
+      }, 0) ?? 0
+    );
+  }, [groupCount, bounty.groups]);
 
   return (
     <div className="border-border-subtle hover:border-border-default relative cursor-pointer rounded-xl border bg-white p-5 transition-all hover:shadow-lg">
@@ -20,9 +47,9 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
             <BountyThumbnailImage bounty={bounty} />
           </div>
 
-          {bounty.submissionsCount > 0 ? (
-            <SubmissionsCountBadge count={bounty.submissionsCount} />
-          ) : null}
+          {/* {bounty.pendingSubmissions > 0 ? (
+            <SubmissionsCountBadge count={bounty.pendingSubmissions} />
+          ) : null} */}
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -46,18 +73,24 @@ export function BountyCard({ bounty }: { bounty: BountyProps }) {
           <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
             <Users className="size-3.5" />
             <div className="h-5">
-              Applied to {bounty.groups?.length ?? 0}{" "}
-              {pluralize("group", bounty.groups?.length ?? 0)}
+              {bounty.submissionsCount === totalPartnersForBounty ? (
+                <>All</>
+              ) : (
+                <>
+                  <span className="text-content-default">
+                    {bounty.submissionsCount}
+                  </span>{" "}
+                  of
+                </>
+              )}{" "}
+              <span className="text-content-default">
+                {totalPartnersForBounty}
+              </span>{" "}
+              {pluralize("partner", totalPartnersForBounty)} completed
             </div>
           </div>
         </div>
       </Link>
-
-      <BountyActionButton
-        bounty={bounty}
-        className="absolute right-7 top-7"
-        buttonClassName="size-7 whitespace-nowrap p-0 hover:bg-neutral-200 active:bg-neutral-300 data-[state=open]:bg-neutral-300"
-      />
     </div>
   );
 }

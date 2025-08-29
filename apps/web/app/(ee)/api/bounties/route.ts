@@ -29,7 +29,7 @@ export const GET = withWorkspace(
       include: {
         groups: {
           select: {
-            id: true,
+            groupId: true,
           },
         },
         _count: {
@@ -40,14 +40,15 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(
-      bounties.map((bounty) =>
-        BountySchema.parse({
-          ...bounty,
-          submissionsCount: bounty._count.submissions,
-        }),
-      ),
+    const data = bounties.map((bounty) =>
+      BountySchema.parse({
+        ...bounty,
+        groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+        submissionsCount: bounty._count.submissions,
+      }),
     );
+
+    return NextResponse.json(data);
   },
   {
     requiredPlan: [
