@@ -112,6 +112,7 @@ export function ProgramMessagesPartnerPageClient() {
         <div className="min-h-0 grow">
           <MessagesPanel
             messages={messages}
+            error={undefined}
             currentUserType="user"
             currentUserId="user_1"
             onSendMessage={(message) =>
