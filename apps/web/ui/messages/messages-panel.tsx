@@ -1,4 +1,4 @@
-import { ArrowTurnLeft, Button } from "@dub/ui";
+import { ArrowTurnLeft, Button, Tooltip } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
 import { Fragment, useRef, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
@@ -42,8 +42,20 @@ export function MessagesPanel({
   return (
     <div className="flex size-full flex-col">
       <div className="scrollbar-hide flex grow flex-col-reverse overflow-y-auto">
-        <div className="flex flex-col items-stretch gap-6 p-6">
+        <div className="flex flex-col items-stretch gap-5 p-6">
           {messages?.map((message, idx) => {
+            const isNewDate =
+              idx === 0 ||
+              messages[idx - 1].createdAt.toDateString() !==
+                message.createdAt.toDateString();
+
+            // If it's been more than 5 minutes since the last message
+            const isNewTime =
+              isNewDate ||
+              message.createdAt.getTime() -
+                messages[idx - 1].createdAt.getTime() >
+                5 * 1000 * 60;
+
             const isCurrentUser =
               message.sender.type === currentUserType &&
               message.sender.id === currentUserId;
@@ -54,9 +66,7 @@ export function MessagesPanel({
 
             return (
               <Fragment key={message.id}>
-                {(idx === 0 ||
-                  messages[idx - 1].createdAt.toDateString() !==
-                    message.createdAt.toDateString()) && (
+                {isNewDate && (
                   <div
                     className={cn(
                       "text-content-default text-center text-xs font-semibold",
@@ -76,21 +86,54 @@ export function MessagesPanel({
                   )}
                 >
                   {/* Avatar */}
-                  <img
-                    src={
-                      message.sender.avatar ||
-                      `${OG_AVATAR_URL}${message.sender.id}`
-                    }
-                    alt={`${message.sender.name} avatar`}
-                    className="size-8 rounded-full"
-                  />
+                  <Tooltip content={message.sender.name}>
+                    <div className="relative shrink-0">
+                      <img
+                        src={
+                          message.sender.avatar ||
+                          `${OG_AVATAR_URL}${message.sender.id}`
+                        }
+                        alt={`${message.sender.name} avatar`}
+                        className="size-8 rounded-full"
+                        draggable={false}
+                      />
+                      {message.sender.groupAvatar && (
+                        <img
+                          src={message.sender.groupAvatar}
+                          alt=""
+                          className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border border-white"
+                        />
+                      )}
+                    </div>
+                  </Tooltip>
 
                   <div
                     className={cn(
-                      "flex flex-col",
+                      "flex flex-col gap-1",
                       isCurrentUser && "items-end",
                     )}
                   >
+                    {/* Name / timestamp */}
+                    {(!isCurrentUser || isNewTime) && (
+                      <div className="flex items-center gap-1.5">
+                        {!isCurrentUser && (
+                          <span className="text-content-default min-w-0 truncate text-xs font-medium">
+                            {message.sender.name}
+                          </span>
+                        )}
+                        {isNewTime && (
+                          <span className="text-content-subtle text-xs font-medium">
+                            {new Date(message.createdAt).toLocaleTimeString(
+                              "en-US",
+                              {
+                                hour: "numeric",
+                                minute: "numeric",
+                              },
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {/* Message box */}
                     <div
                       className={cn(

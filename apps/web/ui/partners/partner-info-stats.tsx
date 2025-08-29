@@ -11,7 +11,7 @@ export function PartnerInfoStats({
   return (
     <div
       className={cn(
-        "xs:grid-cols-3 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200",
+        "xs:grid-cols-3 grid shrink-0 grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200",
         className,
       )}
     >

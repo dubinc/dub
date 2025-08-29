@@ -66,7 +66,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
         >
           {/* Left panel - 800px/messages list */}
           <div className="@[800px]/page:w-[280px] @[960px]/page:w-[340px] flex w-full flex-col overflow-hidden">
-            <div className="border-border-subtle flex h-12 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
+            <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
               <div className="flex min-w-0 items-center gap-4">
                 <NavButton />
                 <h1 className="text-content-emphasis text-lg font-semibold leading-7">
@@ -80,7 +80,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                 onClick={() => toast.info("WIP")}
               />
             </div>
-            <div className="grow">
+            <div className="scrollbar-hide grow overflow-y-auto">
               {partnersWithMessages?.length || isLoading ? (
                 <MessagesList
                   groupedMessages={partnersWithMessages.map((p) => ({

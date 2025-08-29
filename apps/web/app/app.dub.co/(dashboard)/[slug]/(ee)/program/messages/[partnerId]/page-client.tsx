@@ -75,7 +75,7 @@ export function ProgramMessagesPartnerPageClient() {
       }}
     >
       <div className="flex h-full min-h-0 flex-col">
-        <div className="border-border-subtle flex h-12 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
+        <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
           <div className="flex min-w-0 items-center gap-2">
             <button
               type="button"
@@ -138,13 +138,13 @@ export function ProgramMessagesPartnerPageClient() {
       {/* Right panel - Profile */}
       <div
         className={cn(
-          "absolute right-0 top-0 h-full w-0 overflow-hidden bg-white shadow-lg transition-[width]",
+          "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
           "@[960px]/page:shadow-none @[960px]/page:relative",
           isRightPanelOpen && "w-full sm:w-[340px]",
         )}
       >
-        <div className="border-border-subtle size-full w-full border-l sm:w-[340px]">
-          <div className="border-border-subtle flex h-12 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
+        <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[340px]">
+          <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
             <h2 className="text-content-emphasis text-lg font-semibold leading-7">
               Profile
             </h2>
@@ -169,7 +169,7 @@ export function ProgramMessagesPartnerPageClient() {
               </button>
             </div>
           </div>
-          <div className="bg-bg-muted flex size-full flex-col gap-4 p-6">
+          <div className="bg-bg-muted scrollbar-hide flex grow flex-col gap-4 overflow-y-scroll p-6">
             {partner ? (
               <>
                 <PartnerInfoSection partner={partner} />
