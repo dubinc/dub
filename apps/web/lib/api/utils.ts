@@ -17,7 +17,8 @@ export const parseRequestBody = async (req: Request) => {
     }
 
     // Read the body as text first to avoid double consumption issues
-    const rawBody = await req.text();
+    const clonedReq = await req.clone();
+    const rawBody = await clonedReq.text();
 
     console.log("Debug - Content-Type:", contentType);
     console.log("Debug - Raw body length:", rawBody.length);
