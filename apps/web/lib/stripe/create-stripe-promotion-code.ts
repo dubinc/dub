@@ -15,8 +15,15 @@ export async function createStripePromotionCode({
 }: {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
   discount: Pick<DiscountProps, "id" | "couponId" | "amount" | "type">;
-  link: Pick<LinkProps, "id" | "key">;
+  link: Pick<LinkProps, "id" | "key" | "couponCode">;
 }) {
+  if (link.couponCode) {
+    console.log(
+      `Promotion code ${link.couponCode} already exists for link ${link.id}. Stripe promotion code creation skipped.`,
+    );
+    return;
+  }
+
   if (!workspace.stripeConnectId) {
     console.error(
       `stripeConnectId not found for the workspace ${workspace.id}. Stripe promotion code creation skipped.`,

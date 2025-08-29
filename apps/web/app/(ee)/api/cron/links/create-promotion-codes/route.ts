@@ -97,6 +97,9 @@ export async function POST(req: Request) {
       const enrollments = await prisma.programEnrollment.findMany({
         where: {
           groupId: group.id,
+          status: {
+            in: ["approved"],
+          },
         },
         orderBy: {
           id: "desc",
@@ -122,6 +125,7 @@ export async function POST(req: Request) {
         select: {
           id: true,
           key: true,
+          couponCode: true,
         },
       });
 

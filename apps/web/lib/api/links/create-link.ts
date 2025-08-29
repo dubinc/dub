@@ -268,11 +268,8 @@ export async function createLink(link: CreateLinkProps) {
           link.id &&
           createStripePromotionCode({
             workspace,
-            link: {
-              id: link.id,
-              key: link.key,
-            },
-            discount
+            link: response,
+            discount,
           }),
       ]);
     })(),
