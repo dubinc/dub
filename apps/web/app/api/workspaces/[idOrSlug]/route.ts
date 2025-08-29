@@ -7,8 +7,9 @@ import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { storage } from "@/lib/storage";
+import z from "@/lib/zod";
 import {
-  updateWorkspaceSchema,
+  createWorkspaceSchema,
   WorkspaceSchema,
   WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
@@ -16,6 +17,23 @@ import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+
+const updateWorkspaceSchema = createWorkspaceSchema
+  .extend({
+    allowedHostnames: z.array(z.string()).optional(),
+    publishableKey: z
+      .union([
+        z
+          .string()
+          .regex(
+            /^dub_pk_[A-Za-z0-9_-]{16,64}$/,
+            "Invalid publishable key format",
+          ),
+        z.null(),
+      ])
+      .optional(),
+  })
+  .partial();
 
 // GET /api/workspaces/[idOrSlug] – get a specific workspace by id or slug
 export const GET = withWorkspace(
@@ -58,8 +76,14 @@ export const GET = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    const { name, slug, logo, conversionEnabled, allowedHostnames } =
-      await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
+    const {
+      name,
+      slug,
+      logo,
+      conversionEnabled,
+      allowedHostnames,
+      publishableKey,
+    } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
       throw new DubApiError({
@@ -92,6 +116,7 @@ export const PATCH = withWorkspace(
           ...(validHostnames !== undefined && {
             allowedHostnames: validHostnames,
           }),
+          ...(publishableKey !== undefined && { publishableKey }),
         },
         include: {
           domains: {

@@ -13,12 +13,13 @@ import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   createOrUpdateRewardSchema,
+  ENTITY_ATTRIBUTE_TYPES,
   rewardConditionsArraySchema,
   rewardConditionSchema,
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
-import { EventType } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@dub/prisma/client";
 import {
   Button,
   MoneyBills2,
@@ -50,7 +51,7 @@ import {
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 import { RewardIconSquare } from "./reward-icon-square";
-import { RewardsLogic } from "./rewards-logic";
+import { REWARD_TYPES, RewardsLogic } from "./rewards-logic";
 
 interface RewardSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -84,6 +85,7 @@ function RewardSheetContent({
   const { id: workspaceId, defaultProgramId, plan } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
+  const { queryParams } = useRouterStuff();
 
   const defaultValuesSource = reward || defaultRewardValues;
 
@@ -101,11 +103,29 @@ function RewardSheetContent({
         defaultValuesSource?.type === "flat"
           ? defaultValuesSource.amount / 100
           : defaultValuesSource?.amount,
-      modifiers: defaultValuesSource?.modifiers?.map((m) => ({
-        ...m,
-        amount:
-          defaultValuesSource?.type === "flat" ? m.amount / 100 : m.amount,
-      })),
+      modifiers: defaultValuesSource?.modifiers?.map((m) => {
+        const type = m.type === undefined ? defaultValuesSource?.type : m.type;
+        const maxDuration =
+          m.maxDuration === undefined
+            ? defaultValuesSource?.maxDuration
+            : m.maxDuration;
+
+        return {
+          ...m,
+          conditions: m.conditions.map((c) => ({
+            ...c,
+            value:
+              ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency" &&
+              c.value !== "" &&
+              c.value != null &&
+              !Number.isNaN(Number(c.value))
+                ? Number(c.value) / 100
+                : c.value,
+          })),
+          amount: type === "flat" ? m.amount / 100 : m.amount,
+          maxDuration: m.maxDuration === null ? Infinity : maxDuration,
+        };
+      }),
     },
   });
 
@@ -138,7 +158,7 @@ function RewardSheetContent({
     updateRewardAction,
     {
       onSuccess: async () => {
-        setIsOpen(false);
+        queryParams({ del: "rewardId", scroll: false });
         toast.success("Reward updated!");
         await mutateProgram();
         await mutateGroup();
@@ -181,16 +201,37 @@ function RewardSheetContent({
     }
 
     let modifiers: RewardConditionsArray | null = null;
+
     if (data.modifiers?.length) {
       try {
         modifiers = rewardConditionsArraySchema.parse(
-          data.modifiers.map((m) => ({
-            ...m,
-            amount: type === "flat" ? m.amount * 100 : m.amount,
-          })),
+          data.modifiers.map((m) => {
+            const type = m.type === undefined ? data.type : m.type;
+            const maxDuration =
+              m.maxDuration === undefined ? data.maxDuration : m.maxDuration;
+
+            return {
+              ...m,
+              conditions: m.conditions.map((c) => ({
+                ...c,
+                value:
+                  c.entity &&
+                  c.attribute &&
+                  ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency"
+                    ? c.value === "" ||
+                      c.value == null ||
+                      Number.isNaN(Number(c.value))
+                      ? c.value
+                      : Math.round(Number(c.value) * 100)
+                    : c.value,
+              })),
+              amount: type === "flat" ? Math.round(m.amount * 100) : m.amount,
+              maxDuration: maxDuration === Infinity ? null : maxDuration,
+            };
+          }),
         );
       } catch (error) {
-        console.error(error);
+        console.log("parse error", error);
         setError("root.logic", { message: "Invalid reward condition" });
         toast.error(
           "Invalid reward condition. Please fix the errors and try again.",
@@ -202,7 +243,7 @@ function RewardSheetContent({
     const payload = {
       ...data,
       workspaceId,
-      amount: type === "flat" ? data.amount * 100 : data.amount,
+      amount: type === "flat" ? Math.round(data.amount * 100) : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
       modifiers,
@@ -278,20 +319,11 @@ function RewardSheetContent({
                         <InlineBadgePopoverMenu
                           selectedValue={type}
                           onSelect={(value) =>
-                            setValue("type", value as "flat" | "percentage", {
+                            setValue("type", value as RewardStructure, {
                               shouldDirty: true,
                             })
                           }
-                          items={[
-                            {
-                              text: "Flat",
-                              value: "flat",
-                            },
-                            {
-                              text: "Percentage",
-                              value: "percentage",
-                            },
-                          ]}
+                          items={REWARD_TYPES}
                         />
                       </InlineBadgePopover>{" "}
                       {type === "percentage" && "of "}
@@ -299,14 +331,15 @@ function RewardSheetContent({
                   )}
                   <InlineBadgePopover
                     text={
-                      amount
+                      !isNaN(amount)
                         ? constructRewardAmount({
                             amount: type === "flat" ? amount * 100 : amount,
                             type,
+                            maxDuration,
                           })
                         : "amount"
                     }
-                    invalid={!amount}
+                    invalid={isNaN(amount)}
                   >
                     <AmountInput />
                   </InlineBadgePopover>{" "}
@@ -336,7 +369,7 @@ function RewardSheetContent({
                               value: "0",
                             },
                             ...RECURRING_MAX_DURATIONS.filter(
-                              (v) => v !== 0,
+                              (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
                             ).map((v) => ({
                               text: `for ${v} ${pluralize("month", Number(v))}`,
                               value: v.toString(),

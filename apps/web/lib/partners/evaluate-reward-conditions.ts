@@ -1,5 +1,6 @@
 import {
   RewardCondition,
+  RewardConditions,
   RewardConditionsArray,
   RewardContext,
 } from "../types";
@@ -15,6 +16,8 @@ export const evaluateRewardConditions = ({
     return null;
   }
 
+  const matchingConditions: RewardConditions[] = [];
+
   for (const conditionGroup of conditions) {
     // Evaluate each condition in the group
     const conditionResults = conditionGroup.conditions.map((condition) => {
@@ -24,6 +27,8 @@ export const evaluateRewardConditions = ({
         fieldValue = context.customer?.[condition.attribute];
       } else if (condition.entity === "sale") {
         fieldValue = context.sale?.[condition.attribute];
+      } else if (condition.entity === "partner") {
+        fieldValue = context.partner?.[condition.attribute];
       }
 
       if (fieldValue === undefined) {
@@ -44,13 +49,17 @@ export const evaluateRewardConditions = ({
       conditionsMet = conditionResults.some((result) => result);
     }
 
-    // If this condition group matches, return it
     if (conditionsMet) {
-      return conditionGroup;
+      matchingConditions.push(conditionGroup);
     }
   }
 
-  return null;
+  if (matchingConditions.length === 0) {
+    return null;
+  }
+
+  // Find the best matching condition (highest amount)
+  return matchingConditions.sort((a, b) => b.amount - a.amount)[0];
 };
 
 const evaluateCondition = ({
@@ -95,6 +104,14 @@ const evaluateCondition = ({
         );
       }
       return true;
+    case "greater_than":
+      return Number(fieldValue) > Number(condition.value);
+    case "greater_than_or_equal":
+      return Number(fieldValue) >= Number(condition.value);
+    case "less_than":
+      return Number(fieldValue) < Number(condition.value);
+    case "less_than_or_equal":
+      return Number(fieldValue) <= Number(condition.value);
     default:
       return false;
   }

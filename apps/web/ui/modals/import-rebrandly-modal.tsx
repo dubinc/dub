@@ -1,3 +1,4 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ImportedDomainCountProps } from "@/lib/types";
 import {
@@ -39,7 +40,7 @@ function ImportRebrandlyModal({
   const { id: workspaceId, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
 
   const {
     data: { domains, tagsCount } = {

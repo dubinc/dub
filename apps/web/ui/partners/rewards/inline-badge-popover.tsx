@@ -37,10 +37,12 @@ export function InlineBadgePopover({
   invalid,
   disabled,
   children,
+  buttonClassName,
 }: PropsWithChildren<{
   text: ReactNode;
   invalid?: boolean;
   disabled?: boolean;
+  buttonClassName?: string;
 }>) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -69,6 +71,7 @@ export function InlineBadgePopover({
           invalid
             ? "bg-orange-50 text-orange-500 hover:bg-orange-100 data-[state=open]:bg-orange-100"
             : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
+          buttonClassName,
         )}
       >
         {text}
@@ -97,17 +100,13 @@ export function InlineBadgePopoverMenu<T extends any>({
 }) {
   const isMultiSelect = Array.isArray(selectedValue);
 
-  const { isOpen, setIsOpen } = useContext(InlineBadgePopoverContext);
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   const [sortedItems, setSortedItems] = useState<MenuItem<T>[]>(items);
 
-  // Sort items so that the selected values are always at the top, but only when the popover is closed
+  // Sort items so that the selected values are always at the top
   useEffect(() => {
-    if (isOpen) return;
-
     setSortedItems(
       items.sort((a, b) => {
         const aSelected = isMultiSelect
@@ -120,11 +119,11 @@ export function InlineBadgePopoverMenu<T extends any>({
         // First sort by whether the items are selected
         if (aSelected !== bSelected) return aSelected ? -1 : 1;
 
-        // Then sort alphabetically
-        return a.text.localeCompare(b.text);
+        // Then sort as per the original order of the items
+        return items.indexOf(a) - items.indexOf(b);
       }),
     );
-  }, [isOpen, items, isMultiSelect, selectedValue]);
+  }, [items, isMultiSelect, selectedValue]);
 
   return (
     <Command loop className="focus:outline-none">
@@ -139,7 +138,7 @@ export function InlineBadgePopoverMenu<T extends any>({
       <AnimatedSizeContainer height>
         <div className="relative">
           <Command.List
-            className="scrollbar-hide flex max-h-64 max-w-48 flex-col gap-1 overflow-y-auto transition-all"
+            className="scrollbar-hide flex max-h-64 max-w-52 flex-col gap-1 overflow-y-auto transition-all"
             ref={scrollRef}
             onScroll={updateScrollProgress}
           >
@@ -151,7 +150,6 @@ export function InlineBadgePopoverMenu<T extends any>({
                   onSelect={() => {
                     itemOnSelect?.();
                     onSelect?.(value);
-                    !isMultiSelect && setIsOpen(false);
                   }}
                   className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100"
                 >

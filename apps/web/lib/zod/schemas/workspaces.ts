@@ -145,10 +145,6 @@ export const createWorkspaceSchema = z.object({
   conversionEnabled: z.boolean().optional(),
 });
 
-export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
-  allowedHostnames: z.array(z.string()).optional(),
-});
-
 export const notificationTypes = z.enum([
   "linkUsageSummary",
   "domainConfigurationUpdates",
@@ -168,6 +164,7 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
       workspacePreferences: z.record(z.any()).nullish(),
     }),
   ),
+  publishableKey: z.string().nullable(),
 });
 
 export const OnboardingUsageSchema = z.object({

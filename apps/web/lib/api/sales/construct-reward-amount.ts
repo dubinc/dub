@@ -1,34 +1,63 @@
-import { RewardStructure } from "@dub/prisma/client";
+import { RewardProps } from "@/lib/types";
+import { rewardConditionsArraySchema } from "@/lib/zod/schemas/rewards";
 import { currencyFormatter } from "@dub/utils";
 
-export const constructRewardAmount = ({
-  type,
-  amount: amountProp,
-  amounts,
-}: {
-  type: RewardStructure;
-} & (
-  | { amount: number; amounts?: never }
-  | { amount?: never; amounts: number[] }
-)) => {
-  // Range of amounts
-  if (amounts && amounts.length > 1) {
-    const min = Math.min(...amounts);
-    const max = Math.max(...amounts);
-    return type === "percentage"
-      ? `${min}% - ${max}%`
-      : `${formatCurrency(min)} - ${formatCurrency(max)}`;
+export const constructRewardAmount = (
+  reward: Pick<RewardProps, "amount" | "type" | "maxDuration" | "modifiers">,
+) => {
+  // If there are modifiers, we need to check if they match the primary reward
+  if (reward.modifiers) {
+    const parsedModifiers = rewardConditionsArraySchema.safeParse(
+      reward.modifiers,
+    );
+
+    if (parsedModifiers.success) {
+      const modifiers = parsedModifiers.data;
+
+      // if no type or maxDuration, it falls back to the primary reward type and maxDuration
+      const matchPrimary = modifiers.every((m) => {
+        const typeMatches =
+          m.type === undefined ? true : m.type === reward.type;
+        const durationMatches =
+          m.maxDuration === undefined
+            ? true
+            : m.maxDuration === reward.maxDuration;
+        return typeMatches && durationMatches;
+      });
+
+      // If the type AND maxDuration matches the primary, show a range
+      if (matchPrimary) {
+        const min = Math.min(
+          reward.amount,
+          ...modifiers.map((modifier) => modifier.amount),
+        );
+
+        const max = Math.max(
+          reward.amount,
+          ...modifiers.map((modifier) => modifier.amount),
+        );
+
+        if (min !== max) {
+          return `Up to ${
+            reward.type === "percentage" ? `${max}%` : formatCurrency(max / 100)
+          }`;
+        }
+      }
+    }
   }
 
-  // Single amount
-  const amount = amountProp ?? amounts?.[0];
-  return type === "percentage" ? `${amount}%` : formatCurrency(amount);
+  // Return the primary reward amount if
+  // 1. There are no modifiers OR
+  // 2. type AND timelines doesn't match the primary reward
+  return reward.type === "percentage"
+    ? `${reward.amount}%`
+    : formatCurrency(reward.amount / 100);
 };
 
 const formatCurrency = (amount: number) =>
   currencyFormatter(
-    amount / 100,
-    amount % 100 === 0
+    amount,
+    Number.isInteger(amount)
       ? undefined
       : {
           minimumFractionDigits: 2,

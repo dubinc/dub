@@ -29,6 +29,7 @@ export const API_HOSTNAMES = new Set([
   `api-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   `api.${SHORT_DOMAIN}`,
   "api.localhost:8888",
+  "api.localhost",
 ]);
 
 export const API_DOMAIN =
@@ -41,12 +42,14 @@ export const API_DOMAIN =
 export const ADMIN_HOSTNAMES = new Set([
   `admin.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "admin.localhost:8888",
+  "admin.localhost",
 ]);
 
 export const PARTNERS_HOSTNAMES = new Set([
   `partners.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   `partners-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "partners.localhost:8888",
+  "partners.localhost",
 ]);
 
 export const PARTNERS_DOMAIN =

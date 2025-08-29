@@ -1,6 +1,6 @@
 // @ts-nocheck – old migration script
 
-import { addDomainToVercel } from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { createLink } from "@/lib/api/links";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";

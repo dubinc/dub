@@ -21,8 +21,8 @@ export const POST = withWorkspace(
       customerName,
       customerEmail,
       customerAvatar,
+      mode,
       metadata,
-      mode = "async", // Default to async mode if not specified
     } = trackLeadRequestSchema
       .extend({
         // add backwards compatibility

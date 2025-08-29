@@ -15,6 +15,7 @@ export function formatDiscountDescription({
   }
 
   const discountAmount = constructRewardAmount(discount);
+
   const parts: string[] = [];
 
   parts.push(`New users get ${discountAmount} off `);

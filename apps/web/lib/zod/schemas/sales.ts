@@ -37,6 +37,7 @@ export const trackSaleRequestSchema = z.object({
     .openapi({ example: "Invoice paid" }),
   paymentProcessor: z
     .enum(["stripe", "shopify", "polar", "paddle", "revenuecat", "custom"])
+    .default("custom")
     .describe("The payment processor via which the sale was made."),
   invoiceId: z
     .string()
@@ -95,7 +96,7 @@ export const saleEventSchemaTB = clickEventSchemaTB
       event_id: z.string(),
       event_name: z.string().default("Purchase"),
       customer_id: z.string(),
-      payment_processor: z.string(),
+      payment_processor: z.string().default("custom"),
       amount: z.number(),
       invoice_id: z.string().default(""),
       currency: z
