@@ -6,6 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { NewLinkProps } from "@/lib/types";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { deepEqual } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
@@ -58,10 +59,25 @@ export const PATCH = withPartnerProfile(
     }
 
     if (link.partnerGroupDefaultLinkId) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "This is your default link and cannot be updated.",
-      });
+      const linkChanged = !deepEqual(
+        {
+          url,
+          key,
+        },
+        {
+          url: link.url,
+          key: link.key,
+        },
+      );
+
+      console.log({ linkChanged });
+
+      if (linkChanged) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "This is your default link and cannot be updated.",
+        });
+      }
     }
 
     validatePartnerLinkUrl({ group, url });
