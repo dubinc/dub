@@ -66,30 +66,28 @@ export const createDiscountAction = authActionClient
     });
 
     waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-            body: {
-              groupId,
-            },
-          }),
+      Promise.allSettled([
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+          body: {
+            groupId,
+          },
+        }),
 
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "discount.created",
-            description: `Discount ${discount.id} created`,
-            actor: user,
-            targets: [
-              {
-                type: "discount",
-                id: discount.id,
-                metadata: discount,
-              },
-            ],
-          }),
-        ]);
-      })(),
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "discount.created",
+          description: `Discount ${discount.id} created`,
+          actor: user,
+          targets: [
+            {
+              type: "discount",
+              id: discount.id,
+              metadata: discount,
+            },
+          ],
+        }),
+      ]),
     );
   });

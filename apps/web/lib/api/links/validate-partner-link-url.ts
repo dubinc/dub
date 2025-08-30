@@ -1,32 +1,45 @@
-import { ProgramProps } from "@/lib/types";
+import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { getApexDomain } from "@dub/utils";
+import { PartnerGroup } from "@prisma/client";
 import { DubApiError } from "../errors";
 
 export const validatePartnerLinkUrl = ({
-  program,
+  group,
   url,
 }: {
-  program: Pick<ProgramProps, "urlValidationMode" | "url">;
+  group: Pick<PartnerGroup, "additionalLinks"> | null;
   url?: string | null;
 }) => {
-  if (!url || !program.url) {
+  if (!url || !group) {
     return;
   }
 
-  if (
-    program.urlValidationMode === "domain" &&
-    getApexDomain(url) !== getApexDomain(program.url)
-  ) {
+  if (!group.additionalLinks) {
     throw new DubApiError({
       code: "bad_request",
-      message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-    });
-  } else if (program.urlValidationMode === "exact" && url !== program.url) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: `The provided URL (${url}) does not match the program's URL (${program.url}).`,
+      message: "No additional links are allowed for this program.",
     });
   }
 
-  return true;
+  const additionalLinks = group.additionalLinks as PartnerGroupAdditionalLink[];
+
+  // Find matching additional link based on its validation mode
+  const matchFound = additionalLinks.find((additionalLink) => {
+    if (additionalLink.urlValidationMode === "exact") {
+      return additionalLink.url === url;
+    } else if (additionalLink.urlValidationMode === "domain") {
+      return getApexDomain(additionalLink.url) === getApexDomain(url);
+    }
+
+    return false;
+  });
+
+  if (!matchFound) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `The provided URL (${url}) does not match any of the program's additional links.`,
+    });
+  }
+
+  return matchFound;
 };

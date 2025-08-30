@@ -4,11 +4,11 @@ import { DubApiError } from "../errors";
 export const getGroupOrThrow = async ({
   programId,
   groupId,
-  includeRewardsAndDiscount = false,
+  includeExpandedFields = false,
 }: {
   programId: string;
   groupId: string;
-  includeRewardsAndDiscount?: boolean;
+  includeExpandedFields?: boolean;
 }) => {
   const group = await prisma.partnerGroup.findUnique({
     where: {
@@ -24,12 +24,12 @@ export const getGroupOrThrow = async ({
           }),
     },
     include: {
-      ...(includeRewardsAndDiscount && {
-        clickReward: true,
-        leadReward: true,
-        saleReward: true,
-        discount: true,
-      }),
+      clickReward: includeExpandedFields,
+      leadReward: includeExpandedFields,
+      saleReward: includeExpandedFields,
+      discount: includeExpandedFields,
+      utmTemplate: includeExpandedFields,
+      partnerGroupDefaultLinks: includeExpandedFields,
     },
   });
 

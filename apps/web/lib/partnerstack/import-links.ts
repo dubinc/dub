@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { createLink } from "../api/links";
-import { generatePartnerLink } from "../api/partners/create-partner-link";
+import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { logImportError } from "../tinybird/log-import-error";
 import { PartnerProps, ProgramProps, WorkspaceProps } from "../types";
 import { PartnerStackApi } from "./api";
@@ -161,11 +161,15 @@ async function createPartnerLink({
       workspace,
       program,
       partner: {
+        id: partner.id,
         name: partner.name,
         email: partner.email!,
       },
-      key,
-      partnerId: partner.id,
+      link: {
+        domain: program.domain!,
+        url: link.url,
+        key,
+      },
       userId,
     });
 

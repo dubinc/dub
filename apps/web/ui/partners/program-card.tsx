@@ -33,7 +33,7 @@ export function ProgramCard({
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
-  const { program, status, createdAt } = programEnrollment;
+  const { program, status, createdAt, group } = programEnrollment;
 
   const defaultLink = programEnrollment.links?.[0];
 
@@ -60,6 +60,7 @@ export function ProgramCard({
               {getPrettyUrl(
                 constructPartnerLink({
                   program,
+                  group,
                   linkKey: defaultLink?.key,
                 }),
               )}

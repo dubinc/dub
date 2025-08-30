@@ -1,6 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
-import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -18,11 +17,13 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const {
+    let {
       partnerId,
       tenantId,
       partner: partnerProps,
     } = createReferralsEmbedTokenSchema.parse(await parseRequestBody(req));
+
+    tenantId = tenantId ?? partnerProps?.tenantId;
 
     let programEnrollment: Pick<ProgramEnrollment, "partnerId"> | null = null;
 
@@ -71,26 +72,17 @@ export const POST = withWorkspace(
       // partner does not exist, we need to create them OR
       // partner exists but is not enrolled in the program, we need to enroll them
       if (!partner || partner.programs.length === 0) {
-        const partnerLink = await createPartnerLink({
-          workspace,
-          program,
-          partner: partnerProps,
-          userId: session.user.id,
-        });
+        const { linkProps: link, ...partner } = partnerProps;
 
         const enrolledPartner = await createAndEnrollPartner({
-          program,
-          link: partnerLink,
           workspace,
+          program,
           partner: {
-            name: partnerProps.name,
-            email: partnerProps.email,
-            image: partnerProps.image ?? null,
-            country: partnerProps.country ?? null,
-            description: partnerProps.description,
+            ...partner,
+            tenantId
           },
-          tenantId: partnerProps.tenantId,
-          groupId: partnerProps.groupId,
+          link,
+          userId: session.user.id,
         });
 
         programEnrollment = {

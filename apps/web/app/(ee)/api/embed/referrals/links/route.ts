@@ -6,6 +6,7 @@ import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
+import { UtmTemplate } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/embed/referrals/links – get links for a partner
@@ -17,7 +18,7 @@ export const GET = withReferralsEmbedToken(async ({ links }) => {
 
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
-  async ({ req, programEnrollment, program, links }) => {
+  async ({ req, programEnrollment, program, links, group }) => {
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
@@ -37,14 +38,14 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    if (links.length >= program.maxPartnerLinks) {
+    if (links.length >= group.maxPartnerLinks) {
       throw new DubApiError({
         code: "bad_request",
-        message: `You have reached the limit of ${program.maxPartnerLinks} program links.`,
+        message: `You have reached the limit of ${group.maxPartnerLinks} program links.`,
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
+    validatePartnerLinkUrl({ group, url });
 
     const workspaceOwner = await prisma.projectUsers.findFirst({
       where: {
@@ -56,6 +57,17 @@ export const POST = withReferralsEmbedToken(
       },
     });
 
+    // Find the UTM template for the group
+    let utmTemplate: UtmTemplate | null = null;
+
+    if (group.utmTemplateId) {
+      utmTemplate = await prisma.utmTemplate.findUnique({
+        where: {
+          id: group.utmTemplateId,
+        },
+      });
+    }
+
     const { link, error, code } = await processLink({
       payload: {
         key: key || undefined,
@@ -66,6 +78,12 @@ export const POST = withReferralsEmbedToken(
         tenantId: programEnrollment.tenantId,
         partnerId: programEnrollment.partnerId,
         trackConversion: true,
+        utm_source: utmTemplate?.utm_source,
+        utm_medium: utmTemplate?.utm_medium,
+        utm_campaign: utmTemplate?.utm_campaign,
+        utm_term: utmTemplate?.utm_term,
+        utm_content: utmTemplate?.utm_content,
+        ref: utmTemplate?.ref,
       },
       workspace: {
         id: program.workspaceId,

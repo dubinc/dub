@@ -1,3 +1,4 @@
+import { PlanProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";
@@ -17,6 +18,15 @@ interface BackfillLinkProp {
 const linksToBackfill: BackfillLinkProp[] = [];
 
 async function main() {
+  const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: "prog_mODHMDrJPWlkpT7uzsUASFhK",
+    },
+    include: {
+      workspace: true,
+    },
+  });
+
   Papa.parse(fs.createReadStream("refer_cal_links_backfilled.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
@@ -25,12 +35,6 @@ async function main() {
     },
     complete: async () => {
       const batch = linksToBackfill.slice(0, 50);
-
-      const program = await prisma.program.findUniqueOrThrow({
-        where: {
-          id: "prog_mODHMDrJPWlkpT7uzsUASFhK",
-        },
-      });
 
       const finalResults: {
         name: string;
@@ -63,18 +67,21 @@ async function main() {
 
           try {
             const res = await createAndEnrollPartner({
-              program,
               workspace: {
-                id: program.workspaceId,
+                ...workspace,
+                plan: workspace.plan as PlanProps,
                 webhookEnabled: false,
               },
-              link,
-              tenantId: l.externalId,
+              program,
               partner: {
                 name: l.name,
                 email: l.email,
                 image: l.avatar && l.avatar.length < 190 ? l.avatar : undefined,
+                tenantId: l.externalId,
               },
+              // @ts-ignore
+              link,
+              userId: "",
               skipEnrollmentCheck: true,
             });
 

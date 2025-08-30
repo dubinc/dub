@@ -6,6 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { NewLinkProps } from "@/lib/types";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { deepEqual } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
@@ -17,15 +18,26 @@ export const PATCH = withPartnerProfile(
 
     const { programId, linkId } = params;
 
-    const { program, links, status } = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId,
-    });
+    const { program, links, status, group } = await getProgramEnrollmentOrThrow(
+      {
+        partnerId: partner.id,
+        programId,
+        includeGroup: true,
+      },
+    );
 
     if (status === "banned") {
       throw new DubApiError({
         code: "forbidden",
         message: "You are banned from this program.",
+      });
+    }
+
+    if (!group) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You’re not part of any group yet. Please reach out to the program owner to be added.",
       });
     }
 
@@ -46,7 +58,27 @@ export const PATCH = withPartnerProfile(
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
+    if (link.partnerGroupDefaultLinkId) {
+      const linkChanged = !deepEqual(
+        {
+          url,
+          key,
+        },
+        {
+          url: link.url,
+          key: link.key,
+        },
+      );
+
+      if (linkChanged) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "This is your default link and cannot be updated.",
+        });
+      }
+    }
+
+    validatePartnerLinkUrl({ group, url });
 
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();

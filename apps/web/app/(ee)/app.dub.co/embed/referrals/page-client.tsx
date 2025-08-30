@@ -8,7 +8,7 @@ import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Partner, Program } from "@dub/prisma/client";
+import { Partner, PartnerGroup, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -43,6 +43,7 @@ export function ReferralsEmbedPageClient({
   discount,
   earnings,
   stats,
+  group,
   themeOptions,
   dynamicHeight,
 }: {
@@ -61,12 +62,17 @@ export function ReferralsEmbedPageClient({
     sales: number;
     saleAmount: number;
   };
+  group: Pick<
+    PartnerGroup,
+    "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
+  >;
   themeOptions: ThemeOptions;
   dynamicHeight: boolean;
 }) {
   const resources = programResourcesSchema.parse(
     program.resources ?? { logos: [], colors: [], files: [] },
   );
+
   const programEmbedData = programEmbedSchema.parse(program.embedData);
 
   const hasResources =
@@ -105,6 +111,7 @@ export function ReferralsEmbedPageClient({
     links.length > 0
       ? constructPartnerLink({
           program,
+          group,
           linkKey: links[0].key,
         })
       : undefined;
@@ -255,7 +262,11 @@ export function ReferralsEmbedPageClient({
               ) : selectedTab === "Earnings" ? (
                 <ReferralsEmbedEarnings salesCount={stats.sales} />
               ) : selectedTab === "Links" ? (
-                <ReferralsEmbedLinks links={links} program={program} />
+                <ReferralsEmbedLinks
+                  links={links}
+                  program={program}
+                  group={group}
+                />
               ) : selectedTab === "Leaderboard" &&
                 programEmbedData?.leaderboard?.mode !== "disabled" ? (
                 <ReferralsEmbedLeaderboard />
