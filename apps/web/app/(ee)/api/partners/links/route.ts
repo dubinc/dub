@@ -104,10 +104,7 @@ export const POST = withWorkspace(
       });
     }
 
-    validatePartnerLinkUrl({
-      group: partner.partnerGroup,
-      url,
-    });
+    validatePartnerLinkUrl({ group: partner.partnerGroup, url });
 
     const { link, error, code } = await processLink({
       payload: {
