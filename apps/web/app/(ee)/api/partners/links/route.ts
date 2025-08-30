@@ -93,7 +93,11 @@ export const POST = withWorkspace(
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
       include: {
-        partnerGroup: true,
+        partnerGroup: {
+          include: {
+            utmTemplate: true,
+          },
+        },
       },
     });
 
@@ -106,6 +110,8 @@ export const POST = withWorkspace(
 
     validatePartnerLinkUrl({ group: partner.partnerGroup, url });
 
+    const utmTemplate = partner.partnerGroup?.utmTemplate;
+
     const { link, error, code } = await processLink({
       payload: {
         ...linkProps,
@@ -117,6 +123,13 @@ export const POST = withWorkspace(
         partnerId: partner.partnerId,
         folderId: program.defaultFolderId,
         trackConversion: true,
+        ...(utmTemplate && {
+          utm_source: utmTemplate.utm_source,
+          utm_medium: utmTemplate.utm_medium,
+          utm_campaign: utmTemplate.utm_campaign,
+          utm_term: utmTemplate.utm_term,
+          utm_content: utmTemplate.utm_content,
+        }),
       },
       workspace,
       userId: session.user.id,
