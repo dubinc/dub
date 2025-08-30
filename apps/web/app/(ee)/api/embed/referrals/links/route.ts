@@ -6,7 +6,6 @@ import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
-import { constructURLFromUTMParams } from "@dub/utils";
 import { UtmTemplate } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -60,6 +59,7 @@ export const POST = withReferralsEmbedToken(
 
     // Find the UTM template for the group
     let utmTemplate: UtmTemplate | null = null;
+
     if (group.utmTemplateId) {
       utmTemplate = await prisma.utmTemplate.findUnique({
         where: {
@@ -68,31 +68,22 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    const finalUrl = constructURLFromUTMParams(url || program.url, {
-      utm_source: utmTemplate?.utm_source || "",
-      utm_medium: utmTemplate?.utm_medium || "",
-      utm_campaign: utmTemplate?.utm_campaign || "",
-      utm_term: utmTemplate?.utm_term || "",
-      utm_content: utmTemplate?.utm_content || "",
-    });
-
     const { link, error, code } = await processLink({
       payload: {
         key: key || undefined,
-        url: finalUrl,
+        url: url || program.url,
         domain: program.domain,
         programId: program.id,
         folderId: program.defaultFolderId,
         tenantId: programEnrollment.tenantId,
         partnerId: programEnrollment.partnerId,
         trackConversion: true,
-        ...(utmTemplate && {
-          utm_source: utmTemplate.utm_source,
-          utm_medium: utmTemplate.utm_medium,
-          utm_campaign: utmTemplate.utm_campaign,
-          utm_term: utmTemplate.utm_term,
-          utm_content: utmTemplate.utm_content,
-        }),
+        utm_source: utmTemplate?.utm_source,
+        utm_medium: utmTemplate?.utm_medium,
+        utm_campaign: utmTemplate?.utm_campaign,
+        utm_term: utmTemplate?.utm_term,
+        utm_content: utmTemplate?.utm_content,
+        ref: utmTemplate?.ref,
       },
       workspace: {
         id: program.workspaceId,
