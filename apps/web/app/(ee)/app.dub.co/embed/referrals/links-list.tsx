@@ -8,7 +8,7 @@ import {
   nFormatter,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
-import { PartnerGroup, Program } from "@prisma/client";
+import { PartnerGroup } from "@prisma/client";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -17,21 +17,13 @@ import { ReferralsEmbedLink } from "./types";
 
 interface Props {
   links: ReferralsEmbedLink[];
-  program: Pick<
-    Program,
-    "domain" | "url" | "urlValidationMode" | "maxPartnerLinks"
-  >;
-  group: Pick<
-    PartnerGroup,
-    "id" | "defaultLinks" | "additionalLinks" | "maxPartnerLinks"
-  >;
+  group: Pick<PartnerGroup, "id" | "additionalLinks" | "maxPartnerLinks">;
   onCreateLink: () => void;
   onEditLink: (link: ReferralsEmbedLink) => void;
 }
 
 export function ReferralsEmbedLinksList({
   links,
-  program,
   group,
   onCreateLink,
   onEditLink,
@@ -58,8 +50,7 @@ export function ReferralsEmbedLinksList({
     }
   }, [refreshedLinks]);
 
-  const maxPartnerLinks = group.maxPartnerLinks;
-  const linksLimitReached = partnerLinks.length >= maxPartnerLinks;
+  const linksLimitReached = partnerLinks.length >= group.maxPartnerLinks;
 
   const { table, ...tableProps } = useTable({
     data: partnerLinks,
@@ -111,7 +102,7 @@ export function ReferralsEmbedLinksList({
             disabled={linksLimitReached}
             disabledTooltip={
               linksLimitReached
-                ? `You have reached the limit of ${maxPartnerLinks} referral links.`
+                ? `You have reached the limit of ${group.maxPartnerLinks} referral links.`
                 : undefined
             }
           />
