@@ -24,6 +24,16 @@ const schema = z.object({
   cursor: z.string().optional(),
 });
 
+/**
+ * Cron job to update existing partner links when a group's default link configuration changes.
+ *
+ * For each link associated with a default link, it updates the domain and URL
+ * to match the new default link configuration while preserving UTM parameters.
+ *
+ * It processes up to MAX_BATCH * PAGE_SIZE links per execution
+ * and schedules additional jobs if needed.
+ */
+
 // POST /api/cron/groups/update-default-links
 export async function POST(req: Request) {
   try {
