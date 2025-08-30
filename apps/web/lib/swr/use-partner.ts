@@ -14,11 +14,9 @@ export default function usePartner(
   const { id: workspaceId } = useWorkspace();
 
   const { data, isLoading, error } = useSWR<EnrolledPartnerProps>(
-    partnerId && workspaceId
-      ? `/api/partners/${partnerId}?${new URLSearchParams({
-          workspaceId,
-        } as Record<string, any>).toString()}`
-      : undefined,
+    partnerId &&
+      workspaceId &&
+      `/api/partners/${partnerId}?workspaceId=${workspaceId}`,
     fetcher,
     swrOptions,
   );
