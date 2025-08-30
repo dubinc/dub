@@ -146,7 +146,7 @@ export default function ProgramWelcome({
               </Link>{" "}
               to your program, or{" "}
               <Link
-                href="https://dub.co/docs/partners/white-labeling"
+                href="https://dub.co/docs/partners/embedded-referrals"
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 enroll them automatically.

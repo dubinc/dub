@@ -64,5 +64,5 @@ export const PLAN_FEATURE_ICONS = {
   ailandingpage: Sparkle3,
   customerinsights: UserFocus,
   partners: Users2,
-  whitelabel: SquareLayoutGrid5,
+  embeddedreferrals: SquareLayoutGrid5,
 };

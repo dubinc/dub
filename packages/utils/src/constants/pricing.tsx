@@ -291,13 +291,13 @@ export const PLANS = [
         text: "20 users",
       },
       {
-        id: "whitelabel",
-        text: "White-labeling support",
+        id: "embeddedreferrals",
+        text: "Embedded referral dashboard",
         tooltip: {
           title:
-            "Embed a white-labeled referral dashboard directly in your app in just a few lines of code.",
+            "Create an embedded referral dashboard directly in your app in just a few lines of code.",
           cta: "Learn more.",
-          href: "https://dub.co/docs/partners/white-labeling",
+          href: "https://dub.co/docs/partners/embedded-referrals",
         },
       },
       {
