@@ -3,7 +3,7 @@ import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -31,7 +31,7 @@ export const PATCH = withWorkspace(
     }
 
     try {
-      const response = await prisma.utmTemplate.update({
+      const templateUpdated = await prisma.utmTemplate.update({
         where: {
           id,
           projectId: workspace.id,
@@ -41,7 +41,12 @@ export const PATCH = withWorkspace(
         },
       });
 
-      if (template.partnerGroup) {
+      const utmFieldsChanged = !deepEqual(
+        extractUtmParams(templateUpdated),
+        extractUtmParams(template),
+      );
+
+      if (template.partnerGroup && utmFieldsChanged) {
         waitUntil(
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
@@ -52,7 +57,7 @@ export const PATCH = withWorkspace(
         );
       }
 
-      return NextResponse.json(response);
+      return NextResponse.json(templateUpdated);
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -110,3 +115,12 @@ export const DELETE = withWorkspace(
     requiredPermissions: ["links.write"],
   },
 );
+
+const extractUtmParams = (input: any) => ({
+  utm_source: input.utm_source,
+  utm_medium: input.utm_medium,
+  utm_campaign: input.utm_campaign,
+  utm_term: input.utm_term,
+  utm_content: input.utm_content,
+  ref: input.ref,
+});
