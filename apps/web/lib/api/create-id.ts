@@ -29,6 +29,9 @@ const prefixes = [
   "audit_",
   "import_",
   "grp_",
+  "bnty_",
+  "bnty_sub_",
+  "wf_",
 ] as const;
 
 // ULID uses base32 encoding

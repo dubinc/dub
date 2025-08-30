@@ -11,15 +11,17 @@ const partialQuerySchema = getGroupsQuerySchema.partial();
 export default function useGroups<T extends GroupProps>({
   query,
   includeParams,
+  enabled = true,
 }: {
   query?: z.infer<typeof partialQuerySchema>;
   includeParams?: boolean;
+  enabled?: boolean;
 } = {}) {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const { data, isLoading, error } = useSWR<T[]>(
-    defaultProgramId
+    enabled && defaultProgramId
       ? `/api/groups${
           // TODO: standardize how we handle params in useSWR hooks – it's a bit all over the place rn
           includeParams

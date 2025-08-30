@@ -341,6 +341,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
                             <input
                               {...field}
                               type="number"
+                              onWheel={(e) => e.currentTarget.blur()}
                               className={cn(
                                 "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                                 errors.amount &&
@@ -569,6 +570,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
                             <input
                               {...field}
                               type="number"
+                              onWheel={(e) => e.currentTarget.blur()}
                               className={cn(
                                 "block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                                 errors.saleAmount &&

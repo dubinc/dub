@@ -1,6 +1,9 @@
 export * from "@prisma/client";
 
 export {
+  BountySubmissionRejectionReason,
+  BountySubmissionStatus,
+  BountyType,
   CommissionStatus,
   CommissionType,
   EventType,
@@ -19,4 +22,6 @@ export {
   RewardStructure,
   Role,
   WebhookReceiver,
+  WorkflowTrigger,
+  WorkflowTriggerType,
 } from "@prisma/client";
