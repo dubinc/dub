@@ -293,7 +293,7 @@ export type ProcessedLinkProps = Omit<NewLinkProps, ProcessedLinkOverrides> &
   Pick<LinkProps, ProcessedLinkOverrides> & { userId?: LinkProps["userId"] } & {
     createdAt?: Date;
     id?: string;
-    partnerGroupDefaultLinkId?: string;
+    partnerGroupDefaultLinkId?: string | null;
   };
 
 export const plans = [

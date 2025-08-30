@@ -5,7 +5,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
-import { getUrlWithoutUTMParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/embed/referrals/links/[linkId] - update a link for a partner
@@ -39,25 +38,11 @@ export const PATCH = withReferralsEmbedToken(
       });
     }
 
-    // prevent updating the default partner link
-    const defaultLinks = links.filter(({ url }) =>
-      group.defaultLinks.find(
-        (defaultLink) =>
-          defaultLink.url === getUrlWithoutUTMParams(url) &&
-          defaultLink.url === getUrlWithoutUTMParams(link.url),
-      ),
-    );
-
-    if (defaultLinks.length > 0) {
-      const defaultLink = defaultLinks[0];
-
-      if (defaultLink?.id === link.id) {
-        throw new DubApiError({
-          code: "forbidden",
-          message:
-            "You cannot update the default partner link. Please contact us if you think this is an error.",
-        });
-      }
+    if (link.partnerGroupDefaultLinkId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "This is your default partner link and cannot be updated.",
+      });
     }
 
     validatePartnerLinkUrl({ group, url });
