@@ -25,6 +25,9 @@ describe.sequential("/bounties/**", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
+  // start 5 mins from now to make sure the bounty is fully deleted so it doesn't trigger email sends
+  const startsAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
   let bountyId = "";
 
   test("POST /bounties - performance based", async () => {
@@ -32,8 +35,7 @@ describe.sequential("/bounties/**", async () => {
       path: "/bounties",
       body: {
         ...performanceBounty,
-        // start 5 mins from now to make sure the bounty is fully deleted so it doesn't trigger email sends
-        startsAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        startsAt,
         groupIds: [BOUNTY_GROUP_ID],
         performanceCondition: {
           attribute: "totalLeads",
@@ -59,8 +61,7 @@ describe.sequential("/bounties/**", async () => {
       path: "/bounties",
       body: {
         ...submissionBounty,
-        // start 5 mins from now to make sure the bounty is fully deleted so it doesn't trigger email sends
-        startsAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        startsAt,
         groupIds: [BOUNTY_GROUP_ID],
       },
     });
@@ -79,6 +80,7 @@ describe.sequential("/bounties/**", async () => {
       path: "/bounties",
       body: {
         ...submissionBounty,
+        startsAt,
         groupIds: ["invalid-group-id"],
       },
     });
