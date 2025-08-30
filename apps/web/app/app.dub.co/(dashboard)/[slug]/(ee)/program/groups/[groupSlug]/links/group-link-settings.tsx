@@ -9,7 +9,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
 import { Badge, Button, UTMBuilder } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, deepEqual } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -64,16 +64,18 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
   const { handleSubmit, watch, setValue, register } = useForm<FormData>({
     mode: "onBlur",
     values: {
-      utmTemplateId: group?.utmTemplate?.id || "",
-      utm_source: group?.utmTemplate?.utm_source || "",
-      utm_medium: group?.utmTemplate?.utm_medium || "",
-      utm_campaign: group?.utmTemplate?.utm_campaign || "",
-      utm_term: group?.utmTemplate?.utm_term || "",
-      utm_content: group?.utmTemplate?.utm_content || "",
-      ref: group?.utmTemplate?.ref || "",
-      linkStructure: group?.linkStructure || "",
+      utmTemplateId: group?.utmTemplate?.id || null,
+      utm_source: group?.utmTemplate?.utm_source || null,
+      utm_medium: group?.utmTemplate?.utm_medium || null,
+      utm_campaign: group?.utmTemplate?.utm_campaign || null,
+      utm_term: group?.utmTemplate?.utm_term || null,
+      utm_content: group?.utmTemplate?.utm_content || null,
+      ref: group?.utmTemplate?.ref || null,
+      linkStructure: group?.linkStructure || null,
     },
   });
+
+  const currentValues = watch();
 
   const onSubmit = async (data: FormData) => {
     if (!group || !workspaceId) return;
@@ -89,16 +91,28 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
       linkStructure,
     } = data;
 
-    const shouldCreateOrUpdateUtmTemplate =
-      utm_source ||
-      utm_medium ||
-      utm_campaign ||
-      utm_term ||
-      utm_content ||
-      ref;
+    const utmFieldsChanged = !deepEqual(
+      {
+        utmTemplateId,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_term,
+        utm_content,
+        ref,
+      },
+      {
+        utm_source: currentValues.utm_source,
+        utm_medium: currentValues.utm_medium,
+        utm_campaign: currentValues.utm_campaign,
+        utm_term: currentValues.utm_term,
+        utm_content: currentValues.utm_content,
+        ref: currentValues.ref,
+      },
+    );
 
     // Create a new UTM template if one doesn't exist
-    if (shouldCreateOrUpdateUtmTemplate) {
+    if (utmFieldsChanged) {
       setIsUpdatingTemplate(true);
 
       const endpoint = utmTemplateId
@@ -157,8 +171,6 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
       });
     }
   };
-
-  const currentValues = watch();
 
   return (
     <form

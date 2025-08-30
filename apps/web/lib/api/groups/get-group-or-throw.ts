@@ -23,13 +23,13 @@ export const getGroupOrThrow = async ({
             },
           }),
     },
-
     include: {
       clickReward: includeExpandedFields,
       leadReward: includeExpandedFields,
       saleReward: includeExpandedFields,
       discount: includeExpandedFields,
       utmTemplate: includeExpandedFields,
+      partnerGroupDefaultLinks: includeExpandedFields,
     },
   });
 

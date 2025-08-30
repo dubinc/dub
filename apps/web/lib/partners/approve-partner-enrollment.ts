@@ -6,7 +6,7 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
-import { createDefaultPartnerLinks } from "../api/partners/create-default-partner-links";
+import { createPartnerDefaultLinks } from "../api/partners/create-partner-default-links";
 import { RewardProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
@@ -80,7 +80,7 @@ export async function approvePartnerEnrollment({
   const { partner, ...enrollment } = programEnrollment;
   const workspace = program.workspace as WorkspaceProps;
 
-  const partnerLinks = await createDefaultPartnerLinks({
+  const partnerLinks = await createPartnerDefaultLinks({
     workspace: {
       id: workspace.id,
       plan: workspace.plan,
@@ -96,8 +96,8 @@ export async function approvePartnerEnrollment({
       tenantId: programEnrollment.tenantId ?? undefined,
     },
     group: {
-      id: group.id,
-      defaultLinks: group.defaultLinks,
+      defaultLinks: group.partnerGroupDefaultLinks,
+      utmTemplate: group.utmTemplate,
     },
     userId,
   });

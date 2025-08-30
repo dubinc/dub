@@ -68,13 +68,17 @@ export async function POST(req: Request) {
 
     // UTM parameters
     const utmParams = {
-      utm_source: utmTemplate.utm_source,
-      utm_medium: utmTemplate.utm_medium,
-      utm_campaign: utmTemplate.utm_campaign,
-      utm_term: utmTemplate.utm_term,
-      utm_content: utmTemplate.utm_content,
-      ref: utmTemplate.ref,
-    } as Record<string, string>;
+      utm_source: utmTemplate.utm_source || "",
+      utm_medium: utmTemplate.utm_medium || "",
+      utm_campaign: utmTemplate.utm_campaign || "",
+      utm_term: utmTemplate.utm_term || "",
+      utm_content: utmTemplate.utm_content || "",
+      ref: utmTemplate.ref || "",
+    };
+
+    const hasValidUTMParams = Object.values(utmParams).some(
+      (param) => param !== undefined,
+    );
 
     let hasMore = true;
     let currentCursor = cursor;

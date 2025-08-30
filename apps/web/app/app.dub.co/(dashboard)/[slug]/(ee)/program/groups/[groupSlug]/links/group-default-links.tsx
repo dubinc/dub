@@ -53,7 +53,6 @@ export function GroupDefaultLinks() {
         <div className="flex flex-col gap-4">
           <DefaultLinkPreviewSkeleton />
           <DefaultLinkPreviewSkeleton />
-          <DefaultLinkPreviewSkeleton />
         </div>
       ) : (
         <NoDefaultLinks />

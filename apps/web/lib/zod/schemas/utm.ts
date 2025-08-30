@@ -6,43 +6,43 @@ export const createUTMTemplateBodySchema = z.object({
     .string()
     .trim()
     .max(190)
+    .transform((v) => (v === "" ? null : v))
     .nullish()
-    .transform((v) => v ?? null)
     .describe("The UTM source of the short link."),
   utm_medium: z
     .string()
     .trim()
     .max(190)
     .nullish()
-    .transform((v) => v ?? null)
+    .transform((v) => (v === "" ? null : v))
     .describe("The UTM medium of the short link."),
   utm_campaign: z
     .string()
     .trim()
     .max(190)
     .nullish()
-    .transform((v) => v ?? null)
+    .transform((v) => (v === "" ? null : v))
     .describe("The UTM campaign of the short link."),
   utm_term: z
     .string()
     .trim()
     .max(190)
     .nullish()
-    .transform((v) => v ?? null)
+    .transform((v) => (v === "" ? null : v))
     .describe("The UTM term of the short link."),
   utm_content: z
     .string()
     .trim()
     .max(190)
     .nullish()
-    .transform((v) => v ?? null)
+    .transform((v) => (v === "" ? null : v))
     .describe("The UTM content of the short link."),
   ref: z
     .string()
     .trim()
     .max(190)
     .nullish()
-    .transform((v) => v ?? null)
+    .transform((v) => (v === "" ? null : v))
     .describe("The ref of the short link."),
 });
 

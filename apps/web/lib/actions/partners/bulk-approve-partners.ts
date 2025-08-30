@@ -2,7 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
-import { createDefaultPartnerLinks } from "@/lib/api/partners/create-default-partner-links";
+import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { PlanProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -142,7 +142,7 @@ export const bulkApprovePartnersAction = authActionClient
         // Create partner links
         const partnerLinksPromises = await Promise.allSettled(
           updatedEnrollments.map(({ partner, tenantId, partnerGroup }) =>
-            createDefaultPartnerLinks({
+            createPartnerDefaultLinks({
               workspace: {
                 id: workspace.id,
                 plan: workspace.plan as PlanProps,

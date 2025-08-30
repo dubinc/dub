@@ -11,7 +11,15 @@ import { NextResponse } from "next/server";
 export const PATCH = withWorkspace(
   async ({ req, params, workspace }) => {
     const { id } = params;
-    const props = updateUTMTemplateBodySchema.parse(await req.json());
+    const {
+      name,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      ref,
+    } = updateUTMTemplateBodySchema.parse(await req.json());
 
     const template = await prisma.utmTemplate.findFirst({
       where: {
@@ -37,7 +45,13 @@ export const PATCH = withWorkspace(
           projectId: workspace.id,
         },
         data: {
-          ...props,
+          name,
+          utm_source,
+          utm_medium,
+          utm_campaign,
+          utm_term,
+          utm_content,
+          ref,
         },
       });
 

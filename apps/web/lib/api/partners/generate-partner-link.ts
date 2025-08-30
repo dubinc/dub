@@ -76,6 +76,8 @@ export const generatePartnerLink = async ({
   }
 
   if (error != null) {
+    console.error("Error generating partner link", error);
+
     throw new DubApiError({
       code: code as ErrorCodes,
       message: error,

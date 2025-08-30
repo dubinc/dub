@@ -12,7 +12,7 @@ import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { backfillLinkCommissions } from "./backfill-link-commissions";
-import { createDefaultPartnerLinks } from "./create-default-partner-links";
+import { createPartnerDefaultLinks } from "./create-partner-default-links";
 
 interface CreateAndEnrollPartnerInput {
   workspace: Pick<WorkspaceProps, "id" | "webhookEnabled" | "plan">;
@@ -130,7 +130,7 @@ export const createAndEnrollPartner = async ({
   });
 
   // Create the partner links based on group defaults
-  const links = await createDefaultPartnerLinks({
+  const links = await createPartnerDefaultLinks({
     workspace: {
       id: workspace.id,
       plan: workspace.plan,
