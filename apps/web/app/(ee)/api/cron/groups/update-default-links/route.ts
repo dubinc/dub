@@ -102,12 +102,6 @@ export async function POST(req: Request) {
           url: true,
           key: true,
           domain: true,
-          shortLink: true,
-          utm_source: true,
-          utm_medium: true,
-          utm_campaign: true,
-          utm_term: true,
-          utm_content: true,
         },
       });
 

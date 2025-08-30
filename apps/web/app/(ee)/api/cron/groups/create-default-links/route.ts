@@ -58,6 +58,9 @@ export async function POST(req: Request) {
       where: {
         id: defaultLink.groupId,
       },
+      include: {
+        utmTemplate: true,
+      },
     });
 
     if (!group) {
@@ -82,6 +85,8 @@ export async function POST(req: Request) {
         workspace: true,
       },
     });
+
+    const { utmTemplate } = group;
 
     let hasMore = true;
     let currentCursor = cursor;
@@ -137,6 +142,12 @@ export async function POST(req: Request) {
                 url: defaultLink.url,
                 tenantId: programEnrollment.tenantId ?? undefined,
                 partnerGroupDefaultLinkId: defaultLink.id,
+                utm_source: utmTemplate?.utm_source,
+                utm_medium: utmTemplate?.utm_medium,
+                utm_campaign: utmTemplate?.utm_campaign,
+                utm_term: utmTemplate?.utm_term,
+                utm_content: utmTemplate?.utm_content,
+                ref: utmTemplate?.ref,
               },
               userId,
             }),
