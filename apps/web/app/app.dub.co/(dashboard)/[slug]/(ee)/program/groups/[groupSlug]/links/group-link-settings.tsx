@@ -182,10 +182,7 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
                   key={type.id}
                   className={cn(
                     "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600",
-                    type.comingSoon
-                      ? "cursor-default opacity-80"
-                      : "hover:bg-neutral-50",
-                    "transition-all duration-150",
+                    "transition-all duration-150 hover:bg-neutral-50",
                     isSelected &&
                       "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                   )}
@@ -194,7 +191,6 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
                     type="radio"
                     value={type.id}
                     className="hidden"
-                    disabled={type.comingSoon === true}
                     {...register("linkStructure")}
                   />
 
@@ -203,16 +199,17 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
                     <span className="text-neutral-600">{type.example}</span>
                   </div>
 
-                  {type.comingSoon ? (
-                    <Badge variant="blueGradient">Coming soon</Badge>
-                  ) : (
+                  <div className="flex items-center justify-end gap-2">
+                    {type.recommended && (
+                      <Badge variant="blueGradient">Recommended</Badge>
+                    )}
                     <CircleCheckFill
                       className={cn(
                         "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                         isSelected && "scale-100 opacity-100",
                       )}
                     />
-                  )}
+                  </div>
                 </label>
               );
             })}
