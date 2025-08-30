@@ -74,11 +74,8 @@ export const POST = withWorkspace(
         where: {
           id: program.defaultGroupId,
         },
-        select: {
-          defaultLinks: true,
-          additionalLinks: true,
-          maxPartnerLinks: true,
-          linkStructure: true,
+        include: {
+          partnerGroupDefaultLinks: true,
         },
       }),
     ]);
@@ -109,8 +106,12 @@ export const POST = withWorkspace(
       }
 
       // Copy over the default group’s link settings when creating a new group
-      const { defaultLinks, additionalLinks, maxPartnerLinks, linkStructure } =
-        defaultGroup;
+      const {
+        additionalLinks,
+        maxPartnerLinks,
+        linkStructure,
+        partnerGroupDefaultLinks,
+      } = defaultGroup;
 
       return await tx.partnerGroup.create({
         data: {
@@ -119,10 +120,19 @@ export const POST = withWorkspace(
           name,
           slug,
           color,
-          ...(defaultLinks && { defaultLinks }),
           ...(additionalLinks && { additionalLinks }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),
+          partnerGroupDefaultLinks: {
+            createMany: {
+              data: partnerGroupDefaultLinks.map((link) => ({
+                programId,
+                groupId: group.id,
+                domain: link.domain,
+                url: link.url,
+              })),
+            },
+          },
         },
         include: {
           clickReward: true,
