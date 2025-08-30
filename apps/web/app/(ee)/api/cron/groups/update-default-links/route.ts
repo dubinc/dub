@@ -2,6 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -78,16 +79,6 @@ export async function POST(req: Request) {
       `Updating default links for the partners (defaultLinkId=${defaultLink.id}, groupId=${group.id}).`,
     );
 
-    // Find the workspace & program
-    const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
-      where: {
-        id: group.programId,
-      },
-      include: {
-        workspace: true,
-      },
-    });
-
     let hasMore = true;
     let currentCursor = cursor;
     let processedBatches = 0;
@@ -161,9 +152,12 @@ export async function POST(req: Request) {
               domain: link.domain,
               shortLink: link.shortLink,
             },
-            select: {
-              domain: true,
-              key: true,
+            include: {
+              tags: {
+                select: {
+                  tag: true,
+                },
+              },
             },
           }),
         ),
@@ -173,7 +167,10 @@ export async function POST(req: Request) {
         .filter(isFulfilled)
         .map((link) => link.value);
 
-      await linkCache.expireMany(updatedLinks);
+      await Promise.allSettled([
+        recordLink(updatedLinks),
+        linkCache.expireMany(updatedLinks),
+      ]);
 
       // Update cursor to the last processed record
       currentCursor = links[links.length - 1].id;

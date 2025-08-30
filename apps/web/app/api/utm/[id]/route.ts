@@ -51,7 +51,7 @@ export const PATCH = withWorkspace(
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
             body: {
-              groupId: template.partnerGroup.id,
+              utmTemplateId: template.id,
             },
           }),
         );
