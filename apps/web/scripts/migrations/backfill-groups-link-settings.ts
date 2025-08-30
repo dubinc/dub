@@ -1,4 +1,5 @@
-import { PartnerGroupAdditionalLink, PartnerGroupDefaultLink } from "@/lib/types";
+import { createId } from "@/lib/api/create-id";
+import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
@@ -12,11 +13,6 @@ async function main() {
   console.log(`Found ${programs.length} programs.`);
 
   for (const program of programs) {
-    const defaultLink: PartnerGroupDefaultLink = {
-      domain: program.domain!,
-      url: program.url!,
-    };
-
     let additionalLink: PartnerGroupAdditionalLink | undefined = undefined;
 
     if (program.maxPartnerLinks > 0) {
@@ -35,9 +31,18 @@ async function main() {
       data: {
         linkStructure: program.linkStructure,
         maxPartnerLinks: program.maxPartnerLinks,
-        defaultLinks: [defaultLink],
         ...(additionalLink && { additionalLinks: [additionalLink] }),
       },
+    });
+
+    await prisma.partnerGroupDefaultLink.createMany({
+      data: program.groups.map((group) => ({
+        id: createId(),
+        programId: program.id,
+        groupId: group.id,
+        domain: program.domain!,
+        url: program.url!,
+      })),
     });
   }
 }
