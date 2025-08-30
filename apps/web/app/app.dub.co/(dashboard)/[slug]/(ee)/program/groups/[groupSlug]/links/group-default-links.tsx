@@ -51,7 +51,9 @@ export function GroupDefaultLinks() {
         </div>
       ) : loadingDefaultLinks ? (
         <div className="flex flex-col gap-4">
-          <div className="h-52 animate-pulse rounded-xl bg-neutral-50" />
+          <DefaultLinkPreviewSkeleton />
+          <DefaultLinkPreviewSkeleton />
+          <DefaultLinkPreviewSkeleton />
         </div>
       ) : (
         <NoDefaultLinks />
@@ -117,8 +119,8 @@ function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
   };
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Delete Default Link",
-    description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This action cannot be undone.`,
+    title: "Delete default link",
+    description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This won't affect any existing partner links that were already created.`,
     confirmText: "Delete",
     onConfirm,
   });
@@ -174,6 +176,29 @@ function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
       </div>
       {DefaultPartnerLinkSheet}
     </>
+  );
+}
+
+function DefaultLinkPreviewSkeleton() {
+  return (
+    <div className="border-border-subtle group relative flex items-center gap-3 rounded-xl border bg-white p-4">
+      <div className="relative flex shrink-0 items-center">
+        <div className="absolute inset-0 h-8 w-8 rounded-full border border-neutral-200 sm:h-10 sm:w-10">
+          <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
+        </div>
+        <div className="relative z-10 p-2">
+          <div className="size-4 animate-pulse rounded-full bg-neutral-200 sm:size-6" />
+        </div>
+      </div>
+
+      <div className="min-w-0 flex-1 space-y-0.5">
+        <div className="h-4 w-2/3 animate-pulse rounded-md bg-neutral-200" />
+        <div className="flex min-h-[20px] items-center gap-1">
+          <div className="h-3 w-3 animate-pulse rounded bg-neutral-200" />
+          <div className="h-3 w-1/2 animate-pulse rounded-md bg-neutral-200" />
+        </div>
+      </div>
+    </div>
   );
 }
 
