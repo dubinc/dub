@@ -544,9 +544,9 @@ export type PartnerGroupAdditionalLink = z.infer<
 >;
 
 export type PartnerGroupProps = PartnerGroup & {
-  defaultLinks: PartnerGroupDefaultLink[];
   additionalLinks: PartnerGroupAdditionalLink[];
 };
+
 export type BountyProps = z.infer<typeof BountySchema>;
 export type BountyListProps = z.infer<typeof BountyListSchema>;
 export type BountyExtendedProps = z.infer<typeof BountySchemaExtended>;

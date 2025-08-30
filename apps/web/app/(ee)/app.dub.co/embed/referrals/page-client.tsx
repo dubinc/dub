@@ -64,11 +64,7 @@ export function ReferralsEmbedPageClient({
   };
   group: Pick<
     PartnerGroup,
-    | "id"
-    | "defaultLinks"
-    | "additionalLinks"
-    | "maxPartnerLinks"
-    | "linkStructure"
+    "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
   >;
   themeOptions: ThemeOptions;
   dynamicHeight: boolean;

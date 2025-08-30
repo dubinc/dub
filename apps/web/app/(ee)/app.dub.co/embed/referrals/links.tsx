@@ -10,10 +10,7 @@ interface Props {
     Program,
     "domain" | "url" | "urlValidationMode" | "maxPartnerLinks"
   >;
-  group: Pick<
-    PartnerGroup,
-    "id" | "defaultLinks" | "additionalLinks" | "maxPartnerLinks"
-  >;
+  group: Pick<PartnerGroup, "id" | "additionalLinks" | "maxPartnerLinks">;
 }
 
 export default function ReferralsEmbedLinks({ links, program, group }: Props) {
@@ -34,7 +31,6 @@ export default function ReferralsEmbedLinks({ links, program, group }: Props) {
       ) : (
         <ReferralsEmbedLinksList
           links={links}
-          program={program}
           group={group}
           onCreateLink={() => setCreateLink(true)}
           onEditLink={(link) => {

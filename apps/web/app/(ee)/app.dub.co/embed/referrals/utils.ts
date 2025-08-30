@@ -89,7 +89,6 @@ export const getReferralsEmbedData = async (token: string) => {
     },
     group: {
       id: group.id,
-      defaultLinks: group.defaultLinks,
       additionalLinks: group.additionalLinks,
       maxPartnerLinks: group.maxPartnerLinks,
       linkStructure: group.linkStructure,
