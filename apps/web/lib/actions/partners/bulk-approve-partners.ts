@@ -85,7 +85,12 @@ export const bulkApprovePartnersAction = authActionClient
         clickReward: true,
         leadReward: true,
         saleReward: true,
-        partnerGroup: true,
+        partnerGroup: {
+          include: {
+            partnerGroupDefaultLinks: true,
+            utmTemplate: true,
+          },
+        },
         partner: {
           include: {
             users: {
@@ -158,8 +163,8 @@ export const bulkApprovePartnersAction = authActionClient
                 tenantId: tenantId ?? undefined,
               },
               group: {
-                id: partnerGroup?.id!,
-                defaultLinks: partnerGroup?.defaultLinks!,
+                defaultLinks: partnerGroup?.partnerGroupDefaultLinks ?? [],
+                utmTemplate: partnerGroup?.utmTemplate ?? null,
               },
               userId: user.id,
             }),
@@ -183,7 +188,7 @@ export const bulkApprovePartnersAction = authActionClient
           acc.get(link.partnerId)!.push(link);
 
           return acc;
-        }, new Map<string, Link[]>());
+        }, new Map<string, (Link & { partnerGroupDefaultLinkId?: string | null })[]>());
 
         await Promise.allSettled([
           // Send approval emails

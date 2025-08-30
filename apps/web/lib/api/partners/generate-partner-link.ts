@@ -18,7 +18,7 @@ interface GeneratePartnerLinkInput {
     domain: string;
     url: string;
     key?: string;
-    partnerGroupDefaultLinkId?: string;
+    partnerGroupDefaultLinkId?: string | null;
   };
   userId: string;
 }
@@ -46,7 +46,9 @@ export const generatePartnerLink = async ({
   });
 
   while (true) {
-    const result = await processLink<{ partnerGroupDefaultLinkId?: string }>({
+    const result = await processLink<{
+      partnerGroupDefaultLinkId?: string | null;
+    }>({
       workspace,
       userId,
       payload: {

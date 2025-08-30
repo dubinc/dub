@@ -36,6 +36,10 @@ export async function createPartnerDefaultLinks({
   link,
   userId,
 }: CreateDefaultPartnerLinksInput) {
+  if (defaultLinks.length === 0) {
+    return [];
+  }
+
   const hasMoreThanOneLink = defaultLinks.length > 1;
 
   const processedLinks = (

@@ -86,6 +86,7 @@ export const createAndEnrollPartner = async ({
   const group = await getGroupOrThrow({
     programId: program.id,
     groupId: finalGroupId,
+    includeExpandedFields: true,
   });
 
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
@@ -147,8 +148,8 @@ export const createAndEnrollPartner = async ({
       tenantId: partner.tenantId,
     },
     group: {
-      id: group.id,
-      defaultLinks: group.defaultLinks,
+      defaultLinks: group.partnerGroupDefaultLinks,
+      utmTemplate: group.utmTemplate,
     },
     link,
     userId,
