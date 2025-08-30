@@ -5,6 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
+import { deepEqual } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/embed/referrals/links/[linkId] - update a link for a partner
@@ -39,10 +40,23 @@ export const PATCH = withReferralsEmbedToken(
     }
 
     if (link.partnerGroupDefaultLinkId) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "This is your default link and cannot be updated.",
-      });
+      const linkChanged = !deepEqual(
+        {
+          url,
+          key,
+        },
+        {
+          url: link.url,
+          key: link.key,
+        },
+      );
+
+      if (linkChanged) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "This is your default link and cannot be updated.",
+        });
+      }
     }
 
     validatePartnerLinkUrl({ group, url });
