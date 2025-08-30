@@ -1,7 +1,9 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import {
+  BountySubmissionSchema,
   REJECT_BOUNTY_SUBMISSION_REASONS,
   rejectBountySubmissionSchema,
 } from "@/lib/zod/schemas/bounties";
@@ -68,31 +70,43 @@ export const rejectBountySubmissionAction = authActionClient
       }
     });
 
-    if (partner.email) {
-      waitUntil(
-        sendEmail({
-          subject: "Bounty rejected",
-          email: partner.email,
-          variant: "notifications",
-          react: BountyRejected({
-            email: partner.email,
-            program: {
-              name: program.name,
-              slug: program.slug,
-              supportEmail: program.supportEmail || "support@dub.co",
+    waitUntil(
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId: program.id,
+          action: "bounty_submission.rejected",
+          description: `Bounty submission rejected for ${partner.id}`,
+          actor: user,
+          targets: [
+            {
+              type: "bounty_submission",
+              id: submissionId,
+              metadata: BountySubmissionSchema.parse(bountySubmission),
             },
-            bounty: {
-              name: bounty.name!,
-            },
-            submission: {
-              rejectionReason:
-                REJECT_BOUNTY_SUBMISSION_REASONS[rejectionReason],
-            },
-          }),
+          ],
         }),
-      );
-    }
-
-    // TODO:
-    // Record audit log
+        partner.email &&
+          sendEmail({
+            subject: "Bounty rejected",
+            email: partner.email,
+            variant: "notifications",
+            react: BountyRejected({
+              email: partner.email,
+              program: {
+                name: program.name,
+                slug: program.slug,
+                supportEmail: program.supportEmail || "support@dub.co",
+              },
+              bounty: {
+                name: bounty.name,
+              },
+              submission: {
+                rejectionReason:
+                  REJECT_BOUNTY_SUBMISSION_REASONS[rejectionReason],
+              },
+            }),
+          }),
+      ]),
+    );
   });

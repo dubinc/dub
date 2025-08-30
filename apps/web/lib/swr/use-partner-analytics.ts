@@ -60,6 +60,9 @@ export default function usePartnerAnalytics(
   return {
     data,
     error,
-    loading: programIdToUse && !data && !error ? true : false,
+    loading:
+      programIdToUse && params.enabled !== false && !data && !error
+        ? true
+        : false,
   };
 }

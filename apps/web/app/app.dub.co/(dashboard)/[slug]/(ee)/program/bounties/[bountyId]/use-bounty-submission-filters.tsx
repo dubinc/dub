@@ -1,10 +1,14 @@
+import {
+  SubmissionsCountByStatus,
+  useBountySubmissionsCount,
+} from "@/lib/swr/use-bounty-submissions-count";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyExtendedProps } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { CircleCheck, CircleHalfDottedCheck, Users6 } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { Users6 } from "@dub/ui/icons";
+import { cn, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 
@@ -13,10 +17,13 @@ export function useBountySubmissionFilters({
 }: {
   bounty?: BountyExtendedProps;
 }) {
-  const { slug } = useWorkspace();
   const { searchParamsObj, queryParams } = useRouterStuff();
 
+  const { slug } = useWorkspace();
   const { groups } = useGroups();
+
+  const { submissionsCount } =
+    useBountySubmissionsCount<SubmissionsCountByStatus[]>();
 
   const filters = useMemo(
     () => [
@@ -25,49 +32,52 @@ export function useBountySubmissionFilters({
         icon: CircleDotted,
         label: "Status",
         options:
-          bounty?.type === "submission"
-            ? Object.entries(BOUNTY_SUBMISSION_STATUS_BADGES).map(
-                ([value, { label, icon: Icon, iconClassName }]) => ({
-                  value,
-                  label,
-                  icon: (
-                    <Icon
-                      className={cn("size-4 bg-transparent", iconClassName)}
-                    />
-                  ),
-                }),
-              )
-            : [
+          bounty?.type === "submission" && submissionsCount
+            ? submissionsCount.map(({ status, count }) => {
                 {
-                  value: "approved",
-                  label: "Completed",
-                  icon: <CircleCheck className="size-4 text-green-600" />,
-                },
-                {
-                  value: "pending",
-                  label: "Incomplete",
-                  icon: (
-                    <CircleHalfDottedCheck className="size-4 text-orange-600" />
-                  ),
-                },
-              ],
+                  const {
+                    label,
+                    icon: Icon,
+                    iconClassName,
+                  } = BOUNTY_SUBMISSION_STATUS_BADGES[status];
+                  return {
+                    value: status,
+                    label,
+                    icon: (
+                      <Icon
+                        className={cn("size-4 bg-transparent", iconClassName)}
+                      />
+                    ),
+                    right: nFormatter(count, {
+                      full: true,
+                    }),
+                  };
+                }
+              })
+            : null,
       },
       {
         key: "groupId",
         icon: Users6,
         label: "Partner Group",
         options:
-          groups?.map((group) => {
-            return {
-              value: group.id,
-              label: group.name,
-              icon: <GroupColorCircle group={group} />,
-              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
-            };
-          }) ?? null,
+          groups // only show groups that are associated with the bounty
+            ?.filter((group) =>
+              bounty?.groups && bounty?.groups.length > 0
+                ? bounty?.groups.map((g) => g.id).includes(group.id)
+                : true,
+            )
+            .map((group) => {
+              return {
+                value: group.id,
+                label: group.name,
+                icon: <GroupColorCircle group={group} />,
+                permalink: `/${slug}/program/groups/${group.slug}/rewards`,
+              };
+            }) ?? null,
       },
     ],
-    [bounty, groups, slug],
+    [bounty, submissionsCount, groups, slug],
   );
 
   const activeFilters = useMemo(() => {

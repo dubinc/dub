@@ -36,6 +36,7 @@ export const createPartnerCommission = async ({
   createdAt,
   user,
   context,
+  skipWorkflow = false,
 }: {
   event: CommissionType;
   partnerId: string;
@@ -51,6 +52,7 @@ export const createPartnerCommission = async ({
   createdAt?: Date;
   user?: Session["user"]; // user who created the manual commission
   context?: RewardContext;
+  skipWorkflow?: boolean;
 }) => {
   let earnings = 0;
   let reward: RewardProps | null = null;
@@ -252,7 +254,7 @@ export const createPartnerCommission = async ({
         });
 
         const isClawback = earnings < 0;
-        const shouldTriggerWorkflow = !isClawback;
+        const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
 
         // Make sure totalCommissions is up to date before firing the webhook & executing workflows
         const { totalCommissions } = await syncTotalCommissions({
@@ -275,32 +277,31 @@ export const createPartnerCommission = async ({
           }),
 
           // We only capture audit logs for manual commissions
-          user
-            ? recordAuditLog({
-                workspaceId: workspace.id,
-                programId,
-                action: isClawback ? "clawback.created" : "commission.created",
-                description: isClawback
-                  ? `Clawback created for ${partnerId}`
-                  : `Commission created for ${partnerId}`,
-                actor: user,
-                targets: [
-                  {
-                    type: isClawback ? "clawback" : "commission",
-                    id: commission.id,
-                    metadata: commission,
-                  },
-                ],
-              })
-            : Promise.resolve(),
-        ]);
+          user &&
+            recordAuditLog({
+              workspaceId: workspace.id,
+              programId,
+              action: isClawback ? "clawback.created" : "commission.created",
+              description: isClawback
+                ? `Clawback created for ${partnerId}`
+                : `Commission created for ${partnerId}`,
+              actor: user,
+              targets: [
+                {
+                  type: isClawback ? "clawback" : "commission",
+                  id: commission.id,
+                  metadata: commission,
+                },
+              ],
+            }),
 
-        shouldTriggerWorkflow &&
-          executeWorkflows({
-            trigger: WorkflowTrigger.commissionEarned,
-            programId,
-            partnerId,
-          });
+          shouldTriggerWorkflow &&
+            executeWorkflows({
+              trigger: WorkflowTrigger.commissionEarned,
+              programId,
+              partnerId,
+            }),
+        ]);
       })(),
     );
 

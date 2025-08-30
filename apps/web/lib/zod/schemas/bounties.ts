@@ -43,9 +43,11 @@ export const createBountySchema = z.object({
   performanceCondition: workflowConditionSchema.nullish(),
 });
 
-export const updateBountySchema = createBountySchema.omit({
-  type: true,
-});
+export const updateBountySchema = createBountySchema
+  .omit({
+    type: true,
+  })
+  .partial();
 
 export const BountySubmissionFileSchema = z.object({
   url: z.string(),
@@ -53,6 +55,7 @@ export const BountySubmissionFileSchema = z.object({
   size: z.number(),
 });
 
+// used in POST, PATCH, DELETE /bounties + bounty.created, bounty.updated webhooks
 export const BountySchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
@@ -61,11 +64,21 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   rewardAmount: z.number(),
-  submissionRequirements: submissionRequirementsSchema.nullable(),
   performanceCondition: workflowConditionSchema.nullable().default(null),
+  submissionRequirements: submissionRequirementsSchema.nullable().default(null),
+  groups: z.array(GroupSchema.pick({ id: true })),
 });
 
-const BountySubmissionSchema = z.object({
+// used in GET /bounties
+export const BountyListSchema = BountySchema.extend({
+  submissionsCount: z.number().default(0),
+});
+
+export const BountySchemaExtended = BountyListSchema.extend({
+  partnersCount: z.number().default(0),
+});
+
+export const BountySubmissionSchema = z.object({
   id: z.string(),
   description: z.string().nullable(),
   urls: z.array(z.string()).nullable(),
@@ -76,12 +89,6 @@ const BountySubmissionSchema = z.object({
   reviewedAt: z.date().nullable(),
   rejectionReason: z.string().nullable(),
   rejectionNote: z.string().nullable(),
-});
-
-export const BountySchemaExtended = BountySchema.extend({
-  groups: z.array(GroupSchema.pick({ id: true })).nullable(),
-  partners: z.number().default(0),
-  submissions: z.record(z.nativeEnum(BountySubmissionStatus), z.number()),
 });
 
 export const BountySubmissionExtendedSchema = z.object({
@@ -113,32 +120,6 @@ export const BountySubmissionExtendedSchema = z.object({
     name: true,
     image: true,
   }).nullable(),
-});
-
-export const BountyWithPartnerDataSchema = BountySchema.extend({
-  submissions: z.array(BountySubmissionSchema).nullable(),
-  partner: EnrolledPartnerSchema.pick({
-    leads: true,
-    conversions: true,
-    saleAmount: true,
-    totalCommissions: true,
-  }),
-});
-
-export const BOUNTIES_MAX_PAGE_SIZE = 100;
-
-export const getBountiesQuerySchema = z
-  .object({
-    sortBy: z.enum(["createdAt"]).default("createdAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
-  })
-  .merge(getPaginationQuerySchema({ pageSize: BOUNTIES_MAX_PAGE_SIZE }));
-
-export const bountyStatsSchema = z.object({
-  id: z.string(),
-  submissions: z.number(),
-  pendingSubmissions: z.number(),
-  partners: z.number(),
 });
 
 export const rejectBountySubmissionSchema = z.object({

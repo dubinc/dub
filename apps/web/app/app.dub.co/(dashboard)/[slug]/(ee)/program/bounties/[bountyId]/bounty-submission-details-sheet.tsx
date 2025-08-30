@@ -10,11 +10,18 @@ import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { useRejectBountySubmissionModal } from "@/ui/partners/reject-bounty-submission-modal";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { X } from "@/ui/shared/icons";
-import { Button, CopyButton, Sheet, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  CopyButton,
+  Sheet,
+  StatusBadge,
+  useRouterStuff,
+} from "@dub/ui";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 
 type BountySubmissionDetailsSheetProps = {
   submission: BountySubmissionProps;
@@ -106,33 +113,51 @@ function BountySubmissionDetailsSheetContent({
             </h2>
 
             <div className="mt-4 max-w-md space-y-3">
-              <div className="grid grid-cols-2 gap-6">
-                <span className="text-sm font-medium text-neutral-500">
-                  Submitted
-                </span>
-                <span className="text-sm font-medium text-neutral-800">
-                  {formatDate(submission.createdAt, {
+              {[
+                {
+                  label: "Status",
+                  value: (
+                    <StatusBadge
+                      variant={
+                        BOUNTY_SUBMISSION_STATUS_BADGES[submission.status]
+                          .variant
+                      }
+                      icon={
+                        BOUNTY_SUBMISSION_STATUS_BADGES[submission.status].icon
+                      }
+                    >
+                      {BOUNTY_SUBMISSION_STATUS_BADGES[submission.status].label}
+                    </StatusBadge>
+                  ),
+                },
+                {
+                  label: "Submitted",
+                  value: formatDate(submission.createdAt, {
                     month: "short",
                     day: "2-digit",
                     year: "numeric",
                     timeZone: "UTC",
-                  })}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <span className="text-sm font-medium text-neutral-500">
-                  Reward
-                </span>
-                <span className="text-sm font-medium text-neutral-800">
-                  {commission?.earnings
+                  }),
+                },
+                {
+                  label: "Reward",
+                  value: commission?.earnings
                     ? currencyFormatter(commission.earnings / 100, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })
-                    : "-"}
-                </span>
-              </div>
+                    : "-",
+                },
+              ].map((item, index) => (
+                <div key={index} className="grid grid-cols-2 gap-6">
+                  <span className="text-sm font-medium text-neutral-500">
+                    {item.label}
+                  </span>
+                  <span className="text-sm font-medium text-neutral-800">
+                    {item.value}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -213,33 +238,38 @@ function BountySubmissionDetailsSheetContent({
         </div>
 
         <div className="flex items-center justify-between gap-2 border-t border-neutral-200 p-5">
-          <Button
-            type="button"
-            variant="danger"
-            text="Reject"
-            disabledTooltip={
-              submission.status === "rejected"
-                ? "Bounty submission already rejected."
-                : undefined
-            }
-            disabled={
-              isApprovingBountySubmission || submission.status === "approved"
-            }
-            onClick={() => setShowRejectModal(true)}
-          />
+          {submission.status === "approved" ? (
+            <a
+              href={`/${workspaceSlug}/program/commissions?partnerId=${partner.id}&type=custom`}
+              target="_blank"
+              className="w-full"
+            >
+              <Button variant="secondary" text="View commissions" />
+            </a>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="danger"
+                text="Reject"
+                disabledTooltip={
+                  submission.status === "rejected"
+                    ? "Bounty submission already rejected."
+                    : undefined
+                }
+                disabled={isApprovingBountySubmission}
+                onClick={() => setShowRejectModal(true)}
+              />
 
-          <Button
-            type="submit"
-            variant="primary"
-            text="Approve"
-            disabledTooltip={
-              submission.status === "approved"
-                ? "Bounty submission already approved."
-                : undefined
-            }
-            loading={isApprovingBountySubmission}
-            onClick={() => setShowApproveBountySubmissionModal(true)}
-          />
+              <Button
+                type="submit"
+                variant="primary"
+                text="Approve"
+                loading={isApprovingBountySubmission}
+                onClick={() => setShowApproveBountySubmissionModal(true)}
+              />
+            </>
+          )}
         </div>
       </div>
 

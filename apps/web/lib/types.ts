@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import {
+  PartnerBountySchema,
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
@@ -24,11 +25,10 @@ import {
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
+  BountyListSchema,
   BountySchema,
   BountySchemaExtended,
-  bountyStatsSchema,
   BountySubmissionExtendedSchema,
-  BountyWithPartnerDataSchema,
   getBountySubmissionsQuerySchema,
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
@@ -527,12 +527,10 @@ export type GroupProps = z.infer<typeof GroupSchema>;
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
 
 export type BountyProps = z.infer<typeof BountySchema>;
-
+export type BountyListProps = z.infer<typeof BountyListSchema>;
 export type BountyExtendedProps = z.infer<typeof BountySchemaExtended>;
 
-export type BountyWithPartnerDataProps = z.infer<
-  typeof BountyWithPartnerDataSchema
->;
+export type PartnerBountyProps = z.infer<typeof PartnerBountySchema>;
 
 export type BountySubmissionProps = z.infer<
   typeof BountySubmissionExtendedSchema
@@ -540,8 +538,6 @@ export type BountySubmissionProps = z.infer<
 
 export type BountySubmissionRequirement =
   (typeof SUBMISSION_REQUIREMENTS)[number];
-
-export type BountyStats = z.infer<typeof bountyStatsSchema>;
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 
@@ -555,10 +551,10 @@ export type WorkflowAction = z.infer<typeof workflowActionSchema>;
 export type OperatorFn = (a: number, b: number) => boolean;
 
 export interface WorkflowContext {
-  totalCommission: number;
   totalLeads: number;
   totalConversions: number;
   totalSaleAmount: number;
+  totalCommissions: number;
   partnerId: string;
   groupId: string;
 }

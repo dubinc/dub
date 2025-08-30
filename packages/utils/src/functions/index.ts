@@ -1,3 +1,4 @@
+export * from "./array-equal";
 export * from "./camel-case";
 export * from "./capitalize";
 export * from "./chunk";

@@ -1,37 +1,33 @@
-import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getBountyWithDetails } from "@/lib/api/bounties/get-bounty-with-details";
 import { DubApiError } from "@/lib/api/errors";
+import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   BountySchema,
   BountySchemaExtended,
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
-import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@prisma/client";
+import { APP_DOMAIN_WITH_NGROK, arrayEqual } from "@dub/utils";
+import { PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-const schema = z.object({
-  includeExpandedFields: booleanQuerySchema.optional().default("false"),
-});
 
 // GET /api/bounties/[bountyId] - get a bounty
 export const GET = withWorkspace(
-  async ({ workspace, params, searchParams }) => {
+  async ({ workspace, params }) => {
     const { bountyId } = params;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { includeExpandedFields } = schema.parse(searchParams);
 
-    const bounty = await getBountyOrThrow({
+    const bounty = await getBountyWithDetails({
       bountyId,
       programId,
-      includeExpandedFields,
     });
 
     return NextResponse.json(BountySchemaExtended.parse(bounty));
@@ -50,7 +46,7 @@ export const GET = withWorkspace(
 
 // PATCH /api/bounties/[bountyId] - update a bounty
 export const PATCH = withWorkspace(
-  async ({ workspace, params, req }) => {
+  async ({ workspace, params, req, session }) => {
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -71,45 +67,61 @@ export const PATCH = withWorkspace(
         code: "bad_request",
       });
     }
-    const bounty = await getBountyOrThrow({
-      bountyId,
-      programId,
+    const bounty = await prisma.bounty.findUniqueOrThrow({
+      where: {
+        id: bountyId,
+        programId,
+      },
+      include: {
+        groups: true,
+      },
     });
 
     // TODO:
     // When we do archive, make sure it disables the workflow
 
-    const groups = groupIds?.length
-      ? await prisma.partnerGroup.findMany({
-          where: {
-            programId,
-            id: {
-              in: groupIds,
-            },
-          },
-        })
-      : [];
+    // if groupIds is provided and is different from the current groupIds, update the groups
+    let updatedPartnerGroups: PartnerGroup[] | undefined = undefined;
+    if (
+      groupIds &&
+      !arrayEqual(
+        bounty.groups.map((group) => group.groupId),
+        groupIds,
+      )
+    ) {
+      updatedPartnerGroups = await throwIfInvalidGroupIds({
+        programId,
+        groupIds,
+      });
+    }
 
-    const updatedBounty = await prisma.$transaction(async (tx) => {
+    const data = await prisma.$transaction(async (tx) => {
       const updatedBounty = await tx.bounty.update({
         where: {
           id: bounty.id,
         },
         data: {
-          name,
+          name: name ?? undefined,
           description,
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
           rewardAmount,
-          ...(bounty.type === "submission" && {
-            submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
+          ...(bounty.type === "submission" &&
+            submissionRequirements !== undefined && {
+              submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
+            }),
+          ...(updatedPartnerGroups && {
+            groups: {
+              deleteMany: {},
+              create: updatedPartnerGroups.map((group) => ({
+                groupId: group.id,
+              })),
+            },
           }),
-          groups: {
-            deleteMany: {},
-            create: groups.map((group) => ({
-              groupId: group.id,
-            })),
-          },
+        },
+        include: {
+          workflow: true,
+          groups: true,
         },
       });
 
@@ -130,15 +142,47 @@ export const PATCH = withWorkspace(
       };
     });
 
+    const updatedBounty = BountySchema.parse({
+      ...data,
+      groups: data.groups.map(({ groupId }) => ({ id: groupId })),
+      performanceCondition: data.workflow?.triggerConditions?.[0],
+    });
+
     waitUntil(
-      sendWorkspaceWebhook({
-        workspace,
-        trigger: "bounty.updated",
-        data: BountySchema.parse(updatedBounty),
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "bounty.updated",
+          description: `Bounty ${bounty.id} updated`,
+          actor: session?.user,
+          targets: [
+            {
+              type: "bounty",
+              id: bounty.id,
+              metadata: updatedBounty,
+            },
+          ],
+        }),
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "bounty.updated",
+          data: updatedBounty,
+        }),
+
+        // if bounty.startsAt was updated, publish a new message to the queue
+        updatedBounty.startsAt.getTime() !== bounty.startsAt.getTime() &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
+            body: {
+              bountyId: updatedBounty.id,
+            },
+            notBefore: Math.floor(updatedBounty.startsAt.getTime() / 1000),
+          }),
+      ]),
     );
 
-    return NextResponse.json(BountySchema.parse(updatedBounty));
+    return NextResponse.json(updatedBounty);
   },
   {
     requiredPlan: [
@@ -154,17 +198,27 @@ export const PATCH = withWorkspace(
 
 // DELETE /api/bounties/[bountyId] - delete a bounty
 export const DELETE = withWorkspace(
-  async ({ workspace, params }) => {
+  async ({ workspace, params, session }) => {
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const bounty = await getBountyOrThrow({
-      bountyId,
-      programId,
-      includeExpandedFields: true,
+    const bounty = await prisma.bounty.findUniqueOrThrow({
+      where: {
+        id: bountyId,
+        programId,
+      },
+      include: {
+        groups: true,
+        workflow: true,
+        _count: {
+          select: {
+            submissions: true,
+          },
+        },
+      },
     });
 
-    if (bounty.submissions.length > 0) {
+    if (bounty._count.submissions > 0) {
       throw new DubApiError({
         message:
           "Bounties with submissions cannot be deleted. You can archive them instead.",
@@ -179,12 +233,6 @@ export const DELETE = withWorkspace(
         },
       });
 
-      await tx.bountySubmission.deleteMany({
-        where: {
-          bountyId,
-        },
-      });
-
       if (bounty.workflowId) {
         await tx.workflow.delete({
           where: {
@@ -194,8 +242,28 @@ export const DELETE = withWorkspace(
       }
     });
 
-    // TODO:
-    // We should also delete the files submitted for the bounty from R2.
+    const deletedBounty = BountySchema.parse({
+      ...bounty,
+      groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+      performanceCondition: bounty.workflow?.triggerConditions?.[0],
+    });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "bounty.deleted",
+        description: `Bounty ${bountyId} deleted`,
+        actor: session?.user,
+        targets: [
+          {
+            type: "bounty",
+            id: bountyId,
+            metadata: deletedBounty,
+          },
+        ],
+      }),
+    );
 
     return NextResponse.json({ id: bountyId });
   },

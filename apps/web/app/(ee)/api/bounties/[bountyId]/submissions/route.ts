@@ -107,6 +107,9 @@ async function getSubmissions({
       partner: {
         ...submission.programEnrollment?.partner,
         ...submission.programEnrollment,
+        // here's we're making sure the programEnrollment ID doesn't override the actual partner ID
+        // TODO: this is a bit messy, we should refactor this
+        id: submission.programEnrollment?.partnerId,
       },
       submission,
       commission: submission.commission,

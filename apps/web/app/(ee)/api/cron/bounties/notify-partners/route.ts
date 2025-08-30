@@ -5,7 +5,8 @@ import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
+import { differenceInMinutes } from "date-fns";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
@@ -13,12 +14,12 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   bountyId: z.string(),
-  page: z.number().optional().default(1),
+  page: z.number().optional().default(0),
 });
 
-const PAGE_SIZE = 100;
+const MAX_PAGE_SIZE = 5000;
 
-// POST /api/cron/bounties/published
+// POST /api/cron/bounties/notify-partners
 // Send emails to eligible partners about new bounty that is published
 export async function POST(req: Request) {
   try {
@@ -48,10 +49,22 @@ export async function POST(req: Request) {
       });
     }
 
+    let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
+
+    if (diffMinutes >= 10) {
+      return logAndRespond(
+        `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
+      );
+    }
+
     // Find groupIds
     const groupIds = bounty.groups.map(({ groupId }) => groupId);
+    console.log(
+      `Bounty ${bountyId} is applicable to ${
+        groupIds.length === 0 ? "all" : groupIds.length
+      } groups (groupIds: ${JSON.stringify(groupIds)})`,
+    );
 
-    // Find programEnrollments
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId: bounty.programId,
@@ -63,33 +76,43 @@ export async function POST(req: Request) {
         status: {
           in: ["approved", "invited"],
         },
+        partner: {
+          email: {
+            not: null,
+          },
+        },
       },
       include: {
         partner: true,
       },
-      take: PAGE_SIZE,
-      skip: (page - 1) * PAGE_SIZE,
+      orderBy: {
+        createdAt: "asc",
+      },
+      skip: page * MAX_PAGE_SIZE,
+      take: MAX_PAGE_SIZE,
     });
 
     if (programEnrollments.length === 0) {
       return logAndRespond(
-        page === 1
-          ? `No program enrollments found for bounty ${bountyId}.`
-          : `No more program enrollments found for bounty ${bountyId}.`,
+        `No program enrollments found for bounty ${bountyId}.`,
       );
     }
 
-    await resend?.batch.send(
-      programEnrollments
-        .filter(({ partner }) => partner.email)
-        .map(({ partner }) => ({
+    const programEnrollmentChunks = chunk(programEnrollments, 100);
+
+    for (const programEnrollmentChunk of programEnrollmentChunks) {
+      console.log(
+        `Sending emails to ${programEnrollmentChunk.length} partners: ${programEnrollmentChunk.map(({ partner }) => partner.email).join(", ")}`,
+      );
+      await resend?.batch.send(
+        programEnrollmentChunk.map(({ partner }) => ({
           from: VARIANT_TO_FROM_MAP.notifications,
-          to: partner.email!,
+          to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
           subject: `New bounty available for ${bounty.program.name}`,
           react: NewBountyAvailable({
             email: partner.email!,
             bounty: {
-              name: bounty.name!,
+              name: bounty.name,
               type: bounty.type,
               endsAt: bounty.endsAt,
               description: bounty.description,
@@ -103,19 +126,26 @@ export async function POST(req: Request) {
             "Idempotency-Key": `${bountyId}-${partner.id}`,
           },
         })),
+      );
+    }
+
+    if (programEnrollments.length === MAX_PAGE_SIZE) {
+      const res = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
+        body: {
+          bountyId,
+          page: page + 1,
+        },
+      });
+
+      return logAndRespond(
+        `Enqueued next page (${page + 1}) for bounty ${bountyId}. ${JSON.stringify(res, null, 2)}`,
+      );
+    }
+
+    return logAndRespond(
+      `Finished sending emails to ${programEnrollments.length} partners for bounty ${bountyId}.`,
     );
-
-    // Trigger next page
-    const nextPage = page + 1;
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/published`,
-      body: {
-        bountyId,
-        page: nextPage,
-      },
-    });
-
-    return logAndRespond(`Triggered cron for next page ${nextPage}.`);
   } catch (error) {
     await log({
       message: "New bounties published cron failed. Error: " + error.message,

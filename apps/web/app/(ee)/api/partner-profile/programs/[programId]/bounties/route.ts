@@ -1,7 +1,7 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { BountyWithPartnerDataSchema } from "@/lib/zod/schemas/bounties";
+import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -69,30 +69,17 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     },
   });
 
-  const { totalLeads, totalConversions, totalSaleAmount } =
-    aggregatePartnerLinksStats(links);
-
   return NextResponse.json(
-    z.array(BountyWithPartnerDataSchema).parse(
-      bounties.map((bounty) => {
-        const triggerConditions = Array.isArray(
-          bounty.workflow?.triggerConditions,
-        )
-          ? bounty.workflow?.triggerConditions
-          : [];
-
-        return {
-          ...bounty,
-          performanceCondition:
-            triggerConditions.length > 0 ? triggerConditions[0] : null,
-          partner: {
-            leads: totalLeads,
-            conversions: totalConversions,
-            saleAmount: totalSaleAmount,
-            totalCommissions,
-          },
-        };
-      }),
+    z.array(PartnerBountySchema).parse(
+      bounties.map((bounty) => ({
+        ...bounty,
+        submission: bounty.submissions?.[0] || null,
+        performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
+        partner: {
+          ...aggregatePartnerLinksStats(links),
+          totalCommissions,
+        },
+      })),
     ),
   );
 });

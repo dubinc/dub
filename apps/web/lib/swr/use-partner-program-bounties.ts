@@ -1,7 +1,7 @@
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import { BountyWithPartnerDataProps } from "../types";
+import { PartnerBountyProps } from "../types";
 
 export default function usePartnerProgramBounties({
   enabled = true,
@@ -14,7 +14,7 @@ export default function usePartnerProgramBounties({
     data: bounties,
     isLoading,
     error,
-  } = useSWR<BountyWithPartnerDataProps[]>(
+  } = useSWR<PartnerBountyProps[]>(
     enabled &&
       programSlug &&
       `/api/partner-profile/programs/${programSlug}/bounties`,

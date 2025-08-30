@@ -5,22 +5,24 @@ import { BountySubmissionStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-const bountiesCountQuerySchema = z.object({
-  groupBy: z.enum(["status", "bountyId"]).optional().default("status"),
+const bountiesSubmissionsCountQuerySchema = z.object({
+  bountyId: z.string().optional(),
 });
 
 const statuses = Object.values(BountySubmissionStatus);
 
-// GET /api/bounties/count
+// GET /api/bounties/count/submissions – get the total bounty submissions count by status (potentially filtered by bountyId)
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { groupBy } = bountiesCountQuerySchema.parse(searchParams);
+    const { bountyId } =
+      bountiesSubmissionsCountQuerySchema.parse(searchParams);
 
     const count = await prisma.bountySubmission.groupBy({
       by: ["status"],
       where: {
         programId,
+        bountyId,
       },
       _count: true,
     });

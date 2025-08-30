@@ -21,7 +21,7 @@ model Bounty {
   id                     String     @id @default(cuid())
   programId              String
   workflowId             String?    @unique
-  name                   String?
+  name                   String
   description            String?    @db.Text
   type                   BountyType
   startsAt               DateTime

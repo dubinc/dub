@@ -10,7 +10,7 @@ export default function useBounty() {
 
   const { data: bounty, error } = useSWR<BountyExtendedProps>(
     workspaceId && bountyId
-      ? `/api/bounties/${bountyId}?workspaceId=${workspaceId}&includeExpandedFields=true`
+      ? `/api/bounties/${bountyId}?workspaceId=${workspaceId}`
       : undefined,
     fetcher,
   );

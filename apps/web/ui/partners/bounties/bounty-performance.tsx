@@ -1,26 +1,16 @@
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
-import { BountyWithPartnerDataProps } from "@/lib/types";
+import { PartnerBountyProps } from "@/lib/types";
 import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 
-export function BountyPerformance({
-  bounty,
-}: {
-  bounty: BountyWithPartnerDataProps;
-}) {
+export function BountyPerformance({ bounty }: { bounty: PartnerBountyProps }) {
   const performanceCondition = bounty.performanceCondition;
 
   if (!performanceCondition) return null;
 
   const attribute = performanceCondition.attribute;
   const target = performanceCondition.value;
-  let value: number | undefined = undefined;
-
-  if (attribute === "totalLeads") value = bounty.partner.leads;
-  else if (attribute === "totalConversions") value = bounty.partner.conversions;
-  else if (attribute === "totalSaleAmount") value = bounty.partner.saleAmount;
-  else if (attribute === "totalCommission")
-    value = bounty.partner.totalCommissions;
+  const value = bounty.partner[attribute];
 
   const formattedValue =
     value === undefined

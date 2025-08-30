@@ -64,9 +64,9 @@ export const uploadBountySubmissionFileAction = authPartnerActionClient
       throw new Error("This bounty is not for this program.");
     }
 
-    // Validate the partner has not already submitted a bounty for this program
+    // Validate the partner has not already created a submission for this bounty
     if (bounty.submissions.length > 0) {
-      throw new Error("You have already submitted a bounty for this program.");
+      throw new Error("You have already created a submission for this bounty.");
     }
 
     if (bounty.groups.length > 0) {

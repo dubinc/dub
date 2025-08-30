@@ -221,7 +221,7 @@ export function BountySubmissionsTable() {
                   value = row.original.partner.conversions;
                 } else if (attribute === "totalSaleAmount") {
                   value = row.original.partner.saleAmount;
-                } else if (attribute === "totalCommission") {
+                } else if (attribute === "totalCommissions") {
                   value = row.original.partner.totalCommissions;
                 }
 

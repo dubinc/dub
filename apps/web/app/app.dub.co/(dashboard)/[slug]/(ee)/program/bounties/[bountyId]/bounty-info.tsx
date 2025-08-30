@@ -1,13 +1,28 @@
 "use client";
 
 import useBounty from "@/lib/swr/use-bounty";
+import {
+  SubmissionsCountByStatus,
+  useBountySubmissionsCount,
+} from "@/lib/swr/use-bounty-submissions-count";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { formatDate, pluralize } from "@dub/utils";
 import { CalendarDays, Users } from "lucide-react";
+import { useMemo } from "react";
 import { BountyActionButton } from "../bounty-action-button";
 
 export function BountyInfo() {
   const { bounty, loading } = useBounty();
+
+  const { submissionsCount } = useBountySubmissionsCount<
+    SubmissionsCountByStatus[]
+  >({
+    enabled: Boolean(bounty),
+  });
+
+  const totalSubmissions = useMemo(() => {
+    return submissionsCount?.reduce((acc, curr) => acc + curr.count, 0);
+  }, [submissionsCount]);
 
   if (loading) {
     return <BountyInfoSkeleton />;
@@ -16,9 +31,6 @@ export function BountyInfo() {
   if (!bounty) {
     return null;
   }
-
-  const { pending = 0, approved = 0, rejected = 0 } = bounty.submissions;
-  const totalSubmissions = pending + approved + rejected;
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
@@ -45,14 +57,18 @@ export function BountyInfo() {
         <div className="flex items-center space-x-2">
           <Users className="size-4 shrink-0" />
           <div className="text-sm text-neutral-500">
-            <span className="font-medium text-neutral-700">
-              {totalSubmissions}
-            </span>{" "}
+            {totalSubmissions === undefined ? (
+              <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
+            ) : (
+              <span className="font-medium text-neutral-700">
+                {totalSubmissions}
+              </span>
+            )}{" "}
             of{" "}
             <span className="font-medium text-neutral-700">
-              {bounty.partners}
+              {bounty.partnersCount}
             </span>{" "}
-            {pluralize("partner", bounty.partners ?? 0)} completed
+            {pluralize("partner", bounty.partnersCount ?? 0)} completed
           </div>
         </div>
       </div>

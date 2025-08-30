@@ -68,9 +68,9 @@ export const createBountySubmissionAction = authPartnerActionClient
       throw new Error("This bounty is not for this program.");
     }
 
-    // Validate the partner has not already submitted a bounty for this program
+    // Validate the partner has not already created a submission for this bounty
     if (bounty.submissions.length > 0) {
-      throw new Error("You have already submitted a bounty for this program.");
+      throw new Error("You have already created a submission for this bounty.");
     }
 
     if (bounty.groups.length > 0) {
@@ -153,7 +153,7 @@ export const createBountySubmissionAction = authPartnerActionClient
                 },
                 bounty: {
                   id: bounty.id,
-                  name: bounty.name!,
+                  name: bounty.name,
                 },
                 partner: {
                   name: partner.name,
@@ -176,7 +176,7 @@ export const createBountySubmissionAction = authPartnerActionClient
             react: BountySubmitted({
               email: partner.email,
               bounty: {
-                name: bounty.name!,
+                name: bounty.name,
               },
               program: {
                 name: program.name,

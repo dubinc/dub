@@ -161,8 +161,6 @@ const deleteStripeAccountIfRequired = async ({
   partner: Partner;
   input: z.infer<typeof updatePartnerProfileSchema>;
 }) => {
-  const emailChanged = partner.email !== input.email;
-
   const countryChanged =
     partner.country?.toLowerCase() !== input.country?.toLowerCase();
 
@@ -174,10 +172,7 @@ const deleteStripeAccountIfRequired = async ({
     partner.companyName?.toLowerCase() !== input.companyName?.toLowerCase();
 
   const deleteExpressAccount =
-    (emailChanged ||
-      countryChanged ||
-      profileTypeChanged ||
-      companyNameChanged) &&
+    (countryChanged || profileTypeChanged || companyNameChanged) &&
     partner.stripeConnectId;
 
   if (!deleteExpressAccount) {

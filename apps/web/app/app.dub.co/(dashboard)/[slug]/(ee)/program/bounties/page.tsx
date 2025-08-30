@@ -7,11 +7,7 @@ export default function Page() {
   return (
     <PageContent
       title="Bounties"
-      titleInfo={{
-        title:
-          "Learn how partner commissions work on Dub, and how to create manual commissions or clawbacks.",
-        href: "https://dub.co/help/article/partner-commissions-clawbacks",
-      }}
+      // TODO: add title info & href
       controls={<CreateBountyButton />}
     >
       <PageWidthWrapper>

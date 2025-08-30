@@ -1,5 +1,7 @@
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BountyExtendedProps,
@@ -8,10 +10,8 @@ import {
 } from "@/lib/types";
 import { createBountySchema } from "@/lib/zod/schemas/bounties";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
-import {
-  BountyLogic,
-  generateBountyName,
-} from "@/ui/partners/bounties/bounty-logic";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { BountyLogic } from "@/ui/partners/bounties/bounty-logic";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
   ProgramSheetAccordion,
@@ -21,7 +21,6 @@ import {
 } from "@/ui/partners/program-sheet-accordion";
 import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
-import { useApiMutation } from "@/ui/shared/use-api-mutation";
 import {
   AnimatedSizeContainer,
   Button,
@@ -74,6 +73,7 @@ const ACCORDION_ITEMS = [
 
 function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const { id: workspaceId } = useWorkspace();
+  const { program } = useProgram();
   const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
 
   const [requireImage, setRequireImage] = useState(
@@ -102,7 +102,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       performanceCondition: bounty?.performanceCondition
         ? {
             ...bounty.performanceCondition,
-            value: bounty.performanceCondition.value / 100,
+            value: isCurrencyAttribute(bounty.performanceCondition.attribute)
+              ? bounty.performanceCondition.value / 100
+              : bounty.performanceCondition.value,
           }
         : {
             operator: "gte",
@@ -135,6 +137,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     "name",
     "description",
     "performanceCondition",
+    "groupIds",
   ]);
 
   // Make sure endsAt is null if hasEndDate is false
@@ -162,6 +165,17 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       setValue("submissionRequirements", null);
     }
   }, [requireImage, requireUrl, setValue]);
+
+  // Confirmation modal for bounty creation only
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Confirm bounty creation",
+    description:
+      "This will create the bounty and notify all partners in the selected partner groups. Are you sure you want to continue?",
+    confirmText: "Confirm",
+    onConfirm: async () => {
+      await performSubmit();
+    },
+  });
 
   // Decide if the submit button should be disabled
   const shouldDisableSubmit = useMemo(() => {
@@ -198,8 +212,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     performanceCondition?.value,
   ]);
 
-  // Handle form submission
-  const onSubmit = async (data: FormData) => {
+  // Handle actual form submission (called after confirmation)
+  const performSubmit = async () => {
+    const data = form.getValues();
     if (!workspaceId) return;
 
     data.rewardAmount = data.rewardAmount * 100;
@@ -227,11 +242,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       };
 
       data.performanceCondition = condition;
-
-      data.name = generateBountyName({
-        rewardAmount: data.rewardAmount,
-        condition,
-      });
     } else if (type === "submission") {
       data.performanceCondition = null;
     }
@@ -244,14 +254,22 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
         setIsOpen(false);
         toast.success(`Bounty ${bounty ? "updated" : "created"} successfully!`);
       },
-      onError: (message) => {
-        toast.error(message);
-      },
     });
   };
 
+  // Handle form submission (shows confirmation modal for creation only)
+  const onSubmit = handleSubmit(async (data: FormData) => {
+    if (bounty) {
+      // For updates, submit directly without confirmation
+      await performSubmit();
+    } else {
+      // For creation, show confirmation modal
+      setShowConfirmModal(true);
+    }
+  });
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
+    <form onSubmit={onSubmit} className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
@@ -276,26 +294,28 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
               onValueChange={setOpenAccordions}
               className="space-y-6"
             >
-              <ProgramSheetAccordionItem value="bounty-type">
-                <ProgramSheetAccordionTrigger>
-                  Bounty type
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <div className="space-y-4">
-                    <p className="text-content-default text-sm">
-                      Set how the bounty will be completed
-                    </p>
-                    <CardSelector
-                      options={BOUNTY_TYPES}
-                      value={watch("type")}
-                      onChange={(value: FormData["type"]) =>
-                        setValue("type", value)
-                      }
-                      name="bounty-type"
-                    />
-                  </div>
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
+              {!bounty && ( // cannot change type for existing bounties
+                <ProgramSheetAccordionItem value="bounty-type">
+                  <ProgramSheetAccordionTrigger>
+                    Bounty type
+                  </ProgramSheetAccordionTrigger>
+                  <ProgramSheetAccordionContent>
+                    <div className="space-y-4">
+                      <p className="text-content-default text-sm">
+                        Set how the bounty will be completed
+                      </p>
+                      <CardSelector
+                        options={BOUNTY_TYPES}
+                        value={watch("type")}
+                        onChange={(value: FormData["type"]) =>
+                          setValue("type", value)
+                        }
+                        name="bounty-type"
+                      />
+                    </div>
+                  </ProgramSheetAccordionContent>
+                </ProgramSheetAccordionItem>
+              )}
 
               <ProgramSheetAccordionItem value="bounty-details">
                 <ProgramSheetAccordionTrigger>
@@ -426,7 +446,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                               errors.name &&
                                 "border-red-600 focus:border-red-500 focus:ring-red-600",
                             )}
-                            placeholder="Create a YouTube video about..."
+                            placeholder={`Create a YouTube video about${program?.name ? ` ${program.name}` : ""}...`}
                             {...register("name", {
                               setValueAs: (value) =>
                                 value === "" ? null : value,
@@ -583,6 +603,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
           </div>
         </div>
       </FormProvider>
+      {!bounty && confirmModal}
     </form>
   );
 }

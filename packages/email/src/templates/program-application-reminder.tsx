@@ -42,7 +42,7 @@ export default function ProgramApplicationReminder({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-800">
-              You're almost ready!
+              Your application is almost complete!
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">

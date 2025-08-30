@@ -84,6 +84,7 @@ export const executeAwardBountyAction = async ({
     amount: bounty.rewardAmount,
     quantity: 1,
     description: `Commission for successfully completed "${bounty.name}" bounty.`,
+    skipWorkflow: true,
   });
 
   if (!commission) {
@@ -120,7 +121,7 @@ export const executeAwardBountyAction = async ({
       react: BountyCompleted({
         email: partner.email,
         bounty: {
-          name: bounty.name!,
+          name: bounty.name,
           type: bounty.type,
         },
         program: {
