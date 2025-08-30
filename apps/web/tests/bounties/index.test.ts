@@ -6,7 +6,6 @@ const submissionBounty = {
   name: "Submission Bounty",
   description: "some description about the bounty",
   type: "submission",
-  startsAt: new Date().toISOString(),
   endsAt: null,
   rewardAmount: 1000,
   submissionRequirements: ["image", "url"],
@@ -16,7 +15,6 @@ const performanceBounty = {
   name: "Performance Bounty",
   description: "some description about the bounty",
   type: "performance",
-  startsAt: new Date().toISOString(),
   endsAt: null,
   rewardAmount: 1000,
 };
@@ -34,6 +32,8 @@ describe.sequential("/bounties/**", async () => {
       path: "/bounties",
       body: {
         ...performanceBounty,
+        // start 5 mins from now to make sure the bounty is fully deleted so it doesn't trigger email sends
+        startsAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
         groupIds: [BOUNTY_GROUP_ID],
         performanceCondition: {
           attribute: "totalLeads",
@@ -59,6 +59,8 @@ describe.sequential("/bounties/**", async () => {
       path: "/bounties",
       body: {
         ...submissionBounty,
+        // start 5 mins from now to make sure the bounty is fully deleted so it doesn't trigger email sends
+        startsAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
         groupIds: [BOUNTY_GROUP_ID],
       },
     });

@@ -77,24 +77,24 @@ export const approveBountySubmissionAction = authActionClient
       },
     });
 
-    if (partner.email) {
-      waitUntil(
-        Promise.allSettled([
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId: program.id,
-            action: "bounty_submission.approved",
-            description: `Bounty submission approved for ${partner.id}`,
-            actor: user,
-            targets: [
-              {
-                type: "bounty_submission",
-                id: submissionId,
-                metadata: BountySubmissionSchema.parse(bountySubmission),
-              },
-            ],
-          }),
+    waitUntil(
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId: program.id,
+          action: "bounty_submission.approved",
+          description: `Bounty submission approved for ${partner.id}`,
+          actor: user,
+          targets: [
+            {
+              type: "bounty_submission",
+              id: submissionId,
+              metadata: BountySubmissionSchema.parse(bountySubmission),
+            },
+          ],
+        }),
 
+        partner.email &&
           sendEmail({
             subject: "Bounty approved!",
             email: partner.email,
@@ -112,7 +112,6 @@ export const approveBountySubmissionAction = authActionClient
               },
             }),
           }),
-        ]),
-      );
-    }
+      ]),
+    );
   });

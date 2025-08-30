@@ -277,32 +277,31 @@ export const createPartnerCommission = async ({
           }),
 
           // We only capture audit logs for manual commissions
-          user
-            ? recordAuditLog({
-                workspaceId: workspace.id,
-                programId,
-                action: isClawback ? "clawback.created" : "commission.created",
-                description: isClawback
-                  ? `Clawback created for ${partnerId}`
-                  : `Commission created for ${partnerId}`,
-                actor: user,
-                targets: [
-                  {
-                    type: isClawback ? "clawback" : "commission",
-                    id: commission.id,
-                    metadata: commission,
-                  },
-                ],
-              })
-            : Promise.resolve(),
-        ]);
+          user &&
+            recordAuditLog({
+              workspaceId: workspace.id,
+              programId,
+              action: isClawback ? "clawback.created" : "commission.created",
+              description: isClawback
+                ? `Clawback created for ${partnerId}`
+                : `Commission created for ${partnerId}`,
+              actor: user,
+              targets: [
+                {
+                  type: isClawback ? "clawback" : "commission",
+                  id: commission.id,
+                  metadata: commission,
+                },
+              ],
+            }),
 
-        shouldTriggerWorkflow &&
-          executeWorkflows({
-            trigger: WorkflowTrigger.commissionEarned,
-            programId,
-            partnerId,
-          });
+          shouldTriggerWorkflow &&
+            executeWorkflows({
+              trigger: WorkflowTrigger.commissionEarned,
+              programId,
+              partnerId,
+            }),
+        ]);
       })(),
     );
 
