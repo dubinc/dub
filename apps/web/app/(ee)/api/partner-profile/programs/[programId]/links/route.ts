@@ -7,7 +7,7 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { constructURLFromUTMParams } from "@dub/utils";
+import { UtmTemplate } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
@@ -69,42 +69,33 @@ export const POST = withPartnerProfile(
     validatePartnerLinkUrl({ group, url });
 
     // Find the UTM template for the group
-    let utmParams: Record<string, string> = {};
+    let utmTemplate: UtmTemplate | null = null;
+
     if (group.utmTemplateId) {
-      const utmTemplate = await prisma.utmTemplate.findUnique({
+      utmTemplate = await prisma.utmTemplate.findUnique({
         where: {
           id: group.utmTemplateId,
         },
       });
-
-      if (utmTemplate) {
-        utmParams = {
-          utm_source: utmTemplate.utm_source || "",
-          utm_medium: utmTemplate.utm_medium || "",
-          utm_campaign: utmTemplate.utm_campaign || "",
-          utm_term: utmTemplate.utm_term || "",
-          utm_content: utmTemplate.utm_content || "",
-          ref: utmTemplate.ref || "",
-        };
-      }
     }
 
     const { link, error, code } = await processLink({
       payload: {
         domain: program.domain,
         key: key || undefined,
-        url: constructURLFromUTMParams(url || program.url, utmParams),
+        url: url || program.url,
         programId: program.id,
         tenantId,
         partnerId: partner.id,
         folderId: program.defaultFolderId,
         comments,
         trackConversion: true,
-        utm_source: utmParams.utm_source,
-        utm_medium: utmParams.utm_medium,
-        utm_campaign: utmParams.utm_campaign,
-        utm_term: utmParams.utm_term,
-        utm_content: utmParams.utm_content,
+        utmTemplate: utmTemplate?.utm_source,
+        utm_medium: utmTemplate?.utm_medium,
+        utm_campaign: utmTemplate?.utm_campaign,
+        utm_term: utmTemplate?.utm_term,
+        utm_content: utmTemplate?.utm_content,
+        ref: utmTemplate?.ref,
       },
       workspace: {
         id: program.workspaceId,
