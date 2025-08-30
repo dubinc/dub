@@ -164,12 +164,15 @@ export const PATCH = withWorkspace(
           },
         });
 
-        waitUntil(
-          setRenewOption({
-            domain,
-            autoRenew,
-          }),
-        );
+        // only set the autoRenew option on Dynadot if it's been explicitly disabled
+        if (autoRenew === false) {
+          waitUntil(
+            setRenewOption({
+              domain,
+              autoRenew,
+            }),
+          );
+        }
       }
     }
 
