@@ -41,7 +41,7 @@ export const PATCH = withReferralsEmbedToken(
     if (link.partnerGroupDefaultLinkId) {
       throw new DubApiError({
         code: "forbidden",
-        message: "This is your default partner link and cannot be updated.",
+        message: "This is your default link and cannot be updated.",
       });
     }
 

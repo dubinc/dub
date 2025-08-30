@@ -76,10 +76,6 @@ export async function POST(req: Request) {
       ref: utmTemplate.ref || "",
     };
 
-    const hasValidUTMParams = Object.values(utmParams).some(
-      (param) => param !== undefined,
-    );
-
     let hasMore = true;
     let currentCursor = cursor;
     let processedBatches = 0;

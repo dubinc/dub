@@ -6,6 +6,7 @@ import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
+import { constructURLFromUTMParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/embed/referrals/links – get links for a partner
@@ -56,16 +57,42 @@ export const POST = withReferralsEmbedToken(
       },
     });
 
+    // Find the UTM template for the group
+    let utmParams: Record<string, string> = {};
+    if (group.utmTemplateId) {
+      const utmTemplate = await prisma.utmTemplate.findUnique({
+        where: {
+          id: group.utmTemplateId,
+        },
+      });
+
+      if (utmTemplate) {
+        utmParams = {
+          utm_source: utmTemplate.utm_source || "",
+          utm_medium: utmTemplate.utm_medium || "",
+          utm_campaign: utmTemplate.utm_campaign || "",
+          utm_term: utmTemplate.utm_term || "",
+          utm_content: utmTemplate.utm_content || "",
+          ref: utmTemplate.ref || "",
+        };
+      }
+    }
+
     const { link, error, code } = await processLink({
       payload: {
         key: key || undefined,
-        url: url || program.url,
+        url: constructURLFromUTMParams(url || program.url, utmParams),
         domain: program.domain,
         programId: program.id,
         folderId: program.defaultFolderId,
         tenantId: programEnrollment.tenantId,
         partnerId: programEnrollment.partnerId,
         trackConversion: true,
+        utm_source: utmParams.utm_source,
+        utm_medium: utmParams.utm_medium,
+        utm_campaign: utmParams.utm_campaign,
+        utm_term: utmParams.utm_term,
+        utm_content: utmParams.utm_content,
       },
       workspace: {
         id: program.workspaceId,

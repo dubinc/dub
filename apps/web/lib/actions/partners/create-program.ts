@@ -6,7 +6,7 @@ import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { isStored, storage } from "@/lib/storage";
 import { toltImporter } from "@/lib/tolt/importer";
-import { PartnerGroupDefaultLink, PlanProps } from "@/lib/types";
+import { PlanProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
@@ -126,12 +126,6 @@ export const createProgram = async ({
 
     const createdReward = programData.rewards?.[0];
 
-    // Default links for the default group
-    const defaultLink: PartnerGroupDefaultLink = {
-      domain: programData.domain!,
-      url: programData.url!,
-    };
-
     await tx.partnerGroup.upsert({
       where: {
         programId_slug: {
@@ -148,7 +142,14 @@ export const createProgram = async ({
         ...(createdReward && {
           [REWARD_EVENT_COLUMN_MAPPING[createdReward.event]]: createdReward.id,
         }),
-        defaultLinks: [defaultLink],
+        partnerGroupDefaultLinks: {
+          create: {
+            id: createId(),
+            programId,
+            domain: programData.domain!,
+            url: programData.url!,
+          },
+        },
       },
       update: {}, // noop
     });
