@@ -70,8 +70,6 @@ export const PATCH = withPartnerProfile(
         },
       );
 
-      console.log({ linkChanged });
-
       if (linkChanged) {
         throw new DubApiError({
           code: "forbidden",
