@@ -59,6 +59,11 @@ export async function POST(req: Request) {
 
     // Find groupIds
     const groupIds = bounty.groups.map(({ groupId }) => groupId);
+    console.log(
+      `Bounty ${bountyId} is applicable to ${
+        groupIds.length === 0 ? "all" : groupIds.length
+      } groups (groupIds: ${JSON.stringify(groupIds)})`,
+    );
 
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {

@@ -198,7 +198,7 @@ export const PATCH = withWorkspace(
 
 // DELETE /api/bounties/[bountyId] - delete a bounty
 export const DELETE = withWorkspace(
-  async ({ workspace, params }) => {
+  async ({ workspace, params, session }) => {
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -208,6 +208,8 @@ export const DELETE = withWorkspace(
         programId,
       },
       include: {
+        groups: true,
+        workflow: true,
         _count: {
           select: {
             submissions: true,
@@ -239,6 +241,29 @@ export const DELETE = withWorkspace(
         });
       }
     });
+
+    const deletedBounty = BountySchema.parse({
+      ...bounty,
+      groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+      performanceCondition: bounty.workflow?.triggerConditions?.[0],
+    });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "bounty.deleted",
+        description: `Bounty ${bountyId} deleted`,
+        actor: session?.user,
+        targets: [
+          {
+            type: "bounty",
+            id: bountyId,
+            metadata: deletedBounty,
+          },
+        ],
+      }),
+    );
 
     return NextResponse.json({ id: bountyId });
   },

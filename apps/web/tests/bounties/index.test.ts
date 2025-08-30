@@ -72,6 +72,24 @@ describe.sequential("/bounties/**", async () => {
     bountyId = bounty.id;
   });
 
+  test("POST /bounties - invalid group IDs", async () => {
+    const { status, data } = await http.post({
+      path: "/bounties",
+      body: {
+        ...submissionBounty,
+        groupIds: ["invalid-group-id"],
+      },
+    });
+
+    expect(status).toEqual(400);
+    expect(data).toMatchObject({
+      error: {
+        message: "Invalid group IDs detected: invalid-group-id",
+        code: "bad_request",
+      },
+    });
+  });
+
   test("GET /bounties/{bountyId}", async () => {
     const { status, data: bounty } = await http.get<Bounty>({
       path: `/bounties/${bountyId}`,
