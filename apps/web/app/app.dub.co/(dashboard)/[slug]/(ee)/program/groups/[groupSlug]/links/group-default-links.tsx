@@ -1,9 +1,10 @@
 "use client";
 
-import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
-import { DefaultPartnerLink } from "@/lib/types";
+import usePartnerGroupDefaultLinks from "@/lib/swr/use-partner-group-default-links";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { PartnerGroupDefaultLink } from "@/lib/types";
 import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
@@ -12,15 +13,17 @@ import { Trash } from "@dub/ui/icons";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useDefaultPartnerLinkSheet } from "./add-edit-default-partner-link-sheet";
+import { mutate } from "swr";
+import { useDefaultPartnerLinkSheet } from "./add-edit-group-default-link-sheet";
 import { PartnerLinkPreview } from "./partner-link-preview";
 
 export function GroupDefaultLinks() {
-  const { group, loading: isLoadingGroup } = useGroup();
+  const { defaultLinks, loading: loadingDefaultLinks } =
+    usePartnerGroupDefaultLinks();
 
-  const defaultLinks = group?.defaultLinks;
-  const hasReachedMaxLinks =
-    (defaultLinks?.length || 0) >= MAX_DEFAULT_PARTNER_LINKS;
+  const hasReachedMaxLinks = defaultLinks
+    ? defaultLinks.length >= MAX_DEFAULT_PARTNER_LINKS
+    : false;
 
   return (
     <div className="flex flex-col gap-6 rounded-lg border border-neutral-200 p-6">
@@ -36,7 +39,7 @@ export function GroupDefaultLinks() {
 
         <CreateDefaultLinkButton
           hasReachedMaxLinks={hasReachedMaxLinks}
-          isLoadingGroup={isLoadingGroup}
+          isLoadingGroup={loadingDefaultLinks}
         />
       </div>
 
@@ -46,7 +49,7 @@ export function GroupDefaultLinks() {
             <DefaultLinkPreview key={link.url} link={link} />
           ))}
         </div>
-      ) : isLoadingGroup ? (
+      ) : loadingDefaultLinks ? (
         <div className="flex flex-col gap-4">
           <div className="h-52 animate-pulse rounded-xl bg-neutral-50" />
         </div>
@@ -85,44 +88,39 @@ function CreateDefaultLinkButton({
   );
 }
 
-function DefaultLinkPreview({ link }: { link: DefaultPartnerLink }) {
+function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
   const { group } = useGroup();
+  const { id: workspaceId } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
-  const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
+  const { makeRequest: deleteDefaultLink, isSubmitting } = useApiMutation();
   const { DefaultPartnerLinkSheet, setIsOpen } = useDefaultPartnerLinkSheet({
     link,
   });
 
   // Delete default link
-  const deleteDefaultLink = async () => {
+  const onConfirm = async () => {
     if (!group) return;
 
-    const currentDefaultLinks = group.defaultLinks || [];
-    const updatedDefaultLinks = currentDefaultLinks.filter(
-      (existingLink) => existingLink.url !== link.url,
+    await deleteDefaultLink(
+      `/api/groups/${group.id}/default-links/${link.id}`,
+      {
+        method: "DELETE",
+        onSuccess: async () => {
+          await mutate(
+            `/api/groups/${group.slug}/default-links?workspaceId=${workspaceId}`,
+          );
+          setOpenPopover(false);
+          toast.success("Default link deleted!");
+        },
+      },
     );
-
-    await updateGroup(`/api/groups/${group.id}`, {
-      method: "PATCH",
-      body: {
-        defaultLinks: updatedDefaultLinks,
-      },
-      onSuccess: async () => {
-        await mutatePrefix("/api/groups");
-        setOpenPopover(false);
-        toast.success("Default link deleted successfully!");
-      },
-      onError: () => {
-        toast.error("Failed to delete default link. Please try again.");
-      },
-    });
   };
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Delete Default Link",
     description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This action cannot be undone.`,
     confirmText: "Delete",
-    onConfirm: deleteDefaultLink,
+    onConfirm,
   });
 
   return (
@@ -134,6 +132,7 @@ function DefaultLinkPreview({ link }: { link: DefaultPartnerLink }) {
             url={link.url}
             domain={link.domain}
             linkStructure={group?.linkStructure || "query"}
+            className={isSubmitting ? "opacity-50" : undefined}
           />
         </div>
 

@@ -3,7 +3,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
-import { AdditionalPartnerLink } from "@/lib/types";
+import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { Button, Input, Modal } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
@@ -27,7 +27,7 @@ const URL_VALIDATION_MODES = [
 
 interface AddDestinationUrlModalProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  link?: AdditionalPartnerLink;
+  link?: PartnerGroupAdditionalLink;
 }
 
 function AddDestinationUrlModalContent({
@@ -38,7 +38,7 @@ function AddDestinationUrlModalContent({
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
   const { register, handleSubmit, watch, setValue } =
-    useForm<AdditionalPartnerLink>({
+    useForm<PartnerGroupAdditionalLink>({
       defaultValues: {
         url: link?.url || "",
         urlValidationMode: link?.urlValidationMode || "domain",
@@ -47,7 +47,7 @@ function AddDestinationUrlModalContent({
 
   const [url, urlValidationMode] = watch(["url", "urlValidationMode"]);
 
-  const onSubmit = async (data: AdditionalPartnerLink) => {
+  const onSubmit = async (data: PartnerGroupAdditionalLink) => {
     if (!group) return;
 
     const currentAdditionalLinks = group.additionalLinks || [];
@@ -70,7 +70,7 @@ function AddDestinationUrlModalContent({
       return;
     }
 
-    let updatedAdditionalLinks: AdditionalPartnerLink[];
+    let updatedAdditionalLinks: PartnerGroupAdditionalLink[];
 
     if (link) {
       // Editing existing link - find and replace the specific link by URL

@@ -2,17 +2,19 @@ import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-optio
 import { PartnerLinkStructure } from "@dub/prisma/client";
 import { LinkLogo } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
-import { getApexDomain, getPrettyUrl } from "@dub/utils";
+import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { useMemo } from "react";
 
 export function PartnerLinkPreview({
   url,
   domain,
   linkStructure,
+  className,
 }: {
   url: string;
   domain: string;
   linkStructure: PartnerLinkStructure;
+  className?: string;
 }) {
   const linkStructureOptions = getLinkStructureOptions({
     domain,
@@ -28,7 +30,12 @@ export function PartnerLinkPreview({
   }, [linkStructureOptions, linkStructure, domain]);
 
   return (
-    <div className="border-border-subtle group relative flex items-center gap-3 rounded-xl border bg-white p-4 transition-all hover:border-neutral-300 hover:shadow-sm">
+    <div
+      className={cn(
+        "border-border-subtle group relative flex items-center gap-3 rounded-xl border bg-white p-4 transition-all hover:border-neutral-300 hover:shadow-sm",
+        className,
+      )}
+    >
       <div className="relative flex shrink-0 items-center">
         <div className="absolute inset-0 h-8 w-8 rounded-full border border-neutral-200 sm:h-10 sm:w-10">
           <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />

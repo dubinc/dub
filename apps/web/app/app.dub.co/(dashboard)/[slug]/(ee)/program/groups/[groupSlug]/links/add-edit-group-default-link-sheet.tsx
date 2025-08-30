@@ -1,9 +1,8 @@
 "use client";
 
-import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
-import { DefaultPartnerLink } from "@/lib/types";
+import { PartnerGroupDefaultLink } from "@/lib/types";
 import { DomainSelector } from "@/ui/domains/domain-selector";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
@@ -16,6 +15,10 @@ import {
 } from "@dub/ui";
 import { Eye, Hyperlink } from "@dub/ui/icons";
 
+import usePartnerGroupDefaultLinks from "@/lib/swr/use-partner-group-default-links";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { createOrUpdateDefaultLinkSchema } from "@/lib/zod/schemas/groups";
+import { getPrettyUrl } from "@dub/utils";
 import {
   Dispatch,
   PropsWithChildren,
@@ -25,21 +28,28 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { mutate } from "swr";
+import { z } from "zod";
 import { PartnerLinkPreview } from "./partner-link-preview";
 
 interface DefaultPartnerLinkSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  link?: DefaultPartnerLink;
+  link?: PartnerGroupDefaultLink;
 }
+
+type FormData = z.infer<typeof createOrUpdateDefaultLinkSchema>;
 
 function DefaultPartnerLinkSheetContent({
   setIsOpen,
   link,
 }: DefaultPartnerLinkSheetProps) {
   const { group } = useGroup();
-  const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
+  const { id: workspaceId } = useWorkspace();
+  const { defaultLinks } = usePartnerGroupDefaultLinks();
+  const { makeRequest: createOrUpdateDefaultLink, isSubmitting } =
+    useApiMutation();
 
-  const { handleSubmit, watch, setValue } = useForm<DefaultPartnerLink>({
+  const { handleSubmit, watch, setValue } = useForm<FormData>({
     defaultValues: {
       domain: link?.domain || "",
       url: link?.url || "",
@@ -49,51 +59,44 @@ function DefaultPartnerLinkSheetContent({
   const [domain, url] = watch(["domain", "url"]);
 
   // Save the default link
-  const onSubmit = async (data: DefaultPartnerLink) => {
-    if (!group) return;
+  const onSubmit = async (data: FormData) => {
+    if (!group || !defaultLinks) return;
 
-    let updatedDefaultLinks: DefaultPartnerLink[];
-    const currentDefaultLinks = group.defaultLinks || [];
+    // Check if the link already exists
+    const existingLink = defaultLinks.find(
+      (link) =>
+        getPrettyUrl(link.url) === getPrettyUrl(data.url) &&
+        link.domain === data.domain,
+    );
 
-    // Check for duplicate destination URL
-    const isDuplicate = currentDefaultLinks.some((existingLink) => {
-      if (link && existingLink.url === link.url) {
-        return false;
-      }
-
-      return existingLink.url === data.url;
-    });
-
-    if (isDuplicate) {
-      toast.error("A default link with this destination URL already exists.");
+    if (existingLink && existingLink.id !== link?.id) {
+      toast.error(
+        `An existing default link already exists for this domain and URL.`,
+      );
       return;
     }
 
-    // Editing existing link
-    if (link) {
-      updatedDefaultLinks = currentDefaultLinks.map((existingLink) => {
-        return existingLink.url === link.url ? data : existingLink;
-      });
-    } else {
-      updatedDefaultLinks = [...currentDefaultLinks, data];
-    }
-
-    await updateGroup(`/api/groups/${group.id}`, {
-      method: "PATCH",
-      body: {
-        defaultLinks: updatedDefaultLinks,
+    await createOrUpdateDefaultLink(
+      link
+        ? `/api/groups/${group.id}/default-links/${link.id}`
+        : `/api/groups/${group.id}/default-links`,
+      {
+        method: link ? "PATCH" : "POST",
+        body: {
+          domain: data.domain,
+          url: data.url,
+        },
+        onSuccess: async () => {
+          setIsOpen(false);
+          toast.success(
+            link ? "Default link updated!" : "Default link created!",
+          );
+          await mutate(
+            `/api/groups/${group.slug}/default-links?workspaceId=${workspaceId}`,
+          );
+        },
       },
-      onSuccess: async () => {
-        await mutatePrefix("/api/groups");
-        setIsOpen(false);
-        toast.success(
-          link ? "Link updated successfully!" : "Link created successfully!",
-        );
-      },
-      onError: () => {
-        toast.error("Failed to save link. Please try again.");
-      },
-    });
+    );
   };
 
   const isEditing = !!link;
@@ -217,7 +220,7 @@ function DefaultPartnerLinkSheetContent({
             text={isEditing ? "Update link" : "Create link"}
             className="w-fit"
             loading={isSubmitting}
-            disabled={!domain || !url || isSubmitting}
+            disabled={!domain || !url}
           />
         </div>
       </div>
@@ -257,7 +260,7 @@ function DefaultPartnerLinkSheet({
 }
 
 export function useDefaultPartnerLinkSheet(props: {
-  link?: DefaultPartnerLink;
+  link?: PartnerGroupDefaultLink;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 

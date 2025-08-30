@@ -1,10 +1,10 @@
-import { DefaultPartnerLink } from "@/lib/types";
+import { PartnerGroupDefaultLink } from "@/lib/types";
 
 // Identifies new default links added to a group
 export function findNewDefaultPartnerLink(
-  oldLinks: DefaultPartnerLink[] | null,
-  newLinks: DefaultPartnerLink[],
-): DefaultPartnerLink | null {
+  oldLinks: PartnerGroupDefaultLink[] | null,
+  newLinks: PartnerGroupDefaultLink[],
+): PartnerGroupDefaultLink | null {
   return (
     newLinks.find(
       (newLink) => !oldLinks?.some((old) => old.url === newLink.url),

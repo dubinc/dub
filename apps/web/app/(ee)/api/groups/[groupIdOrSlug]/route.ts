@@ -1,12 +1,10 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
-import { findNewDefaultPartnerLink } from "@/lib/api/groups/utils";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { DefaultPartnerLink } from "@/lib/types";
 import {
   DEFAULT_PARTNER_GROUP,
   GroupSchema,
@@ -58,11 +56,10 @@ export const PATCH = withWorkspace(
       name,
       slug,
       color,
-      defaultLinks,
       maxPartnerLinks,
       additionalLinks,
       utmTemplateId,
-      linkStructure
+      linkStructure,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -101,12 +98,6 @@ export const PATCH = withWorkspace(
       });
     }
 
-    const defaultLinksInput = defaultLinks
-      ? defaultLinks.length > 0
-        ? defaultLinks
-        : Prisma.JsonNull
-      : undefined;
-
     const additionalLinksInput = additionalLinks
       ? additionalLinks.length > 0
         ? additionalLinks
@@ -121,11 +112,10 @@ export const PATCH = withWorkspace(
         name,
         slug,
         color,
-        ...(defaultLinksInput && { defaultLinks: defaultLinksInput }),
         ...(additionalLinksInput && { additionalLinks: additionalLinksInput }),
         maxPartnerLinks,
         utmTemplateId,
-        linkStructure
+        linkStructure,
       },
       include: {
         clickReward: true,
@@ -134,15 +124,6 @@ export const PATCH = withWorkspace(
         discount: true,
       },
     });
-
-    // Identify changes in default links
-    let newDefaultLink: DefaultPartnerLink | null = null;
-    if (defaultLinks) {
-      newDefaultLink = findNewDefaultPartnerLink(
-        group.defaultLinks as any,
-        defaultLinks,
-      );
-    }
 
     // Identify changes in UTM template
     let utmTemplateDiff = false;
@@ -166,16 +147,6 @@ export const PATCH = withWorkspace(
             },
           ],
         }),
-
-        newDefaultLink &&
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/create-default-link`,
-            body: {
-              groupId: group.id,
-              userId: session.user.id,
-              defaultLink: newDefaultLink,
-            },
-          }),
 
         utmTemplateDiff &&
           qstash.publishJSON({
@@ -284,31 +255,29 @@ export const DELETE = withWorkspace(
     });
 
     waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-            body: {
-              groupId: defaultGroup.id,
-            },
-          }),
+      Promise.allSettled([
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+          body: {
+            groupId: defaultGroup.id,
+          },
+        }),
 
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "group.deleted",
-            description: `Group ${group.name} (${group.id}) deleted`,
-            actor: session.user,
-            targets: [
-              {
-                type: "group",
-                id: group.id,
-                metadata: group,
-              },
-            ],
-          }),
-        ]);
-      })(),
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "group.deleted",
+          description: `Group ${group.name} (${group.id}) deleted`,
+          actor: session.user,
+          targets: [
+            {
+              type: "group",
+              id: group.id,
+              metadata: group,
+            },
+          ],
+        }),
+      ]),
     );
 
     return NextResponse.json({ id: group.id });

@@ -3,7 +3,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
-import { AdditionalPartnerLink, GroupProps } from "@/lib/types";
+import { PartnerGroupAdditionalLink, GroupProps } from "@/lib/types";
 import {
   MAX_ADDITIONAL_PARTNER_LINKS,
   updateGroupSchema,
@@ -17,7 +17,7 @@ import { PropsWithChildren, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useAddDestinationUrlModal } from "./add-edit-additional-partner-link-modal";
+import { useAddDestinationUrlModal } from "./add-edit-group-additional-link-modal";
 
 type FormData = Pick<
   z.input<typeof updateGroupSchema>,
@@ -207,7 +207,7 @@ function SettingsRow({
   );
 }
 
-function DestinationUrl({ link }: { link: AdditionalPartnerLink }) {
+function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
   const { group, mutateGroup } = useGroup();
   const [openPopover, setOpenPopover] = useState(false);
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();

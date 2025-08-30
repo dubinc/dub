@@ -1,4 +1,4 @@
-import { AdditionalPartnerLink } from "@/lib/types";
+import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { getApexDomain } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
 import { DubApiError } from "../errors";
@@ -21,7 +21,7 @@ export const validatePartnerLinkUrl = ({
     });
   }
 
-  const additionalLinks = group.additionalLinks as AdditionalPartnerLink[];
+  const additionalLinks = group.additionalLinks as PartnerGroupAdditionalLink[];
 
   // Find matching additional link based on its validation mode
   const matchFound = additionalLinks.find((additionalLink) => {

@@ -6,7 +6,7 @@ import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { isStored, storage } from "@/lib/storage";
 import { toltImporter } from "@/lib/tolt/importer";
-import { DefaultPartnerLink, PlanProps } from "@/lib/types";
+import { PartnerGroupDefaultLink, PlanProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
@@ -127,7 +127,7 @@ export const createProgram = async ({
     const createdReward = programData.rewards?.[0];
 
     // Default links for the default group
-    const defaultLink: DefaultPartnerLink = {
+    const defaultLink: PartnerGroupDefaultLink = {
       domain: programData.domain!,
       url: programData.url!,
     };

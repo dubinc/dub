@@ -1,4 +1,4 @@
-import { AdditionalPartnerLink, DefaultPartnerLink } from "@/lib/types";
+import { PartnerGroupAdditionalLink, PartnerGroupDefaultLink } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
@@ -12,12 +12,12 @@ async function main() {
   console.log(`Found ${programs.length} programs.`);
 
   for (const program of programs) {
-    const defaultLink: DefaultPartnerLink = {
+    const defaultLink: PartnerGroupDefaultLink = {
       domain: program.domain!,
       url: program.url!,
     };
 
-    let additionalLink: AdditionalPartnerLink | undefined = undefined;
+    let additionalLink: PartnerGroupAdditionalLink | undefined = undefined;
 
     if (program.maxPartnerLinks > 0) {
       additionalLink = {

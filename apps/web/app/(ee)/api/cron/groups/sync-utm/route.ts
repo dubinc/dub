@@ -65,6 +65,7 @@ export async function POST(req: Request) {
       utm_campaign: utmTemplate.utm_campaign,
       utm_term: utmTemplate.utm_term,
       utm_content: utmTemplate.utm_content,
+      ref: utmTemplate.ref,
     } as Record<string, string>;
 
     let currentPage = 0;

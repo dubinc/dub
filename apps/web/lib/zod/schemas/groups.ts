@@ -18,14 +18,11 @@ export const DEFAULT_PARTNER_GROUP = {
   color: null,
 } as const;
 
-export const MAX_DEFAULT_PARTNER_LINKS = 10;
+export const MAX_DEFAULT_PARTNER_LINKS = 5;
 
 export const MAX_ADDITIONAL_PARTNER_LINKS = 10;
 
-export const defaultPartnerLinkSchema = z.object({
-  domain: z.string(),
-  url: parseUrlSchema,
-});
+export const GROUPS_MAX_PAGE_SIZE = 100;
 
 export const additionalPartnerLinkSchema = z.object({
   url: parseUrlSchema,
@@ -43,7 +40,6 @@ export const GroupSchema = z.object({
   saleReward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
   utmTemplate: UTMTemplateSchema.nullish(),
-  defaultLinks: z.array(defaultPartnerLinkSchema).nullable(),
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
   linkStructure: z.nativeEnum(PartnerLinkStructure),
@@ -59,6 +55,11 @@ export const GroupSchemaExtended = GroupSchema.extend({
   commissions: z.number().default(0),
   netRevenue: z.number().default(0),
   partnersCount: z.number().default(0),
+});
+
+export const createOrUpdateDefaultLinkSchema = z.object({
+  domain: z.string().trim().toLowerCase(),
+  url: parseUrlSchema,
 });
 
 export const createGroupSchema = z.object({
@@ -86,10 +87,6 @@ export const createGroupSchema = z.object({
 });
 
 export const updateGroupSchema = createGroupSchema.partial().extend({
-  defaultLinks: z
-    .array(defaultPartnerLinkSchema)
-    .max(MAX_DEFAULT_PARTNER_LINKS)
-    .optional(),
   additionalLinks: z
     .array(additionalPartnerLinkSchema)
     .max(MAX_ADDITIONAL_PARTNER_LINKS)
@@ -99,11 +96,15 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   linkStructure: z.nativeEnum(PartnerLinkStructure).optional(),
 });
 
+export const PartnerGroupDefaultLinkSchema = z.object({
+  id: z.string(),
+  domain: z.string(),
+  url: parseUrlSchema,
+});
+
 export const changeGroupSchema = z.object({
   partnerIds: z.array(z.string()).min(1),
 });
-
-export const GROUPS_MAX_PAGE_SIZE = 100;
 
 export const getGroupsQuerySchema = z
   .object({

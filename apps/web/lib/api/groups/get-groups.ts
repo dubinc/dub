@@ -40,7 +40,6 @@ export async function getGroups(filters: GroupFilters) {
       pg.name,
       pg.slug,
       pg.color,
-      pg.defaultLinks,
       pg.additionalLinks,
       pg.maxPartnerLinks,
       pg.linkStructure,

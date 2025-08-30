@@ -109,7 +109,6 @@ model PartnerGroup {
   saleRewardId    String?              @unique
   discountId      String?              @unique
   linkStructure   PartnerLinkStructure @default(short)
-  defaultLinks    Json?                @db.Json
   additionalLinks Json?                @db.Json
   maxPartnerLinks Int                  @default(0)
   utmTemplateId   String?              @unique
@@ -131,11 +130,13 @@ model PartnerGroup {
 }
 
 model PartnerGroupDefaultLink {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   programId String
   groupId   String
   domain    String
   url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   program      Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
   partnerGroup PartnerGroup @relation(fields: [groupId], references: [id])

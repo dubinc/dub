@@ -48,9 +48,9 @@ import { DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
 import {
   additionalPartnerLinkSchema,
-  defaultPartnerLinkSchema,
   GroupSchema,
   GroupSchemaExtended,
+  PartnerGroupDefaultLinkSchema,
 } from "./zod/schemas/groups";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
@@ -293,6 +293,7 @@ export type ProcessedLinkProps = Omit<NewLinkProps, ProcessedLinkOverrides> &
   Pick<LinkProps, ProcessedLinkOverrides> & { userId?: LinkProps["userId"] } & {
     createdAt?: Date;
     id?: string;
+    partnerGroupDefaultLinkId?: string;
   };
 
 export const plans = [
@@ -529,19 +530,22 @@ export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 
 export type GroupProps = z.infer<typeof GroupSchema> & {
-  defaultLinks: DefaultPartnerLink[] | null;
-  additionalLinks: AdditionalPartnerLink[] | null;
+  additionalLinks: PartnerGroupAdditionalLink[] | null;
 };
 
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
 
-export type DefaultPartnerLink = z.infer<typeof defaultPartnerLinkSchema>;
+export type PartnerGroupDefaultLink = z.infer<
+  typeof PartnerGroupDefaultLinkSchema
+>;
 
-export type AdditionalPartnerLink = z.infer<typeof additionalPartnerLinkSchema>;
+export type PartnerGroupAdditionalLink = z.infer<
+  typeof additionalPartnerLinkSchema
+>;
 
 export type PartnerGroupProps = PartnerGroup & {
-  defaultLinks: DefaultPartnerLink[];
-  additionalLinks: AdditionalPartnerLink[];
+  defaultLinks: PartnerGroupDefaultLink[];
+  additionalLinks: PartnerGroupAdditionalLink[];
 };
 export type BountyProps = z.infer<typeof BountySchema>;
 export type BountyListProps = z.infer<typeof BountyListSchema>;
@@ -579,12 +583,3 @@ export interface WorkflowContext {
 export type BountySubmissionsQueryFilters = z.infer<
   typeof getBountySubmissionsQuerySchema
 >;
-
-// export type BountySubmissionsCount = Record<
-//   BountySubmissionStatus,
-//   {
-//     count: number;
-//     amount: number;
-//     earnings: number;
-//   }
-// >;
