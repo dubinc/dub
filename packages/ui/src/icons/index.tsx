@@ -29,6 +29,8 @@ export * from "./loading-dots";
 export * from "./loading-spinner";
 
 // brand logos
+export * from "./anthropic";
+export * from "./openai";
 export * from "./facebook";
 export * from "./github";
 export * from "./google";
