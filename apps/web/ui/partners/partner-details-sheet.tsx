@@ -142,10 +142,10 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                     : nFormatter(partner.leads, { full: true }),
                 ],
                 [
-                  "Sales",
-                  !partner.sales
+                  "Conversions",
+                  !partner.conversions
                     ? "-"
-                    : nFormatter(partner.sales, { full: true }),
+                    : nFormatter(partner.conversions, { full: true }),
                 ],
                 [
                   "Revenue",
