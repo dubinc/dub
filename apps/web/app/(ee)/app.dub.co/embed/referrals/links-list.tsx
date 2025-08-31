@@ -1,3 +1,4 @@
+import { PartnerGroupProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button, CopyButton, Table, Users, useTable } from "@dub/ui";
 import { Pen2, Plus2 } from "@dub/ui/icons";
@@ -8,7 +9,7 @@ import {
   nFormatter,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
-import { PartnerGroup } from "@prisma/client";
+import { Program } from "@prisma/client";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -16,13 +17,15 @@ import { useEmbedToken } from "../use-embed-token";
 import { ReferralsEmbedLink } from "./types";
 
 interface Props {
+  program: Pick<Program, "name">;
   links: ReferralsEmbedLink[];
-  group: Pick<PartnerGroup, "id" | "additionalLinks" | "maxPartnerLinks">;
+  group: Pick<PartnerGroupProps, "id" | "additionalLinks" | "maxPartnerLinks">;
   onCreateLink: () => void;
   onEditLink: (link: ReferralsEmbedLink) => void;
 }
 
 export function ReferralsEmbedLinksList({
+  program,
   links,
   group,
   onCreateLink,
@@ -51,6 +54,8 @@ export function ReferralsEmbedLinksList({
   }, [refreshedLinks]);
 
   const linksLimitReached = partnerLinks.length >= group.maxPartnerLinks;
+  const canCreateNewLink =
+    group.maxPartnerLinks > 0 && group.additionalLinks.length > 0;
 
   const { table, ...tableProps } = useTable({
     data: partnerLinks,
@@ -99,11 +104,13 @@ export function ReferralsEmbedLinksList({
             className="h-7 w-7 p-1.5"
             icon={<Plus2 className="size-4" />}
             onClick={onCreateLink}
-            disabled={linksLimitReached}
+            disabled={linksLimitReached || !canCreateNewLink}
             disabledTooltip={
               linksLimitReached
                 ? `You have reached the limit of ${group.maxPartnerLinks} referral links.`
-                : undefined
+                : !canCreateNewLink
+                  ? `${program.name} program does not allow partners to create new links.`
+                  : undefined
             }
           />
         ),

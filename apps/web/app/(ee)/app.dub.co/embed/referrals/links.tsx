@@ -1,4 +1,5 @@
-import { PartnerGroup, Program } from "@prisma/client";
+import { PartnerGroupProps } from "@/lib/types";
+import { Program } from "@prisma/client";
 import { useState } from "react";
 import { ReferralsEmbedCreateUpdateLink } from "./add-edit-link";
 import { ReferralsEmbedLinksList } from "./links-list";
@@ -6,14 +7,11 @@ import { ReferralsEmbedLink } from "./types";
 
 interface Props {
   links: ReferralsEmbedLink[];
-  program: Pick<
-    Program,
-    "domain" | "url" | "urlValidationMode" | "maxPartnerLinks"
-  >;
-  group: Pick<PartnerGroup, "id" | "additionalLinks" | "maxPartnerLinks">;
+  program: Pick<Program, "domain" | "url" | "name">;
+  group: Pick<PartnerGroupProps, "id" | "additionalLinks" | "maxPartnerLinks">;
 }
 
-export default function ReferralsEmbedLinks({ links, program, group }: Props) {
+export function ReferralsEmbedLinks({ links, program, group }: Props) {
   const [createLink, setCreateLink] = useState(false);
   const [link, setLink] = useState<ReferralsEmbedLink | null>(null);
 
@@ -23,6 +21,7 @@ export default function ReferralsEmbedLinks({ links, program, group }: Props) {
         <ReferralsEmbedCreateUpdateLink
           program={program}
           link={link}
+          group={group}
           onCancel={() => {
             setCreateLink(false);
             setLink(null);
@@ -30,6 +29,7 @@ export default function ReferralsEmbedLinks({ links, program, group }: Props) {
         />
       ) : (
         <ReferralsEmbedLinksList
+          program={program}
           links={links}
           group={group}
           onCreateLink={() => setCreateLink(true)}

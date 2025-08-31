@@ -2,13 +2,13 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
-import { DiscountProps, RewardProps } from "@/lib/types";
+import { DiscountProps, PartnerGroupProps, RewardProps } from "@/lib/types";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Partner, PartnerGroup, Program } from "@dub/prisma/client";
+import { Partner, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -28,7 +28,7 @@ import { ReferralsEmbedEarnings } from "./earnings";
 import { ReferralsEmbedEarningsSummary } from "./earnings-summary";
 import { ReferralsEmbedFAQ } from "./faq";
 import { ReferralsEmbedLeaderboard } from "./leaderboard";
-import ReferralsEmbedLinks from "./links";
+import { ReferralsEmbedLinks } from "./links";
 import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
 import { ThemeOptions } from "./theme-options";
@@ -63,7 +63,7 @@ export function ReferralsEmbedPageClient({
     saleAmount: number;
   };
   group: Pick<
-    PartnerGroup,
+    PartnerGroupProps,
     "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
   >;
   themeOptions: ThemeOptions;
