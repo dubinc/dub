@@ -3,7 +3,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
-import { PartnerGroupAdditionalLink, GroupProps } from "@/lib/types";
+import { GroupProps, PartnerGroupAdditionalLink } from "@/lib/types";
 import {
   MAX_ADDITIONAL_PARTNER_LINKS,
   updateGroupSchema,

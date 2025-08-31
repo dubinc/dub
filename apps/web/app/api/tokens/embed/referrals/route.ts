@@ -79,7 +79,7 @@ export const POST = withWorkspace(
           program,
           partner: {
             ...partner,
-            tenantId
+            tenantId,
           },
           link,
           userId: session.user.id,
