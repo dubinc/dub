@@ -15,7 +15,7 @@ import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
 
 const defaultDescriptions = {
   Advanced:
-    "When you upgrade to Advanced, you'll get access to higher payout limits, advanced reward structures, white-labeling support, and more.",
+    "When you upgrade to Advanced, you'll get access to higher payout limits, advanced reward structures, embedded referral dashboard, and more.",
   Enterprise:
     "When you upgrade to Enterprise, you'll get access to unlimited payouts, unlimited partner groups, and more.",
 };
@@ -65,13 +65,13 @@ export function PartnersUpgradeModal({
             },
           },
           {
-            id: "whitelabel",
-            text: "White-labeling support",
+            id: "embeddedreferrals",
+            text: "Embedded referral dashboard",
             tooltip: {
               title:
-                "Embed a white-labeled referral dashboard directly in your app in just a few lines of code.",
+                "Create an embedded referral dashboard directly in your app in just a few lines of code.",
               cta: "Learn more.",
-              href: "https://dub.co/docs/partners/white-labeling",
+              href: "https://dub.co/docs/partners/embedded-referrals",
             },
           },
           {
