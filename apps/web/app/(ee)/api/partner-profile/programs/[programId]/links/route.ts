@@ -90,7 +90,7 @@ export const POST = withPartnerProfile(
         folderId: program.defaultFolderId,
         comments,
         trackConversion: true,
-        utmTemplate: utmTemplate?.utm_source,
+        utm_source: utmTemplate?.utm_source,
         utm_medium: utmTemplate?.utm_medium,
         utm_campaign: utmTemplate?.utm_campaign,
         utm_term: utmTemplate?.utm_term,
