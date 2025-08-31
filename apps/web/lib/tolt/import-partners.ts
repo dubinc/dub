@@ -156,6 +156,7 @@ async function createPartner({
       },
     },
     create: {
+      id: createId({ prefix: "pge_" }),
       programId: program.id,
       partnerId: partner.id,
       status: "approved",

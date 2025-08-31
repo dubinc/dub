@@ -276,8 +276,8 @@ export const PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "White-labeling support",
-        href: "https://dub.co/docs/partners/white-labeling",
+        text: "Embedded referral dashboard",
+        href: "https://dub.co/docs/partners/embedded-referrals",
       },
       {
         check: {

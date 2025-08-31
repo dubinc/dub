@@ -281,7 +281,7 @@ function RewardSheetContent({
     usePartnersUpgradeModal({
       plan: "Advanced",
       description:
-        "When you upgrade to Advanced, you'll get access to higher payout limits, advanced reward structures, white-labeling support, and more.",
+        "When you upgrade to Advanced, you'll get access to higher payout limits, advanced reward structures, embedded referral dashboard, and more.",
     });
 
   return (

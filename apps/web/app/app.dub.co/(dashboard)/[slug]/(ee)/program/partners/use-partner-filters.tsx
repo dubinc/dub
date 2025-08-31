@@ -51,19 +51,20 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
         icon: Users6,
         label: "Group",
         options:
-          groups?.map((group) => {
-            const count = groupCount?.find(
-              ({ groupId }) => groupId === group.id,
-            )?._count;
+          groupCount
+            ?.map(({ groupId, _count }) => {
+              const groupData = groups?.find(({ id }) => id === groupId);
+              if (!groupData) return null;
 
-            return {
-              value: group.id,
-              label: group.name,
-              icon: <GroupColorCircle group={group} />,
-              right: nFormatter(count || 0, { full: true }),
-              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
-            };
-          }) ?? null,
+              return {
+                value: groupId,
+                label: groupData.name,
+                icon: <GroupColorCircle group={groupData} />,
+                right: nFormatter(_count || 0, { full: true }),
+                permalink: `/${slug}/program/groups/${groupData.slug}/rewards`,
+              };
+            })
+            .filter(Boolean) ?? null,
       },
       {
         key: "status",
