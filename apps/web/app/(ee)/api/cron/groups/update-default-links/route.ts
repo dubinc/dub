@@ -1,14 +1,13 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { processLink } from "@/lib/api/links";
 import { linkCache } from "@/lib/api/links/cache";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
-  constructURLFromUTMParams,
-  getParamsFromURL,
-  getUrlWithoutUTMParams,
   isFulfilled,
   linkConstructorSimple,
   log,
@@ -64,6 +63,9 @@ export async function POST(req: Request) {
       where: {
         id: defaultLink.groupId,
       },
+      include: {
+        program: true,
+      },
     });
 
     if (!group) {
@@ -97,12 +99,6 @@ export async function POST(req: Request) {
         orderBy: {
           id: "asc",
         },
-        select: {
-          id: true,
-          url: true,
-          key: true,
-          domain: true,
-        },
       });
 
       if (links.length === 0) {
@@ -111,60 +107,77 @@ export async function POST(req: Request) {
       }
 
       // Process the links
-      const processedLinks = links.map((link) => {
-        const url = getUrlWithoutUTMParams(link.url);
-        const domainChanged = link.domain !== defaultLink.domain;
+      const processedLinks = await Promise.all(
+        links.map((link) => {
+          const skipKeyChecks =
+            link.domain.toLowerCase() === defaultLink.domain.toLowerCase();
 
-        return {
-          id: link.id,
-          url:
-            url !== defaultLink.url
-              ? constructURLFromUTMParams(
-                  defaultLink.url,
-                  getParamsFromURL(link.url),
-                )
-              : undefined,
-          domain: domainChanged ? defaultLink.domain : undefined,
-          shortLink: domainChanged
-            ? linkConstructorSimple({
-                domain: defaultLink.domain,
-                key: link.key,
-              })
-            : undefined,
-        };
-      });
-
-      // Update the links
-      const updatedLinksPromises = await Promise.allSettled(
-        processedLinks.map((link) =>
-          prisma.link.update({
-            where: {
-              id: link.id,
+          return processLink({
+            // @ts-expect-error
+            payload: {
+              ...link,
+              domain: defaultLink.domain,
+              url: defaultLink.url,
             },
-            data: {
-              url: link.url,
-              domain: link.domain,
-              shortLink: link.shortLink,
+            workspace: {
+              id: group.program.workspaceId,
+              plan: "business",
             },
-            include: {
-              tags: {
-                select: {
-                  tag: true,
-                },
-              },
-            },
-          }),
-        ),
+            skipKeyChecks,
+            skipFolderChecks: true,
+            skipProgramChecks: true,
+            skipExternalIdChecks: true,
+          });
+        }),
       );
 
-      const updatedLinks = updatedLinksPromises
-        .filter(isFulfilled)
-        .map((link) => link.value);
+      const validLinks = processedLinks
+        .filter(({ error }) => error == null)
+        .map(({ link }) => link);
 
-      await Promise.allSettled([
-        recordLink(updatedLinks),
-        linkCache.expireMany(updatedLinks),
-      ]);
+      const errorLinks = processedLinks
+        .filter(({ error }) => error != null)
+        .map(({ link: { domain, key }, error }) => ({
+          domain,
+          key,
+          error,
+        }));
+
+      // Bulk update the links
+      if (validLinks.length > 0) {
+        const updatedLinkPromises = await Promise.allSettled(
+          validLinks.map((link) =>
+            prisma.link.update({
+              where: {
+                id: link.id,
+              },
+              // @ts-expect-error
+              data: {
+                ...link,
+                shortLink: linkConstructorSimple({
+                  domain: defaultLink.domain,
+                  key: link.key,
+                }),
+              },
+              include: includeTags,
+            }),
+          ),
+        );
+
+        const updatedLinks = updatedLinkPromises
+          .filter(isFulfilled)
+          .map(({ value }) => value);
+
+        await Promise.allSettled([
+          recordLink(updatedLinks),
+          linkCache.expireMany(validLinks),
+        ]);
+      }
+
+      if (errorLinks.length > 0) {
+        console.error(errorLinks);
+        console.log(`Failed to update ${errorLinks.length} links.`);
+      }
 
       // Update cursor to the last processed record
       currentCursor = links[links.length - 1].id;
