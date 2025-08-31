@@ -26,6 +26,7 @@ import {
 import {
   cn,
   getApexDomain,
+  getUrlWithoutUTMParams,
   linkConstructor,
   punycode,
   regexEscape,
@@ -198,7 +199,7 @@ function PartnerLinkModalContent({
     defaultValues:
       link && destinationDomain
         ? {
-            url: link.url.replace(
+            url: getUrlWithoutUTMParams(link.url).replace(
               new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
               "",
             ),
