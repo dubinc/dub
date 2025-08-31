@@ -227,7 +227,7 @@ function AddDestinationUrlModalContent({
             variant="secondary"
             onClick={() => setIsOpen(false)}
             text="Cancel"
-            className="w-fit"
+            className="h-10 w-fit"
             disabled={isSubmitting}
           />
 
@@ -235,7 +235,7 @@ function AddDestinationUrlModalContent({
             type="submit"
             variant="primary"
             text={isEditing ? "Update destination URL" : "Add destination URL"}
-            className="w-fit"
+            className="h-10 w-fit"
             disabled={!url || !urlValidationMode}
             loading={isSubmitting}
           />
