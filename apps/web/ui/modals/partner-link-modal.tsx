@@ -5,7 +5,6 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { QRCode } from "@/ui/shared/qr-code";
-import { PartnerUrlValidationMode } from "@dub/prisma/client";
 import {
   Button,
   Combobox,
@@ -173,8 +172,6 @@ function PartnerLinkModalContent({
   const { programEnrollment } = useProgramEnrollment();
   const [lockKey, setLockKey] = useState(Boolean(link));
   const [isLoading, setIsLoading] = useState(false);
-  const [urlValidationMode, setUrlValidationMode] =
-    useState<PartnerUrlValidationMode>();
   const [isExactMode, setIsExactMode] = useState(false);
 
   const shortLinkDomain = programEnrollment?.program?.domain ?? "dub.sh";
@@ -186,7 +183,7 @@ function PartnerLinkModalContent({
   );
 
   const [destinationDomain, setDestinationDomain] = useState(
-    destinationDomains?.[0],
+    link ? getApexDomain(link.url) : destinationDomains?.[0] ?? null,
   );
 
   useEffect(() => {
@@ -194,27 +191,21 @@ function PartnerLinkModalContent({
       (link) => getApexDomain(link.url) === destinationDomain,
     );
 
-    if (!additionalLink) {
-      return;
-    }
-
-    const isExactMode = additionalLink.urlValidationMode === "exact";
-
-    setUrlValidationMode(additionalLink.urlValidationMode);
-    setIsExactMode(isExactMode);
+    setIsExactMode(additionalLink?.urlValidationMode === "exact");
   }, [destinationDomain, additionalLinks]);
 
   const form = useForm<PartnerLinkFormData>({
-    defaultValues: link
-      ? {
-          url: link.url.replace(
-            new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
-            "",
-          ),
-          key: link.key,
-          comments: link.comments ?? "",
-        }
-      : undefined,
+    defaultValues:
+      link && destinationDomain
+        ? {
+            url: link.url.replace(
+              new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
+              "",
+            ),
+            key: link.key,
+            comments: link.comments ?? "",
+          }
+        : undefined,
   });
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -237,7 +228,7 @@ function PartnerLinkModalContent({
       Boolean(
         isLoading || (link && !isDirty) || destinationDomains.length === 0,
       ),
-    [isLoading, link, isDirty, destinationDomains, destinationDomain],
+    [isLoading, link, isDirty, destinationDomains],
   );
 
   // If there is only one destination domain and we are in exact mode, hide the destination URL input
