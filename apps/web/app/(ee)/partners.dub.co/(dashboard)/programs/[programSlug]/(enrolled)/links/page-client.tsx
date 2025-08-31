@@ -50,6 +50,16 @@ export function ProgramLinksPageClient() {
 
   useKeyboardShortcut("c", () => setShowPartnerLinkModal(true));
 
+  const maxPartnerLinks = programEnrollment?.group?.maxPartnerLinks;
+  const additionalLinks = programEnrollment?.group?.additionalLinks;
+
+  const canCreateNewLink =
+    links &&
+    maxPartnerLinks &&
+    additionalLinks &&
+    links.length < maxPartnerLinks &&
+    additionalLinks.length > 0;
+
   return (
     <div className="flex flex-col gap-5">
       <PartnerLinkModal />
@@ -59,21 +69,20 @@ export function ProgramLinksPageClient() {
           align="start"
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
-        {links &&
-          links.length < (programEnrollment?.group?.maxPartnerLinks ?? 10) && (
-            <Button
-              text="Create Link"
-              className="w-fit"
-              shortcut="C"
-              onClick={() => setShowPartnerLinkModal(true)}
-              disabled={programEnrollment?.status === "banned"}
-              disabledTooltip={
-                programEnrollment?.status === "banned"
-                  ? "You are banned from this program."
-                  : undefined
-              }
-            />
-          )}
+        {canCreateNewLink && (
+          <Button
+            text="Create Link"
+            className="w-fit"
+            shortcut="C"
+            onClick={() => setShowPartnerLinkModal(true)}
+            disabled={programEnrollment?.status === "banned"}
+            disabledTooltip={
+              programEnrollment?.status === "banned"
+                ? "You are banned from this program."
+                : undefined
+            }
+          />
+        )}
       </div>
       <PartnerLinksContext.Provider
         value={{
