@@ -5,6 +5,7 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { QRCode } from "@/ui/shared/qr-code";
+import { PartnerUrlValidationMode } from "@dub/prisma/client";
 import {
   Button,
   Combobox,
@@ -36,6 +37,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -169,6 +171,12 @@ function PartnerLinkModalContent({
 }) {
   const { programSlug } = useParams();
   const { programEnrollment } = useProgramEnrollment();
+  const [lockKey, setLockKey] = useState(Boolean(link));
+  const [isLoading, setIsLoading] = useState(false);
+  const [urlValidationMode, setUrlValidationMode] =
+    useState<PartnerUrlValidationMode>();
+  const [isExactMode, setIsExactMode] = useState(false);
+
   const shortLinkDomain = programEnrollment?.program?.domain ?? "dub.sh";
   const additionalLinks = programEnrollment?.group?.additionalLinks ?? [];
 
@@ -177,15 +185,24 @@ function PartnerLinkModalContent({
     [additionalLinks],
   );
 
-  const urlValidationMode =
-    programEnrollment?.program?.urlValidationMode ?? "domain";
-  const isExactMode = urlValidationMode === "exact";
-
-  const [lockKey, setLockKey] = useState(Boolean(link));
-  const [isLoading, setIsLoading] = useState(false);
   const [destinationDomain, setDestinationDomain] = useState(
     destinationDomains?.[0],
   );
+
+  useEffect(() => {
+    const additionalLink = additionalLinks.find(
+      (link) => getApexDomain(link.url) === destinationDomain,
+    );
+
+    if (!additionalLink) {
+      return;
+    }
+
+    const isExactMode = additionalLink.urlValidationMode === "exact";
+
+    setUrlValidationMode(additionalLink.urlValidationMode);
+    setIsExactMode(isExactMode);
+  }, [destinationDomain, additionalLinks]);
 
   const form = useForm<PartnerLinkFormData>({
     defaultValues: link
@@ -221,6 +238,12 @@ function PartnerLinkModalContent({
         isLoading || (link && !isDirty) || destinationDomains.length === 0,
       ),
     [isLoading, link, isDirty, destinationDomains, destinationDomain],
+  );
+
+  // If there is only one destination domain and we are in exact mode, hide the destination URL input
+  const hideDestinationUrl = useMemo(
+    () => destinationDomains.length === 1 && isExactMode,
+    [destinationDomains.length, isExactMode],
   );
 
   const shortLink = useMemo(
@@ -357,7 +380,7 @@ function PartnerLinkModalContent({
             </div>
           </div>
 
-          {!isExactMode && (
+          {!hideDestinationUrl && (
             <div>
               <div className="flex items-center gap-2">
                 <label
@@ -389,7 +412,10 @@ function PartnerLinkModalContent({
                   type="text"
                   id="url"
                   placeholder="(optional)"
+                  disabled={isExactMode}
                   onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+                    if (isExactMode) return;
+
                     e.preventDefault();
                     // if pasting in a URL, extract the pathname
                     const text = e.clipboardData.getData("text/plain");
@@ -400,7 +426,13 @@ function PartnerLinkModalContent({
                       e.currentTarget.value = text;
                     }
                   }}
-                  className="z-0 block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  className={cn(
+                    "z-0 block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    {
+                      "cursor-not-allowed border bg-neutral-100 text-neutral-500":
+                        isExactMode,
+                    },
+                  )}
                 />
               </div>
             </div>
