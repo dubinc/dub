@@ -245,7 +245,7 @@ function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
   };
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Delete Destination URL",
+    title: "Delete destination URL",
     description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This action cannot be undone.`,
     confirmText: "Delete",
     onConfirm: deleteDestinationUrl,

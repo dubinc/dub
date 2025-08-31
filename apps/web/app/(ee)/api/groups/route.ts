@@ -113,11 +113,9 @@ export const POST = withWorkspace(
         partnerGroupDefaultLinks,
       } = defaultGroup;
 
-      const groupId = createId({ prefix: "grp_" });
-
       return await tx.partnerGroup.create({
         data: {
-          id: groupId,
+          id: createId({ prefix: "grp_" }),
           programId,
           name,
           slug,
