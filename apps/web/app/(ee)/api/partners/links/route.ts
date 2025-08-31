@@ -128,6 +128,7 @@ export const POST = withWorkspace(
         utm_campaign: linkProps?.utm_campaign || utmTemplate?.utm_campaign,
         utm_term: linkProps?.utm_term || utmTemplate?.utm_term,
         utm_content: linkProps?.utm_content || utmTemplate?.utm_content,
+        ref: linkProps?.ref || utmTemplate?.ref,
       },
       workspace,
       userId: session.user.id,
