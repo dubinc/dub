@@ -34,7 +34,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     groupBy: "status",
   });
 
-  const { partnersCount: groupCount } = usePartnersCount<
+  const { partnersCount: groupsCount } = usePartnersCount<
     | {
         groupId: string;
         _count: number;
@@ -51,20 +51,24 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
         icon: Users6,
         label: "Group",
         options:
-          groupCount
-            ?.map(({ groupId, _count }) => {
-              const groupData = groups?.find(({ id }) => id === groupId);
-              if (!groupData) return null;
+          groupsCount && groups
+            ? groupsCount
+                .filter(({ groupId }) =>
+                  groups.find(({ id }) => id === groupId),
+                )
+                .map(({ groupId, _count }) => {
+                  const groupData = groups.find(({ id }) => id === groupId)!; // coerce cause we already filtered above
 
-              return {
-                value: groupId,
-                label: groupData.name,
-                icon: <GroupColorCircle group={groupData} />,
-                right: nFormatter(_count || 0, { full: true }),
-                permalink: `/${slug}/program/groups/${groupData.slug}/rewards`,
-              };
-            })
-            .filter(Boolean) ?? null,
+                  return {
+                    value: groupId,
+                    label: groupData.name,
+                    icon: <GroupColorCircle group={groupData} />,
+                    right: nFormatter(_count || 0, { full: true }),
+                    permalink: `/${slug}/program/groups/${groupData.slug}/rewards`,
+                  };
+                })
+                .filter((group) => group !== null)
+            : null,
       },
       {
         key: "status",
@@ -112,16 +116,16 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
             })) ?? [],
       },
     ],
-    [groupCount, groups, statusCount, countriesCount],
+    [groupsCount, groups, statusCount, countriesCount],
   );
 
   const activeFilters = useMemo(() => {
-    const { status, country, groupId } = searchParamsObj;
+    const { groupId, status, country } = searchParamsObj;
 
     return [
+      ...(groupId ? [{ key: "groupId", value: groupId }] : []),
       ...(status ? [{ key: "status", value: status }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
-      ...(groupId ? [{ key: "groupId", value: groupId }] : []),
     ];
   }, [searchParamsObj]);
 
