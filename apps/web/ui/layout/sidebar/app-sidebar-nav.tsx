@@ -433,7 +433,6 @@ export function AppSidebarNav({
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
   const { plan, defaultProgramId } = useWorkspace();
-  const { canTrackConversions } = getPlanCapabilities(plan);
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -465,6 +464,7 @@ export function AppSidebarNav({
   const pendingBountySubmissionsCount =
     submissionsCount?.find(({ status }) => status === "pending")?.count || 0;
 
+  const { canTrackConversions } = getPlanCapabilities(plan);
   const { data: customersCount } = useCustomersCount({
     enabled: canTrackConversions === true,
   });

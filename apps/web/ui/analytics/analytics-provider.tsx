@@ -13,6 +13,8 @@ import {
   EventType,
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
@@ -58,8 +60,10 @@ export const AnalyticsContext = createContext<{
   totalEvents?: {
     [key in AnalyticsResponseOptions]: number;
   };
+  totalEventsLoading?: boolean;
   adminPage?: boolean;
   partnerPage?: boolean;
+  customersCount?: number;
   showConversions?: boolean;
   requiresUpgrade?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
@@ -76,6 +80,7 @@ export const AnalyticsContext = createContext<{
   end: new Date(),
   adminPage: false,
   partnerPage: false,
+  customersCount: 0,
   showConversions: false,
   requiresUpgrade: false,
   dashboardProps: undefined,
@@ -91,7 +96,7 @@ export default function AnalyticsProvider({
 }>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { slug, domains } = useWorkspace();
+  const { slug, plan, domains } = useWorkspace();
 
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
@@ -215,11 +220,16 @@ export default function AnalyticsProvider({
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
-  const { data: totalEvents } = useSWR<{
+  const { canTrackConversions } = getPlanCapabilities(plan);
+  const { data: customersCount } = useCustomersCount({
+    enabled: canTrackConversions === true,
+  });
+
+  const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: "composite",
+      event: customersCount && customersCount > 0 ? "composite" : "clicks",
     })}`,
     fetcher,
     {
@@ -271,11 +281,13 @@ export default function AnalyticsProvider({
         interval, /// time period interval
         tagIds, // ids of the tags to filter by
         totalEvents, // totalEvents (clicks, leads, sales)
+        totalEventsLoading: totalEventsLoading,
         adminPage, // whether the user is an admin
         partnerPage, // whether the user is viewing partner analytics
-        dashboardProps,
+        customersCount, // total customers count (if the workspace has tracked conversions/customers/leads before)
         showConversions, // Whether to show conversions tabs/data
         requiresUpgrade, // whether an upgrade is required to perform the query
+        dashboardProps,
       }}
     >
       {children}
