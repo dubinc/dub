@@ -17,22 +17,23 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    let {
+    const {
       partnerId,
       tenantId,
       partner: partnerProps,
     } = createReferralsEmbedTokenSchema.parse(await parseRequestBody(req));
 
-    tenantId = tenantId ?? partnerProps?.tenantId;
+    const finalTenantId =
+      tenantId || partnerProps?.tenantId || partnerProps?.linkProps?.tenantId;
 
     let programEnrollment: Pick<ProgramEnrollment, "partnerId"> | null = null;
 
     // find the program enrollment for the given partnerId or tenantId
-    if (partnerId || tenantId) {
+    if (partnerId || finalTenantId) {
       programEnrollment = await prisma.programEnrollment.findUnique({
         where: partnerId
           ? { partnerId_programId: { partnerId, programId } }
-          : { tenantId_programId: { tenantId: tenantId!, programId } },
+          : { tenantId_programId: { tenantId: finalTenantId!, programId } },
         select: {
           partnerId: true,
         },
@@ -79,9 +80,12 @@ export const POST = withWorkspace(
           program,
           partner: {
             ...partner,
-            tenantId,
+            ...(finalTenantId && { tenantId: finalTenantId }),
           },
-          link,
+          link: {
+            ...link,
+            ...(finalTenantId && { tenantId: finalTenantId }),
+          },
           userId: session.user.id,
         });
 
