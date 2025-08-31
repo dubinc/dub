@@ -92,6 +92,7 @@ export const createAndEnrollPartner = async ({
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
       create: {
+        id: createId({ prefix: "pge_" }),
         programId: program.id,
         tenantId: partner.tenantId,
         status,
