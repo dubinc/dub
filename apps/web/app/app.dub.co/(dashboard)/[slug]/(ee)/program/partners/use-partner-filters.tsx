@@ -64,7 +64,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
                 permalink: `/${slug}/program/groups/${groupData.slug}/rewards`,
               };
             })
-            .filter(Boolean) ?? null,
+            .filter((group) => group !== null) ?? null,
       },
       {
         key: "status",
