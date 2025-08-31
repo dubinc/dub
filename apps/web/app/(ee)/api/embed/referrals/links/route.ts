@@ -6,7 +6,6 @@ import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
-import { UtmTemplate } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/embed/referrals/links – get links for a partner
@@ -47,26 +46,25 @@ export const POST = withReferralsEmbedToken(
 
     validatePartnerLinkUrl({ group, url });
 
-    const workspaceOwner = await prisma.projectUsers.findFirst({
-      where: {
-        projectId: program.workspaceId,
-        role: "owner",
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    // Find the UTM template for the group
-    let utmTemplate: UtmTemplate | null = null;
-
-    if (group.utmTemplateId) {
-      utmTemplate = await prisma.utmTemplate.findUnique({
+    const [workspaceOwner, utmTemplate] = await Promise.all([
+      prisma.projectUsers.findFirst({
         where: {
-          id: group.utmTemplateId,
+          projectId: program.workspaceId,
+          role: "owner",
         },
-      });
-    }
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+
+      group.utmTemplateId
+        ? prisma.utmTemplate.findUnique({
+            where: {
+              id: group.utmTemplateId,
+            },
+          })
+        : Promise.resolve(null),
+    ]);
 
     const { link, error, code } = await processLink({
       payload: {
