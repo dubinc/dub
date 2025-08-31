@@ -1,12 +1,17 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { processLink } from "@/lib/api/links";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, chunk, isFulfilled, log } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  chunk,
+  constructURLFromUTMParams,
+  isFulfilled,
+  log,
+} from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
@@ -98,81 +103,50 @@ export async function POST(req: Request) {
 
       const linkChunks = chunk(links, 100);
 
+      const utmParams = {
+        utm_source: utmTemplate.utm_source || "",
+        utm_medium: utmTemplate.utm_medium || "",
+        utm_campaign: utmTemplate.utm_campaign || "",
+        utm_term: utmTemplate.utm_term || "",
+        utm_content: utmTemplate.utm_content || "",
+        ref: utmTemplate.ref || "",
+      };
+
       // Update the UTM for each partner links in the group
       for (const linkChunk of linkChunks) {
         const processedLinks = await Promise.all(
-          linkChunk.map((link) =>
-            processLink({
-              // @ts-expect-error
-              payload: {
-                ...link,
-                utm_source: utmTemplate.utm_source,
-                utm_medium: utmTemplate.utm_medium,
-                utm_campaign: utmTemplate.utm_campaign,
-                utm_term: utmTemplate.utm_term,
-                utm_content: utmTemplate.utm_content,
-                ref: utmTemplate.ref,
+          linkChunk.map((link) => ({
+            id: link.id,
+            url: constructURLFromUTMParams(link.url, utmParams),
+            utm_source: utmTemplate.utm_source || null,
+            utm_medium: utmTemplate.utm_medium || null,
+            utm_campaign: utmTemplate.utm_campaign || null,
+            utm_term: utmTemplate.utm_term || null,
+            utm_content: utmTemplate.utm_content || null,
+          })),
+        );
+
+        // Bulk update the links
+        const updatedLinkPromises = await Promise.allSettled(
+          processedLinks.map((link) =>
+            prisma.link.update({
+              where: {
+                id: link.id,
               },
-              workspace: {
-                id: utmTemplate.projectId!,
-                plan: "business",
-              },
-              skipKeyChecks: true,
-              skipFolderChecks: true,
-              skipProgramChecks: true,
-              skipExternalIdChecks: true,
+              data: link,
+              include: includeTags,
             }),
           ),
         );
 
-        const validLinks = processedLinks
-          .filter(({ error }) => error == null)
-          .map(({ link }) => link);
+        const updatedLinks = updatedLinkPromises
+          .filter(isFulfilled)
+          .map(({ value }) => value);
 
-        const errorLinks = processedLinks
-          .filter(({ error }) => error != null)
-          .map(({ link: { domain, key }, error }) => ({
-            domain,
-            key,
-            error,
-          }));
-
-        // Bulk update the links
-        if (validLinks.length > 0) {
-          const updatedLinkPromises = await Promise.allSettled(
-            validLinks.map((link) =>
-              prisma.link.update({
-                where: {
-                  id: link.id,
-                },
-                // @ts-expect-error
-                data: {
-                  ...link,
-                  utm_source: utmTemplate.utm_source,
-                  utm_medium: utmTemplate.utm_medium,
-                  utm_campaign: utmTemplate.utm_campaign,
-                  utm_term: utmTemplate.utm_term,
-                  utm_content: utmTemplate.utm_content,
-                },
-                include: includeTags,
-              }),
-            ),
-          );
-
-          const updatedLinks = updatedLinkPromises
-            .filter(isFulfilled)
-            .map(({ value }) => value);
-
-          await Promise.allSettled([
-            recordLink(updatedLinks),
-            linkCache.expireMany(validLinks),
-          ]);
-        }
-
-        if (errorLinks.length > 0) {
-          console.error(errorLinks);
-          console.log(`Failed to update ${errorLinks.length} links.`);
-        }
+        await Promise.allSettled([
+          recordLink(updatedLinks),
+          linkCache.expireMany(updatedLinks),
+        ]);
       }
 
       // Update cursor to the last processed record
