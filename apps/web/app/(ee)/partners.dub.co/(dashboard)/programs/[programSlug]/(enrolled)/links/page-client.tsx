@@ -50,15 +50,18 @@ export function ProgramLinksPageClient() {
 
   useKeyboardShortcut("c", () => setShowPartnerLinkModal(true));
 
+  const program = programEnrollment?.program;
   const maxPartnerLinks = programEnrollment?.group?.maxPartnerLinks;
   const additionalLinks = programEnrollment?.group?.additionalLinks;
 
+  const hasLinksLimitReached =
+    links && maxPartnerLinks && links.length >= maxPartnerLinks;
+  const hasAdditionalLinks = additionalLinks && additionalLinks.length > 0;
+
   const canCreateNewLink =
-    links &&
-    maxPartnerLinks &&
-    additionalLinks &&
-    links.length < maxPartnerLinks &&
-    additionalLinks.length > 0;
+    !hasLinksLimitReached &&
+    hasAdditionalLinks &&
+    programEnrollment?.status !== "banned";
 
   return (
     <div className="flex flex-col gap-5">
@@ -69,20 +72,22 @@ export function ProgramLinksPageClient() {
           align="start"
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
-        {canCreateNewLink && (
-          <Button
-            text="Create Link"
-            className="w-fit"
-            shortcut="C"
-            onClick={() => setShowPartnerLinkModal(true)}
-            disabled={programEnrollment?.status === "banned"}
-            disabledTooltip={
-              programEnrollment?.status === "banned"
-                ? "You are banned from this program."
-                : undefined
-            }
-          />
-        )}
+        <Button
+          text="Create Link"
+          className="w-fit"
+          shortcut="C"
+          onClick={() => setShowPartnerLinkModal(true)}
+          disabled={!canCreateNewLink}
+          disabledTooltip={
+            programEnrollment?.status === "banned"
+              ? "You are banned from this program."
+              : hasLinksLimitReached
+                ? `You have reached the limit of ${maxPartnerLinks} referral links.`
+                : !hasAdditionalLinks
+                  ? `${program?.name ?? "This"} program does not allow partners to create new links.`
+                  : undefined
+          }
+        />
       </div>
       <PartnerLinksContext.Provider
         value={{
