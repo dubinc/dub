@@ -99,26 +99,49 @@ model PartnerNotificationPreferences {
 }
 
 model PartnerGroup {
-  id            String   @id @default(cuid())
-  programId     String
-  name          String
-  slug          String
-  color         String?
-  clickRewardId String?  @unique
-  leadRewardId  String?  @unique
-  saleRewardId  String?  @unique
-  discountId    String?  @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String               @id @default(cuid())
+  programId       String
+  name            String
+  slug            String
+  color           String?
+  clickRewardId   String?              @unique
+  leadRewardId    String?              @unique
+  saleRewardId    String?              @unique
+  discountId      String?              @unique
+  linkStructure   PartnerLinkStructure @default(short)
+  additionalLinks Json?                @db.Json
+  maxPartnerLinks Int                  @default(0)
+  utmTemplateId   String?              @unique
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 
-  program      Program              @relation(fields: [programId], references: [id], onDelete: Cascade)
-  clickReward  Reward?              @relation("ClickReward", fields: [clickRewardId], references: [id])
-  leadReward   Reward?              @relation("LeadReward", fields: [leadRewardId], references: [id])
-  saleReward   Reward?              @relation("SaleReward", fields: [saleRewardId], references: [id])
-  discount     Discount?            @relation(fields: [discountId], references: [id])
-  partners     ProgramEnrollment[]
-  applications ProgramApplication[]
-  bounties     BountyGroup[]
+  program                  Program                   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  clickReward              Reward?                   @relation("ClickReward", fields: [clickRewardId], references: [id])
+  leadReward               Reward?                   @relation("LeadReward", fields: [leadRewardId], references: [id])
+  saleReward               Reward?                   @relation("SaleReward", fields: [saleRewardId], references: [id])
+  discount                 Discount?                 @relation(fields: [discountId], references: [id])
+  partners                 ProgramEnrollment[]
+  applications             ProgramApplication[]
+  bounties                 BountyGroup[]
+  utmTemplate              UtmTemplate?              @relation(fields: [utmTemplateId], references: [id])
+  partnerGroupDefaultLinks PartnerGroupDefaultLink[]
 
   @@unique([programId, slug])
+}
+
+model PartnerGroupDefaultLink {
+  id        String   @id @default(cuid())
+  programId String
+  groupId   String
+  domain    String
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program      Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partnerGroup PartnerGroup @relation(fields: [groupId], references: [id])
+  links        Link[]
+
+  @@index(programId)
+  @@index(groupId)
 }

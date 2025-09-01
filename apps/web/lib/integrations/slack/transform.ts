@@ -288,7 +288,7 @@ const commissionCreatedTemplate = ({
 };
 
 // Minimal bounty templates (safe defaults)
-const bountyCreatedTemplate = ({ /* data */ }: { data: unknown }) => ({
+const bountyCreatedTemplate = ({} /* data */ : { data: unknown }) => ({
   blocks: [
     {
       type: "section",
@@ -297,7 +297,7 @@ const bountyCreatedTemplate = ({ /* data */ }: { data: unknown }) => ({
   ],
 });
 
-const bountyUpdatedTemplate = ({ /* data */ }: { data: unknown }) => ({
+const bountyUpdatedTemplate = ({} /* data */ : { data: unknown }) => ({
   blocks: [
     {
       type: "section",

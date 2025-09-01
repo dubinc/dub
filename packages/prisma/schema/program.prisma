@@ -73,6 +73,7 @@ model Program {
   bounties          Bounty[]
   bountySubmissions BountySubmission[]
   workflows         Workflow[]
+  partnerGroupDefaultLinks PartnerGroupDefaultLink[]
 
   @@index(workspaceId)
   @@index(domain)

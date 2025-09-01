@@ -109,6 +109,7 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
 
   const partnerLink = constructPartnerLink({
     program: programEnrollment?.program,
+    group: programEnrollment?.group,
     linkKey: link.key,
   });
 

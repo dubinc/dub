@@ -17,7 +17,7 @@ export const GET = withReferralsEmbedToken(async ({ links }) => {
 
 // POST /api/embed/referrals/links – create links for a partner
 export const POST = withReferralsEmbedToken(
-  async ({ req, programEnrollment, program, links, discount }) => {
+  async ({ req, programEnrollment, program, links, group }) => {
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
@@ -37,27 +37,34 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    if (links.length >= program.maxPartnerLinks) {
+    if (links.length >= group.maxPartnerLinks) {
       throw new DubApiError({
         code: "bad_request",
-        message: `You have reached the limit of ${program.maxPartnerLinks} program links.`,
+        message: `You have reached the limit of ${group.maxPartnerLinks} program links.`,
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
+    validatePartnerLinkUrl({ group, url });
 
-    const workspaceOwner = await prisma.projectUsers.findFirst({
-      where: {
-        projectId: program.workspaceId,
-        role: "owner",
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      include: {
-        project: true,
-      },
-    });
+    const [workspaceOwner, utmTemplate] = await Promise.all([
+      prisma.projectUsers.findFirst({
+        where: {
+          projectId: program.workspaceId,
+          role: "owner",
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+
+      group.utmTemplateId
+        ? prisma.utmTemplate.findUnique({
+            where: {
+              id: group.utmTemplateId,
+            },
+          })
+        : Promise.resolve(null),
+    ]);
 
     const { link, error, code } = await processLink({
       payload: {
@@ -69,6 +76,12 @@ export const POST = withReferralsEmbedToken(
         tenantId: programEnrollment.tenantId,
         partnerId: programEnrollment.partnerId,
         trackConversion: true,
+        utm_source: utmTemplate?.utm_source,
+        utm_medium: utmTemplate?.utm_medium,
+        utm_campaign: utmTemplate?.utm_campaign,
+        utm_term: utmTemplate?.utm_term,
+        utm_content: utmTemplate?.utm_content,
+        ref: utmTemplate?.ref,
       },
       workspace: {
         id: program.workspaceId,

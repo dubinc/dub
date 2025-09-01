@@ -96,7 +96,7 @@ export const constructURLFromUTMParams = (
   try {
     const newURL = new URL(url);
     for (const [key, value] of Object.entries(utmParams)) {
-      if (value === "") {
+      if (!value) {
         newURL.searchParams.delete(key);
       } else {
         newURL.searchParams.set(key, value.replace("+", " "));

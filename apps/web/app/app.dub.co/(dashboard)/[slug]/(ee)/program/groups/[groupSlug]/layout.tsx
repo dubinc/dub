@@ -12,7 +12,7 @@ export default function GroupLayout({
       title={<GroupHeaderTitle />}
       headerContent={<GroupHeaderTabs />}
     >
-      <PageWidthWrapper>{children}</PageWidthWrapper>
+      <PageWidthWrapper className="pb-10">{children}</PageWidthWrapper>
     </PageContent>
   );
 }

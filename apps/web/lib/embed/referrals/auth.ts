@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { DiscountProps } from "@/lib/types";
+import { PartnerGroupProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { Link, Program, ProgramEnrollment } from "@dub/prisma/client";
@@ -14,6 +14,7 @@ interface WithReferralsEmbedTokenHandler {
     searchParams,
     program,
     programEnrollment,
+    group,
     links,
     embedToken,
   }: {
@@ -22,7 +23,7 @@ interface WithReferralsEmbedTokenHandler {
     searchParams: Record<string, string>;
     program: Program;
     programEnrollment: ProgramEnrollment;
-    discount: DiscountProps | null;
+    group: PartnerGroupProps;
     links: Link[];
     embedToken: string;
   }): Promise<Response>;
@@ -79,7 +80,7 @@ export const withReferralsEmbedToken = (
           });
         }
 
-        const { program, links, discount, ...programEnrollment } =
+        const { program, links, partnerGroup, ...programEnrollment } =
           await prisma.programEnrollment.findUniqueOrThrow({
             where: {
               partnerId_programId: {
@@ -102,9 +103,17 @@ export const withReferralsEmbedToken = (
                 ],
               },
               program: true,
-              discount: true,
+              partnerGroup: true,
             },
           });
+
+        if (!partnerGroup) {
+          throw new DubApiError({
+            code: "forbidden",
+            message:
+              "You’re not part of any group yet. Please reach out to the program owner to be added.",
+          });
+        }
 
         return await handler({
           req,
@@ -112,6 +121,7 @@ export const withReferralsEmbedToken = (
           searchParams,
           program,
           programEnrollment,
+          group: partnerGroup as PartnerGroupProps,
           links,
           discount,
           embedToken,

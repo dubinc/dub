@@ -6,6 +6,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
+import { UtmTemplate } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
@@ -27,11 +29,11 @@ export const POST = withPartnerProfile(
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
-    const { program, links, tenantId, status, discount } =
+    const { program, links, tenantId, status, group } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
-        includeDiscount: true,
+        includeGroup: true,
       });
 
     if (status === "banned") {
@@ -49,14 +51,33 @@ export const POST = withPartnerProfile(
       });
     }
 
-    if (links.length >= program.maxPartnerLinks) {
+    if (!group) {
       throw new DubApiError({
-        code: "bad_request",
-        message: `You have reached this program's limit of ${program.maxPartnerLinks} partner links.`,
+        code: "forbidden",
+        message:
+          "You’re not part of any group yet. Please reach out to the program owner to be added.",
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
+    if (links.length >= group.maxPartnerLinks) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `You have reached this program's limit of ${group.maxPartnerLinks} partner links.`,
+      });
+    }
+
+    validatePartnerLinkUrl({ group, url });
+
+    // Find the UTM template for the group
+    let utmTemplate: UtmTemplate | null = null;
+
+    if (group.utmTemplateId) {
+      utmTemplate = await prisma.utmTemplate.findUnique({
+        where: {
+          id: group.utmTemplateId,
+        },
+      });
+    }
 
     const { link, error, code } = await processLink({
       payload: {
@@ -69,6 +90,12 @@ export const POST = withPartnerProfile(
         folderId: program.defaultFolderId,
         comments,
         trackConversion: true,
+        utm_source: utmTemplate?.utm_source,
+        utm_medium: utmTemplate?.utm_medium,
+        utm_campaign: utmTemplate?.utm_campaign,
+        utm_term: utmTemplate?.utm_term,
+        utm_content: utmTemplate?.utm_content,
+        ref: utmTemplate?.ref,
       },
       workspace: {
         id: program.workspaceId,
