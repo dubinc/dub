@@ -1,4 +1,5 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
   exportApplicationColumns,
@@ -22,8 +23,9 @@ const applicationsExportQuerySchema = z.object({
 
 // GET /api/programs/[programId]/applications/export – export applications to CSV
 export const GET = withWorkspace(
-  async ({ searchParams, params }) => {
-    const { programId } = params;
+  async ({ searchParams, workspace }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     let { columns } = applicationsExportQuerySchema.parse(searchParams);
 
     const programEnrollments = await prisma.programEnrollment.findMany({
