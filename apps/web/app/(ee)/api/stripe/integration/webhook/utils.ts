@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { stripeAppClient } from "@/lib/stripe";
@@ -7,6 +8,7 @@ import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
+import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -116,16 +118,26 @@ export async function createNewCustomer(event: Stripe.Event) {
   }
 
   waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "lead.created",
-      workspace,
-      data: transformLeadEventData({
-        ...clickData,
-        eventName,
-        link: linkUpdated,
-        customer,
+    Promise.allSettled([
+      sendWorkspaceWebhook({
+        trigger: "lead.created",
+        workspace,
+        data: transformLeadEventData({
+          ...clickData,
+          eventName,
+          link: linkUpdated,
+          customer,
+        }),
       }),
-    }),
+
+      link.programId &&
+        link.partnerId &&
+        executeWorkflows({
+          trigger: WorkflowTrigger.leadRecorded,
+          programId: link.programId,
+          partnerId: link.partnerId,
+        }),
+    ]),
   );
 
   return `New Dub customer created: ${customer.id}. Lead event recorded: ${leadData.event_id}`;

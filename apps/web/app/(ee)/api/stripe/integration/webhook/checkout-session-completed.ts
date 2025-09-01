@@ -3,6 +3,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
   getClickEvent,
@@ -21,7 +22,7 @@ import {
 } from "@/lib/webhook/transform";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Customer, Link } from "@dub/prisma/client";
+import { Customer, Link, WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -471,10 +472,18 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
     if (commission) {
       waitUntil(
-        notifyPartnerSale({
-          link,
-          commission,
-        }),
+        Promise.allSettled([
+          notifyPartnerSale({
+            link,
+            commission,
+          }),
+
+          executeWorkflows({
+            trigger: WorkflowTrigger.saleRecorded,
+            programId: link.programId,
+            partnerId: link.partnerId,
+          }),
+        ]),
       );
     }
   }

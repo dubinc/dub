@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import {
+  PartnerBountySchema,
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
@@ -23,6 +24,14 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
+import {
+  BountyListSchema,
+  BountySchema,
+  BountySchemaExtended,
+  BountySubmissionExtendedSchema,
+  getBountySubmissionsQuerySchema,
+  SUBMISSION_REQUIREMENTS,
+} from "./zod/schemas/bounties";
 import {
   clickEventResponseSchema,
   clickEventSchemaTB,
@@ -88,6 +97,12 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
+import {
+  WORKFLOW_ATTRIBUTES,
+  WORKFLOW_COMPARISON_OPERATORS,
+  workflowActionSchema,
+  workflowConditionSchema,
+} from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 
 export type LinkProps = Link;
@@ -511,3 +526,49 @@ export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 export type GroupProps = z.infer<typeof GroupSchema>;
 
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
+
+export type BountyProps = z.infer<typeof BountySchema>;
+export type BountyListProps = z.infer<typeof BountyListSchema>;
+export type BountyExtendedProps = z.infer<typeof BountySchemaExtended>;
+
+export type PartnerBountyProps = z.infer<typeof PartnerBountySchema>;
+
+export type BountySubmissionProps = z.infer<
+  typeof BountySubmissionExtendedSchema
+>;
+
+export type BountySubmissionRequirement =
+  (typeof SUBMISSION_REQUIREMENTS)[number];
+
+export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
+
+export type WorkflowConditionAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
+
+export type WorkflowComparisonOperator =
+  (typeof WORKFLOW_COMPARISON_OPERATORS)[number];
+
+export type WorkflowAction = z.infer<typeof workflowActionSchema>;
+
+export type OperatorFn = (a: number, b: number) => boolean;
+
+export interface WorkflowContext {
+  totalLeads: number;
+  totalConversions: number;
+  totalSaleAmount: number;
+  totalCommissions: number;
+  partnerId: string;
+  groupId: string;
+}
+
+export type BountySubmissionsQueryFilters = z.infer<
+  typeof getBountySubmissionsQuerySchema
+>;
+
+// export type BountySubmissionsCount = Record<
+//   BountySubmissionStatus,
+//   {
+//     count: number;
+//     amount: number;
+//     earnings: number;
+//   }
+// >;

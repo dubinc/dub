@@ -43,14 +43,14 @@ import { motion } from "framer-motion";
 import { Package } from "lucide-react";
 import { Fragment, useContext, useEffect, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
-import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
   InlineBadgePopoverInput,
   InlineBadgePopoverInputs,
   InlineBadgePopoverMenu,
-} from "./inline-badge-popover";
+} from "../../shared/inline-badge-popover";
+import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import { RewardIconSquare } from "./reward-icon-square";
 
 export const REWARD_TYPES = [

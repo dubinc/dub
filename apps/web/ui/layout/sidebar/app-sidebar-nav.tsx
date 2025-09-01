@@ -1,6 +1,10 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import {
+  SubmissionsCountByStatus,
+  useBountySubmissionsCount,
+} from "@/lib/swr/use-bounty-submissions-count";
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
@@ -31,6 +35,7 @@ import {
   Users6,
   Webhook,
 } from "@dub/ui/icons";
+import { Trophy } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
@@ -55,6 +60,7 @@ type SidebarNavData = {
   session?: Session | null;
   showNews?: boolean;
   applicationsCount?: number;
+  pendingBountySubmissionsCount?: number;
   showConversionGuides?: boolean;
 };
 
@@ -181,7 +187,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   }),
 
   // Program
-  program: ({ slug, showNews, applicationsCount }) => ({
+  program: ({
+    slug,
+    showNews,
+    applicationsCount,
+    pendingBountySubmissionsCount,
+  }) => ({
     title: "Partner Program",
     showNews,
     direction: "left",
@@ -249,6 +260,26 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         ],
       },
       {
+        name: "Engagement",
+        items: [
+          {
+            name: "Bounties",
+            icon: Trophy,
+            href: `/${slug}/program/bounties`,
+            badge: pendingBountySubmissionsCount
+              ? pendingBountySubmissionsCount > 99
+                ? "99+"
+                : pendingBountySubmissionsCount
+              : "New",
+          },
+          {
+            name: "Resources",
+            icon: LifeRing,
+            href: `/${slug}/program/resources`,
+          },
+        ],
+      },
+      {
         name: "Configuration",
         items: [
           {
@@ -269,11 +300,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Branding",
             icon: Brush,
             href: `/${slug}/program/branding`,
-          },
-          {
-            name: "Resources",
-            icon: LifeRing,
-            href: `/${slug}/program/resources`,
           },
           {
             name: "Link Settings",
@@ -407,7 +433,6 @@ export function AppSidebarNav({
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
   const { plan, defaultProgramId } = useWorkspace();
-  const { canTrackConversions } = getPlanCapabilities(plan);
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -430,6 +455,16 @@ export function AppSidebarNav({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
+  const { submissionsCount } = useBountySubmissionsCount<
+    SubmissionsCountByStatus[]
+  >({
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
+  const pendingBountySubmissionsCount =
+    submissionsCount?.find(({ status }) => status === "pending")?.count || 0;
+
+  const { canTrackConversions } = getPlanCapabilities(plan);
   const { data: customersCount } = useCustomersCount({
     enabled: canTrackConversions === true,
   });
@@ -449,6 +484,7 @@ export function AppSidebarNav({
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
         applicationsCount,
+        pendingBountySubmissionsCount,
         showConversionGuides: canTrackConversions && customersCount === 0,
       }}
       toolContent={toolContent}

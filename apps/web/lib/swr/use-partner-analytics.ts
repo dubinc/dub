@@ -19,12 +19,10 @@ export default function usePartnerAnalytics(
   const { programSlug } = useParams();
   const searchParams = useSearchParams();
 
-  const partnerId = session?.user?.["defaultPartnerId"];
   const programIdToUse = params?.programId ?? programSlug;
 
   const { data, error } = useSWR<any>(
-    partnerId &&
-      programIdToUse &&
+    programIdToUse &&
       params.enabled !== false &&
       `/api/partner-profile/programs/${programIdToUse}/analytics?${new URLSearchParams(
         {
@@ -62,6 +60,9 @@ export default function usePartnerAnalytics(
   return {
     data,
     error,
-    loading: partnerId && programIdToUse && !data && !error ? true : false,
+    loading:
+      programIdToUse && params.enabled !== false && !data && !error
+        ? true
+        : false,
   };
 }

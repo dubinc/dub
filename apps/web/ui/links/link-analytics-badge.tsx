@@ -107,8 +107,6 @@ export function LinkAnalyticsBadge({
                   {tab === "sales"
                     ? currencyFormatter(value / 100, {
                         maximumFractionDigits: 2,
-                        // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                        trailingZeroDisplay: "stripIfInteger",
                       })
                     : nFormatter(value, { full: value < INFINITY_NUMBER })}
                 </span>{" "}

@@ -1,4 +1,5 @@
 import z from "../zod";
+import { BountySchema } from "../zod/schemas/bounties";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { linkEventSchema } from "../zod/schemas/links";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
@@ -23,10 +24,13 @@ export type CommissionEventWebhookPayload = z.infer<
   typeof CommissionWebhookSchema
 >;
 
+export type BountyEventWebhookPayload = z.infer<typeof BountySchema>;
+
 export type WebhookEventPayload =
   | z.infer<typeof linkEventSchema>
   | ClickEventWebhookPayload
   | LeadEventWebhookPayload
   | SaleEventWebhookPayload
   | PartnerEventWebhookPayload
-  | CommissionEventWebhookPayload;
+  | CommissionEventWebhookPayload
+  | BountyEventWebhookPayload;
