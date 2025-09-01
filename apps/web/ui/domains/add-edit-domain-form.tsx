@@ -207,14 +207,23 @@ export function AddEditDomainForm({
 
   const onSubmit = async (formData: FormData) => {
     try {
+      const { logo, ...restFormData } = formData;
+
+      const shouldIncludeLogo = Boolean(
+        logo &&
+          typeof logo === "string" &&
+          logo.trim().length > 0 &&
+          logo !== props?.logo,
+      );
+
       const res = await fetch(endpoint.url, {
         method: endpoint.method,
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...formData,
-          ...(formData.logo === props?.logo && { logo: undefined }),
+          ...restFormData,
+          ...(shouldIncludeLogo && { logo }),
           ...(formData.assetLinks && {
             assetLinks: sanitizeJson(formData.assetLinks),
           }),
