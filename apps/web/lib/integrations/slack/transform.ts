@@ -247,15 +247,9 @@ const commissionCreatedTemplate = ({
 }) => {
   const { id, amount, earnings } = data;
 
-  const formattedAmount = currencyFormatter(amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const formattedAmount = currencyFormatter(amount / 100);
 
-  const formattedEarnings = currencyFormatter(earnings / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const formattedEarnings = currencyFormatter(earnings / 100);
 
   return {
     blocks: [
@@ -288,7 +282,7 @@ const commissionCreatedTemplate = ({
 };
 
 // Minimal bounty templates (safe defaults)
-const bountyCreatedTemplate = ({ /* data */ }: { data: unknown }) => ({
+const bountyCreatedTemplate = ({} /* data */ : { data: unknown }) => ({
   blocks: [
     {
       type: "section",
@@ -297,7 +291,7 @@ const bountyCreatedTemplate = ({ /* data */ }: { data: unknown }) => ({
   ],
 });
 
-const bountyUpdatedTemplate = ({ /* data */ }: { data: unknown }) => ({
+const bountyUpdatedTemplate = ({} /* data */ : { data: unknown }) => ({
   blocks: [
     {
       type: "section",

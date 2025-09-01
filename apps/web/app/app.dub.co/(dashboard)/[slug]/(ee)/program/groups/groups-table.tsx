@@ -122,29 +122,17 @@ export function GroupsTable() {
       {
         id: "saleAmount",
         header: "Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.saleAmount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        accessorFn: (d) => currencyFormatter(d.saleAmount / 100),
       },
       {
         id: "commissions",
         header: "Commissions",
-        accessorFn: (d) =>
-          currencyFormatter(d.commissions / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        accessorFn: (d) => currencyFormatter(d.commissions / 100),
       },
       {
         id: "netRevenue",
         header: "Net Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.netRevenue / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        accessorFn: (d) => currencyFormatter(d.netRevenue / 100),
       },
       {
         id: "menu",

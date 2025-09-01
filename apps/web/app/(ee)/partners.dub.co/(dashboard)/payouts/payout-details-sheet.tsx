@@ -83,12 +83,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
       Amount: (
         <div className="flex items-center gap-2">
-          <strong>
-            {currencyFormatter(payout.amount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </strong>
+          <strong>{currencyFormatter(payout.amount / 100)}</strong>
 
           {INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
             <Tooltip content="View invoice">
@@ -167,11 +162,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       {
         id: "earnings",
         header: "Earnings",
-        cell: ({ row }) =>
-          currencyFormatter(row.original.earnings / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => currencyFormatter(row.original.earnings / 100),
       },
     ],
     columnPinning: { right: ["earnings"] },

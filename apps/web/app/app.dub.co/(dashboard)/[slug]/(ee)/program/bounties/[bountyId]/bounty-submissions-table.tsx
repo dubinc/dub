@@ -230,9 +230,7 @@ export function BountySubmissionsTable() {
                 }
 
                 const formattedValue = isCurrencyAttribute(attribute)
-                  ? currencyFormatter(value / 100, {
-                      maximumFractionDigits: 2,
-                    })
+                  ? currencyFormatter(value / 100)
                   : nFormatter(value, { full: true });
 
                 const formattedTarget = isCurrencyAttribute(attribute)

@@ -426,10 +426,7 @@ function BrandedChart({
                 </span>
                 <p className="text-right text-neutral-500">
                   {currency
-                    ? currencyFormatter(d.values.main, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })
+                    ? currencyFormatter(d.values.main)
                     : nFormatter(d.values.main)}
                 </p>
               </div>

@@ -1,13 +1,16 @@
+interface CurrencyFormatterOptions extends Intl.NumberFormatOptions {
+  trailingZeroDisplay?: "auto" | "stripIfInteger";
+}
+
 export const currencyFormatter = (
   value: number,
-  options?: Intl.NumberFormatOptions,
-  currency?: string,
+  options?: CurrencyFormatterOptions,
 ) =>
   Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: currency ?? "USD",
-    maximumFractionDigits: 0,
-    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-    trailingZeroDisplay: "stripIfInteger",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    trailingZeroDisplay: "auto",
     ...options,
-  }).format(value);
+  } as CurrencyFormatterOptions).format(value);

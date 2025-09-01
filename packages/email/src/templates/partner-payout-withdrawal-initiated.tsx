@@ -32,8 +32,6 @@ export default function PartnerPayoutWithdrawalInitiated({
 }) {
   const amountInDollars = currencyFormatter(payout.amount / 100, {
     currency: payout.currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
   });
 
   return (

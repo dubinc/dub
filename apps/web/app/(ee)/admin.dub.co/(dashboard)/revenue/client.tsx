@@ -89,11 +89,7 @@ export default function RevenuePageClient() {
         id: "revenue",
         header: "Affiliate Revenue",
         accessorKey: "revenue",
-        cell: ({ row }) =>
-          currencyFormatter(row.original.saleAmount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => currencyFormatter(row.original.saleAmount / 100),
       },
     ],
     pagination,

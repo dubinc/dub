@@ -41,10 +41,7 @@ export default function PartnerPayoutProcessed({
   };
   variant: "stripe" | "paypal";
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const saleAmountInDollars = currencyFormatter(payout.amount / 100);
 
   const startDate = payout.periodStart
     ? formatDate(payout.periodStart, {

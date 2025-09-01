@@ -309,10 +309,7 @@ function AmountRowItem({
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
-  const display = currencyFormatter(amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const display = currencyFormatter(amount / 100);
 
   const minPayoutAmount = program?.minPayoutAmount || 0;
 

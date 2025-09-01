@@ -41,10 +41,7 @@ export default function PartnerPayoutFailed({
   };
   email: string;
 }) {
-  const payoutAmount = currencyFormatter(payout.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const payoutAmount = currencyFormatter(payout.amount / 100);
 
   return (
     <Html>

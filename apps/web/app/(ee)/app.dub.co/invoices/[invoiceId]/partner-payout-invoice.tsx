@@ -129,37 +129,23 @@ export async function PartnerPayoutInvoice({
 
   const nonUsdTransactionDisplay =
     chargeAmount && chargeCurrency && chargeCurrency !== "usd"
-      ? ` (${currencyFormatter(
-          chargeAmount / 100,
-          {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-          chargeCurrency.toUpperCase(),
-        )})`
+      ? ` (${currencyFormatter(chargeAmount / 100, {
+          currency: chargeCurrency.toUpperCase(),
+        })})`
       : "";
 
   const invoiceSummaryDetails = [
     {
       label: "Invoice amount",
-      value: currencyFormatter(invoice.amount / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      value: currencyFormatter(invoice.amount / 100),
     },
     {
       label: `Platform fees (${Math.round((invoice.fee / invoice.amount) * 100)}%)`,
-      value: `${currencyFormatter(invoice.fee / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`,
+      value: `${currencyFormatter(invoice.fee / 100)}`,
     },
     {
       label: "Invoice total",
-      value: `${currencyFormatter(invoice.total / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}${nonUsdTransactionDisplay}`,
+      value: `${currencyFormatter(invoice.total / 100)}${nonUsdTransactionDisplay}`,
     },
     // if customer is in EU or AU, add VAT/GST reverse charge note
     ...(EU_CUSTOMER || AU_CUSTOMER
@@ -290,10 +276,7 @@ export async function PartnerPayoutInvoice({
               Total
             </Text>
             <Text style={tw("text-neutral-800 font-medium text-[16px]")}>
-              {currencyFormatter(invoice.total / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              {currencyFormatter(invoice.total / 100)}
             </Text>
           </View>
         </View>
@@ -353,10 +336,7 @@ export async function PartnerPayoutInvoice({
                   )}
                 </Text>
                 <Text style={tw("w-1/6 p-3.5")}>
-                  {currencyFormatter(payout.amount / 100, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+                  {currencyFormatter(payout.amount / 100)}
                 </Text>
               </View>
             ))}
