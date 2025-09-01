@@ -188,7 +188,7 @@ export const bulkApprovePartnersAction = authActionClient
           acc.get(link.partnerId)!.push(link);
 
           return acc;
-        }, new Map<string, (Link & { partnerGroupDefaultLinkId?: string | null })[]>());
+        }, new Map<string, Omit<Link, "partnerGroupDefaultLinkId">[]>());
 
         await Promise.allSettled([
           // Send approval emails
