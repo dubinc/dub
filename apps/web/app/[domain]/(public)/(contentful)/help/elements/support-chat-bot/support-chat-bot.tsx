@@ -8,6 +8,7 @@ export const SupportChatbot = () => {
 
   useEffect(() => {
     // Only set up listeners after scripts are loaded
+    console.log('scriptsLoaded', scriptsLoaded);
     if (!scriptsLoaded) {
       return;
     }
