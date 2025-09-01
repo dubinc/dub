@@ -254,10 +254,9 @@ const formatValue = (
   if (["number", "currency"].includes(type)) {
     return type === "number"
       ? value!.toString()
-      : currencyFormatter(
-          Number(value),
-          Number(value) % 1 !== 0 ? { minimumFractionDigits: 2 } : undefined,
-        );
+      : currencyFormatter(Number(value), {
+          trailingZeroDisplay: "stripIfInteger",
+        });
   }
 
   return truncate(value!.toString(), 20);

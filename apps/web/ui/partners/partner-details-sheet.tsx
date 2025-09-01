@@ -152,8 +152,7 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                   !partner.saleAmount
                     ? "-"
                     : currencyFormatter(partner.saleAmount / 100, {
-                        minimumFractionDigits:
-                          partner.saleAmount % 1 === 0 ? 0 : 2,
+                        trailingZeroDisplay: "stripIfInteger",
                       }),
                 ],
                 [
