@@ -54,7 +54,7 @@ export function ReferralsEmbedLinksList({
   }, [refreshedLinks]);
 
   const hasLinksLimitReached = partnerLinks.length >= group.maxPartnerLinks;
-  const hasAdditionalLinks = group.additionalLinks.length > 0;
+  const hasAdditionalLinks = group.additionalLinks?.length > 0;
   const canCreateNewLink = !hasLinksLimitReached && hasAdditionalLinks;
 
   const { table, ...tableProps } = useTable({
