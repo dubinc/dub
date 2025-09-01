@@ -90,7 +90,6 @@ model Link {
 
   @@unique([domain, key]) // for getting a link by domain and key
   @@unique([projectId, externalId]) // for getting a link by externalId
-  @@unique([partnerGroupDefaultLinkId, partnerId])
   @@index([projectId, tenantId]) // for filtering by tenantId
   @@index([projectId, url(length: 500)]) // for upserting a link by URL
   @@index([projectId, folderId, archived, createdAt(sort: Desc)]) // most getLinksForWorkspace queries
@@ -98,4 +97,5 @@ model Link {
   @@index([domain, createdAt]) // for bulk link deletion workflows (by domain) + deleting old short-lived links
   @@index(folderId) // used in /api/folders
   @@index(userId) // for relation to User table, used in /api/cron/cleanup/e2e-tests too
+  @@index(partnerGroupDefaultLinkId)
 }
