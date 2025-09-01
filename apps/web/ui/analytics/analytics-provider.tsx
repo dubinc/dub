@@ -20,7 +20,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
 import { useLocalStorage } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   createContext,
   PropsWithChildren,
@@ -95,8 +95,7 @@ export default function AnalyticsProvider({
   dashboardProps?: AnalyticsDashboardProps;
 }>) {
   const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { slug, plan, domains } = useWorkspace();
+  const { slug: workspaceSlug, plan: workspacePlan, domains } = useWorkspace();
 
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
@@ -152,14 +151,14 @@ export default function AnalyticsProvider({
         eventsApiPath: "/api/admin/events",
         domain: domainSlug,
       };
-    } else if (slug) {
+    } else if (workspaceSlug) {
       return {
-        basePath: `/${slug}/analytics`,
+        basePath: `/${workspaceSlug}/analytics`,
         baseApiPath: "/api/analytics",
         eventsApiPath: "/api/events",
         domain: domainSlug,
       };
-    } else if (partner?.id && programSlug) {
+    } else if (partnerPage) {
       return {
         basePath: `/api/partner-profile/programs/${programSlug}/analytics`,
         baseApiPath: `/api/partner-profile/programs/${programSlug}/analytics`,
@@ -182,12 +181,10 @@ export default function AnalyticsProvider({
     }
   }, [
     adminPage,
-    slug,
-    pathname,
+    workspaceSlug,
+    partnerPage,
     dashboardProps?.domain,
     dashboardId,
-    partner?.id,
-    programSlug,
     domainSlug,
   ]);
 
@@ -220,7 +217,7 @@ export default function AnalyticsProvider({
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
-  const { canTrackConversions } = getPlanCapabilities(plan);
+  const { canTrackConversions } = getPlanCapabilities(workspacePlan);
   const { data: customersCount } = useCustomersCount({
     enabled: canTrackConversions === true,
   });
@@ -229,7 +226,17 @@ export default function AnalyticsProvider({
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: customersCount && customersCount > 0 ? "composite" : "clicks",
+      event:
+        // show composite stats if:
+        // - shared dashboard and show conversions is set to true
+        // - it's an admin or partner page
+        // - it's a workspace that has tracked conversions/customers/leads before
+        dashboardProps?.showConversions ||
+        adminPage ||
+        partnerPage ||
+        (customersCount && customersCount > 0)
+          ? "composite"
+          : "clicks",
     })}`,
     fetcher,
     {
