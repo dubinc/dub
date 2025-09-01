@@ -300,7 +300,7 @@ export function ReferralsEmbedCreateUpdateLink({
                         isExactMode,
                     },
                   )}
-                  {...register("url", { required: false })}
+                  {...register("url", { required: !isExactMode })}
                 />
               </div>
             </div>
