@@ -131,25 +131,25 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
               {[
                 [
                   "Clicks",
-                  !partner.clicks
+                  Number.isNaN(partner.clicks)
                     ? "-"
                     : nFormatter(partner.clicks, { full: true }),
                 ],
                 [
                   "Leads",
-                  !partner.leads
+                  Number.isNaN(partner.leads)
                     ? "-"
                     : nFormatter(partner.leads, { full: true }),
                 ],
                 [
                   "Conversions",
-                  !partner.conversions
+                  Number.isNaN(partner.conversions)
                     ? "-"
                     : nFormatter(partner.conversions, { full: true }),
                 ],
                 [
                   "Revenue",
-                  !partner.saleAmount
+                  Number.isNaN(partner.saleAmount)
                     ? "-"
                     : currencyFormatter(partner.saleAmount / 100, {
                         trailingZeroDisplay: "stripIfInteger",
@@ -157,13 +157,13 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                 ],
                 [
                   "Commissions",
-                  !partner.totalCommissions
+                  Number.isNaN(partner.totalCommissions)
                     ? "-"
                     : currencyFormatter(partner.totalCommissions / 100),
                 ],
                 [
                   "Net revenue",
-                  !partner.netRevenue
+                  Number.isNaN(partner.netRevenue)
                     ? "-"
                     : currencyFormatter(partner.netRevenue / 100),
                 ],
