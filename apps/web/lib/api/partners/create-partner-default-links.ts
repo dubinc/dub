@@ -4,7 +4,7 @@ import {
   UtmTemplateProps,
   WorkspaceProps,
 } from "@/lib/types";
-import { constructURLFromUTMParams, isFulfilled, nanoid } from "@dub/utils";
+import { isFulfilled, nanoid } from "@dub/utils";
 import { PartnerGroupDefaultLink } from "@prisma/client";
 import { bulkCreateLinks } from "../links";
 import {
@@ -53,15 +53,6 @@ export async function createPartnerDefaultLinks({
 
         key = !hasMoreThanOneLink ? key : `${key}-${nanoid(4).toLowerCase()}`;
 
-        const utmParams = {
-          utm_source: utmTemplate?.utm_source || "",
-          utm_medium: utmTemplate?.utm_medium || "",
-          utm_campaign: utmTemplate?.utm_campaign || "",
-          utm_term: utmTemplate?.utm_term || "",
-          utm_content: utmTemplate?.utm_content || "",
-          ref: utmTemplate?.ref || "",
-        };
-
         return generatePartnerLink({
           workspace,
           program,
@@ -71,12 +62,12 @@ export async function createPartnerDefaultLinks({
             key,
             partnerGroupDefaultLinkId: defaultLink.id,
             domain: defaultLink.domain,
-            url: constructURLFromUTMParams(defaultLink.url, utmParams),
-            utm_source: utmParams.utm_source,
-            utm_medium: utmParams.utm_medium,
-            utm_campaign: utmParams.utm_campaign,
-            utm_term: utmParams.utm_term,
-            utm_content: utmParams.utm_content,
+            url: defaultLink.url,
+            utm_source: utmTemplate?.utm_source,
+            utm_medium: utmTemplate?.utm_medium,
+            utm_campaign: utmTemplate?.utm_campaign,
+            utm_term: utmTemplate?.utm_term,
+            utm_content: utmTemplate?.utm_content,
           },
           userId,
         });
