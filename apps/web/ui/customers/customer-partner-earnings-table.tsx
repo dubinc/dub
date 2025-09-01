@@ -34,24 +34,14 @@ export function CustomerPartnerEarningsTable({
         header: "Sale Amount",
         accessorKey: "amount",
         cell: ({ getValue }) => (
-          <span>
-            {currencyFormatter(getValue() / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </span>
+          <span>{currencyFormatter(getValue() / 100)}</span>
         ),
       },
       {
         header: "Commission",
         accessorKey: "earnings",
         cell: ({ getValue }) => (
-          <span>
-            {currencyFormatter(getValue() / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </span>
+          <span>{currencyFormatter(getValue() / 100)}</span>
         ),
       },
       {

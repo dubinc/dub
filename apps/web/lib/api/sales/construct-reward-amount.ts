@@ -61,6 +61,5 @@ const formatCurrency = (amount: number) =>
       ? undefined
       : {
           minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
         },
   );

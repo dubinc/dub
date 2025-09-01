@@ -64,10 +64,7 @@ export function PayoutsCard({ programId }: { programId?: string }) {
                   >
                     <div className="flex flex-col">
                       <span className="text-xs font-medium text-neutral-800">
-                        {currencyFormatter(payout.amount / 100, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {currencyFormatter(payout.amount / 100)}
                       </span>
                       <span className="text-[0.7rem] text-neutral-500">
                         {formatPeriod(payout)}

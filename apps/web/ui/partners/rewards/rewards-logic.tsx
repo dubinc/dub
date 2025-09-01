@@ -256,9 +256,7 @@ const formatValue = (
       ? value!.toString()
       : currencyFormatter(
           Number(value),
-          Number(value) % 1 !== 0
-            ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-            : undefined,
+          Number(value) % 1 !== 0 ? { minimumFractionDigits: 2 } : undefined,
         );
   }
 

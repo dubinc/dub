@@ -142,10 +142,7 @@ const RewardItem = ({
                                 condition.attribute
                               ] === "currency"
                             ? // Currency value
-                              currencyFormatter(Number(condition.value) / 100, {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })
+                              currencyFormatter(Number(condition.value) / 100)
                             : // Everything else
                               condition.value.toString())}
                 </span>

@@ -263,20 +263,14 @@ function PayoutInvoiceSheetContent() {
           amount === undefined ? (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
-            currencyFormatter(amount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })
+            currencyFormatter(amount / 100)
           ),
       },
       {
         key: "Fee",
         value:
           selectedPaymentMethod && fee !== undefined ? (
-            currencyFormatter(fee / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })
+            currencyFormatter(fee / 100)
           ) : (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ),
@@ -302,10 +296,7 @@ function PayoutInvoiceSheetContent() {
           total === undefined ? (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
-            currencyFormatter(total / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })
+            currencyFormatter(total / 100)
           ),
       },
     ];
@@ -349,10 +340,7 @@ function PayoutInvoiceSheetContent() {
                   excludedPayoutIds.includes(row.original.id) && "line-through",
                 )}
               >
-                {currencyFormatter(row.original.amount / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+                {currencyFormatter(row.original.amount / 100)}
               </span>
               <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
                 <Button
@@ -492,10 +480,7 @@ function PayoutInvoiceSheetContent() {
           }}
           text={
             amount && amount > 0
-              ? `Hold to confirm ${currencyFormatter(amount / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })} payout`
+              ? `Hold to confirm ${currencyFormatter(amount / 100)} payout`
               : "Hold to confirm payout"
           }
           disabled={

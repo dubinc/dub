@@ -42,10 +42,7 @@ export default function PartnerPayoutConfirmed({
     endDate?: Date | null;
   };
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const saleAmountInDollars = currencyFormatter(payout.amount / 100);
 
   const startDate = payout.startDate
     ? formatDate(payout.startDate, {

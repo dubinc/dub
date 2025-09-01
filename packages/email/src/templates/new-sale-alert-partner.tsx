@@ -47,15 +47,9 @@ export default function NewSaleAlertPartner({
 }) {
   const linkToEarnings = `https://partners.dub.co/programs/${program.slug}/earnings`;
 
-  const earningsInDollars = currencyFormatter(sale.earnings / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const earningsInDollars = currencyFormatter(sale.earnings / 100);
 
-  const saleAmountInDollars = currencyFormatter(sale.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const saleAmountInDollars = currencyFormatter(sale.amount / 100);
 
   return (
     <Html>
