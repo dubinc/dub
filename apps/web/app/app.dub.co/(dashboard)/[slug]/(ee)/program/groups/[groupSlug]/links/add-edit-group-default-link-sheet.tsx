@@ -16,6 +16,7 @@ import {
 import { Eye, Hyperlink } from "@dub/ui/icons";
 
 import usePartnerGroupDefaultLinks from "@/lib/swr/use-partner-group-default-links";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createOrUpdateDefaultLinkSchema } from "@/lib/zod/schemas/groups";
 import { getPrettyUrl } from "@dub/utils";
@@ -44,6 +45,7 @@ function DefaultPartnerLinkSheetContent({
   link,
 }: DefaultPartnerLinkSheetProps) {
   const { group } = useGroup();
+  const { program } = useProgram();
   const { id: workspaceId } = useWorkspace();
   const { defaultLinks } = usePartnerGroupDefaultLinks();
   const { makeRequest: createOrUpdateDefaultLink, isSubmitting } =
@@ -51,7 +53,7 @@ function DefaultPartnerLinkSheetContent({
 
   const { handleSubmit, watch, setValue } = useForm<FormData>({
     defaultValues: {
-      domain: link?.domain || "",
+      domain: link?.domain || program?.domain || "",
       url: link?.url || "",
     },
   });
@@ -142,9 +144,13 @@ function DefaultPartnerLinkSheetContent({
                   />
                 </div>
                 <DomainSelector
-                  selectedDomain={domain || ""}
+                  selectedDomain={domain}
                   setSelectedDomain={(domain) =>
                     setValue("domain", domain, { shouldDirty: true })
+                  }
+                  disabled={true}
+                  disabledTooltip={
+                    "You can't change the program's default domain. Please contact support if you need to change it."
                   }
                 />
                 <p className="text-xs font-normal text-neutral-500">

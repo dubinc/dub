@@ -1,17 +1,21 @@
 import useDomains from "@/lib/swr/use-domains";
 import { Button, Combobox, Globe, StatusBadge } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useMemo, useRef, useState } from "react";
+import { ReactNode, useMemo, useRef, useState } from "react";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 
 interface DomainSelectorProps {
   selectedDomain: string;
   setSelectedDomain: (domain: string) => void;
+  disabled?: boolean;
+  disabledTooltip?: string | ReactNode;
 }
 
 export function DomainSelector({
   selectedDomain,
   setSelectedDomain,
+  disabled = false,
+  disabledTooltip,
 }: DomainSelectorProps) {
   const domainRef = useRef<HTMLDivElement>(null);
   const [openPopover, setOpenPopover] = useState(false);
@@ -81,9 +85,11 @@ export function DomainSelector({
           placeholder={loading ? "" : "Select domain"}
           searchPlaceholder="Search domain..."
           matchTriggerWidth
-          open={openPopover}
-          onOpenChange={setOpenPopover}
+          open={disabled ? false : openPopover}
+          onOpenChange={disabled ? undefined : setOpenPopover}
           buttonProps={{
+            disabled,
+            disabledTooltip,
             className: cn(
               "w-full justify-start border-neutral-300 px-3",
               "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
@@ -95,12 +101,14 @@ export function DomainSelector({
               No domains found
               <Button
                 onClick={() => {
+                  if (disabled) return;
                   setOpenPopover(false);
                   setShowAddEditDomainModal(true);
                 }}
                 variant="primary"
                 className="h-7 w-fit px-2"
                 text="Add custom domain"
+                disabled={disabled}
               />
             </div>
           }
