@@ -154,6 +154,7 @@ export function AddEditDomainForm({
       }));
     }
 
+    // separate field for this because we don't show it unless appleAppSiteAssociation or assetLinks is true
     if (props?.deepviewData) {
       setShowOptionStates((prev) => ({
         ...prev,
@@ -533,7 +534,15 @@ export function AddEditDomainForm({
                                   ...prev,
                                   [id]: checked,
                                 }));
-                                if (!checked) {
+                                if (checked) {
+                                  // hacky frontend workaround since we don't have a way
+                                  // to customize the actual appearance of the deepview page yet
+                                  if (id === "deepviewData") {
+                                    setValue("deepviewData", "{}", {
+                                      shouldDirty: true,
+                                    });
+                                  }
+                                } else {
                                   setValue(id, "", {
                                     shouldDirty: true,
                                   });
@@ -543,7 +552,7 @@ export function AddEditDomainForm({
                             />
                           </div>
 
-                          {showOptionStates[id] && (
+                          {showOptionStates[id] && id !== "deepviewData" && (
                             <div className="rounded-md border border-neutral-200 bg-white">
                               <textarea
                                 {...register(id)}
@@ -556,7 +565,6 @@ export function AddEditDomainForm({
                                     [
                                       "appleAppSiteAssociation",
                                       "assetLinks",
-                                      "deepviewData",
                                     ].includes(id)
                                   ) {
                                     e.preventDefault();
@@ -663,7 +671,7 @@ const ADVANCED_OPTIONS = [
   {
     id: "deepviewData",
     title: "Deep View",
-    description: "Customize the interstitial pages for your deep links",
+    description: "Show an interstitial page for deferred deep linking",
     icon: MobilePhone,
     proFeature: true,
   },
