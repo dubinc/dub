@@ -1,9 +1,9 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
+import { linkCache } from "@/lib/api/links/cache";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import { FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
@@ -101,17 +101,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     workspaceUsers.filter(({ email }) => email).map(({ email }) => email!),
   );
 
-  const pipeline = redis.pipeline();
-  // remove root domain redirect for all domains from Redis
-  workspaceLinks.forEach(({ id, domain }) => {
-    pipeline.hset(domain.toLowerCase(), {
-      _root: {
-        id,
-        projectId: workspace.id,
-      },
-    });
-  });
-
   await Promise.allSettled([
     prisma.project.update({
       where: {
@@ -175,7 +164,8 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
     }),
 
-    pipeline.exec(),
+    // expire root domain link cache from Redis
+    linkCache.expireMany(workspaceLinks),
 
     // record root domain link for all domains from Tinybird
     recordLink(
