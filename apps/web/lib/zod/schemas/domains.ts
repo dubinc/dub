@@ -5,7 +5,7 @@ import {
   getPaginationQuerySchema,
   uploadedImageSchema,
 } from "./misc";
-import { parseUrlSchemaAllowEmpty } from "./utils";
+import { parseJsonSchema, parseUrlSchemaAllowEmpty } from "./utils";
 
 export const RegisteredDomainSchema = z.object({
   id: z.string().describe("The ID of the registered domain record."),
@@ -57,6 +57,7 @@ export const DomainSchema = z.object({
       "The URL to redirect to when a link under this domain doesn't exist.",
     )
     .openapi({ example: "https://acme.com/not-found" }),
+  logo: z.string().nullable().describe("The logo of the domain."),
   assetLinks: z
     .string()
     .nullable()
@@ -71,7 +72,10 @@ export const DomainSchema = z.object({
     .describe(
       "apple-app-site-association configuration file (for deep link support on iOS).",
     ),
-  logo: z.string().nullable().describe("The logo of the domain."),
+  deepviewData: z
+    .string()
+    .nullish()
+    .describe("The deepview data of the domain."),
   createdAt: z.date().describe("The date the domain was created."),
   updatedAt: z.date().describe("The date the domain was last updated."),
   registeredDomain: RegisteredDomainSchema.nullable().describe(
@@ -150,17 +154,21 @@ export const createDomainBodySchema = z.object({
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
   logo: uploadedImageSchema.nullish().describe("The logo of the domain."),
   assetLinks: z
-    .string()
+    .preprocess(parseJsonSchema, z.string())
     .nullish()
     .describe(
       "assetLinks.json configuration file (for deep link support on Android).",
     ),
   appleAppSiteAssociation: z
-    .string()
+    .preprocess(parseJsonSchema, z.string())
     .nullish()
     .describe(
       "apple-app-site-association configuration file (for deep link support on iOS).",
     ),
+  deepviewData: z
+    .preprocess(parseJsonSchema, z.string())
+    .nullish()
+    .describe("The deepview data of the domain."),
 });
 
 export const updateDomainBodySchema = createDomainBodySchema.partial();

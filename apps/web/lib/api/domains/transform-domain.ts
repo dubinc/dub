@@ -16,5 +16,8 @@ export const transformDomain = (
     appleAppSiteAssociation: domain.appleAppSiteAssociation
       ? JSON.stringify(domain.appleAppSiteAssociation)
       : null,
+    deepviewData: domain.deepviewData
+      ? JSON.stringify(domain.deepviewData)
+      : null,
   });
 };

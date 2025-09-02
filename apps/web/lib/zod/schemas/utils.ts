@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { getUrlFromString, isValidUrl, parseDateTime } from "@dub/utils";
+import { ZodIssueCode } from "zod";
 
 export const parseUrlSchema = z
   .string()
@@ -32,3 +33,18 @@ export const parseDateSchema = z
   .string()
   .transform((v) => parseDateTime(v))
   .refine((v) => !!v, { message: "Invalid date" });
+
+export const parseJsonSchema = (value: any, ctx: z.RefinementCtx) => {
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      ctx.addIssue({
+        code: ZodIssueCode.custom,
+        message: (e as Error).message,
+      });
+    }
+  }
+
+  return value;
+};

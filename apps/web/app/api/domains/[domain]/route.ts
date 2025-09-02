@@ -60,6 +60,7 @@ export const PATCH = withWorkspace(
       archived,
       assetLinks,
       appleAppSiteAssociation,
+      deepviewData,
       autoRenew,
     } = await extendedUpdateDomainBodySchema.parseAsync(
       await parseRequestBody(req),
@@ -71,15 +72,17 @@ export const PATCH = withWorkspace(
         expiredUrl ||
         notFoundUrl ||
         assetLinks ||
-        appleAppSiteAssociation
+        appleAppSiteAssociation ||
+        deepviewData
       ) {
         const proFeaturesString = combineWords(
           [
             logo && "custom QR code logos",
             expiredUrl && "default expiration URLs",
             notFoundUrl && "not found URLs",
-            assetLinks && "asset links",
+            assetLinks && "Asset Links",
             appleAppSiteAssociation && "Apple App Site Association",
+            deepviewData && "Deep View",
           ].filter(Boolean) as string[],
         );
 
@@ -140,6 +143,7 @@ export const PATCH = withWorkspace(
         appleAppSiteAssociation: appleAppSiteAssociation
           ? JSON.parse(appleAppSiteAssociation)
           : null,
+        deepviewData: deepviewData ? JSON.parse(deepviewData) : null,
       },
       include: {
         registeredDomain: true,
