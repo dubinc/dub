@@ -1,8 +1,30 @@
-import { ArrowTurnLeft, Button, LoadingSpinner, Tooltip } from "@dub/ui";
+import {
+  ArrowTurnLeft,
+  Button,
+  Check2,
+  LoadingSpinner,
+  Tooltip,
+} from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
 import { Fragment, useRef, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { EmojiPicker } from "./emoji-picker";
+
+export type Message = {
+  id: string;
+  text: string;
+  createdAt: Date;
+  readInEmail?: Date | null;
+  readInApp?: Date | null;
+  delivered?: boolean;
+  sender: {
+    type: "partner" | "user";
+    id: string;
+    name: string;
+    avatar: string | null;
+    groupAvatar?: string;
+  };
+};
 
 export function MessagesPanel({
   messages,
@@ -12,18 +34,7 @@ export function MessagesPanel({
   placeholder = "Type a message...",
   error,
 }: {
-  messages?: {
-    id: string;
-    text: string;
-    createdAt: Date;
-    sender: {
-      type: "partner" | "user";
-      id: string;
-      name: string;
-      avatar: string | null;
-      groupAvatar?: string;
-    };
-  }[];
+  messages?: Message[];
   currentUserType: "partner" | "user";
   currentUserId: string;
   onSendMessage: (message: string) => void;
@@ -35,11 +46,15 @@ export function MessagesPanel({
   const [typedMessage, setTypedMessage] = useState("");
 
   const sendMessage = () => {
-    if (!typedMessage) return;
+    if (!typedMessage.trim()) return;
 
-    onSendMessage(typedMessage);
+    onSendMessage(typedMessage.trim());
     setTypedMessage("");
   };
+
+  const isMessageFromCurrentUser = (message: Message) =>
+    message.sender.type === currentUserType &&
+    message.sender.id === currentUserId;
 
   return (
     <div className="flex size-full flex-col">
@@ -59,13 +74,19 @@ export function MessagesPanel({
                   messages[idx - 1].createdAt.getTime() >
                   5 * 1000 * 60;
 
-              const isCurrentUser =
-                message.sender.type === currentUserType &&
-                message.sender.id === currentUserId;
+              const isCurrentUser = isMessageFromCurrentUser(message);
 
               // Message is new if it was sent within the last 5 seconds (used for intro animations)
               const isNew =
                 message.createdAt.getTime() > new Date().getTime() - 5_000;
+
+              const showReadIndicator =
+                isCurrentUser &&
+                message.delivered !== false &&
+                (idx === messages.length - 1 ||
+                  messages
+                    .slice(idx + 1)
+                    .findIndex(isMessageFromCurrentUser) === -1);
 
               return (
                 <Fragment key={message.id}>
@@ -117,7 +138,7 @@ export function MessagesPanel({
                       )}
                     >
                       {/* Name / timestamp */}
-                      {(!isCurrentUser || isNewTime) && (
+                      {(!isCurrentUser || isNewTime || showReadIndicator) && (
                         <div className="flex items-center gap-1.5">
                           {!isCurrentUser && (
                             <span className="text-content-default min-w-0 truncate text-xs font-medium">
@@ -135,12 +156,15 @@ export function MessagesPanel({
                               )}
                             </span>
                           )}
+                          {showReadIndicator && (
+                            <ReadIndicator message={message} />
+                          )}
                         </div>
                       )}
                       {/* Message box */}
                       <div
                         className={cn(
-                          "max-w-lg rounded-xl px-4 py-2.5 text-sm",
+                          "max-w-lg whitespace-pre-wrap rounded-xl px-4 py-2.5 text-sm",
                           isCurrentUser
                             ? "text-content-inverted rounded-br bg-neutral-700"
                             : "text-content-default rounded-bl bg-neutral-100",
@@ -215,5 +239,32 @@ export function MessagesPanel({
         </div>
       </div>
     </div>
+  );
+}
+
+function ReadIndicator({ message }: { message: Message }) {
+  return (
+    <Tooltip
+      content={
+        message.readInEmail
+          ? "Read in email"
+          : message.readInApp
+            ? "Read in app"
+            : "Delivered"
+      }
+    >
+      <div
+        className={cn(
+          "text-content-subtle flex items-center",
+          message.readInEmail && "text-violet-500",
+          message.readInApp && "text-blue-500",
+        )}
+      >
+        <Check2 className="size-3" />
+        {(message.readInEmail || message.readInApp) && (
+          <Check2 className="-ml-0.5 size-3" />
+        )}
+      </div>
+    </Tooltip>
   );
 }

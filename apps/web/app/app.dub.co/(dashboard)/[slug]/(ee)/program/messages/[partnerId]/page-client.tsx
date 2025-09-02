@@ -3,7 +3,7 @@
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useMessagesContext } from "@/ui/messages/messages-context";
-import { MessagesPanel } from "@/ui/messages/messages-panel";
+import { Message, MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
@@ -15,18 +15,7 @@ import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { redirect, useParams } from "next/navigation";
 import { useState } from "react";
 
-const DEMO_MESSAGES: {
-  id: string;
-  text: string;
-  createdAt: Date;
-  sender: {
-    type: "partner" | "user";
-    id: string;
-    name: string;
-    avatar: string | null;
-    groupAvatar?: string;
-  };
-}[] = [
+const DEMO_MESSAGES: Message[] = [
   {
     id: "1",
     text: "Checking to see if I'm applicable for that new product?",
@@ -49,7 +38,8 @@ const DEMO_MESSAGES: {
       groupAvatar:
         "https://dev.dubassets.com/programs/pg_cm1ze1d510001ekktgfxnj76j/logo_zYzinxG",
     },
-    createdAt: new Date("2025-08-26T12:00:00Z"),
+    createdAt: new Date("2025-08-26T13:05:00Z"),
+    readInEmail: new Date(),
   },
 ];
 
@@ -122,6 +112,7 @@ export function ProgramMessagesPartnerPageClient() {
                   id: `msg_${prev.length + 1}`,
                   text: message,
                   createdAt: new Date(),
+                  delivered: false,
                   sender: {
                     type: "user",
                     id: "user_1",
