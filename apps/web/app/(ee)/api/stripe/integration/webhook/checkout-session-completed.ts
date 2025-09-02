@@ -2,7 +2,6 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
@@ -365,18 +364,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
     if (commission) {
       waitUntil(
-        Promise.allSettled([
-          notifyPartnerSale({
-            link,
-            commission,
-          }),
-
-          executeWorkflows({
-            trigger: WorkflowTrigger.saleRecorded,
-            programId: link.programId,
-            partnerId: link.partnerId,
-          }),
-        ]),
+        executeWorkflows({
+          trigger: WorkflowTrigger.saleRecorded,
+          programId: link.programId,
+          partnerId: link.partnerId,
+        }),
       );
     }
   }
