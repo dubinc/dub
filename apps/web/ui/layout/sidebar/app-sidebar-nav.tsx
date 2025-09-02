@@ -464,6 +464,7 @@ export function AppSidebarNav({
   >({
     eligibility: "eligible",
     status: "pending",
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
   const applicationsCount = useProgramApplicationsCount({

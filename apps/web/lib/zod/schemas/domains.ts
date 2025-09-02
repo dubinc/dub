@@ -5,7 +5,7 @@ import {
   getPaginationQuerySchema,
   uploadedImageSchema,
 } from "./misc";
-import { parseJsonSchema, parseUrlSchemaAllowEmpty } from "./utils";
+import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const RegisteredDomainSchema = z.object({
   id: z.string().describe("The ID of the registered domain record."),
@@ -154,19 +154,19 @@ export const createDomainBodySchema = z.object({
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
   logo: uploadedImageSchema.nullish().describe("The logo of the domain."),
   assetLinks: z
-    .preprocess(parseJsonSchema, z.string())
+    .string()
     .nullish()
     .describe(
       "assetLinks.json configuration file (for deep link support on Android).",
     ),
   appleAppSiteAssociation: z
-    .preprocess(parseJsonSchema, z.string())
+    .string()
     .nullish()
     .describe(
       "apple-app-site-association configuration file (for deep link support on iOS).",
     ),
   deepviewData: z
-    .preprocess(parseJsonSchema, z.string())
+    .string()
     .nullish()
     .describe("The deepview data of the domain."),
 });
