@@ -1,55 +1,23 @@
 "use client";
 
+import { usePartnerMessages } from "@/lib/swr/use-partner-messages";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
 import { Button } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
-import { subMinutes } from "date-fns";
 import { useParams } from "next/navigation";
 import { CSSProperties, ReactNode, useState } from "react";
 import { toast } from "sonner";
 
 export default function MessagesLayout({ children }: { children: ReactNode }) {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { partnerId } = useParams() as { partnerId?: string };
 
-  // TODO: [Messages] fetch real data
-  const partnersWithMessages = [
-    {
-      id: "pn_1KcRT7do2foT1PZ9zZhLF0Cq",
-      name: "Tim Wilson",
-      image: "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
-      messages: [
-        {
-          text: "Hello, how are you?",
-          createdAt: subMinutes(new Date(), 5),
-          readStatus: "read-app",
-        },
-        {
-          text: "Great, thanks! What about you?",
-          createdAt: subMinutes(new Date(), 5),
-          readStatus: "read-app",
-        },
-      ],
-    },
-    {
-      id: "pn_1JZ8GFVXAMTXEYF33QKWZAZ0Y",
-      name: "Tim Partner11",
-      image:
-        "https://dev.dubassets.com/partners/pn_1JZ8GFVXAMTXEYF33QKWZAZ0Y/image_nMMv6kL",
-      messages: [
-        {
-          text: "Thanks for approving my application!",
-          createdAt: subMinutes(new Date(), 5),
-          readStatus: "read-app",
-        },
-      ],
-    },
-  ];
-  const isLoading = false;
-  const error = null;
+  const { partnerMessages, isLoading, error } = usePartnerMessages({
+    query: { messagesLimit: 1 },
+  });
 
   const [currentPanel, setCurrentPanel] = useState<MessagesPanel>("index");
 
@@ -81,12 +49,15 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
               />
             </div>
             <div className="scrollbar-hide grow overflow-y-auto">
-              {partnersWithMessages?.length || isLoading ? (
+              {partnerMessages?.length || isLoading ? (
                 <MessagesList
-                  groupedMessages={partnersWithMessages.map((p) => ({
-                    ...p,
-                    href: `/${workspaceSlug}/program/messages/${p.id}`,
-                  }))}
+                  groupedMessages={partnerMessages?.map(
+                    ({ partner, messages }) => ({
+                      ...partner,
+                      messages,
+                      href: `/${workspaceSlug}/program/messages/${partner.id}`,
+                    }),
+                  )}
                   activeId={partnerId}
                 />
               ) : error ? (

@@ -1,3 +1,4 @@
+import { Message } from "@/lib/types";
 import {
   ArrowTurnLeft,
   Button,
@@ -10,22 +11,6 @@ import { Fragment, useRef, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { EmojiPicker } from "./emoji-picker";
 
-export type Message = {
-  id: string;
-  text: string;
-  createdAt: Date;
-  readInEmail?: Date | null;
-  readInApp?: Date | null;
-  delivered?: boolean;
-  sender: {
-    type: "partner" | "user";
-    id: string;
-    name: string;
-    avatar: string | null;
-    groupAvatar?: string;
-  };
-};
-
 export function MessagesPanel({
   messages,
   currentUserType,
@@ -34,7 +19,7 @@ export function MessagesPanel({
   placeholder = "Type a message...",
   error,
 }: {
-  messages?: Message[];
+  messages?: (Message & { delivered?: boolean })[];
   currentUserType: "partner" | "user";
   currentUserId: string;
   onSendMessage: (message: string) => void;
@@ -53,8 +38,11 @@ export function MessagesPanel({
   };
 
   const isMessageFromCurrentUser = (message: Message) =>
-    message.sender.type === currentUserType &&
-    message.sender.id === currentUserId;
+    Boolean(
+      currentUserType === "partner"
+        ? message.senderPartner
+        : message.senderUserId === currentUserId,
+    );
 
   return (
     <div className="flex size-full flex-col">
@@ -64,21 +52,22 @@ export function MessagesPanel({
             {messages?.map((message, idx) => {
               const isNewDate =
                 idx === 0 ||
-                messages[idx - 1].createdAt.toDateString() !==
-                  message.createdAt.toDateString();
+                new Date(messages[idx - 1].createdAt).toDateString() !==
+                  new Date(message.createdAt).toDateString();
 
               // If it's been more than 5 minutes since the last message
               const isNewTime =
                 isNewDate ||
-                message.createdAt.getTime() -
-                  messages[idx - 1].createdAt.getTime() >
+                new Date(message.createdAt).getTime() -
+                  new Date(messages[idx - 1].createdAt).getTime() >
                   5 * 1000 * 60;
 
               const isCurrentUser = isMessageFromCurrentUser(message);
 
               // Message is new if it was sent within the last 5 seconds (used for intro animations)
               const isNew =
-                message.createdAt.getTime() > new Date().getTime() - 5_000;
+                new Date(message.createdAt).getTime() >
+                new Date().getTime() - 5_000;
 
               const showReadIndicator =
                 isCurrentUser &&
@@ -87,6 +76,11 @@ export function MessagesPanel({
                   messages
                     .slice(idx + 1)
                     .findIndex(isMessageFromCurrentUser) === -1);
+
+              const sender =
+                currentUserType === "partner"
+                  ? message.senderPartner
+                  : message.senderUser;
 
               return (
                 <Fragment key={message.id}>
@@ -110,24 +104,21 @@ export function MessagesPanel({
                     )}
                   >
                     {/* Avatar */}
-                    <Tooltip content={message.sender.name}>
+                    <Tooltip content={sender?.name}>
                       <div className="relative shrink-0">
                         <img
-                          src={
-                            message.sender.avatar ||
-                            `${OG_AVATAR_URL}${message.sender.id}`
-                          }
-                          alt={`${message.sender.name} avatar`}
+                          src={sender?.image || `${OG_AVATAR_URL}${sender?.id}`}
+                          alt={`${sender?.name} avatar`}
                           className="size-8 rounded-full"
                           draggable={false}
                         />
-                        {message.sender.groupAvatar && (
+                        {/* {sender?.groupAvatar && (
                           <img
-                            src={message.sender.groupAvatar}
+                            src={sender?.groupAvatar}
                             alt=""
                             className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border border-white"
                           />
-                        )}
+                        )} */}
                       </div>
                     </Tooltip>
 
@@ -142,7 +133,7 @@ export function MessagesPanel({
                         <div className="flex items-center gap-1.5">
                           {!isCurrentUser && (
                             <span className="text-content-default min-w-0 truncate text-xs font-medium">
-                              {message.sender.name}
+                              {sender?.name}
                             </span>
                           )}
                           {isNewTime && (

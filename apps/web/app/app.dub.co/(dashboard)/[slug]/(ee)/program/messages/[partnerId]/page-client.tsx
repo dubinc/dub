@@ -1,9 +1,10 @@
 "use client";
 
 import usePartner from "@/lib/swr/use-partner";
+import { usePartnerMessages } from "@/lib/swr/use-partner-messages";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useMessagesContext } from "@/ui/messages/messages-context";
-import { Message, MessagesPanel } from "@/ui/messages/messages-panel";
+import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
@@ -14,48 +15,22 @@ import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { redirect, useParams } from "next/navigation";
 import { useState } from "react";
-
-const DEMO_MESSAGES: Message[] = [
-  {
-    id: "1",
-    text: "Checking to see if I'm applicable for that new product?",
-    sender: {
-      type: "partner",
-      id: "pn_1",
-      name: "Tim Wilson",
-      avatar: "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
-    },
-    createdAt: new Date("2025-08-26T12:00:00Z"),
-  },
-  {
-    id: "2",
-    text: "You are for sure eligible. We'll most likely make those changes within the next day or two. Stay tuned.",
-    sender: {
-      type: "user",
-      id: "user_1",
-      name: "Tim Wilson",
-      avatar: "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
-      groupAvatar:
-        "https://dev.dubassets.com/programs/pg_cm1ze1d510001ekktgfxnj76j/logo_zYzinxG",
-    },
-    createdAt: new Date("2025-08-26T13:05:00Z"),
-    readInEmail: new Date(),
-  },
-];
+import { toast } from "sonner";
 
 export function ProgramMessagesPartnerPageClient() {
   const { slug: workspaceSlug } = useWorkspace();
 
   const { partnerId } = useParams() as { partnerId: string };
-  const { partner, loading, error } = usePartner({ partnerId });
-
-  // TODO: [Messages] fetch+persist real data from/to API
-  const [messages, setMessages] = useState(DEMO_MESSAGES);
+  const { partner, error: errorPartner } = usePartner({ partnerId });
+  const { partnerMessages, error: errorMessages } = usePartnerMessages({
+    query: { partnerId },
+  });
+  const messages = partnerMessages?.[0]?.messages;
 
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
-  if (error) redirect(`/${workspaceSlug}/program/messages`);
+  if (errorPartner) redirect(`/${workspaceSlug}/program/messages`);
 
   return (
     <div
@@ -75,7 +50,7 @@ export function ProgramMessagesPartnerPageClient() {
               <ChevronLeft className="size-3.5" />
             </button>
             <div className="flex min-w-0 items-center gap-3">
-              {loading ? (
+              {!partner ? (
                 <>
                   <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
                   <div className="h-8 w-36 animate-pulse rounded-md bg-neutral-200" />
@@ -102,26 +77,27 @@ export function ProgramMessagesPartnerPageClient() {
         <div className="min-h-0 grow">
           <MessagesPanel
             messages={messages}
-            error={undefined}
+            error={errorMessages}
             currentUserType="user"
             currentUserId="user_1"
             onSendMessage={(message) =>
-              setMessages((prev) => [
-                ...prev,
-                {
-                  id: `msg_${prev.length + 1}`,
-                  text: message,
-                  createdAt: new Date(),
-                  delivered: false,
-                  sender: {
-                    type: "user",
-                    id: "user_1",
-                    name: "Tim Wilson",
-                    avatar:
-                      "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
-                  },
-                },
-              ])
+              // setMessages((prev) => [
+              //   ...prev,
+              //   {
+              //     id: `msg_${prev.length + 1}`,
+              //     text: message,
+              //     createdAt: new Date(),
+              //     delivered: false,
+              //     sender: {
+              //       type: "user",
+              //       id: "user_1",
+              //       name: "Tim Wilson",
+              //       avatar:
+              //         "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
+              //     },
+              //   },
+              // ])
+              toast.info("WIP")
             }
           />
         </div>
