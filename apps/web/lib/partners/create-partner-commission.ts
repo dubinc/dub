@@ -286,11 +286,12 @@ export const createPartnerCommission = async ({
             }),
           }),
 
-          notifyPartnerCommission({
-            program,
-            workspace,
-            commission,
-          }),
+          !isClawback &&
+            notifyPartnerCommission({
+              program,
+              workspace,
+              commission,
+            }),
 
           // We only capture audit logs for manual commissions
           user &&
