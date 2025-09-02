@@ -50,7 +50,7 @@ export default function NewCommissionAlertPartner({
     <Html>
       <Head />
       <Preview>
-        You just earned {earningsInDollars} in commissions via $
+        You just earned {earningsInDollars} in commissions via{" "}
         {shortLink
           ? `your referral link ${getPrettyUrl(shortLink)}`
           : "Dub Partners"}
