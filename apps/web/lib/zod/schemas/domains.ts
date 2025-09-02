@@ -72,10 +72,6 @@ export const DomainSchema = z.object({
     .describe(
       "apple-app-site-association configuration file (for deep link support on iOS).",
     ),
-  deepviewData: z
-    .string()
-    .nullish()
-    .describe("The deepview data of the domain."),
   createdAt: z.date().describe("The date the domain was created."),
   updatedAt: z.date().describe("The date the domain was last updated."),
   registeredDomain: RegisteredDomainSchema.nullable().describe(
@@ -165,10 +161,10 @@ export const createDomainBodySchema = z.object({
     .describe(
       "apple-app-site-association configuration file (for deep link support on iOS).",
     ),
-  deepviewData: z
-    .string()
-    .nullish()
-    .describe("The deepview data of the domain."),
+});
+
+export const createDomainBodySchemaExtended = createDomainBodySchema.extend({
+  deepviewData: z.string().nullish(),
 });
 
 export const updateDomainBodySchema = createDomainBodySchema.partial();

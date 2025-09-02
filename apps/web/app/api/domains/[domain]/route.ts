@@ -13,11 +13,13 @@ import { storage } from "@/lib/storage";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-const extendedUpdateDomainBodySchema = updateDomainBodySchema.extend({
+const updateDomainBodySchemaExtended = updateDomainBodySchema.extend({
+  deepviewData: z.string().nullish(),
   autoRenew: z.boolean().nullish(),
 });
 
@@ -62,7 +64,7 @@ export const PATCH = withWorkspace(
       appleAppSiteAssociation,
       deepviewData,
       autoRenew,
-    } = await extendedUpdateDomainBodySchema.parseAsync(
+    } = await updateDomainBodySchemaExtended.parseAsync(
       await parseRequestBody(req),
     );
 
@@ -128,6 +130,11 @@ export const PATCH = withWorkspace(
     // If logo is null, we want to delete the logo (explicitly set in the request body to null or "")
     const deleteLogo = logo === null && oldLogo;
 
+    console.log(
+      "deepviewData",
+      deepviewData ? JSON.parse(deepviewData) : Prisma.DbNull,
+    );
+
     const domainRecord = await prisma.domain.update({
       where: {
         slug: domain,
@@ -139,21 +146,17 @@ export const PATCH = withWorkspace(
         expiredUrl,
         notFoundUrl,
         logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
-        assetLinks: assetLinks
-          ? JSON.parse(assetLinks)
-          : assetLinks === null
-            ? null
-            : undefined,
-        appleAppSiteAssociation: appleAppSiteAssociation
-          ? JSON.parse(appleAppSiteAssociation)
-          : appleAppSiteAssociation === null
-            ? null
-            : undefined,
-        deepviewData: deepviewData
-          ? JSON.parse(deepviewData)
-          : deepviewData === null
-            ? null
-            : undefined,
+        ...(assetLinks !== undefined && {
+          assetLinks: assetLinks ? JSON.parse(assetLinks) : Prisma.DbNull,
+        }),
+        ...(appleAppSiteAssociation !== undefined && {
+          appleAppSiteAssociation: appleAppSiteAssociation
+            ? JSON.parse(appleAppSiteAssociation)
+            : Prisma.DbNull,
+        }),
+        ...(deepviewData !== undefined && {
+          deepviewData: deepviewData ? JSON.parse(deepviewData) : Prisma.DbNull,
+        }),
       },
       include: {
         registeredDomain: true,

@@ -8,7 +8,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import {
-  createDomainBodySchema,
+  createDomainBodySchemaExtended,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
@@ -98,7 +98,7 @@ export const POST = withWorkspace(
       assetLinks,
       appleAppSiteAssociation,
       deepviewData,
-    } = await createDomainBodySchema.parseAsync(body);
+    } = await createDomainBodySchemaExtended.parseAsync(body);
 
     if (workspace.plan === "free") {
       if (

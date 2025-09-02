@@ -2,7 +2,7 @@ import { isValidDomain } from "@/lib/api/domains/is-valid-domain";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
-import { createDomainBodySchema } from "@/lib/zod/schemas/domains";
+import { createDomainBodySchemaExtended } from "@/lib/zod/schemas/domains";
 import { AlertCircleFill, CheckCircleFill, Lock } from "@/ui/shared/icons";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
@@ -59,7 +59,7 @@ const formatJson = (string: string) => {
   }
 };
 
-type FormData = z.infer<typeof createDomainBodySchema>;
+type FormData = z.infer<typeof createDomainBodySchemaExtended>;
 
 type DomainStatus = "checking" | "conflict" | "has site" | "available" | "idle";
 
@@ -229,15 +229,15 @@ export function AddEditDomainForm({
         body: JSON.stringify({
           ...formData,
           ...(formData.logo === props?.logo && { logo: undefined }),
-          ...(formData.assetLinks && {
+          ...(formData.assetLinks !== undefined && {
             assetLinks: sanitizeJson(formData.assetLinks),
           }),
-          ...(formData.appleAppSiteAssociation && {
+          ...(formData.appleAppSiteAssociation !== undefined && {
             appleAppSiteAssociation: sanitizeJson(
               formData.appleAppSiteAssociation,
             ),
           }),
-          ...(formData.deepviewData && {
+          ...(formData.deepviewData !== undefined && {
             deepviewData: sanitizeJson(formData.deepviewData),
           }),
         }),
