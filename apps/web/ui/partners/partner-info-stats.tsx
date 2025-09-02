@@ -18,42 +18,41 @@ export function PartnerInfoStats({
       {[
         [
           "Clicks",
-          !partner.clicks ? "-" : nFormatter(partner.clicks, { full: true }),
+          Number.isNaN(partner.clicks)
+            ? "-"
+            : nFormatter(partner.clicks, { full: true }),
         ],
         [
           "Leads",
-          !partner.leads ? "-" : nFormatter(partner.leads, { full: true }),
+          Number.isNaN(partner.leads)
+            ? "-"
+            : nFormatter(partner.leads, { full: true }),
         ],
         [
-          "Sales",
-          !partner.sales ? "-" : nFormatter(partner.sales, { full: true }),
+          "Conversions",
+          Number.isNaN(partner.conversions)
+            ? "-"
+            : nFormatter(partner.conversions, { full: true }),
         ],
         [
           "Revenue",
-          !partner.saleAmount
+          Number.isNaN(partner.saleAmount)
             ? "-"
             : currencyFormatter(partner.saleAmount / 100, {
-                minimumFractionDigits: partner.saleAmount % 1 === 0 ? 0 : 2,
-                maximumFractionDigits: 2,
+                trailingZeroDisplay: "stripIfInteger",
               }),
         ],
         [
           "Commissions",
-          !partner.totalCommissions
+          Number.isNaN(partner.totalCommissions)
             ? "-"
-            : currencyFormatter(partner.totalCommissions / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }),
+            : currencyFormatter(partner.totalCommissions / 100),
         ],
         [
           "Net revenue",
-          !partner.netRevenue
+          Number.isNaN(partner.netRevenue)
             ? "-"
-            : currencyFormatter(partner.netRevenue / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }),
+            : currencyFormatter(partner.netRevenue / 100),
         ],
       ].map(([label, value]) => (
         <div key={label} className="flex flex-col bg-neutral-50 p-3">
