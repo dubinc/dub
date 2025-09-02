@@ -100,7 +100,10 @@ export async function POST(req: Request) {
         const linkChunks = chunk(links, 100);
 
         for (const linkChunk of linkChunks) {
-          await dispatchPromotionCodeCreationJob(linkChunk);
+          await dispatchPromotionCodeCreationJob({
+            links: linkChunk,
+          });
+
           await new Promise((resolve) => setTimeout(resolve, 2000));
         }
       }

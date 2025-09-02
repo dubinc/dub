@@ -11,7 +11,7 @@ export async function createStripePromotionCode({
   code,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
-  discount: Pick<DiscountProps, "id" | "couponId" | "amount" | "type">;
+  discount: Pick<DiscountProps, "id" | "couponId">;
   code: string;
 }) {
   if (!workspace.stripeConnectId) {

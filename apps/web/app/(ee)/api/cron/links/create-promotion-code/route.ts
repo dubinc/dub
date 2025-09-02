@@ -1,5 +1,7 @@
+import { dispatchPromotionCodeCreationJob } from "@/lib/api/discounts/promotion-code-creation-job";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { createStripePromotionCode } from "@/lib/stripe/create-stripe-promotion-code";
+import { DiscountProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { z } from "zod";
@@ -15,7 +17,6 @@ const schema = z.object({
 // POST /api/cron/links/create-promotion-code
 export async function POST(req: Request) {
   let payload: z.infer<typeof schema> | undefined = undefined;
-  const allHeaders = req.headers;
 
   try {
     const rawBody = await req.text();
@@ -87,13 +88,9 @@ export async function POST(req: Request) {
     });
   }
 
-  const retried = Number(allHeaders.get("upstash-retried"));
-  const amount =
-    discount.type === "percentage" ? discount.amount : discount.amount / 100;
-
   try {
     // Create the promotion code using Stripe API
-    const promotionCode = await createStripePromotionCode({
+    const stripePromotionCode = await createStripePromotionCode({
       workspace: {
         id: workspace.id,
         stripeConnectId: workspace.stripeConnectId,
@@ -101,29 +98,71 @@ export async function POST(req: Request) {
       discount: {
         id: discount.id,
         couponId: discount.couponId,
-        amount: discount.amount,
-        type: discount.type,
       },
-      code: retried === 0 ? `${code}${amount}` : `${code}${nanoid(4)}`,
+      code,
     });
 
-    if (promotionCode?.code) {
+    // Update the link with the promotion code
+    if (stripePromotionCode?.code) {
       console.log(
-        `Stripe promotion code ${promotionCode.code} created for the link ${linkId}.`,
+        `Stripe promotion code ${stripePromotionCode.code} created for the link ${link.id}.`,
       );
 
       await prisma.link.update({
         where: {
-          id: linkId,
+          id: link.id,
         },
         data: {
-          couponCode: promotionCode.code,
+          couponCode: stripePromotionCode.code,
         },
       });
     }
   } catch (error) {
-    return logAndRespond(error.raw?.message, { status: 400 });
+    if (error?.type === "StripeInvalidRequestError") {
+      const errorMessage = error.raw?.message || error.message;
+      const isDuplicateError = errorMessage?.includes("already exists");
+
+      if (isDuplicateError) {
+        const newCode = constructPromotionCode({
+          code,
+          discount: {
+            amount: discount.amount,
+            type: discount.type,
+          },
+        });
+
+        await dispatchPromotionCodeCreationJob({
+          link: {
+            id: link.id,
+            key: newCode,
+          },
+        });
+
+        return logAndRespond(`${errorMessage} Retrying...`, {
+          logLevel: "info",
+        });
+      }
+    }
+
+    return logAndRespond(error.raw?.message || error.message, { status: 400 });
   }
 
   return logAndRespond(`Finished executing the job for the link ${linkId}.`);
+}
+
+function constructPromotionCode({
+  code,
+  discount,
+}: {
+  code: string;
+  discount: Pick<DiscountProps, "amount" | "type">;
+}) {
+  const amount =
+    discount.type === "percentage" ? discount.amount : discount.amount / 100;
+
+  if (!code.endsWith(amount.toString())) {
+    return `${code}${amount}`;
+  }
+
+  return `${code}${nanoid(4)}`;
 }

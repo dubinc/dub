@@ -7,8 +7,12 @@ const queue = qstash.queue({
 });
 
 type DispatchPromotionCodeCreationJobInput =
-  | Pick<Link, "id" | "key">
-  | Pick<Link, "id" | "key">[];
+  | {
+      link: Pick<Link, "id" | "key">;
+    }
+  | {
+      links: Pick<Link, "id" | "key">[];
+    };
 
 // Dispatch promotion code creation job for a link or multiple links
 export async function dispatchPromotionCodeCreationJob(
@@ -18,7 +22,7 @@ export async function dispatchPromotionCodeCreationJob(
     parallelism: 10,
   });
 
-  const finalLinks = Array.isArray(input) ? input : [input];
+  const finalLinks = "links" in input ? input.links : [input.link];
 
   const response = await Promise.allSettled(
     finalLinks.map((link) =>
