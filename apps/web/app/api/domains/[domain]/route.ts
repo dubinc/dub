@@ -130,11 +130,6 @@ export const PATCH = withWorkspace(
     // If logo is null, we want to delete the logo (explicitly set in the request body to null or "")
     const deleteLogo = logo === null && oldLogo;
 
-    console.log(
-      "deepviewData",
-      deepviewData ? JSON.parse(deepviewData) : Prisma.DbNull,
-    );
-
     const domainRecord = await prisma.domain.update({
       where: {
         slug: domain,
