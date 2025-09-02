@@ -108,7 +108,7 @@ export const PATCH = withWorkspace(
           rewardAmount,
           ...(bounty.type === "submission" &&
             submissionRequirements !== undefined && {
-              submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
+              submissionRequirements: submissionRequirements ?? Prisma.DbNull,
             }),
           ...(updatedPartnerGroups && {
             groups: {

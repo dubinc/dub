@@ -52,7 +52,7 @@ export const createRewardAction = authActionClient
           type,
           amount,
           maxDuration,
-          modifiers: modifiers || Prisma.JsonNull,
+          modifiers: modifiers || Prisma.DbNull,
         },
       });
 
