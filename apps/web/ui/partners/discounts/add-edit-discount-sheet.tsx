@@ -14,6 +14,10 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { Stripe } from "@/ui/guides/icons/stripe";
 import { X } from "@/ui/shared/icons";
 import {
+  InlineBadgePopover,
+  InlineBadgePopoverMenu,
+} from "@/ui/shared/inline-badge-popover";
+import {
   Button,
   InfoTooltip,
   Sheet,
@@ -36,10 +40,6 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
 import { RewardDiscountPartnersCard } from "../groups/reward-discount-partners-card";
-import {
-  InlineBadgePopover,
-  InlineBadgePopoverMenu,
-} from "../rewards/inline-badge-popover";
 
 interface DiscountSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;

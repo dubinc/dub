@@ -1,0 +1,54 @@
+import { qstash } from "@/lib/cron";
+import { APP_DOMAIN_WITH_NGROK, isRejected } from "@dub/utils";
+import { Link } from "@prisma/client";
+
+const queue = qstash.queue({
+  queueName: "coupon-creation-1",
+});
+
+type DispatchPromotionCodeCreationJobInput =
+  | Pick<Link, "id" | "key">
+  | Pick<Link, "id" | "key">[];
+
+// Dispatch promotion code creation job for a link or multiple links
+export async function dispatchPromotionCodeCreationJob(
+  input: DispatchPromotionCodeCreationJobInput,
+) {
+  await queue.upsert({
+    parallelism: 10,
+  });
+
+  const finalLinks = Array.isArray(input) ? input : [input];
+
+  const response = await Promise.allSettled(
+    finalLinks.map((link) =>
+      queue.enqueueJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-code`,
+        method: "POST",
+        body: {
+          linkId: link.id,
+          code: link.key,
+        },
+      }),
+    ),
+  );
+
+  const rejected = response
+    .map((result, index) => ({ result, linkId: finalLinks[index].id }))
+    .filter(({ result }) => isRejected(result));
+
+  if (rejected.length > 0) {
+    console.error(
+      `Failed to dispatch coupon creation job for ${rejected.length} links.`,
+    );
+
+    rejected.forEach(({ result: promiseResult, linkId }) => {
+      if (isRejected(promiseResult)) {
+        console.error(
+          `Failed to enqueue coupon creation job for link ${linkId}:`,
+          promiseResult.reason,
+        );
+      }
+    });
+  }
+}
