@@ -152,6 +152,8 @@ export function Form() {
       case "partnerstack":
         return (
           <ImportPartnerStackForm
+            watch={watch}
+            setValue={setValue}
             onSuccess={() => onSubmit(getValues())}
             isPending={isPendingAction}
           />
