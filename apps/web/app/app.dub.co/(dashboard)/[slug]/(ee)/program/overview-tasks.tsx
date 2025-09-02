@@ -3,7 +3,7 @@ import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import { Badge, MoneyBills2, ShieldKeyhole, UserCheck } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -84,7 +84,8 @@ export function OverviewTasks() {
                   task.count && task.count > 0 && "bg-blue-100 text-blue-600",
                 )}
               >
-                {task.count ?? (task.loading ? "" : "-")}
+                {nFormatter(task.count, { full: true }) ??
+                  (task.loading ? "" : "-")}
               </div>
             )}
           </Link>

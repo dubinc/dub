@@ -54,10 +54,7 @@ export function AnalyticsTimeseriesChart({
               </div>
               <p className="text-right font-medium text-neutral-900">
                 {selectedTab === "sales" && saleUnit === "saleAmount"
-                  ? currencyFormatter(d.values.amount, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
+                  ? currencyFormatter(d.values.amount)
                   : nFormatter(d.values.amount)}
               </p>
             </div>

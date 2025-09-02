@@ -13,12 +13,14 @@ import {
   EventType,
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
 import { useLocalStorage } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   createContext,
   PropsWithChildren,
@@ -58,8 +60,10 @@ export const AnalyticsContext = createContext<{
   totalEvents?: {
     [key in AnalyticsResponseOptions]: number;
   };
+  totalEventsLoading?: boolean;
   adminPage?: boolean;
   partnerPage?: boolean;
+  customersCount?: number;
   showConversions?: boolean;
   requiresUpgrade?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
@@ -76,6 +80,7 @@ export const AnalyticsContext = createContext<{
   end: new Date(),
   adminPage: false,
   partnerPage: false,
+  customersCount: 0,
   showConversions: false,
   requiresUpgrade: false,
   dashboardProps: undefined,
@@ -90,8 +95,7 @@ export default function AnalyticsProvider({
   dashboardProps?: AnalyticsDashboardProps;
 }>) {
   const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { slug, domains } = useWorkspace();
+  const { slug: workspaceSlug, plan: workspacePlan, domains } = useWorkspace();
 
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
@@ -147,14 +151,14 @@ export default function AnalyticsProvider({
         eventsApiPath: "/api/admin/events",
         domain: domainSlug,
       };
-    } else if (slug) {
+    } else if (workspaceSlug) {
       return {
-        basePath: `/${slug}/analytics`,
+        basePath: `/${workspaceSlug}/analytics`,
         baseApiPath: "/api/analytics",
         eventsApiPath: "/api/events",
         domain: domainSlug,
       };
-    } else if (partner?.id && programSlug) {
+    } else if (partnerPage) {
       return {
         basePath: `/api/partner-profile/programs/${programSlug}/analytics`,
         baseApiPath: `/api/partner-profile/programs/${programSlug}/analytics`,
@@ -177,12 +181,10 @@ export default function AnalyticsProvider({
     }
   }, [
     adminPage,
-    slug,
-    pathname,
+    workspaceSlug,
+    partnerPage,
     dashboardProps?.domain,
     dashboardId,
-    partner?.id,
-    programSlug,
     domainSlug,
   ]);
 
@@ -215,11 +217,26 @@ export default function AnalyticsProvider({
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
-  const { data: totalEvents } = useSWR<{
+  const { canTrackConversions } = getPlanCapabilities(workspacePlan);
+  const { data: customersCount } = useCustomersCount({
+    enabled: canTrackConversions === true,
+  });
+
+  const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: "composite",
+      event:
+        // show composite stats if:
+        // - shared dashboard and show conversions is set to true
+        // - it's an admin or partner page
+        // - it's a workspace that has tracked conversions/customers/leads before
+        dashboardProps?.showConversions ||
+        adminPage ||
+        partnerPage ||
+        (customersCount && customersCount > 0)
+          ? "composite"
+          : "clicks",
     })}`,
     fetcher,
     {
@@ -271,11 +288,13 @@ export default function AnalyticsProvider({
         interval, /// time period interval
         tagIds, // ids of the tags to filter by
         totalEvents, // totalEvents (clicks, leads, sales)
+        totalEventsLoading: totalEventsLoading,
         adminPage, // whether the user is an admin
         partnerPage, // whether the user is viewing partner analytics
-        dashboardProps,
+        customersCount, // total customers count (if the workspace has tracked conversions/customers/leads before)
         showConversions, // Whether to show conversions tabs/data
         requiresUpgrade, // whether an upgrade is required to perform the query
+        dashboardProps,
       }}
     >
       {children}

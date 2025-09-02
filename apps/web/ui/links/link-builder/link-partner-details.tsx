@@ -4,12 +4,6 @@ import { ArrowUpRight } from "@dub/ui/icons";
 import { currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
 
-const formatCurrency = (value: number) =>
-  currencyFormatter(value / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
 export function LinkPartnerDetails({
   link,
   partner,
@@ -60,14 +54,19 @@ export function LinkPartnerDetails({
       </Link>
       <div className="border-border-subtle grid grid-cols-1 divide-y divide-neutral-200 rounded-b-lg border-x border-b sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {[
-          ["Revenue", partner ? formatCurrency(partner.saleAmount) : undefined],
+          [
+            "Revenue",
+            partner ? currencyFormatter(partner.saleAmount / 100) : undefined,
+          ],
           [
             "Commissions",
-            partner ? formatCurrency(partner.totalCommissions) : undefined,
+            partner
+              ? currencyFormatter(partner.totalCommissions / 100)
+              : undefined,
           ],
           [
             "Net revenue",
-            partner ? formatCurrency(partner.netRevenue) : undefined,
+            partner ? currencyFormatter(partner.netRevenue / 100) : undefined,
           ],
         ].map(([label, value]) => (
           <div key={label} className="flex flex-col gap-1 px-4 py-3">

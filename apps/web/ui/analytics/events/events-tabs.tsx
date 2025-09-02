@@ -1,10 +1,8 @@
-import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { MiniAreaChart, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { capitalize, cn, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { useCallback, useContext, useEffect } from "react";
-import useSWR from "swr";
 import useSWRImmutable from "swr/immutable";
 import { AnalyticsContext } from "../analytics-provider";
 
@@ -22,26 +20,20 @@ export default function EventsTabs() {
 
   const tab = searchParams.get("event") || "clicks";
 
-  const { baseApiPath, queryString, requiresUpgrade } =
-    useContext(AnalyticsContext);
-
-  const { data: totalEvents, isLoading: isLoadingTotalEvents } = useSWR<{
-    [key in AnalyticsResponseOptions]: number;
-  }>(
-    `${baseApiPath}?${editQueryString(queryString, {
-      event: "composite",
-    })}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const {
+    baseApiPath,
+    queryString,
+    requiresUpgrade,
+    totalEvents,
+    totalEventsLoading,
+    customersCount,
+  } = useContext(AnalyticsContext);
 
   const { data: timeseriesData, isLoading: isLoadingTimeseries } =
     useSWRImmutable<TimeseriesData>(
       `${baseApiPath}?${editQueryString(queryString, {
         groupBy: "timeseries",
-        event: "composite",
+        event: customersCount && customersCount > 0 ? "composite" : "clicks",
       })}`,
       fetcher,
       {
@@ -100,7 +92,7 @@ export default function EventsTabs() {
                   }
                   className={cn(
                     "text-2xl transition-opacity",
-                    isLoadingTotalEvents && "opacity-40",
+                    totalEventsLoading && "opacity-40",
                   )}
                   format={
                     event === "sales"

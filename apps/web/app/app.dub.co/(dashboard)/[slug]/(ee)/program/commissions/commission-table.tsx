@@ -142,10 +142,7 @@ const CommissionTableInner = memo(
           header: "Amount",
           accessorFn: (d) =>
             d.type === "sale"
-              ? currencyFormatter(d.amount / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })
+              ? currencyFormatter(d.amount / 100)
               : nFormatter(d.quantity),
         },
         {
@@ -154,10 +151,7 @@ const CommissionTableInner = memo(
           cell: ({ row }) => {
             const commission = row.original;
 
-            const earnings = currencyFormatter(commission.earnings / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            });
+            const earnings = currencyFormatter(commission.earnings / 100);
 
             if (commission.description) {
               const reason =

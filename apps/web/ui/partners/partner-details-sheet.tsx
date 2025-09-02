@@ -187,11 +187,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       {
         id: "amount",
         header: "Amount",
-        accessorFn: (d) =>
-          currencyFormatter(d.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        accessorFn: (d) => currencyFormatter(d.amount / 100),
       },
     ],
     onRowClick: (row) => {
@@ -311,8 +307,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
         header: "Revenue",
         accessorFn: (d) =>
           currencyFormatter(d.saleAmount / 100, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
+            trailingZeroDisplay: "stripIfInteger",
           }),
         size: 1,
         minSize: 1,
@@ -323,8 +318,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
             className="block w-full cursor-alias decoration-dotted hover:underline"
           >
             {currencyFormatter(row.original.saleAmount / 100, {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0,
+              trailingZeroDisplay: "stripIfInteger",
             })}
           </Link>
         ),

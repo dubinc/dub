@@ -80,10 +80,7 @@ export function ReferralsEmbedLeaderboard() {
         id: "totalCommissions",
         header: "Earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.totalCommissions / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          return currencyFormatter(row.original.totalCommissions / 100);
         },
       },
     ],

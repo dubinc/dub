@@ -1,12 +1,9 @@
-import { AnalyticsResponseOptions } from "@/lib/analytics/types";
-import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { FunnelChart } from "@dub/ui/charts";
-import { fetcher, nFormatter } from "@dub/utils";
+import { nFormatter } from "@dub/utils";
 import { useContext, useMemo } from "react";
-import useSWR from "swr";
 import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function ConversionBlock() {
@@ -14,24 +11,7 @@ export function ConversionBlock() {
 
   const { getQueryString } = useRouterStuff();
 
-  const { queryString } = useContext(AnalyticsContext);
-
-  const {
-    data: totalEvents,
-    isLoading,
-    error,
-  } = useSWR<{
-    [key in AnalyticsResponseOptions]: number;
-  }>(
-    `/api/analytics?${editQueryString(queryString, {
-      event: "composite",
-      saleType: "new",
-    })}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { totalEvents, totalEventsLoading } = useContext(AnalyticsContext);
 
   const steps = useMemo(
     () => [
@@ -76,13 +56,9 @@ export function ConversionBlock() {
       contentClassName="px-0 mt-1"
     >
       <div className="h-full min-h-48">
-        {isLoading ? (
+        {totalEventsLoading ? (
           <div className="flex size-full items-center justify-center py-4">
             <LoadingSpinner />
-          </div>
-        ) : error ? (
-          <div className="text-content-subtle flex size-full items-center justify-center py-4 text-xs">
-            Failed to load data
           </div>
         ) : (
           <div className="flex size-full flex-col">

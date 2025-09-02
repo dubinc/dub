@@ -211,7 +211,7 @@ export default function EventsTable({
             <div className="flex items-center gap-2">
               <span>
                 {currencyFormatter(getValue() / 100, {
-                  maximumFractionDigits: undefined,
+                  trailingZeroDisplay: "stripIfInteger",
                 })}
               </span>
               <span className="text-neutral-400">USD</span>

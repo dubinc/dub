@@ -6,6 +6,7 @@ import {
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
 import useCustomersCount from "@/lib/swr/use-customers-count";
+import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -60,6 +61,7 @@ type SidebarNavData = {
   defaultProgramId?: string;
   session?: Session | null;
   showNews?: boolean;
+  pendingPayoutsCount?: number;
   applicationsCount?: number;
   pendingBountySubmissionsCount?: number;
   showConversionGuides?: boolean;
@@ -191,6 +193,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   program: ({
     slug,
     showNews,
+    pendingPayoutsCount,
     applicationsCount,
     pendingBountySubmissionsCount,
   }) => ({
@@ -210,6 +213,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Payouts",
             icon: MoneyBills2,
             href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
+            badge: pendingPayoutsCount
+              ? pendingPayoutsCount > 99
+                ? "99+"
+                : pendingPayoutsCount
+              : undefined,
           },
           {
             name: "Messages",
@@ -439,7 +447,6 @@ export function AppSidebarNav({
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
   const { plan, defaultProgramId } = useWorkspace();
-  const { canTrackConversions } = getPlanCapabilities(plan);
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -459,6 +466,14 @@ export function AppSidebarNav({
             : "default";
   }, [slug, pathname]);
 
+  const { payoutsCount: pendingPayoutsCount } = usePayoutsCount<
+    number | undefined
+  >({
+    eligibility: "eligible",
+    status: "pending",
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
   const applicationsCount = useProgramApplicationsCount({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
@@ -472,6 +487,7 @@ export function AppSidebarNav({
   const pendingBountySubmissionsCount =
     submissionsCount?.find(({ status }) => status === "pending")?.count || 0;
 
+  const { canTrackConversions } = getPlanCapabilities(plan);
   const { data: customersCount } = useCustomersCount({
     enabled: canTrackConversions === true,
   });
@@ -490,6 +506,7 @@ export function AppSidebarNav({
         session: session || undefined,
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
+        pendingPayoutsCount,
         applicationsCount,
         pendingBountySubmissionsCount,
         showConversionGuides: canTrackConversions && customersCount === 0,
