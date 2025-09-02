@@ -16,9 +16,7 @@ export function BountyPerformance({ bounty }: { bounty: PartnerBountyProps }) {
     value === undefined
       ? "-"
       : isCurrencyAttribute(attribute)
-        ? currencyFormatter(value / 100, {
-            maximumFractionDigits: 2,
-          })
+        ? currencyFormatter(value / 100)
         : nFormatter(value, { full: true });
 
   const formattedTarget = isCurrencyAttribute(attribute)

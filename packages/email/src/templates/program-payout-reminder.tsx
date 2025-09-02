@@ -74,10 +74,7 @@ export default function ProgramPayoutReminder({
                   <Stats
                     title="Total payout amount"
                     icon="https://assets.dub.co/misc/icons/nucleo/money-bills.png"
-                    value={currencyFormatter(payout.amount / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    value={currencyFormatter(payout.amount / 100)}
                   />
                 </Column>
 

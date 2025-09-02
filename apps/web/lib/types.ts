@@ -250,6 +250,7 @@ export interface DomainProps {
   logo?: string;
   appleAppSiteAssociation?: string;
   assetLinks?: string;
+  deepviewData?: string;
   link?: LinkProps;
   registeredDomain?: RegisteredDomainProps;
 }

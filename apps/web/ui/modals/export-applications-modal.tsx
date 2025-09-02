@@ -1,17 +1,10 @@
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
-  exportPartnerColumns,
-  exportPartnersColumnsDefault,
+  exportApplicationColumns,
+  exportApplicationsColumnsDefault,
 } from "@/lib/zod/schemas/partners";
-import {
-  Button,
-  Checkbox,
-  InfoTooltip,
-  Modal,
-  Switch,
-  useRouterStuff,
-} from "@dub/ui";
+import { Button, Checkbox, Modal, useRouterStuff } from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -25,15 +18,14 @@ import { toast } from "sonner";
 
 interface FormData {
   columns: string[];
-  useFilters: boolean;
 }
 
-function ExportPartnersModal({
-  showExportPartnersModal,
-  setShowExportPartnersModal,
+function ExportApplicationsModal({
+  showExportApplicationsModal,
+  setShowExportApplicationsModal,
 }: {
-  showExportPartnersModal: boolean;
-  setShowExportPartnersModal: Dispatch<SetStateAction<boolean>>;
+  showExportApplicationsModal: boolean;
+  setShowExportApplicationsModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const columnCheckboxId = useId();
   const { program } = useProgram();
@@ -46,8 +38,7 @@ function ExportPartnersModal({
     formState: { isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
-      columns: exportPartnersColumnsDefault,
-      useFilters: true,
+      columns: exportApplicationsColumnsDefault,
     },
   });
 
@@ -56,27 +47,23 @@ function ExportPartnersModal({
       return;
     }
 
-    const lid = toast.loading("Exporting partners...");
+    const lid = toast.loading("Exporting applications...");
 
     try {
-      const params = {
-        workspaceId,
-        programId: program.id,
-        ...(data.columns.length
-          ? { columns: data.columns.join(",") }
-          : undefined),
-      };
-
-      const searchParams = data.useFilters
-        ? getQueryString(params)
-        : "?" + new URLSearchParams(params);
-
-      const response = await fetch(`/api/partners/export${searchParams}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/programs/${program.id}/applications/export?${new URLSearchParams({
+          workspaceId: workspaceId,
+          ...(data.columns.length
+            ? { columns: data.columns.join(",") }
+            : undefined),
+        })}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         const { error } = await response.json();
@@ -88,11 +75,11 @@ function ExportPartnersModal({
       const a = document.createElement("a");
 
       a.href = url;
-      a.download = `Dub Partners Export - ${new Date().toISOString()}.csv`;
+      a.download = `Dub Applications Export - ${new Date().toISOString()}.csv`;
       a.click();
 
       toast.success("Exported successfully");
-      setShowExportPartnersModal(false);
+      setShowExportApplicationsModal(false);
     } catch (error) {
       toast.error(error);
     } finally {
@@ -102,11 +89,13 @@ function ExportPartnersModal({
 
   return (
     <Modal
-      showModal={showExportPartnersModal}
-      setShowModal={setShowExportPartnersModal}
+      showModal={showExportApplicationsModal}
+      setShowModal={setShowExportApplicationsModal}
     >
       <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Export partners</h3>
+        <h3 className="text-lg font-medium leading-none">
+          Export applications
+        </h3>
       </div>
 
       <form onSubmit={onSubmit}>
@@ -121,7 +110,7 @@ function ExportPartnersModal({
                 control={control}
                 render={({ field }) => (
                   <div className="xs:grid-cols-2 grid grid-cols-1 gap-x-4 gap-y-2">
-                    {exportPartnerColumns.map(({ id, label }) => (
+                    {exportApplicationColumns.map(({ id, label }) => (
                       <div key={id} className="group flex gap-2">
                         <Checkbox
                           value={id}
@@ -150,25 +139,9 @@ function ExportPartnersModal({
           </div>
         </div>
 
-        <div className="border-t border-neutral-200 bg-neutral-50 px-4 py-4 sm:px-6">
-          <Controller
-            name="useFilters"
-            control={control}
-            render={({ field }) => (
-              <div className="flex items-center justify-between gap-2">
-                <span className="flex select-none items-center gap-2 text-sm font-medium text-neutral-600 group-hover:text-neutral-800">
-                  Apply current filters
-                  <InfoTooltip content="Filter exported partners by your currently selected filters" />
-                </span>
-                <Switch checked={field.value} fn={field.onChange} />
-              </div>
-            )}
-          />
-        </div>
-
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
           <Button
-            onClick={() => setShowExportPartnersModal(false)}
+            onClick={() => setShowExportApplicationsModal(false)}
             variant="secondary"
             text="Cancel"
             className="h-8 w-fit px-3"
@@ -177,7 +150,7 @@ function ExportPartnersModal({
           <Button
             type="submit"
             loading={isSubmitting}
-            text="Export partners"
+            text="Export applications"
             className="h-8 w-fit px-3"
           />
         </div>
@@ -186,23 +159,24 @@ function ExportPartnersModal({
   );
 }
 
-export function useExportPartnersModal() {
-  const [showExportPartnersModal, setShowExportPartnersModal] = useState(false);
+export function useExportApplicationsModal() {
+  const [showExportApplicationsModal, setShowExportApplicationsModal] =
+    useState(false);
 
-  const ExportPartnersModalCallback = useCallback(() => {
+  const ExportApplicationsModalCallback = useCallback(() => {
     return (
-      <ExportPartnersModal
-        showExportPartnersModal={showExportPartnersModal}
-        setShowExportPartnersModal={setShowExportPartnersModal}
+      <ExportApplicationsModal
+        showExportApplicationsModal={showExportApplicationsModal}
+        setShowExportApplicationsModal={setShowExportApplicationsModal}
       />
     );
-  }, [showExportPartnersModal, setShowExportPartnersModal]);
+  }, [showExportApplicationsModal, setShowExportApplicationsModal]);
 
   return useMemo(
     () => ({
-      setShowExportPartnersModal,
-      ExportPartnersModal: ExportPartnersModalCallback,
+      setShowExportApplicationsModal,
+      ExportApplicationsModal: ExportApplicationsModalCallback,
     }),
-    [setShowExportPartnersModal, ExportPartnersModalCallback],
+    [setShowExportApplicationsModal, ExportApplicationsModalCallback],
   );
 }

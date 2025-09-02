@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const programs = await prisma.program.findMany({
       where: {
         landerData: {
-          not: Prisma.JsonNull,
+          not: Prisma.AnyNull,
         },
         landerPublishedAt: {
           not: null,

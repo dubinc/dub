@@ -235,10 +235,7 @@ function AmountRowItem({
   status: PayoutStatus;
   minPayoutAmount: number;
 }) {
-  const display = currencyFormatter(amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const display = currencyFormatter(amount / 100);
 
   if (status === PayoutStatus.pending && amount < minPayoutAmount) {
     return (

@@ -247,15 +247,9 @@ const commissionCreatedTemplate = ({
 }) => {
   const { id, amount, earnings } = data;
 
-  const formattedAmount = currencyFormatter(amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const formattedAmount = currencyFormatter(amount / 100);
 
-  const formattedEarnings = currencyFormatter(earnings / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const formattedEarnings = currencyFormatter(earnings / 100);
 
   return {
     blocks: [

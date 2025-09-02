@@ -79,14 +79,7 @@ function PayoutStatsCard({
                 {error ? (
                   "-"
                 ) : (
-                  <>
-                    {amount > 0
-                      ? currencyFormatter(amount / 100, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })
-                      : "$0.00"}
-                  </>
+                  <>{amount > 0 ? currencyFormatter(amount / 100) : "$0.00"}</>
                 )}
               </span>
             </div>

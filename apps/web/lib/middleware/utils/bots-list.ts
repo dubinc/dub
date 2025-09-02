@@ -146,6 +146,7 @@ export const IP_BOTS = [
   "34.105.67.76", // The Dalles
   "154.28.229.7", // Ashburn
   "156.242.43.111", // Ashburn
+  "156.242.42.55", // Ashburn
 
   "207.46.13.111", // microsoft IP
 ];
