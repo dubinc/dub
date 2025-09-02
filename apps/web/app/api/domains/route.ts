@@ -8,7 +8,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import {
-  createDomainBodySchema,
+  createDomainBodySchemaExtended,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
@@ -97,7 +97,8 @@ export const POST = withWorkspace(
       placeholder,
       assetLinks,
       appleAppSiteAssociation,
-    } = await createDomainBodySchema.parseAsync(body);
+      deepviewData,
+    } = await createDomainBodySchemaExtended.parseAsync(body);
 
     if (workspace.plan === "free") {
       if (
@@ -105,15 +106,17 @@ export const POST = withWorkspace(
         expiredUrl ||
         notFoundUrl ||
         assetLinks ||
-        appleAppSiteAssociation
+        appleAppSiteAssociation ||
+        deepviewData
       ) {
         const proFeaturesString = combineWords(
           [
             logo && "custom QR code logos",
             expiredUrl && "default expiration URLs",
             notFoundUrl && "not found URLs",
-            assetLinks && "asset links",
+            assetLinks && "Asset Links",
             appleAppSiteAssociation && "Apple App Site Association",
+            deepviewData && "Deep View",
           ].filter(Boolean) as string[],
         );
 
@@ -179,6 +182,9 @@ export const POST = withWorkspace(
             ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
             ...(appleAppSiteAssociation && {
               appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
+            }),
+            ...(deepviewData && {
+              deepviewData: JSON.parse(deepviewData),
             }),
           },
         });

@@ -40,7 +40,7 @@ export const updateRewardAction = authActionClient
         type,
         amount,
         maxDuration,
-        modifiers: modifiers === null ? Prisma.JsonNull : modifiers,
+        modifiers: modifiers === null ? Prisma.DbNull : modifiers,
       },
       include: {
         program: true,
