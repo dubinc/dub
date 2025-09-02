@@ -48,3 +48,14 @@ export const getPartnerMessagesQuerySchema = z.object({
   partnerId: z.string().optional(),
   messagesLimit: z.coerce.number().min(0).optional(),
 });
+
+export const messagePartnerSchema = z.object({
+  partnerId: z.string(),
+  text: z.string(),
+});
+
+export const updatePartnerMessageSchema = z.object({
+  messageId: z.string(),
+  readInApp: z.boolean().optional(),
+  readInEmail: z.boolean().optional(),
+});
