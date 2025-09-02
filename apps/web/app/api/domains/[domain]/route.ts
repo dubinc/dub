@@ -139,11 +139,21 @@ export const PATCH = withWorkspace(
         expiredUrl,
         notFoundUrl,
         logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
-        assetLinks: assetLinks ? JSON.parse(assetLinks) : null,
+        assetLinks: assetLinks
+          ? JSON.parse(assetLinks)
+          : assetLinks === null
+            ? null
+            : undefined,
         appleAppSiteAssociation: appleAppSiteAssociation
           ? JSON.parse(appleAppSiteAssociation)
-          : null,
-        deepviewData: deepviewData ? JSON.parse(deepviewData) : null,
+          : appleAppSiteAssociation === null
+            ? null
+            : undefined,
+        deepviewData: deepviewData
+          ? JSON.parse(deepviewData)
+          : deepviewData === null
+            ? null
+            : undefined,
       },
       include: {
         registeredDomain: true,
