@@ -6,13 +6,11 @@ async function main() {
   const workspaces = await prisma.project.findMany({
     where: {
       invoicePrefix: null,
-      defaultProgramId: {
-        not: null,
-      },
     },
     select: {
       id: true,
     },
+    take: 100,
   });
 
   if (workspaces.length === 0) {
@@ -25,12 +23,19 @@ async function main() {
       prisma.project.update({
         where: { id: workspace.id },
         data: { invoicePrefix: generateRandomString(8) },
-        select: { id: true, invoicePrefix: true },
+        select: { slug: true, invoicePrefix: true },
       }),
     ),
   );
 
-  console.log("Updated invoice prefixes for workspaces.", updatedWorkspaces);
+  const remaining = await prisma.project.count({
+    where: {
+      invoicePrefix: null,
+    },
+  });
+  console.log(
+    `Updated invoice prefixes for ${updatedWorkspaces.length} workspaces. ${remaining} workspaces left to update.`,
+  );
 }
 
 main();

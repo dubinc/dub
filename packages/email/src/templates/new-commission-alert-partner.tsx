@@ -14,49 +14,46 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function NewSaleAlertPartner({
+export default function NewCommissionAlertPartner({
   email = "panic@thedis.co",
-  partner = {
-    referralLink: "https://refer.dub.co/steven",
-  },
   program = {
     name: "Acme",
     slug: "acme",
     logo: DUB_WORDMARK,
     holdingPeriodDays: 30,
   },
-  sale = {
-    amount: 4900,
-    earnings: 490,
+  commission = {
+    type: "sale",
+    amount: 25000,
+    earnings: 6900,
   },
+  shortLink = "https://refer.dub.co/steven",
 }: {
   email: string;
-  partner: {
-    referralLink: string;
-  };
   program: {
     name: string;
     slug: string;
     logo: string | null;
     holdingPeriodDays: number;
   };
-  sale: {
+  commission: {
+    type: "click" | "lead" | "sale" | "custom";
     amount: number;
     earnings: number;
   };
+  shortLink?: string | null;
 }) {
+  const earningsInDollars = currencyFormatter(commission.earnings / 100);
   const linkToEarnings = `https://partners.dub.co/programs/${program.slug}/earnings`;
-
-  const earningsInDollars = currencyFormatter(sale.earnings / 100);
-
-  const saleAmountInDollars = currencyFormatter(sale.amount / 100);
 
   return (
     <Html>
       <Head />
       <Preview>
-        You just made a {earningsInDollars} sale via your referral link{" "}
-        {getPrettyUrl(partner.referralLink)}
+        You just earned {earningsInDollars} in commissions via{" "}
+        {shortLink
+          ? `your referral link ${getPrettyUrl(shortLink)}`
+          : "Dub Partners"}
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -70,27 +67,61 @@ export default function NewSaleAlertPartner({
             </Section>
 
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
-              You just made a {earningsInDollars} referral commission!
+              You just earned {earningsInDollars} in commissions!
             </Heading>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              Congratulations! Someone made a{" "}
-              <strong className="text-black">{saleAmountInDollars}</strong>{" "}
-              purchase on <strong className="text-black">{program.name}</strong>{" "}
-              using your referral link (
-              <a
-                href={partner.referralLink}
-                className="text-semibold font-medium text-black underline"
-              >
-                {getPrettyUrl(partner.referralLink)}
-              </a>
-              ).
-            </Text>
+            {!["custom", "click"].includes(commission.type) && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                Congratulations! Someone{" "}
+                {commission.type === "lead" ? (
+                  "signed up"
+                ) : (
+                  <>
+                    made a{" "}
+                    <strong className="text-black">
+                      {currencyFormatter(commission.amount / 100)}
+                    </strong>{" "}
+                    purchase
+                  </>
+                )}{" "}
+                on <strong className="text-black">{program.name}</strong>
+                {shortLink ? (
+                  <>
+                    {" "}
+                    using your referral link (
+                    <a
+                      href={shortLink}
+                      className="text-semibold font-medium text-black underline"
+                    >
+                      {getPrettyUrl(shortLink)}
+                    </a>
+                    )
+                  </>
+                ) : (
+                  ""
+                )}
+                .
+              </Text>
+            )}
 
             <Text className="text-sm leading-6 text-neutral-600">
+              {["custom", "click"].includes(commission.type)
+                ? "Congratulations! "
+                : ""}
               You received{" "}
               <strong className="text-black">{earningsInDollars}</strong> in
-              commission for this sale
+              commission
+              {commission.type === "custom" ? (
+                ""
+              ) : commission.type === "click" ? (
+                <>
+                  {" "}
+                  for your clicks to{" "}
+                  <strong className="text-black">{program.name}</strong>
+                </>
+              ) : (
+                ` for this ${commission.type}`
+              )}
               {program.holdingPeriodDays > 0 ? (
                 <>
                   {" "}

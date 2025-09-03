@@ -5,11 +5,12 @@ import {
   EventType,
   WorkflowTrigger,
 } from "@dub/prisma/client";
-import { log } from "@dub/utils";
+import { currencyFormatter, log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { createId } from "../api/create-id";
+import { notifyPartnerCommission } from "../api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "../api/programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
@@ -237,21 +238,34 @@ export const createPartnerCommission = async ({
       },
     });
 
+    console.log(
+      `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings)}) for ${partnerId}: ${JSON.stringify(commission)}`,
+    );
+
     waitUntil(
       (async () => {
-        const { workspace } = await prisma.program.findUniqueOrThrow({
+        const program = await prisma.program.findUniqueOrThrow({
           where: {
             id: programId,
           },
           select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
+            holdingPeriodDays: true,
             workspace: {
               select: {
                 id: true,
+                slug: true,
+                name: true,
                 webhookEnabled: true,
               },
             },
           },
         });
+
+        const { workspace } = program;
 
         const isClawback = earnings < 0;
         const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
@@ -275,6 +289,13 @@ export const createPartnerCommission = async ({
               },
             }),
           }),
+
+          !isClawback &&
+            notifyPartnerCommission({
+              program,
+              workspace,
+              commission,
+            }),
 
           // We only capture audit logs for manual commissions
           user &&

@@ -2,7 +2,6 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
@@ -342,7 +341,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       livemode: event.livemode,
     });
 
-    const commission = await createPartnerCommission({
+    await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -363,22 +362,25 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       },
     });
 
-    if (commission) {
-      waitUntil(
-        Promise.allSettled([
-          notifyPartnerSale({
-            link,
-            commission,
-          }),
-
+    waitUntil(
+      Promise.allSettled([
+        executeWorkflows({
+          trigger: WorkflowTrigger.saleRecorded,
+          programId: link.programId,
+          partnerId: link.partnerId,
+        }),
+        // same logic as lead.created webhook below:
+        // if the clickEvent variable exists and there was no existing customer before,
+        // we need to trigger the leadRecorded workflow
+        clickEvent &&
+          !existingCustomer &&
           executeWorkflows({
-            trigger: WorkflowTrigger.saleRecorded,
+            trigger: WorkflowTrigger.leadRecorded,
             programId: link.programId,
             partnerId: link.partnerId,
           }),
-        ]),
-      );
-    }
+      ]),
+    );
   }
 
   waitUntil(
