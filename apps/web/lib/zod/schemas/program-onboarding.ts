@@ -35,6 +35,12 @@ export const programRewardSchema = z
       id: z.string(),
       affiliates: z.number(),
     }).nullish(),
+    partnerstack: z
+      .object({
+        publicKey: z.string().nullish(),
+        maskedSecretKey: z.string().nullish(),
+      })
+      .nullish(),
   })
   .merge(
     z.object({

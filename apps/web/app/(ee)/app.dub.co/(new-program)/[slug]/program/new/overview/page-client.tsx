@@ -47,10 +47,11 @@ export function PageClient() {
       domain,
       logo,
       programType,
-      rewardful,
       type,
       amount,
+      rewardful,
       tolt,
+      partnerstack,
     } = data;
 
     if (!name || !url || !domain || !logo) {
@@ -61,7 +62,7 @@ export function PageClient() {
       return false;
     }
 
-    if (programType === "import" && !rewardful && !tolt) {
+    if (programType === "import" && !rewardful && !tolt && !partnerstack) {
       return false;
     }
 

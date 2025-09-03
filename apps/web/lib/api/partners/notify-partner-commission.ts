@@ -1,49 +1,28 @@
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
-import NewSaleAlertPartner from "@dub/email/templates/new-sale-alert-partner";
+import NewCommissionAlertPartner from "@dub/email/templates/new-commission-alert-partner";
 import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
 import { prisma } from "@dub/prisma";
-import { Commission, Link } from "@dub/prisma/client";
+import { Commission, Program, Project } from "@dub/prisma/client";
 import { chunk } from "@dub/utils";
 
-// Send email to partner and program owners when a sale is made
-export async function notifyPartnerSale({
-  link,
+// Send email to partner and program owners when a commission is created
+export async function notifyPartnerCommission({
+  program,
+  workspace,
   commission,
 }: {
-  link: Pick<Link, "partnerId" | "shortLink" | "programId">;
-  commission: Pick<Commission, "amount" | "earnings">;
+  program: Pick<Program, "name" | "slug" | "logo" | "holdingPeriodDays">;
+  workspace: Pick<Project, "id" | "slug" | "name">;
+  commission: Pick<
+    Commission,
+    "type" | "amount" | "earnings" | "partnerId" | "linkId"
+  >;
 }) {
-  if (!link.programId || !link.partnerId) {
-    return;
-  }
-
-  const program = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: link.programId,
-    },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      logo: true,
-      holdingPeriodDays: true,
-      workspace: {
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-        },
-      },
-    },
-  });
-
-  const workspace = program.workspace;
-
-  let [partner, workspaceUsers] = await Promise.all([
+  let [partner, workspaceUsers, partnerLink] = await Promise.all([
     prisma.partner.findUnique({
       where: {
-        id: link.partnerId,
+        id: commission.partnerId,
       },
       select: {
         name: true,
@@ -85,6 +64,18 @@ export async function notifyPartnerSale({
         },
       },
     }),
+    commission.linkId
+      ? Promise.resolve(
+          prisma.link.findUnique({
+            where: {
+              id: commission.linkId,
+            },
+            select: {
+              shortLink: true,
+            },
+          }),
+        )
+      : Promise.resolve(null),
   ]);
 
   if (!partner) {
@@ -99,15 +90,16 @@ export async function notifyPartnerSale({
       holdingPeriodDays: program.holdingPeriodDays,
     },
     partner: {
-      id: link.partnerId,
-      referralLink: link.shortLink,
+      id: commission.partnerId,
       name: partner.name,
       email: partner.email,
     },
-    sale: {
+    commission: {
+      type: commission.type,
       amount: commission.amount,
       earnings: commission.earnings,
     },
+    shortLink: partnerLink?.shortLink ?? null,
   };
 
   const partnerEmailsToNotify = partner.users
@@ -116,30 +108,32 @@ export async function notifyPartnerSale({
 
   // Create all emails first, then chunk them into batches of 100
   const allEmails = [
-    // Partner emails
+    // Partner emails (for all commission types)
     ...partnerEmailsToNotify.map((email) => ({
-      subject: "You just made a sale via Dub Partners!",
+      subject: "You just made a commission via Dub Partners!",
       from: VARIANT_TO_FROM_MAP.notifications,
       to: email,
-      react: NewSaleAlertPartner({
+      react: NewCommissionAlertPartner({
         email,
         ...data,
       }),
     })),
-    // Workspace owner emails
-    ...workspaceUsers.map(({ user }) => ({
-      subject: `New commission for ${partner.name}`,
-      from: VARIANT_TO_FROM_MAP.notifications,
-      to: user.email!,
-      react: NewSaleAlertProgramOwner({
-        ...data,
-        user: {
-          name: user.name,
-          email: user.email!,
-        },
-        workspace,
-      }),
-    })),
+    // Workspace owner emails (only for sale commissions)
+    ...(commission.type === "sale"
+      ? workspaceUsers.map(({ user }) => ({
+          subject: `New commission for ${partner.name}`,
+          from: VARIANT_TO_FROM_MAP.notifications,
+          to: user.email!,
+          react: NewSaleAlertProgramOwner({
+            ...data,
+            user: {
+              name: user.name,
+              email: user.email!,
+            },
+            workspace,
+          }),
+        }))
+      : []),
   ];
 
   const emailChunks = chunk(allEmails, 100);
