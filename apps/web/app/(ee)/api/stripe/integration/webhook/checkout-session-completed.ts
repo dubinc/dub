@@ -341,7 +341,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       livemode: event.livemode,
     });
 
-    const commission = await createPartnerCommission({
+    await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -362,15 +362,25 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       },
     });
 
-    if (commission) {
-      waitUntil(
+    waitUntil(
+      Promise.allSettled([
         executeWorkflows({
           trigger: WorkflowTrigger.saleRecorded,
           programId: link.programId,
           partnerId: link.partnerId,
         }),
-      );
-    }
+        // same logic as lead.created webhook below:
+        // if the clickEvent variable exists and there was no existing customer before,
+        // we need to trigger the leadRecorded workflow
+        clickEvent &&
+          !existingCustomer &&
+          executeWorkflows({
+            trigger: WorkflowTrigger.leadRecorded,
+            programId: link.programId,
+            partnerId: link.partnerId,
+          }),
+      ]),
+    );
   }
 
   waitUntil(

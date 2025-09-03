@@ -1,5 +1,6 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { recordSale } from "@/lib/tinybird";
 import { LeadEventTB } from "@/lib/types";
@@ -8,6 +9,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
+import { WorkflowTrigger } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
 
@@ -154,5 +156,13 @@ export async function createShopifySale({
         },
       },
     });
+
+    waitUntil(
+      executeWorkflows({
+        trigger: WorkflowTrigger.saleRecorded,
+        programId: link.programId,
+        partnerId: link.partnerId,
+      }),
+    );
   }
 }
