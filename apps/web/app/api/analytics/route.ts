@@ -120,8 +120,8 @@ export const GET = withWorkspace(
       groupBy,
       ...(link && { linkId: link.id }),
       folderIds,
-      isMegaFolder: selectedFolder?.type === "mega",
       workspaceId: workspace.id,
+      isMegaFolder: workspace.totalLinks > 1_000_000,
       isDeprecatedClicksEndpoint,
       // dataAvailableFrom is only relevant for timeseries groupBy
       ...(groupBy === "timeseries" && {
