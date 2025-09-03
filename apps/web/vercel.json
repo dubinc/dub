@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/check-days-limit",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/clean-files",
+      "schedule": "0 2 * * *"
     }
   ]
 }
