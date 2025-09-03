@@ -3,6 +3,7 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent } from "@/lib/tinybird";
 import { recordClick } from "@/lib/tinybird/record-click";
@@ -15,6 +16,7 @@ import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
+import { WorkflowTrigger } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -200,6 +202,12 @@ export const createCommissionAction = authActionClient
             },
           },
         }),
+
+        executeWorkflows({
+          trigger: WorkflowTrigger.leadRecorded,
+          programId,
+          partnerId,
+        }),
       ]);
     }
 
@@ -237,6 +245,12 @@ export const createCommissionAction = authActionClient
               country: customer.country,
             },
           },
+        }),
+
+        executeWorkflows({
+          trigger: WorkflowTrigger.saleRecorded,
+          programId,
+          partnerId,
         }),
       ]);
     }
