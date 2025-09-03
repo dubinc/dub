@@ -29,6 +29,7 @@ const expectedDomain = {
   logo: null,
   appleAppSiteAssociation: null,
   assetLinks: null,
+  deepviewData: "{}",
 };
 
 describe.sequential("/domains/**", async () => {

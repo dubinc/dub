@@ -1,5 +1,6 @@
 "use client";
 
+import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useRouterStuff } from "@dub/ui";
@@ -16,6 +17,7 @@ import {
   MoneyBills2,
   ShieldCheck,
   SquareUserSparkle2,
+  Trophy,
   UserCheck,
 } from "@dub/ui/icons";
 import { useParams, usePathname } from "next/navigation";
@@ -34,6 +36,7 @@ type SidebarNavData = {
   programSlug?: string;
   isUnapproved: boolean;
   invitationsCount?: number;
+  programBountiesCount?: number;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
@@ -95,7 +98,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
 
-  program: ({ programSlug, isUnapproved, queryString }) => ({
+  program: ({
+    programSlug,
+    isUnapproved,
+    queryString,
+    programBountiesCount,
+  }) => ({
     title: (
       <div className="mb-3">
         <PartnerProgramDropdown />
@@ -116,6 +124,17 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/programs/${programSlug}/links`,
             locked: isUnapproved,
           },
+          ...(programBountiesCount // TODO: remove this when we launch Bounties to GA
+            ? [
+                {
+                  name: "Bounties",
+                  icon: Trophy,
+                  href: `/programs/${programSlug}/bounties` as `/${string}`,
+                  badge: programBountiesCount,
+                  locked: isUnapproved,
+                },
+              ]
+            : []),
           {
             name: "Resources",
             icon: ColorPalette2,
@@ -274,6 +293,10 @@ export function PartnersSidebarNav({
     status: "invited",
   });
 
+  const { bounties } = usePartnerProgramBounties({
+    enabled: isEnrolledProgramPage,
+  });
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -286,6 +309,7 @@ export function PartnersSidebarNav({
         isUnapproved:
           !!programEnrollment && programEnrollment.status !== "approved",
         invitationsCount,
+        programBountiesCount: bounties?.length,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

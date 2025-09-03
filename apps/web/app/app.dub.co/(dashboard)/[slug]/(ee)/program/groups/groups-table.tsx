@@ -1,6 +1,5 @@
 "use client";
 
-import useGroups from "@/lib/swr/use-groups";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupExtendedProps } from "@/lib/types";
@@ -22,12 +21,13 @@ import {
   useTable,
 } from "@dub/ui";
 import { Copy, Dots, PenWriting, Tick, Trash, Users } from "@dub/ui/icons";
-import { cn, currencyFormatter, nFormatter } from "@dub/utils";
+import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import useSWR from "swr";
 
 const getGroupUrl = ({
   workspaceSlug,
@@ -39,23 +39,33 @@ const getGroupUrl = ({
 
 export function GroupsTable() {
   const router = useRouter();
-  const { slug } = useWorkspace();
+  const { id: workspaceId, slug, defaultProgramId } = useWorkspace();
   const { pagination, setPagination } = usePagination();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "saleAmount";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const { groups, loading, error } = useGroups<GroupExtendedProps>({
-    query: {
-      includeExpandedFields: true,
+  const {
+    data: groups,
+    isLoading: groupsLoading,
+    error,
+  } = useSWR<GroupExtendedProps[]>(
+    workspaceId &&
+      defaultProgramId &&
+      `/api/groups${getQueryString({
+        workspaceId: workspaceId,
+        includeExpandedFields: "true",
+      }).toString()}`,
+    fetcher,
+    {
+      keepPreviousData: true,
     },
-    includeParams: true,
-  });
+  );
 
   const {
     groupsCount,
-    loading: countLoading,
+    loading: groupsCountLoading,
     error: countError,
   } = useGroupsCount();
 
@@ -112,29 +122,17 @@ export function GroupsTable() {
       {
         id: "saleAmount",
         header: "Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.saleAmount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        accessorFn: (d) => currencyFormatter(d.saleAmount / 100),
       },
       {
         id: "commissions",
         header: "Commissions",
-        accessorFn: (d) =>
-          currencyFormatter(d.commissions / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        accessorFn: (d) => currencyFormatter(d.commissions / 100),
       },
       {
         id: "netRevenue",
         header: "Net Revenue",
-        accessorFn: (d) =>
-          currencyFormatter(d.netRevenue / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        accessorFn: (d) => currencyFormatter(d.netRevenue / 100),
       },
       {
         id: "menu",
@@ -186,7 +184,7 @@ export function GroupsTable() {
     tdClassName: "border-l-0",
     resourceName: (p) => `group${p ? "s" : ""}`,
     rowCount: groupsCount || 0,
-    loading: loading || countLoading,
+    loading: groupsLoading || groupsCountLoading,
     error: error || countError ? "Failed to load groups" : undefined,
   });
 

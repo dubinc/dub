@@ -8,7 +8,6 @@ import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
 import { useChangeGroupModal } from "@/ui/partners/change-group-modal";
@@ -177,15 +176,16 @@ export function PartnersTable() {
           header: "Group",
           cell: ({ row }) => {
             if (!groups) return "-";
-            const partnerGroup =
-              groups.find((g) => g.id === row.original.groupId) ??
-              DEFAULT_PARTNER_GROUP;
+
+            const group = groups.find((g) => g.id === row.original.groupId);
+
+            if (!group) return "-";
 
             return (
               <div className="flex items-center gap-2">
-                <GroupColorCircle group={partnerGroup} />
+                <GroupColorCircle group={group} />
                 <span className="truncate text-sm font-medium">
-                  {partnerGroup.name}
+                  {group.name}
                 </span>
               </div>
             );
@@ -255,29 +255,17 @@ export function PartnersTable() {
         {
           id: "saleAmount",
           header: "Revenue",
-          accessorFn: (d) =>
-            currencyFormatter(d.saleAmount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
+          accessorFn: (d) => currencyFormatter(d.saleAmount / 100),
         },
         {
           id: "totalCommissions",
           header: "Commissions",
-          accessorFn: (d) =>
-            currencyFormatter(d.totalCommissions / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
+          accessorFn: (d) => currencyFormatter(d.totalCommissions / 100),
         },
         {
           id: "netRevenue",
           header: "Net Revenue",
-          accessorFn: (d) =>
-            currencyFormatter(d.netRevenue / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
+          accessorFn: (d) => currencyFormatter(d.netRevenue / 100),
         },
         // Menu
         {

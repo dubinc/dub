@@ -10,7 +10,7 @@ export type PlanFeature = {
   };
 };
 
-export const LEGACY_PRO_PRICE_IDS = [
+const LEGACY_PRO_PRICE_IDS = [
   "price_1LodNLAlJJEpqkPVQSrt33Lc", // old monthly
   "price_1LodNLAlJJEpqkPVRxUyCQgZ", // old yearly
   "price_1OTcQBAlJJEpqkPViGtGEsbb", // new monthly (test)
@@ -19,7 +19,15 @@ export const LEGACY_PRO_PRICE_IDS = [
   "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly (prod)
 ];
 
-export const LEGACY_BUSINESS_PRICE_IDS = [
+// 2025 pricing
+const NEW_PRO_PRICE_IDS = [
+  "price_1R8XtyAlJJEpqkPV5WZ4c0jF", //  yearly
+  "price_1R8XtEAlJJEpqkPV4opVvVPq", // monthly
+  "price_1R8XxZAlJJEpqkPVqGi0wOqD", // yearly (test),
+  "price_1R7oeBAlJJEpqkPVh6q5q3h8", // monthly (test),
+];
+
+const LEGACY_BUSINESS_PRICE_IDS = [
   "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
   "price_1LodLoAlJJEpqkPVJdwv5zrG", // oldest yearly
   "price_1OZgmnAlJJEpqkPVOj4kV64R", // old yearly
@@ -29,9 +37,12 @@ export const LEGACY_BUSINESS_PRICE_IDS = [
   "price_1OzOXMAlJJEpqkPV9ERrjjbw", // new yearly (prod)
 ];
 
-export const LEGACY_PRICE_IDS = [
-  ...LEGACY_PRO_PRICE_IDS,
-  ...LEGACY_BUSINESS_PRICE_IDS,
+// 2025 pricing
+export const NEW_BUSINESS_PRICE_IDS = [
+  "price_1R3j01AlJJEpqkPVXuG1eNzm", //  yearly
+  "price_1R6JedAlJJEpqkPVMUkfjch4", // monthly
+  "price_1R8XypAlJJEpqkPVdjzOcYUC", // yearly (test),
+  "price_1R7ofLAlJJEpqkPV3MlgDpyx", // monthly (test),
 ];
 
 export const PLANS = [
@@ -61,14 +72,7 @@ export const PLANS = [
     price: {
       monthly: 30,
       yearly: 25,
-      ids: [
-        ...LEGACY_PRO_PRICE_IDS,
-        // 2025 pricing
-        "price_1R8XtyAlJJEpqkPV5WZ4c0jF", //  yearly
-        "price_1R8XtEAlJJEpqkPV4opVvVPq", // monthly
-        "price_1R8XxZAlJJEpqkPVqGi0wOqD", // yearly (test),
-        "price_1R7oeBAlJJEpqkPVh6q5q3h8", // monthly (test),
-      ],
+      ids: [...LEGACY_PRO_PRICE_IDS, ...NEW_PRO_PRICE_IDS],
     },
     limits: {
       links: 1_000,
@@ -142,14 +146,7 @@ export const PLANS = [
     price: {
       monthly: 90,
       yearly: 75,
-      ids: [
-        ...LEGACY_BUSINESS_PRICE_IDS,
-        // 2025 pricing
-        "price_1R3j01AlJJEpqkPVXuG1eNzm", //  yearly
-        "price_1R6JedAlJJEpqkPVMUkfjch4", // monthly
-        "price_1R8XypAlJJEpqkPVdjzOcYUC", // yearly (test),
-        "price_1R7ofLAlJJEpqkPV3MlgDpyx", // monthly (test),
-      ],
+      ids: [...LEGACY_BUSINESS_PRICE_IDS, ...NEW_BUSINESS_PRICE_IDS],
     },
     limits: {
       links: 10_000,
@@ -291,13 +288,13 @@ export const PLANS = [
         text: "20 users",
       },
       {
-        id: "whitelabel",
-        text: "White-labeling support",
+        id: "embeddedreferrals",
+        text: "Embedded referral dashboard",
         tooltip: {
           title:
-            "Embed a white-labeled referral dashboard directly in your app in just a few lines of code.",
+            "Create an embedded referral dashboard directly in your app in just a few lines of code.",
           cta: "Learn more.",
-          href: "https://dub.co/docs/partners/white-labeling",
+          href: "https://dub.co/docs/partners/embedded-referrals",
         },
       },
       {

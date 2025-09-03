@@ -59,17 +59,20 @@ model Program {
   createdAt                    DateTime                 @default(now())
   updatedAt                    DateTime                 @updatedAt
 
-  workspace     Project              @relation(fields: [workspaceId], references: [id])
-  primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
-  partners      ProgramEnrollment[]
-  payouts       Payout[]
-  invoices      Invoice[]
-  applications  ProgramApplication[]
-  links         Link[]
-  commissions   Commission[]
-  rewards       Reward[]
-  discounts     Discount[]           @relation("ProgramDiscounts")
-  groups        PartnerGroup[]
+  workspace         Project              @relation(fields: [workspaceId], references: [id])
+  primaryDomain     Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  partners          ProgramEnrollment[]
+  payouts           Payout[]
+  invoices          Invoice[]
+  applications      ProgramApplication[]
+  links             Link[]
+  commissions       Commission[]
+  rewards           Reward[]
+  discounts         Discount[]           @relation("ProgramDiscounts")
+  groups            PartnerGroup[]
+  bounties          Bounty[]
+  bountySubmissions BountySubmission[]
+  workflows         Workflow[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -93,15 +96,16 @@ model ProgramEnrollment {
   bannedAt         DateTime?
   bannedReason     PartnerBannedReason?
 
-  partner      Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program      Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  links        Link[]
-  partnerGroup PartnerGroup?       @relation(fields: [groupId], references: [id])
-  application  ProgramApplication? @relation(fields: [applicationId], references: [id])
-  clickReward  Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
-  leadReward   Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
-  saleReward   Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
-  discount     Discount?           @relation(fields: [discountId], references: [id])
+  partner           Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program           Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  links             Link[]
+  partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
+  application       ProgramApplication? @relation(fields: [applicationId], references: [id])
+  clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward        Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  discount          Discount?           @relation(fields: [discountId], references: [id])
+  bountySubmissions BountySubmission[]
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])

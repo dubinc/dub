@@ -1,0 +1,86 @@
+enum BountyType {
+  performance
+  submission
+}
+
+enum BountySubmissionStatus {
+  pending
+  approved
+  rejected
+}
+
+enum BountySubmissionRejectionReason {
+  invalidProof
+  duplicateSubmission
+  outOfTimeWindow
+  didNotMeetCriteria
+  other
+}
+
+model Bounty {
+  id                     String     @id @default(cuid())
+  programId              String
+  workflowId             String?    @unique
+  name                   String
+  description            String?    @db.Text
+  type                   BountyType
+  startsAt               DateTime
+  endsAt                 DateTime?
+  rewardAmount           Int        @default(0)
+  submissionRequirements Json?
+  archivedAt             DateTime?
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+
+  submissions BountySubmission[]
+  groups      BountyGroup[]
+  program     Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  workflow    Workflow?          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index(programId)
+  @@index(workflowId)
+}
+
+model BountyGroup {
+  id       String @id @default(cuid())
+  bountyId String
+  groupId  String
+
+  bounty       Bounty       @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  partnerGroup PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([bountyId, groupId])
+  @@index([groupId])
+}
+
+model BountySubmission {
+  id              String                           @id @default(cuid())
+  programId       String
+  partnerId       String
+  bountyId        String
+  commissionId    String?                          @unique
+  userId          String?
+  description     String?                          @db.Text
+  status          BountySubmissionStatus           @default(pending)
+  rejectionReason BountySubmissionRejectionReason?
+  rejectionNote   String?                          @db.Text
+  files           Json?
+  urls            Json?
+  reviewedAt      DateTime?
+  createdAt       DateTime                         @default(now())
+  updatedAt       DateTime                         @updatedAt
+
+  bounty            Bounty             @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  partner           Partner            @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  commission        Commission?        @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+  program           Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user              User?              @relation(fields: [userId], references: [id])
+  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
+
+  @@unique([bountyId, partnerId])
+  @@index([programId, partnerId])
+  @@index(programId)
+  @@index(partnerId)
+  @@index(userId)
+  @@index(status)
+}

@@ -111,9 +111,7 @@ export function PayoutStats() {
                             {display}
                           </div>
                           <div className="text-sm text-neutral-500">
-                            {currencyFormatter(amount / 100, {
-                              maximumFractionDigits: 2,
-                            })}
+                            {currencyFormatter(amount / 100, {})}
                           </div>
                         </div>
                       ))}
@@ -126,9 +124,7 @@ export function PayoutStats() {
                     eligiblePendingPayouts?.amount
                       ? eligiblePendingPayouts.amount / 100
                       : 0,
-                    {
-                      maximumFractionDigits: 2,
-                    },
+                    {},
                   ) + " USD"}
                 </span>
               </Tooltip>
@@ -177,9 +173,7 @@ export function PayoutStats() {
                             {display}
                           </div>
                           <div className="text-sm text-neutral-500">
-                            {currencyFormatter(amount / 100, {
-                              maximumFractionDigits: 2,
-                            })}
+                            {currencyFormatter(amount / 100, {})}
                           </div>
                         </div>
                       ))}
@@ -188,9 +182,7 @@ export function PayoutStats() {
                 }
               >
                 <span className="underline decoration-dotted underline-offset-2">
-                  {currencyFormatter(totalPaid / 100, {
-                    maximumFractionDigits: 2,
-                  }) + " USD"}
+                  {currencyFormatter(totalPaid / 100, {}) + " USD"}
                 </span>
               </Tooltip>
             )}

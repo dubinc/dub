@@ -4,7 +4,8 @@ import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
-import { getPlanFromPriceId, LEGACY_PRICE_IDS } from "@dub/utils";
+import { getPlanFromPriceId } from "@dub/utils";
+import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
 import Stripe from "stripe";
 
 const cancellationReasonMap = {
@@ -71,12 +72,12 @@ export async function updateWorkspacePlan({
     newPlanName === "free" && workspace.foldersUsage > 0;
 
   // If a workspace upgrades/downgrades their subscription
-  // or if the payouts limit changes and the new plan is not a legacy plan
+  // or if the payouts limit increases and the updated price ID is a new business price ID
   // update their usage limit in the database
   if (
     workspace.plan !== newPlanName ||
-    (workspace.payoutsLimit !== plan.limits.payouts &&
-      !LEGACY_PRICE_IDS.includes(priceId))
+    (workspace.payoutsLimit < plan.limits.payouts &&
+      NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
     await Promise.allSettled([
       prisma.project.update({

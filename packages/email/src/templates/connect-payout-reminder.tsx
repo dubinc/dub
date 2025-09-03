@@ -96,10 +96,7 @@ export default function ConnectPayoutReminder({
                     </Row>
                   </Column>
                   <Column className="text-right text-sm">
-                    {currencyFormatter(program.amount / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    {currencyFormatter(program.amount / 100)}
                   </Column>
                 </Row>
               ))}

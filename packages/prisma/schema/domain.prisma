@@ -11,8 +11,9 @@ model Domain {
   logo                    String?
   appleAppSiteAssociation Json?
   assetLinks              Json?
+  deepviewData            Json?    @default("{}")
+
   linkRetentionDays       Int? // default is null (links are retained forever)
-  
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 

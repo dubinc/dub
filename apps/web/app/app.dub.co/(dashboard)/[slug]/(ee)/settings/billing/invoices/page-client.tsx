@@ -113,9 +113,7 @@ const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
         <div className="font-medium">Total</div>
         <div className="flex items-center gap-1.5 text-neutral-500">
           <span className="text-sm">
-            {currencyFormatter(invoice.total / 100, {
-              maximumFractionDigits: 2,
-            })}
+            {currencyFormatter(invoice.total / 100)}
           </span>
           {invoice.status &&
             (() => {

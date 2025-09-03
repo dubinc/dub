@@ -43,12 +43,12 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
-import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
   InlineBadgePopoverMenu,
-} from "./inline-badge-popover";
+} from "../../shared/inline-badge-popover";
+import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
 import { RewardIconSquare } from "./reward-icon-square";
 import { RewardPartnersCard } from "./reward-partners-card";
 import { REWARD_TYPES, RewardsLogic } from "./rewards-logic";
@@ -281,7 +281,7 @@ function RewardSheetContent({
     usePartnersUpgradeModal({
       plan: "Advanced",
       description:
-        "When you upgrade to Advanced, you'll get access to higher payout limits, advanced reward structures, white-labeling support, and more.",
+        "When you upgrade to Advanced, you'll get access to higher payout limits, advanced reward structures, embedded referral dashboard, and more.",
     });
 
   return (

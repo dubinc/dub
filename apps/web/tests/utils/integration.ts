@@ -97,4 +97,13 @@ export class IntegrationHarness {
       path: `/folders/${id}`,
     });
   }
+
+  // Delete bounty
+  public async deleteBounty(id: string) {
+    if (!id) return;
+
+    await this.http.delete({
+      path: `/bounties/${id}`,
+    });
+  }
 }

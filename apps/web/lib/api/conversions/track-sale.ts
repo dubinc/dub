@@ -2,7 +2,6 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
@@ -16,9 +15,11 @@ import {
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
+import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
+import { executeWorkflows } from "../workflows/execute-workflows";
 
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   rawBody: any;
@@ -217,7 +218,7 @@ export const trackSale = async ({
 
       // for program links
       if (link.programId && link.partnerId) {
-        const commission = await createPartnerCommission({
+        await createPartnerCommission({
           event: "sale",
           programId: link.programId,
           partnerId: link.partnerId,
@@ -238,12 +239,11 @@ export const trackSale = async ({
           },
         });
 
-        if (commission) {
-          await notifyPartnerSale({
-            link,
-            commission,
-          });
-        }
+        await executeWorkflows({
+          trigger: WorkflowTrigger.saleRecorded,
+          programId: link.programId,
+          partnerId: link.partnerId,
+        });
       }
 
       // Send workspace webhook

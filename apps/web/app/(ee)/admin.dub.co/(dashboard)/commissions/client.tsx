@@ -124,11 +124,7 @@ export default function CommissionsPageClient() {
         id: "commissions",
         header: "Commissions",
         accessorKey: "commissions",
-        cell: ({ row }) =>
-          currencyFormatter(row.original.commissions / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => currencyFormatter(row.original.commissions / 100),
       },
     ],
     pagination,
