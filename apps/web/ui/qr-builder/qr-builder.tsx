@@ -20,7 +20,7 @@ import { Flex } from "@radix-ui/themes";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { motion } from "framer-motion";
-import { FC, forwardRef, Ref, useCallback, useRef, useState } from "react";
+import { FC, forwardRef, Ref, useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import {
   EQRType,
@@ -38,6 +38,7 @@ interface IQRBuilderProps {
   isProcessing?: boolean;
   isEdit?: boolean;
   initialStep?: number;
+  typeToScrollTo?: EQRType | null;
 }
 
 export const QRBuilderStepsTitles = [
@@ -58,6 +59,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         isProcessing,
         isEdit,
         initialStep,
+        typeToScrollTo,
       },
       ref,
     ) => {
@@ -219,6 +221,12 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         setSelectedQRType(type);
         handleNextStep();
       };
+
+      useEffect(() => {
+        if (typeToScrollTo) {
+          handleSelectQRType(typeToScrollTo);
+        }
+      }, [typeToScrollTo]);
 
       const handleBack = () => {
         handleChangeStep(Math.max(step - 1, 1));
