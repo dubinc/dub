@@ -12,8 +12,12 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId, messagesLimit: messagesLimitArg } =
-      getPartnerMessagesQuerySchema.parse(searchParams);
+    const {
+      partnerId,
+      sortBy,
+      sortOrder,
+      messagesLimit: messagesLimitArg,
+    } = getPartnerMessagesQuerySchema.parse(searchParams);
 
     const messagesLimit = messagesLimitArg ?? (partnerId ? undefined : 10);
 
@@ -41,7 +45,7 @@ export const GET = withWorkspace(
                 senderUser: true,
               },
               orderBy: {
-                createdAt: "desc",
+                [sortBy]: sortOrder,
               },
               take: messagesLimit,
             },
@@ -54,10 +58,12 @@ export const GET = withWorkspace(
       PartnerMessagesSchema.parse(
         programEnrollments
           // Sort by most recent message
-          .sort(
-            (a, b) =>
-              b.partner.messages[0].createdAt.getTime() -
-              a.partner.messages[0].createdAt.getTime(),
+          .sort((a, b) =>
+            sortOrder === "desc"
+              ? b.partner.messages[0][sortBy].getTime() -
+                a.partner.messages[0][sortBy].getTime()
+              : a.partner.messages[0][sortBy].getTime() -
+                b.partner.messages[0][sortBy].getTime(),
           )
           // Map to {partner, messages}
           .map(({ partner }) => ({

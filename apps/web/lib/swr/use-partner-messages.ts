@@ -18,8 +18,8 @@ export function usePartnerMessages({
 } = {}) {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, isLoading, error } = useSWR<
-    z.infer<typeof PartnerMessagesSchema>
+  const { data, isLoading, error, mutate } = useSWR<
+    z.infer<typeof PartnerMessagesSchema> & { delivered?: false }
   >(
     enabled && workspaceId
       ? `/api/messages?${new URLSearchParams({
@@ -37,5 +37,6 @@ export function usePartnerMessages({
     partnerMessages: data,
     isLoading,
     error,
+    mutate,
   };
 }

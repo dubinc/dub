@@ -69,21 +69,19 @@ export function MessagesPanel({
                 new Date(message.createdAt).getTime() >
                 new Date().getTime() - 5_000;
 
-              const showReadIndicator =
+              const showStatusIndicator =
                 isCurrentUser &&
-                message.delivered !== false &&
                 (idx === messages.length - 1 ||
                   messages
                     .slice(idx + 1)
                     .findIndex(isMessageFromCurrentUser) === -1);
 
-              const sender =
-                currentUserType === "partner"
-                  ? message.senderPartner
-                  : message.senderUser;
+              const sender = message.senderUser || message.senderPartner;
 
               return (
-                <Fragment key={message.id}>
+                <Fragment
+                  key={`${new Date(message.createdAt).getTime()}-${message.senderUserId}-${message.senderPartnerId}`}
+                >
                   {isNewDate && (
                     <div
                       className={cn(
@@ -107,7 +105,9 @@ export function MessagesPanel({
                     <Tooltip content={sender?.name}>
                       <div className="relative shrink-0">
                         <img
-                          src={sender?.image || `${OG_AVATAR_URL}${sender?.id}`}
+                          src={
+                            sender?.image || `${OG_AVATAR_URL}${sender?.name}`
+                          }
                           alt={`${sender?.name} avatar`}
                           className="size-8 rounded-full"
                           draggable={false}
@@ -129,7 +129,7 @@ export function MessagesPanel({
                       )}
                     >
                       {/* Name / timestamp */}
-                      {(!isCurrentUser || isNewTime || showReadIndicator) && (
+                      {(!isCurrentUser || isNewTime || showStatusIndicator) && (
                         <div className="flex items-center gap-1.5">
                           {!isCurrentUser && (
                             <span className="text-content-default min-w-0 truncate text-xs font-medium">
@@ -147,8 +147,8 @@ export function MessagesPanel({
                               )}
                             </span>
                           )}
-                          {showReadIndicator && (
-                            <ReadIndicator message={message} />
+                          {showStatusIndicator && (
+                            <StatusIndicator message={message} />
                           )}
                         </div>
                       )}
@@ -233,15 +233,21 @@ export function MessagesPanel({
   );
 }
 
-function ReadIndicator({ message }: { message: Message }) {
+function StatusIndicator({
+  message,
+}: {
+  message: Message & { delivered?: boolean };
+}) {
   return (
     <Tooltip
       content={
-        message.readInEmail
-          ? "Read in email"
-          : message.readInApp
-            ? "Read in app"
-            : "Delivered"
+        message.delivered === false
+          ? "Sending"
+          : message.readInEmail
+            ? "Read in email"
+            : message.readInApp
+              ? "Read in app"
+              : "Delivered"
       }
     >
       <div
@@ -251,9 +257,17 @@ function ReadIndicator({ message }: { message: Message }) {
           message.readInApp && "text-blue-500",
         )}
       >
-        <Check2 className="size-3" />
-        {(message.readInEmail || message.readInApp) && (
-          <Check2 className="-ml-0.5 size-3" />
+        {message.delivered === false ? (
+          <>
+            <LoadingSpinner className="size-3" />
+          </>
+        ) : (
+          <>
+            <Check2 className="size-3" />
+            {(message.readInEmail || message.readInApp) && (
+              <Check2 className="-ml-0.5 size-3" />
+            )}
+          </>
         )}
       </div>
     </Tooltip>

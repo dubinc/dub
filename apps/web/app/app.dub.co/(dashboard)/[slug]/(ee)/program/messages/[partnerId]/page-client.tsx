@@ -1,7 +1,10 @@
 "use client";
 
+import { messagePartnerAction } from "@/lib/actions/partners/message-partner";
 import usePartner from "@/lib/swr/use-partner";
 import { usePartnerMessages } from "@/lib/swr/use-partner-messages";
+import useProgram from "@/lib/swr/use-program";
+import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
@@ -13,19 +16,29 @@ import { X } from "@/ui/shared/icons";
 import { Button } from "@dub/ui";
 import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 import { redirect, useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { v4 as uuid } from "uuid";
 
 export function ProgramMessagesPartnerPageClient() {
-  const { slug: workspaceSlug } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { partnerId } = useParams() as { partnerId: string };
+  const { user } = useUser();
+  const { program } = useProgram();
   const { partner, error: errorPartner } = usePartner({ partnerId });
-  const { partnerMessages, error: errorMessages } = usePartnerMessages({
-    query: { partnerId },
+  const {
+    partnerMessages,
+    error: errorMessages,
+    mutate: mutatePartnerMessages,
+  } = usePartnerMessages({
+    query: { partnerId, sortOrder: "asc" },
   });
   const messages = partnerMessages?.[0]?.messages;
+
+  const { executeAsync: sendMessage } = useAction(messagePartnerAction);
 
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
@@ -76,11 +89,82 @@ export function ProgramMessagesPartnerPageClient() {
         </div>
         <div className="min-h-0 grow">
           <MessagesPanel
-            messages={messages}
+            messages={messages && user ? messages : undefined}
             error={errorMessages}
             currentUserType="user"
-            currentUserId="user_1"
-            onSendMessage={(message) =>
+            currentUserId={user?.id || ""}
+            onSendMessage={async (message) => {
+              const createdAt = new Date();
+
+              try {
+                await mutatePartnerMessages(
+                  async (data) => {
+                    const result = await sendMessage({
+                      workspaceId: workspaceId!,
+                      partnerId,
+                      text: message,
+                      createdAt,
+                    });
+
+                    if (!result?.data?.message)
+                      throw new Error(
+                        result?.serverError || "Failed to send message",
+                      );
+
+                    return data
+                      ? [
+                          {
+                            ...data[0],
+                            messages: [
+                              ...data[0].messages,
+                              result.data.message,
+                            ],
+                          },
+                        ]
+                      : [];
+                  },
+                  {
+                    optimisticData: (data) =>
+                      data
+                        ? [
+                            {
+                              ...data[0],
+                              messages: [
+                                ...data[0].messages,
+                                {
+                                  delivered: false,
+                                  id: `tmp_${uuid()}`,
+                                  programId: program!.id,
+                                  partnerId: partnerId,
+                                  text: message,
+
+                                  emailId: null,
+                                  readInApp: null,
+                                  readInEmail: null,
+                                  createdAt,
+                                  updatedAt: createdAt,
+
+                                  senderPartnerId: null,
+                                  senderPartner: null,
+                                  senderUserId: user!.id,
+                                  senderUser: {
+                                    id: user!.id,
+                                    name: user!.name,
+                                    image: user!.image || null,
+                                  },
+                                },
+                              ],
+                            },
+                          ]
+                        : [],
+                    rollbackOnError: true,
+                  },
+                );
+              } catch (e) {
+                console.log("Failed to send message", e);
+                toast.error("Failed to send message");
+              }
+
               // setMessages((prev) => [
               //   ...prev,
               //   {
@@ -97,8 +181,7 @@ export function ProgramMessagesPartnerPageClient() {
               //     },
               //   },
               // ])
-              toast.info("WIP")
-            }
+            }}
           />
         </div>
       </div>
