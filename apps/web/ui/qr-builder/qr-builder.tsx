@@ -229,7 +229,8 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       }, [typeToScrollTo]);
 
       const handleBack = () => {
-        handleChangeStep(Math.max(step - 1, 1));
+        const newStep = Math.max(step - 1, 1);
+        handleChangeStep(newStep);
         handleScroll();
       };
 
@@ -323,7 +324,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                       >
                         <QrTypeSelection
                           qrTypesList={filteredQrTypes}
-                          qrTypeActiveTab={selectedQRType}
+                          qrTypeActiveTab={step === 1 ? null : selectedQRType}
                           onSelect={handleSelectQRType}
                           onHover={handleHoverQRType}
                         />
