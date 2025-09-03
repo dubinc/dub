@@ -5,7 +5,7 @@ import {
   EventType,
   WorkflowTrigger,
 } from "@dub/prisma/client";
-import { log } from "@dub/utils";
+import { currencyFormatter, log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
@@ -237,6 +237,10 @@ export const createPartnerCommission = async ({
         customer: true,
       },
     });
+
+    console.log(
+      `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings)}) for ${partnerId}: ${JSON.stringify(commission)}`,
+    );
 
     waitUntil(
       (async () => {

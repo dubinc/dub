@@ -209,15 +209,13 @@ export async function invoicePaid(event: Stripe.Event) {
       },
     });
 
-    if (commission) {
-      waitUntil(
-        executeWorkflows({
-          trigger: WorkflowTrigger.saleRecorded,
-          programId: link.programId,
-          partnerId: link.partnerId,
-        }),
-      );
-    }
+    waitUntil(
+      executeWorkflows({
+        trigger: WorkflowTrigger.saleRecorded,
+        programId: link.programId,
+        partnerId: link.partnerId,
+      }),
+    );
   }
 
   // send workspace webhook
