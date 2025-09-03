@@ -101,7 +101,8 @@ export function Guide({ markdown }: { markdown: string }) {
                   <button
                     className="flex w-full cursor-pointer items-center gap-2 rounded-md p-2 text-sm text-neutral-600 transition-colors hover:bg-neutral-100"
                     onClick={() => {
-                      const chatgptUrl = `https://chatgpt.com/new?q=${encodeURIComponent(prompt)}`;
+                      const chatgptUrl = `https://chatgpt.com?hints=search&prompt=${encodeURIComponent(prompt)}`;
+                      console.log("chatgptUrl", chatgptUrl);
                       window.open(chatgptUrl, "_blank", "noopener,noreferrer");
                     }}
                   >
