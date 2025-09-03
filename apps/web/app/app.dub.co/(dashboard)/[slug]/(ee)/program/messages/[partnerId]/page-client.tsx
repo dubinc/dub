@@ -1,6 +1,7 @@
 "use client";
 
 import { messagePartnerAction } from "@/lib/actions/partners/message-partner";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import { usePartnerMessages } from "@/lib/swr/use-partner-messages";
 import useProgram from "@/lib/swr/use-program";
@@ -41,7 +42,7 @@ export function ProgramMessagesPartnerPageClient() {
   const { executeAsync: sendMessage } = useAction(messagePartnerAction);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
 
   if (errorPartner) redirect(`/${workspaceSlug}/program/messages`);
 
@@ -160,27 +161,12 @@ export function ProgramMessagesPartnerPageClient() {
                     rollbackOnError: true,
                   },
                 );
+
+                mutatePrefix("/api/messages");
               } catch (e) {
                 console.log("Failed to send message", e);
                 toast.error("Failed to send message");
               }
-
-              // setMessages((prev) => [
-              //   ...prev,
-              //   {
-              //     id: `msg_${prev.length + 1}`,
-              //     text: message,
-              //     createdAt: new Date(),
-              //     delivered: false,
-              //     sender: {
-              //       type: "user",
-              //       id: "user_1",
-              //       name: "Tim Wilson",
-              //       avatar:
-              //         "https://dubassets.com/avatars/clro5ctqd0000jv084g63ua08",
-              //     },
-              //   },
-              // ])
             }}
           />
         </div>

@@ -5,6 +5,7 @@ import {
   Check2,
   LoadingSpinner,
   Tooltip,
+  useMediaQuery,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
 import Linkify from "linkify-react";
@@ -27,6 +28,8 @@ export function MessagesPanel({
   placeholder?: string;
   error?: any;
 }) {
+  const { isMobile } = useMediaQuery();
+
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const selectionStartRef = useRef<number | null>(null);
   const [typedMessage, setTypedMessage] = useState("");
@@ -193,6 +196,7 @@ export function MessagesPanel({
         <div className="border-border-subtle overflow-hidden rounded-xl border has-[textarea:focus]:border-neutral-500 has-[textarea:focus]:ring-1 has-[textarea:focus]:ring-neutral-500">
           <ReactTextareaAutosize
             ref={textAreaRef}
+            autoFocus={!isMobile}
             className="placeholder:text-content-subtle block max-h-24 w-full resize-none border-none p-3 text-base focus:ring-0 sm:text-sm"
             placeholder={placeholder}
             disabled={!messages}

@@ -5,21 +5,27 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
-import { Button } from "@dub/ui";
+import { Button, useRouterStuff } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
-import { useParams } from "next/navigation";
-import { CSSProperties, ReactNode, useState } from "react";
-import { toast } from "sonner";
+import { useParams, useRouter } from "next/navigation";
+import { CSSProperties, ReactNode, useEffect, useState } from "react";
 
 export default function MessagesLayout({ children }: { children: ReactNode }) {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { slug: workspaceSlug } = useWorkspace();
   const { partnerId } = useParams() as { partnerId?: string };
+
+  const router = useRouter();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const { partnerMessages, isLoading, error } = usePartnerMessages({
     query: { messagesLimit: 1 },
   });
 
   const [currentPanel, setCurrentPanel] = useState<MessagesPanel>("index");
+
+  useEffect(() => {
+    searchParams.get("new") && setCurrentPanel("main");
+  }, [searchParams.get("new")]);
 
   return (
     <MessagesContext.Provider value={{ currentPanel, setCurrentPanel }}>
@@ -45,7 +51,11 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                 variant="secondary"
                 icon={<Pen2 className="size-4" />}
                 className="size-8 rounded-lg p-0"
-                onClick={() => toast.info("WIP")}
+                onClick={() => {
+                  if (partnerId)
+                    router.push(`/${workspaceSlug}/program/messages?new=true`);
+                  else queryParams({ set: { new: "true" } });
+                }}
               />
             </div>
             <div className="scrollbar-hide grow overflow-y-auto">
@@ -81,7 +91,13 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                     variant="primary"
                     className="mt-6 h-8 w-fit rounded-lg"
                     text="Compose message"
-                    onClick={() => toast.info("WIP")}
+                    onClick={() => {
+                      if (partnerId)
+                        router.push(
+                          `/${workspaceSlug}/program/messages?new=true`,
+                        );
+                      else queryParams({ set: { new: "true" } });
+                    }}
                   />
                 </div>
               )}
