@@ -24,14 +24,17 @@ export const GET = withWorkspace(
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId,
-        ...(partnerId && { partnerId }),
-        partner: {
-          messages: {
-            some: {
-              programId,
-            },
-          },
-        },
+        ...(partnerId
+          ? { partnerId }
+          : {
+              partner: {
+                messages: {
+                  some: {
+                    programId,
+                  },
+                },
+              },
+            }),
       },
       include: {
         partner: {
