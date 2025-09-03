@@ -35,22 +35,21 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const { integrationId, webhook } = await prisma.installedIntegration.delete(
-      {
+    const { integrationId, webhooks } =
+      await prisma.installedIntegration.delete({
         where: {
           id: installationId,
         },
         select: {
           integrationId: true,
-          webhook: {
+          webhooks: {
             select: {
               id: true,
               triggers: true,
             },
           },
         },
-      },
-    );
+      });
 
     waitUntil(
       Promise.all([
@@ -58,9 +57,9 @@ export const DELETE = withWorkspace(
           ? [uninstallSlackIntegration({ installation })]
           : []),
 
-        ...(webhook && isLinkLevelWebhook(webhook)
-          ? [webhookCache.delete(webhook.id)]
-          : []),
+        ...webhooks.map((webhook) =>
+          isLinkLevelWebhook(webhook) ? webhookCache.delete(webhook.id) : null,
+        ),
       ]),
     );
 

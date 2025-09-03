@@ -1,21 +1,92 @@
 "use client";
 
-import { SHOW_EMBEEDED_REFERRALS } from "@/lib/embed/constants";
-import { Avatar, Gift, Icon, Popover, User } from "@dub/ui";
-import { cn } from "@dub/utils";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import {
+  ArrowsOppositeDirectionX,
+  Avatar,
+  Gift,
+  Icon,
+  Popover,
+  useCurrentSubdomain,
+  User,
+} from "@dub/ui";
+import { APP_DOMAIN, cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { ComponentPropsWithoutRef, ElementType, useState } from "react";
+import {
+  ComponentPropsWithoutRef,
+  ElementType,
+  useMemo,
+  useState,
+} from "react";
 
 export default function UserDropdown() {
   const { data: session } = useSession();
+  const { partner } = usePartnerProfile();
   const [openPopover, setOpenPopover] = useState(false);
+  const { subdomain } = useCurrentSubdomain();
+
+  const menuOptions = useMemo(() => {
+    const options: Array<{
+      label: string;
+      icon: any;
+      href?: string;
+      type?: string;
+      onClick?: () => void;
+    }> = [
+      {
+        label: "Account settings",
+        icon: User,
+        href: "/account/settings",
+        onClick: () => setOpenPopover(false),
+      },
+    ];
+
+    // Add subdomain-specific options
+    if (subdomain === "partners") {
+      options.push({
+        label: "Switch to workspace",
+        icon: ArrowsOppositeDirectionX,
+        href: APP_DOMAIN,
+      });
+    }
+
+    if (subdomain === "app") {
+      options.push({
+        label: "Refer and earn",
+        icon: Gift,
+        href: "/account/settings/referrals",
+        onClick: () => setOpenPopover(false),
+      });
+
+      if (partner) {
+        options.push({
+          label: "Switch to partner account",
+          icon: ArrowsOppositeDirectionX,
+          href: PARTNERS_DOMAIN,
+        });
+      }
+    }
+
+    // Add logout option
+    options.push({
+      type: "button",
+      label: "Log out",
+      icon: LogOut,
+      onClick: () =>
+        signOut({
+          callbackUrl: "/login",
+        }),
+    });
+
+    return options;
+  }, [subdomain, partner, setOpenPopover]);
 
   return (
     <Popover
       content={
-        <div className="flex w-full flex-col space-y-px rounded-md bg-white p-2 sm:w-56">
+        <div className="flex w-full flex-col space-y-px rounded-md bg-white p-2 sm:min-w-56">
           {session?.user ? (
             <div className="p-2">
               <p className="truncate text-sm font-medium text-neutral-900">
@@ -31,33 +102,13 @@ export default function UserDropdown() {
               <div className="h-3 w-20 animate-pulse rounded-full bg-neutral-200" />
             </div>
           )}
-          <UserOption
-            as={Link}
-            label="Account"
-            icon={User}
-            href="/account/settings"
-            onClick={() => setOpenPopover(false)}
-          />
-          {SHOW_EMBEEDED_REFERRALS && (
+          {menuOptions.map((menuOption, idx) => (
             <UserOption
-              as={Link}
-              label="Refer and earn"
-              icon={Gift}
-              href="/account/settings/referrals"
-              onClick={() => setOpenPopover(false)}
+              key={idx}
+              as={menuOption.href ? Link : "button"}
+              {...menuOption}
             />
-          )}
-          <UserOption
-            as="button"
-            type="button"
-            label="Logout"
-            icon={LogOut}
-            onClick={() =>
-              signOut({
-                callbackUrl: "/login",
-              })
-            }
-          />
+          ))}
         </div>
       }
       align="start"
@@ -67,17 +118,18 @@ export default function UserDropdown() {
       <button
         onClick={() => setOpenPopover(!openPopover)}
         className={cn(
-          "group relative rounded-full ring-offset-1 ring-offset-neutral-100 transition-all hover:ring-2 hover:ring-black/10 active:ring-black/15 data-[state='open']:ring-black/15",
+          "group relative flex size-11 items-center justify-center rounded-lg transition-all",
+          "hover:bg-bg-inverted/5 active:bg-bg-inverted/10 data-[state=open]:bg-bg-inverted/10 transition-colors duration-150",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
         )}
       >
         {session?.user ? (
           <Avatar
             user={session.user}
-            className="size-6 border-none duration-75 sm:size-6"
+            className="size-7 border-none duration-75 sm:size-7"
           />
         ) : (
-          <div className="size-6 animate-pulse rounded-full bg-neutral-100 sm:size-6" />
+          <div className="size-7 animate-pulse rounded-full bg-neutral-100" />
         )}
       </button>
     </Popover>
@@ -102,7 +154,7 @@ function UserOption<T extends ElementType = "button">({
 
   return (
     <Component
-      className="flex items-center gap-x-4 rounded-md px-2.5 py-2 text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
+      className="flex items-center gap-x-4 rounded-md px-2.5 py-1.5 text-sm transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80"
       {...rest}
     >
       <Icon className="size-4 text-neutral-500" />

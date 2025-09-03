@@ -5,41 +5,40 @@ import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
-  externalId: z
+  customerExternalId: z
     .string()
     .trim()
     .max(100)
-    .default("") // Remove this after migrating users from customerId to externalId
     .describe(
-      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
+      "The unique ID of the customer in your system. Will be used to identify and attribute all future events to this customer.",
     ),
-  customerId: z
-    .string()
-    .trim()
-    .max(100)
-    .nullish()
-    .default(null)
-    .describe(
-      "This is the unique identifier for the customer in the client's app. This is used to track the customer's journey.",
-    )
-    .openapi({ deprecated: true }),
   amount: z
     .number({ required_error: "amount is required" })
     .int()
     .min(0, "amount cannot be negative")
-    .describe("The amount of the sale. Should be passed in cents."),
-  paymentProcessor: z
-    .enum(["stripe", "shopify", "polar", "paddle", "custom"])
-    .describe("The payment processor via which the sale was made."),
+    .describe(
+      "The amount of the sale in cents (for all two-decimal currencies). If the sale is in a zero-decimal currency, pass the full integer value (e.g. `1437` JPY). Learn more: https://d.to/currency",
+    ),
+  currency: z
+    .string()
+    .default("usd")
+    .transform((val) => val.toLowerCase())
+    .describe(
+      "The currency of the sale. Accepts ISO 4217 currency codes. Sales will be automatically converted and stored as USD at the latest exchange rates. Learn more: https://d.to/currency",
+    ),
   eventName: z
     .string()
     .max(255)
     .optional()
     .default("Purchase")
     .describe(
-      "The name of the sale event. It can be used to track different types of event for example 'Purchase', 'Upgrade', 'Payment', etc.",
+      "The name of the sale event. Recommended format: `Invoice paid` or `Subscription created`.",
     )
-    .openapi({ example: "Purchase" }),
+    .openapi({ example: "Invoice paid" }),
+  paymentProcessor: z
+    .enum(["stripe", "shopify", "polar", "paddle", "revenuecat", "custom"])
+    .default("custom")
+    .describe("The payment processor via which the sale was made."),
   invoiceId: z
     .string()
     .nullish()
@@ -47,24 +46,24 @@ export const trackSaleRequestSchema = z.object({
     .describe(
       "The invoice ID of the sale. Can be used as a idempotency key – only one sale event can be recorded for a given invoice ID.",
     ),
-  currency: z
-    .string()
-    .default("usd")
-    .transform((val) => val.toLowerCase())
-    .describe("The currency of the sale. Accepts ISO 4217 currency codes."),
-  metadata: z
-    .record(z.unknown())
-    .nullish()
-    .default(null)
-    .describe("Additional metadata to be stored with the sale event."),
   leadEventName: z
     .string()
     .nullish()
     .default(null)
     .describe(
-      "The name of the lead event that occurred before the sale (case-sensitive). This is used to associate the sale event with a particular lead event (instead of the latest lead event, which is the default behavior).",
+      "The name of the lead event that occurred before the sale (case-sensitive). This is used to associate the sale event with a particular lead event (instead of the latest lead event for a link-customer combination, which is the default behavior).",
     )
     .openapi({ example: "Cloned template 1481267" }),
+  metadata: z
+    .record(z.unknown())
+    .nullish()
+    .default(null)
+    .refine((val) => !val || JSON.stringify(val).length <= 10000, {
+      message: "Metadata must be less than 10,000 characters when stringified",
+    })
+    .describe(
+      "Additional metadata to be stored with the sale event. Max 10,000 characters when stringified.",
+    ),
 });
 
 export const trackSaleResponseSchema = z.object({
@@ -97,10 +96,13 @@ export const saleEventSchemaTB = clickEventSchemaTB
       event_id: z.string(),
       event_name: z.string().default("Purchase"),
       customer_id: z.string(),
-      payment_processor: z.string(),
+      payment_processor: z.string().default("custom"),
       amount: z.number(),
       invoice_id: z.string().default(""),
-      currency: z.string().default("usd"),
+      currency: z
+        .string()
+        .default("usd")
+        .transform((val) => val.toLowerCase()),
       metadata: z.string().default(""),
     }),
   );
@@ -126,11 +128,13 @@ export const saleEventSchemaTBEndpoint = z.object({
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
+  trigger: z.string().nullish(), // backwards compatibility
   referer: z.string().nullable(),
   referer_url: z.string().nullable(),
   referer_url_processed: z.string().nullable(),
   qr: z.number().nullable(),
   ip: z.string().nullable(),
+  metadata: z.string().nullish(),
 });
 
 // response from dub api
@@ -138,28 +142,32 @@ export const saleEventResponseSchema = z
   .object({
     event: z.literal("sale"),
     timestamp: z.coerce.string(),
+    // core event fields
     eventId: z.string(),
     eventName: z.string(),
-    // nested objects
-    link: linkEventSchema,
-    click: clickEventSchema,
-    customer: CustomerSchema,
     sale: trackSaleRequestSchema.pick({
       amount: true,
       invoiceId: true,
       paymentProcessor: true,
     }),
+    metadata: z.any().nullish(),
+    // nested objects
+    link: linkEventSchema,
+    click: clickEventSchema,
+    customer: CustomerSchema,
+    // deprecated fields
     saleAmount: z
       .number()
-      .describe("Deprecated. Use `sale.amount` instead.")
+      .describe("Deprecated: Use `sale.amount` instead.")
       .openapi({ deprecated: true }),
     invoice_id: z
       .string()
-      .describe("Deprecated. Use `sale.invoiceId` instead.")
+      .describe("Deprecated: Use `sale.invoiceId` instead.")
       .openapi({ deprecated: true }),
     payment_processor: z
       .string()
-      .describe("Deprecated. Use `sale.paymentProcessor` instead."),
+      .describe("Deprecated: Use `sale.paymentProcessor` instead.")
+      .openapi({ deprecated: true }),
   })
   .merge(commonDeprecatedEventFields)
-  .openapi({ ref: "SaleEvent" });
+  .openapi({ ref: "SaleEvent", title: "SaleEvent" });

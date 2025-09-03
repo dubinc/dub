@@ -1,20 +1,25 @@
-TOKEN "v2_utms_endpoint_read_8196" READ
-
 NODE workspace_links
 SQL >
 
     %
     SELECT link_id
-    from dub_links_metadata_latest FINAL
+    FROM
+        {% if defined(isMegaFolder) and Boolean(isMegaFolder) == 1 %} dub_links_metadata_latest
+        {% else %} dub_regular_links_metadata_latest
+        {% end %} FINAL
     WHERE
         deleted == 0
         {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
         {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
         {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
         {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
-        {% if defined(folderId) %} AND folder_id = {{ folderId }} {% end %}
+        {% if defined(folderIds) %} AND folder_id IN {{ Array(folderIds, 'String') }}
+        {% elif defined(folderId) %} AND folder_id = {{ folderId }}
+        {% end %}
         {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
-        {% if defined(tagIds) %} AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != [] {% end %}
+        {% if defined(tagIds) %}
+            AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != []
+        {% end %}
         {% if defined(root) %}
             {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
         {% end %}
@@ -26,22 +31,33 @@ SQL >
 
     %
     WITH
-        extractURLParameter(
-            url,
-            {{
-                String(
-                    groupByUtmTag,
-                    'utm_source',
-                    description="The UTM tag to retrieve data for",
-                    required=True,
-                )
-            }}
+        decodeURLFormComponent(
+            extractURLParameter(
+                url,
+                {{
+                    String(
+                        groupByUtmTag,
+                        'utm_source',
+                        description="The UTM tag to retrieve data for",
+                        required=True,
+                    )
+                }}
+            )
         ) as utm
     SELECT utm, count(*) as clicks
     FROM
-        dub_click_events_mv
-        {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
-            PREWHERE link_id in (SELECT link_id from workspace_links)
+        {% if defined(customerId) %} dub_click_events_id
+        {% else %} dub_click_events_mv
+        {% end %}
+        {% if defined(customerId) %}
+            PREWHERE click_id IN (
+                SELECT DISTINCT click_id
+                FROM dub_lead_events_mv
+                WHERE customer_id = {{ String(customerId) }}
+            )
+        {% elif not defined(linkId) and (
+            defined(workspaceId) or defined(partnerId) or defined(programId)
+        ) %} PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
         url != ''
@@ -56,11 +72,25 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%') {% end %}
-        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%') {% end %}
-        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%') {% end %}
-        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%') {% end %}
-        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%') {% end %}
+        {% if defined(utm_source) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_source'))
+            = {{ String(utm_source) }}
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_medium'))
+            = {{ String(utm_medium) }}
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_campaign'))
+            = {{ String(utm_campaign) }}
+        {% end %}
+        {% if defined(utm_term) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_term')) = {{ String(utm_term) }}
+        {% end %}
+        {% if defined(utm_content) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_content'))
+            = {{ String(utm_content) }}
+        {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
@@ -75,16 +105,18 @@ SQL >
 
     %
     WITH
-        extractURLParameter(
-            url,
-            {{
-                String(
-                    groupByUtmTag,
-                    'utm_source',
-                    description="The UTM tag to retrieve data for",
-                    required=True,
-                )
-            }}
+        decodeURLFormComponent(
+            extractURLParameter(
+                url,
+                {{
+                    String(
+                        groupByUtmTag,
+                        'utm_source',
+                        description="The UTM tag to retrieve data for",
+                        required=True,
+                    )
+                }}
+            )
         ) as utm
     SELECT utm, count(*) as leads
     FROM
@@ -95,6 +127,7 @@ SQL >
     WHERE
         url != ''
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -105,11 +138,25 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%') {% end %}
-        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%') {% end %}
-        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%') {% end %}
-        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%') {% end %}
-        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%') {% end %}
+        {% if defined(utm_source) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_source'))
+            = {{ String(utm_source) }}
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_medium'))
+            = {{ String(utm_medium) }}
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_campaign'))
+            = {{ String(utm_campaign) }}
+        {% end %}
+        {% if defined(utm_term) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_term')) = {{ String(utm_term) }}
+        {% end %}
+        {% if defined(utm_content) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_content'))
+            = {{ String(utm_content) }}
+        {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
@@ -124,26 +171,29 @@ SQL >
 
     %
     WITH
-        extractURLParameter(
-            url,
-            {{
-                String(
-                    groupByUtmTag,
-                    'utm_source',
-                    description="The UTM tag to retrieve data for",
-                    required=True,
-                )
-            }}
+        decodeURLFormComponent(
+            extractURLParameter(
+                url,
+                {{
+                    String(
+                        groupByUtmTag,
+                        'utm_source',
+                        description="The UTM tag to retrieve data for",
+                        required=True,
+                    )
+                }}
+            )
         ) as utm
     SELECT utm, count(*) as sales, sum(amount) as saleAmount
     FROM
         dub_sale_events_mv
-        {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
-            PREWHERE link_id in (SELECT link_id from workspace_links)
-        {% end %}
+        {% if not defined(linkId) and (
+            defined(workspaceId) or defined(partnerId) or defined(programId)
+        ) %} PREWHERE link_id in (SELECT link_id from workspace_links) {% end %}
     WHERE
         url != ''
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -154,27 +204,139 @@ SQL >
         {% if defined(os) %} AND os = {{ os }} {% end %}
         {% if defined(referer) %} AND referer = {{ referer }} {% end %}
         {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
-        {% if defined(utm_source) %} AND url LIKE concat('%utm_source=', {{ String(utm_source) }}, '%') {% end %}
-        {% if defined(utm_medium) %} AND url LIKE concat('%utm_medium=', {{ String(utm_medium) }}, '%') {% end %}
-        {% if defined(utm_campaign) %} AND url LIKE concat('%utm_campaign=', {{ String(utm_campaign) }}, '%') {% end %}
-        {% if defined(utm_term) %} AND url LIKE concat('%utm_term=', {{ String(utm_term) }}, '%') {% end %}
-        {% if defined(utm_content) %} AND url LIKE concat('%utm_content=', {{ String(utm_content) }}, '%') {% end %}
+        {% if defined(utm_source) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_source'))
+            = {{ String(utm_source) }}
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_medium'))
+            = {{ String(utm_medium) }}
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_campaign'))
+            = {{ String(utm_campaign) }}
+        {% end %}
+        {% if defined(utm_term) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_term')) = {{ String(utm_term) }}
+        {% end %}
+        {% if defined(utm_content) %}
+            AND decodeURLFormComponent(extractURLParameter(url, 'utm_content'))
+            = {{ String(utm_content) }}
+        {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
     GROUP BY utm
     HAVING utm != ''
-    ORDER BY sales DESC
+    ORDER BY saleAmount DESC
+
+
+
+NODE utms_sales_with_type
+SQL >
+
+    %
+        WITH
+            sales AS (
+                SELECT 
+                    decodeURLFormComponent(
+                        extractURLParameter(
+                            url,
+                            {{
+                                String(
+                                    groupByUtmTag,
+                                    'utm_source',
+                                    description="The UTM tag to retrieve data for",
+                                    required=True,
+                                )
+                            }}
+                        )
+                    ) as utm,
+                    customer_id, link_id, timestamp, amount
+                FROM
+                    dub_sale_events_mv
+                    {% if not defined(linkId) and (
+                        defined(workspaceId) or defined(partnerId) or defined(programId)
+                    ) %} PREWHERE link_id in (SELECT link_id from workspace_links) {% end %}
+                WHERE
+                    url != ''
+                    {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+                    {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
+                    {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+                    {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+                    {% if defined(country) %} AND country = {{ country }} {% end %}
+                    {% if defined(region) %} AND region = {{ region }} {% end %}
+                    {% if defined(city) %} AND city = {{ city }} {% end %}
+                    {% if defined(device) %} AND device = {{ device }} {% end %}
+                    {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+                    {% if defined(os) %} AND os = {{ os }} {% end %}
+                    {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+                    {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+                    {% if defined(utm_source) %}
+                        AND decodeURLFormComponent(extractURLParameter(url, 'utm_source'))
+                        = {{ String(utm_source) }}
+                    {% end %}
+                    {% if defined(utm_medium) %}
+                        AND decodeURLFormComponent(extractURLParameter(url, 'utm_medium'))
+                        = {{ String(utm_medium) }}
+                    {% end %}
+                    {% if defined(utm_campaign) %}
+                        AND decodeURLFormComponent(extractURLParameter(url, 'utm_campaign'))
+                        = {{ String(utm_campaign) }}
+                    {% end %}
+                    {% if defined(utm_term) %}
+                        AND decodeURLFormComponent(extractURLParameter(url, 'utm_term')) = {{ String(utm_term) }}
+                    {% end %}
+                    {% if defined(utm_content) %}
+                        AND decodeURLFormComponent(extractURLParameter(url, 'utm_content'))
+                        = {{ String(utm_content) }}
+                    {% end %}
+                    {% if defined(url) %} AND url = {{ url }} {% end %}
+                    {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+                    {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+            ),
+            distinct_sales AS (
+                SELECT DISTINCT customer_id, link_id
+                FROM sales
+            ),
+            min_timestamps AS (
+                SELECT
+                    customer_id,
+                    link_id,
+                    min(timestamp) AS first_sale_ts
+                FROM dub_sale_events_mv
+                WHERE (customer_id, link_id) IN distinct_sales
+                GROUP BY customer_id, link_id
+            )
+        SELECT utm, count(*) as sales, sum(amount) as saleAmount
+        FROM sales
+        INNER JOIN min_timestamps USING (customer_id, link_id)
+        WHERE
+            1 = 1
+            {% if defined(saleType) %}
+                {% if saleType == 'new' %} AND timestamp <= first_sale_ts
+                {% elif saleType == 'recurring' %} AND timestamp > first_sale_ts
+                {% end %}
+            {% end %}
+        GROUP BY utm
+        HAVING utm != ''
+        ORDER BY saleAmount DESC
 
 
 
 NODE utms_composite
 SQL >
 
+    %
     SELECT dce.utm AS utm, dce.clicks as clicks, leads, sales, saleAmount
     FROM (SELECT utm, clicks FROM utms_clicks) AS dce
-    LEFT JOIN (SELECT * FROM  utms_leads) AS dle ON dce.utm = dle.utm
-    LEFT JOIN (SELECT * FROM utms_sales) AS dse ON dce.utm = dse.utm
+    LEFT JOIN (SELECT * FROM utms_leads) AS dle ON dce.utm = dle.utm
+    LEFT JOIN
+        (
+            SELECT *
+            FROM {% if defined(saleType) %} utms_sales_with_type {% else %} utms_sales {% end %}
+        ) AS dse
+        ON dce.utm = dse.utm
     ORDER BY clicks DESC
 
 
@@ -187,7 +349,8 @@ SQL >
     FROM
         {% if eventType == 'clicks' %} utms_clicks
         {% elif eventType == 'leads' %} utms_leads
-        {% elif eventType == 'sales' %} utms_sales
+        {% elif eventType == 'sales' %}
+            {% if defined(saleType) %} utms_sales_with_type {% else %} utms_sales {% end %}
         {% else %} utms_composite
         {% end %}
 

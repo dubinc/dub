@@ -6,13 +6,14 @@ import {
   uniqueNamesGenerator,
 } from "unique-names-generator";
 
-export const generateRandomName = () => {
+export const generateRandomName = (seed?: string) => {
   const config: Config = {
     // given 1,400 adjectives, 50 colors, and 350 animals
     // we have 1,400 * 50 * 350 = 24,500,000 possible combinations
     dictionaries: [adjectives, colors, animals],
     separator: " ",
     style: "capital",
+    seed,
   };
 
   return uniqueNamesGenerator(config);

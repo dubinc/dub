@@ -13,7 +13,10 @@ export const validateAllowedHostnames = (
   allowedHostnames = [...new Set(allowedHostnames)];
 
   const results = allowedHostnames.map(
-    (hostname) => validDomainRegex.test(hostname) || hostname === "localhost",
+    (hostname) =>
+      validDomainRegex.test(hostname) ||
+      hostname === "localhost" ||
+      hostname.startsWith("*."),
   );
 
   const invalidHostnames = results.filter((result) => !result);

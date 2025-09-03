@@ -13,7 +13,9 @@ import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { normalizeWorkspaceId } from "../api/workspace-id";
 import { getFeatureFlags } from "../edge-config";
+import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
+import { tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
 
 interface WithWorkspaceHandler {
@@ -68,6 +70,7 @@ export const withWorkspace = (
 
       let apiKey: string | undefined = undefined;
       let headers = {};
+      let workspace: WorkspaceWithUsers | undefined;
 
       try {
         const authorizationHeader = req.headers.get("Authorization");
@@ -140,34 +143,43 @@ export const withWorkspace = (
 
         if (apiKey) {
           const hashedKey = await hashToken(apiKey);
-          const prismaArgs = {
-            where: {
-              hashedKey,
-            },
-            select: {
-              ...(isRestrictedToken && {
-                scopes: true,
-                rateLimit: true,
-                projectId: true,
-                expires: true,
-                installationId: true,
-              }),
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  isMachine: true,
+
+          const cachedToken = await tokenCache.get({
+            hashedKey,
+          });
+
+          if (!cachedToken) {
+            const prismaArgs = {
+              where: {
+                hashedKey,
+              },
+              select: {
+                ...(isRestrictedToken && {
+                  scopes: true,
+                  rateLimit: true,
+                  projectId: true,
+                  expires: true,
+                  installationId: true,
+                }),
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    isMachine: true,
+                  },
                 },
               },
-            },
-          };
+            };
 
-          if (isRestrictedToken) {
-            token = await prisma.restrictedToken.findUnique(prismaArgs);
-          } else {
-            token = await prisma.token.findUnique(prismaArgs);
+            if (isRestrictedToken) {
+              token = await prisma.restrictedToken.findUnique(prismaArgs);
+            } else {
+              token = await prisma.token.findUnique(prismaArgs);
+            }
           }
+
+          token = cachedToken || token;
 
           if (!token || !token.user) {
             throw new DubApiError({
@@ -181,6 +193,15 @@ export const withWorkspace = (
               code: "unauthorized",
               message: "Unauthorized: Access token expired.",
             });
+          }
+
+          if (!cachedToken) {
+            waitUntil(
+              tokenCache.set({
+                hashedKey,
+                token,
+              }),
+            );
           }
 
           // Rate limit checks for API keys
@@ -211,21 +232,31 @@ export const withWorkspace = (
           }
 
           waitUntil(
-            // update last used time for the token
+            // update last used time for the token (only once every minute)
             (async () => {
-              const prismaArgs = {
-                where: {
-                  hashedKey,
-                },
-                data: {
-                  lastUsed: new Date(),
-                },
-              };
+              try {
+                const { success } = await ratelimit(1, "1 m").limit(
+                  `last-used-${hashedKey}`,
+                );
 
-              if (isRestrictedToken) {
-                await prisma.restrictedToken.update(prismaArgs);
-              } else {
-                await prisma.token.update(prismaArgs);
+                if (success) {
+                  const prismaArgs = {
+                    where: {
+                      hashedKey,
+                    },
+                    data: {
+                      lastUsed: new Date(),
+                    },
+                  };
+
+                  if (isRestrictedToken) {
+                    await prisma.restrictedToken.update(prismaArgs);
+                  } else {
+                    await prisma.token.update(prismaArgs);
+                  }
+                }
+              } catch (error) {
+                console.error(error);
               }
             })(),
           );
@@ -249,7 +280,7 @@ export const withWorkspace = (
           }
         }
 
-        const workspace = (await prisma.project.findUnique({
+        workspace = (await prisma.project.findUnique({
           where: {
             id: workspaceId || undefined,
             slug: workspaceSlug || undefined,
@@ -262,6 +293,7 @@ export const withWorkspace = (
               select: {
                 role: true,
                 defaultFolderId: true,
+                workspacePreferences: !apiKey, // Hide from API
               },
             },
           },
@@ -321,15 +353,6 @@ export const withWorkspace = (
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
             permissions.includes(p),
           );
-
-          // Prevent integration tokens from accessing API endpoints without explicit permissions
-          if (token.installationId && requiredPermissions.length === 0) {
-            throw new DubApiError({
-              code: "forbidden",
-              message:
-                "You don't have the necessary permissions to complete this request.",
-            });
-          }
         }
 
         // Check user has permission to make the action
@@ -347,12 +370,6 @@ export const withWorkspace = (
           let flags = await getFeatureFlags({
             workspaceId: workspace.id,
           });
-
-          // TODO: Remove this once Folders goes GA
-          flags = {
-            ...flags,
-            linkFolders: flags.linkFolders || workspace.partnersEnabled,
-          };
 
           if (!flags[featureFlag]) {
             throw new DubApiError({
@@ -395,6 +412,22 @@ export const withWorkspace = (
         });
       } catch (error) {
         req.log.error(error);
+
+        // Log the conversion events for debugging purposes
+        waitUntil(
+          (async () => {
+            const paths = ["/track/lead", "/track/sale"];
+
+            if (workspace && paths.includes(req.nextUrl.pathname)) {
+              logConversionEvent({
+                workspace_id: workspace.id,
+                path: req.nextUrl.pathname,
+                error: error.message,
+              });
+            }
+          })(),
+        );
+
         return handleAndReturnErrorResponse(error, headers);
       }
     },

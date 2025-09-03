@@ -1,7 +1,7 @@
 "use server";
 
 import { sendEmail } from "@dub/email";
-import { ReferralInvite } from "@dub/email/templates/referral-invite";
+import ReferralInvite from "@dub/email/templates/referral-invite";
 import { z } from "zod";
 import { ratelimit } from "../upstash";
 import { emailSchema } from "../zod/schemas/auth";

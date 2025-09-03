@@ -1,13 +1,14 @@
-import { APP_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN, currencyFormatter } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
 import { z } from "zod";
 import { WebhookTrigger } from "../../types";
 import { webhookPayloadSchema } from "../../webhook/schemas";
 import {
-  ClickEventWebhookData,
-  LeadEventWebhookData,
-  PartnerEventDataProps,
-  SaleEventWebhookData,
+  ClickEventWebhookPayload,
+  CommissionEventWebhookPayload,
+  LeadEventWebhookPayload,
+  PartnerEventWebhookPayload,
+  SaleEventWebhookPayload,
 } from "../../webhook/types";
 
 const createLinkTemplate = ({
@@ -49,7 +50,7 @@ const createLinkTemplate = ({
   };
 };
 
-const clickLinkTemplate = ({ data }: { data: ClickEventWebhookData }) => {
+const clickLinkTemplate = ({ data }: { data: ClickEventWebhookPayload }) => {
   const { link, click } = data;
   const linkToClicks = `${APP_DOMAIN}/events?event=clicks&domain=${link.domain}&key=${link.key}`;
 
@@ -101,7 +102,7 @@ const clickLinkTemplate = ({ data }: { data: ClickEventWebhookData }) => {
   };
 };
 
-const createLeadTemplate = ({ data }: { data: LeadEventWebhookData }) => {
+const createLeadTemplate = ({ data }: { data: LeadEventWebhookPayload }) => {
   const { customer, click, link } = data;
   const linkToLeads = `${APP_DOMAIN}/events?event=leads&domain=${link.domain}&key=${link.key}`;
 
@@ -150,7 +151,7 @@ const createLeadTemplate = ({ data }: { data: LeadEventWebhookData }) => {
   };
 };
 
-const createSaleTemplate = ({ data }: { data: SaleEventWebhookData }) => {
+const createSaleTemplate = ({ data }: { data: SaleEventWebhookPayload }) => {
   const { customer, click, sale, link } = data;
   const amountInDollars = (sale.amount / 100).toFixed(2);
   const linkToSales = `${APP_DOMAIN}/events?event=sales&domain=${link.domain}&key=${link.key}`;
@@ -200,7 +201,11 @@ const createSaleTemplate = ({ data }: { data: SaleEventWebhookData }) => {
   };
 };
 
-const createPartnerTemplate = ({ data }: { data: PartnerEventDataProps }) => {
+const enrolledPartnerTemplate = ({
+  data,
+}: {
+  data: PartnerEventWebhookPayload;
+}) => {
   const { name, email, country } = data;
 
   return {
@@ -209,7 +214,7 @@ const createPartnerTemplate = ({ data }: { data: PartnerEventDataProps }) => {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*New partner created* :tada:`,
+          text: `*New partner enrolled* :tada:`,
         },
       },
       {
@@ -233,6 +238,68 @@ const createPartnerTemplate = ({ data }: { data: PartnerEventDataProps }) => {
   };
 };
 
+// TODO (kiran):
+// We should improve this template
+const commissionCreatedTemplate = ({
+  data,
+}: {
+  data: CommissionEventWebhookPayload;
+}) => {
+  const { id, amount, earnings } = data;
+
+  const formattedAmount = currencyFormatter(amount / 100);
+
+  const formattedEarnings = currencyFormatter(earnings / 100);
+
+  return {
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*New commission created* :tada:`,
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Commission ID*\n${id}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Amount*\n${formattedAmount}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Earnings*\n${formattedEarnings}`,
+          },
+        ],
+      },
+    ],
+  };
+};
+
+// Minimal bounty templates (safe defaults)
+const bountyCreatedTemplate = ({} /* data */ : { data: unknown }) => ({
+  blocks: [
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: "*New bounty created* :money_with_wings:" },
+    },
+  ],
+});
+
+const bountyUpdatedTemplate = ({} /* data */ : { data: unknown }) => ({
+  blocks: [
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: "*Bounty updated* :memo:" },
+    },
+  ],
+});
+
 const slackTemplates: Record<WebhookTrigger, any> = {
   "link.created": createLinkTemplate,
   "link.updated": createLinkTemplate,
@@ -240,7 +307,10 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "link.clicked": clickLinkTemplate,
   "lead.created": createLeadTemplate,
   "sale.created": createSaleTemplate,
-  "partner.created": createPartnerTemplate,
+  "partner.enrolled": enrolledPartnerTemplate,
+  "commission.created": commissionCreatedTemplate,
+  "bounty.created": bountyCreatedTemplate,
+  "bounty.updated": bountyUpdatedTemplate,
 };
 
 export const formatEventForSlack = (

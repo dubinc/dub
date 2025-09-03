@@ -1,35 +1,35 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { linkCache } from "@/lib/api/links/cache";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
   BAN_PARTNER_REASONS,
   banPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import { PartnerBanned } from "@dub/email/templates/partner-banned";
+import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
-
 
 // Ban a partner
 export const banPartnerAction = authActionClient
   .schema(banPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    const { programId, partnerId } = parsedInput;
+    const { workspace, user } = ctx;
+    const { partnerId } = parsedInput;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
+      includePartner: true,
     });
-
-    const { program } = programEnrollment;
-
-    if (program.workspaceId !== workspace.id) {
-      throw new Error("You are not authorized to ban this partner.");
-    }
 
     if (programEnrollment.status === "banned") {
       throw new Error("This partner is already banned.");
@@ -53,21 +53,32 @@ export const banPartnerAction = authActionClient
           partnerId_programId: where,
         },
         data: {
-          status: "banned",
+          status: ProgramEnrollmentStatus.banned,
           bannedAt: new Date(),
           bannedReason: parsedInput.reason,
+          groupId: null,
+          clickRewardId: null,
+          leadRewardId: null,
+          saleRewardId: null,
+          discountId: null,
         },
       }),
 
       prisma.commission.updateMany({
-        where,
+        where: {
+          ...where,
+          status: "pending",
+        },
         data: {
           status: "canceled",
         },
       }),
 
       prisma.payout.updateMany({
-        where,
+        where: {
+          ...where,
+          status: "pending",
+        },
         data: {
           status: "canceled",
         },
@@ -76,16 +87,10 @@ export const banPartnerAction = authActionClient
 
     waitUntil(
       (async () => {
-        // Send email to partner
-        const partner = await prisma.partner.findUniqueOrThrow({
-          where: {
-            id: partnerId,
-          },
-          select: {
-            email: true,
-            name: true,
-          },
-        });
+        // sync total commissions
+        await syncTotalCommissions({ partnerId, programId });
+
+        const { program, partner } = programEnrollment;
 
         if (!partner.email) {
           console.error("Partner has no email address.");
@@ -93,23 +98,6 @@ export const banPartnerAction = authActionClient
         }
 
         const supportEmail = program.supportEmail || "support@dub.co";
-
-        await sendEmail({
-          subject: `You've been banned from the ${program.name} Partner Program`,
-          email: partner.email,
-          replyTo: supportEmail,
-          react: PartnerBanned({
-            partner: {
-              name: partner.name,
-              email: partner.email,
-            },
-            program: {
-              name: program.name,
-              supportEmail,
-            },
-            bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
-          }),
-        });
 
         // Delete links from cache
         const links = await prisma.link.findMany({
@@ -121,6 +109,41 @@ export const banPartnerAction = authActionClient
         });
 
         await linkCache.deleteMany(links);
+
+        await Promise.allSettled([
+          sendEmail({
+            subject: `You've been banned from the ${program.name} Partner Program`,
+            email: partner.email,
+            replyTo: supportEmail,
+            react: PartnerBanned({
+              partner: {
+                name: partner.name,
+                email: partner.email,
+              },
+              program: {
+                name: program.name,
+                supportEmail,
+              },
+              bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
+            }),
+            variant: "notifications",
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "partner.banned",
+            description: `Partner ${partnerId} banned`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: partnerId,
+                metadata: partner,
+              },
+            ],
+          }),
+        ]);
       })(),
     );
   });

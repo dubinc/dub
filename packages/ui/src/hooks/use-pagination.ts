@@ -22,11 +22,12 @@ export function usePagination(pageSize = PAGINATION_LIMIT) {
     onPageChange: (p) => {
       queryParams(
         p === 1
-          ? { del: "page" }
+          ? { del: "page", scroll: false }
           : {
               set: {
                 page: p.toString(),
               },
+              scroll: false,
             },
       );
     },
@@ -45,11 +46,12 @@ export function usePagination(pageSize = PAGINATION_LIMIT) {
   useEffect(() => {
     queryParams(
       pagination.pageIndex === 1
-        ? { del: "page" }
+        ? { del: "page", scroll: false }
         : {
             set: {
               page: pagination.pageIndex.toString(),
             },
+            scroll: false,
           },
     );
   }, [pagination]);

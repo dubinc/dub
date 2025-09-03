@@ -219,17 +219,19 @@ export function FilterSelect({
               >
                 {!selectedFilter
                   ? // Top-level filters
-                    filters.map((filter) => (
-                      <Fragment key={filter.key}>
-                        <FilterButton
-                          filter={filter}
-                          onSelect={() => openFilter(filter.key)}
-                        />
-                        {filter.separatorAfter && (
-                          <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
-                        )}
-                      </Fragment>
-                    ))
+                    filters
+                      .filter((filter) => !filter.hideInFilterDropdown)
+                      .map((filter) => (
+                        <Fragment key={filter.key}>
+                          <FilterButton
+                            filter={filter}
+                            onSelect={() => openFilter(filter.key)}
+                          />
+                          {filter.separatorAfter && (
+                            <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
+                          )}
+                        </Fragment>
+                      ))
                   : // Filter options
                     selectedFilter.options
                       ?.filter((option) => !search || !option.hideDuringSearch)

@@ -1,39 +1,24 @@
 import { nFormatter } from "@dub/utils";
+import { uiComponent } from "@team-plain/typescript-sdk";
 
-export const plainDivider = {
-  componentDivider: {
-    dividerSpacingSize: "M",
-  },
-};
-
-export const plainEmptyContainer = (text: string) => ({
-  componentContainer: {
-    containerContent: [
-      {
-        componentSpacer: {
-          spacerSize: "M",
-        },
-      },
-      {
-        componentPlainText: {
-          text: "No user found.",
-          size: "S",
-        },
-      },
-      {
-        componentSpacer: {
-          spacerSize: "M",
-        },
-      },
-    ],
-  },
+export const plainDivider = uiComponent.divider({
+  spacingSize: "M",
+});
+export const plainSpacer = uiComponent.spacer({
+  size: "S",
 });
 
-export const plainSpacer = {
-  componentSpacer: {
-    spacerSize: "M",
-  },
-};
+export const plainEmptyContainer = (text: string) =>
+  uiComponent.container({
+    content: [
+      plainSpacer,
+      uiComponent.plainText({
+        text,
+        size: "S",
+      }),
+      plainSpacer,
+    ],
+  });
 
 export const plainTextSection = ({
   label,
@@ -41,28 +26,23 @@ export const plainTextSection = ({
 }: {
   label: string;
   value: string;
-}) => ({
-  componentRow: {
-    rowMainContent: [
-      {
-        componentText: {
-          textSize: "M",
-          textColor: "MUTED",
-          text: label,
-        },
-      },
+}) =>
+  uiComponent.row({
+    mainContent: [
+      uiComponent.text({
+        text: label,
+        size: "M",
+        color: "MUTED",
+      }),
     ],
-    rowAsideContent: [
-      {
-        componentText: {
-          textSize: "M",
-          textColor: "NORMAL",
-          text: value,
-        },
-      },
+    asideContent: [
+      uiComponent.text({
+        text: value,
+        size: "M",
+        color: "NORMAL",
+      }),
     ],
-  },
-});
+  });
 
 export const plainCopySection = ({
   label,
@@ -71,32 +51,24 @@ export const plainCopySection = ({
   label: string;
   value: string;
 }) => [
-  {
-    componentText: {
-      text: label,
-      textSize: "S",
-      textColor: "MUTED",
-    },
-  },
-  {
-    componentRow: {
-      rowMainContent: [
-        {
-          componentText: {
-            text: value,
-          },
-        },
-      ],
-      rowAsideContent: [
-        {
-          componentCopyButton: {
-            copyButtonTooltipLabel: `Copy ${label}`,
-            copyButtonValue: value,
-          },
-        },
-      ],
-    },
-  },
+  uiComponent.text({
+    text: label,
+    size: "S",
+    color: "MUTED",
+  }),
+  uiComponent.row({
+    mainContent: [
+      uiComponent.text({
+        text: value,
+      }),
+    ],
+    asideContent: [
+      uiComponent.copyButton({
+        tooltip: `Copy ${label}`,
+        value: value,
+      }),
+    ],
+  }),
 ];
 
 export const plainUsageSection = ({
@@ -106,40 +78,36 @@ export const plainUsageSection = ({
   sublabel,
   color,
 }: {
-  usage: number;
+  usage: number | string;
   usageLimit?: number;
   label: string;
   sublabel?: string;
   color: "GREY" | "GREEN" | "YELLOW" | "RED" | "BLUE";
-}) => ({
-  componentRow: {
-    rowMainContent: [
-      {
-        componentText: {
-          textSize: "M",
-          textColor: "NORMAL",
-          text: label,
-        },
-      },
+}) =>
+  uiComponent.row({
+    mainContent: [
+      uiComponent.text({
+        text: label,
+        size: "M",
+        color: "NORMAL",
+      }),
       ...(sublabel
         ? [
-            {
-              componentText: {
-                textSize: "S",
-                textColor: "MUTED",
-                text: sublabel,
-              },
-            },
+            uiComponent.text({
+              text: sublabel,
+              size: "S",
+              color: "MUTED",
+            }),
           ]
         : []),
     ],
-    rowAsideContent: [
-      {
-        componentBadge: {
-          badgeLabel: `${nFormatter(usage, { full: true })}${usageLimit ? ` of ${nFormatter(usageLimit, { full: true })}` : ""}`,
-          badgeColor: color,
-        },
-      },
+    asideContent: [
+      uiComponent.badge({
+        label:
+          typeof usage === "number"
+            ? `${nFormatter(usage, { full: true })}${usageLimit ? ` of ${nFormatter(usageLimit, { full: true })}` : ""}`
+            : usage,
+        color: color,
+      }),
     ],
-  },
-});
+  });

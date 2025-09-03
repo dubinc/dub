@@ -1,6 +1,8 @@
-import { CommissionType } from "@prisma/client";
+import { ToltProgramSchema } from "@/lib/tolt/schemas";
+import { PartnerLinkStructure, RewardStructure } from "@dub/prisma/client";
 import { z } from "zod";
-import { RECURRING_MAX_DURATIONS } from "./misc";
+import { maxDurationSchema } from "./misc";
+import { updateProgramSchema } from "./programs";
 import { parseUrlSchema } from "./utils";
 
 // Getting started
@@ -9,13 +11,15 @@ export const programInfoSchema = z.object({
   logo: z.string(),
   domain: z.string(),
   url: parseUrlSchema.nullable(),
-  linkType: z.enum(["short", "query", "dynamic"]).default("short"),
+  linkStructure: z.nativeEnum(PartnerLinkStructure).default("short"),
+  linkParameter: z.string().nullish(),
 });
 
 // Configure rewards
 export const programRewardSchema = z
   .object({
     programType: z.enum(["new", "import"]),
+    importSource: z.enum(["rewardful", "tolt", "partnerstack"]).nullish(),
     rewardful: z
       .object({
         maskedToken: z.string().nullish(),
@@ -27,17 +31,23 @@ export const programRewardSchema = z
         commission_percent: z.number().nullable(),
       })
       .nullish(),
+    tolt: ToltProgramSchema.extend({
+      id: z.string(),
+      affiliates: z.number(),
+    }).nullish(),
+    partnerstack: z
+      .object({
+        publicKey: z.string().nullish(),
+        maskedSecretKey: z.string().nullish(),
+      })
+      .nullish(),
   })
   .merge(
     z.object({
-      type: z.nativeEnum(CommissionType).nullish(),
+      defaultRewardType: z.enum(["lead", "sale"]).default("lead"),
+      type: z.nativeEnum(RewardStructure).nullish(),
       amount: z.number().min(0).nullish(),
-      maxDuration: z.coerce
-        .number()
-        .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {
-          message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
-        })
-        .nullish(),
+      maxDuration: maxDurationSchema,
     }),
   );
 
@@ -47,23 +57,27 @@ export const programInvitePartnersSchema = z.object({
     .array(
       z.object({
         email: z.string().email("Please enter a valid email"),
-        key: z.string().min(1, "Please enter a referral key"),
       }),
     )
     .max(10, "You can only invite up to 10 partners.")
     .nullable()
     .transform(
-      (partners) =>
-        partners?.filter(
-          (partner) => partner.email.trim() && partner.key.trim(),
-        ) || null,
+      (partners) => partners?.filter((partner) => partner.email.trim()) || null,
     ),
+});
+
+// Help and support
+export const programSupportSchema = updateProgramSchema.pick({
+  supportEmail: true,
+  helpUrl: true,
+  termsUrl: true,
 });
 
 export const onboardingStepSchema = z.enum([
   "get-started",
   "configure-reward",
   "invite-partners",
+  "help-and-support",
   "connect",
   "create-program",
 ]);
@@ -71,6 +85,7 @@ export const onboardingStepSchema = z.enum([
 export const programDataSchema = programInfoSchema
   .merge(programRewardSchema)
   .merge(programInvitePartnersSchema)
+  .merge(programSupportSchema)
   .merge(
     z.object({
       lastCompletedStep: onboardingStepSchema.nullish(), // The last step that was completed
@@ -100,6 +115,13 @@ export const onboardProgramSchema = z.discriminatedUnion("step", [
     }),
   ),
 
+  programSupportSchema.merge(
+    z.object({
+      step: z.literal("help-and-support"),
+      workspaceId: z.string(),
+    }),
+  ),
+
   z.object({
     step: z.literal("connect"),
     workspaceId: z.string(),
@@ -122,31 +144,37 @@ export const PROGRAM_ONBOARDING_STEPS = [
   {
     stepNumber: 1,
     label: "Getting started",
-    href: "/programs/new",
+    href: "/program/new",
     step: "get-started",
   },
   {
     stepNumber: 2,
     label: "Configure rewards",
-    href: "/programs/new/rewards",
+    href: "/program/new/rewards",
     step: "configure-reward",
   },
   {
     stepNumber: 3,
     label: "Invite partners",
-    href: "/programs/new/partners",
+    href: "/program/new/partners",
     step: "invite-partners",
   },
   {
     stepNumber: 4,
-    label: "Connect Dub",
-    href: "/programs/new/connect",
-    step: "connect",
+    label: "Help and Support",
+    href: "/program/new/support",
+    step: "help-and-support",
   },
   {
     stepNumber: 5,
+    label: "Connect Dub",
+    href: "/program/new/connect",
+    step: "connect",
+  },
+  {
+    stepNumber: 6,
     label: "Overview",
-    href: "/programs/new/overview",
+    href: "/program/new/overview",
     step: "create-program",
   },
 ] as const;

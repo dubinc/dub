@@ -19,9 +19,19 @@ export async function createShopifyLead({
   workspaceId: string;
   event: any;
 }) {
-  const {
-    customer: { id: externalId, email, first_name, last_name },
-  } = orderSchema.parse(event);
+  const { customer: orderCustomer } = orderSchema.parse(event);
+
+  const customerId = createId({ prefix: "cus_" });
+  /*
+     if orderCustomer is undefined (guest checkout):
+    - use the customerId as the externalId
+    - generate random name + email
+  */
+  const externalId = orderCustomer?.id?.toString() || customerId; // need to convert to string because Shopify customer ID is a number
+  const name = orderCustomer
+    ? `${orderCustomer.first_name} ${orderCustomer.last_name}`.trim()
+    : generateRandomName();
+  const email = orderCustomer?.email;
 
   // find click
   const clickEvent = await getClickEvent({ clickId });
@@ -32,11 +42,10 @@ export async function createShopifyLead({
   // create customer
   const customer = await prisma.customer.create({
     data: {
-      id: createId({ prefix: "cus_" }),
-      // need to convert to string because Shopify customer ID is a number
-      externalId: externalId.toString(),
-      name: `${first_name} ${last_name}`.trim() || generateRandomName(),
-      email: email || null,
+      id: customerId,
+      externalId,
+      name,
+      email,
       projectId: workspaceId,
       clickedAt: new Date(timestamp + "Z"),
       clickId,

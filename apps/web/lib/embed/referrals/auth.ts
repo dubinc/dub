@@ -1,11 +1,9 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { Link, Program } from "@dub/prisma/client";
+import { Link, Program, ProgramEnrollment } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
-import { cookies } from "next/headers";
-import { REFERRALS_EMBED_PUBLIC_TOKEN_COOKIE_NAME } from "../constants";
 import { referralsEmbedToken } from "./token-class";
 
 interface WithReferralsEmbedTokenHandler {
@@ -14,8 +12,7 @@ interface WithReferralsEmbedTokenHandler {
     params,
     searchParams,
     program,
-    programId,
-    partnerId,
+    programEnrollment,
     links,
     embedToken,
   }: {
@@ -23,8 +20,7 @@ interface WithReferralsEmbedTokenHandler {
     params: Record<string, string>;
     searchParams: Record<string, string>;
     program: Program;
-    programId: string;
-    partnerId: string;
+    programEnrollment: ProgramEnrollment;
     links: Link[];
     embedToken: string;
   }): Promise<Response>;
@@ -43,13 +39,9 @@ export const withReferralsEmbedToken = (
       try {
         const rateLimit = 60;
         const searchParams = getSearchParams(req.url);
+        const embedToken = req.headers.get("Authorization")?.split(" ")[1];
 
-        const cookieStore = cookies();
-        const tokenFromCookie = cookieStore.get(
-          REFERRALS_EMBED_PUBLIC_TOKEN_COOKIE_NAME,
-        )?.value;
-
-        if (!tokenFromCookie) {
+        if (!embedToken) {
           throw new DubApiError({
             code: "unauthorized",
             message: "Embed public token not found in the request.",
@@ -57,7 +49,7 @@ export const withReferralsEmbedToken = (
         }
 
         const { programId, partnerId } =
-          (await referralsEmbedToken.get(tokenFromCookie)) ?? {};
+          (await referralsEmbedToken.get(embedToken)) ?? {};
 
         if (!programId || !partnerId) {
           throw new DubApiError({
@@ -69,7 +61,7 @@ export const withReferralsEmbedToken = (
         const { success, limit, reset, remaining } = await ratelimit(
           rateLimit,
           "1 m",
-        ).limit(tokenFromCookie);
+        ).limit(embedToken);
 
         headers = {
           "Retry-After": reset.toString(),
@@ -85,13 +77,25 @@ export const withReferralsEmbedToken = (
           });
         }
 
-        const programEnrollment =
+        const { program, links, ...programEnrollment } =
           await prisma.programEnrollment.findUniqueOrThrow({
             where: {
               partnerId_programId: { partnerId, programId },
             },
             include: {
-              links: true,
+              links: {
+                orderBy: [
+                  {
+                    saleAmount: "desc",
+                  },
+                  {
+                    leads: "desc",
+                  },
+                  {
+                    clicks: "desc",
+                  },
+                ],
+              },
               program: true,
             },
           });
@@ -100,11 +104,10 @@ export const withReferralsEmbedToken = (
           req,
           params,
           searchParams,
-          program: programEnrollment.program,
-          programId,
-          partnerId: programEnrollment.partnerId,
-          links: programEnrollment.links,
-          embedToken: tokenFromCookie,
+          program,
+          programEnrollment,
+          links,
+          embedToken,
         });
       } catch (error) {
         req.log.error(error);

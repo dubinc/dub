@@ -24,6 +24,7 @@ export interface TooltipProps
     | string
     | ((props: { setOpen: (open: boolean) => void }) => ReactNode);
   contentClassName?: string;
+  disabled?: boolean;
   disableHoverableContent?: TooltipPrimitive.TooltipProps["disableHoverableContent"];
   delayDuration?: TooltipPrimitive.TooltipProps["delayDuration"];
 }
@@ -32,6 +33,7 @@ export function Tooltip({
   children,
   content,
   contentClassName,
+  disabled,
   side = "top",
   disableHoverableContent,
   delayDuration = 0,
@@ -41,7 +43,7 @@ export function Tooltip({
 
   return (
     <TooltipPrimitive.Root
-      open={open}
+      open={disabled ? false : open}
       onOpenChange={setOpen}
       delayDuration={delayDuration}
       disableHoverableContent={disableHoverableContent}
@@ -131,35 +133,55 @@ export function SimpleTooltipContent({
   href,
 }: {
   title: string;
-  cta: string;
-  href: string;
+  cta?: string;
+  href?: string;
 }) {
   return (
     <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
-      {title}{" "}
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={(e) => e.stopPropagation()}
-        className="inline-flex text-neutral-500 underline underline-offset-4 hover:text-neutral-800"
-      >
-        {cta}
-      </a>
+      {title}
+      {cta && href && (
+        <>
+          {" "}
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex text-neutral-500 underline underline-offset-4 hover:text-neutral-800"
+          >
+            {cta}
+          </a>
+        </>
+      )}
     </div>
   );
 }
 
-export function LinkifyTooltipContent({ children }: { children: ReactNode }) {
+export function LinkifyTooltipContent({
+  children,
+  className,
+  tooltipClassName,
+}: {
+  children: ReactNode;
+  className?: string;
+  tooltipClassName?: string;
+}) {
   return (
-    <div className="block max-w-md whitespace-pre-wrap px-4 py-2 text-center text-sm text-neutral-700">
+    <div
+      className={cn(
+        "block max-w-xs whitespace-pre-wrap text-balance px-4 py-2 text-center text-sm text-neutral-700",
+        tooltipClassName,
+      )}
+    >
       <Linkify
         as="p"
         options={{
           target: "_blank",
           rel: "noopener noreferrer nofollow",
-          className:
+          className: cn(
             "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
+            className,
+          ),
         }}
       >
         {children}

@@ -3,12 +3,12 @@ import { describe, expect, test } from "vitest";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
 
-const poweredBy = "Dub.co - Link management for modern marketing teams";
+const poweredBy = "Dub - The Modern Link Attribution Platform";
 const fetchOptions: RequestInit = {
   cache: "no-store",
   redirect: "manual",
   headers: {
-    "dub-no-track": "1",
+    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
   },
 };
 
@@ -25,10 +25,7 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   });
 
   test("regular", async () => {
-    const response = await fetch(`${h.baseUrl}/checkly-check`, {
-      ...fetchOptions,
-      headers: {},
-    });
+    const response = await fetch(`${h.baseUrl}/checkly-check`, fetchOptions);
 
     expect(response.headers.get("location")).toBe("https://www.checklyhq.com/");
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
@@ -44,10 +41,10 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   });
 
   test("with dub_id", async () => {
-    const response = await fetch(`${h.baseUrl}/conversion-tracking`, {
-      ...fetchOptions,
-      headers: {},
-    });
+    const response = await fetch(
+      `${h.baseUrl}/conversion-tracking`,
+      fetchOptions,
+    );
 
     // the location should contain `?dub_id=` query param
     expect(response.headers.get("location")).toMatch(/dub_id=[a-zA-Z0-9]+/);
@@ -55,11 +52,22 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("with dub_id and via", async () => {
+    const response = await fetch(`${h.baseUrl}/track-test`, fetchOptions);
+
+    // the location should contain `?dub_id=` query param
+    expect(response.headers.get("location")).toMatch(/dub_id=[a-zA-Z0-9]+/);
+    // the location should contain `?via=track-test` query param
+    expect(response.headers.get("location")).toMatch(/via=track-test/);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("with dub_client_reference_id", async () => {
-    const response = await fetch(`${h.baseUrl}/client_reference_id`, {
-      ...fetchOptions,
-      headers: {},
-    });
+    const response = await fetch(
+      `${h.baseUrl}/client_reference_id`,
+      fetchOptions,
+    );
 
     // the location should contain `?client_reference_id=dub_id_` query param
     expect(response.headers.get("location")).toMatch(
@@ -95,6 +103,78 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("singular tracking url", async () => {
+    const response = await fetch(`${h.baseUrl}/singular`, fetchOptions);
+
+    // location to include  cl, ua, ip query params
+    expect(response.headers.get("location")).toMatch(/cl=[a-zA-Z0-9]+/);
+    expect(response.headers.get("location")).toMatch(/ua=[a-zA-Z0-9]+/);
+    expect(response.headers.get("location")).toMatch(/ip=[a-zA-Z0-9]+/);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("singular polyfill wpcn & wpcl params", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/singular-polyfill`,
+      fetchOptions,
+    );
+
+    const location = response.headers.get("location");
+    expect(location).toBeTruthy();
+
+    const url = new URL(location!);
+
+    // wpcn should be replaced from {via} template to actual via value
+    expect(url.searchParams.get("wpcn")).toBe("singular-polyfill");
+
+    // wpcl should be replaced from {dub_id} template to actual dub_id value
+    expect(url.searchParams.get("wpcl")).toMatch(/^[a-zA-Z0-9]+$/);
+
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("google play store url", async () => {
+    const response = await fetch(`${h.baseUrl}/gps`, fetchOptions);
+    const location = response.headers.get("location");
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(location).toBeTruthy();
+
+    const url = new URL(location!);
+    const referrerEncoded = url.searchParams.get("referrer");
+    expect(referrerEncoded).toBeTruthy();
+
+    const referrer = decodeURIComponent(referrerEncoded!);
+    const params = new URLSearchParams(referrer);
+
+    expect(params.get("deepLink")).toBe("https://dub.sh/gps");
+  });
+
+  test("google play store url with existing referrer", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/gps-with-referrer`,
+      fetchOptions,
+    );
+    const location = response.headers.get("location");
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(location).toBeTruthy();
+
+    const url = new URL(location!);
+    const referrerEncoded = url.searchParams.get("referrer");
+    expect(referrerEncoded).toBeTruthy();
+
+    const referrer = decodeURIComponent(referrerEncoded!);
+    const params = new URLSearchParams(referrer);
+
+    expect(params.get("utm_source")).toBe("google");
+    expect(params.get("deepLink")).toBe("https://dub.sh/gps-with-referrer");
+  });
+
   test("query params with no value", async () => {
     const response = await fetch(
       `${h.baseUrl}/query-params-no-value`,
@@ -104,6 +184,30 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.headers.get("location")).toBe(
       "https://dub.co/blog?emptyquery",
     );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("with case-sensitive (correct) key", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/cAsE-sensitive-test`,
+      fetchOptions,
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "https://dub.co/changelog/case-insensitive-links",
+    );
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
+  test("with case-sensitive (incorrect) key", async () => {
+    const response = await fetch(
+      `${h.baseUrl}/case-sensitive-test`,
+      fetchOptions,
+    );
+
+    expect(response.headers.get("location")).toBe("https://dub.co/");
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });
@@ -120,10 +224,7 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   });
 
   test("unsupported key", async () => {
-    const response = await fetch(`${h.baseUrl}/wp-admin.php`, {
-      ...fetchOptions,
-      headers: {},
-    });
+    const response = await fetch(`${h.baseUrl}/wp-admin.php`, fetchOptions);
 
     expect(response.headers.get("location")).toBe("/?dub-no-track=1");
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
@@ -133,17 +234,11 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   test("redirection url", async () => {
     const response = await fetch(
       `${h.baseUrl}/redir-url-test?${REDIRECTION_QUERY_PARAM}=https://dub.co/blog`,
-      {
-        ...fetchOptions,
-        headers: {},
-      },
+      fetchOptions,
     );
 
     expect(response.headers.get("location")).toBe("https://dub.co/blog");
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });
-
-  //  DUMMY test to record a hit on track-test
-  await fetch(`${h.baseUrl}/track-test`);
 });

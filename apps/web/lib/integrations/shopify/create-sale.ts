@@ -1,14 +1,11 @@
-import { createId } from "@/lib/api/create-id";
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { recordSale } from "@/lib/tinybird";
+import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
-import z from "@/lib/zod";
-import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -23,7 +20,7 @@ export async function createShopifySale({
   event: any;
   customerId: string;
   workspaceId: string;
-  leadData: z.infer<typeof leadEventSchemaTB>;
+  leadData: LeadEventTB;
 }) {
   const order = orderSchema.parse(event);
 
@@ -33,7 +30,7 @@ export async function createShopifySale({
     current_subtotal_price_set: { shop_money: shopMoney },
   } = order;
 
-  const amount = Number(shopMoney.amount) * 100;
+  const amount = Math.round(Number(shopMoney.amount) * 100); // round to nearest cent
   const { link_id: linkId } = leadData;
   const currency = shopMoney.currency_code.toLowerCase();
 
@@ -64,6 +61,12 @@ export async function createShopifySale({
     metadata: JSON.stringify(order),
   };
 
+  const existingCustomer = await prisma.customer.findUniqueOrThrow({
+    where: {
+      id: customerId,
+    },
+  });
+
   const [_sale, link, workspace, customer] = await Promise.all([
     // record sale
     recordSale(saleData),
@@ -74,6 +77,14 @@ export async function createShopifySale({
         id: linkId,
       },
       data: {
+        ...(isFirstConversion({
+          customer: existingCustomer,
+          linkId,
+        }) && {
+          conversions: {
+            increment: 1,
+          },
+        }),
         sales: {
           increment: 1,
         },
@@ -93,18 +104,21 @@ export async function createShopifySale({
         usage: {
           increment: 1,
         },
-        salesUsage: {
+      },
+    }),
+    prisma.customer.update({
+      where: {
+        id: customerId,
+      },
+      data: {
+        sales: {
+          increment: 1,
+        },
+        saleAmount: {
           increment: amount,
         },
       },
     }),
-
-    prisma.customer.findUniqueOrThrow({
-      where: {
-        id: customerId,
-      },
-    }),
-
     redis.del(`shopify:checkout:${checkoutToken}`),
   ]);
 
@@ -123,44 +137,22 @@ export async function createShopifySale({
 
   // for program links
   if (link.programId && link.partnerId) {
-    const reward = await determinePartnerReward({
+    await createPartnerCommission({
+      event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
-      event: "sale",
+      linkId: link.id,
+      eventId: saleData.event_id,
+      customerId: customer.id,
+      amount: saleData.amount,
+      quantity: 1,
+      invoiceId: saleData.invoice_id,
+      currency: saleData.currency,
+      context: {
+        customer: {
+          country: customer.country,
+        },
+      },
     });
-
-    if (reward) {
-      const earnings = calculateSaleEarnings({
-        reward,
-        sale: {
-          quantity: 1,
-          amount: saleData.amount,
-        },
-      });
-
-      const commission = await prisma.commission.create({
-        data: {
-          id: createId({ prefix: "cm_" }),
-          programId: link.programId,
-          linkId: link.id,
-          partnerId: link.partnerId,
-          eventId: saleData.event_id,
-          customerId: customer.id,
-          quantity: 1,
-          type: "sale",
-          amount,
-          earnings,
-          invoiceId,
-          currency,
-        },
-      });
-
-      waitUntil(
-        notifyPartnerSale({
-          link,
-          commission,
-        }),
-      );
-    }
   }
 }

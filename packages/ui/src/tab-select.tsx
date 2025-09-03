@@ -1,6 +1,7 @@
 import { cn } from "@dub/utils";
 import { cva, VariantProps } from "class-variance-authority";
 import { LayoutGroup, motion } from "framer-motion";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useId } from "react";
 import { ArrowUpRight } from "./icons";
 
@@ -37,7 +38,7 @@ export function TabSelect<T extends string>({
   onSelect,
   className,
 }: VariantProps<typeof tabSelectButtonVariants> & {
-  options: { id: T; label: string; href?: string }[];
+  options: { id: T; label: string; href?: string; target?: string }[];
   selected: string | null;
   onSelect?: Dispatch<SetStateAction<T>> | ((id: T) => void);
   className?: string;
@@ -47,28 +48,28 @@ export function TabSelect<T extends string>({
   return (
     <div className={cn("flex text-sm", className)}>
       <LayoutGroup id={layoutGroupId}>
-        {options.map(({ id, label, href }) => {
+        {options.map(({ id, label, href, target }) => {
           const isSelected = id === selected;
-          const As = href ? "a" : "div";
+          const As = href ? Link : "div";
           return (
             <As
               key={id}
               className="relative"
               href={href ?? "#"}
-              target={href ? "_blank" : undefined}
+              target={target ?? undefined}
             >
               <button
                 type="button"
-                {...(!href && { onClick: () => onSelect?.(id) })}
+                {...(onSelect && !href && { onClick: () => onSelect(id) })}
                 className={cn(
                   tabSelectButtonVariants({ variant }),
-                  href && "group flex items-center gap-1.5",
+                  target === "_blank" && "group flex items-center gap-1.5",
                 )}
                 data-selected={isSelected}
                 aria-selected={isSelected}
               >
                 {label}
-                {href && <ArrowUpRight className="size-2.5" />}
+                {target === "_blank" && <ArrowUpRight className="size-2.5" />}
               </button>
               {isSelected && (
                 <motion.div

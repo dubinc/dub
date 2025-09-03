@@ -1,10 +1,5 @@
-import { Suspense } from "react";
-import WorkspaceDomainsClient from "./page-client";
+import { CustomDomains } from "./page-client";
 
-export default function WorkspaceDomains() {
-  return (
-    <Suspense>
-      <WorkspaceDomainsClient />
-    </Suspense>
-  );
+export default function CustomDomainsPage() {
+  return <CustomDomains />;
 }

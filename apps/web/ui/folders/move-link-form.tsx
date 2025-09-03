@@ -9,7 +9,7 @@ import { FolderDropdown } from "./folder-dropdown";
 
 interface MoveLinkFormProps {
   links: ExpandedLinkProps[];
-  onSuccess: () => void;
+  onSuccess: (folderId: string | null) => void;
   onCancel: () => void;
 }
 
@@ -60,8 +60,8 @@ export const MoveLinkForm = ({
       { revalidate: true },
     );
 
-    toast.success("Link moved successfully!");
-    onSuccess();
+    toast.success(`${pluralize("Link", links.length)} moved successfully!`);
+    onSuccess(selectedFolderId === "unsorted" ? null : selectedFolderId);
   };
 
   return (

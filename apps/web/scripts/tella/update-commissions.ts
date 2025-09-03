@@ -1,7 +1,8 @@
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { EventType, Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
 // update commissions for a program
@@ -19,11 +20,19 @@ async function main() {
 
   const updatedCommissions = await Promise.all(
     commissions.map(async (commission) => {
-      const reward = await determinePartnerReward({
-        event: commission.type,
+      const programEnrollment = await getProgramEnrollmentOrThrow({
         partnerId: commission.partnerId,
         programId: commission.programId,
+        includeClickReward: commission.type === "click",
+        includeLeadReward: commission.type === "lead",
+        includeSaleReward: commission.type === "sale",
       });
+
+      const reward = await determinePartnerReward({
+        event: commission.type as EventType,
+        programEnrollment,
+      });
+
       if (!reward) {
         return null;
       }

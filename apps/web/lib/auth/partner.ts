@@ -23,10 +23,7 @@ interface WithPartnerProfileHandler {
   }): Promise<Response>;
 }
 
-export const withPartnerProfile = (
-  handler: WithPartnerProfileHandler,
-  {}: {} = {},
-) => {
+export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
   return withAxiom(
     async (
       req: AxiomRequest,
@@ -77,7 +74,7 @@ export const withPartnerProfile = (
           params,
           searchParams,
           session,
-          partner: partnerUser.partner,
+          partner: partnerUser.partner as PartnerProps,
         });
       } catch (error) {
         req.log.error(error);

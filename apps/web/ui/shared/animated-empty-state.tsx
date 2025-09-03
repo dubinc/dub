@@ -12,16 +12,18 @@ export function AnimatedEmptyState({
   addButton,
   pillContent,
   learnMoreHref,
+  learnMoreTarget = "_blank",
   learnMoreClassName,
   learnMoreText,
   className,
 }: {
   title: string;
-  description: string;
+  description: ReactNode;
   cardContent: ReactNode | ((index: number) => ReactNode);
   addButton?: ReactNode;
   pillContent?: string;
   learnMoreHref?: string;
+  learnMoreTarget?: string;
   learnMoreClassName?: string;
   learnMoreText?: string;
   className?: string;
@@ -48,18 +50,18 @@ export function AnimatedEmptyState({
         </div>
       </div>
       {pillContent && <Badge variant="blueGradient">{pillContent}</Badge>}
-      <div className="max-w-xs text-pretty text-center">
+      <div className="max-w-sm text-pretty text-center">
         <span className="text-base font-medium text-neutral-900">{title}</span>
-        <p className="mt-2 text-pretty text-sm text-neutral-500">
+        <div className="mt-2 text-pretty text-sm text-neutral-500">
           {description}
-        </p>
+        </div>
       </div>
       <div className="flex items-center gap-2">
         {addButton}
         {learnMoreHref && (
           <Link
             href={learnMoreHref}
-            target="_blank"
+            target={learnMoreTarget}
             className={cn(
               buttonVariants({ variant: addButton ? "secondary" : "primary" }),
               "flex h-9 items-center whitespace-nowrap rounded-lg border px-4 text-sm",

@@ -1,7 +1,13 @@
 // This is not actually a secret key, it's just a string that we XOR with the key to make it case sensitive
-const SECRET_KEY = "58ff90c0dc372ded858cbf8fb2306066";
+const XOR_SECRET_KEY = "58ff90c0dc372ded858cbf8fb2306066";
 
-export const CASE_SENSITIVE_DOMAINS = ["buff.ly", "dub-internal-test.com"];
+export const CASE_SENSITIVE_DOMAINS = [
+  "buff.ly",
+  "dub-internal-test.com",
+  "go.homeserve.fr",
+  "go.homeserve.be",
+  "jbbr.pro",
+];
 
 export const encodeKey = (text: string): string => {
   if (!text) return "";
@@ -10,7 +16,8 @@ export const encodeKey = (text: string): string => {
     .split("")
     .map((char, i) =>
       String.fromCharCode(
-        char.charCodeAt(0) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length),
+        char.charCodeAt(0) ^
+          XOR_SECRET_KEY.charCodeAt(i % XOR_SECRET_KEY.length),
       ),
     )
     .join("");
@@ -27,7 +34,8 @@ export const decodeKey = (hash: string): string => {
     .split("")
     .map((char, i) =>
       String.fromCharCode(
-        char.charCodeAt(0) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length),
+        char.charCodeAt(0) ^
+          XOR_SECRET_KEY.charCodeAt(i % XOR_SECRET_KEY.length),
       ),
     )
     .join("");
@@ -65,11 +73,13 @@ export const decodeLinkIfCaseSensitive = (link: any) => {
   if (isCaseSensitiveDomain(link.domain)) {
     const originalKey = decodeKey(link.key);
 
-    if (link.shortLink) {
-      link.shortLink = `https://${link.domain}${originalKey === "_root" ? "" : `/${originalKey}`}`;
-    }
-
-    link.key = originalKey;
+    return {
+      ...link,
+      key: originalKey,
+      ...(link.shortLink && {
+        shortLink: `https://${link.domain}${originalKey === "_root" ? "" : `/${originalKey}`}`,
+      }),
+    };
   }
 
   return link;

@@ -14,7 +14,7 @@ export const getQRCodeQuerySchema = z.object({
     .string()
     .optional()
     .describe(
-      "The logo to include in the QR code. Can only be used with a paid plan on Dub.co.",
+      "The logo to include in the QR code. Can only be used with a paid plan on Dub.",
     ),
   size: z.coerce
     .number()
@@ -48,7 +48,7 @@ export const getQRCodeQuerySchema = z.object({
     .optional()
     .default("false")
     .describe(
-      "Whether to hide the logo in the QR code. Can only be used with a paid plan on Dub.co.",
+      "Whether to hide the logo in the QR code. Can only be used with a paid plan on Dub.",
     ),
   margin: z.coerce
     .number()

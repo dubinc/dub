@@ -1,43 +1,34 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsers from "@/lib/swr/use-users";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
-import { GOOGLE_FAVICON_URL } from "@dub/utils";
+import { GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
 import { useContext, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
 
 export function useLinkFilters() {
-  const { defaultFolderId } = useWorkspace();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const { searchParams } = useRouterStuff();
-
-  // Decide on the folderId to use
-  let folderId = searchParams.get("folderId");
-  if (folderId) {
-    folderId = folderId === "unsorted" ? "" : folderId;
-  } else {
-    folderId = defaultFolderId ?? "";
-  }
+  const { folderId } = useCurrentFolderId();
 
   const { tags, tagsAsync } = useTagFilterOptions({
     search: selectedFilter === "tagIds" ? debouncedSearch : "",
-    folderId,
+    folderId: folderId ?? "",
   });
 
   const domains = useDomainFilterOptions({
-    folderId,
+    folderId: folderId ?? "",
   });
 
   const users = useUserFilterOptions({
-    folderId,
+    folderId: folderId ?? "",
   });
 
   const { queryParams, searchParamsObj } = useRouterStuff();
@@ -64,7 +55,7 @@ export function useLinkFilters() {
             icon: <TagBadge color={color} withIcon className="sm:p-1" />,
             label: name,
             data: { color },
-            right: count,
+            right: nFormatter(count, { full: true }),
             hideDuringSearch,
           })) ?? null,
       },
@@ -84,7 +75,7 @@ export function useLinkFilters() {
         options: domains.map(({ slug, count }) => ({
           value: slug,
           label: slug,
-          right: count,
+          right: nFormatter(count, { full: true }),
         })),
       },
       {
@@ -106,7 +97,7 @@ export function useLinkFilters() {
                 className="h-4 w-4"
               />
             ),
-            right: count,
+            right: nFormatter(count, { full: true }),
           })) ?? null,
       },
     ];

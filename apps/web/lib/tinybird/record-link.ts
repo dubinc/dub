@@ -4,9 +4,6 @@ import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { prefixWorkspaceId } from "../api/workspace-id";
 import { tb } from "./client";
 
-// Domains that are not recorded in Tinybird
-export const DOMAINS_TO_SKIP = ["buff.ly"];
-
 export const dubLinksMetadataSchema = z.object({
   link_id: z.string(),
   domain: z.string(),
@@ -75,20 +72,8 @@ export const transformLinkTB = (link: ExpandedLink) => {
 
 export const recordLink = async (payload: ExpandedLink | ExpandedLink[]) => {
   if (Array.isArray(payload)) {
-    const tbPayload = payload.filter(
-      (link) => !DOMAINS_TO_SKIP.includes(link.domain),
-    );
-
-    if (!tbPayload.length) {
-      return;
-    }
-
-    return await recordLinkTB(tbPayload.map(transformLinkTB));
+    return await recordLinkTB(payload.map(transformLinkTB));
   } else {
-    if (DOMAINS_TO_SKIP.includes(payload.domain)) {
-      return;
-    }
-
     return await recordLinkTB(transformLinkTB(payload));
   }
 };

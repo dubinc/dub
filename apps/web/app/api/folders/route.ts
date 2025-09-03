@@ -10,13 +10,13 @@ import {
   listFoldersQuerySchema,
 } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
+import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/folders - get all folders for a workspace
 export const GET = withWorkspace(
   async ({ workspace, headers, session, searchParams }) => {
-    const { search, includeLinkCount, pageSize, page } =
+    const { search, pageSize, page } =
       listFoldersQuerySchema.parse(searchParams);
 
     const folders = await getFolders({
@@ -25,7 +25,6 @@ export const GET = withWorkspace(
       search,
       pageSize,
       page,
-      includeLinkCount,
     });
 
     return NextResponse.json(FolderSchema.array().parse(folders), {
@@ -43,24 +42,12 @@ export const GET = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    featureFlag: "linkFolders",
   },
 );
 
 // POST /api/folders - create a folder for a workspace
 export const POST = withWorkspace(
   async ({ req, workspace, headers, session }) => {
-    if (workspace.foldersUsage >= workspace.foldersLimit) {
-      throw new DubApiError({
-        code: "exceeded_limit",
-        message: exceededLimitError({
-          plan: workspace.plan,
-          limit: workspace.foldersLimit,
-          type: "folders",
-        }),
-      });
-    }
-
     const { name, accessLevel } = createFolderSchema.parse(
       await parseRequestBody(req),
     );
@@ -76,26 +63,58 @@ export const POST = withWorkspace(
     }
 
     try {
-      const newFolder = await prisma.folder.create({
-        data: {
-          id: createId({ prefix: "fold_" }),
-          projectId: workspace.id,
-          name,
-          accessLevel,
-          users: {
-            create: {
-              userId: session.user.id,
-              role: "owner",
-            },
-          },
-        },
-      });
+      const newFolder = await prisma.$transaction(
+        async (tx) => {
+          const result = await tx.$queryRaw<
+            Array<{ foldersUsage: number; foldersLimit: number }>
+          >`SELECT foldersUsage, foldersLimit FROM Project WHERE id = ${workspace.id} FOR UPDATE`;
 
-      waitUntil(
-        prisma.project.update({
-          where: { id: workspace.id },
-          data: { foldersUsage: { increment: 1 } },
-        }),
+          const { foldersUsage, foldersLimit } = result[0];
+
+          if (foldersUsage >= foldersLimit) {
+            throw new DubApiError({
+              code: "exceeded_limit",
+              message: exceededLimitError({
+                plan: workspace.plan,
+                limit: foldersLimit,
+                type: "folders",
+              }),
+            });
+          }
+
+          const newFolder = await tx.folder.create({
+            data: {
+              id: createId({ prefix: "fold_" }),
+              projectId: workspace.id,
+              name,
+              accessLevel,
+              users: {
+                create: {
+                  userId: session.user.id,
+                  role: "owner",
+                },
+              },
+            },
+          });
+
+          await tx.project.update({
+            where: {
+              id: workspace.id,
+            },
+            data: {
+              foldersUsage: {
+                increment: 1,
+              },
+            },
+          });
+
+          return newFolder;
+        },
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead,
+          maxWait: 5000,
+          timeout: 5000,
+        },
       );
 
       return NextResponse.json(FolderSchema.parse(newFolder), {
@@ -124,6 +143,5 @@ export const POST = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    featureFlag: "linkFolders",
   },
 );

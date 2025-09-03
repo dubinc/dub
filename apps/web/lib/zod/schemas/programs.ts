@@ -1,16 +1,22 @@
 import {
+  DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
-  intervals,
 } from "@/lib/analytics/constants";
-import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
-import { ProgramEnrollmentStatus, ProgramType } from "@dub/prisma/client";
+import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
+import {
+  PartnerBannedReason,
+  PartnerLinkStructure,
+  PartnerUrlValidationMode,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
+import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
 import { parseDateSchema } from "./utils";
 
-export const HOLDING_PERIOD_DAYS = [0, 14, 30, 60, 90];
+export const HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
 
 export const ProgramSchema = z.object({
   id: z.string(),
@@ -20,33 +26,38 @@ export const ProgramSchema = z.object({
   brandColor: z.string().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  type: z.nativeEnum(ProgramType),
   cookieLength: z.number(),
-  defaultRewardId: z.string().nullable(),
-  defaultDiscountId: z.string().nullable(),
-  rewards: z.array(RewardSchema).nullish(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
-
-  // Discounts (for dual-sided incentives)
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
+  linkParameter: z.string().nullish(),
+  urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
+  maxPartnerLinks: z.number(),
+  landerPublishedAt: z.date().nullish(),
+  autoApprovePartnersEnabledAt: z.date().nullish(),
+  rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
-  defaultFolderId: z.string().nullable(),
+  defaultFolderId: z.string(),
+  defaultGroupId: z.string(),
   wordmark: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-
-  // Help & Support
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
+  ageVerification: z.number().nullish(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
-export const createProgramSchema = z.object({
+export const ProgramWithLanderDataSchema = ProgramSchema.extend({
+  landerData: programLanderSchema.nullish(),
+  landerPublishedAt: z.date().nullish(),
+});
+
+export const updateProgramSchema = z.object({
   name: z.string(),
   cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  defaultFolderId: z.string().nullable(),
   holdingPeriodDays: z.coerce
     .number()
     .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
@@ -54,11 +65,15 @@ export const createProgramSchema = z.object({
     }),
   minPayoutAmount: z.coerce
     .number()
-    .nullish()
-    .transform((val) => (val ? val * 100 : DUB_MIN_PAYOUT_AMOUNT_CENTS))
-    .refine((val) => val >= DUB_MIN_PAYOUT_AMOUNT_CENTS, {
-      message: "Minimum payout amount must be at least $100",
+    .refine((val) => ALLOWED_MIN_PAYOUT_AMOUNTS.includes(val), {
+      message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
     }),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
+  urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
+  maxPartnerLinks: z.number().min(1).max(999),
+  supportEmail: z.string().email().max(255).nullish(),
+  helpUrl: z.string().url().max(500).nullish(),
+  termsUrl: z.string().url().max(500).nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
@@ -74,15 +89,49 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
 });
 
 export const ProgramEnrollmentSchema = z.object({
-  partnerId: z.string(),
-  tenantId: z.string().nullable(),
-  programId: z.string(),
+  programId: z.string().describe("The program's unique ID on Dub."),
+  groupId: z.string().nullish().describe("The partner's group ID on Dub."), // TODO update to required after migration complete
+  partnerId: z.string().describe("The partner's unique ID on Dub."),
+  tenantId: z
+    .string()
+    .nullable()
+    .describe(
+      "The partner's unique ID within your database. Can be useful for associating the partner with a user in your database and retrieving/update their data in the future.",
+    ),
   program: ProgramSchema,
-  status: z.nativeEnum(ProgramEnrollmentStatus),
-  links: z.array(ProgramPartnerLinkSchema).nullable(),
-  rewards: z.array(RewardSchema).nullish(),
-  discount: DiscountSchema.nullish(),
   createdAt: z.date(),
+  status: z
+    .nativeEnum(ProgramEnrollmentStatus)
+    .describe("The status of the partner's enrollment in the program."),
+  links: z
+    .array(ProgramPartnerLinkSchema)
+    .nullable()
+    .describe("The partner's referral links in this program."),
+  totalCommissions: z.number().default(0),
+  rewards: z.array(RewardSchema).nullish(),
+  clickRewardId: z.string().nullish(),
+  leadRewardId: z.string().nullish(),
+  saleRewardId: z.string().nullish(),
+  discount: DiscountSchema.nullish(),
+  discountId: z.string().nullish(),
+  applicationId: z
+    .string()
+    .nullish()
+    .describe(
+      "If the partner submitted an application to join the program, this is the ID of the application.",
+    ),
+  bannedAt: z
+    .date()
+    .nullish()
+    .describe(
+      "If the partner was banned from the program, this is the date of the ban.",
+    ),
+  bannedReason: z
+    .enum(Object.keys(PartnerBannedReason) as [PartnerBannedReason])
+    .nullish()
+    .describe(
+      "If the partner was banned from the program, this is the reason for the ban.",
+    ),
 });
 
 export const ProgramInviteSchema = z.object({
@@ -92,8 +141,14 @@ export const ProgramInviteSchema = z.object({
   createdAt: z.date(),
 });
 
+export const getProgramQuerySchema = z.object({
+  includeLanderData: z.coerce.boolean().optional(),
+});
+
 export const getProgramMetricsQuerySchema = z.object({
-  interval: z.enum(intervals).default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+  interval: z
+    .enum(DATE_RANGE_INTERVAL_PRESETS)
+    .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
   start: parseDateSchema.optional(),
   end: parseDateSchema.optional(),
 });
@@ -103,4 +158,21 @@ export const PartnerProgramInviteSchema = z.object({
   email: z.string(),
   program: ProgramSchema,
   reward: RewardSchema.nullable(),
+});
+
+export const ProgramMetricsSchema = z.object({
+  partnersCount: z.number(),
+  commissionsCount: z.number(),
+  commissions: z.number(),
+  payouts: z.number(),
+});
+
+export const createProgramApplicationSchema = z.object({
+  programId: z.string(),
+  groupId: z.string().optional(),
+  name: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().min(1).max(100),
+  website: z.string().trim().max(100).optional(),
+  proposal: z.string().trim().min(1).max(5000),
+  comments: z.string().trim().max(5000).optional(),
 });

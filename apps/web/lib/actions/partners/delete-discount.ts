@@ -1,55 +1,84 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
 const deleteDiscountSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   discountId: z.string(),
 });
 
 export const deleteDiscountAction = authActionClient
   .schema(deleteDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    const { programId, discountId } = parsedInput;
+    const { workspace, user } = ctx;
+    const { discountId } = parsedInput;
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await getDiscountOrThrow({
+    const discount = await getDiscountOrThrow({
       programId,
       discountId,
     });
 
-    await prisma.$transaction(async (tx) => {
-      // if this is the default discount, set the program default discount to null
-      if (program.defaultDiscountId === discountId) {
-        await tx.program.update({
-          where: { id: programId },
-          data: { defaultDiscountId: null },
-        });
-      }
-      // update all program enrollments to have no discount
-      await tx.programEnrollment.updateMany({
+    const group = await prisma.$transaction(async (tx) => {
+      const group = await tx.partnerGroup.update({
         where: {
-          discountId,
+          discountId: discount.id,
         },
         data: {
           discountId: null,
         },
       });
-      // delete the discount
-      await tx.discount.delete({
+
+      await tx.programEnrollment.updateMany({
         where: {
-          id: discountId,
+          discountId: discount.id,
+        },
+        data: {
+          discountId: null,
         },
       });
+
+      await tx.discount.delete({
+        where: {
+          id: discount.id,
+        },
+      });
+
+      return group;
     });
+
+    waitUntil(
+      Promise.allSettled([
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+          body: {
+            groupId: group.id,
+          },
+        }),
+
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "discount.deleted",
+          description: `Discount ${discountId} deleted`,
+          actor: user,
+          targets: [
+            {
+              type: "discount",
+              id: discountId,
+              metadata: discount,
+            },
+          ],
+        }),
+      ]),
+    );
   });

@@ -4,7 +4,7 @@ import { cn } from "@dub/utils";
   This Analytics component lives in several different places:
   1. Workspace analytics page, e.g. app.dub.co/dub/analytics
   2. Public stats page, e.g. app.dub.co/share/dash_6NSA6vNm017MZwfzt8SubNSZ
-  3. Partner program links page, e.g. partners.dub.co/programs/dub/links/analytics
+  3. Partner program links page, e.g. partners.dub.co/programs/dub/analytics
 */
 
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -22,15 +22,13 @@ import TopLinks from "./top-links";
 
 export default function Analytics({
   adminPage,
-  demoPage,
   dashboardProps,
 }: {
   adminPage?: boolean;
-  demoPage?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }) {
   return (
-    <AnalyticsProvider {...{ adminPage, demoPage, dashboardProps }}>
+    <AnalyticsProvider {...{ adminPage, dashboardProps }}>
       <AnalyticsContext.Consumer>
         {({ dashboardProps }) => {
           return (
@@ -38,7 +36,13 @@ export default function Analytics({
               className={cn("pb-10", dashboardProps && "bg-neutral-50 pt-10")}
             >
               <Toggle />
-              <div className="mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10">
+              <div
+                className={cn(
+                  "mx-auto grid max-w-screen-xl gap-5 px-3 lg:px-10",
+                  // TODO: [PageContent] Remove once all pages are migrated to the new PageContent
+                  !dashboardProps && !adminPage && "lg:px-6",
+                )}
+              >
                 <Main />
                 <StatsGrid />
               </div>
@@ -51,8 +55,7 @@ export default function Analytics({
 }
 
 function StatsGrid() {
-  const { dashboardProps, partnerPage, selectedTab, view } =
-    useContext(AnalyticsContext);
+  const { dashboardProps, selectedTab, view } = useContext(AnalyticsContext);
   const { plan } = useWorkspace();
 
   const hide =
@@ -62,9 +65,9 @@ function StatsGrid() {
   return hide ? null : (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       {!dashboardProps && <TopLinks />}
+      <Referer />
       <Locations />
       <Devices />
-      <Referer />
       {/* <Feedback /> */}
     </div>
   );

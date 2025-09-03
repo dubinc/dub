@@ -1,6 +1,7 @@
 "use client";
 
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -99,7 +100,7 @@ function ImportCsvModal({
   const searchParams = useSearchParams();
   const { id: workspaceId } = useWorkspace();
 
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
 
   useEffect(
     () => setShowImportCsvModal(searchParams?.get("import") === "csv"),
@@ -155,8 +156,17 @@ function ImportCsvModal({
         </div>
         <h3 className="text-lg font-medium">Import Links From a CSV File</h3>
         <p className="text-balance text-center text-sm text-neutral-500">
-          Easily import all your links into {process.env.NEXT_PUBLIC_APP_NAME}{" "}
-          with just a few clicks.
+          Easily import your links into Dub with just a few clicks.
+          <br />
+          Make sure your CSV file matches the{" "}
+          <a
+            href="https://dub.co/help/article/how-to-import-csv"
+            target="_blank"
+            className="cursor-help font-medium underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-800"
+          >
+            required format
+          </a>
+          .
         </p>
       </div>
 
@@ -188,37 +198,13 @@ function ImportCsvModal({
                     "Adding links to import queue...",
                   );
                   try {
-                    // Get signed upload URL
-                    const uploadRes = await fetch(
-                      `/api/workspaces/${workspaceId}/import/csv/upload-url`,
-                      {
-                        method: "POST",
-                      },
-                    );
-
-                    if (!uploadRes.ok || !data.file) {
-                      toast.error("Error getting signed upload URL");
-                      return;
-                    }
-
-                    const { id, signedUrl } = await uploadRes.json();
-
-                    // Upload the file
-                    await fetch(signedUrl, {
-                      method: "PUT",
-                      body: data.file,
-                      headers: {
-                        "Content-Type": "multipart/form-data",
-                      },
-                    });
-
                     const formData = new FormData();
+                    formData.append("file", data.file!);
                     for (const key in data) {
                       if (key !== "file" && data[key] !== null) {
                         formData.append(key, data[key]);
                       }
                     }
-                    formData.append("id", id);
                     if (folderId) formData.append("folderId", folderId);
 
                     const res = await fetch(
@@ -232,7 +218,7 @@ function ImportCsvModal({
                     if (!res.ok) throw new Error();
 
                     router.push(
-                      `/${slug}${folderId ? `?folderId=${folderId}` : ""}`,
+                      `/${slug}/links${folderId ? `?folderId=${folderId}` : ""}`,
                     );
                     await Promise.all([
                       mutatePrefix("/api/links"),
@@ -240,7 +226,7 @@ function ImportCsvModal({
                     ]);
 
                     toast.success(
-                      "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
+                      "Successfully added links to import queue! You can now safely navigate from this tab – we will send you an email when your links have been fully imported.",
                     );
                   } catch (error) {
                     toast.error("Error adding links to import queue");

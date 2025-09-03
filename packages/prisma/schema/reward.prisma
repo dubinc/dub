@@ -1,36 +1,36 @@
-model Reward {
-  id        String @id @default(cuid())
-  programId String
-
-  name        String?
-  description String?
-  event       EventType
-  type        CommissionType @default(percentage)
-  amount      Int            @default(0)
-  maxDuration Int? // in months (0 -> not recurring, null -> infinite)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  defaultForProgram Program?        @relation("ProgramDefaultReward")
-  program           Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partners          PartnerReward[]
-
-  @@index(programId)
-  @@index(event) // used in /api/cron/aggregate-clicks
+enum EventType {
+  click
+  lead
+  sale
 }
 
-model PartnerReward {
-  id                  String @id @default(cuid())
-  programEnrollmentId String
-  rewardId            String
+enum RewardStructure {
+  percentage
+  flat
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Reward {
+  id          String          @id @default(cuid())
+  programId   String
+  description String?
+  event       EventType
+  type        RewardStructure @default(percentage)
+  amount      Int             @default(0)
+  maxDuration Int? // in months (0 -> not recurring, null -> infinite)
+  maxAmount   Int? // how much a partner can receive payouts (in cents)
+  modifiers   Json?           @db.Json
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
-  programEnrollment ProgramEnrollment @relation(fields: [programEnrollmentId], references: [id], onDelete: Cascade)
-  reward            Reward            @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  program           Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  clickEnrollments  ProgramEnrollment[] @relation("ClickRewardEnrollments")
+  leadEnrollments   ProgramEnrollment[] @relation("LeadRewardEnrollments")
+  saleEnrollments   ProgramEnrollment[] @relation("SaleRewardEnrollments")
+  clickPartnerGroup PartnerGroup?       @relation("ClickReward")
+  leadPartnerGroup  PartnerGroup?       @relation("LeadReward")
+  salePartnerGroup  PartnerGroup?       @relation("SaleReward")
+  commissions       Commission[]
 
-  @@unique([programEnrollmentId, rewardId])
-  @@index(rewardId)
+  @@index([programId, event])
+  @@index(event) // used in aggregate-clicks cron job
 }

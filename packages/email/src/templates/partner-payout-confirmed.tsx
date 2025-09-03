@@ -15,7 +15,7 @@ import {
 import { Footer } from "../components/footer";
 
 // Send this email when the payout is confirmed when payment is send using ACH
-export function PartnerPayoutConfirmed({
+export default function PartnerPayoutConfirmed({
   email = "panic@thedis.co",
   program = {
     id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
@@ -38,26 +38,29 @@ export function PartnerPayoutConfirmed({
   payout: {
     id: string;
     amount: number;
-    startDate: Date;
-    endDate: Date;
+    startDate?: Date | null;
+    endDate?: Date | null;
   };
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const saleAmountInDollars = currencyFormatter(payout.amount / 100);
 
-  const startDate = formatDate(payout.startDate, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  const startDate = payout.startDate
+    ? formatDate(payout.startDate, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    : null;
 
-  const endDate = formatDate(payout.endDate, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  const endDate = payout.endDate
+    ? formatDate(payout.endDate, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    : null;
 
   return (
     <Html>
@@ -66,7 +69,7 @@ export function PartnerPayoutConfirmed({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8 mt-6">
+            <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
                 height="32"
@@ -81,14 +84,24 @@ export function PartnerPayoutConfirmed({
             <Text className="text-sm leading-6 text-neutral-600">
               <strong className="text-black">{program.name}</strong> has
               initiated a payout of{" "}
-              <strong className="text-black">{saleAmountInDollars}</strong> for
-              affiliate sales made from{" "}
-              <strong className="text-black">{startDate}</strong> to{" "}
-              <strong className="text-black">{endDate}</strong>.
+              <strong className="text-black">{saleAmountInDollars}</strong>
+              {startDate && endDate ? (
+                <>
+                  {" "}
+                  for affiliate sales made from{" "}
+                  <strong className="text-black">{startDate}</strong> to{" "}
+                  <strong className="text-black">{endDate}</strong>
+                </>
+              ) : (
+                ""
+              )}
+              .
             </Text>
+
             <Text className="text-sm leading-6 text-neutral-600">
               The payout is currently being processed and is expected to be
-              credited to your account within 5 business days.
+              credited to your account within 5 business days (excluding
+              weekends and public holidays).
             </Text>
 
             <Section className="mb-12 mt-8">

@@ -1,7 +1,7 @@
 {
   "id": "dub.co",
-  "version": "0.0.10",
-  "name": "Dub - Conversion Analytics",
+  "version": "0.0.12",
+  "name": "Dub Partners",
   "icon": "./stripe-icon.png",
   "permissions": [
     {
@@ -39,6 +39,22 @@
     {
       "permission": "secret_write",
       "purpose": "Allows storing Dub access tokens in Stripe for an account."
+    },
+    {
+      "permission": "coupon_write",
+      "purpose": "Allows Dub to create coupons for an account."
+    },
+    {
+      "permission": "coupon_read",
+      "purpose": "Allows Dub to read coupons for an account."
+    },
+    {
+      "permission": "promotion_code_write",
+      "purpose": "Allows Dub to create promotion codes for an account."
+    },
+    {
+      "permission": "promotion_code_read",
+      "purpose": "Allows Dub to read promotion codes for an account."
     }
   ],
   "ui_extension": {

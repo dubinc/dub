@@ -16,7 +16,7 @@ import {
 import { ReactNode } from "react";
 import { Footer } from "../components/footer";
 
-export function PartnerApplicationApproved({
+export default function PartnerApplicationApproved({
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,
@@ -53,7 +53,7 @@ export function PartnerApplicationApproved({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8 mt-6">
+            <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
                 height="32"
@@ -85,6 +85,7 @@ export function PartnerApplicationApproved({
               1. Find your unique referral links in the{" "}
               <Link
                 href={`https://partners.dub.co/programs/${program.slug}/links`}
+                className="font-semibold text-black underline"
               >
                 Links
               </Link>{" "}
@@ -98,22 +99,40 @@ export function PartnerApplicationApproved({
 
             <Text className="ml-1 text-sm leading-5 text-black">
               3. Track your{" "}
-              <Link href={`https://partners.dub.co/programs/${program.slug}`}>
+              <Link
+                href={`https://partners.dub.co/programs/${program.slug}`}
+                className="font-semibold text-black underline"
+              >
                 link performance
               </Link>{" "}
               and{" "}
               <Link
                 href={`https://partners.dub.co/programs/${program.slug}/earnings`}
+                className="font-semibold text-black underline"
               >
                 earnings
               </Link>{" "}
               in real-time.
             </Text>
 
+            <Text className="ml-1 text-sm leading-5 text-black">
+              4. Learn how to{" "}
+              <Link
+                href="https://dub.co/help/article/navigating-partner-program"
+                className="font-semibold text-black underline"
+              >
+                navigate the program dashboard
+              </Link>{" "}
+              and get the most out of your program.
+            </Text>
+
             {!partner.payoutsEnabled && (
               <Text className="ml-1 text-sm leading-5 text-black">
-                4. Connect your Stripe account to{" "}
-                <Link href="https://partners.dub.co/settings/payouts">
+                5. Connect your Stripe account to{" "}
+                <Link
+                  href="https://dub.co/help/article/receiving-payouts"
+                  className="font-semibold text-black underline"
+                >
                   enable payouts
                 </Link>
                 .
@@ -150,12 +169,13 @@ export function PartnerApplicationApproved({
               success!
             </Text>
 
-            <Footer email={partner.email} />
+            <Footer
+              email={partner.email}
+              notificationSettingsUrl="https://partners.dub.co/settings/notifications"
+            />
           </Container>
         </Body>
       </Tailwind>
     </Html>
   );
 }
-
-export default PartnerApplicationApproved;

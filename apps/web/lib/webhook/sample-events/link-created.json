@@ -44,5 +44,8 @@
   "saleAmount": 0,
   "createdAt": "2024-08-26T16:41:52.084Z",
   "updatedAt": "2024-08-26T16:41:52.084Z",
-  "projectId": "cm022sis60003ikt1syy7kfhl"
+  "projectId": "cm022sis60003ikt1syy7kfhl",
+  "testVariants": null,
+  "testCompletedAt": null,
+  "testStartedAt": null
 }

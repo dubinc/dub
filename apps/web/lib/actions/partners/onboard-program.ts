@@ -1,8 +1,10 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { onboardProgramSchema } from "@/lib/zod/schemas/program-onboarding";
 import { prisma } from "@dub/prisma";
+import { isLegacyBusinessPlan } from "@dub/utils";
 import { Project } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -14,25 +16,27 @@ export const onboardProgramAction = authActionClient
   .action(async ({ ctx, parsedInput: data }) => {
     const { workspace, user } = ctx;
 
-    const programsCount = await prisma.program.count({
-      where: {
-        workspaceId: workspace.id,
-      },
-    });
+    if (workspace.defaultProgramId) {
+      throw new Error(
+        "You've already created a program for your workspace. Please use the existing program instead.",
+      );
+    }
 
-    if (programsCount > 0 || !workspace.partnersEnabled) {
-      throw new Error("You are not allowed to create a new program.");
+    if (
+      !getPlanCapabilities(workspace.plan).canManageProgram ||
+      isLegacyBusinessPlan(workspace)
+    ) {
+      throw new Error(
+        "Your current plan does not support creating a program. Please upgrade to a higher plan to proceed.",
+      );
     }
 
     if (data.step === "create-program") {
-      const program = await createProgram({
+      await createProgram({
         workspace,
         user,
       });
-
-      redirect(
-        `/${workspace.slug}/programs/${program.id}?onboarded-program=true`,
-      );
+      return;
     }
 
     await saveOnboardingProgress({
@@ -79,6 +83,6 @@ const saveOnboardingProgress = async ({
   });
 
   if (data.step == "save-and-exit") {
-    redirect(`/${workspace.slug}`);
+    redirect(`/${workspace.slug}/program`);
   }
 };

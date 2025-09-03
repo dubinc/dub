@@ -1,5 +1,5 @@
 import { createId } from "@/lib/api/create-id";
-import { addDomainToVercel } from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { DubApiError } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { withWorkspace } from "@/lib/auth";
@@ -59,7 +59,7 @@ export const GET = withWorkspace(async ({ workspace }) => {
           },
         )
           .then((r) => r.json())
-          .then((data) => data.count) // subtract 1 to exclude root domain
+          .then((data) => data.count)
           .catch(() => 0),
       })),
   );
@@ -85,7 +85,8 @@ export const PUT = withWorkspace(async ({ req, workspace }) => {
 
 // POST /api/workspaces/[idOrSlug]/import/rebrandly - create job to import links from Rebrandly
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
-  const { selectedDomains, importTags, folderId } = await req.json();
+  const { selectedDomains, importTags, folderId, createdAfter } =
+    await req.json();
 
   if (folderId) {
     await verifyFolderAccess({
@@ -142,6 +143,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
           domain,
           folderId,
           importTags,
+          ...(createdAfter && { createdAfter }),
         },
       }),
     ),

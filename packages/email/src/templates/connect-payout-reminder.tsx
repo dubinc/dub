@@ -1,8 +1,4 @@
-import {
-  currencyFormatter,
-  DICEBEAR_AVATAR_URL,
-  DUB_WORDMARK,
-} from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK, OG_AVATAR_URL } from "@dub/utils";
 import {
   Body,
   Column,
@@ -64,11 +60,17 @@ export default function ConnectPayoutReminder({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You have pending rewards on Dub Partners, but you need to connect
-              your payout details (bank account) to receive them.
+              You have pending rewards on Dub Partners, but you need to{" "}
+              <Link
+                href="https://dub.co/help/article/receiving-payouts"
+                className="font-semibold text-black underline"
+              >
+                connect your payout details (bank account)
+              </Link>{" "}
+              to receive them.
             </Text>
 
-            <Section className="mt-10 text-base">
+            <Section className="mt-6 text-base">
               <Row className="mb-1 text-sm text-neutral-600">
                 <Column>Program</Column>
                 <Column className="text-right">Pending payouts</Column>
@@ -80,8 +82,7 @@ export default function ConnectPayoutReminder({
                       <Column width="32">
                         <Img
                           src={
-                            program.logo ||
-                            `${DICEBEAR_AVATAR_URL}${program.name}`
+                            program.logo || `${OG_AVATAR_URL}${program.name}`
                           }
                           width="20"
                           height="20"
@@ -95,18 +96,21 @@ export default function ConnectPayoutReminder({
                     </Row>
                   </Column>
                   <Column className="text-right text-sm">
-                    {currencyFormatter(program.amount / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    {currencyFormatter(program.amount / 100)}
                   </Column>
                 </Row>
               ))}
             </Section>
 
+            <Text className="text-sm leading-6 text-neutral-600">
+              If you haven't already, please create a partner account on Dub
+              with your <strong className="underline">{email}</strong> email and
+              set up your payout details.
+            </Text>
+
             <Section className="mt-8 text-center">
               <Link
-                href="https://partners.dub.co/settings/payouts"
+                href="https://partners.dub.co/register?next=/settings/payouts"
                 className="box-border block w-full rounded-md bg-black px-0 py-4 text-center text-sm font-medium leading-none text-white no-underline"
               >
                 Connect payout details

@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 
-export default function ExpandingArrow({ className }: { className?: string }) {
+export function ExpandingArrow({ className }: { className?: string }) {
   return (
     <div className="group relative flex items-center">
       <svg

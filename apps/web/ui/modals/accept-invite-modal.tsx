@@ -62,7 +62,7 @@ function AcceptInviteModal({
                     workspace: slug,
                   });
                   await mutatePrefix("/api/workspaces");
-                  router.replace(`/${slug}`);
+                  router.replace(`/${slug}/links`);
                   setShowAcceptInviteModal(false);
                   toast.success("You now are a part of this workspace!");
                 });

@@ -1,73 +1,38 @@
 "use server";
 
-import { DubApiError } from "@/lib/api/errors";
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
+import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
 
 export const updateRewardAction = authActionClient
   .schema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    const { programId, rewardId, partnerIds, amount, maxDuration, type } =
-      parsedInput;
+    const { workspace, user } = ctx;
+    const { rewardId, amount, maxDuration, type, modifiers } = parsedInput;
 
-    await getProgramOrThrow({
-      workspaceId: workspace.id,
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    await getRewardOrThrow({
+      rewardId,
       programId,
     });
 
-    const reward = await getRewardOrThrow(
-      {
-        rewardId,
-        programId,
-      },
-      {
-        includePartnersCount: true,
-      },
-    );
+    const { canUseAdvancedRewardLogic } = getPlanCapabilities(workspace.plan);
 
-    let programEnrollments: { id: string }[] = [];
-
-    if (partnerIds && partnerIds.length > 0) {
-      if (reward.partnersCount === 0) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Cannot add partners to a program-wide reward.",
-        });
-      }
-
-      programEnrollments = await prisma.programEnrollment.findMany({
-        where: {
-          programId,
-          partnerId: {
-            in: partnerIds,
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (programEnrollments.length !== partnerIds.length) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Invalid partner IDs provided.",
-        });
-      }
-    } else {
-      if (reward.partnersCount && reward.partnersCount > 0) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "At least one partner must be selected for a partner-specific reward.",
-        });
-      }
+    if (modifiers && !canUseAdvancedRewardLogic) {
+      throw new Error(
+        "Advanced reward structures are only available on the Advanced plan and above.",
+      );
     }
 
-    await prisma.reward.update({
+    const updatedReward = await prisma.reward.update({
       where: {
         id: rewardId,
       },
@@ -75,16 +40,54 @@ export const updateRewardAction = authActionClient
         type,
         amount,
         maxDuration,
-        ...(programEnrollments && {
-          partners: {
-            deleteMany: {},
-            createMany: {
-              data: programEnrollments.map(({ id }) => ({
-                programEnrollmentId: id,
-              })),
-            },
-          },
-        }),
+        modifiers: modifiers === null ? Prisma.DbNull : modifiers,
+      },
+      include: {
+        program: true,
+        clickPartnerGroup: true,
+        leadPartnerGroup: true,
+        salePartnerGroup: true,
       },
     });
+
+    const {
+      program,
+      clickPartnerGroup,
+      leadPartnerGroup,
+      salePartnerGroup,
+      ...rewardMetadata
+    } = updatedReward;
+
+    const isDefaultGroup = [
+      clickPartnerGroup,
+      leadPartnerGroup,
+      salePartnerGroup,
+    ].some((group) => group?.slug === "default");
+
+    waitUntil(
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "reward.updated",
+          description: `Reward ${rewardId} updated`,
+          actor: user,
+          targets: [
+            {
+              type: "reward",
+              id: rewardId,
+              metadata: rewardMetadata,
+            },
+          ],
+        }),
+
+        // we only cache default group pages for now so we need to invalidate them
+        ...(isDefaultGroup
+          ? [
+              revalidatePath(`/partners.dub.co/${program.slug}`),
+              revalidatePath(`/partners.dub.co/${program.slug}/apply`),
+            ]
+          : []),
+      ]),
+    );
   });

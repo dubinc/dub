@@ -1,27 +1,20 @@
-DESCRIPTION >
-	Get lead event
-
-
-TOKEN "browser_endpoint_read_5885" READ
-
 NODE endpoint
-DESCRIPTION >
-    undefined
-
 SQL >
 
-%
-SELECT *
-FROM dub_lead_events
-WHERE
-    customer_id
-    = {{
-        String(
-            customerId,
-            "cus_oC2X6GnlJm54w33Rb65hCMX4",
-            description="The unique ID for a given customer.",
-            required=True,
-        )
-    }}
-    {% if defined(eventName) %} AND event_name = {{ eventName }} {% end %}
-ORDER BY timestamp DESC
+    %
+    SELECT *
+    FROM dub_lead_events
+    WHERE
+        customer_id
+        = {{
+            String(
+                customerId,
+                "cus_JzMqCLdaiVM1o1grw0yk84uC",
+                description="The unique ID for a given customer.",
+                required=True,
+            )
+        }}
+        {% if defined(eventName) %} AND event_name = {{ eventName }} {% end %}
+    ORDER BY timestamp DESC
+
+

@@ -29,7 +29,6 @@ function WelcomeModal({
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   const planId = searchParams.get("plan");
-  const upgraded = searchParams.get("upgraded");
   const plausible = usePlausible();
 
   const handlePlanUpgrade = async () => {
@@ -91,9 +90,9 @@ function WelcomeModal({
                   plan ? "text-left" : "text-center",
                 )}
               >
-                {upgraded
-                  ? `Thank you for upgrading to the ${plan?.name} plan! You now have access to more powerful features and higher limits.`
-                  : "Thanks for signing up – your account is ready to go! Now you have one central, organized place to build and manage all your short links."}
+                Thanks for signing up – your account is ready to go! Now you
+                have one central, organized place to build and manage all your
+                short links.
               </p>
               {plan && (
                 <>
@@ -117,7 +116,7 @@ function WelcomeModal({
             className="mt-2"
             onClick={() =>
               queryParams({
-                del: ["onboarded", "upgraded", "plan", "period"],
+                del: ["onboarded"],
               })
             }
           />

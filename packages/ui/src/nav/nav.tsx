@@ -8,13 +8,13 @@ import { useParams, usePathname } from "next/navigation";
 import { PropsWithChildren, SVGProps, createContext, useId } from "react";
 import useSWR from "swr";
 import { buttonVariants } from "../button";
-import { COMPANY, FEATURES_LIST, RESOURCES } from "../content";
+import { FEATURES_LIST, RESOURCES, SOLUTIONS } from "../content";
 import { useScroll } from "../hooks";
 import { MaxWidthWrapper } from "../max-width-wrapper";
 import { NavWordmark } from "../nav-wordmark";
-import { CompanyContent } from "./content/company-content";
 import { ProductContent } from "./content/product-content";
 import { ResourcesContent } from "./content/resources-content";
+import { SolutionsContent } from "./content/solutions-content";
 
 export type NavTheme = "light" | "dark";
 
@@ -27,24 +27,45 @@ export const navItems = [
     name: "Product",
     content: ProductContent,
     childItems: FEATURES_LIST,
-    segments: ["/home", "/analytics", "/features", "/compare"],
+    segments: [
+      "/links",
+      "/analytics",
+      "/partners",
+      "/integrations",
+      "/compare",
+      "/features",
+    ],
+  },
+  {
+    name: "Solutions",
+    content: SolutionsContent,
+    childItems: SOLUTIONS,
+    segments: ["/solutions", "/sdks"],
   },
   {
     name: "Resources",
     content: ResourcesContent,
     childItems: RESOURCES,
-    segments: ["/solutions", "/docs", "/help", "/brand"],
-  },
-  {
-    name: "Company",
-    content: CompanyContent,
-    childItems: COMPANY,
-    segments: ["about", "/blog", "/changelog", "/customers"],
+    segments: [
+      "/help",
+      "/docs",
+      "/about",
+      "/careers",
+      "/brand",
+      "/blog",
+      "/changelog",
+      "/contact",
+    ],
   },
   {
     name: "Enterprise",
     href: "/enterprise",
     segments: ["/enterprise"],
+  },
+  {
+    name: "Customers",
+    href: "/customers",
+    segments: ["/customers"],
   },
   {
     name: "Pricing",

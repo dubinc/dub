@@ -1,20 +1,30 @@
+import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
-import { CommissionType, EventType } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@dub/prisma/client";
+import { randomValue } from "@dub/utils";
 import { createId } from "../api/create-id";
-import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "../partners/constants";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
+import { RewardfulImportPayload } from "./types";
 
-export async function importCampaign({ programId }: { programId: string }) {
-  const { defaultRewardId, workspaceId } =
-    await prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
+export async function importCampaign(payload: RewardfulImportPayload) {
+  const { programId, campaignId } = payload;
+
+  const { workspaceId, groups } = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    include: {
+      groups: {
+        where: {
+          slug: DEFAULT_PARTNER_GROUP.slug,
+        },
       },
-    });
+    },
+  });
 
-  const { token, campaignId } =
-    await rewardfulImporter.getCredentials(workspaceId);
+  const { token } = await rewardfulImporter.getCredentials(workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
@@ -29,61 +39,87 @@ export async function importCampaign({ programId }: { programId: string }) {
     reward_type,
   } = campaign;
 
-  const newReward = {
+  const rewardProps = {
     programId,
     event: EventType.sale,
     maxDuration: max_commission_period_months,
     type:
       reward_type === "amount"
-        ? CommissionType.flat
-        : CommissionType.percentage,
+        ? RewardStructure.flat
+        : RewardStructure.percentage,
     amount:
       reward_type === "amount" ? commission_amount_cents : commission_percent,
   };
 
-  let rewardId: string | null = null;
+  let groupId: string | null = null;
 
-  const rewardFound = await prisma.reward.findFirst({
-    where: newReward,
+  const existingReward = await prisma.reward.findFirst({
+    where: { ...rewardProps, event: EventType.sale },
+    include: {
+      salePartnerGroup: true, // rewardful only supports sale rewards
+    },
   });
 
-  if (!rewardFound) {
-    const reward = await prisma.reward.create({
+  if (!existingReward) {
+    // if no existing reward, create a new one + group
+    const createdReward = await prisma.reward.create({
       data: {
+        ...rewardProps,
         id: createId({ prefix: "rw_" }),
-        ...newReward,
       },
     });
 
-    // if there's no default reward, set this as the default reward
-    // it also means that this is a newly imported program
-    if (!defaultRewardId) {
-      await prisma.program.update({
+    // if the default group has an associated sale reward already, we need to create a new group
+    if (groups.length > 0 && groups[0].saleRewardId) {
+      const groupSlug = `rewardful-${campaignId}`;
+      const createdGroup = await prisma.partnerGroup.upsert({
         where: {
-          id: programId,
+          programId_slug: {
+            programId,
+            slug: groupSlug,
+          },
         },
-        data: {
-          defaultRewardId: reward.id,
-          // minimum payout amount is the max of the Rewardful campaign minimum payout and Dub's minimum payout ($100)
-          minPayoutAmount: Math.max(
-            minimum_payout_cents,
-            DUB_MIN_PAYOUT_AMOUNT_CENTS,
-          ),
-          holdingPeriodDays: days_until_commissions_are_due,
+        update: {},
+        create: {
+          id: createId({ prefix: "grp_" }),
+          programId,
+          name: `(Rewardful) ${campaign.name}`,
+          slug: groupSlug,
+          color: randomValue(RESOURCE_COLORS),
+          saleRewardId: createdReward.id,
         },
       });
-    }
+      groupId = createdGroup.id;
 
-    rewardId = reward.id;
+      // else we just update the existing group with the newly created sale reward
+    } else {
+      const updatedGroup = await prisma.partnerGroup.update({
+        where: {
+          id: groups[0].id,
+        },
+        data: {
+          saleRewardId: createdReward.id,
+        },
+      });
+      groupId = updatedGroup.id;
+    }
   } else {
-    rewardId = rewardFound.id;
+    groupId = existingReward.salePartnerGroup?.id!;
   }
 
+  await prisma.program.update({
+    where: {
+      id: programId,
+    },
+    data: {
+      minPayoutAmount: minimum_payout_cents,
+      holdingPeriodDays: days_until_commissions_are_due,
+    },
+  });
+
   return await rewardfulImporter.queue({
-    programId,
-    // we will only need to assign rewardId to affiliates
-    // if it's not the defaultRewardId of the program (there's already a defaultRewardId)
-    ...(defaultRewardId && { rewardId }),
-    action: "import-affiliates",
+    ...payload,
+    ...(groupId && { groupId }),
+    action: "import-partners",
   });
 }

@@ -221,7 +221,9 @@ export function LineItem({
             <Tooltip
               content={
                 <div className="overflow-auto px-4 py-2">
-                  <LinkifyTooltipContent>{title}</LinkifyTooltipContent>
+                  <LinkifyTooltipContent tooltipClassName="max-w-md">
+                    {title}
+                  </LinkifyTooltipContent>
                 </div>
               }
             >

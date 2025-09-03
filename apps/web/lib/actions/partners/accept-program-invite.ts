@@ -5,7 +5,6 @@ import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
 const acceptProgramInviteSchema = z.object({
-  partnerId: z.string(),
   programId: z.string(),
 });
 
@@ -25,9 +24,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
       data: {
         status: "approved",
-      },
-      include: {
-        links: true,
+        createdAt: new Date(),
       },
     });
   });

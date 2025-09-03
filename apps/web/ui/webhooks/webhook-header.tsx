@@ -17,7 +17,7 @@ import {
 } from "@dub/ui";
 import { CircleX, Send, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { notFound, useRouter, useSelectedLayoutSegment } from "next/navigation";
+import { redirect, useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
@@ -62,7 +62,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   });
 
   if (!isLoading && !webhook) {
-    return notFound();
+    redirect(`/${slug}/settings/webhooks`);
   }
 
   const copyWebhookId = () => {
@@ -217,13 +217,18 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
         <div className="-ml-1.5 border-b border-neutral-200">
           <TabSelect
             options={[
-              { id: "", label: "Event Logs" },
-              { id: "edit", label: "Configuration" },
+              {
+                id: "",
+                label: "Event Logs",
+                href: `/${slug}/settings/webhooks/${webhookId}`,
+              },
+              {
+                id: "edit",
+                label: "Configuration",
+                href: `/${slug}/settings/webhooks/${webhookId}/edit`,
+              },
             ]}
             selected={page}
-            onSelect={(id: "" | "edit") => {
-              router.push(`/${slug}/settings/webhooks/${webhookId}/${id}`);
-            }}
             className="gap-2"
           />
         </div>

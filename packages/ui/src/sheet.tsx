@@ -40,7 +40,7 @@ function SheetRoot({
             // 8px between edge of screen and drawer
             {
               "--initial-transform": "calc(100% + 8px)",
-              "user-select": "auto", // Override default user-select: none from Vaul
+              userSelect: "auto", // Override default user-select: none from Vaul
               ...contentProps?.style,
             } as React.CSSProperties
           }
@@ -57,7 +57,7 @@ function SheetRoot({
 function Title({ className, ...rest }: ComponentProps<typeof Drawer.Title>) {
   return (
     <Drawer.Title
-      className={cn("text-xl font-medium text-zinc-900", className)}
+      className={cn("text-lg font-semibold text-neutral-900", className)}
       {...rest}
     />
   );

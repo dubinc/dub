@@ -13,6 +13,8 @@ import { DUB_DEMO_LINKS, DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { ipAddress } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/analytics/dashboard – get analytics for the dashboard
 export const GET = async (req: Request) => {
   try {

@@ -16,7 +16,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function NewSaleAlertProgramOwner({
+export default function NewSaleAlertProgramOwner({
   user = {
     name: "Brendan Urie",
     email: "panic@thedis.co",
@@ -26,7 +26,6 @@ export function NewSaleAlertProgramOwner({
     slug: "acme",
   },
   program = {
-    id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
     name: "Acme",
     logo: DUB_WORDMARK,
     holdingPeriodDays: 30,
@@ -36,7 +35,7 @@ export function NewSaleAlertProgramOwner({
     name: "Steven",
     email: "steven@dub.co",
   },
-  sale = {
+  commission = {
     amount: 1330,
     earnings: 399,
   },
@@ -50,7 +49,6 @@ export function NewSaleAlertProgramOwner({
     slug: string;
   };
   program: {
-    id: string;
     name: string;
     logo: string | null;
     holdingPeriodDays: number;
@@ -60,30 +58,20 @@ export function NewSaleAlertProgramOwner({
     name: string | null;
     email: string | null;
   };
-  sale: {
+  commission: {
     amount: number;
     earnings: number;
   };
 }) {
-  const salesLink = `https://app.dub.co/${workspace.slug}/programs/${program.id}/sales?partnerId=${partner.id}`;
+  const salesLink = `https://app.dub.co/${workspace.slug}/program/commissions?partnerId=${partner.id}`;
   const notificationPreferencesLink = `https://app.dub.co/${workspace.slug}/settings/notifications`;
 
-  const saleAmountInDollars = currencyFormatter(sale.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const saleAmountInDollars = currencyFormatter(commission.amount / 100);
 
-  const earningsInDollars = currencyFormatter(sale.earnings / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const earningsInDollars = currencyFormatter(commission.earnings / 100);
 
   const profitInDollars = currencyFormatter(
-    (sale.amount - sale.earnings) / 100,
-    {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
+    (commission.amount - commission.earnings) / 100,
   );
 
   let formattedDueDate = "";
@@ -110,7 +98,7 @@ export function NewSaleAlertProgramOwner({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8 mt-6">
+            <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/logo.png"}
                 height="32"
@@ -213,5 +201,3 @@ export function NewSaleAlertProgramOwner({
     </Html>
   );
 }
-
-export default NewSaleAlertProgramOwner;

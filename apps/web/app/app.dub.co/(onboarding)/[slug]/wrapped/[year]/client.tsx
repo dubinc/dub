@@ -4,7 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { BlurImage, ExpandingArrow } from "@dub/ui";
 import {
   cn,
-  DICEBEAR_AVATAR_URL,
+  OG_AVATAR_URL,
   smartTruncate,
   STAGGER_CHILD_VARIANTS,
 } from "@dub/utils";
@@ -64,7 +64,7 @@ export default function WrappedPageClient() {
           {name ? (
             <>
               <BlurImage
-                src={logo || `${DICEBEAR_AVATAR_URL}${name}`}
+                src={logo || `${OG_AVATAR_URL}${name}`}
                 alt={name || "Workspace Logo"}
                 className="h-8 rounded-full"
                 width={32}

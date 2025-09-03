@@ -17,6 +17,16 @@ export const getUrlFromString = (str: string) => {
   return str;
 };
 
+export const getUrlObjFromString = (str: string) => {
+  if (isValidUrl(str)) return new URL(str);
+  try {
+    if (str.includes(".") && !str.includes(" ")) {
+      return new URL(`https://${str}`);
+    }
+  } catch (_) {}
+  return null;
+};
+
 export const getUrlFromStringIfValid = (str: string) => {
   if (isValidUrl(str)) return str;
   try {

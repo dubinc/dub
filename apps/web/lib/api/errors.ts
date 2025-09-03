@@ -1,5 +1,5 @@
 import z from "@/lib/zod";
-import { capitalize } from "@dub/utils";
+import { capitalize, currencyFormatter } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { generateErrorMessage } from "zod-error";
@@ -122,7 +122,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
 }
 
 export function handleApiError(error: any): ErrorResponse & { status: number } {
-  console.error("API error occurred", error.message);
+  console.error(error.message);
 
   // Zod errors
   if (error instanceof ZodError) {
@@ -233,11 +233,22 @@ export const exceededLimitError = ({
 }: {
   plan: PlanProps;
   limit: number;
-  type: "clicks" | "links" | "AI" | "domains" | "tags" | "users" | "folders";
+  type:
+    | "clicks"
+    | "links"
+    | "AI"
+    | "domains"
+    | "tags"
+    | "users"
+    | "folders"
+    | "payouts"
+    | "groups";
 }) => {
   return `You've reached your ${
-    type === "links" || type === "AI" ? "monthly" : ""
-  } limit of ${limit} ${
-    limit === 1 ? type.slice(0, -1) : type
-  } on the ${capitalize(plan)} plan. Please upgrade to add more ${type}.`;
+    ["links", "AI", "payouts"].includes(type) ? "monthly" : ""
+  } limit of ${
+    type === "payouts"
+      ? currencyFormatter(limit / 100)
+      : `${limit} ${limit === 1 ? type.slice(0, -1) : type}`
+  } on the ${capitalize(plan)} plan. Please upgrade for higher limits.`;
 };

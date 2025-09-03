@@ -1,7 +1,8 @@
 import z from "@/lib/zod";
-import { metaTagsSchema } from "@/lib/zod/schemas/metatags";
 import {
+  PartnerBountySchema,
   PartnerEarningsSchema,
+  PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
@@ -17,32 +18,49 @@ import {
   UtmTemplate,
   Webhook,
 } from "@dub/prisma/client";
+import { RESOURCE_COLORS } from "../ui/colors";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
-import { clickEventResponseSchema } from "./zod/schemas/clicks";
 import {
-  customerActivityResponseSchema,
-  customerActivitySchema,
+  BountyListSchema,
+  BountySchema,
+  BountySchemaExtended,
+  BountySubmissionExtendedSchema,
+  getBountySubmissionsQuerySchema,
+  SUBMISSION_REQUIREMENTS,
+} from "./zod/schemas/bounties";
+import {
+  clickEventResponseSchema,
+  clickEventSchemaTB,
+} from "./zod/schemas/clicks";
+import { CommissionEnrichedSchema } from "./zod/schemas/commissions";
+import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
+import {
   CustomerEnrichedSchema,
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
+import { GroupSchema, GroupSchemaExtended } from "./zod/schemas/groups";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
   leadEventResponseSchema,
+  leadEventSchemaTB,
   trackLeadResponseSchema,
 } from "./zod/schemas/leads";
-import { createLinkBodySchema } from "./zod/schemas/links";
+import {
+  ABTestVariantsSchema,
+  createLinkBodySchema,
+} from "./zod/schemas/links";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   createPartnerSchema,
-  EnrolledPartnerSchemaWithExpandedFields,
+  EnrolledPartnerSchema,
   PartnerSchema,
 } from "./zod/schemas/partners";
 import {
@@ -50,19 +68,24 @@ import {
   PayoutResponseSchema,
   PayoutSchema,
 } from "./zod/schemas/payouts";
+import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
-import {
-  ProgramSaleResponseSchema,
-  ProgramSaleSchema,
-} from "./zod/schemas/program-sales";
 import {
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
+  ProgramMetricsSchema,
   ProgramPartnerLinkSchema,
   ProgramSchema,
+  ProgramWithLanderDataSchema,
 } from "./zod/schemas/programs";
-import { RewardSchema } from "./zod/schemas/rewards";
+import {
+  rewardConditionsArraySchema,
+  rewardConditionSchema,
+  rewardConditionsSchema,
+  rewardContextSchema,
+  RewardSchema,
+} from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
   trackSaleResponseSchema,
@@ -74,6 +97,13 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
+import {
+  WORKFLOW_ATTRIBUTES,
+  WORKFLOW_COMPARISON_OPERATORS,
+  workflowActionSchema,
+  workflowConditionSchema,
+} from "./zod/schemas/workflows";
+import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 
 export type LinkProps = Link;
 
@@ -83,6 +113,7 @@ export interface ExpandedLinkProps extends LinkProps {
   tags: TagProps[];
   webhookIds: string[];
   dashboardId: string | null;
+  user?: UserProps;
 }
 
 export interface SimpleLinkProps {
@@ -112,15 +143,24 @@ export interface RedisLinkProps {
   doIndex?: boolean;
   projectId?: string;
   webhookIds?: string[];
+  programId?: string;
+  partnerId?: string;
+  partner?: Pick<PartnerProps, "id" | "name" | "image">;
+  discount?: Pick<
+    DiscountProps,
+    "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
+  >;
+  testVariants?: z.infer<typeof ABTestVariantsSchema>;
+  testCompletedAt?: Date;
 }
+
+export type ResourceColorsEnum = (typeof RESOURCE_COLORS)[number];
 
 export interface TagProps {
   id: string;
   name: string;
-  color: TagColorProps;
+  color: ResourceColorsEnum;
 }
-
-export type TagColorProps = (typeof tagColors)[number];
 
 export type UtmTemplateProps = UtmTemplate;
 export type UtmTemplateWithUserProps = UtmTemplateProps & {
@@ -131,13 +171,12 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink" | "linkFolders";
+export type BetaFeatures = "noDubLink" | "abTesting";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
   plan: PlanProps;
   domains: {
-    id: string;
     slug: string;
     primary: boolean;
     verified: boolean;
@@ -152,13 +191,17 @@ export interface WorkspaceProps extends Project {
   store: Record<string, any> | null;
 }
 
-export type ExpandedWorkspaceProps = WorkspaceProps & {
-  programs: {
-    id: string;
-    name: string;
-  }[];
+export interface ExtendedWorkspaceProps extends WorkspaceProps {
+  domains: (WorkspaceProps["domains"][number] & {
+    linkRetentionDays: number | null;
+  })[];
+  defaultProgramId: string | null;
   allowedHostnames: string[];
-};
+  users: (WorkspaceProps["users"][number] & {
+    workspacePreferences?: z.infer<typeof workspacePreferencesSchema>;
+  })[];
+  publishableKey: string | null;
+}
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
 
@@ -198,17 +241,20 @@ export interface DomainProps {
   expiredUrl?: string;
   notFoundUrl?: string;
   projectId: string;
-  link?: LinkProps;
-  registeredDomain?: RegisteredDomainProps;
   logo?: string;
   appleAppSiteAssociation?: string;
   assetLinks?: string;
+  deepviewData?: string;
+  link?: LinkProps;
+  registeredDomain?: RegisteredDomainProps;
 }
 
 export interface RegisteredDomainProps {
   id: string;
+  autoRenewalDisabledAt: Date | null;
   createdAt: Date;
   expiresAt: Date;
+  renewalFee: number;
 }
 
 export interface BitlyGroupProps {
@@ -259,19 +305,7 @@ export const roles = ["owner", "member"] as const;
 
 export type Role = (typeof roles)[number];
 
-export const tagColors = [
-  "red",
-  "yellow",
-  "green",
-  "blue",
-  "purple",
-  "pink",
-  "brown",
-] as const;
-
 export type DashboardProps = z.infer<typeof dashboardSchema>;
-
-export type MetaTag = z.infer<typeof metaTagsSchema>;
 
 export type TokenProps = z.infer<typeof tokenSchema>;
 
@@ -363,9 +397,7 @@ export type UsageResponse = z.infer<typeof usageResponse>;
 
 export type PartnersCount = Record<ProgramEnrollmentStatus | "all", number>;
 
-export type SaleProps = z.infer<typeof ProgramSaleSchema>;
-
-export type SalesCount = Record<
+export type CommissionsCount = Record<
   CommissionStatus | "all",
   {
     count: number;
@@ -374,7 +406,7 @@ export type SalesCount = Record<
   }
 >;
 
-export type SaleResponse = z.infer<typeof ProgramSaleResponseSchema>;
+export type CommissionResponse = z.infer<typeof CommissionEnrichedSchema>;
 
 export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
@@ -384,15 +416,23 @@ export type PartnerProps = z.infer<typeof PartnerSchema>;
 
 export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
 
+export type PartnerProfileCustomerProps = z.infer<
+  typeof PartnerProfileCustomerSchema
+>;
+
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
-export type EnrolledPartnerProps = z.infer<
-  typeof EnrolledPartnerSchemaWithExpandedFields
->;
+export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
+
+export type ProgramLanderData = z.infer<typeof programLanderSchema>;
+
+export type ProgramWithLanderDataProps = z.infer<
+  typeof ProgramWithLanderDataSchema
+>;
 
 export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
 
@@ -418,8 +458,6 @@ export type SegmentIntegrationCredentials = {
   writeKey?: string;
 };
 export type InvoiceProps = z.infer<typeof InvoiceSchema>;
-
-export type CustomerActivity = z.infer<typeof customerActivitySchema>;
 
 export type CustomerActivityResponse = z.infer<
   typeof customerActivityResponseSchema
@@ -448,15 +486,89 @@ export type FolderWithPermissions = {
   permissions: FolderPermission[];
 };
 
-export type FolderSummary = Pick<
-  Folder,
-  "id" | "name" | "accessLevel" | "linkCount"
->;
-
-// Rewards
+export type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
 
 export type RewardProps = z.infer<typeof RewardSchema>;
 
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 
 export type ProgramData = z.infer<typeof programDataSchema>;
+
+export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
+
+export type PayoutMethod = "stripe" | "paypal";
+
+export type PaymentMethodOption = {
+  currency?: string;
+  mandate_options?: {
+    payment_schedule?: string;
+    transaction_type?: string;
+  };
+};
+
+export interface FolderLinkCount {
+  folderId: string;
+  _count: number;
+}
+
+export type RewardContext = z.infer<typeof rewardContextSchema>;
+
+export type RewardCondition = z.infer<typeof rewardConditionSchema>;
+
+export type RewardConditions = z.infer<typeof rewardConditionsSchema>;
+
+export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
+
+export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
+
+export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
+
+export type GroupProps = z.infer<typeof GroupSchema>;
+
+export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
+
+export type BountyProps = z.infer<typeof BountySchema>;
+export type BountyListProps = z.infer<typeof BountyListSchema>;
+export type BountyExtendedProps = z.infer<typeof BountySchemaExtended>;
+
+export type PartnerBountyProps = z.infer<typeof PartnerBountySchema>;
+
+export type BountySubmissionProps = z.infer<
+  typeof BountySubmissionExtendedSchema
+>;
+
+export type BountySubmissionRequirement =
+  (typeof SUBMISSION_REQUIREMENTS)[number];
+
+export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
+
+export type WorkflowConditionAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
+
+export type WorkflowComparisonOperator =
+  (typeof WORKFLOW_COMPARISON_OPERATORS)[number];
+
+export type WorkflowAction = z.infer<typeof workflowActionSchema>;
+
+export type OperatorFn = (a: number, b: number) => boolean;
+
+export interface WorkflowContext {
+  totalLeads: number;
+  totalConversions: number;
+  totalSaleAmount: number;
+  totalCommissions: number;
+  partnerId: string;
+  groupId: string;
+}
+
+export type BountySubmissionsQueryFilters = z.infer<
+  typeof getBountySubmissionsQuerySchema
+>;
+
+// export type BountySubmissionsCount = Record<
+//   BountySubmissionStatus,
+//   {
+//     count: number;
+//     amount: number;
+//     earnings: number;
+//   }
+// >;

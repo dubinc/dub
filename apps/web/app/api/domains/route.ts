@@ -1,17 +1,19 @@
 import { createId } from "@/lib/api/create-id";
-import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
+import { validateDomain } from "@/lib/api/domains/utils";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import {
-  createDomainBodySchema,
+  createDomainBodySchemaExtended,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
 import { combineWords, DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
+import { Link, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
@@ -32,40 +34,46 @@ export const GET = withWorkspace(
       },
       include: {
         registeredDomain: true,
-        ...(includeLink && {
-          links: {
-            where: {
-              key: {
-                in: ["_root", "akoJCU0="],
-              },
-            },
-            include: {
-              tags: {
-                select: {
-                  tag: {
-                    select: {
-                      id: true,
-                      name: true,
-                      color: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        }),
       },
       take: pageSize,
       skip: (page - 1) * pageSize,
     });
 
+    const links = includeLink
+      ? await prisma.link.findMany({
+          where: {
+            domain: {
+              in: domains.map((domain) => domain.slug),
+            },
+            key: {
+              in: ["_root", "akoJCU0="],
+            },
+          },
+          include: {
+            tags: {
+              select: {
+                tag: true,
+              },
+            },
+          },
+        })
+      : [];
+
+    const linkMap = links.reduce(
+      (acc, link) => {
+        acc[link.domain] = link;
+        return acc;
+      },
+      {} as Record<string, Link>,
+    );
+
     const response = domains.map((domain) => ({
       ...transformDomain(domain),
       ...(includeLink &&
-        domain.links.length > 0 && {
+        linkMap[domain.slug] && {
           link: transformLink({
-            ...domain.links[0],
-            tags: domain.links[0]["tags"].map((tag) => tag),
+            ...linkMap[domain.slug],
+            tags: linkMap[domain.slug]["tags"].map((tag) => tag),
           }),
         }),
     }));
@@ -89,24 +97,8 @@ export const POST = withWorkspace(
       placeholder,
       assetLinks,
       appleAppSiteAssociation,
-    } = createDomainBodySchema.parse(body);
-
-    const totalDomains = await prisma.domain.count({
-      where: {
-        projectId: workspace.id,
-      },
-    });
-
-    if (totalDomains >= workspace.domainsLimit) {
-      return new Response(
-        exceededLimitError({
-          plan: workspace.plan,
-          limit: workspace.domainsLimit,
-          type: "domains",
-        }),
-        { status: 403 },
-      );
-    }
+      deepviewData,
+    } = await createDomainBodySchemaExtended.parseAsync(body);
 
     if (workspace.plan === "free") {
       if (
@@ -114,15 +106,17 @@ export const POST = withWorkspace(
         expiredUrl ||
         notFoundUrl ||
         assetLinks ||
-        appleAppSiteAssociation
+        appleAppSiteAssociation ||
+        deepviewData
       ) {
         const proFeaturesString = combineWords(
           [
             logo && "custom QR code logos",
             expiredUrl && "default expiration URLs",
             notFoundUrl && "not found URLs",
-            assetLinks && "asset links",
+            assetLinks && "Asset Links",
             appleAppSiteAssociation && "Apple App Site Association",
+            deepviewData && "Deep View",
           ].filter(Boolean) as string[],
         );
 
@@ -157,34 +151,60 @@ export const POST = withWorkspace(
       ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
       : null;
 
-    const [domainRecord, _] = await Promise.all([
-      prisma.domain.create({
-        data: {
-          id: domainId,
-          slug: slug,
-          projectId: workspace.id,
-          primary: totalDomains === 0,
-          ...(placeholder && { placeholder }),
-          expiredUrl,
-          notFoundUrl,
-          ...(logoUploaded && { logo: logoUploaded.url }),
-          ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
-          ...(appleAppSiteAssociation && {
-            appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
-          }),
-        },
-      }),
+    const domainRecord = await prisma.$transaction(
+      async (tx) => {
+        const totalDomains = await tx.domain.count({
+          where: {
+            projectId: workspace.id,
+          },
+        });
 
-      createLink({
-        ...DEFAULT_LINK_PROPS,
-        domain: slug,
-        key: "_root",
-        url: "",
-        tags: undefined,
-        userId: session.user.id,
-        projectId: workspace.id,
-      }),
-    ]);
+        if (totalDomains >= workspace.domainsLimit) {
+          throw new DubApiError({
+            code: "exceeded_limit",
+            message: exceededLimitError({
+              plan: workspace.plan,
+              limit: workspace.domainsLimit,
+              type: "domains",
+            }),
+          });
+        }
+        return await tx.domain.create({
+          data: {
+            id: domainId,
+            slug: slug,
+            projectId: workspace.id,
+            primary: totalDomains === 0,
+            ...(placeholder && { placeholder }),
+            expiredUrl,
+            notFoundUrl,
+            ...(logoUploaded && { logo: logoUploaded.url }),
+            ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
+            ...(appleAppSiteAssociation && {
+              appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
+            }),
+            ...(deepviewData && {
+              deepviewData: JSON.parse(deepviewData),
+            }),
+          },
+        });
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        maxWait: 5000,
+        timeout: 5000,
+      },
+    );
+
+    await createLink({
+      ...DEFAULT_LINK_PROPS,
+      domain: slug,
+      key: "_root",
+      url: "",
+      tags: undefined,
+      userId: session.user.id,
+      projectId: workspace.id,
+    });
 
     return NextResponse.json(
       transformDomain({

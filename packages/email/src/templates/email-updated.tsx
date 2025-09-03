@@ -14,12 +14,14 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function EmailUpdated({
+export default function EmailUpdated({
   oldEmail = "panic@thedis.co",
   newEmail = "panic@thedis.co",
+  isPartnerProfile = false,
 }: {
   oldEmail: string;
   newEmail: string;
+  isPartnerProfile?: boolean;
 }) {
   return (
     <Html>
@@ -28,19 +30,17 @@ export function EmailUpdated({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8 mt-6">
-              <Img
-                src={DUB_WORDMARK}
-                height="32"
-                alt="Dub"
-              />
+            <Section className="mt-8">
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               Your email address has been changed
             </Heading>
             <Text className="mx-auto text-sm leading-6">
-              The e-mail address for your Dub account has been changed from{" "}
-              <strong>{oldEmail}</strong> to <strong>{newEmail}</strong>.
+              The e-mail address for your Dub{" "}
+              {isPartnerProfile ? "partner profile" : "account"} has been
+              changed from <strong>{oldEmail}</strong> to{" "}
+              <strong>{newEmail}</strong>.
             </Text>
             <Text className="text-sm leading-6 text-black">
               If you did not make this change, please contact our support team
@@ -60,5 +60,3 @@ export function EmailUpdated({
     </Html>
   );
 }
-
-export default EmailUpdated;

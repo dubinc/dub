@@ -1,3 +1,5 @@
+import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import {
   Button,
   DiamondTurnRight,
@@ -5,7 +7,6 @@ import {
   Modal,
   SimpleTooltipContent,
   Tooltip,
-  useKeyboardShortcut,
   UTM_PARAMETERS,
   UTMBuilder,
 } from "@dub/ui";
@@ -23,7 +24,6 @@ import {
   useState,
 } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
-import { LinkFormData } from ".";
 import { UTMTemplatesCombo } from "./utm-templates-combo";
 
 type UTMModalProps = {
@@ -289,9 +289,7 @@ function UTMButton({
     [url],
   );
 
-  useKeyboardShortcut("u", () => setShowUTMModal(true), {
-    modal: true,
-  });
+  useLinkBuilderKeyboardShortcut("u", () => setShowUTMModal(true));
 
   return (
     <Button
@@ -302,7 +300,7 @@ function UTMButton({
           className={cn("size-4", enabled && "text-blue-500")}
         />
       }
-      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
+      className="h-8 w-fit gap-1.5 px-2.5 text-xs font-medium text-neutral-700"
       onClick={() => setShowUTMModal(true)}
     />
   );

@@ -82,6 +82,5 @@ export const GET = withWorkspace(
       "advanced",
       "enterprise",
     ],
-    featureFlag: "linkFolders",
   },
 );

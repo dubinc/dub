@@ -5,8 +5,8 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 export const createTag: ZodOpenApiOperationObject = {
   operationId: "createTag",
   "x-speakeasy-name-override": "create",
-  summary: "Create a new tag",
-  description: "Create a new tag for the authenticated workspace.",
+  summary: "Create a tag",
+  description: "Create a tag for the authenticated workspace.",
   requestBody: {
     content: {
       "application/json": {

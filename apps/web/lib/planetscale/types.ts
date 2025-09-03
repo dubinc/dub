@@ -3,6 +3,7 @@ export interface EdgeLinkProps {
   domain: string;
   key: string;
   url: string;
+  shortLink: string;
   proxy: number;
   title: string;
   description: string;
@@ -18,6 +19,9 @@ export interface EdgeLinkProps {
   publicStats: number;
   expiredUrl: string | null;
   createdAt: string;
+  trackConversion: boolean;
+  programId: string | null;
+  partnerId: string | null;
 }
 
 export interface EdgeDomainProps {
@@ -34,20 +38,4 @@ export interface EdgeDomainProps {
   lastChecked: string;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface EdgeProgramProps {
-  id: string;
-  workspaceId: string;
-  slug: string;
-  name: string;
-  logo: string | null;
-  wordmark: string | null;
-  brandColor: string | null;
-  landerData: any;
-  defaultRewardId: string | null;
-  rewardEvent: string | null;
-  rewardType: string | null;
-  rewardAmount: number | null;
-  rewardMaxDuration: number | null;
 }

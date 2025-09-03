@@ -1,12 +1,12 @@
 import { ErrorCode } from "@/lib/api/errors";
 import z from "@/lib/zod";
+import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
 import {
-  COUNTRY_CODES,
-  DUB_FOUNDING_DATE,
-  formatDate,
-  validDomainRegex,
-} from "@dub/utils";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+  base64ImageSchema,
+  booleanQuerySchema,
+  getPaginationQuerySchema,
+  publicHostedImageSchema,
+} from "./misc";
 import { TagSchema } from "./tags";
 import {
   parseDateSchema,
@@ -34,6 +34,37 @@ export const getDomainQuerySchema = z.object({
     .refine((v) => validDomainRegex.test(v), { message: "Invalid domain" }),
 });
 
+export const MIN_TEST_PERCENTAGE = 10;
+export const MAX_TEST_COUNT = 4;
+
+export const ABTestVariantsSchema = z
+  .array(
+    z.object({
+      url: z.string(),
+      percentage: z
+        .number()
+        .min(MIN_TEST_PERCENTAGE)
+        .max(100 - MIN_TEST_PERCENTAGE),
+    }),
+  )
+  .min(2)
+  .max(MAX_TEST_COUNT)
+  .describe(
+    "An array of A/B test URLs and the percentage of traffic to send to each URL.",
+  )
+  .openapi({
+    example: [
+      {
+        url: "https://example.com/variant-1",
+        percentage: 50,
+      },
+      {
+        url: "https://example.com/variant-2",
+        percentage: 50,
+      },
+    ],
+  });
+
 const LinksQuerySchema = z.object({
   domain: z
     .string()
@@ -45,13 +76,14 @@ const LinksQuerySchema = z.object({
     .string()
     .optional()
     .describe(
-      "Deprecated. Use `tagIds` instead. The tag ID to filter the links by.",
+      "Deprecated: Use `tagIds` instead. The tag ID to filter the links by.",
     )
     .openapi({ deprecated: true }),
   tagIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
+    .describe("The tag IDs to filter the links by.")
     .openapi({
       param: {
         style: "form",
@@ -68,15 +100,31 @@ const LinksQuerySchema = z.object({
           },
         },
       ],
-    })
-    .describe("The tag IDs to filter the links by."),
+    }),
   tagNames: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe(
       "The unique name of the tags assigned to the short link (case insensitive).",
-    ),
+    )
+    .openapi({
+      param: {
+        style: "form",
+        explode: false,
+      },
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+      ],
+    }),
   folderId: z
     .string()
     .optional()
@@ -202,6 +250,14 @@ export const createLinkBodySchema = z.object({
     .describe(
       "The short link slug. If not provided, a random 7-character slug will be generated.",
     ),
+  keyLength: z
+    .number()
+    .min(3)
+    .max(190)
+    .optional()
+    .describe(
+      "The length of the short link slug. Defaults to 7 if not provided. When used with `prefix`, the total length of the key will be `prefix.length + keyLength`.",
+    ),
   externalId: z
     .string()
     .min(1)
@@ -246,20 +302,6 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Whether the short link is archived. Defaults to `false` if not provided.",
     ),
-  publicStats: z
-    .boolean()
-    .optional()
-    .describe(
-      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible. Defaults to `false` if not provided.",
-    )
-    .openapi({ deprecated: true }),
-  tagId: z
-    .string()
-    .nullish()
-    .describe(
-      "The unique ID of the tag assigned to the short link. This field is deprecated – use `tagIds` instead.",
-    )
-    .openapi({ deprecated: true }),
   tagIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -296,31 +338,31 @@ export const createLinkBodySchema = z.object({
     .boolean()
     .optional()
     .describe(
-      "Whether the short link uses Custom Social Media Cards feature. Defaults to `false` if not provided.",
+      "Whether the short link uses Custom Link Previews feature. Defaults to `false` if not provided.",
     ),
   title: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview title (og:title). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview title (og:title). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   description: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview description (og:description). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview description (og:description). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   image: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview image (og:image). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview image (og:image). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   video: z
     .string()
     .nullish()
     .describe(
-      "The custom link preview video (og:video). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+      "The custom link preview video (og:video). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
     ),
   rewrite: z
     .boolean()
@@ -339,10 +381,10 @@ export const createLinkBodySchema = z.object({
       "The Android destination URL for the short link for Android device targeting.",
     ),
   geo: z
-    .record(z.enum(COUNTRY_CODES), parseUrlSchema)
+    .record(z.string(), parseUrlSchema)
     .nullish()
     .describe(
-      "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`.",
+      "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
     )
     .openapi({ ref: "linkGeoTargeting" }),
   doIndex: z
@@ -393,9 +435,44 @@ export const createLinkBodySchema = z.object({
     .describe(
       "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
     ),
+  testVariants: ABTestVariantsSchema.nullish(),
+  testStartedAt: z
+    .string()
+    .nullish()
+    .describe("The date and time when the tests started."),
+  testCompletedAt: z
+    .string()
+    .nullish()
+    .describe("The date and time when the tests were or will be completed."),
+
+  // deprecated fields
+  publicStats: z
+    .boolean()
+    .optional()
+    .describe(
+      "Deprecated: Use `dashboard` instead. Whether the short link's stats are publicly accessible. Defaults to `false` if not provided.",
+    )
+    .openapi({ deprecated: true }),
+  tagId: z
+    .string()
+    .nullish()
+    .describe(
+      "Deprecated: Use `tagIds` instead. The unique ID of the tag assigned to the short link.",
+    )
+    .openapi({ deprecated: true }),
 });
 
-export const updateLinkBodySchema = createLinkBodySchema.partial();
+export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
+  image: z.union([base64ImageSchema, publicHostedImageSchema]).nullish(),
+});
+
+export const updateLinkBodySchema = createLinkBodySchemaAsync
+  .omit({ keyLength: true, prefix: true })
+  .partial();
+
+export const updateLinkBodySchemaExtended = updateLinkBodySchema.extend({
+  linkRetentionCleanupDisabledAt: z.string().nullish(),
+});
 
 export const bulkCreateLinksBodySchema = z
   .array(createLinkBodySchema)
@@ -424,6 +501,7 @@ export const bulkUpdateLinksBodySchema = z.object({
       domain: true,
       key: true,
       externalId: true,
+      keyLength: true,
       prefix: true,
     })
     .merge(
@@ -500,32 +578,30 @@ export const LinkSchema = z
     proxy: z
       .boolean()
       .default(false)
-      .describe(
-        "Whether the short link uses Custom Social Media Cards feature.",
-      ),
+      .describe("Whether the short link uses Custom Link Previews feature."),
     title: z
       .string()
       .nullable()
       .describe(
-        "The title of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The title of the short link. Will be used for Custom Link Previews if `proxy` is true.",
       ),
     description: z
       .string()
       .nullable()
       .describe(
-        "The description of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The description of the short link. Will be used for Custom Link Previews if `proxy` is true.",
       ),
     image: z
       .string()
       .nullable()
       .describe(
-        "The image of the short link generated via `api.dub.co/metatags`. Will be used for Custom Social Media Cards if `proxy` is true.",
+        "The image of the short link. Will be used for Custom Link Previews if `proxy` is true.",
       ),
     video: z
       .string()
       .nullable()
       .describe(
-        "The custom link preview video (og:video). Will be used for Custom Social Media Cards if `proxy` is true. Learn more: https://d.to/og",
+        "The custom link preview video (og:video). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
       ),
     rewrite: z
       .boolean()
@@ -548,22 +624,15 @@ export const LinkSchema = z
         "The Android destination URL for the short link for Android device targeting.",
       ),
     geo: z
-      .record(z.enum(COUNTRY_CODES), z.string().url())
+      .record(z.string(), z.string().url())
       .nullable()
       .describe(
-        "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. Learn more: https://d.to/geo",
+        "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
       ),
     publicStats: z
       .boolean()
       .default(false)
       .describe("Whether the short link's stats are publicly accessible."),
-    tagId: z
-      .string()
-      .nullable()
-      .describe(
-        "The unique ID of the tag assigned to the short link. This field is deprecated – use `tags` instead.",
-      )
-      .openapi({ deprecated: true }),
     tags: TagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
@@ -609,6 +678,15 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The UTM content of the short link."),
+    testVariants: ABTestVariantsSchema.nullish(),
+    testStartedAt: z
+      .string()
+      .nullish()
+      .describe("The date and time when the tests started."),
+    testCompletedAt: z
+      .string()
+      .nullish()
+      .describe("The date and time when the tests were or will be completed."),
     userId: z
       .string()
       .nullable()
@@ -618,34 +696,50 @@ export const LinkSchema = z
       .number()
       .default(0)
       .describe("The number of clicks on the short link."),
-    lastClicked: z
-      .string()
-      .nullable()
-      .describe("The date and time when the short link was last clicked."),
     leads: z
       .number()
       .default(0)
-      .describe("The number of leads the short links has generated."),
+      .describe("The number of leads the short link has generated."),
+    conversions: z
+      .number()
+      .default(0)
+      .describe("The number of leads that converted to paying customers."),
     sales: z
       .number()
       .default(0)
-      .describe("The number of sales the short links has generated."),
+      .describe(
+        "The total number of sales (includes recurring sales) generated by the short link.",
+      ),
     saleAmount: z
       .number()
       .default(0)
       .describe(
-        "The total dollar amount of sales the short links has generated (in cents).",
+        "The total dollar value of sales (in cents) generated by the short link.",
       ),
+
+    lastClicked: z
+      .string()
+      .nullable()
+      .describe("The date and time when the short link was last clicked."),
     createdAt: z
       .string()
       .describe("The date and time when the short link was created."),
     updatedAt: z
       .string()
       .describe("The date and time when the short link was last updated."),
+
+    // deprecated fields
+    tagId: z
+      .string()
+      .nullable()
+      .describe(
+        "Deprecated: Use `tags` instead. The unique ID of the tag assigned to the short link.",
+      )
+      .openapi({ deprecated: true }),
     projectId: z
       .string()
       .describe(
-        "The project ID of the short link. This field is deprecated – use `workspaceId` instead.",
+        "Deprecated: Use `workspaceId` instead. The project ID of the short link.",
       )
       .openapi({ deprecated: true }),
   })
@@ -673,6 +767,7 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().merge(
       .openapi({ example: "123456" }),
   }),
 );
+
 export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   z.object({
     // Only Dub UI uses the following query parameters
@@ -692,6 +787,13 @@ export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.merge(
   }),
 );
 
+export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.merge(
+  z.object({
+    includeUser: booleanQuerySchema.default("false"),
+    includeWebhooks: booleanQuerySchema.default("false"),
+  }),
+);
+
 export const linkEventSchema = LinkSchema.extend({
   // here we use string because url can be empty
   url: z.string(),
@@ -708,6 +810,8 @@ export const linkEventSchema = LinkSchema.extend({
   updatedAt: z.coerce.date(),
   lastClicked: z.coerce.date(),
   expiresAt: z.coerce.date(),
+  testCompletedAt: z.coerce.date().nullable(),
+  testStartedAt: z.coerce.date().nullable(),
   // userId can be null
   userId: z.string().nullable(),
 });

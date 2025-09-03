@@ -4,13 +4,7 @@ import { removeDomainFromVercel } from "./remove-domain-vercel";
 
 // Mark the domain as deleted
 // We'll delete the domain and its links via a cron job
-export async function markDomainAsDeleted({
-  domain,
-  workspaceId,
-}: {
-  domain: string;
-  workspaceId: string;
-}) {
+export async function markDomainAsDeleted({ domain }: { domain: string }) {
   const response = await Promise.allSettled([
     removeDomainFromVercel(domain),
 
@@ -33,7 +27,6 @@ export async function markDomainAsDeleted({
       console.error("markDomainAsDeleted", {
         reason: promise.reason,
         domain,
-        workspaceId,
       });
     }
   });

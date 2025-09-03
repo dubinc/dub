@@ -1,13 +1,3 @@
-enum ProgramType {
-  affiliate
-  referral
-}
-
-enum CommissionType {
-  percentage
-  flat
-}
-
 enum ProgramEnrollmentStatus {
   pending // pending applications that need approval
   approved // partner who has been approved/actively enrolled
@@ -15,51 +5,7 @@ enum ProgramEnrollmentStatus {
   invited // partner who has been invited
   declined // partner declined the invite
   banned // partner is banned from the program
-}
-
-model Program {
-  id                String      @id @default(cuid())
-  workspaceId       String
-  defaultFolderId   String?
-  name              String
-  slug              String      @unique
-  logo              String?
-  wordmark          String?
-  brandColor        String?
-  domain            String?
-  url               String?
-  type              ProgramType @default(affiliate)
-  cookieLength      Int         @default(90)
-  holdingPeriodDays Int         @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount   Int         @default(10000) // Default minimum payout amount of $100
-  defaultRewardId   String?     @unique // default reward for the program
-  defaultDiscountId String?     @unique // default discount for the program
-  embedData         Json?       @db.Json
-  landerData        Json?       @db.Json
-  resources         Json?       @db.Json
-  termsUrl          String?     @db.Text
-  helpUrl           String?     @db.Text
-  supportEmail      String?
-  ageVerification   Int?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  workspace       Project              @relation(fields: [workspaceId], references: [id])
-  primaryDomain   Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
-  partners        ProgramEnrollment[]
-  payouts         Payout[]
-  invoices        Invoice[]
-  applications    ProgramApplication[]
-  links           Link[]
-  commissions     Commission[]
-  rewards         Reward[]
-  defaultReward   Reward?              @relation("ProgramDefaultReward", fields: [defaultRewardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  discounts       Discount[]           @relation("ProgramDiscounts")
-  defaultDiscount Discount?            @relation("ProgramDefaultDiscount", fields: [defaultDiscountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@index([workspaceId])
-  @@index([domain])
+  archived // partner is archived by the program
 }
 
 enum PartnerBannedReason {
@@ -71,35 +17,110 @@ enum PartnerBannedReason {
   brand_abuse
 }
 
-model ProgramEnrollment {
-  id            String                  @id @default(cuid())
-  partnerId     String
-  programId     String
-  tenantId      String?
-  discountId    String? // custom discount for this partner
-  applicationId String?                 @unique
-  status        ProgramEnrollmentStatus @default(pending)
-  createdAt     DateTime                @default(now())
-  updatedAt     DateTime                @updatedAt
-  bannedAt      DateTime?
-  bannedReason  PartnerBannedReason?
+enum PartnerLinkStructure {
+  short
+  query
+  path
+}
 
-  partner     Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  links       Link[]
-  discount    Discount?           @relation(fields: [discountId], references: [id])
-  application ProgramApplication? @relation(fields: [applicationId], references: [id])
-  rewards     PartnerReward[]
+enum PartnerUrlValidationMode {
+  domain // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
+  exact // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
+}
+
+model Program {
+  id                           String                   @id @default(cuid())
+  workspaceId                  String
+  defaultFolderId              String
+  defaultGroupId               String
+  name                         String
+  slug                         String                   @unique
+  logo                         String?
+  wordmark                     String?
+  brandColor                   String?
+  domain                       String?
+  url                          String?
+  urlValidationMode            PartnerUrlValidationMode @default(domain)
+  linkStructure                PartnerLinkStructure     @default(short)
+  linkParameter                String? // null for SHORT, "via" for QUERY, "refer" for PATH
+  maxPartnerLinks              Int                      @default(10) // maximum number of links partners can create
+  cookieLength                 Int                      @default(90)
+  holdingPeriodDays            Int                      @default(0) // number of days to wait before earnings are added to a payout
+  minPayoutAmount              Int                      @default(0) // Default minimum payout amount of $0
+  embedData                    Json?                    @db.Json
+  landerData                   Json?                    @db.Json
+  landerPublishedAt            DateTime?
+  resources                    Json?                    @db.Json
+  termsUrl                     String?                  @db.Text
+  helpUrl                      String?                  @db.Text
+  supportEmail                 String?
+  ageVerification              Int?
+  autoApprovePartnersEnabledAt DateTime?
+  createdAt                    DateTime                 @default(now())
+  updatedAt                    DateTime                 @updatedAt
+
+  workspace         Project              @relation(fields: [workspaceId], references: [id])
+  primaryDomain     Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  partners          ProgramEnrollment[]
+  payouts           Payout[]
+  invoices          Invoice[]
+  applications      ProgramApplication[]
+  links             Link[]
+  commissions       Commission[]
+  rewards           Reward[]
+  discounts         Discount[]           @relation("ProgramDiscounts")
+  groups            PartnerGroup[]
+  bounties          Bounty[]
+  bountySubmissions BountySubmission[]
+  workflows         Workflow[]
+
+  @@index(workspaceId)
+  @@index(domain)
+}
+
+model ProgramEnrollment {
+  id               String                  @id @default(cuid())
+  partnerId        String
+  programId        String
+  tenantId         String?
+  groupId          String?
+  applicationId    String?                 @unique
+  clickRewardId    String?
+  leadRewardId     String?
+  saleRewardId     String?
+  discountId       String?
+  status           ProgramEnrollmentStatus @default(pending)
+  totalCommissions Int                     @default(0) // total commissions earned by the partner (in cents)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  bannedAt         DateTime?
+  bannedReason     PartnerBannedReason?
+
+  partner           Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program           Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  links             Link[]
+  partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
+  application       ProgramApplication? @relation(fields: [applicationId], references: [id])
+  clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward        Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  discount          Discount?           @relation(fields: [discountId], references: [id])
+  bountySubmissions BountySubmission[]
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
-  @@index([programId])
-  @@index([discountId])
+  @@index(programId)
+  @@index(groupId)
+  @@index(clickRewardId)
+  @@index(leadRewardId)
+  @@index(saleRewardId)
+  @@index(discountId)
 }
 
 model ProgramApplication {
   id        String   @id @default(cuid())
   programId String
+  groupId   String?
   name      String
   email     String
   proposal  String?  @db.Text
@@ -108,8 +129,10 @@ model ProgramApplication {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  program    Program            @relation(fields: [programId], references: [id])
-  enrollment ProgramEnrollment?
+  program      Program            @relation(fields: [programId], references: [id])
+  partnerGroup PartnerGroup?      @relation(fields: [groupId], references: [id])
+  enrollment   ProgramEnrollment?
 
-  @@index([programId])
+  @@index(programId)
+  @@index(groupId)
 }

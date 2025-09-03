@@ -4,6 +4,7 @@ import { createId } from "@/lib/api/create-id";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
+import { subscribe } from "@dub/email/resend/subscribe";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
@@ -36,7 +37,7 @@ export const onboardPartnerAction = authUserActionClient
 
     // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
-      name,
+      name: name || user.email,
       email: user.email,
       // you can only update these fields if the partner doesn't already have a stripeConnectId
       ...(existingPartner?.stripeConnectId
@@ -59,12 +60,15 @@ export const onboardPartnerAction = authUserActionClient
           create: {
             userId: user.id,
             role: "owner",
+            notificationPreferences: {
+              create: {},
+            },
           },
         },
       },
     };
 
-    await Promise.all([
+    const [partner] = await Promise.all([
       existingPartner
         ? prisma.partner.update({
             where: {
@@ -91,6 +95,16 @@ export const onboardPartnerAction = authUserActionClient
         }),
     ]);
 
-    // Complete any outstanding program applications
-    waitUntil(completeProgramApplications(user.id));
+    waitUntil(
+      Promise.allSettled([
+        // Complete any outstanding program application
+        completeProgramApplications(user.id),
+        // Subscribe the partner to the partners.dub.co Resend audience
+        subscribe({
+          email: user.email,
+          name: user.name || partner.name || undefined,
+          audience: "partners.dub.co",
+        }),
+      ]),
+    );
   });

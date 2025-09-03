@@ -6,8 +6,8 @@ export const createLink: ZodOpenApiOperationObject = {
   operationId: "createLink",
   "x-speakeasy-name-override": "create",
   "x-speakeasy-usage-example": true,
-  summary: "Create a new link",
-  description: "Create a new link for the authenticated workspace.",
+  summary: "Create a link",
+  description: "Create a link for the authenticated workspace.",
   requestBody: {
     content: {
       "application/json": {

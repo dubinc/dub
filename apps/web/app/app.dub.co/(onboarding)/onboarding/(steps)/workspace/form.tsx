@@ -10,7 +10,7 @@ export function Form() {
     <CreateWorkspaceForm
       className="w-full"
       onSuccess={({ slug }) => {
-        continueTo("link", { slug });
+        continueTo("domain", { slug });
       }}
     />
   );

@@ -5,9 +5,19 @@ import { DubApiError } from "../errors";
 export async function getProgramEnrollmentOrThrow({
   partnerId,
   programId,
+  includePartner = false,
+  includeClickReward = false,
+  includeLeadReward = false,
+  includeSaleReward = false,
+  includeDiscount = false,
 }: {
   partnerId: string;
   programId: string;
+  includePartner?: boolean;
+  includeClickReward?: boolean;
+  includeLeadReward?: boolean;
+  includeSaleReward?: boolean;
+  includeDiscount?: boolean;
 }) {
   const include: Prisma.ProgramEnrollmentInclude = {
     program: true,
@@ -16,6 +26,21 @@ export async function getProgramEnrollmentOrThrow({
         createdAt: "asc",
       },
     },
+    ...(includePartner && {
+      partner: true,
+    }),
+    ...(includeClickReward && {
+      clickReward: true,
+    }),
+    ...(includeLeadReward && {
+      leadReward: true,
+    }),
+    ...(includeSaleReward && {
+      saleReward: true,
+    }),
+    ...(includeDiscount && {
+      discount: true,
+    }),
   };
 
   const programEnrollment = programId.startsWith("prog_")
@@ -46,18 +71,5 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  const { links } = programEnrollment;
-
-  if (!links) {
-    throw new DubApiError({
-      code: "not_found",
-      message:
-        "You don't have a link for this program yet. Contact your program admin to get one.",
-    });
-  }
-
-  return {
-    ...programEnrollment,
-    links,
-  };
+  return programEnrollment;
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { storage } from "@/lib/storage";
 import {
   PROGRAM_RESOURCE_TYPES,
@@ -13,7 +14,6 @@ import { authActionClient } from "../../safe-action";
 // Schema for deleting a program resource
 const deleteProgramResourceSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   resourceType: z.enum(PROGRAM_RESOURCE_TYPES),
   resourceId: z.string(),
 });
@@ -22,7 +22,8 @@ export const deleteProgramResourceAction = authActionClient
   .schema(deleteProgramResourceSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
-    const { programId, resourceType, resourceId } = parsedInput;
+    const { resourceType, resourceId } = parsedInput;
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     // Verify the program exists and belongs to the workspace
     const program = await prisma.program.findUnique({

@@ -5,13 +5,19 @@ import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewOrExistingIntegration } from "@/lib/types";
-import { Button, FileUpload, InfoTooltip, LoadingSpinner } from "@dub/ui";
+import {
+  Button,
+  FileUpload,
+  InfoTooltip,
+  LoadingSpinner,
+  useEnterSubmit,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { Reorder } from "framer-motion";
 import { Paperclip, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 
@@ -21,6 +27,8 @@ export default function AddEditIntegrationForm({
   integration: NewOrExistingIntegration;
 }) {
   const { id: workspaceId, role } = useWorkspace();
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
   const [screenshots, setScreenshots] = useState<
     {
       file?: File;
@@ -54,12 +62,12 @@ export default function AddEditIntegrationForm({
   const handleUpload = async (file: File) => {
     setScreenshots((prev) => [...prev, { file, uploading: true }]);
 
-    const response = await fetch(
-      `/api/oauth/apps/upload-url?workspaceId=${workspaceId}`,
-      {
-        method: "POST",
-      },
-    );
+    const response = await fetch(`/api/workspaces/${workspaceId}/upload-url`, {
+      method: "POST",
+      body: JSON.stringify({
+        folder: "integration-screenshots",
+      }),
+    });
 
     if (!response.ok) {
       toast.error("Failed to get signed URL for screenshot upload.");
@@ -113,6 +121,7 @@ export default function AddEditIntegrationForm({
   return (
     <>
       <form
+        ref={formRef}
         onSubmit={async (e) => {
           e.preventDefault();
           await executeAsync({
@@ -217,6 +226,7 @@ export default function AddEditIntegrationForm({
               onChange={(e) => {
                 setData({ ...data, description: e.target.value });
               }}
+              onKeyDown={handleKeyDown}
               disabled={!canManageApp}
             />
           </div>
@@ -243,6 +253,7 @@ export default function AddEditIntegrationForm({
               onChange={(e) => {
                 setData({ ...data, readme: e.target.value });
               }}
+              onKeyDown={handleKeyDown}
               disabled={!canManageApp}
             />
           </div>

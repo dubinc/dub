@@ -11,8 +11,8 @@ model Link {
   trackConversion Boolean   @default(false) // whether to track conversions or not
 
   proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
-  title       String? // OG title for the link (e.g. Dub.co - Open-Source Link Management Infrastructure)
-  description String? @db.VarChar(280) // OG description for the link (e.g. An open-source link management tool for modern marketing teams to create, share, and track short links.)
+  title       String? // OG title for the link (e.g. Dub - open-source link attribution platform)
+  description String? @db.VarChar(280) // OG description for the link (e.g. The modern link attribution platform for short links, conversion tracking, and affiliate programs.)
   image       String? @db.LongText // OG image for the link (e.g. https://d.to/og)
   video       String? @db.Text // OG video for the link
 
@@ -23,10 +23,10 @@ model Link {
   utm_term     String? // UTM term for the link (e.g. dub)
   utm_content  String? // UTM content for the link (e.g. description)
 
-  // Link cloaking/masking via rewrite
   rewrite Boolean @default(false) // whether to rewrite the link or not
 
-  doIndex Boolean @default(false) // we don't index short links by default
+  linkRetentionCleanupDisabledAt DateTime? // When link retention cleanup (see domain.linkRetentionDays) was explicitly disabled
+  doIndex                        Boolean   @default(false) // we don't index short links by default
 
   // Custom device targeting
   ios     String? @db.Text // custom link for iOS devices
@@ -34,21 +34,17 @@ model Link {
   geo     Json?   @db.Json // custom link for specific countries
 
   // A/B Testing
-  testVariants   Json?   @db.Json // A/B testing data
-  testStartedAt  DateTime? // When tests were started
+  testVariants    Json?     @db.Json
+  testStartedAt   DateTime? // When tests were started
   testCompletedAt DateTime? // When tests were or will be completed
-  
+
   // User who created the link
   user   User?   @relation(fields: [userId], references: [id])
   userId String?
 
   // Project that the link belongs to
-  project       Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  projectId     String?
-  // Relational reference to the project domain
-  projectDomain Domain?  @relation(fields: [domain], references: [slug], onUpdate: Cascade, onDelete: Cascade)
-  // Program that the link belongs to
-  programId     String?
+  project   Project? @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  projectId String?
 
   folderId String?
   folder   Folder? @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: SetNull)
@@ -57,14 +53,19 @@ model Link {
   externalId String?
   tenantId   String?
 
-  publicStats Boolean   @default(false) // whether to show public stats or not
-  clicks      Int       @default(0) // number of clicks
+  publicStats Boolean @default(false) // whether to show public stats or not
+  clicks      Int     @default(0) // number of clicks
+  leads       Int     @default(0) // number of leads
+  conversions Int     @default(0) // number of leads that converted to sales
+  sales       Int     @default(0) // number of sales (includes recurring sales)
+  saleAmount  Int     @default(0) // total revenue from sales (in cents)
+
   lastClicked DateTime? // when the link was last clicked
-  leads       Int       @default(0)
-  sales       Int       @default(0) // number of sales
-  saleAmount  Int       @default(0) // total dollar value of sales (in cents)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  // Link short domain
+  shortDomain Domain @relation(fields: [domain], references: [slug])
 
   // Link tags
   tags LinkTag[]
@@ -75,18 +76,23 @@ model Link {
   // Comments on the particular shortlink
   comments String? @db.Text
 
-  dashboard         Dashboard?
+  dashboard Dashboard?
+
+  programId         String?
+  program           Program?           @relation(fields: [programId], references: [id])
   partnerId         String?
   programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
 
-  program     Program?     @relation(fields: [programId], references: [id])
   customers   Customer[]
   commissions Commission[]
 
-  @@unique([domain, key])
-  @@index([projectId, folderId, archived, createdAt(sort: Desc)])
-  @@unique([projectId, externalId])
-  @@index([programId, partnerId])
+  @@unique([domain, key]) // for getting a link by domain and key
+  @@unique([projectId, externalId]) // for getting a link by externalId
+  @@index([projectId, tenantId]) // for filtering by tenantId
+  @@index([projectId, url(length: 500)]) // for upserting a link by URL
+  @@index([projectId, folderId, archived, createdAt(sort: Desc)]) // most getLinksForWorkspace queries
+  @@index([programId, partnerId]) // for getting a referral link (programId + partnerId)
+  @@index([domain, createdAt]) // for bulk link deletion workflows (by domain) + deleting old short-lived links
   @@index(folderId) // used in /api/folders
-  @@index(userId) // for relation to User table
+  @@index(userId) // for relation to User table, used in /api/cron/cleanup/e2e-tests too
 }

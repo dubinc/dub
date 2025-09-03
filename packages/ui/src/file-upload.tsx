@@ -9,6 +9,7 @@ type AcceptedFileFormats =
   | "images"
   | "csv"
   | "documents"
+  | "programResourceImages"
   | "programResourceFiles";
 
 const documentTypes = [
@@ -38,8 +39,11 @@ const acceptFileTypes: Record<
     types: documentTypes,
     errorMessage: "File type not supported (document files only)",
   },
-
   // TODO: allow custom `accept` prop so we don't need specific options here
+  programResourceImages: {
+    types: ["image/svg+xml", "image/png", "image/jpeg", "image/webp"],
+    errorMessage: "File type not supported (.svg, .png, .jpg, or .webp only)",
+  },
   programResourceFiles: {
     types: [...documentTypes, "application/zip"],
     errorMessage: "File type not supported (document or zip files only)",

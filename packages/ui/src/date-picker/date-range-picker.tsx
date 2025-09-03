@@ -1,8 +1,12 @@
 import { cn } from "@dub/utils";
 import { enUS } from "date-fns/locale";
-import { useEffect, useMemo, useState } from "react";
+import { PropsWithChildren, useEffect, useMemo, useRef, useState } from "react";
 import { SelectRangeEventHandler } from "react-day-picker";
-import { useKeyboardShortcut, useMediaQuery } from "../hooks";
+import {
+  useKeyboardShortcut,
+  useMediaQuery,
+  useScrollProgress,
+} from "../hooks";
 import { Popover } from "../popover";
 import { Calendar as CalendarPrimitive } from "./calendar";
 import { Presets } from "./presets";
@@ -132,24 +136,20 @@ const DateRangePickerInner = ({
         popoverContentClassName="rounded-xl"
         content={
           <div className="flex w-full">
-            <div className="scrollbar-hide flex w-full flex-col overflow-x-scroll sm:flex-row-reverse sm:items-start">
+            <div className="scrollbar-hide relative flex w-full flex-col overflow-x-scroll sm:flex-row-reverse sm:items-start">
               {presets && presets.length > 0 && (
-                <div
-                  className={cn(
-                    "relative flex h-16 w-full items-center sm:h-full sm:w-48",
-                    "border-b border-neutral-200 sm:border-b-0 sm:border-l",
-                    "scrollbar-hide overflow-auto",
-                  )}
-                >
-                  <div className="absolute px-3 sm:inset-0 sm:left-0 sm:p-3">
-                    <Presets
-                      currentPresetId={presetId}
-                      currentValue={range}
-                      presets={presets}
-                      onSelect={onPresetSelected}
-                    />
+                <PresetScrollContainer>
+                  <div className="absolute px-3 sm:inset-0 sm:left-0">
+                    <div className="sm:py-3">
+                      <Presets
+                        currentPresetId={presetId}
+                        currentValue={range}
+                        presets={presets}
+                        onSelect={onPresetSelected}
+                      />
+                    </div>
                   </div>
-                </div>
+                </PresetScrollContainer>
               )}
               <div className="scrollbar-hide overflow-x-scroll">
                 <CalendarPrimitive
@@ -196,4 +196,29 @@ export function DateRangePicker({ presets, ...props }: RangeDatePickerProps) {
   if (presets) validatePresets(presets, props);
 
   return <DateRangePickerInner presets={presets} {...props} />;
+}
+
+function PresetScrollContainer({ children }: PropsWithChildren) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollProgress, updateScrollProgress } = useScrollProgress(ref);
+  return (
+    <div className="relative sm:h-full">
+      <div
+        ref={ref}
+        onScroll={updateScrollProgress}
+        className={cn(
+          "relative flex h-16 w-full items-center sm:h-full sm:w-48",
+          "border-b border-neutral-200 sm:border-b-0 sm:border-l",
+          "scrollbar-hide overflow-auto",
+        )}
+      >
+        {children}
+      </div>
+      {/* Bottom scroll fade */}
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
+        style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+      />
+    </div>
+  );
 }

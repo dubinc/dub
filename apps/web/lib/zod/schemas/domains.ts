@@ -1,12 +1,21 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
 import z from "@/lib/zod";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import {
+  booleanQuerySchema,
+  getPaginationQuerySchema,
+  uploadedImageSchema,
+} from "./misc";
 import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const RegisteredDomainSchema = z.object({
   id: z.string().describe("The ID of the registered domain record."),
+  autoRenewalDisabledAt: z
+    .date()
+    .nullable()
+    .describe("The date the domain auto-renew is disabled."),
   createdAt: z.date().describe("The date the domain was created."),
   expiresAt: z.date().describe("The date the domain expires."),
+  renewalFee: z.number().describe("The fee to renew the domain."),
 });
 
 export const DomainSchema = z.object({
@@ -48,6 +57,7 @@ export const DomainSchema = z.object({
       "The URL to redirect to when a link under this domain doesn't exist.",
     )
     .openapi({ example: "https://acme.com/not-found" }),
+  logo: z.string().nullable().describe("The logo of the domain."),
   assetLinks: z
     .string()
     .nullable()
@@ -62,8 +72,6 @@ export const DomainSchema = z.object({
     .describe(
       "apple-app-site-association configuration file (for deep link support on iOS).",
     ),
-
-  logo: z.string().nullable().describe("The logo of the domain."),
   createdAt: z.date().describe("The date the domain was created."),
   updatedAt: z.date().describe("The date the domain was last updated."),
   registeredDomain: RegisteredDomainSchema.nullable().describe(
@@ -140,12 +148,7 @@ export const createDomainBodySchema = z.object({
       "Provide context to your teammates in the link creation modal by showing them an example of a link to be shortened.",
     )
     .openapi({ example: "https://dub.co/help/article/what-is-dub" }),
-  logo: z
-    .string()
-    .trim()
-    .nullish()
-    .transform((v) => v || null)
-    .describe("The logo of the domain."),
+  logo: uploadedImageSchema.nullish().describe("The logo of the domain."),
   assetLinks: z
     .string()
     .nullish()
@@ -160,6 +163,10 @@ export const createDomainBodySchema = z.object({
     ),
 });
 
+export const createDomainBodySchemaExtended = createDomainBodySchema.extend({
+  deepviewData: z.string().nullish(),
+});
+
 export const updateDomainBodySchema = createDomainBodySchema.partial();
 
 export const transferDomainBodySchema = z.object({
@@ -168,4 +175,64 @@ export const transferDomainBodySchema = z.object({
     .min(1, "New workspace ID cannot be empty.")
     .transform((v) => normalizeWorkspaceId(v))
     .describe("The ID of the new workspace to transfer the domain to."),
+});
+
+export const registerDomainSchema = z.object({
+  domain: z
+    .string()
+    .min(1, "Domain to register is required.")
+    .endsWith(".link")
+    .transform((domain) => domain.toLowerCase())
+    .describe("The domain to claim. We only support .link domains for now.")
+    .openapi({ example: "acme.link" }),
+});
+
+export const searchDomainSchema = z.object({
+  domains: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .transform((domains) =>
+      domains
+        .map((domain) => domain.toLowerCase())
+        .filter((domain) => domain.endsWith(".link")),
+    )
+    .describe("The domains to search. We only support .link domains for now.")
+    .openapi({
+      param: {
+        style: "form",
+        explode: false,
+      },
+      anyOf: [
+        {
+          type: "string",
+        },
+        {
+          type: "array",
+          items: {
+            type: "string",
+          },
+        },
+      ],
+    }),
+});
+
+export const DomainStatusSchema = z.object({
+  domain: z.string().describe("The domain name."),
+  available: z.boolean().describe("Whether the domain is available."),
+  price: z.string().nullable().describe("The price description."),
+  premium: z
+    .boolean()
+    .nullable()
+    .describe("Whether the domain is a premium domain."),
+});
+
+export const RegisterDomainSchema = z.object({
+  domain: z.string().describe("The domain name."),
+  status: z.string().describe("The status of the domain registration."),
+  expiration: z
+    .number()
+    .describe(
+      "The expiration timestamp of the domain (Unix timestamp in milliseconds).",
+    )
+    .nullable(),
 });

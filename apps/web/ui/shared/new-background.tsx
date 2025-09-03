@@ -2,17 +2,18 @@
 
 import { cn } from "@dub/utils";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-export function NewBackground(props: { showAnimation?: boolean }) {
-  const pathname = usePathname();
+export function NewBackground({
+  showAnimation = false,
+  showGradient = true,
+}: {
+  showGradient?: boolean;
+  showAnimation?: boolean;
+}) {
   const [isGridLoaded, setIsGridLoaded] = useState(false);
   const [isBackgroundLoaded, setIsBackgroundLoaded] = useState(false);
   const isLoaded = isGridLoaded && isBackgroundLoaded;
-
-  const showAnimation =
-    props.showAnimation || pathname === "/onboarding/welcome";
 
   return (
     <div
@@ -21,8 +22,13 @@ export function NewBackground(props: { showAnimation?: boolean }) {
         showAnimation ? (isLoaded ? "opacity-100" : "opacity-0") : "opacity-60",
       )}
     >
-      <BackgroundGradient className="opacity-15" />
-      <div className="absolute left-1/2 top-0 -translate-x-1/2 opacity-50 transition-all sm:opacity-100">
+      {showGradient && <BackgroundGradient className="opacity-15" />}
+      <div
+        className={cn(
+          "absolute left-1/2 top-[57%] -translate-x-1/2 -translate-y-1/2 opacity-50 transition-all sm:opacity-100",
+          "[mask-composite:intersect] [mask-image:linear-gradient(transparent,black_5%,black_95%,transparent),linear-gradient(90deg,transparent,black_5%,black_95%,transparent)]",
+        )}
+      >
         <Image
           src="https://assets.dub.co/misc/welcome-background-grid.svg"
           onLoad={() => setIsGridLoaded(true)}
@@ -39,11 +45,14 @@ export function NewBackground(props: { showAnimation?: boolean }) {
           height={1046}
           className={cn(
             "relative min-w-[1000px] max-w-screen-2xl transition-opacity duration-300",
+            "[mask-composite:intersect] [mask-image:radial-gradient(black,transparent)]",
             showAnimation ? "opacity-100" : "opacity-0",
           )}
         />
       </div>
-      <BackgroundGradient className="opacity-100 mix-blend-soft-light" />
+      {showGradient && (
+        <BackgroundGradient className="opacity-100 mix-blend-soft-light" />
+      )}
     </div>
   );
 }

@@ -7,12 +7,13 @@ import {
   InfoTooltip,
   Logo,
   Modal,
+  Refresh2,
   SimpleTooltipContent,
   Tick,
   useCopyToClipboard,
 } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
-import { Eye, EyeOff, FolderSync, RefreshCcw } from "lucide-react";
+import { Eye, EyeOff, FolderSync } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -54,7 +55,7 @@ function SCIMModal({
               alt={`${provider} logo`}
               className="h-10 w-10"
             />
-            <RefreshCcw className="h-5 w-5 text-neutral-600" />
+            <Refresh2 className="h-5 w-5 text-neutral-600" />
             <Logo />
           </div>
         ) : (

@@ -1,9 +1,9 @@
 import { cn, createHref } from "@dub/utils";
 import { Link as NavigationMenuLink } from "@radix-ui/react-navigation-menu";
-import Image from "next/image";
 import Link from "next/link";
-import { SDKS } from "../../content";
-import { DubWireframeGraphic } from "./graphics/dub-wireframe-graphic";
+import { RESOURCES } from "../../content";
+import { Grid } from "../../grid";
+import { Book2Fill, LifeRing } from "../../icons";
 import {
   ContentLinkCard,
   contentHeadingClassName,
@@ -12,124 +12,120 @@ import {
 
 const mainLinks = [
   {
-    title: "Docs",
-    description: "Platform documentation",
-    thumbnail: "https://assets.dub.co/misc/docs-thumbnail.jpg",
-    href: "/docs/introduction",
-  },
-  {
+    icon: LifeRing,
     title: "Help Center",
     description: "Answers to your questions",
     thumbnail: "https://assets.dub.co/misc/help-thumbnail.jpg", // TODO: Update
     href: "/help",
   },
+  {
+    icon: Book2Fill,
+    title: "Docs",
+    description: "Platform documentation",
+    thumbnail: "https://assets.dub.co/misc/docs-thumbnail.jpg",
+    href: "/docs/introduction",
+  },
 ];
 
 export function ResourcesContent({ domain }: { domain: string }) {
   return (
-    <div className="grid w-[1020px] grid-cols-[minmax(0,1fr),0.4fr] divide-x divide-neutral-200">
-      <div className="grid grid-cols-2 gap-4 p-4">
-        {mainLinks.map(({ title, description, thumbnail, href }) => (
-          <NavigationMenuLink asChild>
-            <Link
-              key={title}
-              href={createHref(
-                href,
-                domain,
-                getUtmParams({ domain, utm_content: title }),
-              )}
-              className={cn(
-                "group relative flex flex-col overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 transition-colors duration-75 hover:bg-neutral-100/80",
-                "dark:border-white/20 dark:bg-white/10 dark:hover:bg-white/15",
-              )}
-            >
-              <div className="p-5 pb-0">
-                <span className="text-sm font-medium text-neutral-900 dark:text-white">
-                  {title}
-                </span>
-                <p className="mt-3 max-w-56 text-sm text-neutral-500 dark:text-white/60">
-                  {description}
-                </p>
-              </div>
-              <div className="relative mt-7 grow overflow-hidden pl-5 [mask-image:linear-gradient(90deg,black_50%,transparent)]">
-                <div
-                  className={cn(
-                    "relative size-full overflow-hidden rounded-tl-lg border-l border-t border-black/10",
-                    "[mask-image:linear-gradient(black_50%,transparent)]",
-                  )}
-                >
-                  <Image
-                    src={thumbnail}
-                    alt={`${title} thumbnail`}
-                    fill
-                    className="bg-white object-cover object-left-top grayscale transition-[filter] duration-75 group-hover:grayscale-0 dark:opacity-50"
-                  />
-                </div>
-              </div>
-            </Link>
-          </NavigationMenuLink>
-        ))}
-      </div>
-      <div className="flex flex-col gap-2 px-6 py-4">
-        <div>
-          <p className={cn(contentHeadingClassName, "mb-2")}>SDKs</p>
-          <div className="flex flex-col gap-0.5">
-            {SDKS.map(({ icon: Icon, iconClassName, title, href }) => (
-              <ContentLinkCard
-                key={href}
-                className="-mx-2"
+    <div className="grid w-[1020px] grid-cols-[0.9fr,0.55fr,0.55fr] divide-x divide-neutral-200 dark:divide-white/20">
+      <div className="flex h-full flex-col p-4">
+        <p className={cn(contentHeadingClassName, "mb-4 ml-2")}>Explore</p>
+        <div className="grid grow grid-cols-2 gap-4">
+          {mainLinks.map(({ icon: Icon, title, description, href }) => (
+            <NavigationMenuLink key={title} asChild>
+              <Link
+                key={title}
                 href={createHref(
                   href,
                   domain,
                   getUtmParams({ domain, utm_content: title }),
                 )}
-                icon={
-                  <div className="shrink-0 rounded-[10px] border border-neutral-200 bg-white/50 p-1 dark:border-white/20 dark:bg-white/10">
-                    <Icon
-                      className={cn(
-                        "size-5 text-neutral-600 transition-colors dark:text-white/60",
-                        iconClassName,
-                      )}
+                className={cn(
+                  "group relative isolate z-0 flex flex-col justify-between overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 px-5 py-4 transition-colors duration-75",
+                  "dark:border-white/20 dark:bg-neutral-900",
+                )}
+              >
+                <div className="absolute inset-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                  <div className="absolute -inset-[25%] -skew-y-12 [mask-image:linear-gradient(225deg,black,transparent_50%)]">
+                    <Grid
+                      cellSize={46}
+                      patternOffset={[0, -14]}
+                      className="translate-y-2 text-[#ad1f3288] transition-transform duration-150 ease-out group-hover:translate-y-0"
                     />
                   </div>
-                }
-                title={title}
-                showArrow
-              />
-            ))}
-          </div>
-        </div>
-        <div className="-mx-2 flex grow flex-col justify-end">
-          <NavigationMenuLink asChild>
-            <Link
-              href={createHref(
-                "/brand",
-                domain,
-                getUtmParams({ domain, utm_content: "Dub Brand" }),
-              )}
-              className="group relative flex flex-col overflow-hidden rounded-xl bg-black transition-colors duration-75 dark:border dark:border-white/20"
-            >
-              <div className="pointer-events-none absolute inset-0">
-                <div className="absolute -inset-[50%] opacity-30 blur-[20px] transition-opacity duration-300 group-hover:opacity-40 dark:group-hover:opacity-35">
                   <div
                     className={cn(
-                      "absolute inset-0 rounded-xl",
-                      "bg-[radial-gradient(20%_80%_at_50%_100%,#fd3a4e,transparent),radial-gradient(30%_80%_at_40%_50%,#855afc,transparent),radial-gradient(30%_80%_at_60%_50%,#72fe7d,transparent),radial-gradient(30%_100%_at_50%_50%,#e4c795,transparent)]",
+                      "absolute -inset-[10%] opacity-10 blur-[50px] dark:brightness-150",
+                      "bg-[conic-gradient(#F35066_0deg,#F35066_117deg,#9071F9_180deg,#5182FC_240deg,#F35066_360deg)]",
                     )}
                   />
                 </div>
-                <DubWireframeGraphic className="absolute right-0 top-1/2 h-auto w-full -translate-y-1/2 translate-x-[33%] [mask-image:linear-gradient(90deg,#000a,transparent)]" />
-              </div>
-              <div className="relative flex items-center justify-between px-5 py-4">
-                <div>
-                  <span className="block text-sm font-medium text-white">
-                    Dub Brand
+                <Icon className="relative size-5 text-neutral-700 dark:text-white/60" />
+                <div className="relative">
+                  <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                    {title}
                   </span>
-                  <p className="text-sm text-white/60">Logos, wordmark, etc.</p>
+                  <p className="mt-2 text-xs text-neutral-500 dark:text-white/60">
+                    {description}
+                  </p>
                 </div>
-              </div>
-            </Link>
-          </NavigationMenuLink>
+              </Link>
+            </NavigationMenuLink>
+          ))}
+        </div>
+      </div>
+
+      <div className="px-6 py-4">
+        <p className={cn(contentHeadingClassName, "mb-2")}>Company</p>
+        <div className="flex flex-col gap-0.5">
+          {RESOURCES.filter(({ title }) =>
+            ["About", "Careers", "Brand Guidelines", "Contact"].includes(title),
+          ).map(({ icon: Icon, title, description, href }) => (
+            <ContentLinkCard
+              key={href}
+              className="-mx-2"
+              href={createHref(
+                href,
+                domain,
+                getUtmParams({ domain, utm_content: title }),
+              )}
+              icon={
+                <div className="shrink-0 rounded-md border border-neutral-200 bg-white/50 p-2.5 dark:border-white/20 dark:bg-white/10">
+                  <Icon className="size-4 text-neutral-600 transition-colors dark:text-white/60" />
+                </div>
+              }
+              title={title}
+              description={description}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="px-6 py-4">
+        <p className={cn(contentHeadingClassName, "mb-2")}>Updates</p>
+        <div className="flex flex-col gap-0.5">
+          {RESOURCES.filter(({ title }) =>
+            ["Blog", "Changelog"].includes(title),
+          ).map(({ icon: Icon, title, description, href }) => (
+            <ContentLinkCard
+              key={href}
+              className="-mx-2"
+              href={createHref(
+                href,
+                domain,
+                getUtmParams({ domain, utm_content: title }),
+              )}
+              icon={
+                <div className="shrink-0 rounded-md border border-neutral-200 bg-white/50 p-2.5 dark:border-white/20 dark:bg-white/10">
+                  <Icon className="size-4 text-neutral-600 transition-colors dark:text-white/60" />
+                </div>
+              }
+              title={title}
+              description={description}
+            />
+          ))}
         </div>
       </div>
     </div>

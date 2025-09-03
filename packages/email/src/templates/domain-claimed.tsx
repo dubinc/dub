@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function DomainClaimed({
+export default function DomainClaimed({
   email = "panic@thedis.co",
   domain = "dub.link",
   workspaceSlug = "dub",
@@ -30,12 +30,8 @@ export function DomainClaimed({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8 mt-6">
-              <Img
-                src={DUB_WORDMARK}
-                height="32"
-                alt="Dub"
-              />
+            <Section className="mt-8">
+              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
               Successfully claimed your .link domain!
@@ -75,5 +71,3 @@ export function DomainClaimed({
     </Html>
   );
 }
-
-export default DomainClaimed;

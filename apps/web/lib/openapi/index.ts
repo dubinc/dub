@@ -7,13 +7,13 @@ import { createDocument } from "zod-openapi";
 import { webhookEventSchema } from "../webhook/schemas";
 import { FolderSchema } from "../zod/schemas/folders";
 import { analyticsPath } from "./analytics";
+import { commissionsPaths } from "./commissions";
 import { customersPaths } from "./customers";
 import { domainsPaths } from "./domains";
 import { embedTokensPaths } from "./embed-tokens";
 import { eventsPath } from "./events";
 import { foldersPaths } from "./folders";
 import { linksPaths } from "./links";
-import { metatagsPath } from "./metatags";
 import { partnersPaths } from "./partners";
 import { qrCodePaths } from "./qr";
 import { tagsPaths } from "./tags";
@@ -23,12 +23,12 @@ import { workspacesPaths } from "./workspaces";
 export const document = createDocument({
   openapi: "3.0.3",
   info: {
-    title: "Dub.co API",
+    title: "Dub API",
     description:
-      "Dub is link management infrastructure for companies to create marketing campaigns, link sharing features, and referral programs.",
+      "Dub is the modern link attribution platform for short links, conversion tracking, and affiliate programs.",
     version: "0.0.1",
     contact: {
-      name: "Dub.co Support",
+      name: "Dub Support",
       email: "support@dub.co",
       url: "https://dub.co/api",
     },
@@ -53,10 +53,10 @@ export const document = createDocument({
     ...trackPaths,
     ...customersPaths,
     ...partnersPaths,
+    ...commissionsPaths,
     ...workspacesPaths,
     ...embedTokensPaths,
     ...qrCodePaths,
-    ...metatagsPath,
   },
   components: {
     schemas: {

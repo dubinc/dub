@@ -28,11 +28,13 @@ interface DomainSearchResult {
 export function RegisterDomainForm({
   variant = "default",
   saveOnly = false,
+  showTerms = true,
   onSuccess,
   onCancel,
 }: {
   variant?: "default" | "modal";
   saveOnly?: boolean; // Whether to only save the data without actually sending invites
+  showTerms?: boolean;
   onSuccess: (domain: string) => void;
   onCancel?: () => void;
 }) {
@@ -85,7 +87,9 @@ export function RegisterDomainForm({
   const registerDomain = async (domain: string) => {
     setIsRegistering(true);
 
-    const baseUrl = saveOnly ? "/api/domains/saved" : "/api/domains/register";
+    const baseUrl = saveOnly
+      ? "/api/domains/client/saved"
+      : "/api/domains/client/register";
 
     const response = await fetch(
       `${baseUrl}?domain=${domain}&workspaceId=${workspace.id}`,
@@ -295,8 +299,8 @@ export function RegisterDomainForm({
             </div>
           )}
 
-        {searchedDomain && (
-          <p className="-my-2 text-pretty text-left text-sm text-neutral-400">
+        {searchedDomain && showTerms && (
+          <p className="-my-2 text-pretty text-center text-xs text-neutral-500">
             By claiming your .link domain, you agree to our{" "}
             <a
               href="https://dub.co/help/article/free-dot-link-domain#terms-and-conditions"
@@ -305,15 +309,15 @@ export function RegisterDomainForm({
             >
               terms
             </a>
-            .
+            .<br />
+            After the first year, your renewal is $12/year.
           </p>
         )}
       </div>
       <div
         className={cn(
-          "mt-8 flex justify-end gap-2",
-          variant === "modal" &&
-            "border-t border-neutral-200 px-4 py-4 sm:px-6",
+          "mt-4 flex justify-end gap-2",
+          variant === "modal" && "border-t border-neutral-200 p-4 sm:px-6",
         )}
       >
         {onCancel && variant === "modal" && (
@@ -367,7 +371,7 @@ function UpgradeTooltipContent() {
         </>
       }
       cta="Upgrade to Pro"
-      onClick={() => window.open(`/${slug}/upgrade?exit=close`)}
+      onClick={() => window.open(`/${slug}/upgrade`)}
     />
   );
 }

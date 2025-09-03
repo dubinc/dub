@@ -1,13 +1,14 @@
 import {
-  createResponseWithCookie,
+  createResponseWithCookies,
   detectBot,
   getFinalUrl,
-  isSupportedDeeplinkProtocol,
+  isSupportedCustomURIScheme,
   parse,
 } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink } from "@/lib/upstash";
 import {
+  APP_DOMAIN,
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
@@ -27,10 +28,15 @@ import {
 } from "next/server";
 import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
-import { clickCache } from "../api/links/click-cache";
+import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
-import { hasEmptySearchParams } from "./utils/has-empty-search-params";
+import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
+import { crawlBitly } from "./utils/crawl-bitly";
+import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
+import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
+import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -40,10 +46,6 @@ export default async function LinkMiddleware(
 
   if (!domain) {
     return NextResponse.next();
-  }
-
-  if (domain === "dev.buff.ly") {
-    domain = "buff.ly";
   }
 
   // encode the key to ascii
@@ -78,6 +80,7 @@ export default async function LinkMiddleware(
   }
 
   let cachedLink = await linkCache.get({ domain, key });
+  let isPartnerLink = Boolean(cachedLink?.programId && cachedLink?.partnerId);
 
   if (!cachedLink) {
     let linkData = await getLinkViaEdge({
@@ -86,11 +89,8 @@ export default async function LinkMiddleware(
     });
 
     if (!linkData) {
-      // TODO: remove this once everything is migrated over
       if (domain === "buff.ly") {
-        return NextResponse.rewrite(
-          new URL(`/api/links/crawl/bitly/${domain}/${key}`, req.url),
-        );
+        return await crawlBitly(req);
       }
 
       // check if domain has notFoundUrl configured
@@ -112,15 +112,35 @@ export default async function LinkMiddleware(
       }
     }
 
+    isPartnerLink = Boolean(linkData.programId && linkData.partnerId);
+
     // format link to fit the RedisLinkProps interface
     cachedLink = formatRedisLink(linkData as any);
-    // cache in Redis
-    ev.waitUntil(linkCache.set(linkData as any));
+
+    ev.waitUntil(
+      (async () => {
+        if (!isPartnerLink) {
+          await linkCache.set(linkData as any);
+          return;
+        }
+
+        const { partner, discount } = await getPartnerAndDiscount({
+          programId: linkData.programId,
+          partnerId: linkData.partnerId,
+        });
+
+        // we'll use this data on /track/click
+        await linkCache.set({
+          ...(linkData as any),
+          ...(partner && { partner }),
+          ...(discount && { discount }),
+        });
+      })(),
+    );
   }
 
   const {
     id: linkId,
-    url,
     password,
     trackConversion,
     proxy,
@@ -132,8 +152,24 @@ export default async function LinkMiddleware(
     expiredUrl,
     doIndex,
     webhookIds,
+    testVariants,
+    testCompletedAt,
     projectId: workspaceId,
   } = cachedLink;
+
+  const testUrl = resolveABTestURL({
+    testVariants,
+    testCompletedAt,
+  });
+
+  const url = testUrl || cachedLink.url;
+
+  // if the following is true, we need to cache the clickId data (so it's available for subsequent /track/lead requests):
+  // - trackConversion is enabled
+  // - it's a partner link
+  // - it's a Singular tracking URL
+  const shouldCacheClickId =
+    trackConversion || isPartnerLink || isSingularTrackingUrl(url);
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
@@ -207,20 +243,30 @@ export default async function LinkMiddleware(
     }
   }
 
+  const dubIdCookieName = `dub_id_${domain}_${key}`;
+
   const cookieStore = cookies();
-  let clickId = cookieStore.get("dub_id")?.value;
+  let clickId = cookieStore.get(dubIdCookieName)?.value;
   if (!clickId) {
-    // if trackConversion is enabled, check if clickId is cached in Redis
-    if (trackConversion) {
+    // if we need to pass the clickId, check if clickId is cached in Redis
+    if (shouldCacheClickId) {
       const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
 
-      clickId = (await clickCache.get({ domain, key, ip })) || undefined;
+      clickId = (await recordClickCache.get({ domain, key, ip })) || undefined;
     }
+
     // if there's still no clickId, generate a new one
     if (!clickId) {
       clickId = nanoid(16);
     }
   }
+
+  const cookieData = {
+    path: `/${originalKey}`,
+    dubIdCookieName,
+    dubIdCookieValue: clickId,
+    dubTestUrlValue: testUrl,
+  };
 
   // for root domain links, if there's no destination URL, rewrite to placeholder page
   if (!url) {
@@ -234,11 +280,11 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldCacheClickId,
       }),
     );
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.rewrite(new URL(`/${domain}`, req.url), {
         headers: {
           ...DUB_HEADERS,
@@ -246,18 +292,19 @@ export default async function LinkMiddleware(
           ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       }),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
   }
 
   const isBot = detectBot(req);
+  const ua = userAgent(req);
 
   const { country } =
     process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
 
   // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
   if (isBot && proxy) {
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.rewrite(
         new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
         {
@@ -267,11 +314,11 @@ export default async function LinkMiddleware(
           },
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
-    // rewrite to deeplink page if the link is a mailto: or tel:
-  } else if (isSupportedDeeplinkProtocol(url)) {
+    // rewrite to custom-uri-scheme page if the link is a custom URI scheme
+  } else if (isSupportedCustomURIScheme(url)) {
     ev.waitUntil(
       recordClick({
         req,
@@ -282,17 +329,18 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldCacheClickId,
       }),
     );
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.rewrite(
         new URL(
-          `/deeplink/${encodeURIComponent(
+          `/custom-uri-scheme/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              clickId: trackConversion ? clickId : undefined,
+              ...(shouldCacheClickId && { clickId }),
+              ...(isPartnerLink && { via: key }),
             }),
           )}`,
           req.url,
@@ -304,7 +352,7 @@ export default async function LinkMiddleware(
           },
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
     // rewrite to target URL if link cloaking is enabled
@@ -319,17 +367,18 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldCacheClickId,
       }),
     );
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.rewrite(
         new URL(
           `/cloaked/${encodeURIComponent(
             getFinalUrl(url, {
               req,
-              clickId: trackConversion ? clickId : undefined,
+              ...(shouldCacheClickId && { clickId }),
+              ...(isPartnerLink && { via: key }),
             }),
           )}`,
           req.url,
@@ -343,11 +392,11 @@ export default async function LinkMiddleware(
           },
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
     // redirect to iOS link if it is specified and the user is on an iOS device
-  } else if (ios && userAgent(req).os?.name === "iOS") {
+  } else if (ios && ua.os?.name === "iOS") {
     ev.waitUntil(
       recordClick({
         req,
@@ -358,15 +407,51 @@ export default async function LinkMiddleware(
         url: ios,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldCacheClickId,
       }),
     );
 
-    return createResponseWithCookie(
+    // if it's an iOS app store URL (and skip_deeplink_preview is not set)
+    // we need to show the interstitial page + cache deep link click data
+    if (
+      isIosAppStoreUrl(ios) &&
+      !req.nextUrl.searchParams.get("skip_deeplink_preview")
+    ) {
+      ev.waitUntil(
+        cacheDeepLinkClickData({
+          req,
+          clickId,
+          link: {
+            id: linkId,
+            domain,
+            key,
+            url, // pass the main destination URL to the cache (for deferred deep linking)
+          },
+        }),
+      );
+
+      // redirect to the deeplink interstitial splash page "DeepLinkPreviewPage"
+      // we're doing this because the interstitial page needs to be on a different domain than the actual deep link domain
+      // @see: https://stackoverflow.com/a/78189982/10639526
+      return createResponseWithCookies(
+        NextResponse.redirect(
+          new URL(`/deeplink/${domain}/${encodeURIComponent(key)}`, APP_DOMAIN),
+          {
+            headers: {
+              ...DUB_HEADERS,
+              ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+            },
+          },
+        ),
+        cookieData,
+      );
+    }
+    return createResponseWithCookies(
       NextResponse.redirect(
         getFinalUrl(ios, {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          ...(shouldCacheClickId && { clickId }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {
@@ -376,11 +461,11 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
     // redirect to Android link if it is specified and the user is on an Android device
-  } else if (android && userAgent(req).os?.name === "Android") {
+  } else if (android && ua.os?.name === "Android") {
     ev.waitUntil(
       recordClick({
         req,
@@ -391,15 +476,16 @@ export default async function LinkMiddleware(
         url: android,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldCacheClickId,
       }),
     );
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.redirect(
         getFinalUrl(android, {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          ...(shouldCacheClickId && { clickId }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {
@@ -409,7 +495,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
@@ -424,15 +510,16 @@ export default async function LinkMiddleware(
         url: geo[country],
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldCacheClickId,
       }),
     );
 
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.redirect(
         getFinalUrl(geo[country], {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          ...(shouldCacheClickId && { clickId }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {
@@ -442,7 +529,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
 
     // regular redirect
@@ -457,28 +544,16 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
-        trackConversion,
+        shouldCacheClickId,
       }),
     );
 
-    if (hasEmptySearchParams(url)) {
-      return NextResponse.rewrite(new URL("/api/patch-redirect", req.url), {
-        request: {
-          headers: new Headers({
-            destination: getFinalUrl(url, {
-              req,
-              clickId: trackConversion ? clickId : undefined,
-            }),
-          }),
-        },
-      });
-    }
-
-    return createResponseWithCookie(
+    return createResponseWithCookies(
       NextResponse.redirect(
         getFinalUrl(url, {
           req,
-          clickId: trackConversion ? clickId : undefined,
+          ...(shouldCacheClickId && { clickId }),
+          ...(isPartnerLink && { via: key }),
         }),
         {
           headers: {
@@ -488,7 +563,7 @@ export default async function LinkMiddleware(
           status: key === "_root" ? 301 : 302,
         },
       ),
-      { clickId, path: `/${originalKey}` },
+      cookieData,
     );
   }
 }

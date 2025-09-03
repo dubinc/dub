@@ -134,17 +134,9 @@ function AddEditTokenModal({
   const buttonDisabled =
     (!name || token?.name === name) && token?.scopes === scopes;
 
-  const scopesByResources = useMemo(() => {
-    let scopes = transformScopesForUI(getScopesByResourceForRole(role)).filter(
-      ({ name }) => name,
-    );
-
-    if (!flags?.linkFolders) {
-      scopes = scopes.filter(({ key }) => key !== "folders");
-    }
-
-    return scopes;
-  }, [role, flags?.linkFolders]);
+  const scopesByResources = transformScopesForUI(
+    getScopesByResourceForRole(role),
+  ).filter(({ name }) => name);
 
   return (
     <>

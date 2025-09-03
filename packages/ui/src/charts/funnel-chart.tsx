@@ -24,7 +24,6 @@ const layers = [
 ];
 
 const maxLayerPadding = 16;
-const chartPadding = 40;
 
 type FunnelChartProps = {
   steps: {
@@ -35,7 +34,9 @@ type FunnelChartProps = {
     colorClassName: string;
   }[];
   persistentPercentages?: boolean;
+  tooltips?: boolean;
   defaultTooltipStepId?: string;
+  chartPadding?: number;
 };
 
 export function FunnelChart(props: FunnelChartProps) {
@@ -57,7 +58,9 @@ function FunnelChartInner({
   height,
   steps,
   persistentPercentages = true,
+  tooltips = true,
   defaultTooltipStepId,
+  chartPadding = 40,
 }: {
   width: number;
   height: number;
@@ -109,18 +112,20 @@ function FunnelChartInner({
           return (
             <Fragment key={id}>
               {/* Background */}
-              <rect
-                x={xScale(idx)}
-                y={0}
-                width={width / steps.length}
-                height={height}
-                className="fill-transparent transition-colors hover:fill-blue-600/5"
-                onPointerEnter={() => setTooltip(id)}
-                onPointerDown={() => setTooltip(id)}
-                onPointerLeave={() =>
-                  !isMobile && setTooltip(defaultTooltipStepId ?? null)
-                }
-              />
+              {tooltips && (
+                <rect
+                  x={xScale(idx)}
+                  y={0}
+                  width={width / steps.length}
+                  height={height}
+                  className="fill-transparent transition-colors hover:fill-blue-600/5"
+                  onPointerEnter={() => setTooltip(id)}
+                  onPointerDown={() => setTooltip(id)}
+                  onPointerLeave={() =>
+                    !isMobile && setTooltip(defaultTooltipStepId ?? null)
+                  }
+                />
+              )}
 
               {/* Divider line */}
               <line

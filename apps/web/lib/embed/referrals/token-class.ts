@@ -1,6 +1,5 @@
-import { redis } from "@/lib/upstash";
-
 import { createId } from "@/lib/api/create-id";
+import { redis } from "@/lib/upstash";
 import {
   EMBED_PUBLIC_TOKEN_EXPIRY,
   EMBED_PUBLIC_TOKEN_PREFIX,
@@ -24,7 +23,7 @@ class ReferralsEmbedToken {
 
     return {
       publicToken,
-      expires: new Date(Date.now() + EMBED_PUBLIC_TOKEN_EXPIRY),
+      expires: new Date(Date.now() + EMBED_PUBLIC_TOKEN_EXPIRY * 1000),
     };
   }
 

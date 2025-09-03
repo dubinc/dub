@@ -17,7 +17,7 @@ export default async function NewLinkMiddleware(
   if (defaultWorkspace) {
     return NextResponse.redirect(
       new URL(
-        `/${defaultWorkspace}?newLink=${searchParams.get("link") || true}${searchParams.has("domain") ? `&newLinkDomain=${searchParams.get("domain")}` : ""}`,
+        `/${defaultWorkspace}/links?newLink=${searchParams.get("link") || true}${searchParams.has("domain") ? `&newLinkDomain=${searchParams.get("domain")}` : ""}`,
         req.url,
       ),
     );

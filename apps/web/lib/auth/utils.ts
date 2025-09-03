@@ -41,7 +41,5 @@ export function generateOTP() {
   const randomNumber = Math.floor(Math.random() * 1000000);
 
   // Pad the number with leading zeros if necessary to ensure it is always 6 digits
-  const otp = randomNumber.toString().padStart(6, "0");
-
-  return otp;
+  return randomNumber.toString().padStart(6, "0");
 }

@@ -1,8 +1,9 @@
-import { limiter } from "@/lib/cron/limiter";
-import { sendEmail } from "@dub/email";
-import { PartnerApplicationReceived } from "@dub/email/templates/partner-application-received";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import PartnerApplicationReceived from "@dub/email/templates/partner-application-received";
 import { prisma } from "@dub/prisma";
 import { Partner, Program, ProgramApplication } from "@dub/prisma/client";
+import { chunk } from "@dub/utils";
 
 export async function notifyPartnerApplication({
   partner,
@@ -39,34 +40,38 @@ export async function notifyPartnerApplication({
     },
   });
 
+  // Create all emails first, then chunk them into batches of 100
+  const allEmails = workspaceUsers.map(({ user, project }) => ({
+    subject: `New partner application for ${program.name}`,
+    from: VARIANT_TO_FROM_MAP.notifications,
+    to: user.email!,
+    react: PartnerApplicationReceived({
+      email: user.email!,
+      partner: {
+        id: partner.id,
+        name: partner.name,
+        email: partner.email!,
+        image: partner.image,
+        country: partner.country,
+        proposal: application.proposal,
+        comments: application.comments,
+      },
+      program: {
+        name: program.name,
+        autoApprovePartners: program.autoApprovePartnersEnabledAt
+          ? true
+          : false,
+      },
+      workspace: {
+        slug: project.slug,
+      },
+    }),
+  }));
+
+  const emailChunks = chunk(allEmails, 100);
+
+  // Send all emails in batches
   await Promise.all(
-    workspaceUsers.map(({ user, project }) =>
-      limiter.schedule(() =>
-        sendEmail({
-          subject: `New partner application for ${program.name}`,
-          email: user.email!,
-          react: PartnerApplicationReceived({
-            email: user.email!,
-            partner: {
-              id: partner.id,
-              name: partner.name,
-              email: partner.email!,
-              image: partner.image,
-              country: partner.country,
-              proposal: application.proposal,
-              comments: application.comments,
-            },
-            program: {
-              id: program.id,
-              name: program.name,
-            },
-            workspace: {
-              slug: project.slug,
-            },
-          }),
-          variant: "notifications",
-        }),
-      ),
-    ),
+    emailChunks.map((emailChunk) => resend?.batch.send(emailChunk)),
   );
 }

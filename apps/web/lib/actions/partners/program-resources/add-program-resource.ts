@@ -1,7 +1,9 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { storage } from "@/lib/storage";
+import { uploadedImageAllowSVGSchema } from "@/lib/zod/schemas/misc";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
@@ -15,14 +17,20 @@ import { authActionClient } from "../../safe-action";
 // Base schema for all resource types
 const baseResourceSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   name: z.string().min(1, "Name is required"),
 });
 
-// Schema for file-based resources (logos and files)
+// Schema for logo resources
+const logoResourceSchema = baseResourceSchema.extend({
+  resourceType: z.literal("logo"),
+  file: uploadedImageAllowSVGSchema,
+  extension: z.string().nullish(),
+});
+
+// Schema for file resources
 const fileResourceSchema = baseResourceSchema.extend({
-  resourceType: z.enum(["logo", "file"]),
-  file: z.string(), // Base64 encoded file
+  resourceType: z.literal("file"),
+  file: z.string(),
   extension: z.string().nullish(),
 });
 
@@ -34,6 +42,7 @@ const colorResourceSchema = baseResourceSchema.extend({
 
 // Combined schema that can handle any resource type
 const addResourceSchema = z.discriminatedUnion("resourceType", [
+  logoResourceSchema,
   fileResourceSchema,
   colorResourceSchema,
 ]);
@@ -42,7 +51,8 @@ export const addProgramResourceAction = authActionClient
   .schema(addResourceSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
-    const { programId, name, resourceType } = parsedInput;
+    const { name, resourceType } = parsedInput;
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     // Verify the program exists and belongs to the workspace
     const program = await prisma.program.findUnique({
@@ -69,6 +79,10 @@ export const addProgramResourceAction = authActionClient
     if (resourceType === "logo" || resourceType === "file") {
       const { file, extension } = parsedInput;
 
+      if (!file) {
+        throw new Error("File is required.");
+      }
+
       // Upload the file to storage
       const fileKey = `programs/${program.id}/${resourceType}s/${slugify(name || resourceType)}-${nanoid(4)}${extension ? `.${extension}` : ""}`;
       const uploadResult = await storage.upload(
@@ -78,6 +92,9 @@ export const addProgramResourceAction = authActionClient
           ? {
               headers: {
                 "Content-Disposition": "attachment",
+                ...(extension === "svg" && {
+                  "Content-Type": "image/svg+xml",
+                }),
               },
             }
           : undefined,
@@ -133,8 +150,4 @@ export const addProgramResourceAction = authActionClient
         resources: updatedResources,
       },
     });
-
-    return {
-      success: true,
-    };
   });

@@ -37,7 +37,7 @@ function DeleteDomainModal({
         <div className="space-y-2 text-sm text-neutral-500">
           <p>
             Deleting this domain will delete all associated links as well as
-            their anaytics, permanently.
+            their analytics, permanently.
           </p>
           {Boolean(props.registeredDomain) && (
             <p>The domain will also be provisioned back to Dub.</p>

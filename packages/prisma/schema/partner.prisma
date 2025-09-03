@@ -15,62 +15,47 @@ enum PartnerProfileType {
 }
 
 model Partner {
-  id                String             @id @default(cuid())
-  name              String
-  companyName       String?
-  profileType       PartnerProfileType @default(individual)
-  email             String?            @unique
-  image             String?
-  description       String?            @db.Text
-  country           String?
-  status            PartnerStatus      @default(default)
-  stripeConnectId   String?            @unique
-  payoutsEnabledAt  DateTime?
+  id                           String             @id @default(cuid())
+  name                         String
+  companyName                  String?
+  profileType                  PartnerProfileType @default(individual)
+  email                        String?            @unique
+  image                        String?
+  description                  String?            @db.Text
+  country                      String?
+  status                       PartnerStatus      @default(default)
+  paypalEmail                  String?            @unique
+  stripeConnectId              String?            @unique
+  payoutsEnabledAt             DateTime?
+  minWithdrawalAmount          Int                @default(10000) // Default minimum withdrawal amount of $100
   connectPayoutsLastRemindedAt DateTime?
-  showOnLeaderboard Boolean            @default(true)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  createdAt                    DateTime           @default(now())
+  updatedAt                    DateTime           @updatedAt
+  website                      String?
+  websiteTxtRecord             String?
+  websiteVerifiedAt            DateTime?
+  youtube                      String?
+  youtubeChannelId             String?
+  youtubeVerifiedAt            DateTime?
+  youtubeSubscriberCount       Int                @default(0)
+  youtubeVideoCount            Int                @default(0)
+  youtubeViewCount             Int                @default(0)
+  twitter                      String?
+  twitterVerifiedAt            DateTime?
+  linkedin                     String?
+  linkedinVerifiedAt           DateTime?
+  instagram                    String?
+  instagramVerifiedAt          DateTime?
+  tiktok                       String?
+  tiktokVerifiedAt             DateTime?
+  invoiceSettings              Json?
 
-
-  programs     ProgramEnrollment[]
-  users        PartnerUser[]
-  invites      PartnerInvite[]
-  payouts      Payout[]
-  commissions  Commission[]
-
-  website           String?
-  websiteTxtRecord  String?
-  websiteVerifiedAt DateTime?
-
-  youtube           String?
-  youtubeVerifiedAt DateTime?
-
-  twitter           String?
-  twitterVerifiedAt DateTime?
-
-  linkedin           String?
-  linkedinVerifiedAt DateTime?
-
-  instagram           String?
-  instagramVerifiedAt DateTime?
-
-  tiktok           String?
-  tiktokVerifiedAt DateTime?
-}
-
-model PartnerUser {
-  id        String      @id @default(cuid())
-  role      PartnerRole @default(member)
-  userId    String
-  partnerId String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, partnerId])
-  @@index([partnerId])
+  programs          ProgramEnrollment[]
+  users             PartnerUser[]
+  invites           PartnerInvite[]
+  payouts           Payout[]
+  commissions       Commission[]
+  bountySubmissions BountySubmission[]
 }
 
 model PartnerInvite {
@@ -84,4 +69,56 @@ model PartnerInvite {
 
   @@unique([email, partnerId])
   @@index([partnerId])
+}
+
+model PartnerUser {
+  id        String      @id @default(cuid())
+  role      PartnerRole @default(member)
+  userId    String
+  partnerId String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  notificationPreferences PartnerNotificationPreferences?
+
+  @@unique([userId, partnerId])
+  @@index([partnerId])
+}
+
+model PartnerNotificationPreferences {
+  id            String @id @default(cuid())
+  partnerUserId String @unique
+
+  commissionCreated   Boolean @default(true)
+  applicationApproved Boolean @default(true)
+
+  partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
+}
+
+model PartnerGroup {
+  id            String   @id @default(cuid())
+  programId     String
+  name          String
+  slug          String
+  color         String?
+  clickRewardId String?  @unique
+  leadRewardId  String?  @unique
+  saleRewardId  String?  @unique
+  discountId    String?  @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  program      Program              @relation(fields: [programId], references: [id], onDelete: Cascade)
+  clickReward  Reward?              @relation("ClickReward", fields: [clickRewardId], references: [id])
+  leadReward   Reward?              @relation("LeadReward", fields: [leadRewardId], references: [id])
+  saleReward   Reward?              @relation("SaleReward", fields: [saleRewardId], references: [id])
+  discount     Discount?            @relation(fields: [discountId], references: [id])
+  partners     ProgramEnrollment[]
+  applications ProgramApplication[]
+  bounties     BountyGroup[]
+
+  @@unique([programId, slug])
 }

@@ -15,7 +15,7 @@ import {
 import { WorkspaceProps } from "../../../../apps/web/lib/types";
 import { Footer } from "../components/footer";
 
-export function LinksLimitAlert({
+export default function LinksLimitAlert({
   email = "panic@thedis.co",
   workspace = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
@@ -49,7 +49,7 @@ export function LinksLimitAlert({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-6 mt-8">
+            <Section className="mt-8">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
@@ -118,5 +118,3 @@ export function LinksLimitAlert({
     </Html>
   );
 }
-
-export default LinksLimitAlert;

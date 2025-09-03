@@ -17,6 +17,7 @@ type DeleteLinkModalProps = {
   showDeleteLinkModal: boolean;
   setShowDeleteLinkModal: Dispatch<SetStateAction<boolean>>;
   links: LinkProps[];
+  onSuccess?: () => void;
 };
 
 function DeleteLinkModal(props: DeleteLinkModalProps) {
@@ -33,6 +34,7 @@ function DeleteLinkModal(props: DeleteLinkModalProps) {
 function DeleteLinkModalInner({
   setShowDeleteLinkModal,
   links,
+  onSuccess,
 }: DeleteLinkModalProps) {
   const { id } = useWorkspace();
   const [deleting, setDeleting] = useState(false);
@@ -83,6 +85,7 @@ function DeleteLinkModalInner({
             if (res.status === 200) {
               await mutatePrefix("/api/links");
               setShowDeleteLinkModal(false);
+              onSuccess?.();
               toast.success(
                 `Successfully deleted ${pluralize("link", links.length)}!`,
               );
@@ -138,8 +141,10 @@ function DeleteLinkModalInner({
 
 export function useDeleteLinkModal({
   props,
+  onSuccess,
 }: {
   props?: LinkProps | LinkProps[];
+  onSuccess?: () => void;
 }) {
   const [showDeleteLinkModal, setShowDeleteLinkModal] = useState(false);
 
@@ -149,6 +154,7 @@ export function useDeleteLinkModal({
         showDeleteLinkModal={showDeleteLinkModal}
         setShowDeleteLinkModal={setShowDeleteLinkModal}
         links={Array.isArray(props) ? props : [props]}
+        onSuccess={onSuccess}
       />
     ) : null;
   }, [showDeleteLinkModal, setShowDeleteLinkModal]);

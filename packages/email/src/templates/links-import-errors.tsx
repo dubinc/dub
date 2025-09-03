@@ -19,7 +19,7 @@ import { Footer } from "../components/footer";
 
 const MAX_ERROR_LINKS = 20;
 
-export function LinksImportErrors({
+export default function LinksImportErrors({
   email,
   provider = "CSV",
   errorLinks = [
@@ -54,7 +54,7 @@ export function LinksImportErrors({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-6 mt-8">
+            <Section className="mt-8">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
@@ -124,5 +124,3 @@ export function LinksImportErrors({
     </Html>
   );
 }
-
-export default LinksImportErrors;

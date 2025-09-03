@@ -5,6 +5,8 @@ import { determinePartnerReward } from "@/lib/partners/determine-partner-reward"
 import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@dub/prisma/client";
+import { getProgramEnrollmentOrThrow } from "../programs/get-program-enrollment-or-throw";
+import { syncTotalCommissions } from "./sync-total-commissions";
 
 export const backfillLinkCommissions = async (link: {
   id: string;
@@ -21,17 +23,18 @@ export const backfillLinkCommissions = async (link: {
     sortBy: "timestamp",
   })) as SaleEvent[];
 
-  const program = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: link.programId,
-    },
+  const programEnrollment = await getProgramEnrollmentOrThrow({
+    partnerId: link.partnerId,
+    programId: link.programId,
+    includeSaleReward: true,
   });
 
   const reward = await determinePartnerReward({
-    programId: program.id,
-    partnerId: link.partnerId,
     event: "sale",
+    programEnrollment,
   });
+
+  const { program } = programEnrollment;
 
   if (!reward || reward.amount === 0) {
     console.log("No reward.", reward);
@@ -63,8 +66,15 @@ export const backfillLinkCommissions = async (link: {
       }),
     }));
 
-  return await prisma.commission.createMany({
+  // create commissions
+  await prisma.commission.createMany({
     data,
     skipDuplicates: true,
+  });
+
+  // sync total commissions for the partner in the program
+  await syncTotalCommissions({
+    partnerId: link.partnerId,
+    programId: link.programId,
   });
 };

@@ -1,5 +1,7 @@
+import { DomainStatusSchema } from "@/lib/zod/schemas/domains";
 import { Domain } from "@dub/prisma/client";
 import { describe, expect, onTestFinished, test } from "vitest";
+import { z } from "zod";
 import { randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -27,6 +29,7 @@ const expectedDomain = {
   logo: null,
   appleAppSiteAssociation: null,
   assetLinks: null,
+  deepviewData: "{}",
 };
 
 describe.sequential("/domains/**", async () => {
@@ -77,6 +80,14 @@ describe.sequential("/domains/**", async () => {
       ...expectedDomain,
       primary: true,
     });
+
+    onTestFinished(async () => {
+      // reset the primary domain
+      await http.post<Domain>({
+        path: "/domains/getacme.link/primary",
+        query: { workspaceId: workspace.id },
+      });
+    });
   });
 
   test("PATCH /domains/{slug}", { retry: 3 }, async () => {
@@ -102,5 +113,39 @@ describe.sequential("/domains/**", async () => {
       ...expectedDomain,
       ...toUpdate,
     });
+  });
+
+  test("GET /domains/status", async () => {
+    const domains = [
+      "getacme.link", // expected to be unavailable
+      `acme-${randomId(4).toLowerCase()}.link`, // expected to be available
+    ];
+
+    const { status, data: domainStatuses } = await http.get<
+      z.infer<typeof DomainStatusSchema>[]
+    >({
+      path: "/domains/status",
+      query: {
+        workspaceId: workspace.id,
+        domains: domains.join(","),
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(domainStatuses).toHaveLength(2);
+    expect(domainStatuses).toEqual([
+      {
+        domain: domains[0],
+        available: false,
+        price: null,
+        premium: null,
+      },
+      {
+        domain: domains[1],
+        available: true,
+        price: expect.any(String),
+        premium: expect.any(Boolean),
+      },
+    ]);
   });
 });

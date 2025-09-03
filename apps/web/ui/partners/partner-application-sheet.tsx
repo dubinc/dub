@@ -4,8 +4,9 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, useRouterStuff } from "@dub/ui";
+import { Button, Sheet, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
@@ -14,6 +15,7 @@ import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
+import { GroupSelector } from "./groups/group-selector";
 import { OnlinePresenceSummary } from "./online-presence-summary";
 import { PartnerInfoSection } from "./partner-info-section";
 import { PartnerLinkSelector } from "./partner-link-selector";
@@ -28,65 +30,65 @@ function PartnerApplicationSheetContent({
   setIsOpen,
 }: PartnerApplicationSheetProps) {
   return (
-    <>
-      <div className="flex grow flex-col">
-        <div className="flex items-start justify-between p-6">
-          <Sheet.Title className="text-xl font-semibold">
-            Partner application
-          </Sheet.Title>
-          <div className="flex items-center gap-2">
-            <Sheet.Close asChild>
-              <Button
-                variant="outline"
-                icon={<X className="size-5" />}
-                className="h-auto w-fit p-1"
-              />
-            </Sheet.Close>
-          </div>
+    <div className="flex h-full flex-col">
+      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
+        <Sheet.Title className="text-lg font-semibold">
+          Partner application
+        </Sheet.Title>
+        <div className="flex items-center gap-2">
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
         </div>
-        <div className="border-y border-neutral-200 bg-neutral-50 p-6">
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="border-b border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
           <PartnerInfoSection partner={partner} />
         </div>
         <div className="p-6 text-sm text-neutral-600">
           <PendingPartnerSummary partner={partner} />
         </div>
-
-        {partner.status === "pending" && (
-          <div className="flex grow flex-col justify-end">
-            <div className="border-t border-neutral-200 p-5">
-              <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
-            </div>
-          </div>
-        )}
       </div>
-    </>
+
+      {partner.status === "pending" && (
+        <div className="border-t border-neutral-200 p-5">
+          <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
+        </div>
+      )}
+    </div>
   );
 }
 
 function PendingPartnerSummary({ partner }: { partner: EnrolledPartnerProps }) {
   return (
-    <div className="grid grid-cols-1 gap-8 text-sm text-neutral-500">
+    <div className="grid grid-cols-1 gap-6 text-sm text-neutral-600">
       <div>
-        <h4 className="font-semibold text-neutral-900">Online presence</h4>
-        <OnlinePresenceSummary partner={partner} className="mt-2" />
-      </div>
-      <div>
-        <h4 className="font-semibold text-neutral-900">Description</h4>
-        <p className="mt-2">
+        <h4 className="text-content-emphasis font-semibold">Description</h4>
+        <p className="mt-1">
           {partner.description || (
-            <span className="italic text-neutral-400">
+            <span className="text-content-muted italic">
               No description provided
             </span>
           )}
         </p>
       </div>
+      <hr className="border-neutral-200" />
       {partner.applicationId && (
         <>
-          <hr className="border-neutral-200" />
           <PartnerApplication applicationId={partner.applicationId} />
+          <hr className="border-neutral-200" />
         </>
       )}
+      <div>
+        <h4 className="text-content-emphasis font-semibold">Online presence</h4>
+        <OnlinePresenceSummary partner={partner} className="mt-3" />
+      </div>
     </div>
   );
 }
@@ -114,11 +116,11 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-6">
+    <div className="grid grid-cols-1 gap-6 text-sm">
       {fields.map((field) => (
         <div key={field.title}>
-          <h4 className="font-semibold text-neutral-900">{field.title}</h4>
-          <div className="mt-1.5">
+          <h4 className="text-content-emphasis font-semibold">{field.title}</h4>
+          <div className="mt-1">
             {field.value || field.value === "" ? (
               <Linkify
                 as="p"
@@ -129,7 +131,11 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
                     "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
                 }}
               >
-                {field.value || "No response provided"}
+                {field.value || (
+                  <span className="text-content-muted italic">
+                    No response provided
+                  </span>
+                )}
               </Linkify>
             ) : (
               <div className="h-5 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
@@ -169,10 +175,17 @@ function PartnerApproval({
   partner: EnrolledPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { isMobile } = useMediaQuery();
+  const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
   const [isApproving, setIsApproving] = useState(false);
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
+    partner.groupId ?? program?.defaultGroupId ?? undefined,
+  );
+
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
   const [linkError, setLinkError] = useState(false);
 
@@ -181,13 +194,11 @@ function PartnerApproval({
   }, [selectedLinkId]);
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
-    onSuccess() {
-      mutatePrefix(
-        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
-      );
-
-      toast.success("Approved the partner successfully.");
+    onSuccess: async () => {
+      await mutatePrefix("/api/partners");
+      queryParams({ del: "partnerId" });
       setIsOpen(false);
+      toast.success("Approved the partner successfully.");
     },
     onError({ error }) {
       toast.error(error.serverError || "Failed to approve partner.");
@@ -228,88 +239,166 @@ function PartnerApproval({
     return result.id;
   };
 
-  return (
-    <div className="flex">
-      <div
-        className={cn(
-          "transition-[width] duration-300",
-          isApproving ? "w-[52px]" : "w-[83px]",
-        )}
-      >
-        {isApproving ? (
-          <Button
-            type="button"
-            variant="secondary"
-            icon={<ChevronLeft className="size-4 shrink-0" />}
-            onClick={() => {
-              setIsApproving(false);
-              setSelectedLinkId(null);
-            }}
-          />
-        ) : (
-          <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
-        )}
-      </div>
+  const handleApproveClick = async () => {
+    if (!program || !workspaceId) {
+      return;
+    }
 
-      <div className="flex grow pl-2">
-        <div
-          className={cn(
-            "w-0 transition-[width] duration-300",
-            isApproving && "w-full",
-          )}
-        >
-          <div className="w-[calc(100%-8px)]">
-            <PartnerLinkSelector
-              selectedLinkId={selectedLinkId}
-              setSelectedLinkId={setSelectedLinkId}
-              showDestinationUrl={false}
-              onCreate={async (search) => {
-                try {
-                  await createLink(search);
-                  return true;
-                } catch (error) {
-                  toast.error(error?.message ?? "Failed to create link");
-                }
-                return false;
-              }}
-              error={linkError}
-            />
+    if (!isApproving) {
+      setIsApproving(true);
+      setLinkError(false);
+      return;
+    }
+
+    // Approve partner
+    await executeAsync({
+      workspaceId: workspaceId!,
+      partnerId: partner.id,
+      linkId: selectedLinkId,
+      groupId: selectedGroupId!,
+    });
+  };
+
+  const handleBackClick = () => {
+    setIsApproving(false);
+    setSelectedLinkId(null);
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <GroupSelector
+        selectedGroupId={selectedGroupId ?? null}
+        setSelectedGroupId={setSelectedGroupId}
+      />
+      {isMobile ? (
+        <div className="flex flex-col gap-3">
+          {/* First row - Approve button */}
+          <div className="flex">
+            <div className="flex grow">
+              <Button
+                type="button"
+                variant="primary"
+                text="Approve"
+                loading={isPending}
+                className="w-full"
+                disabled={!selectedGroupId}
+                onClick={handleApproveClick}
+              />
+            </div>
+          </div>
+
+          {/* Second row - Reject button and link selector */}
+          <div className="flex">
+            <div
+              className={cn(
+                "transition-[width] duration-300",
+                isApproving ? "w-10" : "w-full",
+              )}
+            >
+              {isApproving ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  icon={<ChevronLeft className="size-4 shrink-0" />}
+                  onClick={handleBackClick}
+                />
+              ) : (
+                <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
+              )}
+            </div>
+
+            <div
+              className={cn(
+                "overflow-hidden transition-[width] duration-300",
+                isApproving ? "w-full pl-2" : "w-0",
+              )}
+            >
+              <div
+                className={cn(
+                  "w-0 transition-[width] duration-300",
+                  isApproving && "w-full",
+                )}
+              >
+                <PartnerLinkSelector
+                  selectedLinkId={selectedLinkId}
+                  setSelectedLinkId={setSelectedLinkId}
+                  showDestinationUrl={false}
+                  onCreate={async (search) => {
+                    try {
+                      await createLink(search);
+                      return true;
+                    } catch (error) {
+                      toast.error(error?.message ?? "Failed to create link");
+                    }
+                    return false;
+                  }}
+                  error={linkError}
+                  optional
+                />
+              </div>
+            </div>
           </div>
         </div>
+      ) : (
+        <div className="flex">
+          <div
+            className={cn(
+              "transition-[width] duration-300",
+              isApproving ? "w-[52px]" : "w-[83px]",
+            )}
+          >
+            {isApproving ? (
+              <Button
+                type="button"
+                variant="secondary"
+                icon={<ChevronLeft className="size-4 shrink-0" />}
+                onClick={handleBackClick}
+              />
+            ) : (
+              <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
+            )}
+          </div>
 
-        <div className="grow">
-          <Button
-            type="button"
-            variant="primary"
-            text="Approve"
-            loading={isPending}
-            onClick={async () => {
-              if (!isApproving) {
-                setIsApproving(true);
-                setLinkError(false);
-                return;
-              }
+          <div className="flex grow pl-2">
+            <div
+              className={cn(
+                "w-0 transition-[width] duration-300",
+                isApproving && "w-full",
+              )}
+            >
+              <div className="w-[calc(100%-8px)]">
+                <PartnerLinkSelector
+                  selectedLinkId={selectedLinkId}
+                  setSelectedLinkId={setSelectedLinkId}
+                  showDestinationUrl={false}
+                  onCreate={async (search) => {
+                    try {
+                      await createLink(search);
+                      return true;
+                    } catch (error) {
+                      toast.error(error?.message ?? "Failed to create link");
+                    }
+                    return false;
+                  }}
+                  error={linkError}
+                  optional
+                />
+              </div>
+            </div>
 
-              if (!selectedLinkId) {
-                setLinkError(true);
-                return;
-              }
-
-              if (!program) {
-                return;
-              }
-
-              // Approve partner
-              await executeAsync({
-                workspaceId: workspaceId!,
-                partnerId: partner.id,
-                programId: program.id,
-                linkId: selectedLinkId,
-              });
-            }}
-          />
+            <div className="grow">
+              <Button
+                type="button"
+                variant="primary"
+                text="Approve"
+                loading={isPending}
+                disabled={!selectedGroupId}
+                onClick={handleApproveClick}
+              />
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -322,36 +411,48 @@ function PartnerRejectButton({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: workspaceId } = useWorkspace();
-  const { program } = useProgram();
 
-  const { executeAsync, isPending } = useAction(rejectPartnerAction, {
-    onSuccess: async () => {
-      await mutatePrefix(
-        `/api/partners?workspaceId=${workspaceId}&programId=${program!.id}`,
-      );
-
-      toast.success("Partner rejected successfully.");
-      setIsOpen(false);
+  const { executeAsync: rejectPartner, isPending } = useAction(
+    rejectPartnerAction,
+    {
+      onSuccess: async () => {
+        await mutatePrefix("/api/partners");
+        toast.success(
+          "Application rejected. No email sent, and they can reapply in 30 days.",
+        );
+        setIsOpen(false);
+      },
+      onError({ error }) {
+        toast.error(error.serverError || "Failed to reject partner.");
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError || "Failed to reject partner.");
+  );
+
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Reject Application",
+    description: "Are you sure you want to reject this partner application?",
+    confirmText: "Reject",
+    onConfirm: async () => {
+      await rejectPartner({
+        workspaceId: workspaceId!,
+        partnerId: partner.id,
+      });
     },
   });
 
   return (
-    <Button
-      type="button"
-      variant="secondary"
-      text={isPending ? "" : "Reject"}
-      loading={isPending}
-      onClick={async () => {
-        await executeAsync({
-          workspaceId: workspaceId!,
-          partnerId: partner.id,
-          programId: program!.id,
-        });
-      }}
-    />
+    <>
+      {confirmModal}
+      <Button
+        type="button"
+        variant="secondary"
+        text={isPending ? "" : "Reject"}
+        loading={isPending}
+        onClick={() => {
+          setShowConfirmModal(true);
+        }}
+      />
+    </>
   );
 }
 

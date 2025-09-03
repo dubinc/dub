@@ -1,114 +1,80 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { PAYOUT_FEES } from "@/lib/partners/constants";
+import { exceededLimitError } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
+import { PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
+import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
-import { sendEmail } from "@dub/email";
-import { PartnerPayoutConfirmed } from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import z from "zod";
 import { authActionClient } from "../safe-action";
 
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   paymentMethodId: z.string(),
-  payoutIds: z.array(z.string()).min(1),
+  cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  excludedPayoutIds: z.array(z.string()).optional(),
+  amount: z.number(),
+  fee: z.number(),
+  total: z.number(),
 });
-
-const allowedPaymentMethods = ["us_bank_account", "card", "link"];
 
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
   .schema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    const { programId, paymentMethodId, payoutIds } = parsedInput;
+    const { workspace, user } = ctx;
+    const {
+      paymentMethodId,
+      cutoffPeriod,
+      excludedPayoutIds,
+      amount,
+      fee,
+      total,
+    } = parsedInput;
 
-    const { minPayoutAmount } = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
+    if (!workspace.defaultProgramId) {
+      throw new Error("Workspace does not have a default program.");
+    }
+
+    if (workspace.role !== "owner") {
+      throw new Error("Only workspace owners can confirm payouts.");
+    }
 
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
 
-    // Check the payout method is valid
+    // if workspace's payouts usage + the current invoice amount
+    // is greater than the workspace's payouts limit, throw an error
+    if (workspace.payoutsUsage + amount > workspace.payoutsLimit) {
+      throw new Error(
+        exceededLimitError({
+          plan: workspace.plan,
+          limit: workspace.payoutsLimit,
+          type: "payouts",
+        }),
+      );
+    }
+
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
     if (paymentMethod.customer !== workspace.stripeId) {
       throw new Error("Invalid payout method.");
     }
 
-    if (!allowedPaymentMethods.includes(paymentMethod.type)) {
+    if (!PAYMENT_METHOD_TYPES.includes(paymentMethod.type)) {
       throw new Error(
-        `We only support ACH and Card for now. Please update your payout method to one of these.`,
+        `We only support ${PAYMENT_METHOD_TYPES.join(
+          ", ",
+        )} for now. Please update your payout method to one of these.`,
       );
     }
 
-    const payouts = await prisma.payout.findMany({
-      where: {
-        programId,
-        id: {
-          in: payoutIds,
-        },
-        status: "pending",
-        invoiceId: null, // just to be extra safe
-        partner: {
-          stripeConnectId: {
-            not: null,
-          },
-          payoutsEnabledAt: {
-            not: null,
-          },
-        },
-        amount: {
-          gte: minPayoutAmount,
-        },
-      },
-      select: {
-        id: true,
-        amount: true,
-        periodStart: true,
-        periodEnd: true,
-        partner: {
-          select: {
-            email: true,
-          },
-        },
-        program: {
-          select: {
-            id: true,
-            name: true,
-            logo: true,
-          },
-        },
-      },
-    });
-
-    if (!payouts.length) {
-      throw new Error("No pending payouts found.");
-    }
-
-    // Create the invoice for the payouts
-    const newInvoice = await prisma.$transaction(async (tx) => {
-      const amount = payouts.reduce(
-        (total, payout) => total + payout.amount,
-        0,
-      );
-
-      const fee =
-        amount *
-        PAYOUT_FEES[workspace.plan?.split(" ")[0] ?? "business"][
-          paymentMethod.type === "us_bank_account" ? "ach" : "card"
-        ];
-
-      const total = amount + fee;
-
-      // Generate the next invoice number
+    const invoice = await prisma.$transaction(async (tx) => {
+      // Generate the next invoice number by counting the number of invoices for the workspace
       const totalInvoices = await tx.invoice.count({
         where: {
           workspaceId: workspace.id,
@@ -117,77 +83,42 @@ export const confirmPayoutsAction = authActionClient
       const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
       const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
 
-      const invoice = await tx.invoice.create({
+      // Create the invoice and return it
+      return await tx.invoice.create({
         data: {
           id: createId({ prefix: "inv_" }),
           number: invoiceNumber,
-          programId,
+          programId: workspace.defaultProgramId!,
           workspaceId: workspace.id,
+          // these numbers will be updated later in the payouts/process cron job
+          // but we're adding them now for the program/payouts/success screen
           amount,
           fee,
           total,
         },
       });
-
-      if (!invoice) {
-        throw new Error("Failed to create payout invoice.");
-      }
-
-      await stripe.paymentIntents.create({
-        amount: invoice.total,
-        customer: workspace.stripeId!,
-        payment_method_types: allowedPaymentMethods,
-        payment_method: paymentMethod.id,
-        currency: "usd",
-        confirmation_method: "automatic",
-        confirm: true,
-        transfer_group: invoice.id,
-        statement_descriptor: "Dub Partners",
-        description: `Dub Partners payout invoice (${invoice.id})`,
-      });
-
-      await tx.payout.updateMany({
-        where: {
-          id: {
-            in: payouts.map((p) => p.id),
-          },
-        },
-        data: {
-          invoiceId: invoice.id,
-          status: "processing",
-        },
-      });
-
-      return invoice;
     });
 
-    waitUntil(
-      (async () => {
-        // Send emails to all the partners involved in the payouts if the payout method is ACH
-        // ACH takes 4 business days to process
-        if (newInvoice && paymentMethod.type === "us_bank_account") {
-          await Promise.all(
-            payouts
-              .filter((payout) => payout.partner.email)
-              .map((payout) =>
-                sendEmail({
-                  subject: "You've got money coming your way!",
-                  email: payout.partner.email!,
-                  from: "Dub Partners <system@dub.co>",
-                  react: PartnerPayoutConfirmed({
-                    email: payout.partner.email!,
-                    program: payout.program,
-                    payout: {
-                      id: payout.id,
-                      amount: payout.amount,
-                      startDate: payout.periodStart!,
-                      endDate: payout.periodEnd!,
-                    },
-                  }),
-                }),
-              ),
-          );
-        }
-      })(),
-    );
+    // Send the message to Qstash to process the payouts
+    const qstashResponse = await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process`,
+      body: {
+        workspaceId: workspace.id,
+        userId: user.id,
+        invoiceId: invoice.id,
+        paymentMethodId,
+        cutoffPeriod,
+        excludedPayoutIds,
+      },
+    });
+
+    if (qstashResponse.messageId) {
+      console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
+    } else {
+      console.error("Error sending message to Qstash", qstashResponse);
+    }
+
+    return {
+      invoiceId: invoice.id,
+    };
   });

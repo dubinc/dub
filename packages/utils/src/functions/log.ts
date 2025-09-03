@@ -1,9 +1,9 @@
 const logTypeToEnv = {
   alerts: process.env.DUB_SLACK_HOOK_ALERTS,
   cron: process.env.DUB_SLACK_HOOK_CRON,
-  links: process.env.DUB_SLACK_HOOK_LINKS,
-  subscribers: process.env.DUB_SLACK_HOOK_SUBSCRIBERS,
   errors: process.env.DUB_SLACK_HOOK_ERRORS,
+  links: process.env.DUB_SLACK_HOOK_LINKS,
+  payouts: process.env.DUB_SLACK_HOOK_PAYOUTS,
 };
 
 export const log = async ({
@@ -12,20 +12,12 @@ export const log = async ({
   mention = false,
 }: {
   message: string;
-  type: "alerts" | "cron" | "links" | "subscribers" | "errors";
+  type: "alerts" | "cron" | "errors" | "links" | "payouts";
   mention?: boolean;
 }) => {
-  if (
-    process.env.NODE_ENV === "development" ||
-    !process.env.DUB_SLACK_HOOK_ALERTS ||
-    !process.env.DUB_SLACK_HOOK_CRON ||
-    !process.env.DUB_SLACK_HOOK_LINKS ||
-    !process.env.DUB_SLACK_HOOK_SUBSCRIBERS ||
-    !process.env.DUB_SLACK_HOOK_ERRORS
-  ) {
-    console.log(message);
-  }
   /* Log a message to the console */
+  console.log(message);
+
   const HOOK = logTypeToEnv[type];
   if (!HOOK) return;
   try {

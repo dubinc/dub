@@ -1,0 +1,43 @@
+const millisecondsPerDay = 24 * 60 * 60 * 1000;
+
+export const EXAMPLE_CUSTOMER_DATA = [
+  {
+    id: "cus_example_1",
+    externalId: "djk29fjj3I1",
+    name: "Liam White",
+    email: "liam@acme.com",
+    avatar: "https://api.dub.co/og/avatar/l",
+    country: "US",
+    sales: 1,
+    saleAmount: 20_00,
+    createdAt: new Date(new Date().getTime() - 14 * millisecondsPerDay),
+    link: null,
+    discount: null,
+  },
+  {
+    id: "cus_example_2",
+    externalId: "c34kd94jcz2",
+    name: "Emma Green",
+    email: "emma@acme.com",
+    avatar: "https://api.dub.co/og/avatar/e",
+    country: "CA",
+    sales: 30,
+    saleAmount: 1200_00,
+    createdAt: new Date(new Date().getTime() - 20 * millisecondsPerDay),
+    link: null,
+    discount: null,
+  },
+  {
+    id: "cus_1JPT0T7E9C840AG88AQHXDGN4",
+    externalId: "nm58fnz9071",
+    name: "Daniel Brown",
+    email: "daniel@acme.com",
+    avatar: "https://api.dub.co/og/avatar/d",
+    country: "US",
+    sales: 3,
+    saleAmount: 90_00,
+    createdAt: new Date(new Date().getTime() - 30 * millisecondsPerDay),
+    link: null,
+    discount: null,
+  },
+];

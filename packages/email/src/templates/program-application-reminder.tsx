@@ -42,18 +42,19 @@ export default function ProgramApplicationReminder({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-800">
-              You're almost ready!
+              Your application is almost complete!
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
               Your application to <b>{program.name}'s Program</b> has been
-              saved, but you still need to create your Dub Partners account to
+              saved, but you still need to create your Dub Partners account
+              using your <strong className="underline">{email}</strong> email to
               complete your application.
               <br />
               <br />
-              Once you create your Dub Partners account, your application will
-              be submitted to <b>{program.name}</b> and you'll be able to start
-              earning rewards for referring customers.
+              Once that's done, your application will be submitted to{" "}
+              <b>{program.name}</b> and you'll be able to start earning rewards
+              for referring customers.
             </Text>
 
             <Section className="mt-8 text-center">

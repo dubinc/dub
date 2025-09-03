@@ -1,14 +1,26 @@
-import { withWorkspace } from "@/lib/auth";
+import { DubApiError } from "@/lib/api/errors";
+import { isDubAdmin, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+// POST /api/workspaces/[idOrSlug]/billing/upgrade
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
   let { plan, period, baseUrl, onboarding } = await req.json();
 
+  if (!baseUrl.startsWith(APP_DOMAIN)) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "Invalid baseUrl.",
+    });
+  }
+
   if (!plan || !period) {
-    return new Response("Invalid plan or period", { status: 400 });
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "Invalid plan or period.",
+    });
   }
 
   plan = plan.replace(" ", "+");
@@ -25,6 +37,16 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
         })
         .then((res) => res.data[0])
     : null;
+
+  if (process.env.VERCEL === "1" && process.env.VERCEL_ENV === "preview") {
+    const isAdminUser = await isDubAdmin(session.user.id);
+    if (!isAdminUser) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Unauthorized: Not an admin.",
+      });
+    }
+  }
 
   // if the user has an active subscription, create billing portal to upgrade
   if (workspace.stripeId && activeSubscription) {

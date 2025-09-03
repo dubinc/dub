@@ -1,25 +1,23 @@
-import { isBlacklistedDomain, updateConfig } from "@/lib/edge-config";
+import { isBlacklistedDomain } from "@/lib/edge-config";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { getPangeaDomainIntel } from "@/lib/pangea";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
-import { isStored } from "@/lib/storage";
+import { isNotHostedImage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import {
   DUB_DOMAINS,
   UTMTags,
-  combineWords,
   constructURLFromUTMParams,
   getApexDomain,
   getDomainWithoutWWW,
   getUrlFromString,
   isDubDomain,
   isValidUrl,
-  log,
   parseDateTime,
   pluralize,
 } from "@dub/utils";
 import { combineTagIds } from "../tags/combine-tag-ids";
+import { businessFeaturesCheck, proFeaturesCheck } from "./plan-features-check";
 import { keyChecks, processKey } from "./utils";
 
 export async function processLink<T extends Record<string, any>>({
@@ -57,17 +55,12 @@ export async function processLink<T extends Record<string, any>>({
   let {
     domain,
     key,
+    keyLength,
     url,
     image,
     proxy,
     trackConversion,
-    password,
-    rewrite,
     expiredUrl,
-    ios,
-    android,
-    geo,
-    doIndex,
     tagNames,
     folderId,
     externalId,
@@ -75,9 +68,13 @@ export async function processLink<T extends Record<string, any>>({
     partnerId,
     programId,
     webhookIds,
+    testVariants,
   } = payload;
 
   let expiresAt: string | Date | null | undefined = payload.expiresAt;
+  let testCompletedAt: string | Date | null | undefined =
+    payload.testCompletedAt;
+
   let defaultProgramFolderId: string | null = null;
   const tagIds = combineTagIds(payload);
 
@@ -119,36 +116,34 @@ export async function processLink<T extends Record<string, any>>({
         code: "forbidden",
       };
     }
-
-    if (
-      proxy ||
-      password ||
-      rewrite ||
-      expiresAt ||
-      ios ||
-      android ||
-      geo ||
-      doIndex
-    ) {
-      const proFeaturesString = combineWords(
-        [
-          proxy && "custom social media cards",
-          password && "password protection",
-          rewrite && "link cloaking",
-          expiresAt && "link expiration",
-          ios && "iOS targeting",
-          android && "Android targeting",
-          geo && "geo targeting",
-          doIndex && "search engine indexing",
-        ].filter(Boolean) as string[],
-      );
-
+    try {
+      businessFeaturesCheck(payload);
+      proFeaturesCheck(payload);
+    } catch (error) {
       return {
         link: payload,
-        error: `You can only use ${proFeaturesString} on a Pro plan and above. Upgrade to Pro to use these features.`,
+        error: error.message,
         code: "forbidden",
       };
     }
+  } else if (workspace.plan === "pro") {
+    try {
+      businessFeaturesCheck(payload);
+    } catch (error) {
+      return {
+        link: payload,
+        error: error.message,
+        code: "forbidden",
+      };
+    }
+  }
+
+  if (!trackConversion && testVariants) {
+    return {
+      link: payload,
+      error: "Conversion tracking must be enabled to use A/B testing.",
+      code: "unprocessable_entity",
+    };
   }
 
   const domains = workspace
@@ -261,7 +256,7 @@ export async function processLink<T extends Record<string, any>>({
     key = await getRandomKey({
       domain,
       prefix: payload["prefix"],
-      long: domain === "loooooooo.ng",
+      length: keyLength,
     });
   } else if (!skipKeyChecks) {
     const processedKey = processKey({ domain, key });
@@ -280,17 +275,6 @@ export async function processLink<T extends Record<string, any>>({
         link: payload,
         error: response.error,
         code: response.code,
-      };
-    }
-  }
-
-  if (trackConversion) {
-    if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
-      return {
-        link: payload,
-        error:
-          "Conversion tracking is only available for workspaces with a Business plan and above. Please upgrade to continue.",
-        code: "forbidden",
       };
     }
   }
@@ -315,10 +299,11 @@ export async function processLink<T extends Record<string, any>>({
   }
 
   if (bulk) {
-    if (proxy && image && !isStored(image)) {
+    if (proxy && image && isNotHostedImage(image)) {
       return {
         link: payload,
-        error: "You cannot set custom social cards with bulk link creation.",
+        error:
+          "You cannot upload custom link preview images with bulk link creation.",
         code: "unprocessable_entity",
       };
     }
@@ -510,6 +495,7 @@ export async function processLink<T extends Record<string, any>>({
   // expire date checks
   if (expiresAt) {
     const datetime = parseDateTime(expiresAt);
+
     if (!datetime) {
       return {
         link: payload,
@@ -517,9 +503,12 @@ export async function processLink<T extends Record<string, any>>({
         code: "unprocessable_entity",
       };
     }
+
     expiresAt = datetime;
+
     if (expiredUrl) {
       expiredUrl = getUrlFromString(expiredUrl);
+
       if (!isValidUrl(expiredUrl)) {
         return {
           link: payload,
@@ -530,9 +519,24 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
+  if (testCompletedAt) {
+    const datetime = parseDateTime(testCompletedAt);
+
+    if (!datetime) {
+      return {
+        link: payload,
+        error: "Invalid test completion date.",
+        code: "unprocessable_entity",
+      };
+    }
+
+    testCompletedAt = datetime;
+  }
+
   // remove polyfill attributes from payload
   delete payload["shortLink"];
   delete payload["qrCode"];
+  delete payload["keyLength"];
   delete payload["prefix"];
   UTMTags.forEach((tag) => {
     delete payload[tag];
@@ -547,6 +551,8 @@ export async function processLink<T extends Record<string, any>>({
       url,
       expiresAt,
       expiredUrl,
+      testVariants,
+      testCompletedAt,
       // partnerId derived from payload or program enrollment
       partnerId: partnerId || null,
       // make sure projectId is set to the current workspace
@@ -565,7 +571,7 @@ export async function processLink<T extends Record<string, any>>({
 }
 
 async function maliciousLinkCheck(url: string) {
-  const [domain, apexDomain] = [getDomainWithoutWWW(url), getApexDomain(url)];
+  const domain = getDomainWithoutWWW(url);
 
   if (!domain) {
     return false;
@@ -574,38 +580,6 @@ async function maliciousLinkCheck(url: string) {
   const domainBlacklisted = await isBlacklistedDomain(domain);
   if (domainBlacklisted === true) {
     return true;
-  } else if (domainBlacklisted === "whitelisted") {
-    return false;
-  }
-
-  // Check with Pangea for domain reputation
-  if (process.env.PANGEA_API_KEY) {
-    try {
-      const response = await getPangeaDomainIntel(domain);
-
-      const verdict = response.result.data[apexDomain].verdict;
-      console.log("Pangea verdict for domain", apexDomain, verdict);
-
-      if (verdict === "benign") {
-        return false;
-      } else if (verdict === "malicious" || verdict === "suspicious") {
-        await Promise.all([
-          updateConfig({
-            key: "domains",
-            value: domain,
-          }),
-          log({
-            message: `Suspicious link detected via Pangea → ${url}`,
-            type: "links",
-            mention: true,
-          }),
-        ]);
-
-        return true;
-      }
-    } catch (e) {
-      console.error("Error checking domain with Pangea", e);
-    }
   }
 
   return false;

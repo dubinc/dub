@@ -1,37 +1,39 @@
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import { z } from "zod";
 import { EnrolledPartnerProps } from "../types";
-import { partnersQuerySchema } from "../zod/schemas/partners";
+import { getPartnersQuerySchemaExtended } from "../zod/schemas/partners";
 import useWorkspace from "./use-workspace";
 
-const partialQuerySchema = partnersQuerySchema.partial();
+const partialQuerySchema = getPartnersQuerySchemaExtended.partial();
 
-export default function usePartners({
-  query,
-  enabled = true,
-}: {
-  query?: z.infer<typeof partialQuerySchema>;
-  enabled?: boolean;
-} = {}) {
-  const { programId } = useParams();
+export default function usePartners(
+  {
+    query,
+    enabled = true,
+  }: {
+    query?: z.infer<typeof partialQuerySchema>;
+    enabled?: boolean;
+  } = {},
+  swrOptions: SWRConfiguration = {},
+) {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, error } = useSWR<EnrolledPartnerProps[]>(
+  const { data, isLoading, error } = useSWR<EnrolledPartnerProps[]>(
     enabled && workspaceId
       ? `/api/partners?${new URLSearchParams({
           workspaceId: workspaceId,
-          programId: programId,
           ...query,
+          includeExpandedFields: true,
         } as Record<string, any>).toString()}`
       : undefined,
     fetcher,
+    swrOptions,
   );
 
   return {
-    data,
-    loading: !data && !error,
+    partners: data,
+    loading: isLoading,
     error,
   };
 }

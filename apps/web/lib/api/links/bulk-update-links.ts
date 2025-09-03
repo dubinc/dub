@@ -1,4 +1,4 @@
-import { isStored, storage } from "@/lib/storage";
+import { isNotHostedImage, storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
@@ -25,6 +25,7 @@ export async function bulkUpdateLinks(
     proxy,
     expiresAt,
     geo,
+    testVariants,
     tagId,
     tagIds,
     tagNames,
@@ -46,14 +47,16 @@ export async function bulkUpdateLinks(
           ...rest,
           url,
           proxy,
-          title: truncate(title, 120),
-          description: truncate(description, 240),
+          title: title ? truncate(title, 120) : title,
+          description: description ? truncate(description, 240) : description,
           image:
-            proxy && image && !isStored(image)
+            proxy && image && isNotHostedImage(image)
               ? `${R2_URL}/images/${linkIds[0]}_${imageUrlNonce}`
               : image,
-          expiresAt: expiresAt ? new Date(expiresAt) : null,
-          geo: geo || Prisma.JsonNull,
+          expiresAt: expiresAt ? new Date(expiresAt) : expiresAt,
+          geo: geo === null ? Prisma.DbNull : geo,
+          testVariants: testVariants === null ? Prisma.DbNull : testVariants,
+
           ...(url && getParamsFromURL(url)),
           // Associate tags by tagNames
           ...(tagNames &&
@@ -126,7 +129,7 @@ export async function bulkUpdateLinks(
       // if proxy is true and image is not stored in R2, upload image to R2
       proxy &&
         image &&
-        !isStored(image) &&
+        isNotHostedImage(image) &&
         storage.upload(`images/${linkIds[0]}_${imageUrlNonce}`, image, {
           width: 1200,
           height: 630,

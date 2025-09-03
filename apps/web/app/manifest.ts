@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Dub",
     short_name: "Dub",
-    description: "Dub – the modern link attribution platform.",
+    description: "Dub - The Modern Link Attribution Platform",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

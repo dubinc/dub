@@ -1,4 +1,4 @@
-import { ExpandedWorkspaceProps } from "@/lib/types";
+import { ExtendedWorkspaceProps } from "@/lib/types";
 import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR, { SWRConfiguration } from "swr";
@@ -18,7 +18,7 @@ export default function useWorkspace({
     data: workspace,
     error,
     mutate,
-  } = useSWR<ExpandedWorkspaceProps>(
+  } = useSWR<ExtendedWorkspaceProps>(
     slug && `/api/workspaces/${slug}`,
     fetcher,
     {

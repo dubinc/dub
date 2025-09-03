@@ -1,8 +1,11 @@
-import { SHEET_MAX_ITEMS } from "@/lib/partners/constants";
+import { revokeProgramInviteAction } from "@/lib/actions/partners/revoke-program-invite";
+import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/partners/constants";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroups from "@/lib/swr/use-groups";
 import usePayouts from "@/lib/swr/use-payouts";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots, X } from "@/ui/shared/icons";
 import {
   Button,
@@ -19,12 +22,16 @@ import {
 import { GreekTemple, User, UserDelete } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { useCreateCommissionSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/commissions/create-commission-sheet";
 import { LockOpen } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
+import { toast } from "sonner";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
+import { useAddPartnerLinkModal } from "./add-partner-link-modal";
 import { useBanPartnerModal } from "./ban-partner-modal";
-import { useCreatePayoutSheet } from "./create-payout-sheet";
+import { useChangeGroupModal } from "./change-group-modal";
+import { GroupColorCircle } from "./groups/group-color-circle";
 import { usePartnerApplicationSheet } from "./partner-application-sheet";
 import { PartnerInfoSection } from "./partner-info-section";
 import { usePartnerProfileSheet } from "./partner-profile-sheet";
@@ -40,20 +47,33 @@ type Tab = "payouts" | "links";
 
 function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
   const { slug } = useWorkspace();
-  const { program } = useProgram();
   const [tab, setTab] = useState<Tab>("links");
 
-  const { createPayoutSheet, setIsOpen: setCreatePayoutSheetOpen } =
-    useCreatePayoutSheet({ nested: true, partnerId: partner.id });
+  const { groups } = useGroups();
+
+  const group = groups?.find((g) => g.id === partner.groupId);
+
+  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
+    partners: [partner],
+  });
+
+  const { createCommissionSheet, setIsOpen: setCreateCommissionSheetOpen } =
+    useCreateCommissionSheet({
+      nested: true,
+      partnerId: partner.id,
+    });
 
   const showPartnerDetails =
-    partner.status === "approved" || partner.status === "banned";
+    partner.status === "approved" ||
+    partner.status === "banned" ||
+    partner.status === "archived";
 
   return (
     <div className="flex h-full flex-col">
+      <ChangeGroupModal />
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
-        <div className="flex items-start justify-between p-6">
-          <Sheet.Title className="text-xl font-semibold">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
+          <Sheet.Title className="text-lg font-semibold">
             Partner details
           </Sheet.Title>
           <Sheet.Close asChild>
@@ -67,61 +87,85 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
       </div>
 
       <div className="flex grow flex-col">
-        <div className="border-y border-neutral-200 bg-neutral-50 p-6">
+        <div className="border-b border-neutral-200 bg-neutral-50 p-6">
           {/* Basic info */}
           <PartnerInfoSection partner={partner}>
             <Menu partner={partner} />
           </PartnerInfoSection>
 
+          {/* Group */}
+          <div className="mt-6 flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-100 p-2 pl-3">
+            <div className="flex items-center gap-2">
+              {group ? (
+                <GroupColorCircle group={group} />
+              ) : (
+                <div className="size-3 shrink-0 animate-pulse rounded-full bg-neutral-200" />
+              )}
+              {group ? (
+                <Link
+                  href={`/${slug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  className="cursor-alias text-sm font-medium text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+                >
+                  {group.name}
+                </Link>
+              ) : (
+                <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
+              )}
+            </div>
+            {group ? (
+              <Button
+                variant="secondary"
+                text="Change group"
+                className="h-7 w-fit rounded-lg px-2.5"
+                onClick={() => setShowChangeGroupModal(true)}
+              />
+            ) : (
+              <div className="h-7 w-24 animate-pulse rounded-lg bg-neutral-200" />
+            )}
+          </div>
+
           {/* Stats */}
           {showPartnerDetails && (
-            <div className="xs:grid-cols-3 mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
+            <div className="xs:grid-cols-3 mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200">
               {[
                 [
                   "Clicks",
-                  !partner.clicks
+                  Number.isNaN(partner.clicks)
                     ? "-"
                     : nFormatter(partner.clicks, { full: true }),
                 ],
                 [
                   "Leads",
-                  !partner.leads
+                  Number.isNaN(partner.leads)
                     ? "-"
                     : nFormatter(partner.leads, { full: true }),
                 ],
                 [
-                  "Sales",
-                  !partner.sales
+                  "Conversions",
+                  Number.isNaN(partner.conversions)
                     ? "-"
-                    : nFormatter(partner.sales, { full: true }),
+                    : nFormatter(partner.conversions, { full: true }),
                 ],
                 [
                   "Revenue",
-                  !partner.saleAmount
+                  Number.isNaN(partner.saleAmount)
                     ? "-"
                     : currencyFormatter(partner.saleAmount / 100, {
-                        minimumFractionDigits:
-                          partner.saleAmount % 1 === 0 ? 0 : 2,
-                        maximumFractionDigits: 2,
+                        trailingZeroDisplay: "stripIfInteger",
                       }),
                 ],
                 [
                   "Commissions",
-                  !partner.commissions
+                  Number.isNaN(partner.totalCommissions)
                     ? "-"
-                    : currencyFormatter(partner.commissions / 100, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }),
+                    : currencyFormatter(partner.totalCommissions / 100),
                 ],
                 [
                   "Net revenue",
-                  !partner.netRevenue
+                  Number.isNaN(partner.netRevenue)
                     ? "-"
-                    : currencyFormatter(partner.netRevenue / 100, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }),
+                    : currencyFormatter(partner.netRevenue / 100),
                 ],
               ].map(([label, value]) => (
                 <div key={label} className="flex flex-col bg-neutral-50 p-3">
@@ -132,31 +176,6 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
             </div>
           )}
 
-          {/* <div className="xs:grid-cols-2 mt-4 grid grid-cols-1 gap-3">
-            <Link
-              href={`/${slug}/analytics?programId=${program!.id}&partnerId=${partner.id}&interval=all`}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
-              )}
-            >
-              <LinesY className="size-4 text-neutral-900" />
-              Analytics
-            </Link>
-            <Link
-              href={`/${slug}/events?programId=${program!.id}&partnerId=${partner.id}&interval=all`}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-8 items-center justify-center gap-2 rounded-lg border px-2 text-sm",
-              )}
-            >
-              <CursorRays className="size-4 text-neutral-900" />
-              Events
-            </Link>
-          </div> */}
-
           {showPartnerDetails && (
             <div className="-mb-6 mt-2 flex items-center gap-2">
               <TabSelect
@@ -164,9 +183,10 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
                   { id: "links", label: "Links" },
                   { id: "payouts", label: "Payouts" },
                   {
-                    id: "sales",
-                    label: "Sales",
-                    href: `/${slug}/programs/${program!.id}/sales?partnerId=${partner.id}`,
+                    id: "commissions",
+                    label: "Commissions",
+                    href: `/${slug}/program/commissions?partnerId=${partner.id}`,
+                    target: "_blank",
                   },
                 ]}
                 selected={tab}
@@ -196,13 +216,13 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
 
       {showPartnerDetails && (
         <>
-          {createPayoutSheet}
+          {createCommissionSheet}
           <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
             <div className="p-5">
               <Button
                 variant="primary"
-                text="Create payout"
-                onClick={() => setCreatePayoutSheetOpen(true)}
+                text="Create commission"
+                onClick={() => setCreateCommissionSheetOpen(true)}
               />
             </div>
           </div>
@@ -214,14 +234,13 @@ function PartnerDetailsSheetContent({ partner }: PartnerDetailsSheetProps) {
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
   const { slug } = useWorkspace();
-  const { program } = useProgram();
 
   const {
     payouts,
     error: payoutsError,
     loading,
   } = usePayouts({
-    query: { partnerId: partner.id, pageSize: SHEET_MAX_ITEMS },
+    query: { partnerId: partner.id, pageSize: PAYOUTS_SHEET_ITEMS_LIMIT },
   });
 
   const table = useTable({
@@ -249,16 +268,12 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       {
         id: "amount",
         header: "Amount",
-        accessorFn: (d) =>
-          currencyFormatter(d.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        accessorFn: (d) => currencyFormatter(d.amount / 100),
       },
     ],
     onRowClick: (row) => {
       window.open(
-        `/${slug}/programs/${program!.id}/payouts?payoutId=${row.original.id}`,
+        `/${slug}/program/payouts?payoutId=${row.original.id}`,
         "_blank",
       );
     },
@@ -275,7 +290,7 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
       <Table {...table} />
       <div className="mt-2 flex justify-end">
         <Link
-          href={`/${slug}/programs/${program!.id}/payouts?partnerId=${partner.id}`}
+          href={`/${slug}/program/payouts?partnerId=${partner.id}`}
           target="_blank"
           className={cn(
             buttonVariants({ variant: "secondary" }),
@@ -306,6 +321,11 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
 const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
   const { slug } = useWorkspace();
 
+  const { AddPartnerLinkModal, setShowAddPartnerLinkModal } =
+    useAddPartnerLinkModal({
+      partner,
+    });
+
   const table = useTable({
     data: partner.links || [],
     columns: [
@@ -313,46 +333,78 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
         id: "shortLink",
         header: "Link",
         cell: ({ row }) => (
-          <b className="font-medium text-black">
+          <Link
+            href={`/${slug}/links/${row.original.domain}/${row.original.key}`}
+            target="_blank"
+            className="cursor-alias font-medium text-black decoration-dotted hover:underline"
+          >
             {getPrettyUrl(row.original.shortLink)}
-          </b>
+          </Link>
         ),
       },
       {
         header: "Clicks",
-        accessorFn: (d) => nFormatter(d.clicks),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=clicks&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {nFormatter(row.original.clicks)}
+          </Link>
+        ),
       },
       {
         header: "Leads",
-        accessorFn: (d) => nFormatter(d.leads),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=leads&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {nFormatter(row.original.leads)}
+          </Link>
+        ),
       },
       {
         header: "Sales",
-        accessorFn: (d) => nFormatter(d.sales),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=sales&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {nFormatter(row.original.sales)}
+          </Link>
+        ),
       },
       {
         header: "Revenue",
         accessorFn: (d) =>
           currencyFormatter(d.saleAmount / 100, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
+            trailingZeroDisplay: "stripIfInteger",
           }),
         size: 1,
         minSize: 1,
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/events?event=sales&interval=all&domain=${row.original.domain}&key=${row.original.key}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {currencyFormatter(row.original.saleAmount / 100, {
+              trailingZeroDisplay: "stripIfInteger",
+            })}
+          </Link>
+        ),
       },
     ],
-    onRowClick: (row) => {
-      window.open(
-        `/${slug}/events?domain=${row.original.domain}&key=${row.original.key}&interval=all`,
-        "_blank",
-      );
-    },
     resourceName: (p) => `link${p ? "s" : ""}`,
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
@@ -361,11 +413,27 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
     scrollWrapperClassName: "min-h-[40px]",
   } as any);
 
-  return <Table {...table} />;
+  return (
+    <>
+      <AddPartnerLinkModal />
+      <div className="flex flex-col gap-4">
+        <Button
+          variant="secondary"
+          text="Create link"
+          className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
+          onClick={() => setShowAddPartnerLinkModal(true)}
+        />
+        <Table {...table} />
+      </div>
+    </>
+  );
 };
 
 function Menu({ partner }: { partner: EnrolledPartnerProps }) {
   const [openPopover, setOpenPopover] = useState(false);
+
+  const { id: workspaceId } = useWorkspace();
+  const { queryParams } = useRouterStuff();
 
   const { partnerProfileSheet, setIsOpen: setPartnerProfileSheetOpen } =
     usePartnerProfileSheet({ nested: true, partner });
@@ -381,12 +449,40 @@ function Menu({ partner }: { partner: EnrolledPartnerProps }) {
     partner,
   });
 
+  const {
+    setShowConfirmModal: setShowRevokeInviteModal,
+    confirmModal: RevokeInviteModal,
+  } = useConfirmModal({
+    title: "Revoke program invite",
+    description: `Are you sure you want to revoke the program invite for ${partner.name}? This will remove them from the program and delete all their links.`,
+    confirmText: "Revoke invite",
+    onConfirm: async () => {
+      if (!workspaceId) {
+        return;
+      }
+
+      try {
+        await revokeProgramInviteAction({
+          workspaceId,
+          partnerId: partner.id,
+        });
+        queryParams({ del: "partnerId", scroll: false });
+        await mutatePrefix("/api/partners");
+        toast.success("Program invite revoked successfully");
+      } catch (error) {
+        console.error("Error revoking program invite:", error);
+        toast.error("Failed to revoke program invite. Please try again.");
+      }
+    },
+  });
+
   return (
     <>
       {partnerProfileSheet}
       {partnerApplicationSheet}
       <BanPartnerModal />
       <UnbanPartnerModal />
+      {RevokeInviteModal}
 
       <div className="flex items-center gap-2">
         {(partner.status === "approved" || partner.status === "banned") && (
@@ -410,6 +506,18 @@ function Menu({ partner }: { partner: EnrolledPartnerProps }) {
                   }}
                 >
                   View application
+                </MenuItem>
+              )}
+
+              {partner.status === "invited" && (
+                <MenuItem
+                  icon={User}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setShowRevokeInviteModal(true);
+                  }}
+                >
+                  Revoke invite
                 </MenuItem>
               )}
 

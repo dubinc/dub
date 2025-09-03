@@ -1,28 +1,29 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { z } from "zod";
 import { PayoutsCount } from "../types";
 import { payoutsCountQuerySchema } from "../zod/schemas/payouts";
 import useWorkspace from "./use-workspace";
 
-export default function usePayoutsCount<T>(
-  opts?: z.input<typeof payoutsCountQuerySchema>,
-) {
-  const { programId } = useParams();
-  const { id: workspaceId } = useWorkspace();
+export default function usePayoutsCount<T>({
+  enabled = true,
+  ...query
+}: z.input<typeof payoutsCountQuerySchema> & { enabled?: boolean } = {}) {
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const { data: payoutsCount, error } = useSWR<PayoutsCount[]>(
     workspaceId &&
-      `/api/programs/${programId}/payouts/count${getQueryString(
+      defaultProgramId &&
+      enabled &&
+      `/api/programs/${defaultProgramId}/payouts/count${getQueryString(
         {
-          ...opts,
+          ...query,
           workspaceId,
         },
         {
-          exclude: ["payoutId"],
+          include: ["status", "partnerId"],
         },
       )}`,
     fetcher,
@@ -31,6 +32,6 @@ export default function usePayoutsCount<T>(
   return {
     payoutsCount: payoutsCount as T,
     error,
-    loading: !payoutsCount && !error,
+    loading: payoutsCount === undefined && !error,
   };
 }

@@ -33,8 +33,8 @@ export default function UploadAvatar() {
             await update();
             toast.success("Successfully updated your profile picture!");
           } else {
-            const errorMessage = await res.text();
-            toast.error(errorMessage || "Something went wrong");
+            const { error } = await res.json();
+            toast.error(error.message);
           }
         });
       }}
@@ -43,7 +43,8 @@ export default function UploadAvatar() {
       <div className="flex flex-col space-y-3 p-5 sm:p-10">
         <h2 className="text-xl font-medium">Your Avatar</h2>
         <p className="text-sm text-neutral-500">
-          This is your avatar image on {process.env.NEXT_PUBLIC_APP_NAME}.
+          This is your avatar image on your {process.env.NEXT_PUBLIC_APP_NAME}{" "}
+          account.
         </p>
         <div className="mt-1">
           <FileUpload

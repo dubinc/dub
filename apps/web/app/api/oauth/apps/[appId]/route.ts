@@ -64,7 +64,7 @@ export const PATCH = withWorkspace(
       logo,
       pkce,
       screenshots,
-    } = updateOAuthAppSchema.parse(await parseRequestBody(req));
+    } = await updateOAuthAppSchema.parseAsync(await parseRequestBody(req));
 
     try {
       const integration = await prisma.integration.findUniqueOrThrow({

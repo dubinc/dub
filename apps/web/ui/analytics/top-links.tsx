@@ -1,14 +1,19 @@
+import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { Globe, Hyperlink } from "@dub/ui/icons";
 import { getApexDomain } from "@dub/utils";
-import { useContext, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
 import BarList from "./bar-list";
 import { useAnalyticsFilterOption } from "./utils";
 
-export default function TopLinks() {
+export default function TopLinks({
+  filterLinks = true,
+}: {
+  filterLinks?: boolean;
+}) {
   const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab, saleUnit } = useContext(AnalyticsContext);
@@ -18,6 +23,25 @@ export default function TopLinks() {
   const { data } = useAnalyticsFilterOption({
     groupBy: `top_${tab}`,
   });
+
+  const [persisted] = useWorkspacePreferences("linksDisplay");
+
+  const shortLinkTitle = useCallback(
+    (d: { url?: string; title?: string; shortLink?: string }) => {
+      if (tab === "urls") {
+        return d.url || "Unknown";
+      }
+
+      const displayProperties = persisted?.displayProperties;
+
+      if (displayProperties?.includes("title") && d.title) {
+        return d.title;
+      }
+
+      return d.shortLink || "Unknown";
+    },
+    [persisted, tab],
+  );
 
   return (
     <AnalyticsCard
@@ -44,28 +68,33 @@ export default function TopLinks() {
                         className="size-5 sm:size-5"
                       />
                     ),
-                    title:
-                      (tab === "links" && d["shortLink"]
-                        ? d["shortLink"]
-                        : d.url) ?? "Unknown",
+                    title: shortLinkTitle(d as any),
                     // TODO: simplify this once we switch from domain+key to linkId
-                    href: queryParams({
-                      ...((tab === "links" &&
-                        searchParams.has("domain") &&
-                        searchParams.has("key")) ||
-                      (tab === "urls" && searchParams.has("url"))
-                        ? { del: tab === "links" ? ["domain", "key"] : "url" }
-                        : {
-                            set: {
-                              ...(tab === "links"
-                                ? { domain: d.domain, key: d.key || "_root" }
-                                : {
-                                    url: d.url,
-                                  }),
-                            },
-                          }),
-                      getNewPath: true,
-                    }) as string,
+                    href: filterLinks
+                      ? (queryParams({
+                          ...((tab === "links" &&
+                            searchParams.has("domain") &&
+                            searchParams.has("key")) ||
+                          (tab === "urls" && searchParams.has("url"))
+                            ? {
+                                del:
+                                  tab === "links" ? ["domain", "key"] : "url",
+                              }
+                            : {
+                                set: {
+                                  ...(tab === "links"
+                                    ? {
+                                        domain: d.domain,
+                                        key: d.key || "_root",
+                                      }
+                                    : {
+                                        url: d.url,
+                                      }),
+                                },
+                              }),
+                          getNewPath: true,
+                        }) as string)
+                      : undefined,
                     value: d[dataKey] || 0,
                     ...(tab === "links" && { linkData: d }),
                   }))

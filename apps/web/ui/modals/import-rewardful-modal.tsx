@@ -69,7 +69,7 @@ function ImportRewardfulModal({
       toast.success(
         "Successfully added campaigns to import queue! We will send you an email when your campaigns have been fully imported.",
       );
-      router.push(`/${slug}/programs/${program?.id}/partners`);
+      router.push(`/${slug}/program/partners`);
     },
   });
 
@@ -126,8 +126,7 @@ function ImportRewardfulModal({
 
     await startRewardfulImport({
       workspaceId,
-      programId: program.id,
-      campaignId: selectedCampaign?.id,
+      campaignId: selectedCampaign.id,
     });
   };
 
@@ -310,9 +309,11 @@ function CampaignsStep({
             </dd>
           </div>
           <div>
-            <dt className="text-neutral-500">Commission Period</dt>
+            <dt className="text-neutral-500">Duration</dt>
             <dd className="font-medium text-neutral-700">
-              {selectedCampaign.max_commission_period_months} months
+              {selectedCampaign.max_commission_period_months
+                ? `${selectedCampaign.max_commission_period_months} months`
+                : "Lifetime"}
             </dd>
           </div>
           <div>

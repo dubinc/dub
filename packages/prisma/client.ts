@@ -1,6 +1,9 @@
 export * from "@prisma/client";
 
 export {
+  BountySubmissionRejectionReason,
+  BountySubmissionStatus,
+  BountyType,
   CommissionStatus,
   CommissionType,
   EventType,
@@ -8,14 +11,17 @@ export {
   FolderUserRole,
   InvoiceStatus,
   PartnerBannedReason,
+  PartnerLinkStructure,
   PartnerProfileType,
   PartnerRole,
   PartnerStatus,
+  PartnerUrlValidationMode,
   PayoutStatus,
-  PayoutType,
   Prisma,
   ProgramEnrollmentStatus,
-  ProgramType,
+  RewardStructure,
   Role,
   WebhookReceiver,
+  WorkflowTrigger,
+  WorkflowTriggerType,
 } from "@prisma/client";

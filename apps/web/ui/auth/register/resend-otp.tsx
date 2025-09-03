@@ -39,7 +39,7 @@ export const ResendOtp = ({ email }: { email: string }) => {
   }, [delaySeconds]);
 
   return (
-    <div className="relative mt-4 text-center text-sm text-neutral-500">
+    <div className="relative mt-4 text-center text-sm font-medium text-neutral-500">
       {state === "default" && (
         <>
           {isPending && (
@@ -53,7 +53,7 @@ export const ResendOtp = ({ email }: { email: string }) => {
             <button
               onClick={() => executeAsync({ email })}
               className={cn(
-                "font-semibold text-neutral-500 underline underline-offset-2 transition-colors hover:text-black",
+                "font-semibold text-neutral-700 transition-colors hover:text-neutral-900",
                 isPending && "pointer-events-none",
               )}
             >

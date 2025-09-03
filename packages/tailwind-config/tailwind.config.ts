@@ -1,3 +1,4 @@
+import containerQueries from "@tailwindcss/container-queries";
 import forms from "@tailwindcss/forms";
 import typography from "@tailwindcss/typography";
 import scrollbarHide from "tailwind-scrollbar-hide";
@@ -76,8 +77,8 @@ const config: Config = {
       keyframes: {
         // Modal
         "scale-in": {
-          "0%": { transform: "scale(0.95)" },
-          "100%": { transform: "scale(1)" },
+          "0%": { transform: "scale(var(--from-scale,0.95))" },
+          "100%": { transform: "scale(var(--to-scale,1))" },
         },
         "fade-in": {
           "0%": { opacity: "0" },
@@ -248,7 +249,14 @@ const config: Config = {
       },
     },
   },
-  plugins: [forms, typography, scrollbarHide, radix],
+  plugins: [
+    forms,
+    typography,
+    scrollbarHide,
+    radix,
+    // TODO: Remove the container queries plugin when we upgrade to Tailwind v4
+    containerQueries,
+  ],
 };
 
 export default config;

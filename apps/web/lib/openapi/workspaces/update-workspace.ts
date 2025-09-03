@@ -2,7 +2,7 @@ import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
 import {
   WorkspaceSchema,
-  updateWorkspaceSchema,
+  createWorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
@@ -22,7 +22,7 @@ export const updateWorkspace: ZodOpenApiOperationObject = {
   requestBody: {
     content: {
       "application/json": {
-        schema: updateWorkspaceSchema,
+        schema: createWorkspaceSchema.partial(),
       },
     },
   },

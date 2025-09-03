@@ -1,8 +1,10 @@
 "use client";
 
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useDomain from "@/lib/swr/use-domain";
 import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { UserProps } from "@/lib/types";
 import {
   ArrowTurnRight2,
   Avatar,
@@ -40,14 +42,22 @@ import {
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { Mail } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { memo, PropsWithChildren, useContext, useRef, useState } from "react";
+import { useParams } from "next/navigation";
+import {
+  memo,
+  PropsWithChildren,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { FolderIcon } from "../folders/folder-icon";
 import { useLinkBuilder } from "../modals/link-builder";
 import { CommentsBadge } from "./comments-badge";
 import { useLinkSelection } from "./link-selection-provider";
 import { ResponseLink } from "./links-container";
 import { LinksDisplayContext } from "./links-display-provider";
+import { TestsBadge } from "./tests-badge";
 
 const quickViewSettings = [
   { label: "Conversion Tracking", icon: SquareChart, key: "trackConversion" },
@@ -65,40 +75,42 @@ const LOGO_SIZE_CLASS_NAME =
 
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { domain, key } = link;
+  const { slug } = useWorkspace();
 
-  const { variant } = useContext(CardList.Context);
+  const { variant, loading } = useContext(CardList.Context);
   const { displayProperties } = useContext(LinksDisplayContext);
 
   const ref = useRef<HTMLDivElement>(null);
 
   const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
-  const searchParams = useSearchParams();
-  const { slug, defaultFolderId } = useWorkspace();
-  const { folder } = useFolder({ folderId: link.folderId });
+  const { folderId: currentFolderId } = useCurrentFolderId();
+
+  const showFolderIcon = useMemo(() => {
+    return Boolean(
+      !loading && link.folderId && currentFolderId !== link.folderId,
+    );
+  }, [loading, link.folderId, currentFolderId]);
+
+  const { folder } = useFolder({
+    folderId: link.folderId,
+    enabled: showFolderIcon,
+  });
 
   return (
     <div
       ref={ref}
       className="flex h-[32px] items-center gap-3 transition-[height] group-data-[variant=loose]/card-list:h-[60px]"
     >
-      {variant === "compact" &&
-        link.folderId &&
-        ![defaultFolderId, searchParams.get("folderId")].includes(
-          link.folderId,
-        ) && (
-          <Link href={`/${slug}?folderId=${link.folderId}`}>
-            {folder ? (
-              <FolderIcon
-                folder={folder}
-                shape="square"
-                innerClassName="p-1.5"
-              />
-            ) : (
-              <div className="size-4 rounded-md bg-neutral-200" />
-            )}
-          </Link>
-        )}
+      {variant === "compact" && showFolderIcon && (
+        <Link href={`/${slug}/links?folderId=${link.folderId}`}>
+          {folder ? (
+            <FolderIcon folder={folder} shape="square" innerClassName="p-1.5" />
+          ) : (
+            <div className="size-8 rounded-md bg-neutral-200" />
+          )}
+        </Link>
+      )}
       <LinkIcon link={link} />
       <div className="h-[24px] min-w-0 overflow-hidden transition-[height] group-data-[variant=loose]/card-list:h-[46px]">
         <div className="flex items-center gap-2">
@@ -140,6 +152,11 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
               />
               {hasQuickViewSettings && <SettingsBadge link={link} />}
               {link.comments && <CommentsBadge comments={link.comments} />}
+              {link.testVariants &&
+                link.testCompletedAt &&
+                new Date(link.testCompletedAt) > new Date() && (
+                  <TestsBadge link={link} />
+                )}
             </div>
           </div>
           <Details link={link} compact />
@@ -356,7 +373,7 @@ const Details = memo(
             displayProperties.includes("user") && "sm:block",
           )}
         >
-          <UserAvatar link={link} />
+          <UserAvatar user={link.user} />
         </div>
         <div
           className={cn(
@@ -373,10 +390,8 @@ const Details = memo(
   },
 );
 
-function UserAvatar({ link }: { link: ResponseLink }) {
-  const { user } = link;
-  const { slug } = useWorkspace();
-
+export function UserAvatar({ user }: { user: UserProps }) {
+  const { slug } = useParams();
   return (
     <Tooltip
       content={

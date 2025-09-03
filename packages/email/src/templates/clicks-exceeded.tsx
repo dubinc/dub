@@ -15,7 +15,7 @@ import {
 import { Footer } from "../components/footer";
 import { WorkspaceProps } from "../types";
 
-export function ClicksExceeded({
+export default function ClicksExceeded({
   email = "panic@thedis.co",
   workspace = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
@@ -45,7 +45,7 @@ export function ClicksExceeded({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-6 mt-8">
+            <Section className="mt-8">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
@@ -101,5 +101,3 @@ export function ClicksExceeded({
     </Html>
   );
 }
-
-export default ClicksExceeded;

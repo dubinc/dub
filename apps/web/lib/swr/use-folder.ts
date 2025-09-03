@@ -3,14 +3,20 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-export default function useFolder({ folderId }: { folderId?: string | null }) {
-  const { id: workspaceId, plan, flags } = useWorkspace();
+export default function useFolder({
+  folderId,
+  enabled = true,
+}: {
+  folderId?: string | null;
+  enabled?: boolean;
+}) {
+  const { id: workspaceId, plan } = useWorkspace();
 
-  const enabled =
+  const swrEnabled =
+    enabled &&
     folderId &&
     folderId !== "unsorted" &&
     workspaceId &&
-    flags?.linkFolders &&
     plan !== "free";
 
   const {
@@ -18,7 +24,7 @@ export default function useFolder({ folderId }: { folderId?: string | null }) {
     isValidating,
     isLoading,
   } = useSWR<Folder>(
-    enabled ? `/api/folders/${folderId}?workspaceId=${workspaceId}` : null,
+    swrEnabled ? `/api/folders/${folderId}?workspaceId=${workspaceId}` : null,
     fetcher,
     {
       dedupingInterval: 60000,

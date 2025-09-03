@@ -1,18 +1,22 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ImportedDomainCountProps } from "@/lib/types";
 import {
+  AnimatedSizeContainer,
   Button,
   InfoTooltip,
   LoadingSpinner,
   Logo,
   Modal,
   SimpleTooltipContent,
+  SmartDateTimePicker,
   Switch,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
 import { fetcher, nFormatter } from "@dub/utils";
-import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -36,7 +40,7 @@ function ImportRebrandlyModal({
   const { id: workspaceId, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
 
   const {
     data: { domains, tagsCount } = {
@@ -68,6 +72,8 @@ function ImportRebrandlyModal({
     ImportedDomainCountProps[]
   >([]);
   const [importTags, setImportTags] = useState<boolean>(false);
+  const [createdAfter, setCreatedAfter] = useState<Date | null>(null);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   const [importing, setImporting] = useState(false);
 
@@ -136,12 +142,15 @@ function ImportRebrandlyModal({
                     selectedDomains,
                     importTags,
                     ...(folderId && { folderId }),
+                    ...(createdAfter && {
+                      createdAfter: createdAfter.toISOString(),
+                    }),
                   }),
                 }).then(async (res) => {
                   if (res.ok) {
                     await mutate();
                     router.push(
-                      `/${slug}${folderId ? `?folderId=${folderId}` : ""}`,
+                      `/${slug}/links${folderId ? `?folderId=${folderId}` : ""}`,
                     );
                   } else {
                     setImporting(false);
@@ -204,6 +213,39 @@ function ImportRebrandlyModal({
                 </div>
               )}
             </div>
+
+            {/* Advanced Settings */}
+            <div className="flex flex-col border-t border-neutral-200 pt-4">
+              <button
+                type="button"
+                className="flex w-full items-center gap-2"
+                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+              >
+                <p className="text-sm text-neutral-600">
+                  {showAdvancedOptions ? "Hide" : "Show"} advanced settings
+                </p>
+                <motion.div
+                  animate={{ rotate: showAdvancedOptions ? 180 : 0 }}
+                  className="text-neutral-600"
+                >
+                  <ChevronDown className="size-4" />
+                </motion.div>
+              </button>
+
+              <AnimatedSizeContainer height className="flex flex-col">
+                {showAdvancedOptions && (
+                  <div className="mt-4 p-px">
+                    <SmartDateTimePicker
+                      value={createdAfter}
+                      onChange={(date) => setCreatedAfter(date)}
+                      label="Only import links created after"
+                      placeholder="Select date (optional)"
+                    />
+                  </div>
+                )}
+              </AnimatedSizeContainer>
+            </div>
+
             <Button
               text="Confirm import"
               loading={importing}

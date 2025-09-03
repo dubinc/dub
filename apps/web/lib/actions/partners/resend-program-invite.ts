@@ -1,22 +1,26 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { sendEmail } from "@dub/email";
-import { PartnerInvite } from "@dub/email/templates/partner-invite";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import PartnerInvite from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";
 
 const resendProgramInviteSchema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
   partnerId: z.string(),
 });
 
 export const resendProgramInviteAction = authActionClient
   .schema(resendProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { programId, partnerId } = parsedInput;
-    const { workspace } = ctx;
+    const { partnerId } = parsedInput;
+    const { workspace, user } = ctx;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { program, partner, ...programEnrollment } =
       await prisma.programEnrollment.findUniqueOrThrow({
@@ -32,10 +36,6 @@ export const resendProgramInviteAction = authActionClient
         },
       });
 
-    if (program.workspaceId !== workspace.id) {
-      throw new Error("Program not found.");
-    }
-
     if (programEnrollment.status !== "invited") {
       throw new Error("Invite not found.");
     }
@@ -50,14 +50,16 @@ export const resendProgramInviteAction = authActionClient
       );
     }
 
-    await Promise.all([
+    await Promise.allSettled([
       sendEmail({
         subject: `${program.name} invited you to join Dub Partners`,
+        from: VARIANT_TO_FROM_MAP.notifications,
         email: partner.email!,
         react: PartnerInvite({
           email: partner.email!,
           program: {
             name: program.name,
+            slug: program.slug,
             logo: program.logo,
           },
         }),
@@ -70,6 +72,21 @@ export const resendProgramInviteAction = authActionClient
         data: {
           createdAt: new Date(),
         },
+      }),
+
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "partner.invite_resent",
+        description: `Partner ${partner.id} invite resent`,
+        actor: user,
+        targets: [
+          {
+            type: "partner",
+            id: partner.id,
+            metadata: partner,
+          },
+        ],
       }),
     ]);
   });

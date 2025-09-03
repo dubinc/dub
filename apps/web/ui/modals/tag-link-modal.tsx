@@ -13,7 +13,8 @@ import {
 } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { TagSelect } from "./link-builder/tag-select";
+import { LinkBuilderProvider } from "../links/link-builder/link-builder-provider";
+import { TagSelect } from "../links/link-builder/tag-select";
 
 interface TagLinkModalProps {
   showTagLinkModal: boolean;
@@ -33,7 +34,7 @@ function TagLinkModal(props: TagLinkModalProps) {
 }
 
 function TagLinkModalInner({ setShowTagLinkModal, links }: TagLinkModalProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug, plan } = useWorkspace();
 
   const [updating, setUpdating] = useState(false);
 
@@ -90,38 +91,46 @@ function TagLinkModalInner({ setShowTagLinkModal, links }: TagLinkModalProps) {
   };
 
   return (
-    <FormProvider {...form}>
-      <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
-        {links.length === 1 && (
-          <LinkLogo apexDomain={getApexDomain(links[0].url)} className="mb-4" />
-        )}
-        <h3 className="truncate text-lg font-medium leading-none">
-          Update tags for{" "}
-          {links.length > 1
-            ? `${links.length} links`
-            : getPrettyUrl(links[0].shortLink)}
-        </h3>
-      </div>
+    <LinkBuilderProvider
+      workspace={{ id: workspaceId, slug, plan }}
+      modal={true}
+    >
+      <FormProvider {...form}>
+        <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
+          {links.length === 1 && (
+            <LinkLogo
+              apexDomain={getApexDomain(links[0].url)}
+              className="mb-4"
+            />
+          )}
+          <h3 className="truncate text-lg font-medium leading-none">
+            Update tags for{" "}
+            {links.length > 1
+              ? `${links.length} links`
+              : getPrettyUrl(links[0].shortLink)}
+          </h3>
+        </div>
 
-      <div className="bg-neutral-50 p-4 sm:p-6">
-        <TagSelect />
-      </div>
+        <div className="bg-neutral-50 p-4 sm:p-6">
+          <TagSelect />
+        </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
-        <Button
-          onClick={() => setShowTagLinkModal(false)}
-          variant="secondary"
-          text="Cancel"
-          className="h-8 w-fit px-3"
-        />
-        <Button
-          onClick={handleSubmit}
-          loading={updating}
-          text={updating ? "Saving..." : "Update tags"}
-          className="h-8 w-fit px-3"
-        />
-      </div>
-    </FormProvider>
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
+          <Button
+            onClick={() => setShowTagLinkModal(false)}
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+          />
+          <Button
+            onClick={handleSubmit}
+            loading={updating}
+            text={updating ? "Saving..." : "Update tags"}
+            className="h-8 w-fit px-3"
+          />
+        </div>
+      </FormProvider>
+    </LinkBuilderProvider>
   );
 }
 

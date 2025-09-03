@@ -42,6 +42,5 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["folders.read"],
-    featureFlag: "linkFolders",
   },
 );

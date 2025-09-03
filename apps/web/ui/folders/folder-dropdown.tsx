@@ -1,16 +1,20 @@
+"use client";
+
 import { unsortedLinks } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useFolder from "@/lib/swr/use-folder";
 import useFolders from "@/lib/swr/use-folders";
+import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FolderSummary } from "@/lib/types";
+import { FolderLinkCount, FolderSummary } from "@/lib/types";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
-import { Button, Combobox, TooltipContent } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { Button, Combobox, TooltipContent, useRouterStuff } from "@dub/ui";
+import { cn, nFormatter } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useAddFolderModal } from "../modals/add-folder-modal";
 import { FolderIcon } from "./folder-icon";
@@ -22,8 +26,10 @@ interface FolderDropdownProps {
   hideFolderIcon?: boolean;
   buttonClassName?: string;
   buttonTextClassName?: string;
+  iconClassName?: string;
   disableAutoRedirect?: boolean; // decide if we should auto redirect to the folder after it's created
   selectedFolderId?: string;
+  loadingPlaceholder?: ReactNode;
 }
 
 export const FolderDropdown = ({
@@ -33,12 +39,14 @@ export const FolderDropdown = ({
   hideFolderIcon = false,
   buttonClassName,
   buttonTextClassName,
+  iconClassName,
   disableAutoRedirect = false,
   selectedFolderId,
+  loadingPlaceholder,
 }: FolderDropdownProps) => {
   const router = useRouter();
   const { slug, plan, defaultFolderId } = useWorkspace();
-  const searchParams = useSearchParams();
+  const { searchParams, queryParams } = useRouterStuff();
 
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -59,17 +67,25 @@ export const FolderDropdown = ({
       setUseAsync(true);
   }, [folders, useAsync]);
 
+  const { data: folderLinksCount } = useLinksCount<FolderLinkCount[]>({
+    query: {
+      groupBy: "folderId",
+    },
+    ignoreParams: true,
+  });
+
   const [openPopover, setOpenPopover] = useState(false);
 
   const [selectedFolder, setSelectedFolder] = useState<FolderSummary | null>(
     unsortedLinks,
   );
 
-  const folderId =
-    selectedFolderId || searchParams.get("folderId") || defaultFolderId;
+  const { folderId: currentFolderId } = useCurrentFolderId();
+  const folderId = selectedFolderId || currentFolderId;
 
   const { folder: selectedFolderData } = useFolder({
     folderId,
+    enabled: !!folderId,
   });
 
   const { AddFolderModal, setShowAddFolderModal } = useAddFolderModal({
@@ -78,11 +94,9 @@ export const FolderDropdown = ({
       onFolderSelect?.(folder);
 
       if (!disableAutoRedirect) {
-        if (folder.id !== "unsorted") {
-          router.push(`/${slug}?folderId=${folder.id}`);
-        } else {
-          router.push(`/${slug}`);
-        }
+        router.push(
+          `/${slug}/links${folderId && folderId !== "unsorted" ? `?folderId=${folder.id}` : ""}`,
+        );
       }
     },
   });
@@ -110,13 +124,24 @@ export const FolderDropdown = ({
         ? [selectedFolderData]
         : []),
     ];
+    if (folderId) {
+      router.prefetch(`/${slug}/links?folderId=${folderId}`);
+    }
 
     return [
       ...allFolders.map((folder) => ({
         value: folder.id,
         label: folder.name,
         icon: <FolderIcon className="mr-1" folder={folder} shape="square" />,
-        meta: folder,
+        meta: {
+          ...folder,
+          linksCount:
+            folderLinksCount?.find(
+              ({ folderId }) =>
+                folderId === folder.id ||
+                (folder.id === "unsorted" && folderId === null),
+            )?._count || 0,
+        },
         first: folder.id === "unsorted",
       })),
       {
@@ -153,7 +178,7 @@ export const FolderDropdown = ({
   }, [selectedFolder]);
 
   if (folderId && folderId !== "unsorted" && !selectedFolderData) {
-    return <FolderSwitcherPlaceholder />;
+    return loadingPlaceholder ?? <FolderDropdownPlaceholder />;
   }
 
   return (
@@ -172,7 +197,11 @@ export const FolderDropdown = ({
             setSelectedFolder(folder);
             onFolderSelect
               ? onFolderSelect(folder)
-              : router.push(`/${slug}?folderId=${folder.id}`);
+              : queryParams({
+                  ...(folder.id === "unsorted" && !defaultFolderId
+                    ? { del: "folderId" }
+                    : { set: { folderId: folder.id } }),
+                });
           }
         }}
         inputRight={
@@ -194,14 +223,17 @@ export const FolderDropdown = ({
               folder={selectedFolder}
               shape="square"
               className="hidden md:block"
+              iconClassName={iconClassName}
             />
           ) : undefined
         }
         optionRight={(option) =>
-          option.value === "unsorted" ? (
-            <div className="rounded bg-neutral-100 p-1">
-              <div className="text-xs font-normal text-black">Unsorted</div>
-            </div>
+          option.meta && option.meta.linksCount ? (
+            <span className="text-xs text-neutral-500">
+              {option.meta.type === "mega"
+                ? "10,000+"
+                : nFormatter(option.meta.linksCount, { full: true })}
+            </span>
           ) : undefined
         }
         caret={
@@ -210,12 +242,12 @@ export const FolderDropdown = ({
         buttonProps={{
           className: cn(
             "group flex items-center gap-2 rounded-lg px-2 py-1 w-fit",
-            variant === "inline" && "border-none !ring-0",
-            "transition-colors hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100",
+            variant === "inline" && "border-none !ring-0 bg-transparent",
+            "transition-all hover:bg-neutral-100 active:bg-neutral-200 data-[state=open]:bg-neutral-100",
             buttonClassName,
           ),
           textWrapperClassName: cn(
-            "min-w-0 truncate text-left text-xl font-semibold leading-7 text-neutral-900 md:text-2xl",
+            "min-w-0 truncate text-left text-lg font-semibold leading-7 text-content-emphasis",
             buttonTextClassName,
           ),
         }}
@@ -256,6 +288,6 @@ export const FolderDropdown = ({
   );
 };
 
-const FolderSwitcherPlaceholder = () => {
+const FolderDropdownPlaceholder = () => {
   return <div className="h-10 w-40 animate-pulse rounded-lg bg-neutral-200" />;
 };

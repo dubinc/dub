@@ -1,27 +1,38 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { RewardProps } from "@/lib/types";
-import { pluralize } from "@dub/utils";
 
 export function formatRewardDescription({
   reward,
 }: {
-  reward: Pick<RewardProps, "amount" | "type" | "event" | "maxDuration">;
+  reward: Pick<
+    RewardProps,
+    "description" | "amount" | "type" | "event" | "maxDuration"
+  >;
 }): string {
+  if (reward.description) {
+    return reward.description;
+  }
+
   const rewardAmount = constructRewardAmount(reward);
   const parts: string[] = [];
 
-  parts.push(`${rewardAmount} per ${reward.event}`);
+  parts.push("Earn");
+  parts.push(rewardAmount);
 
-  if (reward.event === "sale") {
-    if (reward.maxDuration === null) {
-      parts.push("for the customer's lifetime");
-    } else if (reward.maxDuration === 0) {
-      parts.push("for the first purchase");
-    } else if (reward.maxDuration && reward.maxDuration > 0) {
-      parts.push(
-        `for ${reward.maxDuration} ${pluralize("month", reward.maxDuration)}`,
-      );
-    }
+  if (reward.event === "sale" && reward.maxDuration === 0) {
+    parts.push("for the first sale");
+  } else {
+    parts.push(`per ${reward.event}`);
+  }
+
+  if (reward.maxDuration === null) {
+    parts.push("for the customer's lifetime");
+  } else if (reward.maxDuration && reward.maxDuration > 1) {
+    const durationText =
+      reward.maxDuration % 12 === 0
+        ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
+        : `${reward.maxDuration} months`;
+    parts.push(`for ${durationText}`);
   }
 
   return parts.join(" ");

@@ -1,0 +1,16 @@
+{
+  "id": "bnty_1K39DGZG3MHY9RP4PD0AS2C5P",
+  "name": "Create a video about Dub and earn $1,000",
+  "description": "Create a video about Dub and earn $1,000. This is a live bounty.",
+  "type": "submission",
+  "startsAt": "2025-08-01T17:34:00.000Z",
+  "endsAt": "2025-09-01T17:34:00.000Z",
+  "rewardAmount": 100000,
+  "submissionRequirements": ["image", "url"],
+  "performanceCondition": null,
+  "groups": [
+    {
+      "id": "grp_1K2E25381GVMG7HHM057TB92F"
+    }
+  ]
+}

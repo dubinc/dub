@@ -19,7 +19,6 @@ import {
   Button,
   CursorRays,
   Globe,
-  InfoTooltip,
   LinkBroken,
   PaginationControls,
   Popover,
@@ -31,9 +30,8 @@ import {
 import { capitalize, pluralize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
-import { DefaultDomains } from "./default-domains";
 
-export default function WorkspaceDomainsClient() {
+export function CustomDomains() {
   const {
     id: workspaceId,
     plan,
@@ -103,34 +101,19 @@ export default function WorkspaceDomainsClient() {
       <RegisterDomainSuccessModal />
       <div className="grid gap-5">
         <div className="flex flex-wrap justify-between gap-6">
-          <div className="flex items-center gap-x-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-black">
-              Domains
-            </h1>
-            <InfoTooltip
-              content={
-                <TooltipContent
-                  title="Learn more about how to add, configure, and verify custom domains on Dub."
-                  href="https://dub.co/help/article/how-to-add-custom-domain"
-                  target="_blank"
-                  cta="Learn more"
-                />
-              }
+          <div className="w-full sm:w-auto">
+            <SearchBoxPersisted
+              loading={loading}
+              onChangeDebounced={(t) => {
+                if (t) {
+                  queryParams({ set: { search: t }, del: "page" });
+                } else {
+                  queryParams({ del: "search" });
+                }
+              }}
             />
           </div>
           <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
-            <div className="w-full sm:w-auto">
-              <SearchBoxPersisted
-                loading={loading}
-                onChangeDebounced={(t) => {
-                  if (t) {
-                    queryParams({ set: { search: t }, del: "page" });
-                  } else {
-                    queryParams({ del: "search" });
-                  }
-                }}
-              />
-            </div>
             <ToggleGroup
               options={[
                 { value: "active", label: "Active" },
@@ -190,7 +173,7 @@ export default function WorkspaceDomainsClient() {
                 className="h-9 w-fit rounded-lg"
                 text={
                   <div className="flex items-center gap-2">
-                    Add domain{" "}
+                    Add custom domain{" "}
                     <ChevronDown className="size-4 transition-transform duration-75 group-data-[state=open]:rotate-180" />
                   </div>
                 }
@@ -234,7 +217,7 @@ export default function WorkspaceDomainsClient() {
               </div>
             ) : (
               <AnimatedEmptyState
-                title="No domains found"
+                title="No custom domains found"
                 description="Use custom domains for better brand recognition and click-through rates"
                 cardContent={
                   <>
@@ -268,8 +251,6 @@ export default function WorkspaceDomainsClient() {
           />
         </div>
       </div>
-
-      <DefaultDomains />
     </>
   );
 }

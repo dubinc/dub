@@ -343,11 +343,9 @@ export const PATCH = withWorkspace(
     }
 
     if (checkIfLinksHaveFolders(links)) {
-      const folderIds = [
-        ...new Set(
-          links.map((link) => link.folderId).filter(Boolean) as string[],
-        ),
-      ];
+      const folderIds = Array.from(
+        new Set(links.map((link) => link.folderId).filter(Boolean) as string[]),
+      );
 
       const folderPermissions = await checkFolderPermissions({
         workspaceId: workspace.id,
@@ -389,6 +387,15 @@ export const PATCH = withWorkspace(
                 ? link.expiresAt.toISOString()
                 : link.expiresAt,
             geo: link.geo as NewLinkProps["geo"],
+            testVariants: link.testVariants as NewLinkProps["testVariants"],
+            testCompletedAt:
+              link.testCompletedAt instanceof Date
+                ? link.testCompletedAt.toISOString()
+                : link.testCompletedAt,
+            testStartedAt:
+              link.testStartedAt instanceof Date
+                ? link.testStartedAt.toISOString()
+                : link.testStartedAt,
             ...data,
           },
           workspace,
@@ -492,7 +499,6 @@ export const DELETE = withWorkspace(
     let links = await prisma.link.findMany({
       where: {
         projectId: workspace.id,
-        programId: null,
         OR: [
           ...(linkIds.size > 0 ? [{ id: { in: Array.from(linkIds) } }] : []),
           ...(externalIds.size > 0

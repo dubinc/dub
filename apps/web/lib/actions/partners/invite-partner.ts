@@ -1,11 +1,13 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
-import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
-import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
+import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import { PartnerInvite } from "@dub/email/templates/partner-invite";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import PartnerInvite from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
@@ -15,37 +17,26 @@ import { authActionClient } from "../safe-action";
 export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    const { programId, name, email, linkId, rewardId, discountId } =
-      parsedInput;
+    const { workspace, user } = ctx;
+    const { name, email, linkId, groupId } = parsedInput;
 
-    const [program, link, , ,] = await Promise.all([
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    let [program, link] = await Promise.all([
       getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
       }),
 
-      getLinkOrThrow({
-        workspaceId: workspace.id,
-        linkId,
-      }),
-
-      rewardId
-        ? getRewardOrThrow({
-            programId,
-            rewardId,
-          })
-        : null,
-
-      discountId
-        ? getDiscountOrThrow({
-            programId,
-            discountId,
+      linkId
+        ? getLinkOrThrow({
+            workspaceId: workspace.id,
+            linkId,
           })
         : null,
     ]);
 
-    if (link.partnerId) {
+    if (link?.partnerId) {
       throw new Error("Link is already associated with another partner.");
     }
 
@@ -74,7 +65,24 @@ export const invitePartnerAction = authActionClient
       }
     }
 
-    await createAndEnrollPartner({
+    // If the link is not provided, create a new one
+    if (!link) {
+      link = await createPartnerLink({
+        workspace,
+        program,
+        partner: {
+          name,
+          email,
+        },
+        userId: user.id,
+      });
+    }
+
+    if (!groupId && !program.defaultGroupId) {
+      throw new Error("No group ID provided and no default group ID found.");
+    }
+
+    const enrolledPartner = await createAndEnrollPartner({
       program,
       link,
       workspace,
@@ -84,21 +92,41 @@ export const invitePartnerAction = authActionClient
       },
       skipEnrollmentCheck: true,
       status: "invited",
-      ...(rewardId && { rewardId }),
-      ...(discountId && { discountId }),
+      groupId,
     });
 
     waitUntil(
-      sendEmail({
-        subject: `${program.name} invited you to join Dub Partners`,
-        email,
-        react: PartnerInvite({
-          email,
-          program: {
-            name: program.name,
-            logo: program.logo,
-          },
-        }),
-      }),
+      (async () => {
+        await Promise.allSettled([
+          sendEmail({
+            subject: `${program.name} invited you to join Dub Partners`,
+            from: VARIANT_TO_FROM_MAP.notifications,
+            email,
+            react: PartnerInvite({
+              email,
+              program: {
+                name: program.name,
+                slug: program.slug,
+                logo: program.logo,
+              },
+            }),
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "partner.invited",
+            description: `Partner ${enrolledPartner.id} invited`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: enrolledPartner.id,
+                metadata: enrolledPartner,
+              },
+            ],
+          }),
+        ]);
+      })(),
     );
   });

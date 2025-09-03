@@ -10,6 +10,8 @@ const expectedCustomer = {
   country: "US",
   name: expect.any(String),
   avatar: expect.any(String),
+  saleAmount: 0,
+  sales: 0,
   createdAt: expect.any(String),
 };
 
@@ -41,7 +43,7 @@ describe.sequential("/customers/**", async () => {
   test("PATCH /customers/{id}", async () => {
     const toUpdate = {
       name: "Updated",
-      avatar: "https://www.gravatar.com/avatar/1234567890",
+      avatar: "https://api.dub.co/og/avatar/1234567890",
     };
 
     const { status, data: customer } = await http.patch<Customer>({
