@@ -7,6 +7,7 @@ import {
   Tooltip,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
+import Linkify from "linkify-react";
 import { Fragment, useRef, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { EmojiPicker } from "./emoji-picker";
@@ -161,7 +162,16 @@ export function MessagesPanel({
                             : "text-content-default rounded-bl bg-neutral-100",
                         )}
                       >
-                        {message.text}
+                        <Linkify
+                          as="p"
+                          options={{
+                            target: "_blank",
+                            rel: "noopener noreferrer nofollow",
+                            className: "underline underline-offset-4",
+                          }}
+                        >
+                          {message.text}
+                        </Linkify>
                       </div>
                     </div>
                   </div>
