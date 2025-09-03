@@ -10,14 +10,16 @@ import { useLocalStorage, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { FC, forwardRef, Ref, useEffect } from "react";
 import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
+import { EQRType } from '@/ui/qr-builder/constants/get-qr-config.ts';
 
 interface IQRTabsProps {
   sessionId: string;
+  typeToScrollTo: EQRType | null;
 }
 
 export const QRTabs: FC<
   Readonly<IQRTabsProps> & { ref?: Ref<HTMLDivElement> }
-> = forwardRef(({ sessionId }, ref) => {
+> = forwardRef(({ sessionId, typeToScrollTo }, ref) => {
   console.log("qr tabs");
   const { AuthModal, showModal } = useAuthModal({ sessionId });
 
@@ -80,6 +82,7 @@ export const QRTabs: FC<
           sessionId={sessionId}
           handleSaveQR={handleSaveQR}
           homepageDemo
+          typeToScrollTo={typeToScrollTo}
         />
 
         <Rating />
