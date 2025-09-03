@@ -72,7 +72,7 @@ export function ProgramMessagesPartnerPageClient() {
               ) : (
                 <>
                   <img
-                    src={partner?.image || `${OG_AVATAR_URL}${partner?.id}`}
+                    src={partner?.image || `${OG_AVATAR_URL}${partner?.name}`}
                     alt={`${partner?.name} avatar`}
                     className="size-8 shrink-0 rounded-full"
                   />

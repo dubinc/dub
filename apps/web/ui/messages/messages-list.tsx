@@ -36,7 +36,7 @@ export function MessagesList({
                 )}
               >
                 <img
-                  src={group.image || `${OG_AVATAR_URL}${group.id}`}
+                  src={group.image || `${OG_AVATAR_URL}${group.name}`}
                   alt={`${group.name} avatar`}
                   className="size-8 shrink-0 rounded-full"
                 />
