@@ -36,7 +36,7 @@ export function ProgramMessagesPageClient() {
         {searchParams.get("new") && (
           <div className="animate-slide-up-fade flex items-center gap-3 [--offset:10px] [animation-duration:1s]">
             <span className="text-content-subtle text-lg font-medium">To</span>
-            <div className="w-64 min-w-24">
+            <div className="min-w-24 sm:w-64">
               <PartnerSelector
                 selectedPartnerId={selectedPartnerId}
                 setSelectedPartnerId={(id) => {
