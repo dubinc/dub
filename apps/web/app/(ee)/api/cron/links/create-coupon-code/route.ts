@@ -1,11 +1,10 @@
-import { dispatchPromotionCodeCreationJob } from "@/lib/api/discounts/promotion-code-creation-job";
+import { enqueuePromotionCodeJobs } from "@/lib/api/discounts/enqueue-promotion-code-jobs";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { createStripePromotionCode } from "@/lib/stripe/create-stripe-promotion-code";
-import { DiscountProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
+import { constructPromotionCode } from "./utils";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +13,7 @@ const schema = z.object({
   code: z.string(),
 });
 
-// POST /api/cron/links/create-promotion-code
+// POST /api/cron/links/create-coupon-code
 export async function POST(req: Request) {
   let payload: z.infer<typeof schema> | undefined = undefined;
 
@@ -118,51 +117,31 @@ export async function POST(req: Request) {
       });
     }
   } catch (error) {
-    if (error?.type === "StripeInvalidRequestError") {
-      const errorMessage = error.raw?.message || error.message;
-      const isDuplicateError = errorMessage?.includes("already exists");
+    const errorMessage = error.raw?.message || error.message;
+    const isDuplicateError = errorMessage?.includes("already exists");
 
-      if (isDuplicateError) {
-        const newCode = constructPromotionCode({
-          code,
-          discount: {
-            amount: discount.amount,
-            type: discount.type,
-          },
-        });
+    if (isDuplicateError) {
+      const newCode = constructPromotionCode({
+        code,
+        discount: {
+          amount: discount.amount,
+          type: discount.type,
+        },
+      });
 
-        await dispatchPromotionCodeCreationJob({
-          link: {
-            id: link.id,
-            key: newCode,
-          },
-        });
-
-        return logAndRespond(`${errorMessage} Retrying...`, {
-          logLevel: "info",
-        });
-      }
+      await enqueuePromotionCodeJobs({
+        link: {
+          id: link.id,
+          key: newCode,
+        },
+      });
     }
 
-    return logAndRespond(error.raw?.message || error.message, { status: 400 });
+    return logAndRespond(errorMessage, {
+      logLevel: "info",
+      status: isDuplicateError ? 200 : 400,
+    });
   }
 
   return logAndRespond(`Finished executing the job for the link ${linkId}.`);
-}
-
-function constructPromotionCode({
-  code,
-  discount,
-}: {
-  code: string;
-  discount: Pick<DiscountProps, "amount" | "type">;
-}) {
-  const amount =
-    discount.type === "percentage" ? discount.amount : discount.amount / 100;
-
-  if (!code.endsWith(amount.toString())) {
-    return `${code}${amount}`;
-  }
-
-  return `${code}${nanoid(4)}`;
 }

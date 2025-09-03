@@ -6,7 +6,7 @@ const queue = qstash.queue({
   queueName: "coupon-creation-1",
 });
 
-type DispatchPromotionCodeCreationJobInput =
+type EnqueuePromotionCodeJobsInput =
   | {
       link: Pick<Link, "id" | "key">;
     }
@@ -14,9 +14,9 @@ type DispatchPromotionCodeCreationJobInput =
       links: Pick<Link, "id" | "key">[];
     };
 
-// Dispatch promotion code creation job for a link or multiple links
-export async function dispatchPromotionCodeCreationJob(
-  input: DispatchPromotionCodeCreationJobInput,
+// Enqueue promotion code creation jobs for links
+export async function enqueuePromotionCodeJobs(
+  input: EnqueuePromotionCodeJobsInput,
 ) {
   await queue.upsert({
     parallelism: 10,
@@ -27,7 +27,7 @@ export async function dispatchPromotionCodeCreationJob(
   const response = await Promise.allSettled(
     finalLinks.map((link) =>
       queue.enqueueJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-code`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-coupon-code`,
         method: "POST",
         body: {
           linkId: link.id,

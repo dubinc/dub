@@ -1,4 +1,4 @@
-import { dispatchPromotionCodeCreationJob } from "@/lib/api/discounts/promotion-code-creation-job";
+import { enqueuePromotionCodeJobs } from "@/lib/api/discounts/enqueue-promotion-code-jobs";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
         const linkChunks = chunk(links, 100);
 
         for (const linkChunk of linkChunks) {
-          await dispatchPromotionCodeCreationJob({
+          await enqueuePromotionCodeJobs({
             links: linkChunk,
           });
 
