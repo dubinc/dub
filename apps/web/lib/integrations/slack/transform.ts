@@ -1,4 +1,4 @@
-import { APP_DOMAIN, currencyFormatter } from "@dub/utils";
+import { APP_DOMAIN, currencyFormatter, truncate } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
 import { z } from "zod";
 import { WebhookTrigger } from "../../types";
@@ -346,7 +346,7 @@ const bountyTemplates = ({
         fields: [
           {
             type: "mrkdwn",
-            text: `*Bounty Name*\n${name || "Untitled Bounty"}`,
+            text: `*Bounty Name*\n${truncate(name, 140) || "Untitled Bounty"}`,
           },
           {
             type: "mrkdwn",
@@ -373,7 +373,7 @@ const bountyTemplates = ({
               type: "section",
               text: {
                 type: "mrkdwn",
-                text: `*Description*\n${description}`,
+                text: `*Description*\n${truncate(description, 140)}`,
               },
             },
           ]
