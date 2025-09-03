@@ -4,6 +4,7 @@ import { z } from "zod";
 import { WebhookTrigger } from "../../types";
 import { webhookPayloadSchema } from "../../webhook/schemas";
 import {
+  BountyEventWebhookPayload,
   ClickEventWebhookPayload,
   CommissionEventWebhookPayload,
   LeadEventWebhookPayload,
@@ -11,7 +12,7 @@ import {
   SaleEventWebhookPayload,
 } from "../../webhook/types";
 
-const createLinkTemplate = ({
+const linkTemplates = ({
   data,
   event,
 }: {
@@ -50,7 +51,7 @@ const createLinkTemplate = ({
   };
 };
 
-const clickLinkTemplate = ({ data }: { data: ClickEventWebhookPayload }) => {
+const linkClickedTemplate = ({ data }: { data: ClickEventWebhookPayload }) => {
   const { link, click } = data;
   const linkToClicks = `${APP_DOMAIN}/events?event=clicks&domain=${link.domain}&key=${link.key}`;
 
@@ -102,7 +103,7 @@ const clickLinkTemplate = ({ data }: { data: ClickEventWebhookPayload }) => {
   };
 };
 
-const createLeadTemplate = ({ data }: { data: LeadEventWebhookPayload }) => {
+const leadCreatedTemplate = ({ data }: { data: LeadEventWebhookPayload }) => {
   const { customer, click, link } = data;
   const linkToLeads = `${APP_DOMAIN}/events?event=leads&domain=${link.domain}&key=${link.key}`;
 
@@ -151,7 +152,7 @@ const createLeadTemplate = ({ data }: { data: LeadEventWebhookPayload }) => {
   };
 };
 
-const createSaleTemplate = ({ data }: { data: SaleEventWebhookPayload }) => {
+const saleCreatedTemplate = ({ data }: { data: SaleEventWebhookPayload }) => {
   const { customer, click, sale, link } = data;
   const amountInDollars = (sale.amount / 100).toFixed(2);
   const linkToSales = `${APP_DOMAIN}/events?event=sales&domain=${link.domain}&key=${link.key}`;
@@ -201,7 +202,7 @@ const createSaleTemplate = ({ data }: { data: SaleEventWebhookPayload }) => {
   };
 };
 
-const enrolledPartnerTemplate = ({
+const partnerEnrolledTemplate = ({
   data,
 }: {
   data: PartnerEventWebhookPayload;
@@ -238,18 +239,16 @@ const enrolledPartnerTemplate = ({
   };
 };
 
-// TODO (kiran):
-// We should improve this template
 const commissionCreatedTemplate = ({
   data,
 }: {
   data: CommissionEventWebhookPayload;
 }) => {
-  const { id, amount, earnings } = data;
+  const { id, amount, earnings, currency, partner, customer } = data;
 
-  const formattedAmount = currencyFormatter(amount / 100);
-
-  const formattedEarnings = currencyFormatter(earnings / 100);
+  const formattedAmount = currencyFormatter(amount / 100, { currency });
+  const formattedEarnings = currencyFormatter(earnings / 100, { currency });
+  const linkToCommissions = `${APP_DOMAIN}/partners/commissions`;
 
   return {
     blocks: [
@@ -265,15 +264,50 @@ const commissionCreatedTemplate = ({
         fields: [
           {
             type: "mrkdwn",
-            text: `*Commission ID*\n${id}`,
+            text: `*Partner*\n${partner.name}`,
           },
           {
             type: "mrkdwn",
-            text: `*Amount*\n${formattedAmount}`,
+            text: `*Email*\n<mailto:${partner.email}|${partner.email}>`,
+          },
+        ],
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Commission Amount*\n${formattedAmount}`,
           },
           {
             type: "mrkdwn",
-            text: `*Earnings*\n${formattedEarnings}`,
+            text: `*Partner Earnings*\n${formattedEarnings}`,
+          },
+        ],
+      },
+      ...(customer
+        ? [
+            {
+              type: "section",
+              fields: [
+                {
+                  type: "mrkdwn",
+                  text: `*Customer*\n${customer.name}`,
+                },
+                {
+                  type: "mrkdwn",
+                  text: `*Customer Email*\n<mailto:${customer.email}|${customer.email}>`,
+                },
+              ],
+            },
+          ]
+        : []),
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `Commission ID: ${id} | <${linkToCommissions}|View on Dub>`,
           },
         ],
       },
@@ -281,36 +315,93 @@ const commissionCreatedTemplate = ({
   };
 };
 
-// Minimal bounty templates (safe defaults)
-const bountyCreatedTemplate = ({} /* data */ : { data: unknown }) => ({
-  blocks: [
-    {
-      type: "section",
-      text: { type: "mrkdwn", text: "*New bounty created* :money_with_wings:" },
-    },
-  ],
-});
+const bountyTemplates = ({
+  data,
+  event,
+}: {
+  data: BountyEventWebhookPayload;
+  event: WebhookTrigger;
+}) => {
+  const { id, name, description, rewardAmount, type, startsAt, endsAt } = data;
 
-const bountyUpdatedTemplate = ({} /* data */ : { data: unknown }) => ({
-  blocks: [
-    {
-      type: "section",
-      text: { type: "mrkdwn", text: "*Bounty updated* :memo:" },
-    },
-  ],
-});
+  const eventMessages = {
+    "bounty.created": "*New bounty created* :money_with_wings:",
+    "bounty.updated": "*Bounty updated* :memo:",
+  };
+
+  const formattedReward = currencyFormatter(rewardAmount / 100);
+  const linkToBounty = `${APP_DOMAIN}/bounties/${id}`;
+
+  return {
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: eventMessages[event],
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Bounty Name*\n${name || "Untitled Bounty"}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Reward Amount*\n${formattedReward}`,
+          },
+        ],
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Type*\n${type.charAt(0).toUpperCase() + type.slice(1)}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Duration*\n${new Date(startsAt).toLocaleDateString()}${endsAt ? ` - ${new Date(endsAt).toLocaleDateString()}` : " (No end date)"}`,
+          },
+        ],
+      },
+      ...(description
+        ? [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `*Description*\n${description}`,
+              },
+            },
+          ]
+        : []),
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `<${linkToBounty}|View bounty on Dub>`,
+          },
+        ],
+      },
+    ],
+  };
+};
 
 const slackTemplates: Record<WebhookTrigger, any> = {
-  "link.created": createLinkTemplate,
-  "link.updated": createLinkTemplate,
-  "link.deleted": createLinkTemplate,
-  "link.clicked": clickLinkTemplate,
-  "lead.created": createLeadTemplate,
-  "sale.created": createSaleTemplate,
-  "partner.enrolled": enrolledPartnerTemplate,
+  "link.created": linkTemplates,
+  "link.updated": linkTemplates,
+  "link.deleted": linkTemplates,
+  "link.clicked": linkClickedTemplate,
+  "lead.created": leadCreatedTemplate,
+  "sale.created": saleCreatedTemplate,
+  "partner.enrolled": partnerEnrolledTemplate,
   "commission.created": commissionCreatedTemplate,
-  "bounty.created": bountyCreatedTemplate,
-  "bounty.updated": bountyUpdatedTemplate,
+  "bounty.created": bountyTemplates,
+  "bounty.updated": bountyTemplates,
 };
 
 export const formatEventForSlack = (
@@ -326,9 +417,11 @@ export const formatEventForSlack = (
   const isLinkEvent = ["link.created", "link.updated", "link.deleted"].includes(
     event,
   );
+  const isBountyEvent = ["bounty.created", "bounty.updated"].includes(event);
 
   return template({
     data,
     ...(isLinkEvent && { event }),
+    ...(isBountyEvent && { event }),
   });
 };
