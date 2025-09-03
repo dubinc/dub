@@ -207,7 +207,8 @@ const partnerEnrolledTemplate = ({
 }: {
   data: PartnerEventWebhookPayload;
 }) => {
-  const { name, email, country } = data;
+  const { name, email, country, partnerId } = data;
+  const linkToPartner = `${APP_DOMAIN}/program/partners?partnerId=${partnerId}`;
 
   return {
     blocks: [
@@ -235,6 +236,15 @@ const partnerEnrolledTemplate = ({
           },
         ],
       },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `Partner ID: ${partnerId} | <${linkToPartner}|View on Dub>`,
+          },
+        ],
+      },
     ],
   };
 };
@@ -248,7 +258,7 @@ const commissionCreatedTemplate = ({
 
   const formattedAmount = currencyFormatter(amount / 100, { currency });
   const formattedEarnings = currencyFormatter(earnings / 100, { currency });
-  const linkToCommissions = `${APP_DOMAIN}/partners/commissions`;
+  const linkToCommissions = `${APP_DOMAIN}/program/commissions`;
 
   return {
     blocks: [
@@ -330,7 +340,7 @@ const bountyTemplates = ({
   };
 
   const formattedReward = currencyFormatter(rewardAmount / 100);
-  const linkToBounty = `${APP_DOMAIN}/bounties/${id}`;
+  const linkToBounty = `${APP_DOMAIN}/program/bounties/${id}`;
 
   return {
     blocks: [
@@ -383,7 +393,7 @@ const bountyTemplates = ({
         elements: [
           {
             type: "mrkdwn",
-            text: `<${linkToBounty}|View bounty on Dub>`,
+            text: `<${linkToBounty}|View on Dub>`,
           },
         ],
       },
@@ -421,7 +431,6 @@ export const formatEventForSlack = (
 
   return template({
     data,
-    ...(isLinkEvent && { event }),
-    ...(isBountyEvent && { event }),
+    ...((isLinkEvent || isBountyEvent) && { event }),
   });
 };
