@@ -1,5 +1,5 @@
 import { fetcher } from "@dub/utils";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import { z } from "zod";
 import {
   PartnerMessagesSchema,
@@ -12,9 +12,11 @@ const partialQuerySchema = getPartnerMessagesQuerySchema.partial();
 export function usePartnerMessages({
   query,
   enabled = true,
+  swrOpts,
 }: {
   query?: z.infer<typeof partialQuerySchema>;
   enabled?: boolean;
+  swrOpts?: SWRConfiguration;
 } = {}) {
   const { id: workspaceId } = useWorkspace();
 
@@ -30,6 +32,7 @@ export function usePartnerMessages({
     fetcher,
     {
       keepPreviousData: true,
+      ...swrOpts,
     },
   );
 

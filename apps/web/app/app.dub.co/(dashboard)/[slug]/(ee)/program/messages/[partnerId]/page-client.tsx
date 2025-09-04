@@ -1,5 +1,6 @@
 "use client";
 
+import { markPartnersMessagesReadAction } from "@/lib/actions/partners/mark-partner-messages-read";
 import { messagePartnerAction } from "@/lib/actions/partners/message-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
@@ -30,12 +31,33 @@ export function ProgramMessagesPartnerPageClient() {
   const { user } = useUser();
   const { program } = useProgram();
   const { partner, error: errorPartner } = usePartner({ partnerId });
+
+  const {
+    executeAsync: markPartnerMessagesRead,
+    isPending: isMarkingPartnerMessagesRead,
+  } = useAction(markPartnersMessagesReadAction);
+
   const {
     partnerMessages,
     error: errorMessages,
     mutate: mutatePartnerMessages,
   } = usePartnerMessages({
     query: { partnerId, sortOrder: "asc" },
+    swrOpts: {
+      onSuccess: (data) => {
+        // Mark unread messages from the partner as read
+        if (
+          !isMarkingPartnerMessagesRead &&
+          data?.[0]?.messages?.some(
+            (message) => message.senderPartnerId && !message.readInApp,
+          )
+        )
+          markPartnerMessagesRead({
+            workspaceId: workspaceId!,
+            partnerId,
+          });
+      },
+    },
   });
   const messages = partnerMessages?.[0]?.messages;
 
