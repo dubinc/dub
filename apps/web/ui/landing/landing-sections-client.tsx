@@ -46,6 +46,7 @@ export const LandingSectionsClient: FC<
   return (
     <>
       <section
+        id="qr-generation-block"
         ref={qrGenerationBlockRef}
         className="bg-primary-100 w-full px-3 py-10 lg:py-14"
       >
