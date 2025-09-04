@@ -7,7 +7,7 @@ model Message {
   senderPartnerId String? // Populated if the sender is a partner
   senderUserId    String? // Populated if the sender is a program owner/user
 
-  text          String
+  text          String @db.Text
 
   emailId       String?
   readInApp     DateTime?

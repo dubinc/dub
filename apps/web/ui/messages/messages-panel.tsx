@@ -1,4 +1,5 @@
 import { Message } from "@/lib/types";
+import { MAX_MESSAGE_LENGTH } from "@/lib/zod/schemas/messages";
 import {
   ArrowTurnLeft,
   Button,
@@ -201,6 +202,7 @@ export function MessagesPanel({
             placeholder={placeholder}
             disabled={!messages}
             value={typedMessage}
+            maxLength={MAX_MESSAGE_LENGTH}
             onChange={(e) => setTypedMessage(e.currentTarget.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {

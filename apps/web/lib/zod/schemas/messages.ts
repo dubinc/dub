@@ -2,6 +2,8 @@ import { z } from "zod";
 import { PartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 
+export const MAX_MESSAGE_LENGTH = 2000;
+
 export const MessageSchema = z
   .object({
     id: z.string(),
@@ -10,7 +12,7 @@ export const MessageSchema = z
     senderPartnerId: z.string().nullable(),
     senderUserId: z.string().nullable(),
 
-    text: z.string(),
+    text: z.string().min(1).max(MAX_MESSAGE_LENGTH),
 
     emailId: z.string().nullable(),
     readInApp: z.date().nullable(),
