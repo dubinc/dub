@@ -15,6 +15,7 @@ import {
   Globe,
   GridIcon,
   MoneyBills2,
+  Msgs,
   ShieldCheck,
   SquareUserSparkle2,
   Trophy,
@@ -63,6 +64,13 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
     icon: SquareUserSparkle2,
     href: "/profile",
     active: pathname.startsWith("/profile"),
+  },
+  {
+    name: "Messages",
+    description: "Chat with programs you're enrolled in",
+    icon: Msgs,
+    href: "/messages",
+    active: pathname.startsWith("/messages"),
   },
 ];
 
@@ -282,7 +290,7 @@ export function PartnersSidebarNav({
         ? "partnerSettings"
         : pathname.startsWith("/profile")
           ? "profile"
-          : pathname.startsWith("/payouts")
+          : pathname.startsWith("/payouts") || pathname.startsWith("/messages")
             ? null
             : isEnrolledProgramPage
               ? "program"

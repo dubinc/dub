@@ -69,9 +69,9 @@ export const GET = withWorkspace(
                 b.partner.messages[0][sortBy].getTime(),
           )
           // Map to {partner, messages}
-          .map(({ partner }) => ({
+          .map(({ partner: { messages, ...partner } }) => ({
             partner,
-            messages: partner.messages,
+            messages,
           })),
       ),
     );

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PartnerSchema } from "./partners";
+import { ProgramSchema } from "./programs";
 import { UserSchema } from "./users";
 
 export const MAX_MESSAGE_LENGTH = 2000;
@@ -72,4 +73,23 @@ export const updatePartnerMessageSchema = z.object({
   messageId: z.string(),
   readInApp: z.boolean().optional(),
   readInEmail: z.boolean().optional(),
+});
+
+export const ProgramMessagesSchema = z.array(
+  z.object({
+    program: ProgramSchema.pick({
+      id: true,
+      slug: true,
+      name: true,
+      logo: true,
+    }),
+    messages: z.array(MessageSchema),
+  }),
+);
+
+export const getProgramMessagesQuerySchema = z.object({
+  programSlug: z.string().optional(),
+  messagesLimit: z.coerce.number().min(0).optional(),
+  sortBy: z.enum(["createdAt"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
