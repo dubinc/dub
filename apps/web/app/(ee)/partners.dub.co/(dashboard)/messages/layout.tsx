@@ -10,7 +10,7 @@ import { useParams, useRouter } from "next/navigation";
 import { CSSProperties, ReactNode, useEffect, useState } from "react";
 
 export default function MessagesLayout({ children }: { children: ReactNode }) {
-  const { partnerId } = useParams() as { partnerId?: string };
+  const { programSlug } = useParams() as { programSlug?: string };
 
   const router = useRouter();
   const { queryParams, searchParams } = useRouterStuff();
@@ -50,7 +50,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                 icon={<Pen2 className="size-4" />}
                 className="size-8 rounded-lg p-0"
                 onClick={() => {
-                  if (partnerId) router.push(`/messages?new=true`);
+                  if (programSlug) router.push(`/messages?new=true`);
                   else queryParams({ set: { new: "true" } });
                 }}
               />
@@ -60,14 +60,14 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                 <MessagesList
                   groupedMessages={programMessages?.map(
                     ({ program, messages }) => ({
-                      id: program.id,
+                      id: program.slug,
                       name: program.name,
                       image: program.logo,
                       messages,
                       href: `/messages/${program.slug}`,
                     }),
                   )}
-                  activeId={partnerId}
+                  activeId={programSlug}
                 />
               ) : error ? (
                 <div className="text-content-subtle flex size-full items-center justify-center text-sm">
@@ -91,7 +91,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                     className="mt-6 h-8 w-fit rounded-lg"
                     text="Compose message"
                     onClick={() => {
-                      if (partnerId) router.push(`/messages?new=true`);
+                      if (programSlug) router.push(`/messages?new=true`);
                       else queryParams({ set: { new: "true" } });
                     }}
                   />
