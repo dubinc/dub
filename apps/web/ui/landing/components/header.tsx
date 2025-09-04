@@ -55,7 +55,7 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
               color="blue"
               onClick={handleScrollToQRGenerationBlock}
               text="Create QR code"
-              className="text-base font-medium"
+              className="text-base font-medium hidden sm:block"
             />
           </div>
         </nav>
