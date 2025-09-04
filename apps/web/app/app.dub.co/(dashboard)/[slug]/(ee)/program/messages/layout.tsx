@@ -1,5 +1,6 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { usePartnerMessages } from "@/lib/swr/use-partner-messages";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
@@ -9,8 +10,19 @@ import { Button, useRouterStuff } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { useParams, useRouter } from "next/navigation";
 import { CSSProperties, ReactNode, useEffect, useState } from "react";
+import { MessagesUpsell } from "./messages-upsell";
 
 export default function MessagesLayout({ children }: { children: ReactNode }) {
+  const { plan } = useWorkspace();
+
+  const { canMessagePartners } = getPlanCapabilities(plan);
+
+  if (!canMessagePartners) return <MessagesUpsell />;
+
+  return <CapableLayout>{children}</CapableLayout>;
+}
+
+export function CapableLayout({ children }: { children: ReactNode }) {
   const { slug: workspaceSlug } = useWorkspace();
   const { partnerId } = useParams() as { partnerId?: string };
 

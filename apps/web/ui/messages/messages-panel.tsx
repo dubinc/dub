@@ -18,6 +18,7 @@ export function MessagesPanel({
   messages,
   currentUserType,
   currentUserId,
+  programImage,
   onSendMessage,
   placeholder = "Type a message...",
   error,
@@ -25,6 +26,7 @@ export function MessagesPanel({
   messages?: (Message & { delivered?: boolean })[];
   currentUserType: "partner" | "user";
   currentUserId: string;
+  programImage?: string | null;
   onSendMessage: (message: string) => void;
   placeholder?: string;
   error?: any;
@@ -117,13 +119,13 @@ export function MessagesPanel({
                           className="size-8 rounded-full"
                           draggable={false}
                         />
-                        {/* {sender?.groupAvatar && (
+                        {programImage && !message.senderPartnerId && (
                           <img
-                            src={sender?.groupAvatar}
-                            alt=""
+                            src={programImage}
+                            alt="program logo"
                             className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border border-white"
                           />
-                        )} */}
+                        )}
                       </div>
                     </Tooltip>
 
