@@ -93,3 +93,18 @@ export const getProgramMessagesQuerySchema = z.object({
   sortBy: z.enum(["createdAt"]).default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
+
+export const messageProgramSchema = z.object({
+  programSlug: z.string(),
+  text: z.string(),
+  createdAt: z.coerce
+    .date()
+    .refine(
+      (date) =>
+        date.getTime() <= Date.now() &&
+        date.getTime() >= Date.now() - 1000 * 60,
+      {
+        message: "Message timestamp must be within the last 60 seconds",
+      },
+    ),
+});

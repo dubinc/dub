@@ -1,10 +1,11 @@
 "use client";
 
-import { messagePartnerAction } from "@/lib/actions/partners/message-partner";
+import { messageProgramAction } from "@/lib/actions/partners/message-program";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { useProgramMessages } from "@/lib/swr/use-program-messages";
 import useUser from "@/lib/swr/use-user";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
@@ -16,11 +17,11 @@ import { useAction } from "next-safe-action/hooks";
 import { redirect, useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { v4 as uuid } from "uuid";
 
 export function PartnerMessagesProgramPageClient() {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-
   const { programSlug } = useParams() as { programSlug: string };
+  const { partner } = usePartnerProfile();
   const { user } = useUser();
   const { programEnrollment, error: errorProgramEnrollment } =
     useProgramEnrollment();
@@ -55,7 +56,7 @@ export function PartnerMessagesProgramPageClient() {
   });
   const messages = programMessages?.[0]?.messages;
 
-  const { executeAsync: sendMessage } = useAction(messagePartnerAction);
+  const { executeAsync: sendMessage } = useAction(messageProgramAction);
 
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
@@ -106,85 +107,83 @@ export function PartnerMessagesProgramPageClient() {
         </div>
         <div className="min-h-0 grow">
           <MessagesPanel
-            messages={messages && user ? messages : undefined}
+            messages={messages && partner ? messages : undefined}
             error={errorMessages}
-            currentUserType="user"
-            currentUserId={user?.id || ""}
+            currentUserType="partner"
+            currentUserId={partner?.id || ""}
             programImage={program?.logo}
             onSendMessage={async (message) => {
-              toast.info("WIP");
-              // const createdAt = new Date();
+              const createdAt = new Date();
 
-              // try {
-              //   await mutateProgramMessages(
-              //     async (data) => {
-              //       const result = await sendMessage({
-              //         workspaceId: workspaceId!,
-              //         partnerId,
-              //         text: message,
-              //         createdAt,
-              //       });
+              try {
+                await mutateProgramMessages(
+                  async (data) => {
+                    const result = await sendMessage({
+                      programSlug,
+                      text: message,
+                      createdAt,
+                    });
 
-              //       if (!result?.data?.message)
-              //         throw new Error(
-              //           result?.serverError || "Failed to send message",
-              //         );
+                    if (!result?.data?.message)
+                      throw new Error(
+                        result?.serverError || "Failed to send message",
+                      );
 
-              //       return data
-              //         ? [
-              //             {
-              //               ...data[0],
-              //               messages: [
-              //                 ...data[0].messages,
-              //                 result.data.message,
-              //               ],
-              //             },
-              //           ]
-              //         : [];
-              //     },
-              //     {
-              //       optimisticData: (data) =>
-              //         data
-              //           ? [
-              //               {
-              //                 ...data[0],
-              //                 messages: [
-              //                   ...data[0].messages,
-              //                   {
-              //                     delivered: false,
-              //                     id: `tmp_${uuid()}`,
-              //                     programId: program!.id,
-              //                     partnerId: partnerId,
-              //                     text: message,
+                    return data
+                      ? [
+                          {
+                            ...data[0],
+                            messages: [
+                              ...data[0].messages,
+                              result.data.message,
+                            ],
+                          },
+                        ]
+                      : [];
+                  },
+                  {
+                    optimisticData: (data) =>
+                      data
+                        ? [
+                            {
+                              ...data[0],
+                              messages: [
+                                ...data[0].messages,
+                                {
+                                  delivered: false,
+                                  id: `tmp_${uuid()}`,
+                                  programId: program!.id,
+                                  partnerId: partner!.id,
+                                  text: message,
 
-              //                     emailId: null,
-              //                     readInApp: null,
-              //                     readInEmail: null,
-              //                     createdAt,
-              //                     updatedAt: createdAt,
+                                  emailId: null,
+                                  readInApp: null,
+                                  readInEmail: null,
+                                  createdAt,
+                                  updatedAt: createdAt,
 
-              //                     senderPartnerId: null,
-              //                     senderPartner: null,
-              //                     senderUserId: user!.id,
-              //                     senderUser: {
-              //                       id: user!.id,
-              //                       name: user!.name,
-              //                       image: user!.image || null,
-              //                     },
-              //                   },
-              //                 ],
-              //               },
-              //             ]
-              //           : [],
-              //       rollbackOnError: true,
-              //     },
-              //   );
+                                  senderUserId: null,
+                                  senderUser: null,
+                                  senderPartnerId: partner!.id,
+                                  senderPartner: {
+                                    id: partner!.id,
+                                    name: partner!.name,
+                                    image: partner!.image || null,
+                                  },
+                                },
+                              ],
+                            },
+                          ]
+                        : [],
+                    rollbackOnError: true,
+                  },
+                );
 
-              //   mutatePrefix("/api/messages");
-              // } catch (e) {
-              //   console.log("Failed to send message", e);
-              //   toast.error("Failed to send message");
-              // }
+                mutatePrefix("/api/partner-profile/messages");
+              } catch (e) {
+                console.log("Failed to send message", e);
+                toast.error("Failed to send message");
+              }
             }}
           />
         </div>
