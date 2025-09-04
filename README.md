@@ -60,7 +60,7 @@ We love our contributors! Here's how you can contribute:
 
 - [Open an issue](https://github.com/dubinc/dub/issues) if you believe you've encountered a bug.
 - Follow the [local development guide](https://dub.co/docs/local-development) to get your local dev environment set up.
-- Make a [pull request](https://github.com/dubinc/dub/pull) to add new features/make quality-of-life improvements/fix bugs.
+- Make a [pull request](https://github.com/dubinc/dub/pulls) to add new features/make quality-of-life improvements/fix bugs.
 
 <a href="https://github.com/dubinc/dub/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=dubinc/dub" />
@@ -72,4 +72,4 @@ We love our contributors! Here's how you can contribute:
 
 ## License
 
-Dub Technologies, Inc. is a commercial open-source company, which means some parts of this open-source repository require a commercial license. The concept is called "Open Core" where the core technology (99%) is fully open source, licensed under [AGPLv3](https://opensource.org/license/agpl-v3) and the last 1% is covered under a commercial license (["/ee" Enterprise Edition](<https://github.com/dubinc/dub/tree/ee/apps/web/app/(ee)>)) which we believe is entirely relevant for larger organisations that require enterprise features. Enterprise features are built by the core engineering team of Dub Technologies, Inc., which is hired full-time.
+Dub Technologies, Inc. is a commercial open-source company, which means some parts of this open-source repository require a commercial license. The concept is called "Open Core" where the core technology (99%) is fully open source, licensed under [AGPLv3](https://opensource.org/license/agpl-v3) and the last 1% is covered under a commercial license (["/ee" Enterprise Edition](https://github.com/dubinc/dub/tree/ee/apps/web/app/(ee))) which we believe is entirely relevant for larger organisations that require enterprise features. Enterprise features are built by the core engineering team of Dub Technologies, Inc., which is hired full-time.
