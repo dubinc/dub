@@ -104,7 +104,7 @@ export async function POST(req: Request) {
       console.log(
         `Sending emails to ${programEnrollmentChunk.length} partners: ${programEnrollmentChunk.map(({ partner }) => partner.email).join(", ")}`,
       );
-      await resend?.batch.send(
+      await resend.batch.send(
         programEnrollmentChunk.map(({ partner }) => ({
           from: VARIANT_TO_FROM_MAP.notifications,
           to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query

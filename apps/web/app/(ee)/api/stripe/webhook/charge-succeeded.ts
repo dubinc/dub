@@ -152,7 +152,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     return;
   }
 
-  await resend?.batch.send(
+  await resend.batch.send(
     workspaceOwners.map(({ user }) => ({
       from: VARIANT_TO_FROM_MAP.notifications,
       to: user.email!,

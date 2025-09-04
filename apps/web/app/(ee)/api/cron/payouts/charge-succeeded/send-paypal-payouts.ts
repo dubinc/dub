@@ -48,7 +48,7 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
 
   console.log("PayPal batch payout created", batchPayout);
 
-  const batchEmails = await resend?.batch.send(
+  const batchEmails = await resend.batch.send(
     payouts
       .filter((payout) => payout.partner.email)
       .map((payout) => ({

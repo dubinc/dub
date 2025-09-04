@@ -161,7 +161,7 @@ export const bulkApprovePartnersAction = authActionClient
 
         await Promise.allSettled([
           // Send approval emails
-          ...emailChunks.map((emailChunk) => resend?.batch.send(emailChunk)),
+          ...emailChunks.map((emailChunk) => resend.batch.send(emailChunk)),
 
           // Send enrolled webhooks
           ...updatedEnrollments.map(({ partner, ...enrollment }) =>
