@@ -1,6 +1,6 @@
 "use client";
 
-import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { EQRType, QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
@@ -15,7 +15,7 @@ import { QrTabsDetailedTitle } from "./components/qr-tabs-detailed-title.tsx";
 
 interface IQrTabsDetailedProps {
   sessionId: string;
-  handleScrollButtonClick: (type: "1" | "2") => void;
+  handleScrollButtonClick: (type: "1" | "2", scrollTo?: EQRType) => void;
 }
 
 export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
@@ -139,7 +139,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                       className="flex w-full flex-row items-center justify-center gap-2 md:max-w-[201px]"
                       size={{ initial: "4", md: "3" }}
                       color="blue"
-                      onClick={() => handleScrollButtonClick("2")}
+                      onClick={() => handleScrollButtonClick("2", type.scrollTo)}
                       text="Create QR code"
                     />
                   </div>

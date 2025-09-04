@@ -29,6 +29,7 @@ export type QRType = {
   img: StaticImageData;
   content: string;
   yourContentColumnTitle: string;
+  scrollTo?: EQRType;
 };
 
 export const QR_TYPES: QRType[] = [
@@ -41,6 +42,7 @@ export const QR_TYPES: QRType[] = [
     content:
       "Turn every scan into a visit! Link your website to a QR code and make it easy for customers, clients, or followers to connect with your brand in seconds.",
     yourContentColumnTitle: "Your Link",
+    scrollTo: EQRType.WEBSITE,
   },
   {
     id: EQRType.PDF,
@@ -51,6 +53,7 @@ export const QR_TYPES: QRType[] = [
     content:
       "Share important documents instantly! Link your PDF to a QR code and give people quick and easy access to menus, guides, brochures, or portfolios—anytime, anywhere.",
     yourContentColumnTitle: "Your PDF",
+    scrollTo: EQRType.PDF,
   },
   {
     id: EQRType.WHATSAPP,
@@ -61,6 +64,7 @@ export const QR_TYPES: QRType[] = [
     content:
       "Start conversations instantly! Use a QR code to let customers, clients, or friends message you on WhatsApp with a single scan.",
     yourContentColumnTitle: "Your Number",
+    scrollTo: EQRType.WHATSAPP, 
   },
   {
     id: EQRType.WIFI,
@@ -71,6 +75,7 @@ export const QR_TYPES: QRType[] = [
     content:
       "Instant Wifi access—no typing required! Use a QR code to let guests connect to your network effortlessly by scanning, making it perfect for homes, cafés, offices, and events.",
     yourContentColumnTitle: "Wifi Name",
+    scrollTo: EQRType.WIFI,
   },
   {
     id: EQRType.IMAGE,
@@ -81,6 +86,7 @@ export const QR_TYPES: QRType[] = [
     content:
       "Showcase your visuals with ease! Use a QR code to share product galleries, event photos, or special moments instantly—perfect for businesses, creatives, and personal use.",
     yourContentColumnTitle: "Your Image",
+    scrollTo: EQRType.IMAGE,
   },
   {
     id: EQRType.VIDEO,
@@ -91,6 +97,7 @@ export const QR_TYPES: QRType[] = [
     content:
       "Bring your content to life! Use a QR code to instantly share videos—whether it's tutorials, trailers, promotions, or educational content—anytime, anywhere.",
     yourContentColumnTitle: "Your Video",
+    scrollTo: EQRType.VIDEO,
   },
   {
     id: EQRType.SOCIAL,
@@ -101,6 +108,7 @@ export const QR_TYPES: QRType[] = [
     content:
       "Grow your audience effortlessly! Use a QR code to share your social media profiles in one scan—making it easy for people to follow, connect, and engage with your content.",
     yourContentColumnTitle: "Your Link",
+    scrollTo: EQRType.WEBSITE,
   },
   {
     id: EQRType.APP_LINK,
@@ -111,6 +119,7 @@ export const QR_TYPES: QRType[] = [
     content:
       "Make app downloads effortless! Use a QR code to instantly direct users to your app’s download page—no searching required. Perfect for boosting installs and engagement.",
     yourContentColumnTitle: "Your App",
+    scrollTo: EQRType.WEBSITE,
   },
   {
     id: EQRType.FEEDBACK,
@@ -121,6 +130,7 @@ export const QR_TYPES: QRType[] = [
     content:
       "Get valuable feedback in seconds! Use a QR code to collect customer insights instantly—helping you improve your business and enhance the customer experience.",
     yourContentColumnTitle: "Your Link",
+    scrollTo: EQRType.WEBSITE,
   },
 ];
 

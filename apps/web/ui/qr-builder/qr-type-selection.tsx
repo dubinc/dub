@@ -6,7 +6,7 @@ import { QrTypeIcon } from "./components/qr-type-icon";
 
 interface IQrTypeSelection {
   qrTypesList: QRType[];
-  qrTypeActiveTab: EQRType;
+  qrTypeActiveTab: EQRType | null;
   onSelect: (type: EQRType) => void;
   onHover: (type: EQRType | null) => void;
 }
@@ -17,7 +17,6 @@ export const QrTypeSelection: FC<IQrTypeSelection> = ({
   onSelect,
   onHover,
 }) => {
-  console.log("QrTypeSelection qrTypeActiveTab", qrTypeActiveTab);
 
   return (
     <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">

@@ -7,9 +7,22 @@ export const SupportChatbot = () => {
   const { scriptsLoaded } = useScriptContext();
 
   useEffect(() => {
-    // Only set up listeners after scripts are loaded
+    console.log('scriptsLoaded', scriptsLoaded);
     if (!scriptsLoaded) {
-      return;
+      const handleClick = (event: MouseEvent) => {
+        if (
+          event.target instanceof HTMLAnchorElement &&
+          event.target.id === 'cancellation-bot'
+        ) {
+          event.preventDefault();
+        }
+      };
+  
+      document.addEventListener('click', handleClick);
+
+      return () => {
+        document.removeEventListener('click', handleClick);
+      };
     }
     const bpIframe: HTMLIFrameElement | null = document.querySelector('.bpFab');
     const bpWebChatIframe: HTMLIFrameElement | null =

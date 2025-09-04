@@ -81,6 +81,20 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
 
   const error = errors[id]?.message as string;
 
+  // Function to handle adding https:// prefix for URL inputs
+  const handleUrlBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const currentValue = e.target.value.trim();
+    if (
+      currentValue &&
+      !currentValue.startsWith("http://") &&
+      !currentValue.startsWith("https://")
+    ) {
+      const newValue = `https://${currentValue}`;
+      setFormValue(id, newValue);
+      trigger(id);
+    }
+  };
+
   if (type === "file" && acceptedFileType && maxFileSize) {
     return (
       <Controller
@@ -201,6 +215,8 @@ export const InputWithLabel: FC<IInputWithLabelProps> = ({
           required
           {...register(id)}
           {...props}
+          {...(type === "url" &&
+            id === "websiteLink" && { onBlur: handleUrlBlur })}
         />
       );
   }
