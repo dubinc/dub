@@ -245,7 +245,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     );
 
     if (workspaceOwners.length > 0) {
-      await resend?.batch.send(
+      await resend.batch.send(
         workspaceOwners.map(({ user }) => ({
           from: VARIANT_TO_FROM_MAP.notifications,
           to: user.email!,
@@ -275,7 +275,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     });
 
     if (workspaceOwners.length > 0) {
-      await resend?.batch.send(
+      await resend.batch.send(
         workspaceOwners.map(({ user }) => ({
           from: VARIANT_TO_FROM_MAP.notifications,
           to: user.email!,

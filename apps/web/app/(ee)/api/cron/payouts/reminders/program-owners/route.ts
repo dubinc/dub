@@ -85,6 +85,11 @@ export async function GET(req: Request) {
         },
       });
 
+      // if there are no pending payouts, skip this program
+      if (!pendingPayout._sum?.amount) {
+        continue;
+      }
+
       pendingPayouts.push({
         programId: program.id,
         _sum: pendingPayout._sum,

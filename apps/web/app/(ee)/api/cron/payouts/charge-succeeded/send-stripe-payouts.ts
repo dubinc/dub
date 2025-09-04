@@ -92,7 +92,7 @@ export async function sendStripePayouts({ invoiceId }: { invoiceId: string }) {
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
 
-  const resendBatch = await resend?.batch.send(
+  const resendBatch = await resend.batch.send(
     currentInvoicePayouts
       .filter((p) => p.partner.email)
       .map((p) => {

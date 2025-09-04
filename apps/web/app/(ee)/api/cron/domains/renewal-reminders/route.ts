@@ -109,7 +109,7 @@ export async function GET(req: Request) {
     const reminderDomainsChunks = chunk(reminderDomains, 100);
 
     for (const reminderDomainsChunk of reminderDomainsChunks) {
-      const res = await resend?.batch.send(
+      const res = await resend.batch.send(
         reminderDomainsChunk.map(({ workspace, user, domain }) => ({
           from: VARIANT_TO_FROM_MAP.notifications,
           to: user.email!,

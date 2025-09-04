@@ -10,9 +10,9 @@ export async function subscribe({
   name?: string | null;
   audience?: keyof typeof RESEND_AUDIENCES;
 }) {
-  if (!resend) {
+  if (!process.env.RESEND_API_KEY) {
     console.error(
-      "Resend client is not initialized. This may be due to a missing or invalid RESEND_API_KEY in the .env file. Skipping.",
+      "No RESEND_API_KEY is set in the environment variables. Skipping.",
     );
     return;
   }

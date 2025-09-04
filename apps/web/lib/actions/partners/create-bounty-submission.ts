@@ -141,7 +141,7 @@ export const createBountySubmissionAction = authPartnerActionClient
         });
 
         if (users.length > 0) {
-          await resend?.batch.send(
+          await resend.batch.send(
             users.map((user) => ({
               from: VARIANT_TO_FROM_MAP.notifications,
               to: user.email,
