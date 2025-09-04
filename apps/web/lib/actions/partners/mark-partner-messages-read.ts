@@ -6,7 +6,7 @@ import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
 // Mark partner messages as read
-export const markPartnersMessagesReadAction = authActionClient
+export const markPartnerMessagesReadAction = authActionClient
   .schema(z.object({ workspaceId: z.string(), partnerId: z.string() }))
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;

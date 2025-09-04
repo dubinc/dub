@@ -1,6 +1,6 @@
 "use client";
 
-import { markPartnersMessagesReadAction } from "@/lib/actions/partners/mark-partner-messages-read";
+import { markPartnerMessagesReadAction } from "@/lib/actions/partners/mark-partner-messages-read";
 import { messagePartnerAction } from "@/lib/actions/partners/message-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
@@ -35,7 +35,7 @@ export function ProgramMessagesPartnerPageClient() {
   const {
     executeAsync: markPartnerMessagesRead,
     isPending: isMarkingPartnerMessagesRead,
-  } = useAction(markPartnersMessagesReadAction);
+  } = useAction(markPartnerMessagesReadAction);
 
   const {
     partnerMessages,

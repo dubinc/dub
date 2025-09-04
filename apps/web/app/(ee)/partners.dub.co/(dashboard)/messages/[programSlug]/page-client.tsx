@@ -1,11 +1,11 @@
 "use client";
 
+import { markProgramMessagesReadAction } from "@/lib/actions/partners/mark-program-messages-read";
 import { messageProgramAction } from "@/lib/actions/partners/message-program";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { useProgramMessages } from "@/lib/swr/use-program-messages";
-import useUser from "@/lib/swr/use-user";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
@@ -22,15 +22,14 @@ import { v4 as uuid } from "uuid";
 export function PartnerMessagesProgramPageClient() {
   const { programSlug } = useParams() as { programSlug: string };
   const { partner } = usePartnerProfile();
-  const { user } = useUser();
   const { programEnrollment, error: errorProgramEnrollment } =
     useProgramEnrollment();
   const program = programEnrollment?.program;
 
-  // const {
-  //   executeAsync: markPartnerMessagesRead,
-  //   isPending: isMarkingPartnerMessagesRead,
-  // } = useAction(markPartnersMessagesReadAction);
+  const {
+    executeAsync: markProgramMessagesRead,
+    isPending: isMarkingProgramMessagesRead,
+  } = useAction(markProgramMessagesReadAction);
 
   const {
     programMessages,
@@ -39,19 +38,18 @@ export function PartnerMessagesProgramPageClient() {
   } = useProgramMessages({
     query: { programSlug, sortOrder: "asc" },
     swrOpts: {
-      // onSuccess: (data) => {
-      //   // Mark unread messages from the partner as read
-      //   if (
-      //     !isMarkingPartnerMessagesRead &&
-      //     data?.[0]?.messages?.some(
-      //       (message) => message.senderPartnerId && !message.readInApp,
-      //     )
-      //   )
-      //     markPartnerMessagesRead({
-      //       workspaceId: workspaceId!,
-      //       partnerId,
-      //     });
-      // },
+      onSuccess: (data) => {
+        // Mark unread messages from the program as read
+        if (
+          !isMarkingProgramMessagesRead &&
+          data?.[0]?.messages?.some(
+            (message) => message.senderUserId && !message.readInApp,
+          )
+        )
+          markProgramMessagesRead({
+            programSlug,
+          });
+      },
     },
   });
   const messages = programMessages?.[0]?.messages;
