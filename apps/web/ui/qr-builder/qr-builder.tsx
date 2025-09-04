@@ -39,6 +39,7 @@ interface IQRBuilderProps {
   isEdit?: boolean;
   initialStep?: number;
   typeToScrollTo?: EQRType | null;
+  handleResetTypeToScrollTo?: () => void;
 }
 
 export const QRBuilderStepsTitles = [
@@ -60,6 +61,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
         isEdit,
         initialStep,
         typeToScrollTo,
+        handleResetTypeToScrollTo,
       },
       ref,
     ) => {
@@ -225,12 +227,14 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
       useEffect(() => {
         if (typeToScrollTo) {
           handleSelectQRType(typeToScrollTo);
+          handleChangeStep(2);
         }
       }, [typeToScrollTo]);
 
       const handleBack = () => {
         const newStep = Math.max(step - 1, 1);
         handleChangeStep(newStep);
+        handleResetTypeToScrollTo?.();
         handleScroll();
       };
 
