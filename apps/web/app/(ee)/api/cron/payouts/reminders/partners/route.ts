@@ -4,7 +4,7 @@ import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
 import { prisma } from "@dub/prisma";
-import { chunk, log } from "@dub/utils";
+import { chunk } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -64,19 +64,6 @@ export async function GET(req: Request) {
         },
       }),
     ]);
-
-    if (!resend) {
-      await log({
-        message: "Resend is not configured, skipping email sending.",
-        type: "errors",
-      });
-
-      console.warn("Resend is not configured, skipping email sending.");
-
-      return NextResponse.json(
-        "Resend is not configured, skipping email sending.",
-      );
-    }
 
     const partnerProgramMap = new Map<
       string,

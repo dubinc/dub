@@ -72,6 +72,6 @@ export async function notifyPartnerApplication({
 
   // Send all emails in batches
   await Promise.all(
-    emailChunks.map((emailChunk) => resend?.batch.send(emailChunk)),
+    emailChunks.map((emailChunk) => resend.batch.send(emailChunk)),
   );
 }

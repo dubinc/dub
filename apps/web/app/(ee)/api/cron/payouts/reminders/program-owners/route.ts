@@ -1,10 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { limiter } from "@/lib/cron/limiter";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { sendEmail } from "@dub/email";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
 import { prisma } from "@dub/prisma";
-import { pluralize } from "@dub/utils";
+import { chunk, pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -84,6 +84,11 @@ export async function GET(req: Request) {
           _all: true,
         },
       });
+
+      // if there are no pending payouts, skip this program
+      if (!pendingPayout._sum?.amount) {
+        continue;
+      }
 
       pendingPayouts.push({
         programId: program.id,
@@ -176,31 +181,30 @@ export async function GET(req: Request) {
 
     console.table(programsWithPendingPayoutsToNotify);
 
-    await Promise.all(
-      programsWithPendingPayoutsToNotify.map(
-        ({ workspace, user, program, payout }) =>
-          limiter.schedule(() =>
-            sendEmail({
-              subject: `${payout.partnersCount} ${pluralize(
-                "partner",
-                payout.partnersCount,
-              )} awaiting your payout for ${program.name}`,
-              email: user.email!,
-              react: ProgramPayoutReminder({
-                email: user.email!,
-                workspace,
-                program,
-                payout,
-              }),
-              variant: "notifications",
-            }),
-          ),
-      ),
-    );
+    const programOwnerChunks = chunk(programsWithPendingPayoutsToNotify, 100);
 
-    return NextResponse.json(
-      `Sent reminders for ${programsWithPendingPayoutsToNotify.length} programs with pending payouts.`,
-    );
+    for (const programOwnerChunk of programOwnerChunks) {
+      const res = await resend.batch.send(
+        programOwnerChunk.map(({ workspace, user, program, payout }) => ({
+          from: VARIANT_TO_FROM_MAP.notifications,
+          to: user.email!,
+          subject: `${payout.partnersCount} ${pluralize(
+            "partner",
+            payout.partnersCount,
+          )} awaiting your payout for ${program.name}`,
+          react: ProgramPayoutReminder({
+            email: user.email!,
+            workspace,
+            program,
+            payout,
+          }),
+        })),
+      );
+
+      console.log(`Sent ${programOwnerChunk.length} emails`, res);
+    }
+
+    return NextResponse.json("OK");
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

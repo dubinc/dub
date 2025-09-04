@@ -134,7 +134,7 @@ export async function approvePartnerEnrollment({
       await Promise.allSettled([
         ...(partnerEmailsToNotify.length
           ? [
-              resend?.batch.send(
+              resend.batch.send(
                 partnerEmailsToNotify.map((email) => ({
                   subject: `Your application to join ${program.name} partner program has been approved!`,
                   from: VARIANT_TO_FROM_MAP.notifications,

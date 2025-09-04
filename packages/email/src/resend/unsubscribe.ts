@@ -8,9 +8,9 @@ export async function unsubscribe({
   email: string;
   audience?: keyof typeof RESEND_AUDIENCES;
 }) {
-  if (!resend) {
+  if (!process.env.RESEND_API_KEY) {
     console.error(
-      "Resend client is not properly initialized. Skipping operation.",
+      "No RESEND_API_KEY is set in the environment variables. Skipping.",
     );
     return;
   }

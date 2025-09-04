@@ -171,7 +171,7 @@ const sendTokens = async ({
     ],
   });
 
-  await resend?.batch.send([
+  await resend.batch.send([
     {
       from: VARIANT_TO_FROM_MAP.notifications,
       to: sourceEmail,
