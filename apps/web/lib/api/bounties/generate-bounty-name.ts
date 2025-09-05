@@ -11,15 +11,17 @@ export const generateBountyName = ({
   condition?: WorkflowCondition | null;
 }) => {
   if (!condition) {
-    return `Earn ${currencyFormatter(rewardAmount / 100)}`;
+    return `Earn ${currencyFormatter(rewardAmount / 100, { trailingZeroDisplay: "stripIfInteger" })}`;
   }
 
   const isCurrency = isCurrencyAttribute(condition.attribute);
-  const rewardAmountFormatted = currencyFormatter(rewardAmount / 100);
+  const rewardAmountFormatted = currencyFormatter(rewardAmount / 100, {
+    trailingZeroDisplay: "stripIfInteger",
+  });
   const attributeLabel = WORKFLOW_ATTRIBUTE_LABELS[condition.attribute];
   const valueFormatted = isCurrency
-    ? `${currencyFormatter(condition.value / 100)} in`
+    ? `${currencyFormatter(condition.value / 100, { trailingZeroDisplay: "stripIfInteger" })} in`
     : `${nFormatter(condition.value, { full: true })}`;
 
-  return `Earn ${rewardAmountFormatted} after generating ${valueFormatted} ${attributeLabel}`;
+  return `Earn ${rewardAmountFormatted} after generating ${valueFormatted} ${attributeLabel.toLowerCase()}`;
 };

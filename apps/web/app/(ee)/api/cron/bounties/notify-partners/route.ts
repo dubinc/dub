@@ -5,7 +5,7 @@ import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
@@ -17,7 +17,7 @@ const schema = z.object({
   page: z.number().optional().default(0),
 });
 
-const MAX_PAGE_SIZE = 5000;
+const MAX_PAGE_SIZE = 100;
 
 // POST /api/cron/bounties/notify-partners
 // Send emails to eligible partners about new bounty that is published
@@ -94,40 +94,36 @@ export async function POST(req: Request) {
 
     if (programEnrollments.length === 0) {
       return logAndRespond(
-        `No program enrollments found for bounty ${bountyId}.`,
+        `No more program enrollments found for bounty ${bountyId}.`,
       );
     }
 
-    const programEnrollmentChunks = chunk(programEnrollments, 100);
-
-    for (const programEnrollmentChunk of programEnrollmentChunks) {
-      console.log(
-        `Sending emails to ${programEnrollmentChunk.length} partners: ${programEnrollmentChunk.map(({ partner }) => partner.email).join(", ")}`,
-      );
-      await resend?.batch.send(
-        programEnrollmentChunk.map(({ partner }) => ({
-          from: VARIANT_TO_FROM_MAP.notifications,
-          to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
-          subject: `New bounty available for ${bounty.program.name}`,
-          react: NewBountyAvailable({
-            email: partner.email!,
-            bounty: {
-              name: bounty.name,
-              type: bounty.type,
-              endsAt: bounty.endsAt,
-              description: bounty.description,
-            },
-            program: {
-              name: bounty.program.name,
-              slug: bounty.program.slug,
-            },
-          }),
-          headers: {
-            "Idempotency-Key": `${bountyId}-${partner.id}`,
+    console.log(
+      `Sending emails to ${programEnrollments.length} partners: ${programEnrollments.map(({ partner }) => partner.email).join(", ")}`,
+    );
+    await resend.batch.send(
+      programEnrollments.map(({ partner }) => ({
+        from: VARIANT_TO_FROM_MAP.notifications,
+        to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
+        subject: `New bounty available for ${bounty.program.name}`,
+        react: NewBountyAvailable({
+          email: partner.email!,
+          bounty: {
+            name: bounty.name,
+            type: bounty.type,
+            endsAt: bounty.endsAt,
+            description: bounty.description,
           },
-        })),
-      );
-    }
+          program: {
+            name: bounty.program.name,
+            slug: bounty.program.slug,
+          },
+        }),
+        headers: {
+          "Idempotency-Key": `${bountyId}-page-${page}`,
+        },
+      })),
+    );
 
     if (programEnrollments.length === MAX_PAGE_SIZE) {
       const res = await qstash.publishJSON({

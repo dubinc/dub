@@ -244,7 +244,7 @@ export async function POST(req: Request) {
     // Make sure the cache is cleared
     await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
-    await resend?.batch.send([
+    await resend.batch.send([
       {
         from: VARIANT_TO_FROM_MAP.notifications,
         to: sourceEmail,
