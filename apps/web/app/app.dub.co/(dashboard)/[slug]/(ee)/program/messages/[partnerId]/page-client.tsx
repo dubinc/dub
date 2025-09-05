@@ -44,18 +44,20 @@ export function ProgramMessagesPartnerPageClient() {
   } = usePartnerMessages({
     query: { partnerId, sortOrder: "asc" },
     swrOpts: {
-      onSuccess: (data) => {
+      onSuccess: async (data) => {
         // Mark unread messages from the partner as read
         if (
           !isMarkingPartnerMessagesRead &&
           data?.[0]?.messages?.some(
             (message) => message.senderPartnerId && !message.readInApp,
           )
-        )
-          markPartnerMessagesRead({
+        ) {
+          await markPartnerMessagesRead({
             workspaceId: workspaceId!,
             partnerId,
           });
+          mutatePrefix("/api/messages");
+        }
       },
     },
   });

@@ -71,10 +71,10 @@ export function MessagesPanel({
 
               const isCurrentUser = isMessageFromCurrentUser(message);
 
-              // Message is new if it was sent within the last 5 seconds (used for intro animations)
+              // Message is new if it was sent within the last 10 seconds (used for intro animations)
               const isNew =
                 new Date(message.createdAt).getTime() >
-                new Date().getTime() - 5_000;
+                new Date().getTime() - 10_000;
 
               const showStatusIndicator =
                 isCurrentUser &&
@@ -83,7 +83,7 @@ export function MessagesPanel({
                     .slice(idx + 1)
                     .findIndex(isMessageFromCurrentUser) === -1);
 
-              const sender = message.senderUser || message.senderPartner;
+              const sender = message.senderPartner || message.senderUser;
 
               return (
                 <Fragment

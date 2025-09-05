@@ -3,6 +3,7 @@
 import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
+import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -38,9 +39,13 @@ type SidebarNavData = {
   isUnapproved: boolean;
   invitationsCount?: number;
   programBountiesCount?: number;
+  unreadMessagesCount?: number;
 };
 
-const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
+  pathname,
+  unreadMessagesCount,
+}) => [
   {
     name: "Programs",
     description:
@@ -71,6 +76,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
     icon: Msgs,
     href: "/messages",
     active: pathname.startsWith("/messages"),
+    notification: !!unreadMessagesCount,
   },
 ];
 
@@ -305,6 +311,13 @@ export function PartnersSidebarNav({
     enabled: isEnrolledProgramPage,
   });
 
+  const { count: unreadMessagesCount } = useProgramMessagesCount({
+    enabled: true,
+    query: {
+      unread: true,
+    },
+  });
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -318,6 +331,7 @@ export function PartnersSidebarNav({
           !!programEnrollment && programEnrollment.status !== "approved",
         invitationsCount,
         programBountiesCount: bounties?.length,
+        unreadMessagesCount,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

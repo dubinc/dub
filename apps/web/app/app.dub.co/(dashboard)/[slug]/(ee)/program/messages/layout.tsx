@@ -78,6 +78,10 @@ function CapableLayout({ children }: { children: ReactNode }) {
                       ...partner,
                       messages,
                       href: `/${workspaceSlug}/program/messages/${partner.id}`,
+                      unread: messages.some(
+                        (message) =>
+                          message.senderPartnerId && !message.readInApp,
+                      ),
                     }),
                   )}
                   activeId={partnerId}

@@ -56,17 +56,19 @@ export function PartnerMessagesProgramPageClient() {
   } = useProgramMessages({
     query: { programSlug, sortOrder: "asc" },
     swrOpts: {
-      onSuccess: (data) => {
+      onSuccess: async (data) => {
         // Mark unread messages from the program as read
         if (
           !isMarkingProgramMessagesRead &&
           data?.[0]?.messages?.some(
             (message) => !message.senderPartnerId && !message.readInApp,
           )
-        )
-          markProgramMessagesRead({
+        ) {
+          await markProgramMessagesRead({
             programSlug,
           });
+          mutatePrefix("/api/partner-profile/messages");
+        }
       },
     },
   });

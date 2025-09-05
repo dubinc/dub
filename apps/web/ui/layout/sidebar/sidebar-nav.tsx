@@ -51,6 +51,7 @@ export type NavGroupType = {
   popup?: ComponentType<{
     referenceElement: HTMLElement | null;
   }>;
+  notification?: boolean;
 
   description: string;
   learnMoreHref?: string;
@@ -304,6 +305,7 @@ function NavGroupItem({
     icon: Icon,
     href,
     active,
+    notification,
     onClick,
     popup: Popup,
   },
@@ -328,7 +330,7 @@ function NavGroupItem({
             onPointerLeave={() => setHovered(false)}
             onClick={onClick}
             className={cn(
-              "flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
+              "relative flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
               "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
               active
                 ? "bg-white"
@@ -339,6 +341,9 @@ function NavGroupItem({
               className="text-content-default size-5"
               data-hovered={hovered}
             />
+            {notification && (
+              <div className="absolute right-2 top-2 size-1.5 rounded-full bg-blue-500" />
+            )}
           </Link>
         </div>
       </NavGroupTooltip>

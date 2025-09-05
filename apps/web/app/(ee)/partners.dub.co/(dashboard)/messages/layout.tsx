@@ -65,6 +65,10 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                       image: program.logo,
                       messages,
                       href: `/messages/${program.slug}`,
+                      unread: messages.some(
+                        (message) =>
+                          !message.senderPartnerId && !message.readInApp,
+                      ),
                     }),
                   )}
                   activeId={programSlug}

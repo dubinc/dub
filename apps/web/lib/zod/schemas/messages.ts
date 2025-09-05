@@ -50,6 +50,10 @@ export const getPartnerMessagesQuerySchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 
+export const countMessagesQuerySchema = z.object({
+  unread: z.coerce.boolean().optional(),
+});
+
 export const messagePartnerSchema = z.object({
   partnerId: z.string(),
   text: z.string(),

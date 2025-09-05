@@ -13,6 +13,7 @@ export function MessagesList({
         image: string | null;
         messages: { text: string; createdAt: Date }[];
         href: string;
+        unread?: boolean;
       }[]
     | undefined;
   activeId?: string;
@@ -35,11 +36,16 @@ export function MessagesList({
                   group.id === activeId ? "bg-bg-subtle" : "hover:bg-bg-muted",
                 )}
               >
-                <img
-                  src={group.image || `${OG_AVATAR_URL}${group.name}`}
-                  alt={`${group.name} avatar`}
-                  className="size-8 shrink-0 rounded-full"
-                />
+                <div className="relative shrink-0">
+                  <img
+                    src={group.image || `${OG_AVATAR_URL}${group.name}`}
+                    alt={`${group.name} avatar`}
+                    className="size-8 rounded-full"
+                  />
+                  {group.unread && (
+                    <div className="absolute -right-0.5 -top-0.5 size-3 rounded-full border-2 border-white bg-blue-500" />
+                  )}
+                </div>
                 <div className="min-w-0 grow">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-content-emphasis text-sm font-semibold">
