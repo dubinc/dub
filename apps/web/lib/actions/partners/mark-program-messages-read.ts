@@ -21,9 +21,7 @@ export const markProgramMessagesReadAction = authPartnerActionClient
       where: {
         partnerId: partner.id,
         programId: enrollment.programId,
-        senderUserId: {
-          not: null,
-        },
+        senderPartnerId: null,
       },
       data: {
         readInApp: new Date(),
