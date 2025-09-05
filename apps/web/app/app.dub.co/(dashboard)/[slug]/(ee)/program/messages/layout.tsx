@@ -22,7 +22,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
   return <CapableLayout>{children}</CapableLayout>;
 }
 
-export function CapableLayout({ children }: { children: ReactNode }) {
+function CapableLayout({ children }: { children: ReactNode }) {
   const { slug: workspaceSlug } = useWorkspace();
   const { partnerId } = useParams() as { partnerId?: string };
 
