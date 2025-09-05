@@ -13,7 +13,7 @@ import { authPartnerActionClient } from "../safe-action";
 export const messageProgramAction = authPartnerActionClient
   .schema(messageProgramSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { partner } = ctx;
+    const { partner, user } = ctx;
     const { programSlug, text, createdAt } = parsedInput;
 
     const enrollment = await getProgramEnrollmentOrThrow({
@@ -27,6 +27,7 @@ export const messageProgramAction = authPartnerActionClient
         programId: enrollment.programId,
         partnerId: partner.id,
         senderPartnerId: partner.id,
+        senderUserId: user.id,
         text,
         createdAt,
       },

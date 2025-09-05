@@ -6,6 +6,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { useProgramMessages } from "@/lib/swr/use-program-messages";
+import useUser from "@/lib/swr/use-user";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
@@ -21,6 +22,7 @@ import { v4 as uuid } from "uuid";
 
 export function PartnerMessagesProgramPageClient() {
   const { programSlug } = useParams() as { programSlug: string };
+  const { user } = useUser();
   const { partner } = usePartnerProfile();
   const { programEnrollment, error: errorProgramEnrollment } =
     useProgramEnrollment();
@@ -43,7 +45,7 @@ export function PartnerMessagesProgramPageClient() {
         if (
           !isMarkingProgramMessagesRead &&
           data?.[0]?.messages?.some(
-            (message) => message.senderUserId && !message.readInApp,
+            (message) => !message.senderPartnerId && !message.readInApp,
           )
         )
           markProgramMessagesRead({
@@ -105,7 +107,7 @@ export function PartnerMessagesProgramPageClient() {
         </div>
         <div className="min-h-0 grow">
           <MessagesPanel
-            messages={messages && partner ? messages : undefined}
+            messages={messages && partner && user ? messages : undefined}
             error={errorMessages}
             currentUserType="partner"
             currentUserId={partner?.id || ""}
@@ -160,8 +162,12 @@ export function PartnerMessagesProgramPageClient() {
                                   createdAt,
                                   updatedAt: createdAt,
 
-                                  senderUserId: null,
-                                  senderUser: null,
+                                  senderUserId: user!.id,
+                                  senderUser: {
+                                    id: user!.id,
+                                    name: user!.name,
+                                    image: user!.image || null,
+                                  },
                                   senderPartnerId: partner!.id,
                                   senderPartner: {
                                     id: partner!.id,

@@ -4,8 +4,8 @@ model Message {
   programId       String
   partnerId       String
 
-  senderPartnerId String? // Populated if the sender is a partner
-  senderUserId    String? // Populated if the sender is a program owner/user
+  senderUserId    String
+  senderPartnerId String? // Populated only if the sender is a partner
 
   text          String @db.Text
 
@@ -17,8 +17,8 @@ model Message {
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  senderUser User @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
   senderPartner Partner? @relation("SenderPartner", fields: [senderPartnerId], references: [id], onDelete: Cascade)
-  senderUser User? @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
 
   @@index(programId)
   @@index(partnerId)
