@@ -15,11 +15,12 @@ import { EQRType } from '@/ui/qr-builder/constants/get-qr-config.ts';
 interface IQRTabsProps {
   sessionId: string;
   typeToScrollTo: EQRType | null;
+  handleResetTypeToScrollTo: () => void;
 }
 
 export const QRTabs: FC<
   Readonly<IQRTabsProps> & { ref?: Ref<HTMLDivElement> }
-> = forwardRef(({ sessionId, typeToScrollTo }, ref) => {
+> = forwardRef(({ sessionId, typeToScrollTo, handleResetTypeToScrollTo }, ref) => {
   console.log("qr tabs");
   const { AuthModal, showModal } = useAuthModal({ sessionId });
 
@@ -83,6 +84,8 @@ export const QRTabs: FC<
           handleSaveQR={handleSaveQR}
           homepageDemo
           typeToScrollTo={typeToScrollTo}
+          key={typeToScrollTo}
+          handleResetTypeToScrollTo={handleResetTypeToScrollTo}
         />
 
         <Rating />
