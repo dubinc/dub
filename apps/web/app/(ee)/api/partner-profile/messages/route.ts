@@ -59,10 +59,10 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         // Sort by most recent message
         .sort((a, b) =>
           sortOrder === "desc"
-            ? b.program.messages[0][sortBy].getTime() -
-              a.program.messages[0][sortBy].getTime()
-            : a.program.messages[0][sortBy].getTime() -
-              b.program.messages[0][sortBy].getTime(),
+            ? (b.program.messages?.[0][sortBy].getTime() ?? 0) -
+              (a.program.messages?.[0][sortBy].getTime() ?? 0)
+            : (a.program.messages?.[0][sortBy].getTime() ?? 0) -
+              (b.program.messages?.[0][sortBy].getTime() ?? 0),
         )
         // Map to {program, messages}
         .map(({ program: { messages, ...program } }) => ({

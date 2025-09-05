@@ -11,7 +11,7 @@ export const MessageSchema = z
     programId: z.string(),
     partnerId: z.string(),
     senderPartnerId: z.string().nullable(),
-    senderUserId: z.string().nullable(),
+    senderUserId: z.string(),
 
     text: z.string().min(1).max(MAX_MESSAGE_LENGTH),
 

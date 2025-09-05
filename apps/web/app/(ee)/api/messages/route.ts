@@ -63,10 +63,10 @@ export const GET = withWorkspace(
           // Sort by most recent message
           .sort((a, b) =>
             sortOrder === "desc"
-              ? b.partner.messages[0][sortBy].getTime() -
-                a.partner.messages[0][sortBy].getTime()
-              : a.partner.messages[0][sortBy].getTime() -
-                b.partner.messages[0][sortBy].getTime(),
+              ? (b.partner.messages?.[0][sortBy].getTime() ?? 0) -
+                (a.partner.messages?.[0][sortBy].getTime() ?? 0)
+              : (a.partner.messages?.[0][sortBy].getTime() ?? 0) -
+                (b.partner.messages?.[0][sortBy].getTime() ?? 0),
           )
           // Map to {partner, messages}
           .map(({ partner: { messages, ...partner } }) => ({
@@ -78,13 +78,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["messages.read"],
-    requiredPlan: [
-      "business",
-      "business extra",
-      "business max",
-      "business plus",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );
