@@ -5,36 +5,32 @@ import { UserSchema } from "./users";
 
 export const MAX_MESSAGE_LENGTH = 2000;
 
-export const MessageSchema = z
-  .object({
-    id: z.string(),
-    programId: z.string(),
-    partnerId: z.string(),
-    senderPartnerId: z.string().nullable(),
-    senderUserId: z.string(),
+export const MessageSchema = z.object({
+  id: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
+  senderPartnerId: z.string().nullable(),
+  senderUserId: z.string(),
 
-    text: z.string().min(1).max(MAX_MESSAGE_LENGTH),
+  text: z.string().min(1).max(MAX_MESSAGE_LENGTH),
 
-    emailId: z.string().nullable(),
-    readInApp: z.date().nullable(),
-    readInEmail: z.date().nullable(),
-    createdAt: z.date(),
-    updatedAt: z.date(),
+  emailId: z.string().nullable(),
+  readInApp: z.date().nullable(),
+  readInEmail: z.date().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 
-    senderPartner: PartnerSchema.pick({
-      id: true,
-      name: true,
-      image: true,
-    }).nullable(),
-    senderUser: UserSchema.pick({
-      id: true,
-      name: true,
-      image: true,
-    }).nullable(),
-  })
-  .refine((data) => data.senderPartnerId || data.senderUserId, {
-    message: "Either senderPartnerId or senderUserId must be present",
-  });
+  senderPartner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  }).nullable(),
+  senderUser: UserSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  }).nullable(),
+});
 
 export const PartnerMessagesSchema = z.array(
   z.object({
