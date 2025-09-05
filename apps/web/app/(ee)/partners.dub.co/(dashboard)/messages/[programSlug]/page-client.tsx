@@ -302,7 +302,7 @@ function ProgramInfoPanel({
   return (
     <>
       {/* Program info */}
-      <div className="border-border-subtle relative overflow-hidden border-b">
+      <div className="border-border-subtle relative shrink-0 overflow-hidden border-b">
         <div className="absolute inset-y-0 right-0 w-96 [mask-image:radial-gradient(100%_100%_at_100%_0%,black_30%,transparent)]">
           <Grid cellSize={20} className="text-neutral-200" />
         </div>
