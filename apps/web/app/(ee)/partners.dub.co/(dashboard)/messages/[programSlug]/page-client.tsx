@@ -2,21 +2,37 @@
 
 import { markProgramMessagesReadAction } from "@/lib/actions/partners/mark-program-messages-read";
 import { messageProgramAction } from "@/lib/actions/partners/message-program";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
+import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
+import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { useProgramMessages } from "@/lib/swr/use-program-messages";
 import useUser from "@/lib/swr/use-user";
+import { PayoutsCount, ProgramEnrollmentProps } from "@/lib/types";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
+import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
+import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { X } from "@/ui/shared/icons";
-import { Button } from "@dub/ui";
-import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { PayoutStatus } from "@dub/prisma/client";
+import { Button, Grid, useCopyToClipboard } from "@dub/ui";
+import { Check, ChevronLeft, Copy, LoadingSpinner } from "@dub/ui/icons";
+import {
+  OG_AVATAR_URL,
+  capitalize,
+  cn,
+  currencyFormatter,
+  formatDate,
+  getPrettyUrl,
+} from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
@@ -197,11 +213,11 @@ export function PartnerMessagesProgramPageClient() {
       <div
         className={cn(
           "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[960px]/page:shadow-none @[960px]/page:relative",
-          isRightPanelOpen && "w-full sm:w-[340px]",
+          "@[1082px]/page:shadow-none @[1082px]/page:relative",
+          isRightPanelOpen && "w-full sm:w-[400px]",
         )}
       >
-        <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[340px]">
+        <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[400px]">
           <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
             <h2 className="text-content-emphasis text-lg font-semibold leading-7">
               Program
@@ -218,15 +234,15 @@ export function PartnerMessagesProgramPageClient() {
               <button
                 type="button"
                 onClick={() => setIsRightPanelOpen(false)}
-                className="@[960px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                className="@[1082px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
               >
                 <X className="size-4" />
               </button>
             </div>
           </div>
-          <div className="bg-bg-muted scrollbar-hide flex grow flex-col gap-4 overflow-y-scroll p-6">
-            {program ? (
-              <>{program.name}</>
+          <div className="bg-bg-muted scrollbar-hide flex grow flex-col overflow-y-scroll">
+            {programEnrollment && program ? (
+              <ProgramInfoPanel programEnrollment={programEnrollment} />
             ) : (
               <div className="flex size-full items-center justify-center">
                 <LoadingSpinner />
@@ -236,5 +252,187 @@ export function PartnerMessagesProgramPageClient() {
         </div>
       </div>
     </div>
+  );
+}
+
+function ProgramInfoPanel({
+  programEnrollment,
+}: {
+  programEnrollment: ProgramEnrollmentProps;
+}) {
+  const program = programEnrollment.program;
+  const partnerLink = constructPartnerLink({
+    program,
+    linkKey: programEnrollment.links?.[0]?.key,
+  });
+
+  const { data: statsTotals } = usePartnerAnalytics({
+    event: "composite",
+    interval: "all",
+  });
+
+  const { data: earningsTimeseries } = usePartnerEarningsTimeseries({
+    interval: "all",
+  });
+
+  const totalEarnings = useMemo(
+    () => earningsTimeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
+    [earningsTimeseries],
+  );
+
+  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
+    groupBy: "status",
+  });
+
+  const totalPayouts = useMemo(
+    () =>
+      payoutsCount
+        ?.filter(
+          (payout) =>
+            payout.status === PayoutStatus.processed ||
+            payout.status === PayoutStatus.sent ||
+            payout.status === PayoutStatus.completed,
+        )
+        ?.reduce((acc, p) => acc + p.amount, 0) ?? 0,
+    [payoutsCount],
+  );
+
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
+  return (
+    <>
+      {/* Program info */}
+      <div className="border-border-subtle relative overflow-hidden border-b">
+        <div className="absolute inset-y-0 right-0 w-96 [mask-image:radial-gradient(100%_100%_at_100%_0%,black_30%,transparent)]">
+          <Grid cellSize={20} className="text-neutral-200" />
+        </div>
+        <div className="relative flex flex-col gap-4 p-6">
+          <img
+            src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+            alt={`${program.name} logo`}
+            className="size-12 rounded-full"
+          />
+          <div>
+            <span className="text-content-emphasis block text-lg font-semibold">
+              {program.name}
+            </span>
+            <span className="text-content-subtle text-sm font-medium">
+              Partner since {formatDate(programEnrollment.createdAt)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Referral link */}
+      <div className="border-border-subtle border-b p-6">
+        <div className="flex items-end justify-between">
+          <h3 className="text-content-emphasis text-sm font-semibold">
+            Referral link
+          </h3>
+          <Link
+            href={`/programs/${program.slug}/links`}
+            target="_blank"
+            className="text-sm font-medium text-neutral-500 hover:text-neutral-700"
+          >
+            View all
+          </Link>
+        </div>
+
+        <input
+          type="text"
+          readOnly
+          value={getPrettyUrl(partnerLink)}
+          className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default mt-2 block h-10 w-full rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
+        />
+
+        <Button
+          icon={
+            <div className="relative size-4">
+              <div
+                className={cn(
+                  "absolute inset-0 transition-[transform,opacity]",
+                  copied && "translate-y-1 opacity-0",
+                )}
+              >
+                <Copy className="size-4" />
+              </div>
+              <div
+                className={cn(
+                  "absolute inset-0 transition-[transform,opacity]",
+                  !copied && "translate-y-1 opacity-0",
+                )}
+              >
+                <Check className="size-4" />
+              </div>
+            </div>
+          }
+          text={copied ? "Copied link" : "Copy link"}
+          className="mt-3 h-8 rounded-lg"
+          onClick={() => copyToClipboard(partnerLink)}
+        />
+      </div>
+
+      {/* Rewards */}
+      <div className="border-border-subtle border-b p-6">
+        <h3 className="text-content-emphasis text-sm font-semibold">Rewards</h3>
+        <ProgramRewardList
+          rewards={programEnrollment.rewards ?? []}
+          discount={programEnrollment.discount}
+          className="mt-2"
+        />
+      </div>
+
+      {/* Stats */}
+      <div className="border-border-subtle border-b p-6">
+        <h3 className="text-content-emphasis text-sm font-semibold">Stats</h3>
+        <div className="divide-border-subtle border-border-subtle mt-2 divide-y rounded-lg border">
+          <div className="divide-border-subtle grid grid-cols-3 divide-x">
+            {["clicks", "leads", "sales"].map((event) => (
+              <div key={event} className="flex flex-col gap-1 p-3">
+                <span className="text-content-subtle text-xs font-medium">
+                  {capitalize(event)}
+                </span>
+                {statsTotals ? (
+                  <span className="text-content-emphasis text-sm font-medium">
+                    {statsTotals?.[event]}
+                  </span>
+                ) : (
+                  <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="divide-border-subtle grid grid-cols-2 divide-x">
+            {[
+              { label: "Earnings", value: totalEarnings },
+              { label: "Payouts", value: totalPayouts },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex flex-col gap-1 p-3">
+                <span className="text-content-subtle text-xs font-medium">
+                  {label}
+                </span>
+                {value !== undefined ? (
+                  <span className="text-content-emphasis text-sm font-medium">
+                    {currencyFormatter(value / 100)}
+                  </span>
+                ) : (
+                  <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Help & support */}
+      <div className="border-border-subtle border-b p-6">
+        <h3 className="text-content-emphasis text-sm font-semibold">
+          Help and support
+        </h3>
+        <div className="border-border-subtle mt-2 rounded-lg border p-2">
+          <ProgramHelpLinks />
+        </div>
+      </div>
+    </>
   );
 }
