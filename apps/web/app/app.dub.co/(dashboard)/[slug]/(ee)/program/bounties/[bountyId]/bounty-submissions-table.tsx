@@ -333,8 +333,12 @@ export function BountySubmissionsTable() {
     onPaginationChange: setPagination,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (p) => `submission${p ? "s" : ""}`,
-    rowCount: submissions?.length || 0,
+    resourceName: (p) =>
+      `${bounty?.type === "performance" ? "partner" : "submission"}${p ? "s" : ""}`,
+    rowCount:
+      bounty?.type === "performance"
+        ? bounty.partnersCount
+        : submissions?.length || 0,
     loading: isLoading || isBountyLoading,
     error: error ? "Failed to load bounty submissions" : undefined,
   });
