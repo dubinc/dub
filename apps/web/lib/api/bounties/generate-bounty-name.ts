@@ -23,5 +23,5 @@ export const generateBountyName = ({
     ? `${currencyFormatter(condition.value / 100, { trailingZeroDisplay: "stripIfInteger" })} in`
     : `${nFormatter(condition.value, { full: true })}`;
 
-  return `Earn ${rewardAmountFormatted} after generating ${valueFormatted} ${attributeLabel}`;
+  return `Earn ${rewardAmountFormatted} after generating ${valueFormatted} ${attributeLabel.toLowerCase()}`;
 };

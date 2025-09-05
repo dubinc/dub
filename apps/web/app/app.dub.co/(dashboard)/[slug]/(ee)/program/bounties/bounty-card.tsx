@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyListProps } from "@/lib/types";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { Calendar6, Users } from "@dub/ui/icons";
-import { formatDate, pluralize } from "@dub/utils";
+import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -78,13 +78,13 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
               ) : (
                 <>
                   <span className="text-content-default">
-                    {bounty.submissionsCount}
+                    {nFormatter(bounty.submissionsCount, { full: true })}
                   </span>{" "}
                   of
                 </>
               )}{" "}
               <span className="text-content-default">
-                {totalPartnersForBounty}
+                {nFormatter(totalPartnersForBounty, { full: true })}
               </span>{" "}
               {pluralize("partner", totalPartnersForBounty)} completed
             </div>
