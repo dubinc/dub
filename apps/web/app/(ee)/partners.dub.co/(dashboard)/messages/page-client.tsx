@@ -1,21 +1,20 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
 import { useMessagesContext } from "@/ui/messages/messages-context";
+import { ProgramSelector } from "@/ui/partners/program-selector";
 import { useRouterStuff } from "@dub/ui";
 import { ChevronLeft, Msgs } from "@dub/ui/icons";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function PartnerMessagesPageClient() {
-  const { slug: workspaceSlug } = useWorkspace();
   const { setCurrentPanel } = useMessagesContext();
 
   const router = useRouter();
   const { searchParams, queryParams } = useRouterStuff();
 
   // Short-lived state to display the selected program while the next page loads
-  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(
+  const [selectedProgramSlug, setSelectedProgramSlug] = useState<string | null>(
     null,
   );
 
@@ -36,15 +35,13 @@ export function PartnerMessagesPageClient() {
           <div className="animate-slide-up-fade flex items-center gap-3 [--offset:10px] [animation-duration:1s]">
             <span className="text-content-subtle text-lg font-medium">To</span>
             <div className="min-w-24 sm:w-64">
-              {/* TODO: [Messages] Add program selector */}
-              [Program Selector]
-              {/* <PartnerSelector
-                selectedPartnerId={selectedPartnerId}
-                setSelectedPartnerId={(id) => {
-                  setSelectedPartnerId(id);
-                  router.push(`/${workspaceSlug}/program/messages/${id}`);
+              <ProgramSelector
+                selectedProgramSlug={selectedProgramSlug}
+                setSelectedProgramSlug={(slug) => {
+                  setSelectedProgramSlug(slug);
+                  router.push(`/messages/${slug}`);
                 }}
-              /> */}
+              />
             </div>
           </div>
         )}
