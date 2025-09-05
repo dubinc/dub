@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { createLink } from "../api/links";
-import { generatePartnerLink } from "../api/partners/create-partner-link";
-import { ProgramProps, WorkspaceProps } from "../types";
+import { generatePartnerLink } from "../api/partners/generate-partner-link";
+import { PartnerProps, ProgramProps, WorkspaceProps } from "../types";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
 import { ToltImportPayload, ToltLink } from "./types";
@@ -47,11 +47,14 @@ export async function importLinks(payload: ToltImportPayload) {
       select: {
         id: true,
         email: true,
+        name: true,
       },
     });
 
-    // map partner emails to partner ids
-    const partnerMap = new Map(partners.map(({ email, id }) => [email, id]));
+    // create a map of partner emails to partner props
+    const partnerMap = new Map(
+      partners.map(({ email, id, name }) => [email, { id, name, email }]),
+    );
 
     // filter links to only include links with a partner
     const partnerLinks = links.filter((link) =>
@@ -60,9 +63,9 @@ export async function importLinks(payload: ToltImportPayload) {
 
     if (partnerLinks.length > 0) {
       for (const link of partnerLinks) {
-        const partnerId = partnerMap.get(link.partner.email);
+        const partner = partnerMap.get(link.partner.email);
 
-        if (!partnerId) {
+        if (!partner) {
           console.log("Partner not found", link.partner.email);
           continue;
         }
@@ -71,7 +74,7 @@ export async function importLinks(payload: ToltImportPayload) {
           workspace: workspace as WorkspaceProps,
           program,
           link,
-          partnerId,
+          partner,
           userId,
         });
       }
@@ -91,14 +94,14 @@ export async function importLinks(payload: ToltImportPayload) {
 async function createPartnerLink({
   workspace,
   program,
+  partner,
   link,
-  partnerId,
   userId,
 }: {
   workspace: WorkspaceProps;
   program: ProgramProps;
   link: ToltLink;
-  partnerId: string;
+  partner: Pick<PartnerProps, "id" | "name" | "email">;
   userId: string;
 }) {
   const linkFound = await prisma.link.findUnique({
@@ -113,7 +116,7 @@ async function createPartnerLink({
     },
   });
 
-  if (linkFound?.partnerId === partnerId) {
+  if (linkFound?.partnerId === partner.id) {
     console.log(
       `Partner ${link.partner.email} already has a link with key ${link.value}, skipping...`,
     );
@@ -124,9 +127,16 @@ async function createPartnerLink({
     const partnerLink = await generatePartnerLink({
       workspace,
       program,
-      partner: link.partner,
-      key: link.value,
-      partnerId,
+      partner: {
+        id: partner.id,
+        name: partner.name,
+        email: partner.email!,
+      },
+      link: {
+        domain: program.domain!,
+        url: program.url!,
+        key: link.value,
+      },
       userId,
     });
 

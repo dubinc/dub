@@ -171,6 +171,7 @@ export const PATCH = withWorkspace(
             },
           ],
         }),
+
         sendWorkspaceWebhook({
           workspace,
           trigger: "bounty.updated",

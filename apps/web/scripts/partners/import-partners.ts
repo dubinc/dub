@@ -5,7 +5,6 @@ import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
 import { createAndEnrollPartner } from "../../lib/api/partners/create-and-enroll-partner";
-import { createPartnerLink } from "../../lib/api/partners/create-partner-link";
 
 const programId = "xxx";
 const userId = "xxx";
@@ -54,28 +53,16 @@ async function main() {
           username: partner.slug,
         };
 
-        const partnerLink = await createPartnerLink({
+        const enrolledPartner = await createAndEnrollPartner({
           workspace: {
             id: program.workspace.id,
             plan: program.workspace.plan as "advanced",
             webhookEnabled: program.workspace.webhookEnabled,
           },
-          program: {
-            id: programId,
-            domain: program.domain,
-            url: program.url,
-            defaultFolderId: program.defaultFolderId,
-          },
-          partner: partnerToCreate,
-          userId,
-        });
-
-        const enrolledPartner = await createAndEnrollPartner({
           program,
-          link: partnerLink,
-          workspace: program.workspace,
           partner: partnerToCreate,
           enrolledAt: partner.enrolledAt,
+          userId,
         });
 
         console.log(

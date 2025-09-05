@@ -83,6 +83,7 @@ export default function ProgramPageClient() {
 
   const partnerLink = constructPartnerLink({
     program,
+    group: programEnrollment?.group,
     linkKey: defaultProgramLink.key,
   });
 

@@ -1,21 +1,21 @@
 import { getUrlObjFromString } from "@dub/utils";
-import { ProgramProps } from "../types";
+import { GroupProps, ProgramProps } from "../types";
 
 export function constructPartnerLink({
   program,
+  group,
   linkKey = "",
 }: {
-  program?: Pick<
-    ProgramProps,
-    "domain" | "url" | "linkStructure" | "linkParameter"
-  >;
+  program?: Pick<ProgramProps, "domain" | "url" | "linkParameter">;
+  group?: Pick<GroupProps, "linkStructure"> | null;
   linkKey?: string;
 }) {
-  if (!program) {
+  if (!program || !group) {
     return "";
   }
 
-  const { domain, url, linkStructure, linkParameter } = program;
+  const { domain, url, linkParameter } = program;
+  const { linkStructure } = group;
 
   const urlObj = url ? getUrlObjFromString(url) : null;
 

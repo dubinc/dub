@@ -2,7 +2,7 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
-import { DiscountProps, RewardProps } from "@/lib/types";
+import { DiscountProps, PartnerGroupProps, RewardProps } from "@/lib/types";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
@@ -28,7 +28,7 @@ import { ReferralsEmbedEarnings } from "./earnings";
 import { ReferralsEmbedEarningsSummary } from "./earnings-summary";
 import { ReferralsEmbedFAQ } from "./faq";
 import { ReferralsEmbedLeaderboard } from "./leaderboard";
-import ReferralsEmbedLinks from "./links";
+import { ReferralsEmbedLinks } from "./links";
 import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
 import { ThemeOptions } from "./theme-options";
@@ -43,6 +43,7 @@ export function ReferralsEmbedPageClient({
   discount,
   earnings,
   stats,
+  group,
   themeOptions,
   dynamicHeight,
 }: {
@@ -61,12 +62,17 @@ export function ReferralsEmbedPageClient({
     sales: number;
     saleAmount: number;
   };
+  group: Pick<
+    PartnerGroupProps,
+    "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
+  >;
   themeOptions: ThemeOptions;
   dynamicHeight: boolean;
 }) {
   const resources = programResourcesSchema.parse(
     program.resources ?? { logos: [], colors: [], files: [] },
   );
+
   const programEmbedData = programEmbedSchema.parse(program.embedData);
 
   const hasResources =
@@ -105,6 +111,7 @@ export function ReferralsEmbedPageClient({
     links.length > 0
       ? constructPartnerLink({
           program,
+          group,
           linkKey: links[0].key,
         })
       : undefined;
@@ -255,7 +262,11 @@ export function ReferralsEmbedPageClient({
               ) : selectedTab === "Earnings" ? (
                 <ReferralsEmbedEarnings salesCount={stats.sales} />
               ) : selectedTab === "Links" ? (
-                <ReferralsEmbedLinks links={links} program={program} />
+                <ReferralsEmbedLinks
+                  links={links}
+                  program={program}
+                  group={group}
+                />
               ) : selectedTab === "Leaderboard" &&
                 programEmbedData?.leaderboard?.mode !== "disabled" ? (
                 <ReferralsEmbedLeaderboard />

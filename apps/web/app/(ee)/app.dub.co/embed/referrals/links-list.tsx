@@ -1,3 +1,4 @@
+import { PartnerGroupProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button, CopyButton, Table, Users, useTable } from "@dub/ui";
 import { Pen2, Plus2 } from "@dub/ui/icons";
@@ -16,18 +17,17 @@ import { useEmbedToken } from "../use-embed-token";
 import { ReferralsEmbedLink } from "./types";
 
 interface Props {
+  program: Pick<Program, "name">;
   links: ReferralsEmbedLink[];
-  program: Pick<
-    Program,
-    "domain" | "url" | "urlValidationMode" | "maxPartnerLinks"
-  >;
+  group: Pick<PartnerGroupProps, "id" | "additionalLinks" | "maxPartnerLinks">;
   onCreateLink: () => void;
   onEditLink: (link: ReferralsEmbedLink) => void;
 }
 
 export function ReferralsEmbedLinksList({
-  links,
   program,
+  links,
+  group,
   onCreateLink,
   onEditLink,
 }: Props) {
@@ -53,8 +53,9 @@ export function ReferralsEmbedLinksList({
     }
   }, [refreshedLinks]);
 
-  const maxPartnerLinks = program.maxPartnerLinks;
-  const linksLimitReached = partnerLinks.length >= maxPartnerLinks;
+  const hasLinksLimitReached = partnerLinks.length >= group.maxPartnerLinks;
+  const hasAdditionalLinks = group.additionalLinks?.length > 0;
+  const canCreateNewLink = !hasLinksLimitReached && hasAdditionalLinks;
 
   const { table, ...tableProps } = useTable({
     data: partnerLinks,
@@ -103,11 +104,13 @@ export function ReferralsEmbedLinksList({
             className="h-7 w-7 p-1.5"
             icon={<Plus2 className="size-4" />}
             onClick={onCreateLink}
-            disabled={linksLimitReached}
+            disabled={!canCreateNewLink}
             disabledTooltip={
-              linksLimitReached
-                ? `You have reached the limit of ${maxPartnerLinks} referral links.`
-                : undefined
+              hasLinksLimitReached
+                ? `You have reached the limit of ${group.maxPartnerLinks} referral links.`
+                : !hasAdditionalLinks
+                  ? `${program.name} program does not allow partners to create new links.`
+                  : undefined
             }
           />
         ),

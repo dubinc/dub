@@ -12,6 +12,7 @@ import {
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -23,7 +24,7 @@ export const GET = withWorkspace(
     const group = await getGroupOrThrow({
       programId,
       groupId: params.groupIdOrSlug,
-      includeRewardsAndDiscount: true,
+      includeExpandedFields: true,
     });
 
     return NextResponse.json(GroupSchema.parse(group));
@@ -51,9 +52,15 @@ export const PATCH = withWorkspace(
       groupId: params.groupIdOrSlug,
     });
 
-    const { name, slug, color } = updateGroupSchema.parse(
-      await parseRequestBody(req),
-    );
+    const {
+      name,
+      slug,
+      color,
+      maxPartnerLinks,
+      additionalLinks,
+      utmTemplateId,
+      linkStructure,
+    } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
     if (slug && slug.toLowerCase() !== group.slug.toLowerCase()) {
@@ -81,6 +88,22 @@ export const PATCH = withWorkspace(
       }
     }
 
+    // Check if the UTM template exists
+    if (utmTemplateId) {
+      await prisma.utmTemplate.findUniqueOrThrow({
+        where: {
+          id: utmTemplateId,
+          projectId: workspace.id,
+        },
+      });
+    }
+
+    const additionalLinksInput = additionalLinks
+      ? additionalLinks.length > 0
+        ? additionalLinks
+        : Prisma.JsonNull
+      : undefined;
+
     const updatedGroup = await prisma.partnerGroup.update({
       where: {
         id: group.id,
@@ -89,6 +112,10 @@ export const PATCH = withWorkspace(
         name,
         slug,
         color,
+        ...(additionalLinksInput && { additionalLinks: additionalLinksInput }),
+        maxPartnerLinks,
+        utmTemplateId,
+        linkStructure,
       },
       include: {
         clickReward: true,
@@ -98,21 +125,37 @@ export const PATCH = withWorkspace(
       },
     });
 
+    // Identify changes in UTM template
+    let utmTemplateDiff = false;
+    if (utmTemplateId) {
+      utmTemplateDiff = group.utmTemplateId !== utmTemplateId;
+    }
+
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "group.updated",
-        description: `Group ${updatedGroup.name} (${group.id}) updated`,
-        actor: session.user,
-        targets: [
-          {
-            type: "group",
-            id: group.id,
-            metadata: updatedGroup,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "group.updated",
+          description: `Group ${updatedGroup.name} (${group.id}) updated`,
+          actor: session.user,
+          targets: [
+            {
+              type: "group",
+              id: group.id,
+              metadata: updatedGroup,
+            },
+          ],
+        }),
+
+        utmTemplateDiff &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
+            body: {
+              utmTemplateId: updatedGroup.utmTemplateId,
+            },
+          }),
+      ]),
     );
 
     return NextResponse.json(GroupSchema.parse(updatedGroup));
@@ -212,31 +255,29 @@ export const DELETE = withWorkspace(
     });
 
     waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-            body: {
-              groupId: defaultGroup.id,
-            },
-          }),
+      Promise.allSettled([
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+          body: {
+            groupId: defaultGroup.id,
+          },
+        }),
 
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "group.deleted",
-            description: `Group ${group.name} (${group.id}) deleted`,
-            actor: session.user,
-            targets: [
-              {
-                type: "group",
-                id: group.id,
-                metadata: group,
-              },
-            ],
-          }),
-        ]);
-      })(),
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "group.deleted",
+          description: `Group ${group.name} (${group.id}) deleted`,
+          actor: session.user,
+          targets: [
+            {
+              type: "group",
+              id: group.id,
+              metadata: group,
+            },
+          ],
+        }),
+      ]),
     );
 
     return NextResponse.json({ id: group.id });

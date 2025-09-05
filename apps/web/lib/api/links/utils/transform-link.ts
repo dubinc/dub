@@ -29,7 +29,7 @@ export const transformLink = (
   }
 
   // remove webhooks array, dashboard from link
-  const { webhooks, dashboard, ...rest } = link;
+  const { webhooks, dashboard, partnerGroupDefaultLinkId, ...rest } = link;
 
   return {
     ...rest,
