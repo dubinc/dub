@@ -63,8 +63,8 @@ export const AnalyticsContext = createContext<{
   totalEventsLoading?: boolean;
   adminPage?: boolean;
   partnerPage?: boolean;
-  customersCount?: number;
   showConversions?: boolean;
+  fetchCompositeStats?: boolean;
   requiresUpgrade?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }>({
@@ -80,8 +80,8 @@ export const AnalyticsContext = createContext<{
   end: new Date(),
   adminPage: false,
   partnerPage: false,
-  customersCount: 0,
   showConversions: false,
+  fetchCompositeStats: false,
   requiresUpgrade: false,
   dashboardProps: undefined,
 });
@@ -222,21 +222,24 @@ export default function AnalyticsProvider({
     enabled: canTrackConversions === true,
   });
 
+  const fetchCompositeStats = useMemo(() => {
+    // show composite stats if:
+    // - shared dashboard and show conversions is set to true
+    // - it's an admin or partner page
+    // - it's a workspace that has tracked conversions/customers/leads before
+    return dashboardProps?.showConversions ||
+      adminPage ||
+      partnerPage ||
+      (customersCount && customersCount > 0)
+      ? true
+      : false;
+  }, [dashboardProps?.showConversions, adminPage, partnerPage, customersCount]);
+
   const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event:
-        // show composite stats if:
-        // - shared dashboard and show conversions is set to true
-        // - it's an admin or partner page
-        // - it's a workspace that has tracked conversions/customers/leads before
-        dashboardProps?.showConversions ||
-        adminPage ||
-        partnerPage ||
-        (customersCount && customersCount > 0)
-          ? "composite"
-          : "clicks",
+      event: fetchCompositeStats ? "composite" : "clicks",
     })}`,
     fetcher,
     {
@@ -291,8 +294,8 @@ export default function AnalyticsProvider({
         totalEventsLoading: totalEventsLoading,
         adminPage, // whether the user is an admin
         partnerPage, // whether the user is viewing partner analytics
-        customersCount, // total customers count (if the workspace has tracked conversions/customers/leads before)
-        showConversions, // Whether to show conversions tabs/data
+        showConversions, // whether to show conversions tabs/data
+        fetchCompositeStats, // whether to pull composite stats or just clicks
         requiresUpgrade, // whether an upgrade is required to perform the query
         dashboardProps,
       }}

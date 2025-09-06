@@ -80,6 +80,10 @@ export async function POST(req: Request) {
           email: {
             not: null,
           },
+          // only notify partners who have signed up for an account on partners.dub.co
+          users: {
+            some: {},
+          },
         },
       },
       include: {
