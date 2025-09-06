@@ -76,7 +76,6 @@ const partnerEventsSchema = eventsQuerySchema
     interval: true,
     start: true,
     end: true,
-    groupBy: true,
     page: true,
     limit: true,
     order: true,
