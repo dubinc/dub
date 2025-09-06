@@ -26,6 +26,7 @@ export const GET = withWorkspace(
       analyticsPathParamsSchema.parse(params);
 
     // for backwards compatibility (we used to support /analytics/[endpoint] as well)
+    // @ts-expect-error FIXME zod transform error
     if (!oldType && oldEvent && VALID_ANALYTICS_ENDPOINTS.includes(oldEvent)) {
       oldType = oldEvent;
       oldEvent = undefined;
@@ -49,7 +50,9 @@ export const GET = withWorkspace(
 
     let link: Link | null = null;
 
+    // @ts-expect-error FIXME
     event = oldEvent || event;
+    // @ts-expect-error FIXME
     groupBy = oldType || groupBy;
 
     if (programId) {
