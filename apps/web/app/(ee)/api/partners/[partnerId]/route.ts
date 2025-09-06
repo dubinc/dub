@@ -5,7 +5,7 @@ import { withWorkspace } from "@/lib/auth";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
-// GET /api/partners/:id – Get a partner by ID
+// GET /api/partners/:partnerId – Get a partner by ID
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
     const { partnerId } = params;

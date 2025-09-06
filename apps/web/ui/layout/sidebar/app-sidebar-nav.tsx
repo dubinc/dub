@@ -6,6 +6,7 @@ import {
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
 import useCustomersCount from "@/lib/swr/use-customers-count";
+import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
@@ -26,6 +27,7 @@ import {
   LifeRing,
   LinesY as LinesYStatic,
   MoneyBills2,
+  Msgs,
   Receipt2,
   ShieldCheck,
   ShieldKeyhole,
@@ -63,6 +65,7 @@ type SidebarNavData = {
   pendingPayoutsCount?: number;
   applicationsCount?: number;
   pendingBountySubmissionsCount?: number;
+  unreadMessagesCount?: number;
   showConversionGuides?: boolean;
 };
 
@@ -195,6 +198,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     pendingPayoutsCount,
     applicationsCount,
     pendingBountySubmissionsCount,
+    unreadMessagesCount,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -217,6 +221,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 ? "99+"
                 : pendingPayoutsCount
               : undefined,
+          },
+          {
+            name: "Messages",
+            icon: Msgs,
+            href: `/${slug}/program/messages`,
+            badge: unreadMessagesCount
+              ? unreadMessagesCount > 99
+                ? "99+"
+                : unreadMessagesCount
+              : "New",
           },
         ],
       },
@@ -243,7 +257,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Groups",
             icon: Users6,
             href: `/${slug}/program/groups`,
-            badge: "New",
           },
         ],
       },
@@ -451,6 +464,7 @@ export function AppSidebarNav({
           // TODO: remove when we migrate to Next.js 15 + PPR
           pathname.endsWith("/guides") ||
             pathname.includes("/guides/") ||
+            pathname.includes("/program/messages/") ||
             // this one is for the payout success page
             pathname.endsWith("/program/payouts/success")
           ? null
@@ -480,6 +494,17 @@ export function AppSidebarNav({
   const pendingBountySubmissionsCount =
     submissionsCount?.find(({ status }) => status === "pending")?.count || 0;
 
+  const { count: unreadMessagesCount } = usePartnerMessagesCount({
+    enabled: Boolean(
+      currentArea === "program" &&
+        defaultProgramId &&
+        getPlanCapabilities(plan).canMessagePartners,
+    ),
+    query: {
+      unread: true,
+    },
+  });
+
   const { canTrackConversions } = getPlanCapabilities(plan);
   const { data: customersCount } = useCustomersCount({
     enabled: canTrackConversions === true,
@@ -502,6 +527,7 @@ export function AppSidebarNav({
         pendingPayoutsCount,
         applicationsCount,
         pendingBountySubmissionsCount,
+        unreadMessagesCount,
         showConversionGuides: canTrackConversions && customersCount === 0,
       }}
       toolContent={toolContent}
