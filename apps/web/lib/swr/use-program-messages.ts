@@ -28,6 +28,9 @@ export function useProgramMessages({
     fetcher,
     {
       keepPreviousData: true,
+      // a bit more aggresive since we want messages to be updated in real time
+      refreshInterval: 500,
+      refreshWhenHidden: true,
       ...swrOpts,
     },
   );
