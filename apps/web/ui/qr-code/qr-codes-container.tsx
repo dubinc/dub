@@ -122,7 +122,7 @@ function QrCodesList({
             {qrCodes?.length
               ? // Link cards
                 qrCodes.map((qrCode) => (
-                  <QrCodeCard key={qrCode.id} qrCode={qrCode} />
+                  <QrCodeCard key={qrCode.id} qrCode={qrCode} featuresAccess={featuresAccess} />
                 ))
               : // Loading placeholder cards
                 Array.from({ length: 12 }).map((_, idx) => (

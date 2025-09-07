@@ -81,12 +81,12 @@ export const QRCardDetails = memo(
   ({
     qrCode,
     compact,
-    isTrialOver,
+    featuresAccess,
     setShowTrialExpiredModal,
   }: {
     qrCode: QrStorageData;
     compact?: boolean;
-    isTrialOver?: boolean;
+    featuresAccess?: boolean;
     setShowTrialExpiredModal?: (show: boolean) => void;
   }) => {
     const displayContent = getDisplayContent(qrCode);
@@ -99,7 +99,7 @@ export const QRCardDetails = memo(
 
     const onEditClick = (e: React.MouseEvent<SVGSVGElement>) => {
       e.stopPropagation();
-      if (isTrialOver) {
+      if (!featuresAccess) {
         setShowTrialExpiredModal?.(true);
         return;
       }

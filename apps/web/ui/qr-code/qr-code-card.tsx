@@ -8,9 +8,8 @@ import { useRef } from "react";
 import { QrCodeDetailsColumn } from "./qr-code-details-column.tsx";
 import { QrCodeTitleColumn } from "./qr-code-title-column.tsx";
 
-export function QrCodeCard({ qrCode }: { qrCode: QrStorageData }) {
+export function QrCodeCard({ qrCode, featuresAccess }: { qrCode: QrStorageData, featuresAccess: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { isTrialOver } = useTrialStatus();
   const { setShowTrialExpiredModal, TrialExpiredModalCallback } =
     useTrialExpiredModal();
 
@@ -34,7 +33,7 @@ export function QrCodeCard({ qrCode }: { qrCode: QrStorageData }) {
             canvasRef={canvasRef}
             builtQrCodeObject={builtQrCodeObject}
             currentQrTypeInfo={currentQrTypeInfo}
-            isTrialOver={isTrialOver}
+            featuresAccess={featuresAccess}
             setShowTrialExpiredModal={setShowTrialExpiredModal}
           />
         </div>
@@ -43,7 +42,7 @@ export function QrCodeCard({ qrCode }: { qrCode: QrStorageData }) {
           canvasRef={canvasRef}
           builtQrCodeObject={builtQrCodeObject}
           currentQrTypeInfo={currentQrTypeInfo}
-          isTrialOver={isTrialOver}
+          featuresAccess={featuresAccess}
           setShowTrialExpiredModal={setShowTrialExpiredModal}
         />
       </CardList.Card>

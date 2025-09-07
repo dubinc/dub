@@ -24,7 +24,7 @@ interface QrCodeControlsProps {
   qrCode: QrStorageData;
   canvasRef: RefObject<HTMLCanvasElement>;
   builtQrCodeObject: QRCodeStyling | null;
-  isTrialOver?: boolean;
+  featuresAccess?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
 }
 
@@ -32,7 +32,7 @@ export function QrCodeControls({
   qrCode,
   canvasRef,
   builtQrCodeObject,
-  isTrialOver,
+  featuresAccess,
   setShowTrialExpiredModal,
 }: QrCodeControlsProps) {
   const { hovered } = useContext(CardList.Card.Context);
@@ -136,7 +136,7 @@ export function QrCodeControls({
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
-                  if (isTrialOver) {
+                  if (!featuresAccess) {
                     setShowTrialExpiredModal?.(true);
                     return;
                   }
@@ -156,7 +156,7 @@ export function QrCodeControls({
                 onClick={() => {
                   setOpenPopover(false);
 
-                  if (isTrialOver) {
+                  if (!featuresAccess) {
                     setShowTrialExpiredModal?.(true);
                     return;
                   }
@@ -178,7 +178,7 @@ export function QrCodeControls({
                 text={qrCode.archived ? "Unpause" : "Pause"}
                 variant="outline"
                 onClick={() => {
-                  if (isTrialOver) {
+                  if (!featuresAccess) {
                     setShowTrialExpiredModal?.(true);
                     setOpenPopover(false);
                     return;
@@ -203,7 +203,7 @@ export function QrCodeControls({
                 onClick={() => {
                   setOpenPopover(false);
 
-                  if (isTrialOver) {
+                  if (!featuresAccess) {
                     setShowTrialExpiredModal?.(true);
                     return;
                   }
