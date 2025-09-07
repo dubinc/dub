@@ -140,10 +140,7 @@ async function createPartnerLink({
       userId,
     });
 
-    return createLink({
-      ...partnerLink,
-      skipCouponCreation: true,
-    });
+    return createLink(partnerLink);
   } catch (error) {
     console.error("Error creating partner link", error, link);
     return null;

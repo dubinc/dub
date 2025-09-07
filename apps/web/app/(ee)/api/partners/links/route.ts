@@ -142,11 +142,7 @@ export const POST = withWorkspace(
       });
     }
 
-    const partnerLink = await createLink({
-      ...link,
-      workspace,
-      discount: partner.discount,
-    });
+    const partnerLink = await createLink(link);
 
     waitUntil(
       sendWorkspaceWebhook({

@@ -123,10 +123,7 @@ export const POST = withWorkspace(
     }
 
     try {
-      const response = await createLink({
-        ...link,
-        workspace,
-      });
+      const response = await createLink(link);
 
       if (response.projectId && response.userId) {
         waitUntil(

@@ -100,11 +100,7 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    const partnerLink = await createLink({
-      ...link,
-      workspace: workspaceOwner?.project,
-      discount,
-    });
+    const partnerLink = await createLink(link);
 
     return NextResponse.json(ReferralsEmbedLinkSchema.parse(partnerLink), {
       status: 201,

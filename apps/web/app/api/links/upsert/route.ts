@@ -186,10 +186,7 @@ export const PUT = withWorkspace(
       }
 
       try {
-        const response = await createLink({
-          ...link,
-          workspace,
-        });
+        const response = await createLink(link);
         return NextResponse.json(response, { headers });
       } catch (error) {
         throw new DubApiError({

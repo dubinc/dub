@@ -114,10 +114,7 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const partnerLink = await createLink({
-      ...link,
-      discount,
-    });
+    const partnerLink = await createLink(link);
 
     return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink), {
       status: 201,

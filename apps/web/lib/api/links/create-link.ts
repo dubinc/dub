@@ -2,7 +2,7 @@ import { qstash } from "@/lib/cron";
 import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { DiscountProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
+import { ProcessedLinkProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -24,16 +24,7 @@ import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
 
-type CreateLinkProps = ProcessedLinkProps & {
-  workspace?: Pick<WorkspaceProps, "id" | "stripeConnectId">;
-  discount?: Pick<
-    DiscountProps,
-    "id" | "couponId" | "couponCodeTrackingEnabledAt" | "amount" | "type"
-  > | null;
-  skipCouponCreation?: boolean; // Skip coupon code creation for the link
-};
-
-export async function createLink(link: CreateLinkProps) {
+export async function createLink(link: ProcessedLinkProps) {
   let {
     key,
     url,
@@ -54,16 +45,7 @@ export async function createLink(link: CreateLinkProps) {
   const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } =
     getParamsFromURL(url);
 
-  let {
-    tagId,
-    tagIds,
-    tagNames,
-    webhookIds,
-    workspace,
-    discount,
-    skipCouponCreation,
-    ...rest
-  } = link;
+  const { tagId, tagIds, tagNames, webhookIds, ...rest } = link;
 
   key = encodeKeyIfCaseSensitive({
     domain: link.domain,
@@ -156,55 +138,18 @@ export async function createLink(link: CreateLinkProps) {
 
   waitUntil(
     (async () => {
-      if (
-        !workspace &&
-        link.projectId &&
-        discount?.couponId &&
-        discount?.couponCodeTrackingEnabledAt &&
-        !skipCouponCreation
-      ) {
-        workspace = await prisma.project.findUniqueOrThrow({
-          where: {
-            id: link.projectId,
-          },
-          select: {
-            id: true,
-            stripeConnectId: true,
-          },
-        });
-      }
-
-      if (
-        link.programId &&
-        link.partnerId &&
-        !discount &&
-        !skipCouponCreation
-      ) {
-        const programEnrollment =
-          await prisma.programEnrollment.findUniqueOrThrow({
-            where: {
-              partnerId_programId: {
-                partnerId: link.partnerId,
-                programId: link.programId,
-              },
-            },
-            include: {
-              discount: true,
-            },
-          });
-
-        discount = programEnrollment.discount;
-      }
+      const partnerAndDiscount = await getPartnerAndDiscount({
+        programId: response.programId,
+        partnerId: response.partnerId,
+      });
 
       Promise.allSettled([
         // cache link in Redis
         linkCache.set({
           ...response,
-          ...(response.programId &&
-            (await getPartnerAndDiscount({
-              programId: response.programId,
-              partnerId: response.partnerId,
-            }))),
+          ...(partnerAndDiscount && {
+            ...partnerAndDiscount,
+          }),
         }),
 
         // record link in Tinybird
@@ -253,10 +198,7 @@ export async function createLink(link: CreateLinkProps) {
 
         testVariants && testCompletedAt && scheduleABTestCompletion(response),
 
-        // Create coupon code for the partner link
-        !skipCouponCreation &&
-          workspace &&
-          discount &&
+        partnerAndDiscount.discount?.couponCodeTrackingEnabledAt &&
           enqueueCouponCodeCreateJobs({
             id: response.id,
             key: response.key,

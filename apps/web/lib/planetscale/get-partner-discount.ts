@@ -10,6 +10,7 @@ interface QueryResult {
   maxDuration: number | null;
   couponId: string | null;
   couponTestId: string | null;
+  couponCodeTrackingEnabledAt: string | null;
 }
 
 // Get partner and discount info for a partner link
@@ -33,11 +34,12 @@ export const getPartnerAndDiscount = async ({
       Partner.name,
       Partner.image,
       Discount.id as discountId,
-      Discount.amount as amount,
-      Discount.type as type,
-      Discount.maxDuration as maxDuration,
-      Discount.couponId as couponId,
-      Discount.couponTestId as couponTestId
+      Discount.amount,
+      Discount.type,
+      Discount.maxDuration,
+      Discount.couponId,
+      Discount.couponTestId,
+      Discount.couponCodeTrackingEnabledAt
     FROM ProgramEnrollment
     LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
     LEFT JOIN Discount ON Discount.id = ProgramEnrollment.discountId
@@ -69,6 +71,7 @@ export const getPartnerAndDiscount = async ({
           maxDuration: result.maxDuration,
           couponId: result.couponId,
           couponTestId: result.couponTestId,
+          couponCodeTrackingEnabledAt: result.couponCodeTrackingEnabledAt,
         }
       : null,
   };
