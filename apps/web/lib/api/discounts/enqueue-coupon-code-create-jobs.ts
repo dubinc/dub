@@ -3,18 +3,18 @@ import { APP_DOMAIN_WITH_NGROK, isRejected } from "@dub/utils";
 import { Link } from "@prisma/client";
 
 const queue = qstash.queue({
-  queueName: "coupon-deletion",
+  queueName: "coupon-creation",
 });
 
 type Input =
   | {
-      link: Pick<Link, "id" | "couponCode">;
+      link: Pick<Link, "id" | "key">;
     }
   | {
-      links: Pick<Link, "id" | "couponCode">[];
+      links: Pick<Link, "id" | "key">[];
     };
 
-export async function enqueueCouponCodeDeletionJobs(input: Input) {
+export async function enqueueCouponCodeCreateJobs(input: Input) {
   await queue.upsert({
     parallelism: 10,
   });
@@ -24,11 +24,11 @@ export async function enqueueCouponCodeDeletionJobs(input: Input) {
   const response = await Promise.allSettled(
     finalLinks.map((link) =>
       queue.enqueueJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete-coupon-code`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-coupon-code`,
         method: "POST",
         body: {
           linkId: link.id,
-          couponCode: link.couponCode,
+          code: link.key,
         },
       }),
     ),
@@ -42,7 +42,7 @@ export async function enqueueCouponCodeDeletionJobs(input: Input) {
     rejected.forEach(({ result: promiseResult, linkId }) => {
       if (isRejected(promiseResult)) {
         console.error(
-          `Failed to enqueue coupon deletion job for link ${linkId}:`,
+          `Failed to enqueue coupon creation job for link ${linkId}:`,
           promiseResult.reason,
         );
       }

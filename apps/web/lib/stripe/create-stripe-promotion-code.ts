@@ -28,7 +28,7 @@ export async function createStripePromotionCode({
     return;
   }
 
-  const promotionCode = await stripe.promotionCodes.create(
+  return await stripe.promotionCodes.create(
     {
       coupon: discount.couponId,
       code: code.toUpperCase(),
@@ -37,6 +37,4 @@ export async function createStripePromotionCode({
       stripeAccount: workspace.stripeConnectId,
     },
   );
-
-  return promotionCode;
 }

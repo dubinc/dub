@@ -1,7 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { getPartnerAndDiscount } from "@/lib/planetscale/get-partner-discount";
 import { isNotHostedImage, storage } from "@/lib/storage";
-import { createStripePromotionCode } from "@/lib/stripe/create-stripe-promotion-code";
 import { recordLink } from "@/lib/tinybird";
 import { DiscountProps, ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
@@ -16,6 +15,7 @@ import {
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
+import { enqueueCouponCodeCreateJobs } from "../discounts/enqueue-coupon-code-create-jobs";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { scheduleABTestCompletion } from "./ab-test-scheduler";
 import { linkCache } from "./cache";
@@ -30,7 +30,7 @@ type CreateLinkProps = ProcessedLinkProps & {
     DiscountProps,
     "id" | "couponId" | "couponCodeTrackingEnabledAt" | "amount" | "type"
   > | null;
-  skipCouponCreation?: boolean; // Skip Stripe promotion code creation for the link
+  skipCouponCreation?: boolean; // Skip coupon code creation for the link
 };
 
 export async function createLink(link: CreateLinkProps) {
@@ -253,14 +253,15 @@ export async function createLink(link: CreateLinkProps) {
 
         testVariants && testCompletedAt && scheduleABTestCompletion(response),
 
-        // Create promotion code for the partner link
+        // Create coupon code for the partner link
         !skipCouponCreation &&
           workspace &&
           discount &&
-          createStripePromotionCode({
-            workspace,
-            link: response,
-            discount,
+          enqueueCouponCodeCreateJobs({
+            link: {
+              id: response.id,
+              key: response.key,
+            },
           }),
       ]);
     })(),

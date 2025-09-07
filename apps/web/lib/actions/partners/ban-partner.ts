@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { enqueueCouponCodeDeletionJobs } from "@/lib/api/discounts/enqueue-promotion-code-deletion-jobs";
+import { enqueueCouponCodeDeleteJobs } from "@/lib/api/discounts/enqueue-coupon-code-delete-jobs";
 import { linkCache } from "@/lib/api/links/cache";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -147,7 +147,7 @@ export const banPartnerAction = authActionClient
             ],
           }),
 
-          enqueueCouponCodeDeletionJobs({
+          enqueueCouponCodeDeleteJobs({
             links,
           }),
         ]);

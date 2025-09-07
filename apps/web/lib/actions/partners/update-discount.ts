@@ -63,7 +63,7 @@ export const updateDiscountAction = authActionClient
 
         trackingEnabled &&
           qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-promotion-code-jobs`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-promotion-code-create-jobs`,
             body: {
               discountId: discount.id,
             },
@@ -72,7 +72,7 @@ export const updateDiscountAction = authActionClient
         trackingDisabled &&
           partnerGroup &&
           qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete-promotion-codes`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-coupon-code-delete-jobs`,
             body: {
               groupId: partnerGroup.id,
             },

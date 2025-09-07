@@ -3,7 +3,7 @@ import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { enqueueCouponCodeDeletionJobs } from "../discounts/enqueue-promotion-code-deletion-jobs";
+import { enqueueCouponCodeDeleteJobs } from "../discounts/enqueue-coupon-code-delete-jobs";
 import { linkCache } from "./cache";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
@@ -52,7 +52,7 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      workspace && enqueueCouponCodeDeletionJobs({ link }),
+      workspace && enqueueCouponCodeDeleteJobs({ link }),
     ]),
   );
 

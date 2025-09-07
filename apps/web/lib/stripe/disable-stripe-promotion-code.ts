@@ -41,30 +41,21 @@ export async function disableStripePromotionCode({
     return;
   }
 
-  try {
-    let promotionCode = promotionCodes.data[0];
+  let promotionCode = promotionCodes.data[0];
 
-    promotionCode = await stripe.promotionCodes.update(
-      promotionCode.id,
-      {
-        active: false,
-      },
-      {
-        stripeAccount: workspace.stripeConnectId,
-      },
-    );
+  promotionCode = await stripe.promotionCodes.update(
+    promotionCode.id,
+    {
+      active: false,
+    },
+    {
+      stripeAccount: workspace.stripeConnectId,
+    },
+  );
 
-    console.info(
-      `Disabled Stripe promotion code ${promotionCode.code} (id=${promotionCode.id}, stripeConnectId=${workspace.stripeConnectId}).`,
-    );
+  console.info(
+    `Disabled Stripe promotion code ${promotionCode.code} (id=${promotionCode.id}, stripeConnectId=${workspace.stripeConnectId}).`,
+  );
 
-    return promotionCode;
-  } catch (error) {
-    console.error(
-      error.raw?.message,
-      `Failed to disable Stripe promotion code ${link.couponCode} (stripeConnectId=${workspace.stripeConnectId}).`,
-    );
-
-    throw new Error(error.raw?.message);
-  }
+  return promotionCode;
 }

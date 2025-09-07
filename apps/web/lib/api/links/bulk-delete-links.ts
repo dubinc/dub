@@ -3,7 +3,7 @@ import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
-import { enqueueCouponCodeDeletionJobs } from "../discounts/enqueue-promotion-code-deletion-jobs";
+import { enqueueCouponCodeDeleteJobs } from "../discounts/enqueue-coupon-code-delete-jobs";
 import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils";
 
@@ -45,6 +45,6 @@ export async function bulkDeleteLinks({
       },
     }),
 
-    enqueueCouponCodeDeletionJobs({ links }),
+    enqueueCouponCodeDeleteJobs({ links }),
   ]);
 }
