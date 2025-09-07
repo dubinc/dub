@@ -20,7 +20,7 @@ interface QrCodeTitleColumnProps {
   canvasRef: RefObject<HTMLCanvasElement>;
   builtQrCodeObject: QRCodeStyling | null;
   currentQrTypeInfo: QRType;
-  isTrialOver?: boolean;
+  featuresAccess?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
 }
 
@@ -29,7 +29,7 @@ export function QrCodeTitleColumn({
   canvasRef,
   builtQrCodeObject,
   currentQrTypeInfo,
-  isTrialOver,
+  featuresAccess,
   setShowTrialExpiredModal,
 }: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, title } = qrCode?.link ?? {};
@@ -62,7 +62,7 @@ export function QrCodeTitleColumn({
               height={width! < 1024 ? 90 : 64}
             />
           </div>
-          {qrCode.archived || isTrialOver ? (
+          {qrCode.archived || !featuresAccess ? (
             <QRCardStatus className="lg:hidden" archived />
           ) : (
             <QRCardAnalyticsBadge className="lg:hidden" qrCode={qrCode} />
@@ -86,7 +86,7 @@ export function QrCodeTitleColumn({
             </Text>
             <QRCardTitle
               qrCode={qrCode}
-              isTrialOver={isTrialOver}
+              featuresAccess={featuresAccess}
               setShowTrialExpiredModal={setShowTrialExpiredModal}
             />
           </div>
@@ -102,7 +102,7 @@ export function QrCodeTitleColumn({
             </Text>
             <QRCardDetails
               qrCode={qrCode}
-              isTrialOver={isTrialOver}
+              featuresAccess={featuresAccess}
               setShowTrialExpiredModal={setShowTrialExpiredModal}
             />
           </div>

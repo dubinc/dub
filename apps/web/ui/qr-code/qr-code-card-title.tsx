@@ -7,20 +7,20 @@ import { useQRRenameModal } from "../modals/qr-rename-modal";
 
 interface IQRCardTitle {
   qrCode: QrStorageData;
-  isTrialOver?: boolean;
+  featuresAccess?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
 }
 
 export const QRCardTitle: FC<IQRCardTitle> = ({
   qrCode,
-  isTrialOver,
+  featuresAccess,
   setShowTrialExpiredModal,
 }) => {
   const { QRRenameModal, setShowQRRenameModal } = useQRRenameModal({ qrCode });
 
   const onEditClick = (e: React.MouseEvent<SVGSVGElement>) => {
     e.stopPropagation();
-    if (isTrialOver) {
+    if (!featuresAccess) {
       setShowTrialExpiredModal?.(true);
       return;
     }
