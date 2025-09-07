@@ -147,9 +147,7 @@ export const banPartnerAction = authActionClient
             ],
           }),
 
-          enqueueCouponCodeDeleteJobs({
-            links,
-          }),
+          enqueueCouponCodeDeleteJobs(links),
         ]);
       })(),
     );

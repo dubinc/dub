@@ -6,23 +6,15 @@ const queue = qstash.queue({
   queueName: "coupon-deletion",
 });
 
-type Input =
-  | {
-      link: Pick<Link, "id" | "couponCode">;
-    }
-  | {
-      links: Pick<Link, "id" | "couponCode">[];
-    };
-
-export async function enqueueCouponCodeDeleteJobs(input: Input) {
+export async function enqueueCouponCodeDeleteJobs(
+  links: Pick<Link, "id" | "couponCode">[],
+) {
   await queue.upsert({
     parallelism: 10,
   });
 
-  const finalLinks = "links" in input ? input.links : [input.link];
-
   const response = await Promise.allSettled(
-    finalLinks.map((link) =>
+    links.map((link) =>
       queue.enqueueJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete-coupon-code`,
         method: "POST",
@@ -35,7 +27,7 @@ export async function enqueueCouponCodeDeleteJobs(input: Input) {
   );
 
   const rejected = response
-    .map((result, index) => ({ result, linkId: finalLinks[index].id }))
+    .map((result, index) => ({ result, linkId: links[index].id }))
     .filter(({ result }) => isRejected(result));
 
   if (rejected.length > 0) {

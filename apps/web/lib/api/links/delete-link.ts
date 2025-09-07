@@ -52,7 +52,7 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      workspace && enqueueCouponCodeDeleteJobs({ link }),
+      link.projectId && enqueueCouponCodeDeleteJobs([link]),
     ]),
   );
 

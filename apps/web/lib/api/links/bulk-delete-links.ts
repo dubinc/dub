@@ -45,6 +45,6 @@ export async function bulkDeleteLinks({
       },
     }),
 
-    enqueueCouponCodeDeleteJobs({ links }),
+    enqueueCouponCodeDeleteJobs(links),
   ]);
 }
