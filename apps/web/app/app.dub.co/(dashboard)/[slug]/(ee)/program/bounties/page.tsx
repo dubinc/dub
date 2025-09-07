@@ -7,7 +7,11 @@ export default function Page() {
   return (
     <PageContent
       title="Bounties"
-      // TODO: add title info & href
+      titleInfo={{
+        title:
+          "Drive partner engagement by creating performance and submission bounties for your partner program.",
+        href: "https://dub.co/help/article/program-bounties",
+      }}
       controls={<CreateBountyButton />}
     >
       <PageWidthWrapper>
