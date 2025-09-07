@@ -181,13 +181,6 @@ export async function approvePartnerEnrollment({
             },
           ],
         }),
-
-        discount?.couponCodeTrackingEnabledAt &&
-          createStripePromotionCode({
-            workspace,
-            link: partnerLink,
-            discount,
-          }),
       ]);
     })(),
   );

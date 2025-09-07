@@ -58,7 +58,6 @@ async function main() {
             id: program.workspace.id,
             plan: program.workspace.plan as "advanced",
             webhookEnabled: program.workspace.webhookEnabled,
-            stripeConnectId: program.workspace.stripeConnectId,
           },
           program,
           partner: partnerToCreate,

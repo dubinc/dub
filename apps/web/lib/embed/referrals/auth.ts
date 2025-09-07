@@ -123,7 +123,6 @@ export const withReferralsEmbedToken = (
           programEnrollment,
           group: partnerGroup as PartnerGroupProps,
           links,
-          discount,
           embedToken,
         });
       } catch (error) {
