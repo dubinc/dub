@@ -35,8 +35,7 @@ export async function POST(req: Request) {
     });
 
     if (!group) {
-      return logAndRespond({
-        message: `Group ${groupId} not found.`,
+      return logAndRespond(`Group ${groupId} not found.`, {
         logLevel: "error",
       });
     }
@@ -62,17 +61,13 @@ export async function POST(req: Request) {
     });
 
     if (programEnrollments.length === 0) {
-      return logAndRespond({
-        message: `No program enrollments found for group ${groupId}.`,
-      });
+      return logAndRespond(`No program enrollments found for group ${groupId}.`);
     }
 
     const links = programEnrollments.flatMap((enrollment) => enrollment.links);
 
     if (links.length === 0) {
-      return logAndRespond({
-        message: `No links found for partners in the group ${groupId}.`,
-      });
+      return logAndRespond(`No links found for partners in the group ${groupId}.`);
     }
 
     const linkChunks = chunk(links, 100);
@@ -83,9 +78,7 @@ export async function POST(req: Request) {
       await linkCache.expireMany(toExpire);
     }
 
-    return logAndRespond({
-      message: `Expired cache for ${links.length} links.`,
-    });
+    return logAndRespond(`Expired cache for ${links.length} links.`);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
