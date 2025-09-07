@@ -1,4 +1,5 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { generateBountyName } from "@/lib/api/bounties/generate-bounty-name";
 import { getBountyWithDetails } from "@/lib/api/bounties/get-bounty-with-details";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
@@ -101,14 +102,20 @@ export const PATCH = withWorkspace(
           id: bounty.id,
         },
         data: {
-          name: name ?? undefined,
+          name:
+            bounty.type === "performance" && rewardAmount
+              ? generateBountyName({
+                  rewardAmount,
+                  condition: performanceCondition,
+                })
+              : name ?? undefined,
           description,
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
           rewardAmount,
           ...(bounty.type === "submission" &&
             submissionRequirements !== undefined && {
-              submissionRequirements: submissionRequirements ?? Prisma.JsonNull,
+              submissionRequirements: submissionRequirements ?? Prisma.DbNull,
             }),
           ...(updatedPartnerGroups && {
             groups: {

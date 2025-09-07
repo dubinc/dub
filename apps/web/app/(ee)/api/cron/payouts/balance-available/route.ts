@@ -80,7 +80,7 @@ export async function POST(req: Request) {
 
     if (availableBalance <= 0) {
       return logAndRespond(
-        `The available balance (${currencyFormatter(availableBalance / 100, { maximumFractionDigits: 2, currency })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
+        `The available balance (${currencyFormatter(availableBalance / 100, { currency })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
       );
     }
 
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
     );
 
     console.log(
-      `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${stripePayout.id} (${currencyFormatter(stripePayout.amount / 100, { maximumFractionDigits: 2, currency: stripePayout.currency })})`,
+      `Stripe payout created for partner ${partner.email} (${stripeAccount}): ${stripePayout.id} (${currencyFormatter(stripePayout.amount / 100, { currency: stripePayout.currency })})`,
     );
 
     const transfers = await stripe.transfers.list({

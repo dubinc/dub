@@ -27,4 +27,9 @@ export const setPartnerStackTokenAction = authActionClient
       publicKey,
       secretKey,
     });
+
+    return {
+      publicKey,
+      maskedSecretKey: secretKey.slice(0, 3) + "*".repeat(secretKey.length - 3),
+    };
   });

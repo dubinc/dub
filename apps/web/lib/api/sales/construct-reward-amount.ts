@@ -39,7 +39,11 @@ export const constructRewardAmount = (
 
         if (min !== max) {
           return `Up to ${
-            reward.type === "percentage" ? `${max}%` : formatCurrency(max / 100)
+            reward.type === "percentage"
+              ? `${max}%`
+              : currencyFormatter(max / 100, {
+                  trailingZeroDisplay: "stripIfInteger",
+                })
           }`;
         }
       }
@@ -51,16 +55,7 @@ export const constructRewardAmount = (
   // 2. type AND timelines doesn't match the primary reward
   return reward.type === "percentage"
     ? `${reward.amount}%`
-    : formatCurrency(reward.amount / 100);
+    : currencyFormatter(reward.amount / 100, {
+        trailingZeroDisplay: "stripIfInteger",
+      });
 };
-
-const formatCurrency = (amount: number) =>
-  currencyFormatter(
-    amount,
-    Number.isInteger(amount)
-      ? undefined
-      : {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        },
-  );

@@ -1,3 +1,4 @@
+import { deepViewDataSchema } from "@/lib/zod/schemas/deep-links";
 import { prisma } from "@dub/prisma";
 import { Grid, Wordmark } from "@dub/ui";
 import { ArrowRight, Copy, IOSAppStore, MobilePhone } from "@dub/ui/icons";
@@ -29,6 +30,7 @@ export default async function DeepLinkPreviewPage({
       shortDomain: {
         select: {
           appleAppSiteAssociation: true,
+          deepviewData: true,
         },
       },
     },
@@ -39,9 +41,11 @@ export default async function DeepLinkPreviewPage({
     redirect(`https://${domain}`);
   }
 
-  // if the link domain doesn't have an AASA file configured,
+  const deepViewData = deepViewDataSchema.parse(link.shortDomain.deepviewData);
+
+  // if the link domain doesn't have an AASA file configured (or deepviewData is null)
   // we skip the deep link preview and redirect to the link's URL
-  if (!link.shortDomain.appleAppSiteAssociation) {
+  if (!link.shortDomain.appleAppSiteAssociation || !deepViewData) {
     redirect(link.ios ?? link.url);
   }
 

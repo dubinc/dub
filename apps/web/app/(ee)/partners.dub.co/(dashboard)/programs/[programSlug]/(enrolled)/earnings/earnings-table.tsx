@@ -154,10 +154,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         accessorKey: "amount",
         cell: ({ row }) =>
           row.original.amount
-            ? currencyFormatter(row.original.amount / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
+            ? currencyFormatter(row.original.amount / 100)
             : "-",
       },
       {
@@ -167,10 +164,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         cell: ({ row }) => {
           const commission = row.original;
 
-          const earnings = currencyFormatter(commission.earnings / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          const earnings = currencyFormatter(commission.earnings / 100);
 
           if (commission.description) {
             const reason =

@@ -73,24 +73,15 @@ export async function DomainRenewalInvoice({
   const invoiceSummaryDetails = [
     {
       label: "Invoice amount",
-      value: currencyFormatter(invoice.amount / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      value: currencyFormatter(invoice.amount / 100),
     },
     {
       label: `Platform fees (${Math.round((invoice.fee / invoice.amount) * 100)}%)`,
-      value: `${currencyFormatter(invoice.fee / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`,
+      value: `${currencyFormatter(invoice.fee / 100)}`,
     },
     {
       label: "Invoice total",
-      value: currencyFormatter(invoice.total / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      value: currencyFormatter(invoice.total / 100),
     },
   ];
 
@@ -212,10 +203,7 @@ export async function DomainRenewalInvoice({
               Total
             </Text>
             <Text style={tw("text-neutral-800 font-medium text-[16px]")}>
-              {currencyFormatter(invoice.total / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              {currencyFormatter(invoice.total / 100)}
             </Text>
           </View>
         </View>
@@ -244,10 +232,7 @@ export async function DomainRenewalInvoice({
               >
                 <Text style={tw("w-[70%] p-2.5")}>{domain.slug}</Text>
                 <Text style={tw("w-[30%] p-2.5")}>
-                  {currencyFormatter(domain.renewalFee / 100, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+                  {currencyFormatter(domain.renewalFee / 100)}
                 </Text>
               </View>
             ))}

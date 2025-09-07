@@ -6,7 +6,7 @@ import {
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { formatDate, pluralize } from "@dub/utils";
+import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import { CalendarDays, Users } from "lucide-react";
 import { useMemo } from "react";
 import { BountyActionButton } from "../bounty-action-button";
@@ -61,12 +61,12 @@ export function BountyInfo() {
               <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
             ) : (
               <span className="font-medium text-neutral-700">
-                {totalSubmissions}
+                {nFormatter(totalSubmissions, { full: true })}
               </span>
             )}{" "}
             of{" "}
             <span className="font-medium text-neutral-700">
-              {bounty.partnersCount}
+              {nFormatter(bounty.partnersCount, { full: true })}
             </span>{" "}
             {pluralize("partner", bounty.partnersCount ?? 0)} completed
           </div>

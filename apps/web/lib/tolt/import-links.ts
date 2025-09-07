@@ -117,8 +117,8 @@ async function createPartnerLink({
   });
 
   if (linkFound?.partnerId === partner.id) {
-    console.error(
-      `Partner ${link.partner.email} already has a link with key ${link.value}`,
+    console.log(
+      `Partner ${link.partner.email} already has a link with key ${link.value}, skipping...`,
     );
     return null;
   }

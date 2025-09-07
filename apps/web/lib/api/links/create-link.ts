@@ -86,9 +86,9 @@ export async function createLink(link: CreateLinkProps) {
       utm_term,
       utm_content,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
-      geo: geo || Prisma.JsonNull,
+      geo: geo || Prisma.DbNull,
 
-      testVariants: testVariants || Prisma.JsonNull,
+      testVariants: testVariants || Prisma.DbNull,
       testCompletedAt: testCompletedAt ? new Date(testCompletedAt) : null,
       testStartedAt: testStartedAt ? new Date(testStartedAt) : null,
 

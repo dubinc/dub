@@ -190,7 +190,7 @@ export const sendDomainClaimedEmails = async ({
     }));
 
   if (emails.length > 0) {
-    return await resend?.batch.send(emails);
+    return await resend.batch.send(emails);
   }
 
   return null;

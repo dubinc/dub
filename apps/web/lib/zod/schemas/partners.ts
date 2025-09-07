@@ -73,6 +73,34 @@ export const exportPartnersColumnsDefault = exportPartnerColumns
   .filter((column) => column.default)
   .map((column) => column.id);
 
+export const exportApplicationColumns = [
+  { id: "id", label: "ID" },
+  { id: "name", label: "Name" },
+  { id: "email", label: "Email" },
+  { id: "country", label: "Country" },
+  { id: "createdAt", label: "Applied at" },
+  { id: "description", label: "Description" },
+  { id: "website", label: "Website" },
+  { id: "youtube", label: "YouTube" },
+  { id: "twitter", label: "Twitter" },
+  { id: "linkedin", label: "LinkedIn" },
+  { id: "instagram", label: "Instagram" },
+  { id: "tiktok", label: "TikTok" },
+  { id: "proposal", label: "Proposal" },
+  { id: "comments", label: "Comments" },
+];
+
+export const exportApplicationsColumnsDefault = [
+  "id",
+  "name",
+  "email",
+  "country",
+  "createdAt",
+  "website",
+  "youtube",
+  "linkedin",
+];
+
 export const getPartnersQuerySchema = z
   .object({
     status: z

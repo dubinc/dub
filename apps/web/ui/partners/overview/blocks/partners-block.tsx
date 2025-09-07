@@ -75,12 +75,7 @@ export function PartnersBlock() {
                 <ArrowUpRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
               </div>
 
-              <span>
-                {currencyFormatter(partner.saleAmount / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
+              <span>{currencyFormatter(partner.saleAmount / 100)}</span>
             </Link>
           ))
         )}

@@ -255,29 +255,17 @@ export function PartnersTable() {
         {
           id: "saleAmount",
           header: "Revenue",
-          accessorFn: (d) =>
-            currencyFormatter(d.saleAmount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
+          accessorFn: (d) => currencyFormatter(d.saleAmount / 100),
         },
         {
           id: "totalCommissions",
           header: "Commissions",
-          accessorFn: (d) =>
-            currencyFormatter(d.totalCommissions / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
+          accessorFn: (d) => currencyFormatter(d.totalCommissions / 100),
         },
         {
           id: "netRevenue",
           header: "Net Revenue",
-          accessorFn: (d) =>
-            currencyFormatter(d.netRevenue / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }),
+          accessorFn: (d) => currencyFormatter(d.netRevenue / 100),
         },
         // Menu
         {

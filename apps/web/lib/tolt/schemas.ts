@@ -62,9 +62,12 @@ export const ToltCustomerSchema = z.object({
 export const ToltCommissionSchema = z.object({
   id: z.string(),
   amount: z.string().describe("Amount of the commission in cents."),
-  revenue: z.string().describe("Revenue of the commission in cents."),
-  transaction_id: z.string().nullable(), // this can be null
-  charge_id: z.string(),
+  revenue: z
+    .string()
+    .nullable()
+    .describe("Revenue of the transaction in cents."),
+  transaction_id: z.string().nullable(),
+  charge_id: z.string().nullable(),
   status: z.string(),
   created_at: z.string(),
   updated_at: z.string(),

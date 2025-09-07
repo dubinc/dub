@@ -26,14 +26,14 @@ export default function EventsTabs() {
     requiresUpgrade,
     totalEvents,
     totalEventsLoading,
-    customersCount,
+    fetchCompositeStats,
   } = useContext(AnalyticsContext);
 
   const { data: timeseriesData, isLoading: isLoadingTimeseries } =
     useSWRImmutable<TimeseriesData>(
       `${baseApiPath}?${editQueryString(queryString, {
         groupBy: "timeseries",
-        event: customersCount && customersCount > 0 ? "composite" : "clicks",
+        event: fetchCompositeStats ? "composite" : "clicks",
       })}`,
       fetcher,
       {

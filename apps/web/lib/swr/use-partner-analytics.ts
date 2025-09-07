@@ -1,5 +1,4 @@
 import { fetcher } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR, { SWRConfiguration } from "swr";
 import {
@@ -15,7 +14,6 @@ export default function usePartnerAnalytics(
   },
   options?: SWRConfiguration,
 ) {
-  const { data: session } = useSession();
   const { programSlug } = useParams();
   const searchParams = useSearchParams();
 

@@ -142,10 +142,7 @@ function BountySubmissionDetailsSheetContent({
                 {
                   label: "Reward",
                   value: commission?.earnings
-                    ? currencyFormatter(commission.earnings / 100, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })
+                    ? currencyFormatter(commission.earnings / 100)
                     : "-",
                 },
               ].map((item, index) => (
