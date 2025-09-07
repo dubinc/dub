@@ -1,11 +1,11 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { enqueueCouponCodeDeletionJobs } from "@/lib/api/discounts/enqueue-promotion-code-deletion-jobs";
 import { linkCache } from "@/lib/api/links/cache";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { disableStripePromotionCode } from "@/lib/stripe/disable-stripe-promotion-code";
 import {
   BAN_PARTNER_REASONS,
   banPartnerSchema,
@@ -104,6 +104,7 @@ export const banPartnerAction = authActionClient
         const links = await prisma.link.findMany({
           where,
           select: {
+            id: true,
             domain: true,
             key: true,
             couponCode: true,
@@ -146,12 +147,9 @@ export const banPartnerAction = authActionClient
             ],
           }),
 
-          ...links.map((link) =>
-            disableStripePromotionCode({
-              workspace,
-              promotionCode: link.couponCode,
-            }),
-          ),
+          enqueueCouponCodeDeletionJobs({
+            links,
+          }),
         ]);
       })(),
     );

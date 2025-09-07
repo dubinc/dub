@@ -1,9 +1,9 @@
 import { storage } from "@/lib/storage";
-import { disableStripePromotionCode } from "@/lib/stripe/disable-stripe-promotion-code";
 import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
+import { enqueueCouponCodeDeletionJobs } from "../discounts/enqueue-promotion-code-deletion-jobs";
 import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils";
 
@@ -45,11 +45,6 @@ export async function bulkDeleteLinks({
       },
     }),
 
-    ...links.map((link) =>
-      disableStripePromotionCode({
-        workspace,
-        promotionCode: link.couponCode,
-      }),
-    ),
+    enqueueCouponCodeDeletionJobs({ links }),
   ]);
 }

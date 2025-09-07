@@ -1,9 +1,9 @@
 import { storage } from "@/lib/storage";
-import { disableStripePromotionCode } from "@/lib/stripe/disable-stripe-promotion-code";
 import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { enqueueCouponCodeDeletionJobs } from "../discounts/enqueue-promotion-code-deletion-jobs";
 import { linkCache } from "./cache";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
@@ -52,11 +52,7 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      workspace &&
-        disableStripePromotionCode({
-          workspace,
-          promotionCode: link.couponCode,
-        }),
+      workspace && enqueueCouponCodeDeletionJobs({ link }),
     ]),
   );
 

@@ -47,12 +47,8 @@ export const updateDiscountAction = authActionClient
       },
     });
 
-    const {
-      couponTestIdChanged,
-      trackingStatusChanged,
-      trackingEnabled,
-      promotionCodesDisabled,
-    } = detectDiscountChanges(discount, updatedDiscount);
+    const { couponTestIdChanged, trackingEnabled, trackingDisabled } =
+      detectDiscountChanges(discount, updatedDiscount);
 
     waitUntil(
       Promise.allSettled([
@@ -66,15 +62,14 @@ export const updateDiscountAction = authActionClient
           }),
 
         trackingEnabled &&
-          partnerGroup &&
           qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/create-promotion-codes`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-promotion-code-jobs`,
             body: {
               discountId: discount.id,
             },
           }),
 
-        promotionCodesDisabled &&
+        trackingDisabled &&
           partnerGroup &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete-promotion-codes`,
@@ -83,21 +78,20 @@ export const updateDiscountAction = authActionClient
             },
           }),
 
-        (couponTestIdChanged || trackingStatusChanged) &&
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "discount.updated",
-            description: `Discount ${discount.id} updated`,
-            actor: user,
-            targets: [
-              {
-                type: "discount",
-                id: discount.id,
-                metadata: updatedDiscount,
-              },
-            ],
-          }),
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "discount.updated",
+          description: `Discount ${discount.id} updated`,
+          actor: user,
+          targets: [
+            {
+              type: "discount",
+              id: discount.id,
+              metadata: updatedDiscount,
+            },
+          ],
+        }),
       ]),
     );
   });
@@ -108,22 +102,17 @@ function detectDiscountChanges(
 ) {
   const couponTestIdChanged = prev.couponTestId !== next.couponTestId;
 
-  const trackingStatusChanged =
-    prev.couponCodeTrackingEnabledAt?.getTime() !==
-    next.couponCodeTrackingEnabledAt?.getTime();
-
   const trackingEnabled =
     prev.couponCodeTrackingEnabledAt === null &&
     next.couponCodeTrackingEnabledAt !== null;
 
-  const promotionCodesDisabled =
+  const trackingDisabled =
     prev.couponCodeTrackingEnabledAt !== null &&
     next.couponCodeTrackingEnabledAt === null;
 
   return {
     couponTestIdChanged,
-    trackingStatusChanged,
     trackingEnabled,
-    promotionCodesDisabled,
+    trackingDisabled,
   };
 }

@@ -1,3 +1,4 @@
+import { Link } from "@prisma/client";
 import { stripeAppClient } from ".";
 import { WorkspaceProps } from "../types";
 
@@ -7,12 +8,12 @@ const stripe = stripeAppClient({
 
 export async function disableStripePromotionCode({
   workspace,
-  promotionCode,
+  link,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
-  promotionCode: string | null;
+  link: Pick<Link, "couponCode">;
 }) {
-  if (!promotionCode) {
+  if (!link.couponCode) {
     return;
   }
 
@@ -25,7 +26,7 @@ export async function disableStripePromotionCode({
 
   const promotionCodes = await stripe.promotionCodes.list(
     {
-      code: promotionCode,
+      code: link.couponCode,
       limit: 1,
     },
     {
@@ -35,7 +36,7 @@ export async function disableStripePromotionCode({
 
   if (promotionCodes.data.length === 0) {
     console.error(
-      `Stripe promotion code ${promotionCode} not found (stripeConnectId=${workspace.stripeConnectId}).`,
+      `Stripe promotion code ${link.couponCode} not found (stripeConnectId=${workspace.stripeConnectId}).`,
     );
     return;
   }
@@ -60,10 +61,10 @@ export async function disableStripePromotionCode({
     return promotionCode;
   } catch (error) {
     console.error(
-      `Failed to disable Stripe promotion code ${promotionCode} (stripeConnectId=${workspace.stripeConnectId}).`,
-      error,
+      error.raw?.message,
+      `Failed to disable Stripe promotion code ${link.couponCode} (stripeConnectId=${workspace.stripeConnectId}).`,
     );
 
-    throw new Error(error instanceof Error ? error.message : "Unknown error");
+    throw new Error(error.raw?.message);
   }
 }
