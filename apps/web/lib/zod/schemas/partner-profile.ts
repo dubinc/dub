@@ -101,7 +101,6 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
 });
 
 export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema.omit({
-  workspaceId: true,
   externalId: true,
   tenantId: true,
   programId: true,
@@ -112,7 +111,6 @@ export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema.omit({
 });
 
 export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
-  workspaceId: true,
   externalId: true,
   tenantId: true,
   programId: true,
