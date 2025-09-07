@@ -258,10 +258,8 @@ export async function createLink(link: CreateLinkProps) {
           workspace &&
           discount &&
           enqueueCouponCodeCreateJobs({
-            link: {
-              id: response.id,
-              key: response.key,
-            },
+            id: response.id,
+            key: response.key,
           }),
       ]);
     })(),

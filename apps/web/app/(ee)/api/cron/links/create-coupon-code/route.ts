@@ -130,10 +130,8 @@ export async function POST(req: Request) {
       });
 
       await enqueueCouponCodeCreateJobs({
-        link: {
-          id: link.id,
-          key: newCode,
-        },
+        id: link.id,
+        key: newCode,
       });
     }
 

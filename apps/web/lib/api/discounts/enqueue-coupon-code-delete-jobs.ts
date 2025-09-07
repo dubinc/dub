@@ -7,11 +7,13 @@ const queue = qstash.queue({
 });
 
 export async function enqueueCouponCodeDeleteJobs(
-  links: Pick<Link, "id" | "couponCode">[],
+  input: Pick<Link, "id" | "couponCode"> | Pick<Link, "id" | "couponCode">[],
 ) {
   await queue.upsert({
     parallelism: 10,
   });
+
+  const links = Array.isArray(input) ? input : [input];
 
   const response = await Promise.allSettled(
     links.map((link) =>
