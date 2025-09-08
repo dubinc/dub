@@ -64,26 +64,6 @@ export const trackLead = async ({
   }
 
   const stringifiedEventName = eventName.toLowerCase().replaceAll(" ", "-");
-
-  // deduplicate lead events – only record 1 unique event for the same customer and event name
-  // TODO: Maybe we can replace this to rely only on MySQL directly since we're checking the customer above?
-  const ok = await redis.set(
-    `trackLead:${workspace.id}:${customerExternalId}:${stringifiedEventName}`,
-    {
-      timestamp: Date.now(),
-      clickId,
-      eventName,
-      customerExternalId,
-      customerName,
-      customerEmail,
-      customerAvatar,
-    },
-    {
-      ex: 60 * 60 * 24 * 7, // cache for 1 week
-      nx: true,
-    },
-  );
-
   const finalCustomerId = createId({ prefix: "cus_" });
   const finalCustomerName =
     customerName || customerEmail || generateRandomName();
@@ -92,9 +72,35 @@ export const trackLead = async ({
       ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
       : customerAvatar;
 
-  // if this is the first time we're tracking this lead event for this customer
+  // if this event needs to be deduplicated
+  let deduplicate = false;
+
+  // if not deferred mode, we need to deduplicate lead events – only record 1 unique event for the same customer and event name
+  // TODO: Maybe we can replace this to rely only on MySQL directly since we're checking the customer above?
+  if (mode !== "deferred") {
+    const ok = await redis.set(
+      `trackLead:${workspace.id}:${customerExternalId}:${stringifiedEventName}`,
+      {
+        timestamp: Date.now(),
+        clickId,
+        eventName,
+        customerExternalId,
+        customerName,
+        customerEmail,
+        customerAvatar,
+      },
+      {
+        ex: 60 * 60 * 24 * 7, // cache for 1 week
+        nx: true,
+      },
+    );
+    deduplicate = ok ? true : false;
+  }
+
+  // if this event doesn't need to be deduplicated
+  // (e.g. mode === 'deferred' or it's regular mode but the first time processing this event)
   // we can proceed with the lead tracking process
-  if (ok) {
+  if (!deduplicate) {
     // First, we need to find the click event
     let clickData: ClickEventTB | null = null;
     const clickEvent = await getClickEvent({ clickId });
@@ -175,10 +181,17 @@ export const trackLead = async ({
         : basePayload;
     };
 
-    // if the customer doesn't exist in our MySQL DB yet, create it
+    // if the customer doesn't exist in our MySQL DB yet, upsert it
+    // (here we're doing upsert and not create in case of race conditions)
     if (!customer) {
-      customer = await prisma.customer.create({
-        data: {
+      customer = await prisma.customer.upsert({
+        where: {
+          projectId_externalId: {
+            projectId: workspace.id,
+            externalId: customerExternalId,
+          },
+        },
+        create: {
           id: finalCustomerId,
           name: finalCustomerName,
           email: customerEmail,
@@ -191,6 +204,7 @@ export const trackLead = async ({
           country: clickData.country,
           clickedAt: new Date(clickData.timestamp + "Z"),
         },
+        update: {},
       });
     }
 
