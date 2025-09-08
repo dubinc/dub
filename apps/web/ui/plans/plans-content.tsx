@@ -38,7 +38,7 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
 
       <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
         <PopularQrInfo
-          mostScannedQR={qr}
+          mostScannedQR={mostScannedQR}
           featuresAccess={featuresAccess}
           handleScroll={handleScrollToPayment}
         />
