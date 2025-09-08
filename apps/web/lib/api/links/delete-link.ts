@@ -24,8 +24,6 @@ export async function deleteLink(linkId: string) {
     },
   });
 
-  const { project: workspace } = link;
-
   waitUntil(
     Promise.allSettled([
       // if there's a valid image and it has the same link ID, delete it
@@ -52,7 +50,8 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      link.projectId && enqueueCouponCodeDeleteJobs(link),
+      // Delete the coupon code for the link if it exists
+      link.couponCode && enqueueCouponCodeDeleteJobs(link),
     ]),
   );
 
