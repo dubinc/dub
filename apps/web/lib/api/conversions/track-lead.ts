@@ -78,7 +78,7 @@ export const trackLead = async ({
   // if not deferred mode, we need to deduplicate lead events – only record 1 unique event for the same customer and event name
   // TODO: Maybe we can replace this to rely only on MySQL directly since we're checking the customer above?
   if (mode !== "deferred") {
-    const ok = await redis.set(
+    const res = await redis.set(
       `trackLead:${workspace.id}:${customerExternalId}:${stringifiedEventName}`,
       {
         timestamp: Date.now(),
@@ -94,7 +94,8 @@ export const trackLead = async ({
         nx: true,
       },
     );
-    deduplicate = ok ? true : false;
+    // if res = null it means the key was already set
+    deduplicate = res === null ? true : false;
   }
 
   // if this event doesn't need to be deduplicated
