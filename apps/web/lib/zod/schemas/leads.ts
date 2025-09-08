@@ -10,7 +10,7 @@ export const trackLeadRequestSchema = z.object({
     .trim()
     .nullish()
     .describe(
-      "The unique ID of the click that the lead conversion event is attributed to. You can read this value from `dub_id` cookie.",
+      "The unique ID of the click that the lead conversion event is attributed to. You can read this value from `dub_id` cookie. If not provided, Dub will try to find an existing customer with the provided `customerExternalId` and use the `clickId` from the customer if found.",
     ),
   eventName: z
     .string()
@@ -49,17 +49,17 @@ export const trackLeadRequestSchema = z.object({
     .nullish()
     .default(null)
     .describe("The avatar URL of the customer."),
-  eventQuantity: z
-    .number()
-    .nullish()
-    .describe(
-      "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
-    ),
   mode: z
     .enum(["async", "wait", "deferred"])
     .default("async")
     .describe(
       "The mode to use for tracking the lead event. `async` will not block the request; `wait` will block the request until the lead event is fully recorded in Dub; `deferred` will defer the lead event creation to a subsequent request.",
+    ),
+  eventQuantity: z
+    .number()
+    .nullish()
+    .describe(
+      "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
     ),
   metadata: z
     .record(z.unknown())

@@ -53,7 +53,7 @@ export const trackLead = async ({
       throw new DubApiError({
         code: "bad_request",
         message:
-          "The `clickId` attribute was not provided in the request, and no existing customer with the provided `customerExternalId` was found.",
+          "The `clickId` property was not provided in the request, and no existing customer with the provided `customerExternalId` was found.",
       });
     }
 
@@ -140,7 +140,7 @@ export const trackLead = async ({
     if (link.projectId !== workspace.id) {
       throw new DubApiError({
         code: "not_found",
-        message: `Link does not belong to the workspace`,
+        message: `Link for clickId ${clickId} does not belong to the workspace`,
       });
     }
 
@@ -225,15 +225,19 @@ export const trackLead = async ({
     waitUntil(
       (async () => {
         // for async and deferred mode, create the customer in the background
-        if (mode == "async" || mode == "deferred") {
+        if (mode === "async" || mode === "deferred") {
           customer = await upsertCustomer();
+          console.log(`customer created: ${JSON.stringify(customer, null, 2)}`);
 
           // for async mode, record the lead event right away
+          // for deferred mode, we defer the lead event creation to a subsequent request
           if (mode === "async") {
-            await recordLead(createLeadEventPayload(customer.id));
+            const res = await recordLead(createLeadEventPayload(customer.id));
+            console.log("lead event recorded:", res);
           }
         }
 
+        // track the conversion event
         await logConversionEvent({
           workspace_id: workspace.id,
           link_id: clickData.link_id,
