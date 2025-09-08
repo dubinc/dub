@@ -207,7 +207,7 @@ export function MessagesPanel({
             maxLength={MAX_MESSAGE_LENGTH}
             onChange={(e) => setTypedMessage(e.currentTarget.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
                 sendMessage();
               }
@@ -236,8 +236,13 @@ export function MessagesPanel({
               text={
                 <span className="flex items-center gap-2">
                   Send
-                  <span className="flex size-4 items-center justify-center rounded border border-neutral-700">
-                    <ArrowTurnLeft className="text-content-inverted size-2.5" />
+                  <span className="hidden items-center gap-1 sm:flex">
+                    <span className="flex size-4 items-center justify-center rounded border border-neutral-700 text-[0.625rem]">
+                      {navigator.platform.startsWith("Mac") ? "⌘" : "^"}
+                    </span>
+                    <span className="flex size-4 items-center justify-center rounded border border-neutral-700">
+                      <ArrowTurnLeft className="text-content-inverted size-2.5" />
+                    </span>
                   </span>
                 </span>
               }
