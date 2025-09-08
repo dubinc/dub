@@ -63,10 +63,10 @@ export const GET = withWorkspace(
           // Sort by most recent message
           .sort((a, b) =>
             sortOrder === "desc"
-              ? (b.partner.messages?.[0][sortBy].getTime() ?? 0) -
-                (a.partner.messages?.[0][sortBy].getTime() ?? 0)
-              : (a.partner.messages?.[0][sortBy].getTime() ?? 0) -
-                (b.partner.messages?.[0][sortBy].getTime() ?? 0),
+              ? (b.partner.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
+                (a.partner.messages?.[0]?.[sortBy]?.getTime() ?? 0)
+              : (a.partner.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
+                (b.partner.messages?.[0]?.[sortBy]?.getTime() ?? 0),
           )
           // Map to {partner, messages}
           .map(({ partner: { messages, ...partner } }) => ({
