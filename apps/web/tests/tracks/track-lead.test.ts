@@ -16,10 +16,6 @@ const expectValidLeadResponse = ({
 }) => {
   expect(response.status).toEqual(200);
   expect(response.data).toStrictEqual({
-    clickId,
-    customerName: customer.name,
-    customerEmail: customer.email,
-    customerAvatar: customer.avatar,
     click: {
       id: clickId,
     },
@@ -67,7 +63,7 @@ describe("POST /track/lead", async () => {
     });
   });
 
-  test("duplicate request with same externalId", async () => {
+  test("duplicate track lead request with same customerExternalId", async () => {
     const response = await http.post<TrackLeadResponse>({
       path: "/track/lead",
       body: {
@@ -88,23 +84,35 @@ describe("POST /track/lead", async () => {
     });
   });
 
-  test("track a lead with eventQuantity", async () => {
+  test("track a lead with mode = 'deferred' + track it again after with mode = 'async' and no clickId", async () => {
     const customer2 = randomCustomer();
     const response = await http.post<TrackLeadResponse>({
       path: "/track/lead",
       body: {
         clickId: trackedClickId,
-        eventName: "Start Trial",
+        eventName: "Mode=Deferred Signup",
         customerExternalId: customer2.externalId,
         customerName: customer2.name,
         customerEmail: customer2.email,
         customerAvatar: customer2.avatar,
-        eventQuantity: 2,
+        mode: "deferred",
       },
     });
-
     expectValidLeadResponse({
       response,
+      customer: customer2,
+      clickId: trackedClickId,
+    });
+    // track the lead again, this time with mode = 'async' and no clickId
+    const response2 = await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        eventName: "Mode=Deferred Signup",
+        customerExternalId: customer2.externalId,
+      },
+    });
+    expectValidLeadResponse({
+      response: response2,
       customer: customer2,
       clickId: trackedClickId,
     });
@@ -141,6 +149,28 @@ describe("POST /track/lead", async () => {
     });
 
     expect(saleResponse.status).toEqual(200);
+  });
+
+  test("track a lead with eventQuantity", async () => {
+    const customer4 = randomCustomer();
+    const response = await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        clickId: trackedClickId,
+        eventName: "Start Trial",
+        customerExternalId: customer4.externalId,
+        customerName: customer4.name,
+        customerEmail: customer4.email,
+        customerAvatar: customer4.avatar,
+        eventQuantity: 2,
+      },
+    });
+
+    expectValidLeadResponse({
+      response,
+      customer: customer4,
+      clickId: trackedClickId,
+    });
   });
 
   test("track a lead with `externalId` (backward compatibility)", async () => {

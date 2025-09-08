@@ -15,7 +15,7 @@ import {
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Customer, WorkflowTrigger } from "@dub/prisma/client";
+import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
@@ -29,46 +29,79 @@ type TrackLeadParams = z.input<typeof trackLeadRequestSchema> & {
 export const trackLead = async ({
   clickId,
   eventName,
-  eventQuantity,
   customerExternalId,
   customerName,
   customerEmail,
   customerAvatar,
   mode,
+  eventQuantity,
   metadata,
   rawBody,
   workspace,
 }: TrackLeadParams) => {
+  // try to find the customer to use if it exists
+  let customer = await prisma.customer.findUnique({
+    where: {
+      projectId_externalId: {
+        projectId: workspace.id,
+        externalId: customerExternalId,
+      },
+    },
+  });
+
+  // if clickId is not provided, use the existing customer's clickId if it exists
+  // otherwise, throw an error (this is for mode="deferred" lead tracking)
+  if (!clickId) {
+    if (!customer || !customer.clickId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "The `clickId` property was not provided in the request, and no existing customer with the provided `customerExternalId` was found.",
+      });
+    }
+
+    clickId = customer.clickId;
+  }
+
   const stringifiedEventName = eventName.toLowerCase().replaceAll(" ", "-");
-
-  // deduplicate lead events – only record 1 unique event for the same customer and event name
-  const ok = await redis.set(
-    `trackLead:${workspace.id}:${customerExternalId}:${stringifiedEventName}`,
-    {
-      timestamp: Date.now(),
-      clickId,
-      eventName,
-      customerExternalId,
-      customerName,
-      customerEmail,
-      customerAvatar,
-    },
-    {
-      ex: 60 * 60 * 24 * 7, // cache for 1 week
-      nx: true,
-    },
-  );
-
-  const customerId = createId({ prefix: "cus_" });
+  const finalCustomerId = createId({ prefix: "cus_" });
   const finalCustomerName =
     customerName || customerEmail || generateRandomName();
   const finalCustomerAvatar =
     customerAvatar && !isStored(customerAvatar)
-      ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
+      ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
       : customerAvatar;
 
-  if (ok) {
-    // Find click event
+  let isDuplicateEvent = false;
+
+  // if not deferred mode, we need to deduplicate lead events – only record 1 unique event for the same customer and event name
+  // TODO: Maybe we can replace this to rely only on MySQL directly since we're checking the customer above?
+  if (mode !== "deferred") {
+    const res = await redis.set(
+      `trackLead:${workspace.id}:${customerExternalId}:${stringifiedEventName}`,
+      {
+        timestamp: Date.now(),
+        clickId,
+        eventName,
+        customerExternalId,
+        customerName,
+        customerEmail,
+        customerAvatar,
+      },
+      {
+        ex: 60 * 60 * 24 * 7, // cache for 1 week
+        nx: true,
+      },
+    );
+    // if res = null it means the key was already set
+    isDuplicateEvent = res === null ? true : false;
+  }
+
+  // if it's not a duplicate event
+  // (e.g. mode === 'deferred' or it's regular mode but the first time processing this event)
+  // we can proceed with the lead tracking process
+  if (!isDuplicateEvent) {
+    // First, we need to find the click event
     let clickData: ClickEventTB | null = null;
     const clickEvent = await getClickEvent({ clickId });
 
@@ -76,6 +109,7 @@ export const trackLead = async ({
       clickData = clickEvent.data[0];
     }
 
+    // if there is no click data in Tinybird yet, check the clickIdCache
     if (!clickData) {
       const cachedClickData = await redis.get<ClickEventTB>(
         `clickIdCache:${clickId}`,
@@ -93,6 +127,7 @@ export const trackLead = async ({
       }
     }
 
+    // if there is still no click data, throw an error
     if (!clickData) {
       throw new DubApiError({
         code: "not_found",
@@ -100,6 +135,7 @@ export const trackLead = async ({
       });
     }
 
+    // get the referral link from the from the clickData
     const link = await prisma.link.findUnique({
       where: {
         id: clickData.link_id,
@@ -119,37 +155,11 @@ export const trackLead = async ({
     if (link.projectId !== workspace.id) {
       throw new DubApiError({
         code: "not_found",
-        message: `Link does not belong to the workspace`,
+        message: `Link for clickId ${clickId} does not belong to the workspace`,
       });
     }
 
     const leadEventId = nanoid(16);
-
-    // Create a function to handle customer upsert to avoid duplication
-    const upsertCustomer = async () => {
-      return prisma.customer.upsert({
-        where: {
-          projectId_externalId: {
-            projectId: workspace.id,
-            externalId: customerExternalId,
-          },
-        },
-        create: {
-          id: customerId,
-          name: finalCustomerName,
-          email: customerEmail,
-          avatar: finalCustomerAvatar,
-          externalId: customerExternalId,
-          projectId: workspace.id,
-          projectConnectId: workspace.stripeConnectId,
-          clickId: clickData.click_id,
-          linkId: clickData.link_id,
-          country: clickData.country,
-          clickedAt: new Date(clickData.timestamp + "Z"),
-        },
-        update: {}, // no updates needed if the customer exists
-      });
-    };
 
     // Create a function to prepare the lead event payload
     const createLeadEventPayload = (customerId: string) => {
@@ -171,13 +181,35 @@ export const trackLead = async ({
         : basePayload;
     };
 
-    let customer: Customer | undefined;
+    // if the customer doesn't exist in our MySQL DB yet, upsert it
+    // (here we're doing upsert and not create in case of race conditions)
+    if (!customer) {
+      customer = await prisma.customer.upsert({
+        where: {
+          projectId_externalId: {
+            projectId: workspace.id,
+            externalId: customerExternalId,
+          },
+        },
+        create: {
+          id: finalCustomerId,
+          name: finalCustomerName,
+          email: customerEmail,
+          avatar: finalCustomerAvatar,
+          externalId: customerExternalId,
+          projectId: workspace.id,
+          projectConnectId: workspace.stripeConnectId,
+          clickId: clickData.click_id,
+          linkId: clickData.link_id,
+          country: clickData.country,
+          clickedAt: new Date(clickData.timestamp + "Z"),
+        },
+        update: {},
+      });
+    }
 
-    // Handle customer creation and lead recording based on mode
+    // if wait mode, record the lead event synchronously
     if (mode === "wait") {
-      // Execute customer creation synchronously
-      customer = await upsertCustomer();
-
       const leadEventPayload = createLeadEventPayload(customer.id);
       const cacheLeadEventPayload = Array.isArray(leadEventPayload)
         ? leadEventPayload[0]
@@ -192,6 +224,7 @@ export const trackLead = async ({
         redis.set(`leadCache:${customer.id}`, cacheLeadEventPayload, {
           ex: 60 * 5,
         }),
+
         redis.set(
           `leadCache:${customer.id}:${stringifiedEventName}`,
           cacheLeadEventPayload,
@@ -204,71 +237,19 @@ export const trackLead = async ({
 
     waitUntil(
       (async () => {
-        // For async mode, create customer in the background
+        // for async mode, record the lead event in the background
+        // for deferred mode, defer the lead event creation to a subsequent request
         if (mode === "async") {
-          customer = await upsertCustomer();
-
-          // Use recordLead which doesn't wait
           await recordLead(createLeadEventPayload(customer.id));
         }
 
-        // Always process link/project updates, partner rewards, and webhooks in the background
-        const [link, _project] = await Promise.all([
-          // update link leads count
-          prisma.link.update({
-            where: {
-              id: clickData.link_id,
-            },
-            data: {
-              leads: {
-                increment: eventQuantity ?? 1,
-              },
-            },
-            include: includeTags,
-          }),
-
-          // update workspace events usage
-          prisma.project.update({
-            where: {
-              id: workspace.id,
-            },
-            data: {
-              usage: {
-                increment: eventQuantity ?? 1,
-              },
-            },
-          }),
-
-          logConversionEvent({
-            workspace_id: workspace.id,
-            link_id: clickData.link_id,
-            path: "/track/lead",
-            body: JSON.stringify(rawBody),
-          }),
-        ]);
-
-        if (link.programId && link.partnerId && customer) {
-          await createPartnerCommission({
-            event: "lead",
-            programId: link.programId,
-            partnerId: link.partnerId,
-            linkId: link.id,
-            eventId: leadEventId,
-            customerId: customer.id,
-            quantity: eventQuantity ?? 1,
-            context: {
-              customer: {
-                country: customer.country,
-              },
-            },
-          });
-
-          await executeWorkflows({
-            trigger: WorkflowTrigger.leadRecorded,
-            programId: link.programId,
-            partnerId: link.partnerId,
-          });
-        }
+        // track the conversion event in our logs
+        await logConversionEvent({
+          workspace_id: workspace.id,
+          link_id: clickData.link_id,
+          path: "/track/lead",
+          body: JSON.stringify(rawBody),
+        });
 
         if (
           customerAvatar &&
@@ -286,38 +267,86 @@ export const trackLead = async ({
           );
         }
 
-        await sendWorkspaceWebhook({
-          trigger: "lead.created",
-          data: transformLeadEventData({
-            ...clickData,
-            eventName,
-            link,
-            customer,
-          }),
-          workspace,
-        });
+        // if not deferred mode, process the following right away:
+        // - update link, workspace, and customer stats
+        // - for partner links, create partner commission and execute workflows
+        // - send lead.created webhook
+
+        if (mode !== "deferred") {
+          const [link, _project] = await Promise.all([
+            // update link leads count
+            prisma.link.update({
+              where: {
+                id: clickData.link_id,
+              },
+              data: {
+                leads: {
+                  increment: eventQuantity ?? 1,
+                },
+              },
+              include: includeTags,
+            }),
+
+            // update workspace events usage
+            prisma.project.update({
+              where: {
+                id: workspace.id,
+              },
+              data: {
+                usage: {
+                  increment: eventQuantity ?? 1,
+                },
+              },
+            }),
+          ]);
+
+          if (link.programId && link.partnerId && customer) {
+            await createPartnerCommission({
+              event: "lead",
+              programId: link.programId,
+              partnerId: link.partnerId,
+              linkId: link.id,
+              eventId: leadEventId,
+              customerId: customer.id,
+              quantity: eventQuantity ?? 1,
+              context: {
+                customer: {
+                  country: customer.country,
+                },
+              },
+            });
+
+            await executeWorkflows({
+              trigger: WorkflowTrigger.leadRecorded,
+              programId: link.programId,
+              partnerId: link.partnerId,
+            });
+          }
+
+          await sendWorkspaceWebhook({
+            trigger: "lead.created",
+            data: transformLeadEventData({
+              ...clickData,
+              eventName,
+              link,
+              customer,
+            }),
+            workspace,
+          });
+        }
       })(),
     );
   }
 
-  const lead = trackLeadResponseSchema.parse({
+  return trackLeadResponseSchema.parse({
     click: {
       id: clickId,
     },
-    customer: {
+    customer: customer ?? {
       name: finalCustomerName,
-      email: customerEmail,
-      avatar: finalCustomerAvatar,
+      email: customerEmail || null,
+      avatar: finalCustomerAvatar || null,
       externalId: customerExternalId,
     },
   });
-
-  return {
-    ...lead,
-    // for backwards compatibility – will remove soon
-    clickId,
-    customerName: finalCustomerName,
-    customerEmail: customerEmail,
-    customerAvatar: finalCustomerAvatar,
-  };
 };
