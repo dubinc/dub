@@ -135,4 +135,5 @@ model ProgramApplication {
 
   @@index(programId)
   @@index(groupId)
+  @@index(email)
 }
