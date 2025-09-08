@@ -3,6 +3,7 @@
 import { PROGRAM_IMPORT_SOURCES } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useExportPartnersModal } from "@/ui/modals/export-partners-modal";
+import { useImportFirstPromoterModal } from "@/ui/modals/import-firstpromoter-modal";
 import { useImportPartnerStackModal } from "@/ui/modals/import-partnerstack-modal";
 import { useImportRewardfulModal } from "@/ui/modals/import-rewardful-modal";
 import { useImportToltModal } from "@/ui/modals/import-tolt-modal";
@@ -19,6 +20,7 @@ export function ImportExportButtons() {
   const { ImportToltModal } = useImportToltModal();
   const { ImportRewardfulModal } = useImportRewardfulModal();
   const { ImportPartnerStackModal } = useImportPartnerStackModal();
+  const { ImportFirstPromoterModal } = useImportFirstPromoterModal();
 
   const { ExportPartnersModal, setShowExportPartnersModal } =
     useExportPartnersModal();
@@ -27,6 +29,7 @@ export function ImportExportButtons() {
     <>
       <ImportToltModal />
       <ImportRewardfulModal />
+      <ImportFirstPromoterModal />
       <ImportPartnerStackModal />
       <ExportPartnersModal />
       <Popover

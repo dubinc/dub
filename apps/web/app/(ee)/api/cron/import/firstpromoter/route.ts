@@ -3,7 +3,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { importCommissions } from "@/lib/firstpromoter/import-commissions";
 import { importPartners } from "@/lib/firstpromoter/import-partners";
 import { firstPromoterImportPayloadSchema } from "@/lib/firstpromoter/schemas";
-import { importCustomers } from "@/lib/partnerstack/import-customers";
+import { importCustomers } from "@/lib/firstpromoter/import-customers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

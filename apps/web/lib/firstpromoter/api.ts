@@ -48,7 +48,7 @@ export class FirstPromoterApi {
     }
   }
 
-  async listGroups() {
+  async listCampaigns() {
     const campaigns = await this.fetch("/promoter_campaigns");
 
     return firstPromoterCampaignSchema.array().parse(campaigns);
