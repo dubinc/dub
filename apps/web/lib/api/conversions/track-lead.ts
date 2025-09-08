@@ -15,7 +15,7 @@ import {
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Customer, WorkflowTrigger } from "@dub/prisma/client";
+import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
@@ -39,17 +39,20 @@ export const trackLead = async ({
   rawBody,
   workspace,
 }: TrackLeadParams) => {
-  if (!clickId) {
-    const existingCustomer = await prisma.customer.findUnique({
-      where: {
-        projectId_externalId: {
-          projectId: workspace.id,
-          externalId: customerExternalId,
-        },
+  // try to find the customer to use if it exists
+  let customer = await prisma.customer.findUnique({
+    where: {
+      projectId_externalId: {
+        projectId: workspace.id,
+        externalId: customerExternalId,
       },
-    });
+    },
+  });
 
-    if (!existingCustomer || !existingCustomer.clickId) {
+  // if clickId is not provided, use the existing customer's clickId if it exists
+  // otherwise, throw an error
+  if (!clickId) {
+    if (!customer || !customer.clickId) {
       throw new DubApiError({
         code: "bad_request",
         message:
@@ -57,7 +60,7 @@ export const trackLead = async ({
       });
     }
 
-    clickId = existingCustomer.clickId;
+    clickId = customer.clickId;
   }
 
   const stringifiedEventName = eventName.toLowerCase().replaceAll(" ", "-");
@@ -80,16 +83,10 @@ export const trackLead = async ({
     },
   );
 
-  const customerId = createId({ prefix: "cus_" });
-  const finalCustomerName =
-    customerName || customerEmail || generateRandomName();
-  const finalCustomerAvatar =
-    customerAvatar && !isStored(customerAvatar)
-      ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
-      : customerAvatar;
-
+  // if this is the first time we're tracking this lead event for this customer
+  // we can proceed
   if (ok) {
-    // Find click event
+    // First, we need to find the click event
     let clickData: ClickEventTB | null = null;
     const clickEvent = await getClickEvent({ clickId });
 
@@ -97,6 +94,7 @@ export const trackLead = async ({
       clickData = clickEvent.data[0];
     }
 
+    // if there is no click data in Tinybird yet, check the clickIdCache
     if (!clickData) {
       const cachedClickData = await redis.get<ClickEventTB>(
         `clickIdCache:${clickId}`,
@@ -114,6 +112,7 @@ export const trackLead = async ({
       }
     }
 
+    // if there is still no click data, throw an error
     if (!clickData) {
       throw new DubApiError({
         code: "not_found",
@@ -121,6 +120,7 @@ export const trackLead = async ({
       });
     }
 
+    // get the referral link from the from the clickData
     const link = await prisma.link.findUnique({
       where: {
         id: clickData.link_id,
@@ -146,32 +146,6 @@ export const trackLead = async ({
 
     const leadEventId = nanoid(16);
 
-    // Create a function to handle customer upsert to avoid duplication
-    const upsertCustomer = async () => {
-      return prisma.customer.upsert({
-        where: {
-          projectId_externalId: {
-            projectId: workspace.id,
-            externalId: customerExternalId,
-          },
-        },
-        create: {
-          id: customerId,
-          name: finalCustomerName,
-          email: customerEmail,
-          avatar: finalCustomerAvatar,
-          externalId: customerExternalId,
-          projectId: workspace.id,
-          projectConnectId: workspace.stripeConnectId,
-          clickId: clickData.click_id,
-          linkId: clickData.link_id,
-          country: clickData.country,
-          clickedAt: new Date(clickData.timestamp + "Z"),
-        },
-        update: {}, // no updates needed if the customer exists
-      });
-    };
-
     // Create a function to prepare the lead event payload
     const createLeadEventPayload = (customerId: string) => {
       const basePayload = {
@@ -192,12 +166,36 @@ export const trackLead = async ({
         : basePayload;
     };
 
-    let customer: Customer | undefined;
+    const finalCustomerId = createId({ prefix: "cus_" });
+    const finalCustomerName =
+      customerName || customerEmail || generateRandomName();
+    const finalCustomerAvatar =
+      customerAvatar && !isStored(customerAvatar)
+        ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
+        : customerAvatar;
 
-    // if wait mode, create the customer and record the lead event synchronously
+    // if the customer doesn't exist in our MySQL DB yet, create it
+    if (!customer) {
+      customer = await prisma.customer.create({
+        data: {
+          id: finalCustomerId,
+          name: finalCustomerName,
+          email: customerEmail,
+          avatar: finalCustomerAvatar,
+          externalId: customerExternalId,
+          projectId: workspace.id,
+          projectConnectId: workspace.stripeConnectId,
+          clickId: clickData.click_id,
+          linkId: clickData.link_id,
+          country: clickData.country,
+          clickedAt: new Date(clickData.timestamp + "Z"),
+        },
+      });
+      console.log(`customer created: ${JSON.stringify(customer, null, 2)}`);
+    }
+
+    // if wait mode, record the lead event synchronously
     if (mode === "wait") {
-      customer = await upsertCustomer();
-
       const leadEventPayload = createLeadEventPayload(customer.id);
       const cacheLeadEventPayload = Array.isArray(leadEventPayload)
         ? leadEventPayload[0]
@@ -224,20 +222,14 @@ export const trackLead = async ({
 
     waitUntil(
       (async () => {
-        // for async and deferred mode, create the customer in the background
-        if (mode === "async" || mode === "deferred") {
-          customer = await upsertCustomer();
-          console.log(`customer created: ${JSON.stringify(customer, null, 2)}`);
-
-          // for async mode, record the lead event right away
-          // for deferred mode, we defer the lead event creation to a subsequent request
-          if (mode === "async") {
-            const res = await recordLead(createLeadEventPayload(customer.id));
-            console.log("lead event recorded:", res);
-          }
+        // for async mode, record the lead event in the background
+        // for deferred mode, defer the lead event creation to a subsequent request
+        if (mode === "async") {
+          const res = await recordLead(createLeadEventPayload(customer.id));
+          console.log("lead event recorded:", res);
         }
 
-        // track the conversion event
+        // track the conversion event in our logs
         await logConversionEvent({
           workspace_id: workspace.id,
           link_id: clickData.link_id,
@@ -262,11 +254,8 @@ export const trackLead = async ({
         }
 
         // if not deferred mode, process the following right away:
-        // - update link leads count
-        // - update workspace events usage
-        // - update customer leads count
-        // - create partner commission (for partner links)
-        // - execute workflows (for partner links)
+        // - update link, workspace, and customer stats
+        // - for partner links, create partner commission and execute workflows
         // - send lead.created webhook
 
         if (mode !== "deferred") {
@@ -335,15 +324,26 @@ export const trackLead = async ({
     );
   }
 
-  return trackLeadResponseSchema.parse({
+  if (!customer) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Customer not found for externalId: ${customerExternalId}`,
+    });
+  }
+
+  const lead = trackLeadResponseSchema.parse({
     click: {
       id: clickId,
     },
-    customer: {
-      name: finalCustomerName,
-      email: customerEmail,
-      avatar: finalCustomerAvatar,
-      externalId: customerExternalId,
-    },
+    customer,
   });
+
+  return {
+    ...lead,
+    // for backwards compatibility – will remove soon
+    clickId,
+    customerName: customer.name,
+    customerEmail: customer.email,
+    customerAvatar: customer.avatar,
+  };
 };
