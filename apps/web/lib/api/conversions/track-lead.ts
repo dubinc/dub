@@ -72,8 +72,7 @@ export const trackLead = async ({
       ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
       : customerAvatar;
 
-  // if this event needs to be deduplicated
-  let deduplicate = false;
+  let isDuplicateEvent = false;
 
   // if not deferred mode, we need to deduplicate lead events – only record 1 unique event for the same customer and event name
   // TODO: Maybe we can replace this to rely only on MySQL directly since we're checking the customer above?
@@ -95,13 +94,13 @@ export const trackLead = async ({
       },
     );
     // if res = null it means the key was already set
-    deduplicate = res === null ? true : false;
+    isDuplicateEvent = res === null ? true : false;
   }
 
-  // if this event doesn't need to be deduplicated
+  // if it's not a duplicate event
   // (e.g. mode === 'deferred' or it's regular mode but the first time processing this event)
   // we can proceed with the lead tracking process
-  if (!deduplicate) {
+  if (!isDuplicateEvent) {
     // First, we need to find the click event
     let clickData: ClickEventTB | null = null;
     const clickEvent = await getClickEvent({ clickId });
