@@ -67,7 +67,7 @@ export const deleteDiscountAction = authActionClient
 
         discount.couponCodeTrackingEnabledAt &&
           qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete-promotion-codes`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-coupon-code-delete-jobs`,
             body: {
               groupId: group.id,
             },
