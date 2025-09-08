@@ -1,6 +1,7 @@
-import { checkFeaturesAccessAuthLess } from '@/lib/actions/check-features-access-auth-less';
+import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less";
 import { convertSessionUserToCustomerBody, getSession } from "@/lib/auth";
 import { PageContent } from "@/ui/layout/page-content";
+import { getMostScannedQr } from "@/ui/plans/actions/getMostScannedQr";
 import { PlansContent } from "@/ui/plans/plans-content.tsx";
 import { MaxWidthWrapper } from "@dub/ui";
 import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker/page-viewed-tracker.component";
@@ -20,11 +21,17 @@ const PlansPage: NextPage = async () => {
 
   const featuresAccess = await checkFeaturesAccessAuthLess(authUser.id);
 
+  const mostScannedQR = await getMostScannedQr(authUser.id);
+
   return (
     <>
       <PageContent>
         <MaxWidthWrapper>
-          <PlansContent user={user!} featuresAccess={featuresAccess} />
+          <PlansContent
+            mostScannedQR={mostScannedQR}
+            user={user!}
+            featuresAccess={featuresAccess}
+          />
         </MaxWidthWrapper>
       </PageContent>
       <PageViewedTrackerComponent
