@@ -192,7 +192,6 @@ export const trackLead = async ({
           clickedAt: new Date(clickData.timestamp + "Z"),
         },
       });
-      console.log(`customer created: ${JSON.stringify(customer, null, 2)}`);
     }
 
     // if wait mode, record the lead event synchronously
@@ -211,6 +210,7 @@ export const trackLead = async ({
         redis.set(`leadCache:${customer.id}`, cacheLeadEventPayload, {
           ex: 60 * 5,
         }),
+
         redis.set(
           `leadCache:${customer.id}:${stringifiedEventName}`,
           cacheLeadEventPayload,
@@ -226,8 +226,7 @@ export const trackLead = async ({
         // for async mode, record the lead event in the background
         // for deferred mode, defer the lead event creation to a subsequent request
         if (mode === "async") {
-          const res = await recordLead(createLeadEventPayload(customer.id));
-          console.log("lead event recorded:", res);
+          await recordLead(createLeadEventPayload(customer.id));
         }
 
         // track the conversion event in our logs
