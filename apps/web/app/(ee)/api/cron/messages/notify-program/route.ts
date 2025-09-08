@@ -50,7 +50,7 @@ export async function POST(req: Request) {
                   },
                   where: {
                     notificationPreference: {
-                      newPartnerApplication: true, // TODO
+                      newMessageFromPartner: true,
                     },
                   },
                 },
