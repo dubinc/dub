@@ -64,6 +64,11 @@ export async function POST(req: Request) {
               include: {
                 user: true,
               },
+              where: {
+                notificationPreferences: {
+                  newMessageFromProgram: true,
+                },
+              },
             },
           },
         },
