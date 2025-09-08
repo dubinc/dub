@@ -22,14 +22,26 @@ import { NextResponse } from "next/server";
 // GET /api/qrs – get all qrs for a workspace
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
+    const startTime = performance.now();
+    
     const params = getLinksQuerySchemaBase.parse(searchParams);
 
     const response = await getQrs(params, {
       includeFile: true,
     });
 
+    const endTime = performance.now();
+    const executionTime = Math.round(endTime - startTime);
+    
+    console.log(`🚀 QR List API Performance: ${executionTime}ms`);
+    console.log(`📊 Query params:`, params);
+    console.log(`📈 Results count: ${response.length}`);
+
     return NextResponse.json(response, {
-      headers,
+      headers: {
+        ...headers,
+        'X-Execution-Time': `${executionTime}ms`,
+      },
     });
   },
   {
