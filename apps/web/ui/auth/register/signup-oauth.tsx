@@ -69,6 +69,7 @@ export const SignUpOAuth = ({
           page_name: "landing",
           auth_type: "signup",
           auth_method: "google",
+          auth_origin: "qr",
           event_category: "nonAuthorized",
           error_code: "google-sign-up-failed",
           error_message: "Something went wrong with Google sign up.",
