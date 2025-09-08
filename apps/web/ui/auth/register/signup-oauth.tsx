@@ -44,10 +44,12 @@ export const SignUpOAuth = ({
     });
 
     trackClientEvents({
-      event: EAnalyticEvents.SIGNUP_ATTEMPT,
+      event: EAnalyticEvents.AUTH_ATTEMPT,
       params: {
         page_name: "landing",
-        method: "google",
+        auth_type: "signup",
+        auth_method: "google",
+        auth_origin: "qr",
         event_category: "nonAuthorized",
       },
       sessionId,
@@ -60,7 +62,20 @@ export const SignUpOAuth = ({
     const callbackUrl =
       next && next.length > 0 ? `${next}?onboarded=true` : "/?onboarded=true";
 
-    signIn("google", { callbackUrl });
+    signIn("google", { callbackUrl }).catch(() => {
+      trackClientEvents({
+        event: EAnalyticEvents.AUTH_ERROR,
+        params: {
+          page_name: "landing",
+          auth_type: "signup",
+          auth_method: "google",
+          event_category: "nonAuthorized",
+          error_code: "google-sign-up-failed",
+          error_message: "Something went wrong with Google sign up.",
+        },
+        sessionId,
+      });
+    });
   };
 
   return (

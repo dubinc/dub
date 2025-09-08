@@ -19,16 +19,14 @@ export const OauthTrackerComponent: FC<Readonly<IOauthTrackerProps>> = ({
     const { flow, provider, email, userId, signupOrigin } = oauthData ?? {};
 
     trackClientEvents({
-      event:
-        flow === "signup"
-          ? EAnalyticEvents.SIGNUP_SUCCESS
-          : EAnalyticEvents.LOGIN_SUCCESS,
+      event: EAnalyticEvents.AUTH_SUCCESS,
       params: {
         page_name: "profile",
-        method: provider,
+        auth_type: flow === "signup" ? "signup" : "login",
+        auth_method: provider,
+        ...(flow === "signup" ? { auth_origin: signupOrigin ?? "none" } : {}),
         email,
         event_category: "Authorized",
-        ...(flow === "signup" ? { signup_origin: signupOrigin ?? "none" } : {}),
       },
       sessionId: userId,
     });

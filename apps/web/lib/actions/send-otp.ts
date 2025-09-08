@@ -12,6 +12,16 @@ import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
+class AuthError extends Error {
+  constructor(
+    public code: string,
+    message: string,
+  ) {
+    super(`[${code}] ${message}`);
+    this.name = "AuthError";
+  }
+}
+
 const schema = z.object({
   email: emailSchema,
   password: passwordSchema.optional(),
@@ -30,11 +40,15 @@ export const sendOtpAction = actionClient
     const { success } = await ratelimit(2, "1 m").limit(`send-otp:${getIP()}`);
 
     if (!success) {
-      throw new Error("Too many requests. Please try again later.");
+      throw new AuthError(
+        "rate-limit-exceeded",
+        "Too many requests. Please try again later.",
+      );
     }
 
     if (email.includes("+") && email.endsWith("@gmail.com")) {
-      throw new Error(
+      throw new AuthError(
+        "gmail-plus-not-allowed",
         "Email addresses with + are not allowed. Please use your work email instead.",
       );
     }
@@ -45,7 +59,10 @@ export const sendOtpAction = actionClient
     });
 
     if (userExists) {
-      throw new Error("User with this email already exists");
+      throw new AuthError(
+        "email-exists",
+        "User with this email already exists",
+      );
     }
 
     const code = generateOTP();
@@ -68,23 +85,31 @@ export const sendOtpAction = actionClient
     console.log("send otp");
     console.log("customerId", customerId);
 
-    await Promise.all([
-      prisma.emailVerificationToken.create({
-        data: {
-          identifier: email,
-          token: code,
-          expires: new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000),
-        },
-      }),
+    try {
+      await Promise.all([
+        prisma.emailVerificationToken.create({
+          data: {
+            identifier: email,
+            token: code,
+            expires: new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000),
+          },
+        }),
 
-      sendEmail({
-        subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
-        email,
-        template: CUSTOMER_IO_TEMPLATES.SIGNUP_CODE,
-        messageData: {
-          code,
-        },
-        customerId: customerId?.id,
-      }),
-    ]);
+        sendEmail({
+          subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
+          email,
+          template: CUSTOMER_IO_TEMPLATES.SIGNUP_CODE,
+          messageData: {
+            code,
+          },
+          customerId: customerId?.id,
+        }),
+      ]);
+    } catch (error) {
+      console.error("Failed to send OTP:", error);
+      throw new AuthError(
+        "otp-send-failed",
+        "Failed to send verification code. Please try again.",
+      );
+    }
   });

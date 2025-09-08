@@ -69,10 +69,11 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
           });
 
           trackClientEvents({
-            event: EAnalyticEvents.LOGIN_ATTEMPT,
+            event: EAnalyticEvents.AUTH_ATTEMPT,
             params: {
               page_name: "landing",
-              method: "email",
+              auth_type: "login",
+              auth_method: "email",
               email: email,
               event_category: "nonAuthorized",
             },
@@ -97,6 +98,21 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
 
             if (!accountExists) {
               setClickedMethod(undefined);
+
+              trackClientEvents({
+                event: EAnalyticEvents.AUTH_ERROR,
+                params: {
+                  page_name: "landing",
+                  auth_type: "login",
+                  auth_method: "email",
+                  email: email,
+                  event_category: "nonAuthorized",
+                  error_code: "user-not-found",
+                  error_message: "No account found with that email address.",
+                },
+                sessionId,
+              });
+
               showMessage(
                 "No account found with that email address.",
                 "error",
@@ -119,6 +135,21 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
 
           if (!accountExists) {
             setClickedMethod(undefined);
+
+            trackClientEvents({
+              event: EAnalyticEvents.AUTH_ERROR,
+              params: {
+                page_name: "landing",
+                auth_type: "login",
+                auth_method: "email",
+                email: email,
+                event_category: "nonAuthorized",
+                error_code: "user-not-found",
+                error_message: "No account found with that email address.",
+              },
+              sessionId,
+            });
+
             showMessage(
               "No account found with that email address.",
               "error",
@@ -157,6 +188,22 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
                 setAuthModalMessage,
               );
             }
+
+            trackClientEvents({
+              event: EAnalyticEvents.AUTH_ERROR,
+              params: {
+                page_name: "landing",
+                auth_type: "login",
+                auth_method: "email",
+                email: email,
+                event_category: "nonAuthorized",
+                error_code: response.error,
+                error_message: errorCodes[response.error]
+                  ? errorCodes[response.error]
+                  : "Error sending sign-in link.",
+              },
+              sessionId,
+            });
 
             setClickedMethod(undefined);
             return;
