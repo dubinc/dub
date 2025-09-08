@@ -6,14 +6,14 @@ import { linkEventSchema } from "./links";
 
 export const trackLeadRequestSchema = z.object({
   clickId: z
-    .string({ required_error: "clickId is required" })
+    .string()
     .trim()
-    .min(1, "clickId is required")
+    .nullish()
     .describe(
       "The unique ID of the click that the lead conversion event is attributed to. You can read this value from `dub_id` cookie.",
     ),
   eventName: z
-    .string({ required_error: "eventName is required" })
+    .string()
     .trim()
     .min(1, "eventName is required")
     .max(255)
@@ -24,6 +24,7 @@ export const trackLeadRequestSchema = z.object({
   customerExternalId: z
     .string()
     .trim()
+    .min(1, "customerExternalId is required")
     .max(100)
     .describe(
       "The unique ID of the customer in your system. Will be used to identify and attribute all future events to this customer.",
@@ -55,10 +56,10 @@ export const trackLeadRequestSchema = z.object({
       "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
     ),
   mode: z
-    .enum(["async", "wait"])
+    .enum(["async", "wait", "deferred"])
     .default("async")
     .describe(
-      "The mode to use for tracking the lead event. `async` will not block the request; `wait` will block the request until the lead event is fully recorded in Dub.",
+      "The mode to use for tracking the lead event. `async` will not block the request; `wait` will block the request until the lead event is fully recorded in Dub; `deferred` will defer the lead event creation to a subsequent request.",
     ),
   metadata: z
     .record(z.unknown())

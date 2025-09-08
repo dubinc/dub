@@ -39,6 +39,27 @@ export const trackLead = async ({
   rawBody,
   workspace,
 }: TrackLeadParams) => {
+  if (!clickId) {
+    const existingCustomer = await prisma.customer.findUnique({
+      where: {
+        projectId_externalId: {
+          projectId: workspace.id,
+          externalId: customerExternalId,
+        },
+      },
+    });
+
+    if (!existingCustomer || !existingCustomer.clickId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "The `clickId` attribute was not provided in the request, and no existing customer with the provided `customerExternalId` was found.",
+      });
+    }
+
+    clickId = existingCustomer.clickId;
+  }
+
   const stringifiedEventName = eventName.toLowerCase().replaceAll(" ", "-");
 
   // deduplicate lead events – only record 1 unique event for the same customer and event name
@@ -173,9 +194,8 @@ export const trackLead = async ({
 
     let customer: Customer | undefined;
 
-    // Handle customer creation and lead recording based on mode
+    // if wait mode, create the customer and record the lead event synchronously
     if (mode === "wait") {
-      // Execute customer creation synchronously
       customer = await upsertCustomer();
 
       const leadEventPayload = createLeadEventPayload(customer.id);
@@ -204,71 +224,22 @@ export const trackLead = async ({
 
     waitUntil(
       (async () => {
-        // For async mode, create customer in the background
-        if (mode === "async") {
+        // for async and deferred mode, create the customer in the background
+        if (mode == "async" || mode == "deferred") {
           customer = await upsertCustomer();
 
-          // Use recordLead which doesn't wait
-          await recordLead(createLeadEventPayload(customer.id));
+          // for async mode, record the lead event right away
+          if (mode === "async") {
+            await recordLead(createLeadEventPayload(customer.id));
+          }
         }
 
-        // Always process link/project updates, partner rewards, and webhooks in the background
-        const [link, _project] = await Promise.all([
-          // update link leads count
-          prisma.link.update({
-            where: {
-              id: clickData.link_id,
-            },
-            data: {
-              leads: {
-                increment: eventQuantity ?? 1,
-              },
-            },
-            include: includeTags,
-          }),
-
-          // update workspace events usage
-          prisma.project.update({
-            where: {
-              id: workspace.id,
-            },
-            data: {
-              usage: {
-                increment: eventQuantity ?? 1,
-              },
-            },
-          }),
-
-          logConversionEvent({
-            workspace_id: workspace.id,
-            link_id: clickData.link_id,
-            path: "/track/lead",
-            body: JSON.stringify(rawBody),
-          }),
-        ]);
-
-        if (link.programId && link.partnerId && customer) {
-          await createPartnerCommission({
-            event: "lead",
-            programId: link.programId,
-            partnerId: link.partnerId,
-            linkId: link.id,
-            eventId: leadEventId,
-            customerId: customer.id,
-            quantity: eventQuantity ?? 1,
-            context: {
-              customer: {
-                country: customer.country,
-              },
-            },
-          });
-
-          await executeWorkflows({
-            trigger: WorkflowTrigger.leadRecorded,
-            programId: link.programId,
-            partnerId: link.partnerId,
-          });
-        }
+        await logConversionEvent({
+          workspace_id: workspace.id,
+          link_id: clickData.link_id,
+          path: "/track/lead",
+          body: JSON.stringify(rawBody),
+        });
 
         if (
           customerAvatar &&
@@ -286,21 +257,81 @@ export const trackLead = async ({
           );
         }
 
-        await sendWorkspaceWebhook({
-          trigger: "lead.created",
-          data: transformLeadEventData({
-            ...clickData,
-            eventName,
-            link,
-            customer,
-          }),
-          workspace,
-        });
+        // if not deferred mode, process the following right away:
+        // - update link leads count
+        // - update workspace events usage
+        // - update customer leads count
+        // - create partner commission (for partner links)
+        // - execute workflows (for partner links)
+        // - send lead.created webhook
+
+        if (mode !== "deferred") {
+          const [link, _project] = await Promise.all([
+            // update link leads count
+            prisma.link.update({
+              where: {
+                id: clickData.link_id,
+              },
+              data: {
+                leads: {
+                  increment: eventQuantity ?? 1,
+                },
+              },
+              include: includeTags,
+            }),
+
+            // update workspace events usage
+            prisma.project.update({
+              where: {
+                id: workspace.id,
+              },
+              data: {
+                usage: {
+                  increment: eventQuantity ?? 1,
+                },
+              },
+            }),
+          ]);
+
+          if (link.programId && link.partnerId && customer) {
+            await createPartnerCommission({
+              event: "lead",
+              programId: link.programId,
+              partnerId: link.partnerId,
+              linkId: link.id,
+              eventId: leadEventId,
+              customerId: customer.id,
+              quantity: eventQuantity ?? 1,
+              context: {
+                customer: {
+                  country: customer.country,
+                },
+              },
+            });
+
+            await executeWorkflows({
+              trigger: WorkflowTrigger.leadRecorded,
+              programId: link.programId,
+              partnerId: link.partnerId,
+            });
+          }
+
+          await sendWorkspaceWebhook({
+            trigger: "lead.created",
+            data: transformLeadEventData({
+              ...clickData,
+              eventName,
+              link,
+              customer,
+            }),
+            workspace,
+          });
+        }
       })(),
     );
   }
 
-  const lead = trackLeadResponseSchema.parse({
+  return trackLeadResponseSchema.parse({
     click: {
       id: clickId,
     },
@@ -311,13 +342,4 @@ export const trackLead = async ({
       externalId: customerExternalId,
     },
   });
-
-  return {
-    ...lead,
-    // for backwards compatibility – will remove soon
-    clickId,
-    customerName: finalCustomerName,
-    customerEmail: customerEmail,
-    customerAvatar: finalCustomerAvatar,
-  };
 };
