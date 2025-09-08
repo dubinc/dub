@@ -35,10 +35,11 @@ export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
     });
 
     trackClientEvents({
-      event: EAnalyticEvents.LOGIN_ATTEMPT,
+      event: EAnalyticEvents.AUTH_ATTEMPT,
       params: {
         page_name: "landing",
-        method: "google",
+        auth_type: "login",
+        auth_method: "google",
         event_category: "nonAuthorized",
       },
       sessionId,
@@ -48,6 +49,19 @@ export const GoogleLoginButton: FC<Readonly<IGoogleButtonProps>> = ({
 
     signIn("google", {
       ...(finalNext && finalNext.length > 0 ? { callbackUrl: finalNext } : {}),
+    }).catch(() => {
+      trackClientEvents({
+        event: EAnalyticEvents.AUTH_ERROR,
+        params: {
+          page_name: "landing",
+          auth_type: "login",
+          auth_method: "google",
+          event_category: "nonAuthorized",
+          error_code: "google-sign-in-failed",
+          error_message: "Something went wrong with Google sign in.",
+        },
+        sessionId,
+      });
     });
   };
 

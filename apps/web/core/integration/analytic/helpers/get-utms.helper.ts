@@ -14,5 +14,6 @@ export const getUtmListFromSearch = (): Record<string, string> | null => {
     utm_ad_name: searchParams.get("utm_ad_name") ?? "",
     utm_source: searchParams.get("utm_source") ?? "",
     utm_medium: searchParams.get("utm_medium") ?? "",
+    utm_target_id: searchParams.get("utm_target_id") ?? "",
   };
 };
