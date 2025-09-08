@@ -92,7 +92,7 @@ export async function completeProgramApplications(userEmail: string) {
       skipDuplicates: true,
     });
 
-    for (const programApplication of programApplications) {
+    for (const programApplication of filteredProgramApplications) {
       const partner = user.partners[0].partner;
       const program = programApplication.program;
       const application = programApplication;
