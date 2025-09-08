@@ -50,7 +50,7 @@ export const trackLead = async ({
   });
 
   // if clickId is not provided, use the existing customer's clickId if it exists
-  // otherwise, throw an error
+  // otherwise, throw an error (this is for mode="deferred" lead tracking)
   if (!clickId) {
     if (!customer || !customer.clickId) {
       throw new DubApiError({
@@ -66,6 +66,7 @@ export const trackLead = async ({
   const stringifiedEventName = eventName.toLowerCase().replaceAll(" ", "-");
 
   // deduplicate lead events – only record 1 unique event for the same customer and event name
+  // TODO: Maybe we can replace this to rely only on MySQL directly since we're checking the customer above?
   const ok = await redis.set(
     `trackLead:${workspace.id}:${customerExternalId}:${stringifiedEventName}`,
     {
@@ -84,7 +85,7 @@ export const trackLead = async ({
   );
 
   // if this is the first time we're tracking this lead event for this customer
-  // we can proceed
+  // we can proceed with the lead tracking process
   if (ok) {
     // First, we need to find the click event
     let clickData: ClickEventTB | null = null;
@@ -324,6 +325,9 @@ export const trackLead = async ({
     );
   }
 
+  // edge case (shouldn't happen): if the customer is not found
+  // and for some reason the externalCustomerId+EventName combo was cached on Redis
+  // throw an error
   if (!customer) {
     throw new DubApiError({
       code: "not_found",
