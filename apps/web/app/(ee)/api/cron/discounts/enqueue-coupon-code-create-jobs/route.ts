@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         where: {
           groupId: group.id,
           ...(cursor && {
-            createdAt: {
+            id: {
               gt: cursor,
             },
           }),
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
         },
         take: PAGE_SIZE,
         orderBy: {
-          createdAt: "asc",
+          id: "asc",
         },
       });
 

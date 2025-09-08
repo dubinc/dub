@@ -47,7 +47,7 @@ export async function POST(req: Request) {
         where: {
           groupId: group.id,
           ...(cursor && {
-            createdAt: {
+            id: {
               gt: cursor,
             },
           }),
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
         },
         take: PAGE_SIZE,
         orderBy: {
-          createdAt: "asc",
+          id: "asc",
         },
       });
 
@@ -83,7 +83,6 @@ export async function POST(req: Request) {
 
         for (const linkChunk of linkChunks) {
           await enqueueCouponCodeDeleteJobs(linkChunk);
-
           await new Promise((resolve) => setTimeout(resolve, 2000));
         }
       }

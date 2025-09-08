@@ -59,10 +59,13 @@ export async function createStripeCoupon({
 
     return stripeCoupon;
   } catch (error) {
-    console.log(`Failed create Stripe coupon for workspace ${workspace.id}.`, {
-      error,
-      discount,
-    });
+    console.error(
+      `Failed create Stripe coupon for workspace ${workspace.id}.`,
+      {
+        error,
+        discount,
+      },
+    );
 
     return null;
   }

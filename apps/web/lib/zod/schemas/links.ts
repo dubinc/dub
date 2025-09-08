@@ -544,6 +544,10 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The ID of the partner the short link is associated with."),
+    couponCode: z
+      .string()
+      .nullable()
+      .describe("The coupon code associated with the short link."),
     archived: z
       .boolean()
       .default(false)
