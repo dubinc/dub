@@ -63,7 +63,7 @@ export const updateDiscountAction = authActionClient
 
         trackingEnabled &&
           qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-promotion-code-create-jobs`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-coupon-code-create-jobs`,
             body: {
               discountId: discount.id,
             },
