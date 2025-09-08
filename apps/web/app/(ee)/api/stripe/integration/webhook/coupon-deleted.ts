@@ -1,8 +1,11 @@
+import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { qstash } from "@/lib/cron";
-import { sendEmail } from "@dub/email";
+import { resend } from "@dub/email/resend";
+import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import DiscountDeleted from "@dub/email/templates/discount-deleted";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
@@ -92,41 +95,12 @@ export async function couponDeleted(event: Stripe.Event) {
 
   waitUntil(
     (async () => {
-      const workspaceUsers = await prisma.projectUsers.findFirst({
-        where: {
-          projectId: workspace.id,
-          role: "owner",
-          user: {
-            email: {
-              not: null,
-            },
-          },
-        },
-        include: {
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
+      const { users } = await getWorkspaceUsers({
+        workspaceId: workspace.id,
+        role: "owner",
       });
 
-      if (workspaceUsers) {
-        const { user } = workspaceUsers;
-
-        await sendEmail({
-          subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Discount has been deleted`,
-          email: user.email!,
-          react: DiscountDeleted({
-            email: user.email!,
-            coupon: {
-              id: coupon.id,
-            },
-          }),
-        });
-      }
-
-      Promise.allSettled([
+      await Promise.allSettled([
         ...groupIds.map((groupId) =>
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
@@ -134,6 +108,20 @@ export async function couponDeleted(event: Stripe.Event) {
               groupId,
             },
           }),
+        ),
+
+        resend.batch.send(
+          users.map((user) => ({
+            from: VARIANT_TO_FROM_MAP.notifications,
+            to: user.email,
+            subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Discount has been deleted`,
+            react: DiscountDeleted({
+              email: user.email,
+              coupon: {
+                id: coupon.id,
+              },
+            }),
+          })),
         ),
       ]);
     })(),
