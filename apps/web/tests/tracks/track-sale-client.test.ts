@@ -52,11 +52,6 @@ describe("POST /track/sale/client", async () => {
         invoiceId: sale.invoiceId,
         metadata: null,
       },
-      amount: sale.amount,
-      currency: sale.currency,
-      paymentProcessor: sale.paymentProcessor,
-      metadata: null,
-      invoiceId: sale.invoiceId,
     });
   });
 });

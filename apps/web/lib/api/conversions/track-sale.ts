@@ -262,7 +262,7 @@ export const trackSale = async ({
     })(),
   );
 
-  const sale = trackSaleResponseSchema.parse({
+  return trackSaleResponseSchema.parse({
     eventName,
     customer,
     sale: {
@@ -273,14 +273,4 @@ export const trackSale = async ({
       metadata,
     },
   });
-
-  return {
-    ...sale,
-    // for backwards compatibility – will remove soon
-    amount,
-    currency,
-    invoiceId,
-    paymentProcessor,
-    metadata,
-  };
 };
