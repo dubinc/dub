@@ -51,7 +51,7 @@ export type NavGroupType = {
   popup?: ComponentType<{
     referenceElement: HTMLElement | null;
   }>;
-  notification?: boolean;
+  badge?: ReactNode;
 
   description: string;
   learnMoreHref?: string;
@@ -305,7 +305,7 @@ function NavGroupItem({
     icon: Icon,
     href,
     active,
-    notification,
+    badge,
     onClick,
     popup: Popup,
   },
@@ -341,8 +341,10 @@ function NavGroupItem({
               className="text-content-default size-5"
               data-hovered={hovered}
             />
-            {notification && (
-              <div className="absolute right-2 top-2 size-1.5 rounded-full bg-blue-500" />
+            {badge && (
+              <div className="absolute right-0.5 top-0.5 flex size-3.5 items-center justify-center rounded-full bg-blue-600 text-[0.625rem] font-semibold text-white">
+                {badge}
+              </div>
             )}
           </Link>
         </div>

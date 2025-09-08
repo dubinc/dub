@@ -76,7 +76,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     icon: Msgs,
     href: "/messages",
     active: pathname.startsWith("/messages"),
-    notification: !!unreadMessagesCount,
+    badge: unreadMessagesCount ? Math.min(9, unreadMessagesCount) : undefined,
   },
 ];
 
