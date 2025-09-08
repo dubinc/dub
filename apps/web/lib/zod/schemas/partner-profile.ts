@@ -124,6 +124,7 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
 export const partnerProfileProgramsQuerySchema = z.object({
   includeRewardsDiscounts: z.coerce.boolean().optional(),
   status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
+  messagingEnabled: z.coerce.boolean().optional(),
 });
 
 export const partnerProfileProgramsCountQuerySchema =

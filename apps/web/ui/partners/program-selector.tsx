@@ -1,24 +1,29 @@
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
+import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { Combobox, ComboboxProps } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useMemo, useState } from "react";
+import { z } from "zod";
 
 type ProgramSelectorProps = {
   selectedProgramSlug: string | null;
   setSelectedProgramSlug: (programSlug: string) => void;
   disabled?: boolean;
+  query?: Partial<z.infer<typeof partnerProfileProgramsQuerySchema>>;
 } & Partial<ComboboxProps<false, any>>;
 
 export function ProgramSelector({
   selectedProgramSlug,
   setSelectedProgramSlug,
   disabled,
+  query,
   ...rest
 }: ProgramSelectorProps) {
   const [openPopover, setOpenPopover] = useState(false);
 
   const { programEnrollments, isLoading } = useProgramEnrollments({
     status: "approved",
+    ...query,
   });
 
   const programOptions = useMemo(() => {
@@ -66,7 +71,7 @@ export function ProgramSelector({
       icon={selectedOption?.icon}
       caret={true}
       placeholder="Select program"
-      searchPlaceholder="Search program..."
+      searchPlaceholder="Search programs..."
       matchTriggerWidth
       open={openPopover}
       onOpenChange={setOpenPopover}
@@ -78,6 +83,7 @@ export function ProgramSelector({
           "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
         ),
       }}
+      emptyState="No programs found"
       {...rest}
     >
       {selectedOption?.label}
