@@ -51,10 +51,7 @@ async function main() {
     },
   });
 
-  await bulkDeleteLinks({
-    links: finalPartnersToDelete.flatMap((p) => p.links),
-    workspace,
-  });
+  await bulkDeleteLinks(finalPartnersToDelete.flatMap((p) => p.links));
 
   const deleteLinkPrisma = await prisma.link.deleteMany({
     where: {

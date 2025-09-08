@@ -58,6 +58,7 @@ export async function POST(req: Request) {
             select: {
               id: true,
               couponCode: true,
+              projectId: true,
             },
           },
         },
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
 
     if (hasMore) {
       await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-promotion-code-delete-jobs`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-coupon-code-delete-jobs`,
         body: {
           groupId,
           cursor,

@@ -32,15 +32,8 @@ async function main() {
     }
 
     const links = programEnrollment.links;
-    const program = programEnrollment.program;
 
-    const deleteLinkCaches = await bulkDeleteLinks({
-      links,
-      workspace: {
-        id: program.workspace.id,
-        stripeConnectId: program.workspace.stripeConnectId,
-      },
-    });
+    const deleteLinkCaches = await bulkDeleteLinks(links);
 
     console.log("Deleted link caches", deleteLinkCaches);
 

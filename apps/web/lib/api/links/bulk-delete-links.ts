@@ -1,24 +1,17 @@
 import { storage } from "@/lib/storage";
 import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
-import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { enqueueCouponCodeDeleteJobs } from "../discounts/enqueue-coupon-code-delete-jobs";
 import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils";
 
-export async function bulkDeleteLinks({
-  links,
-  workspace,
-}: {
-  links: ExpandedLink[];
-  workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
-}) {
+export async function bulkDeleteLinks(links: ExpandedLink[]) {
   if (links.length === 0) {
     return;
   }
 
-  return await Promise.allSettled([
+  return await Promise.all([
     // Delete the links from Redis
     linkCache.deleteMany(links),
 
@@ -38,7 +31,7 @@ export async function bulkDeleteLinks({
     // Update totalLinks for the workspace
     prisma.project.update({
       where: {
-        id: workspace.id,
+        id: links[0].projectId!,
       },
       data: {
         totalLinks: { decrement: links.length },

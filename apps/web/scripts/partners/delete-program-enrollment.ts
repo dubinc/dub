@@ -20,10 +20,7 @@ async function main() {
     },
   });
 
-  await bulkDeleteLinks({
-    links: programEnrollment.links,
-    workspace: programEnrollment.program.workspace,
-  });
+  await bulkDeleteLinks(programEnrollment.links);
 
   const deleteLinkPrisma = await prisma.link.deleteMany({
     where: {

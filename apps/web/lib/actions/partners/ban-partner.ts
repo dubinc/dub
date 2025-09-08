@@ -88,50 +88,20 @@ export const banPartnerAction = authActionClient
 
     waitUntil(
       (async () => {
-        // sync total commissions
-        await syncTotalCommissions({ partnerId, programId });
-
         const { program, partner } = programEnrollment;
-
-        if (!partner.email) {
-          console.error("Partner has no email address.");
-          return;
-        }
-
         const supportEmail = program.supportEmail || "support@dub.co";
 
-        // Delete links from cache
-        const links = await prisma.link.findMany({
-          where,
-          select: {
-            id: true,
-            domain: true,
-            key: true,
-            couponCode: true,
-          },
-        });
-
-        await linkCache.deleteMany(links);
-
         await Promise.allSettled([
-          sendEmail({
-            subject: `You've been banned from the ${program.name} Partner Program`,
-            email: partner.email,
-            replyTo: supportEmail,
-            react: PartnerBanned({
-              partner: {
-                name: partner.name,
-                email: partner.email,
-              },
-              program: {
-                name: program.name,
-                supportEmail,
-              },
-              bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
-            }),
-            variant: "notifications",
-          }),
+          // Sync total commissions
+          syncTotalCommissions({ partnerId, programId }),
 
+          // Expire links from cache
+          linkCache.deleteMany(programEnrollment.links),
+
+          // Enqueue coupon code delete jobs
+          enqueueCouponCodeDeleteJobs(programEnrollment.links),
+
+          // Record audit log for each partner
           recordAuditLog({
             workspaceId: workspace.id,
             programId,
@@ -147,7 +117,25 @@ export const banPartnerAction = authActionClient
             ],
           }),
 
-          enqueueCouponCodeDeleteJobs(links),
+          // Send email to the partner
+          partner.email &&
+            sendEmail({
+              subject: `You've been banned from the ${program.name} Partner Program`,
+              email: partner.email,
+              replyTo: supportEmail,
+              react: PartnerBanned({
+                partner: {
+                  name: partner.name,
+                  email: partner.email,
+                },
+                program: {
+                  name: program.name,
+                  supportEmail,
+                },
+                bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
+              }),
+              variant: "notifications",
+            }),
         ]);
       })(),
     );

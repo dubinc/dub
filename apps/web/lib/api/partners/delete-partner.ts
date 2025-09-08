@@ -1,19 +1,12 @@
 import { storage } from "@/lib/storage";
 import { stripe } from "@/lib/stripe";
-import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
 // delete partner and all associated links, customers, payouts, and commissions
 // Not using this anymore
-export async function deletePartner({
-  partnerId,
-  workspace,
-}: {
-  partnerId: string;
-  workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
-}) {
+export async function deletePartner({ partnerId }: { partnerId: string }) {
   const partner = await prisma.partner.findUnique({
     where: {
       id: partnerId,
@@ -43,10 +36,7 @@ export async function deletePartner({
       },
     });
 
-    await bulkDeleteLinks({
-      links,
-      workspace,
-    });
+    await bulkDeleteLinks(links);
 
     await prisma.link.deleteMany({
       where: {

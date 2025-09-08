@@ -111,7 +111,7 @@ export async function POST(req: Request) {
 
     if (hasMore) {
       await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/create-promotion-codes`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-coupon-code-create-jobs`,
         body: {
           discountId,
           cursor,

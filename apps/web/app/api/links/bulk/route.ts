@@ -549,12 +549,7 @@ export const DELETE = withWorkspace(
       },
     });
 
-    waitUntil(
-      bulkDeleteLinks({
-        links,
-        workspace,
-      }),
-    );
+    waitUntil(bulkDeleteLinks(links));
 
     return NextResponse.json(
       {
