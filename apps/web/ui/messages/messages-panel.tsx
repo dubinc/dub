@@ -46,10 +46,17 @@ export function MessagesPanel({
     scrollRef.current?.scrollTo({ top: 0 });
   };
 
-  const isMessageFromCurrentUser = (message: Message) =>
+  const isMessageMySide = (message: Message) =>
     Boolean(
       currentUserType === "partner"
-        ? message.senderPartner
+        ? message.senderPartnerId
+        : !message.senderPartnerId,
+    );
+
+  const isMessageFromMe = (message: Message) =>
+    Boolean(
+      currentUserType === "partner"
+        ? message.senderPartnerId
         : message.senderUserId === currentUserId,
     );
 
@@ -74,7 +81,8 @@ export function MessagesPanel({
                   new Date(messages[idx - 1].createdAt).getTime() >
                   5 * 1000 * 60;
 
-              const isCurrentUser = isMessageFromCurrentUser(message);
+              const isMySide = isMessageMySide(message);
+              const isMe = isMessageFromMe(message);
 
               // Message is new if it was sent within the last 10 seconds (used for intro animations)
               const isNew =
@@ -82,11 +90,9 @@ export function MessagesPanel({
                 new Date().getTime() - 10_000;
 
               const showStatusIndicator =
-                isCurrentUser &&
+                isMySide &&
                 (idx === messages.length - 1 ||
-                  messages
-                    .slice(idx + 1)
-                    .findIndex(isMessageFromCurrentUser) === -1);
+                  messages.slice(idx + 1).findIndex(isMessageMySide) === -1);
 
               const sender = message.senderPartner || message.senderUser;
 
@@ -107,7 +113,7 @@ export function MessagesPanel({
                   <div
                     className={cn(
                       "flex items-end gap-2",
-                      isCurrentUser
+                      isMySide
                         ? "origin-bottom-right flex-row-reverse"
                         : "origin-bottom-left",
                       isNew && "animate-scale-in-fade",
@@ -137,13 +143,13 @@ export function MessagesPanel({
                     <div
                       className={cn(
                         "flex flex-col items-start gap-1",
-                        isCurrentUser && "items-end",
+                        isMySide && "items-end",
                       )}
                     >
                       {/* Name / timestamp */}
-                      {(!isCurrentUser || isNewTime || showStatusIndicator) && (
+                      {(!isMySide || isNewTime || showStatusIndicator) && (
                         <div className="flex items-center gap-1.5">
-                          {!isCurrentUser && (
+                          {!isMe && (
                             <span className="text-content-default min-w-0 truncate text-xs font-medium">
                               {sender?.name}
                             </span>
@@ -168,7 +174,7 @@ export function MessagesPanel({
                       <div
                         className={cn(
                           "max-w-lg whitespace-pre-wrap rounded-xl px-4 py-2.5 text-sm",
-                          isCurrentUser
+                          isMySide
                             ? "text-content-inverted rounded-br bg-neutral-700"
                             : "text-content-default rounded-bl bg-neutral-100",
                         )}
