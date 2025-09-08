@@ -24,7 +24,7 @@ export function PartnerInfoGroup({
   return (
     <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-100 p-2 pl-3">
       <ChangeGroupModal />
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         {group ? (
           <GroupColorCircle group={group} />
         ) : (
@@ -34,7 +34,8 @@ export function PartnerInfoGroup({
           <Link
             href={`/${slug}/program/groups/${group.slug}`}
             target="_blank"
-            className="cursor-alias text-sm font-medium text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+            className="min-w-0 cursor-alias truncate text-sm font-medium text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+            title={group.name}
           >
             {group.name}
           </Link>
