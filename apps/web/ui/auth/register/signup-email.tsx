@@ -70,10 +70,11 @@ export const SignUpEmail = ({
         });
 
         trackClientEvents({
-          event: EAnalyticEvents.SIGNUP_ATTEMPT,
+          event: EAnalyticEvents.AUTH_ATTEMPT,
           params: {
+            auth_type: "signup",
             page_name: "landing",
-            method: "email",
+            auth_method: "email",
             email: data.email,
             event_category: "nonAuthorized",
           },

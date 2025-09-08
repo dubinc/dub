@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace.ts";
 import {
   convertQRBuilderDataToServer,
   convertQRForUpdate,
+  convertQrStorageDataToBuilder,
 } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { useToastWithUndo } from "@dub/ui";
@@ -135,6 +136,9 @@ export const useQrOperations = () => {
               event_category: "Authorized",
               page_name: "profile",
               email: user?.email,
+              is_activated: false,
+              is_deactivated: false,
+              is_deleted: false,
               ...trackingParams,
             },
             sessionId: user?.id,
@@ -175,6 +179,8 @@ export const useQrOperations = () => {
         if (res.status === 200) {
           await mutatePrefix(["/api/qrs", "/api/links"]);
 
+          const responseData = await res.json();
+
           toastWithUndo({
             id: "qr-archive-undo-toast",
             message: `Successfully ${archive ? "paused" : "unpaused"} QR!`,
@@ -188,6 +194,25 @@ export const useQrOperations = () => {
               });
             },
             duration: 5000,
+          });
+
+          const convertedQr = convertQrStorageDataToBuilder(responseData.qr);
+          const trackingParams = createQRTrackingParams(
+            convertedQr,
+            responseData.qr.id,
+          );
+          trackClientEvents({
+            event: EAnalyticEvents.QR_UPDATED,
+            params: {
+              event_category: "Authorized",
+              page_name: "profile",
+              email: user?.email,
+              ...trackingParams,
+              is_activated: !archive,
+              is_deactivated: archive,
+              is_deleted: false,
+            },
+            sessionId: user?.id,
           });
 
           return true;
@@ -219,6 +244,27 @@ export const useQrOperations = () => {
 
         if (res.status === 200) {
           await mutatePrefix(["/api/qrs", "/api/links"]);
+
+          const responseData = await res.json();
+          const convertedQr = convertQrStorageDataToBuilder(responseData.qr);
+          const trackingParams = createQRTrackingParams(
+            convertedQr,
+            responseData.qr.id,
+          );
+          trackClientEvents({
+            event: EAnalyticEvents.QR_UPDATED,
+            params: {
+              event_category: "Authorized",
+              page_name: "profile",
+              email: user?.email,
+              ...trackingParams,
+              is_activated: false,
+              is_deactivated: false,
+              is_deleted: true,
+            },
+            sessionId: user?.id,
+          });
+
           toast.success("Successfully deleted QR!");
           return true;
         } else {

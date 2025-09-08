@@ -6,6 +6,10 @@ export enum EAnalyticEvents {
   ELEMENT_CLICKED = "elementClicked",
   ELEMENT_OPENED = "elementOpened",
 
+  AUTH_ATTEMPT = "authAttempt",
+  AUTH_SUCCESS = "authSuccess",
+  AUTH_ERROR = "authError",
+
   SIGNUP_ATTEMPT = "signupAttempt",
   SIGNUP_SUCCESS = "signupSuccess",
 
