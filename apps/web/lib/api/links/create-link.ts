@@ -143,7 +143,7 @@ export async function createLink(link: ProcessedLinkProps) {
         partnerId: response.partnerId,
       });
 
-      Promise.allSettled([
+      await Promise.allSettled([
         // cache link in Redis
         linkCache.set({
           ...response,
@@ -154,6 +154,7 @@ export async function createLink(link: ProcessedLinkProps) {
 
         // record link in Tinybird
         recordLink(response),
+
         // Upload image to R2 and update the link with the uploaded image URL when
         // proxy is enabled and image is set and is not a hosted image URL
         ...(proxy && image && isNotHostedImage(image)
@@ -174,6 +175,7 @@ export async function createLink(link: ProcessedLinkProps) {
               }),
             ]
           : []),
+
         // delete public links after 30 mins
         !response.userId &&
           qstash.publishJSON({
@@ -184,6 +186,7 @@ export async function createLink(link: ProcessedLinkProps) {
               linkId: response.id,
             },
           }),
+
         // update links usage for workspace
         link.projectId &&
           updateLinksUsage({
