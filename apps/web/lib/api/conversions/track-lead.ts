@@ -29,12 +29,12 @@ type TrackLeadParams = z.input<typeof trackLeadRequestSchema> & {
 export const trackLead = async ({
   clickId,
   eventName,
-  eventQuantity,
   customerExternalId,
   customerName,
   customerEmail,
   customerAvatar,
   mode,
+  eventQuantity,
   metadata,
   rawBody,
   workspace,
@@ -83,6 +83,14 @@ export const trackLead = async ({
       nx: true,
     },
   );
+
+  const finalCustomerId = createId({ prefix: "cus_" });
+  const finalCustomerName =
+    customerName || customerEmail || generateRandomName();
+  const finalCustomerAvatar =
+    customerAvatar && !isStored(customerAvatar)
+      ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
+      : customerAvatar;
 
   // if this is the first time we're tracking this lead event for this customer
   // we can proceed with the lead tracking process
@@ -166,14 +174,6 @@ export const trackLead = async ({
             }))
         : basePayload;
     };
-
-    const finalCustomerId = createId({ prefix: "cus_" });
-    const finalCustomerName =
-      customerName || customerEmail || generateRandomName();
-    const finalCustomerAvatar =
-      customerAvatar && !isStored(customerAvatar)
-        ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
-        : customerAvatar;
 
     // if the customer doesn't exist in our MySQL DB yet, create it
     if (!customer) {
@@ -325,29 +325,15 @@ export const trackLead = async ({
     );
   }
 
-  // edge case (shouldn't happen): if the customer is not found
-  // and for some reason the externalCustomerId+EventName combo was cached on Redis
-  // throw an error
-  if (!customer) {
-    throw new DubApiError({
-      code: "not_found",
-      message: `Customer not found for externalId: ${customerExternalId}`,
-    });
-  }
-
-  const lead = trackLeadResponseSchema.parse({
+  return trackLeadResponseSchema.parse({
     click: {
       id: clickId,
     },
-    customer,
+    customer: customer ?? {
+      name: finalCustomerName,
+      email: customerEmail || null,
+      avatar: finalCustomerAvatar || null,
+      externalId: customerExternalId,
+    },
   });
-
-  return {
-    ...lead,
-    // for backwards compatibility – will remove soon
-    clickId,
-    customerName: customer.name,
-    customerEmail: customer.email,
-    customerAvatar: customer.avatar,
-  };
 };

@@ -16,10 +16,6 @@ const expectValidLeadResponse = ({
 }) => {
   expect(response.status).toEqual(200);
   expect(response.data).toStrictEqual({
-    clickId,
-    customerName: customer.name,
-    customerEmail: customer.email,
-    customerAvatar: customer.avatar,
     click: {
       id: clickId,
     },
