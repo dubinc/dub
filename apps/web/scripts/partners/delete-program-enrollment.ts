@@ -12,11 +12,6 @@ async function main() {
     },
     include: {
       links: true,
-      program: {
-        select: {
-          workspace: true,
-        },
-      },
     },
   });
 

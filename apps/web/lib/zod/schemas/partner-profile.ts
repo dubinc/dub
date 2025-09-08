@@ -84,9 +84,9 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   sales: true,
   saleAmount: true,
   comments: true,
+  couponCode: true,
 }).extend({
   createdAt: z.string().or(z.date()),
-  couponCode: z.string().nullable(),
 });
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
