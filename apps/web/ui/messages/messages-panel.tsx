@@ -33,6 +33,7 @@ export function MessagesPanel({
 }) {
   const { isMobile } = useMediaQuery();
 
+  const scrollRef = useRef<HTMLDivElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const selectionStartRef = useRef<number | null>(null);
   const [typedMessage, setTypedMessage] = useState("");
@@ -42,6 +43,7 @@ export function MessagesPanel({
 
     onSendMessage(typedMessage.trim());
     setTypedMessage("");
+    scrollRef.current?.scrollTo({ top: 0 });
   };
 
   const isMessageFromCurrentUser = (message: Message) =>
@@ -54,7 +56,10 @@ export function MessagesPanel({
   return (
     <div className="flex size-full flex-col">
       {messages ? (
-        <div className="scrollbar-hide flex grow flex-col-reverse overflow-y-auto">
+        <div
+          ref={scrollRef}
+          className="scrollbar-hide flex grow flex-col-reverse overflow-y-auto"
+        >
           <div className="flex flex-col items-stretch gap-5 p-6">
             {messages?.map((message, idx) => {
               const isNewDate =
