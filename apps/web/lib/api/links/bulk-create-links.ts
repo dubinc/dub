@@ -228,8 +228,10 @@ export async function bulkCreateLinks({
           programEnrollment: {
             select: {
               discount: {
-                select: {
-                  couponCodeTrackingEnabledAt: true,
+                where: {
+                  couponCodeTrackingEnabledAt: {
+                    not: null,
+                  },
                 },
               },
             },
@@ -237,7 +239,7 @@ export async function bulkCreateLinks({
         },
       });
 
-      Promise.allSettled([
+      await Promise.allSettled([
         propagateBulkLinkChanges({
           links: createdLinksData,
           skipRedisCache,
