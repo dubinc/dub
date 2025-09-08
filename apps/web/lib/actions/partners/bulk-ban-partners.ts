@@ -138,9 +138,7 @@ export const bulkBanPartnersAction = authActionClient
           ),
 
           // Expire links from cache
-          linkCache.deleteMany(
-            programEnrollments.flatMap(({ links }) => links),
-          ),
+          linkCache.deleteMany(links),
 
           // Enqueue coupon code delete jobs
           enqueueCouponCodeDeleteJobs(links),
