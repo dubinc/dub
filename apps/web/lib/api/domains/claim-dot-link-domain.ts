@@ -124,7 +124,6 @@ export async function claimDotLinkDomain({
       tags: undefined,
       userId: userId,
       projectId: workspace.id,
-      skipCouponCreation: true,
     }),
   ]);
 

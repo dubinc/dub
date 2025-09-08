@@ -56,7 +56,6 @@ async function main() {
         createdAt: domain.createdAt,
         projectId: domain.projectId,
         userId: domain.project?.users[0].userId,
-        skipCouponCreation: true,
       });
       console.log({ res });
     }),
