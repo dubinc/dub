@@ -1,18 +1,19 @@
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import { Combobox } from "@dub/ui";
+import { Combobox, ComboboxProps } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useMemo, useState } from "react";
 
-interface ProgramSelectorProps {
+type ProgramSelectorProps = {
   selectedProgramSlug: string | null;
   setSelectedProgramSlug: (programSlug: string) => void;
   disabled?: boolean;
-}
+} & Partial<ComboboxProps<false, any>>;
 
 export function ProgramSelector({
   selectedProgramSlug,
   setSelectedProgramSlug,
   disabled,
+  ...rest
 }: ProgramSelectorProps) {
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -58,6 +59,7 @@ export function ProgramSelector({
     <Combobox
       options={isLoading ? undefined : programOptions}
       setSelected={(option) => {
+        if (!option) return;
         setSelectedProgramSlug(option.value);
       }}
       selected={selectedOption}
@@ -76,6 +78,7 @@ export function ProgramSelector({
           "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
         ),
       }}
+      {...rest}
     >
       {selectedOption?.label}
     </Combobox>

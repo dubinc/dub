@@ -39,7 +39,7 @@ export function MessagesPanel({
   const [typedMessage, setTypedMessage] = useState("");
 
   const sendMessage = () => {
-    if (!typedMessage.trim()) return;
+    if (!messages || !typedMessage.trim()) return;
 
     onSendMessage(typedMessage.trim());
     setTypedMessage("");
@@ -213,7 +213,6 @@ export function MessagesPanel({
             autoFocus={!isMobile}
             className="placeholder:text-content-subtle block max-h-24 w-full resize-none border-none p-3 text-base focus:ring-0 sm:text-sm"
             placeholder={placeholder}
-            disabled={!messages}
             value={typedMessage}
             maxLength={MAX_MESSAGE_LENGTH}
             onChange={(e) => setTypedMessage(e.currentTarget.value)}

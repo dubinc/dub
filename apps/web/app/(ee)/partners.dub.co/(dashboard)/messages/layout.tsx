@@ -4,6 +4,7 @@ import { useProgramMessages } from "@/lib/swr/use-program-messages";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
+import { ProgramSelector } from "@/ui/partners/program-selector";
 import { Button, useRouterStuff } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { useParams, useRouter } from "next/navigation";
@@ -45,14 +46,20 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                   Messages
                 </h1>
               </div>
-              <Button
-                variant="secondary"
-                icon={<Pen2 className="size-4" />}
-                className="size-8 rounded-lg p-0"
-                onClick={() => {
-                  if (programSlug) router.push(`/messages?new=true`);
-                  else queryParams({ set: { new: "true" } });
-                }}
+              <ProgramSelector
+                selectedProgramSlug={programSlug ?? null}
+                setSelectedProgramSlug={(slug) =>
+                  router.push(`/messages/${slug}`)
+                }
+                trigger={
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    icon={<Pen2 className="size-4" />}
+                    className="size-8 rounded-lg p-0"
+                  />
+                }
+                matchTriggerWidth={false}
               />
             </div>
             <div className="scrollbar-hide grow overflow-y-auto">
@@ -89,16 +96,6 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                       can also start a conversation at any time.
                     </p>
                   </div>
-
-                  <Button
-                    variant="primary"
-                    className="mt-6 h-8 w-fit rounded-lg"
-                    text="Compose message"
-                    onClick={() => {
-                      if (programSlug) router.push(`/messages?new=true`);
-                      else queryParams({ set: { new: "true" } });
-                    }}
-                  />
                 </div>
               )}
             </div>

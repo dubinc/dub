@@ -6,6 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
+import { PartnerSelector } from "@/ui/partners/partner-selector";
 import { Button, useRouterStuff } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { useParams, useRouter } from "next/navigation";
@@ -59,15 +60,20 @@ function CapableLayout({ children }: { children: ReactNode }) {
                   Messages
                 </h1>
               </div>
-              <Button
-                variant="secondary"
-                icon={<Pen2 className="size-4" />}
-                className="size-8 rounded-lg p-0"
-                onClick={() => {
-                  if (partnerId)
-                    router.push(`/${workspaceSlug}/program/messages?new=true`);
-                  else queryParams({ set: { new: "true" } });
-                }}
+              <PartnerSelector
+                selectedPartnerId={partnerId ?? null}
+                setSelectedPartnerId={(id) =>
+                  router.push(`/${workspaceSlug}/program/messages/${id}`)
+                }
+                trigger={
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    icon={<Pen2 className="size-4" />}
+                    className="size-8 rounded-lg p-0"
+                  />
+                }
+                matchTriggerWidth={false}
               />
             </div>
             <div className="scrollbar-hide grow overflow-y-auto">
@@ -102,19 +108,6 @@ function CapableLayout({ children }: { children: ReactNode }) {
                       can also start a conversation at any time.
                     </p>
                   </div>
-
-                  <Button
-                    variant="primary"
-                    className="mt-6 h-8 w-fit rounded-lg"
-                    text="Compose message"
-                    onClick={() => {
-                      if (partnerId)
-                        router.push(
-                          `/${workspaceSlug}/program/messages?new=true`,
-                        );
-                      else queryParams({ set: { new: "true" } });
-                    }}
-                  />
                 </div>
               )}
             </div>
