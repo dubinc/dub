@@ -60,6 +60,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                   />
                 }
                 matchTriggerWidth={false}
+                optionClassName="sm:max-w-[320px]"
               />
             </div>
             <div className="scrollbar-hide grow overflow-y-auto">
