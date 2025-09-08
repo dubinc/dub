@@ -36,6 +36,8 @@ export async function getQrs(
   // For sorting by link fields, we need to handle it differently
   const needsLinkJoin = ["clicks", "lastClicked"].includes(actualSortBy);
 
+  const dbStartTime = performance.now();
+  
   const qrs = await prisma.qr.findMany({
     where: {
       ...(search && {
@@ -109,6 +111,19 @@ export async function getQrs(
         },
     take: pageSize,
     skip: (page - 1) * pageSize,
+  });
+
+  const dbEndTime = performance.now();
+  const dbExecutionTime = Math.round(dbEndTime - dbStartTime);
+  
+  console.log(`🗄️  Database Query Performance: ${dbExecutionTime}ms`);
+  console.log(`📋 Query details:`, {
+    userId,
+    search: search ? `"${search}"` : 'none',
+    sortBy: actualSortBy,
+    page,
+    pageSize,
+    resultsCount: qrs.length
   });
 
   return qrs;

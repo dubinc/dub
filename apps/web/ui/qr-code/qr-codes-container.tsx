@@ -38,7 +38,7 @@ export default function QrCodesContainer({
   const { qrs: clientQrs, isValidating } = useQrs({
     sortBy,
     showArchived: true,
-  });
+  }, {}, false, true);
 
   const qrs = clientQrs || initialQrs;
 

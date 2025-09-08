@@ -14,6 +14,7 @@ export default function useQrs(
   opts: z.infer<typeof partialQuerySchema> = {},
   swrOpts: SWRConfiguration = {},
   listenOnly: boolean = false,
+  noFirstLoad: boolean = false,
 ) {
   const { data: session } = useSession() as
     | {
@@ -59,7 +60,7 @@ export default function useQrs(
       dedupingInterval: 20000,
       revalidateOnFocus: false,
       keepPreviousData: true,
-      revalidateOnMount: !listenOnly,
+      revalidateOnMount: !listenOnly && !noFirstLoad,
       revalidateOnReconnect: !listenOnly,
       ...swrOpts,
     },
