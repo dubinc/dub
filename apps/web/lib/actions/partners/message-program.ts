@@ -2,7 +2,10 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import {
   MessageSchema,
   messageProgramSchema,
@@ -37,7 +40,19 @@ export const messageProgramAction = authPartnerActionClient
       },
     });
 
-    // TODO: [Messages] Send email to program owner(s) and track read status
+    waitUntil(
+      (async () => {
+        await qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-program`,
+          body: {
+            programId: enrollment.programId,
+            partnerId: partner.id,
+            lastMessageId: message.id,
+          },
+          delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
+        });
+      })(),
+    );
 
     return { message: MessageSchema.parse(message) };
   });

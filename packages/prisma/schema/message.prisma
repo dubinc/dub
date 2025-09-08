@@ -9,19 +9,31 @@ model Message {
 
   text          String @db.Text
 
-  emailId       String?
   readInApp     DateTime?
   readInEmail   DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  senderUser User @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+  program       Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partner       Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  senderUser    User @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
   senderPartner Partner? @relation("SenderPartner", fields: [senderPartnerId], references: [id], onDelete: Cascade)
+  emails        MessageEmail[]
 
-  @@index(programId)
-  @@index(partnerId)
+  @@index([programId, partnerId])
+  @@index([partnerId, programId])
   @@index(senderPartnerId)
   @@index(senderUserId)
+}
+
+model MessageEmail {
+  id String @id @default(cuid())
+  messageId String
+  emailId String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index(messageId)
+  @@index(emailId)
 }

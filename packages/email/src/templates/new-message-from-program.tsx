@@ -19,10 +19,6 @@ import { Footer } from "../components/footer";
 const MAX_DISPLAYED_MESSAGES = 3;
 
 export default function NewMessageFromProgram({
-  user = {
-    name: "Brendan Urie",
-    image: null,
-  },
   program = {
     name: "Acme",
     slug: "acme",
@@ -32,30 +28,22 @@ export default function NewMessageFromProgram({
     {
       text: "You are for sure eligible. We'll most likely make those changes within the next day or two. Stay tuned.",
       createdAt: new Date(Date.now() - 1000 * 60 * 5),
+      user: {
+        name: "Brendan Urie",
+        image: null,
+      },
     },
-    // {
-    //   text: "You're all set now!",
-    //   createdAt: new Date(),
-    // },
-    // {
-    //   text: "You're all set now!",
-    //   createdAt: new Date(),
-    // },
-    // {
-    //   text: "You're all set now!",
-    //   createdAt: new Date(),
-    // },
-    // {
-    //   text: "You're all set now!",
-    //   createdAt: new Date(),
-    // },
+    {
+      text: "You're all set now!",
+      createdAt: new Date(),
+      user: {
+        name: "Brendan Urie",
+        image: null,
+      },
+    },
   ],
   email = "panic@thedis.co",
 }: {
-  user: {
-    name: string;
-    image: string | null;
-  };
   program: {
     name: string;
     slug: string;
@@ -64,6 +52,10 @@ export default function NewMessageFromProgram({
   messages: {
     text: string;
     createdAt: Date;
+    user: {
+      name: string;
+      image: string | null;
+    };
   }[];
   email: string;
 }) {
@@ -109,16 +101,21 @@ export default function NewMessageFromProgram({
                 <Row className={idx > 0 ? "pt-3" : ""}>
                   <Column className="align-bottom">
                     <Img
-                      src={user.image || `${OG_AVATAR_URL}${user.name}`}
+                      src={
+                        message.user.image ||
+                        `${OG_AVATAR_URL}${message.user.name}`
+                      }
                       width="32"
                       height="32"
-                      alt={user.name}
+                      alt={message.user.name}
                       className="rounded-full"
                     />
                   </Column>
                   <Column className="w-full pl-2">
                     <Text className="my-0 text-[12px] font-medium text-neutral-500">
-                      <span className="text-neutral-700">{user.name}</span>
+                      <span className="text-neutral-700">
+                        {message.user.name}
+                      </span>
                       &nbsp;&nbsp;
                       {message.createdAt.toLocaleTimeString("en-US", {
                         hour: "numeric",

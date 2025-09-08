@@ -170,7 +170,6 @@ export function ProgramMessagesPartnerPageClient() {
                                   partnerId: partnerId,
                                   text: message,
 
-                                  emailId: null,
                                   readInApp: null,
                                   readInEmail: null,
                                   createdAt,

@@ -14,7 +14,6 @@ export const MessageSchema = z.object({
 
   text: z.string().min(1).max(MAX_MESSAGE_LENGTH),
 
-  emailId: z.string().nullable(),
   readInApp: z.date().nullable(),
   readInEmail: z.date().nullable(),
   createdAt: z.date(),
