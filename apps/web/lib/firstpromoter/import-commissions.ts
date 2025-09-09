@@ -226,7 +226,7 @@ async function createCommission({
   // e.g. during the transition period
   // since we don't have the Stripe invoiceId from Rewardful, we use the referral's Stripe customer ID
   // and check for commissions that were created with the same amount and within a +-1 hour window
-  const chargedAt = new Date(commission.amount);
+  const chargedAt = new Date(commission.created_at);
   const trackedCommission = await prisma.commission.findFirst({
     where: {
       programId: program.id,
