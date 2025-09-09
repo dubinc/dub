@@ -25,6 +25,8 @@ export const POST = withWorkspace(
       metadata,
     } = trackLeadRequestSchema
       .extend({
+        // we if clickId is undefined/nullish, we'll coerce into an empty string
+        clickId: z.string().nullish(),
         // add backwards compatibility
         customerExternalId: z.string().nullish(),
         externalId: z.string().nullish(),
@@ -42,7 +44,7 @@ export const POST = withWorkspace(
     }
 
     const response = await trackLead({
-      clickId,
+      clickId: clickId ?? "",
       eventName,
       eventQuantity,
       customerExternalId,
