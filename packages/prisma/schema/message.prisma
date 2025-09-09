@@ -18,22 +18,10 @@ model Message {
   partner       Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   senderUser    User @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
   senderPartner Partner? @relation("SenderPartner", fields: [senderPartnerId], references: [id], onDelete: Cascade)
-  emails        MessageEmail[]
+  emails        NotificationEmail[]
 
   @@index([programId, partnerId])
   @@index([partnerId, programId])
   @@index(senderPartnerId)
   @@index(senderUserId)
-}
-
-model MessageEmail {
-  id String @id @default(cuid())
-  messageId String
-  emailId String
-  createdAt DateTime @default(now())
-
-  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-
-  @@index(messageId)
-  @@index(emailId)
 }

@@ -4,6 +4,7 @@ import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import NewMessageFromPartner from "@dub/email/templates/new-message-from-partner";
 import { prisma } from "@dub/prisma";
+import { NotificationEmailType } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { subDays } from "date-fns";
 import { z } from "zod";
@@ -141,9 +142,13 @@ export async function POST(req: Request) {
         `No data received from sending message emails to program ${programId} users`,
       );
 
-    await prisma.messageEmail.createMany({
+    await prisma.notificationEmail.createMany({
       data: unreadMessages.flatMap((message) =>
-        data.data.map(({ id }) => ({ messageId: message.id, emailId: id })),
+        data.data.map(({ id }) => ({
+          type: NotificationEmailType.Message,
+          emailId: id,
+          messageId: message.id,
+        })),
       ),
     });
 
